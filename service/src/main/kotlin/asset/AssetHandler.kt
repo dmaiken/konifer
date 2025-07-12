@@ -8,16 +8,16 @@ import asset.store.ObjectStore
 import image.ImageProcessor
 import image.InvalidImageException
 import image.model.RequestedImageAttributes
+import io.asset.AssetStreamContainer
 import io.asset.ImageAttributeAdapter
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
 import io.path.PathAdapter
 import io.path.PathModifierOption
 import io.path.configuration.PathConfiguration
 import io.path.configuration.PathConfigurationService
-import java.io.OutputStream
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 
 class AssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -32,14 +32,14 @@ class AssetHandler(
 
     suspend fun storeNewAsset(
         request: StoreAssetRequest,
-        content: ByteArray,
+        container: AssetStreamContainer,
         uriPath: String,
     ): AssetAndLocation {
-        val mimeType = deriveValidMimeType(content)
+        val mimeType = deriveValidMimeType(container.readNBytes(1024, true))
         val pathConfiguration = validatePathConfiguration(uriPath, mimeType)
         val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        val preProcessed = imageProcessor.preprocess(content, mimeType, pathConfiguration)
-        val persistResult = objectStore.persist(PipedInputStream(preProcessed.output))
+        val preProcessed = imageProcessor.preprocess(container, mimeType, pathConfiguration)
+        val persistResult = objectStore.persist(preProcessed.channel)
         val assetAndVariants =
             assetRepository.store(
                 StoreAssetDto(
@@ -71,6 +71,7 @@ class AssetHandler(
             return null
         }
         return if (assetAndVariants.variants.isEmpty()) {
+            logger.info("Generating variant of asset with path: $uriPath and entryId: $entryId")
             cacheVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
@@ -79,6 +80,7 @@ class AssetHandler(
                 objectStore.generateObjectUrl(it.variants.first())
             }
         } else {
+            logger.info("Variant found for asset with path: $uriPath and entryId: $entryId")
             objectStore.generateObjectUrl(assetAndVariants.variants.first())
         }
     }
@@ -113,7 +115,7 @@ class AssetHandler(
     suspend fun fetchAssetContent(
         bucket: String,
         storeKey: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): Long {
         return objectStore.fetch(bucket, storeKey, stream)
             .takeIf { it.found }?.contentLength
@@ -149,6 +151,7 @@ class AssetHandler(
     private fun deriveValidMimeType(content: ByteArray): String {
         val mimeType = mimeTypeDetector.detect(content)
         if (!validate(mimeType)) {
+            logger.error("Not an image type: $mimeType")
             throw InvalidImageException("Not an image type")
         }
         return mimeType
@@ -182,8 +185,8 @@ class AssetHandler(
             return null
         }
         val originalVariant = original.getOriginalVariant()
-        val outputStream = PipedOutputStream()
-        val found = objectStore.fetch(originalVariant.objectStoreBucket, originalVariant.objectStoreKey, outputStream)
+        val channel = ByteChannel(autoFlush = true)
+        val found = objectStore.fetch(originalVariant.objectStoreBucket, originalVariant.objectStoreKey, channel)
         if (!found.found) {
             throw IllegalStateException(
                 "Cannot locate object with bucket: ${originalVariant.objectStoreBucket} key: ${originalVariant.objectStoreKey}",
@@ -191,11 +194,11 @@ class AssetHandler(
         }
         val newVariant =
             imageProcessor.generateFrom(
-                from = PipedInputStream(outputStream),
+                from = AssetStreamContainer(channel),
                 requestedAttributes = requestedAttributes,
                 generatedFromAttributes = originalVariant.attributes,
             )
-        val persistResult = objectStore.persist(PipedInputStream(newVariant.output))
+        val persistResult = objectStore.persist(newVariant.channel)
 
         return assetRepository.storeVariant(original.asset.path, original.asset.entryId, persistResult, newVariant.attributes)
     }

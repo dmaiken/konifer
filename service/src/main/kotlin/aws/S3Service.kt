@@ -16,8 +16,12 @@ import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromInputStream
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
 import io.ktor.util.logging.KtorSimpleLogger
-import java.io.InputStream
-import java.io.OutputStream
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.jvm.javaio.toInputStream
+import io.ktor.utils.io.jvm.javaio.toOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 class S3Service(
@@ -30,46 +34,56 @@ class S3Service(
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override suspend fun persist(asset: InputStream): PersistResult {
-        val key = UUID.randomUUID().toString()
-        s3Client.putObject(
-            input =
-                PutObjectRequest {
-                    bucket = BUCKET
-                    this.key = key
-                    body = ByteStream.fromInputStream(asset)
-                },
-        )
+    override suspend fun persist(
+        asset: ByteChannel,
+        contentLength: Long?,
+    ): PersistResult =
+        withContext(Dispatchers.IO) {
+            val key = UUID.randomUUID().toString()
+            s3Client.putObject(
+                input =
+                    PutObjectRequest {
+                        bucket = BUCKET
+                        this.key = key
+                        // Content type is needed in order for the SDK to calculate a valid checksum
+                        body = ByteStream.fromInputStream(asset.toInputStream(), contentLength)
+                    },
+            )
 
-        return PersistResult(
-            key = key,
-            bucket = BUCKET,
-        )
-    }
+            PersistResult(
+                key = key,
+                bucket = BUCKET,
+            )
+        }
 
     override suspend fun fetch(
         bucket: String,
         key: String,
-        stream: OutputStream,
-    ): FetchResult {
-        return try {
-            s3Client.getObject(
-                input =
-                    GetObjectRequest {
-                        this.bucket = bucket
-                        this.key = key
-                    },
-            ) {
-                it.body?.let { body ->
-                    body.writeToOutputStream(stream)
-                    FetchResult.found(requireNotNull(it.contentLength))
-                } ?: FetchResult.notFound()
+        stream: ByteWriteChannel,
+    ): FetchResult =
+        withContext(Dispatchers.IO) {
+            try {
+                s3Client.getObject(
+                    input =
+                        GetObjectRequest {
+                            this.bucket = bucket
+                            this.key = key
+                        },
+                ) {
+                    it.body?.let { body ->
+                        body.writeToOutputStream(stream.toOutputStream())
+                        FetchResult.found(requireNotNull(it.contentLength))
+                    } ?: FetchResult.notFound().also {
+                        stream.flushAndClose()
+                    }
+                }
+            } catch (e: NoSuchKey) {
+                logger.info("Object with key $key in bucket $bucket does not exist", e)
+                FetchResult.notFound().also {
+                    stream.flushAndClose()
+                }
             }
-        } catch (e: NoSuchKey) {
-            logger.info("Object with key $key in bucket $bucket does not exist", e)
-            FetchResult.notFound()
         }
-    }
 
     override suspend fun delete(
         bucket: String,

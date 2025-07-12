@@ -34,17 +34,16 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
             storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
             }
             client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.NotFound
             }
             client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
@@ -57,21 +56,20 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
             val firstAsset = storeAsset(client, image, request, path = "profile")
             val secondAsset = storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>().apply {
                     entryId shouldBe secondAsset?.entryId
                 }
             }
             client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>().apply {
                     entryId shouldBe firstAsset?.entryId
@@ -86,7 +84,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -94,13 +91,13 @@ class DeleteAssetTest {
             val secondAsset = storeAsset(client, image, request, path = "profile")
 
             client.delete("/assets/profile?entryId=${firstAsset!!.entryId}").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>().apply {
                     entryId shouldBe secondAsset?.entryId
                 }
             }
-            client.get("/assets/profile?format=metadata&entryId=${firstAsset.entryId}").apply {
+            client.get("/assets/profile?return=metadata&entryId=${firstAsset.entryId}").apply {
                 status shouldBe HttpStatusCode.NotFound
             }
         }
@@ -126,7 +123,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -151,7 +147,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )

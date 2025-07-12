@@ -22,7 +22,6 @@ class AssetLifecycleTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -34,7 +33,7 @@ class AssetLifecycleTest {
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>() shouldBe storeAssetResponse
             }
@@ -47,7 +46,6 @@ class AssetLifecycleTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -57,7 +55,7 @@ class AssetLifecycleTest {
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>().apply {
                     entryIds[1] shouldBe entryId

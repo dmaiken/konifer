@@ -1,8 +1,10 @@
 package asset.store
 
 import asset.variant.AssetVariant
-import java.io.InputStream
-import java.io.OutputStream
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.toByteArray
+import io.ktor.utils.io.writeFully
 import java.util.UUID
 
 class InMemoryObjectStore() : ObjectStore {
@@ -13,9 +15,12 @@ class InMemoryObjectStore() : ObjectStore {
 
     private val store = mutableMapOf<String, ByteArray>()
 
-    override suspend fun persist(asset: InputStream): PersistResult {
+    override suspend fun persist(
+        asset: ByteChannel,
+        contentLength: Long?,
+    ): PersistResult {
         val key = UUID.randomUUID().toString()
-        store.put(key, asset.readAllBytes())
+        store.put(key, asset.toByteArray())
 
         return PersistResult(
             key = key,
@@ -26,24 +31,23 @@ class InMemoryObjectStore() : ObjectStore {
     override suspend fun fetch(
         bucket: String,
         key: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): FetchResult {
         if (bucket != BUCKET) {
-            return FetchResult(
-                found = false,
-                contentLength = 0,
-            )
+            return FetchResult.notFound().also {
+                stream.flushAndClose()
+            }
         }
         return store[key]?.let {
-            stream.write(it)
+            stream.writeFully(it)
+            stream.flushAndClose()
             FetchResult(
                 found = true,
                 contentLength = it.size.toLong(),
             )
-        } ?: FetchResult(
-            found = false,
-            contentLength = 0,
-        )
+        } ?: FetchResult.notFound().also {
+            stream.flushAndClose()
+        }
     }
 
     override suspend fun delete(

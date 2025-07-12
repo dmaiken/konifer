@@ -1,16 +1,19 @@
 package asset.store
 
 import asset.variant.AssetVariant
-import java.io.InputStream
-import java.io.OutputStream
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
 
 interface ObjectStore {
-    suspend fun persist(asset: InputStream): PersistResult
+    suspend fun persist(
+        asset: ByteChannel,
+        contentLength: Long? = null,
+    ): PersistResult
 
     suspend fun fetch(
         bucket: String,
         key: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): FetchResult
 
     /**

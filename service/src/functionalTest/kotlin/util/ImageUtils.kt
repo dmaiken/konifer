@@ -2,6 +2,7 @@ package util
 
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
 
 /**
  * Intentionally not using VIPS, so I can validate the image using a different library.

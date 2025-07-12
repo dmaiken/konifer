@@ -8,10 +8,16 @@ import image.model.ImageFormat
 import image.model.PreProcessingProperties
 import image.model.ProcessedImage
 import image.model.RequestedImageAttributes
+import io.asset.AssetStreamContainer
+import io.image.ByteChannelOutputStream
+import io.image.VImageFactory
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.writeFully
 import io.path.configuration.PathConfiguration
-import java.io.InputStream
-import java.io.PipedOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlin.math.min
 
 interface ImageProcessor {
@@ -20,13 +26,13 @@ interface ImageProcessor {
      * since they reflect any changes performed on the image.
      */
     suspend fun preprocess(
-        image: ByteArray,
+        container: AssetStreamContainer,
         mimeType: String,
         pathConfiguration: PathConfiguration,
     ): ProcessedImage
 
     suspend fun generateFrom(
-        from: InputStream,
+        from: AssetStreamContainer,
         requestedAttributes: RequestedImageAttributes,
         generatedFromAttributes: ImageVariantAttributes,
     ): ProcessedImage
@@ -36,82 +42,93 @@ class VipsImageProcessor() : ImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun preprocess(
-        image: ByteArray,
+        container: AssetStreamContainer,
         mimeType: String,
         pathConfiguration: PathConfiguration,
-    ): ProcessedImage {
-        var attributes: ImageAttributes? = null
-        val resizedStream = PipedOutputStream()
-        val preProcessingProperties =
-            pathConfiguration.imageProperties.preProcessing
-        Vips.run { arena ->
-            val sourceImage = VImage.newFromBytes(arena, image)
-            if (!preProcessingProperties.enabled) {
-                attributes =
-                    ImageAttributes(
-                        height = sourceImage.height,
-                        width = sourceImage.width,
-                        mimeType = mimeType,
-                    )
-                resizedStream.write(image)
-                return@run
-            }
+    ): ProcessedImage =
+        withContext(Dispatchers.IO) {
+            var attributes: ImageAttributes? = null
+            val preprocessedChannel = ByteChannel(autoFlush = true)
+            val outputStream = ByteChannelOutputStream(preprocessedChannel)
+            val preProcessingProperties =
+                pathConfiguration.imageProperties.preProcessing
+            Vips.run { arena ->
+                runBlocking {
+                    val sourceImage = VImageFactory.newFromContainer(arena, container)
+                    if (!preProcessingProperties.enabled) {
+                        attributes =
+                            ImageAttributes(
+                                height = sourceImage.height,
+                                width = sourceImage.width,
+                                mimeType = mimeType,
+                            )
+                        preprocessedChannel.writeFully(container.readAll())
+                        return@runBlocking
+                    }
 
-            val resized =
-                scale(
-                    image = sourceImage,
-                    width = preProcessingProperties.maxWidth,
-                    height = preProcessingProperties.maxHeight,
-                )
-            val newMimeType = determineMimeType(mimeType, preProcessingProperties)
-            resized.writeToStream(resizedStream, ".${ImageFormat.fromMimeType(newMimeType).extension}")
-            attributes =
-                ImageAttributes(
-                    height = resized.height,
-                    width = resized.width,
-                    mimeType = newMimeType,
-                )
+                    val resized =
+                        scale(
+                            image = sourceImage,
+                            width = preProcessingProperties.maxWidth,
+                            height = preProcessingProperties.maxHeight,
+                        )
+                    val newMimeType = determineMimeType(mimeType, preProcessingProperties)
+                    resized.writeToStream(outputStream, ".${ImageFormat.fromMimeType(newMimeType).extension}")
+                    attributes =
+                        ImageAttributes(
+                            height = resized.height,
+                            width = resized.width,
+                            mimeType = newMimeType,
+                        )
+                }
+            }
+            ProcessedImage(
+                channel =
+                    preprocessedChannel.also {
+                        outputStream.close() // Closes the ByteChannel as well
+                    },
+                attributes = attributes ?: throw IllegalStateException(),
+            )
         }
-        return ProcessedImage(
-            output = resizedStream,
-            attributes = attributes ?: throw IllegalStateException(),
-        )
-    }
 
     override suspend fun generateFrom(
-        from: InputStream,
+        from: AssetStreamContainer,
         requestedAttributes: RequestedImageAttributes,
         generatedFromAttributes: ImageVariantAttributes,
-    ): ProcessedImage {
-        var attributes: ImageAttributes? = null
-        val output = PipedOutputStream()
-        Vips.run { arena ->
-            val image = VImage.newFromStream(arena, from)
-            // Determine if we need to downscale or upscale
-            val resized =
-                scale(
-                    image = image,
-                    width = requestedAttributes.width,
-                    height = requestedAttributes.height,
-                )
-            val mimeType = requestedAttributes.mimeType ?: generatedFromAttributes.mimeType
-            val imageFormat = ImageFormat.fromMimeType(mimeType)
+    ): ProcessedImage =
+        withContext(Dispatchers.IO) {
+            var attributes: ImageAttributes? = null
+            val outputChannel = ByteChannel(autoFlush = true)
+            Vips.run { arena ->
+                runBlocking {
+                    val image = VImageFactory.newFromContainer(arena, from)
+                    // Determine if we need to downscale or upscale
+                    val resized =
+                        scale(
+                            image = image,
+                            width = requestedAttributes.width,
+                            height = requestedAttributes.height,
+                        )
+                    val mimeType = requestedAttributes.mimeType ?: generatedFromAttributes.mimeType
+                    val imageFormat = ImageFormat.fromMimeType(mimeType)
 
-            resized.writeToStream(output, ".${imageFormat.extension}")
+                    val outputStream = ByteChannelOutputStream(outputChannel)
+                    resized.writeToStream(outputStream, ".${imageFormat.extension}")
 
-            attributes =
-                ImageAttributes(
-                    width = resized.width,
-                    height = resized.height,
-                    mimeType = mimeType,
-                )
+                    attributes =
+                        ImageAttributes(
+                            width = resized.width,
+                            height = resized.height,
+                            mimeType = mimeType,
+                        )
+                }
+            }
+
+            ProcessedImage(
+                channel = outputChannel,
+                attributes = attributes ?: throw IllegalStateException(),
+            )
         }
-
-        return ProcessedImage(
-            output = output,
-            attributes = attributes ?: throw IllegalStateException(),
-        )
-    }
 
     /**
      * Scales the image to fit within the given max width and height. Height or width may be smaller based on the

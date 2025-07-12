@@ -1,9 +1,9 @@
 package image.model
 
-import java.io.PipedOutputStream
+import io.ktor.utils.io.ByteChannel
 
 data class ProcessedImage(
-    val output: PipedOutputStream,
+    val channel: ByteChannel,
     val attributes: ImageAttributes,
 )
 

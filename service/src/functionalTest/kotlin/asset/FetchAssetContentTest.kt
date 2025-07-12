@@ -19,7 +19,7 @@ class FetchAssetContentTest {
     fun `fetching asset content that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}?format=content").apply {
+            client.get("/assets/${UUID.randomUUID()}?return=content").apply {
                 status shouldBe HttpStatusCode.Companion.NotFound
             }
         }
@@ -32,13 +32,12 @@ class FetchAssetContentTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
             storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile?format=content").apply {
+            client.get("/assets/profile?return=content").apply {
                 status shouldBe HttpStatusCode.Companion.OK
                 contentType().toString() shouldBe "image/png"
                 val imageBytes = bodyAsBytes()

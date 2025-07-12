@@ -21,7 +21,6 @@ class FetchAssetInfoTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -32,14 +31,14 @@ class FetchAssetInfoTest {
                 }
             }
             entryIds shouldHaveSize 2
-            client.get("/assets/profile?format=metadata").apply {
+            client.get("/assets/profile?return=metadata").apply {
                 status shouldBe HttpStatusCode.OK
                 body<AssetResponse>().apply {
                     entryIds[1] shouldBe entryId
                 }
             }
 
-            client.get("/assets/profile?format=metadata&all=true").apply {
+            client.get("/assets/profile?return=metadata&all=true").apply {
                 status shouldBe HttpStatusCode.OK
                 body<List<AssetResponse>>().apply {
                     size shouldBe 2
@@ -53,7 +52,7 @@ class FetchAssetInfoTest {
     fun `fetching info of asset that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}?format=metadata").apply {
+            client.get("/assets/${UUID.randomUUID()}?return=metadata").apply {
                 status shouldBe HttpStatusCode.NotFound
             }
         }

@@ -1,6 +1,7 @@
 package asset
 
 import asset.model.StoreAssetRequest
+import io.asset.AssetStreamContainer
 import io.asset.ContentParameters.ALL
 import io.asset.ContentParameters.RETURN
 import io.getEntryId
@@ -15,14 +16,15 @@ import io.ktor.server.plugins.origin
 import io.ktor.server.request.path
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondOutputStream
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.toByteArray
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.copyTo
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
@@ -67,7 +69,7 @@ fun Application.configureAssetRouting() {
                 logger.info("Navigating to asset content with path: $route")
                 assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId, call.request.queryParameters)?.let { asset ->
                     logger.info("Found asset content with path: $route")
-                    call.respondOutputStream(
+                    call.respondBytesWriter(
                         contentType = ContentType.parse(asset.getOriginalVariant().attributes.mimeType),
                         status = HttpStatusCode.OK,
                     ) {
@@ -112,7 +114,7 @@ suspend fun createNewAsset(
     assetHandler: AssetHandler,
 ) {
     var assetData: StoreAssetRequest? = null
-    var assetContent: ByteArray? = null
+    var assetContent: ByteChannel? = null
     val multipart = call.receiveMultipart()
     multipart.forEachPart { part ->
         when (part) {
@@ -123,7 +125,11 @@ suspend fun createNewAsset(
             }
 
             is PartData.FileItem -> {
-                assetContent = part.provider().toByteArray()
+                assetContent =
+                    ByteChannel().also {
+                        part.provider().copyTo(it)
+                    }
+                assetContent.close()
             }
 
             else -> {}
@@ -139,7 +145,7 @@ suspend fun createNewAsset(
     val asset =
         assetHandler.storeNewAsset(
             request = checkNotNull(assetData),
-            content = checkNotNull(assetContent),
+            container = AssetStreamContainer(checkNotNull(assetContent)),
             uriPath = call.request.path().removePrefix(ASSET_PATH_PREFIX),
         )
     logger.info("Created asset under path: ${asset.locationPath}")

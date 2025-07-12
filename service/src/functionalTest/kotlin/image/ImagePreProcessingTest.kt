@@ -61,7 +61,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -109,7 +108,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -162,7 +160,6 @@ class ImagePreProcessingTest {
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
-                fileName = "filename.png",
                 type = "image/png",
                 alt = "an image",
             )
@@ -213,7 +210,6 @@ class ImagePreProcessingTest {
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
-                fileName = "filename.png",
                 type = "image/png",
                 alt = "an image",
             )
@@ -269,7 +265,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )

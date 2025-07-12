@@ -19,9 +19,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.fullPath
+import io.ktor.http.path
 import kotlinx.serialization.json.Json
 
 suspend fun storeAsset(
@@ -74,17 +76,26 @@ suspend fun fetchAsset(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
+    height: Int? = null,
+    width: Int? = null,
 ): ByteArray {
+    val urlBuilder = URLBuilder()
+    urlBuilder.path("/assets/$path")
+    if (entryId != null) {
+        urlBuilder.parameters.append("entryId", entryId.toString())
+    }
+    if (height != null) {
+        urlBuilder.parameters.append("h", height.toString())
+    }
+    if (width != null) {
+        urlBuilder.parameters.append("w", height.toString())
+    }
+    val url = urlBuilder.build()
+    url.fullPath
     val fetchResponse =
-        if (entryId != null) {
-            "/assets/$path?entryId=$entryId"
-        } else {
-            "/assets/$path"
-        }.let {
-            client.get("/assets/$path/").apply {
-                status shouldBe HttpStatusCode.TemporaryRedirect
-                headers["Location"] shouldContain "http://"
-            }
+        client.get(url.fullPath).apply {
+            status shouldBe HttpStatusCode.TemporaryRedirect
+            headers["Location"] shouldContain "http://"
         }
     val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
     val storeResponse = client.get(location)
@@ -100,11 +111,11 @@ suspend fun fetchAssetInfo(
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? {
     return if (entryId != null) {
-        "/assets/$path?format=metadata&entryId=$entryId"
+        "/assets/$path?return=metadata&entryId=$entryId"
     } else {
-        "/assets/$path?format=metadata"
+        "/assets/$path?return=metadata"
     }.let {
-        val response = client.get("/assets/$path?format=metadata")
+        val response = client.get("/assets/$path?return=metadata")
         response.status shouldBe expectedStatus
 
         if (response.status == HttpStatusCode.NotFound) {
