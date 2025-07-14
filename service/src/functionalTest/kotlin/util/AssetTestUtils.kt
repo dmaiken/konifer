@@ -3,9 +3,11 @@ package util
 import BaseTestcontainerTest.Companion.BOUNDARY
 import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
+import io.APP_CACHE_STATUS
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -78,6 +80,8 @@ suspend fun fetchAsset(
     entryId: Long? = null,
     height: Int? = null,
     width: Int? = null,
+    mimeType: String? = null,
+    expectCacheHit: Boolean? = null,
 ): ByteArray {
     val urlBuilder = URLBuilder()
     urlBuilder.path("/assets/$path")
@@ -88,7 +92,10 @@ suspend fun fetchAsset(
         urlBuilder.parameters.append("h", height.toString())
     }
     if (width != null) {
-        urlBuilder.parameters.append("w", height.toString())
+        urlBuilder.parameters.append("w", width.toString())
+    }
+    if (mimeType != null) {
+        urlBuilder.parameters.append("mimeType", mimeType)
     }
     val url = urlBuilder.build()
     url.fullPath
@@ -96,6 +103,13 @@ suspend fun fetchAsset(
         client.get(url.fullPath).apply {
             status shouldBe HttpStatusCode.TemporaryRedirect
             headers["Location"] shouldContain "http://"
+
+            if (expectCacheHit == true) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
+            }
+            if (expectCacheHit == false) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
+            }
         }
     val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
     val storeResponse = client.get(location)

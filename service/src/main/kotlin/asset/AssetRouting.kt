@@ -4,6 +4,7 @@ import asset.model.StoreAssetRequest
 import io.asset.AssetStreamContainer
 import io.asset.ContentParameters.ALL
 import io.asset.ContentParameters.RETURN
+import io.getAppStatusCacheHeader
 import io.getEntryId
 import io.getPathModifierOption
 import io.ktor.http.ContentType
@@ -59,23 +60,29 @@ fun Application.configureAssetRouting() {
                 }
             } else if (returnFormat == AssetReturnFormat.REDIRECT) {
                 logger.info("Navigating to asset with path: $route")
-                assetHandler.fetchAssetByPath(route, suppliedEntryId, call.request.queryParameters)?.let { url ->
-                    logger.info("Found asset with url: $url and route: $route")
-                    call.response.headers.append(HttpHeaders.Location, url)
+                assetHandler.fetchAssetByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
+                    logger.info("Found asset with response: $response and route: $route")
+                    call.response.headers.append(HttpHeaders.Location, response.first)
+                    getAppStatusCacheHeader(response.second).let {
+                        call.response.headers.append(it.first, it.second)
+                    }
                     call.respond(HttpStatusCode.TemporaryRedirect)
                 } ?: call.respond(HttpStatusCode.NotFound)
             } else {
                 // Content
                 logger.info("Navigating to asset content with path: $route")
-                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId, call.request.queryParameters)?.let { asset ->
+                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
                     logger.info("Found asset content with path: $route")
+                    getAppStatusCacheHeader(response.second).let {
+                        call.response.headers.append(it.first, it.second)
+                    }
                     call.respondBytesWriter(
-                        contentType = ContentType.parse(asset.getOriginalVariant().attributes.mimeType),
+                        contentType = ContentType.parse(response.first.variants.first().attributes.mimeType),
                         status = HttpStatusCode.OK,
                     ) {
                         assetHandler.fetchAssetContent(
-                            asset.getOriginalVariant().objectStoreBucket,
-                            asset.getOriginalVariant().objectStoreKey,
+                            response.first.variants.first().objectStoreBucket,
+                            response.first.variants.first().objectStoreKey,
                             this,
                         )
                     }

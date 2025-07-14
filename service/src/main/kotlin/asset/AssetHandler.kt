@@ -61,10 +61,24 @@ class AssetHandler(
         uriPath: String,
         entryId: Long?,
         parameters: Parameters,
-    ): String? {
-        val requestedAttributes = imageAttributeAdapter.fromParameters(parameters)
+    ): Pair<String, Boolean>? {
+        val assetAndCacheStatus = fetchAssetMetadataByPath(uriPath, entryId, parameters)
+
+        if (assetAndCacheStatus == null) {
+            return null
+        }
+
+        return Pair(objectStore.generateObjectUrl(assetAndCacheStatus.first.variants.first()), assetAndCacheStatus.second)
+    }
+
+    suspend fun fetchAssetMetadataByPath(
+        uriPath: String,
+        entryId: Long?,
+        parameters: Parameters,
+    ): Pair<AssetAndVariants, Boolean>? {
         val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        logger.info("Fetching asset by path: $treePath")
+        val requestedAttributes = imageAttributeAdapter.fromParameters(parameters)
+        logger.info("Fetching asset info by path: $treePath with attributes: $requestedAttributes")
 
         val assetAndVariants = assetRepository.fetchByPath(treePath, entryId, requestedAttributes)
         if (assetAndVariants == null) {
@@ -72,29 +86,17 @@ class AssetHandler(
         }
         return if (assetAndVariants.variants.isEmpty()) {
             logger.info("Generating variant of asset with path: $uriPath and entryId: $entryId")
-            cacheVariant(
+            return cacheVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
                 requestedAttributes = requestedAttributes,
             )?.let {
-                objectStore.generateObjectUrl(it.variants.first())
+                Pair(it, false)
             }
         } else {
             logger.info("Variant found for asset with path: $uriPath and entryId: $entryId")
-            objectStore.generateObjectUrl(assetAndVariants.variants.first())
+            Pair(assetAndVariants, true)
         }
-    }
-
-    suspend fun fetchAssetMetadataByPath(
-        uriPath: String,
-        entryId: Long?,
-        parameters: Parameters,
-    ): AssetAndVariants? {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        val imageAttributes = imageAttributeAdapter.fromParameters(parameters)
-        logger.info("Fetching asset info by path: $treePath with attributes: $imageAttributes")
-
-        return assetRepository.fetchByPath(treePath, entryId, imageAttributes)
     }
 
     suspend fun fetchAssetMetadataByPath(

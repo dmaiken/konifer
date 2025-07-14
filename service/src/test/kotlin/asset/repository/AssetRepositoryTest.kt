@@ -4,14 +4,18 @@ import asset.handler.StoreAssetDto
 import asset.model.StoreAssetRequest
 import asset.store.PersistResult
 import image.model.ImageAttributes
+import image.model.RequestedImageAttributes
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
@@ -19,6 +23,63 @@ abstract class AssetRepositoryTest {
     abstract fun createRepository(): AssetRepository
 
     val repository = createRepository()
+
+    companion object {
+        @JvmStatic
+        fun requestVariantSource() =
+            listOf(
+                arguments(
+                    named(
+                        "only height",
+                        RequestedImageAttributes(
+                            height = 10,
+                            width = null,
+                            mimeType = null,
+                        ),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "only width",
+                        RequestedImageAttributes(
+                            height = null,
+                            width = 10,
+                            mimeType = null,
+                        ),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "height and width but only one matches",
+                        RequestedImageAttributes(
+                            height = 10,
+                            width = 5,
+                            mimeType = null,
+                        ),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "height and width but only one matches with mimeType",
+                        RequestedImageAttributes(
+                            height = 10,
+                            width = 5,
+                            mimeType = "image/png",
+                        ),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "exact match",
+                        RequestedImageAttributes(
+                            height = 10,
+                            width = 10,
+                            mimeType = "image/png",
+                        ),
+                    ),
+                ),
+            )
+    }
 
     @Test
     fun `can store and fetch an asset`() =
@@ -93,6 +154,38 @@ abstract class AssetRepositoryTest {
             val dto = createAssetDto("root.users.123")
             repository.store(dto)
             repository.fetchByPath("root.users.123", entryId = 1, requestedImageAttributes = null) shouldBe null
+        }
+
+    @ParameterizedTest
+    @MethodSource("requestVariantSource")
+    fun `fetchByPath returns variant based on requested attributes`(requested: RequestedImageAttributes) =
+        runTest {
+            val dto = createAssetDto("root.users.123")
+            val assetAndVariants = repository.store(dto)
+            val persistedVariant =
+                repository.storeVariant(
+                    treePath = assetAndVariants.asset.path,
+                    entryId = assetAndVariants.asset.entryId,
+                    persistResult =
+                        PersistResult(
+                            key = UUID.randomUUID().toString(),
+                            bucket = UUID.randomUUID().toString(),
+                        ),
+                    imageAttributes =
+                        ImageAttributes(
+                            height = 10,
+                            width = 10,
+                            mimeType = "image/png",
+                        ),
+                )
+
+            val fetchedVariant =
+                repository.fetchByPath(
+                    treePath = assetAndVariants.asset.path,
+                    entryId = assetAndVariants.asset.entryId,
+                    requestedImageAttributes = requested,
+                )
+            fetchedVariant shouldBe persistedVariant
         }
 
     @Test
@@ -311,7 +404,7 @@ abstract class AssetRepositoryTest {
                 )
             newVariant.asset shouldBe persistedAssetAndVariants.asset
             newVariant.variants shouldHaveSize 1
-            newVariant.variants.first().apply {
+            newVariant.variants.first { !it.isOriginalVariant }.apply {
                 attributes.height shouldBe imageAttributes.height
                 attributes.width shouldBe imageAttributes.width
                 attributes.mimeType shouldBe imageAttributes.mimeType

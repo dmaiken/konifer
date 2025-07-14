@@ -14,10 +14,13 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record
 import org.jooq.exception.IntegrityConstraintViolationException
+import org.jooq.impl.DSL.condition
+import org.jooq.impl.DSL.jsonbGetAttributeAsText
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -254,23 +257,41 @@ class PostgresAssetRepository(
             entryId?.let {
                 arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_VARIANT.CREATED_AT.desc())
             } ?: arrayOf(ASSET_VARIANT.CREATED_AT.desc())
-        val variantJoinConditions =
-            if (requestedImageAttributes.isOriginalVariant()) {
-                ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID).and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
-            } else {
-                val variantKey = variantParameterGenerator.generateImageVariantAttributes(requestedImageAttributes).key
-                ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID).and(ASSET_VARIANT.ATTRIBUTES_KEY.eq(variantKey))
-            }
 
         return context.select()
             .from(ASSET_TREE)
-            .join(ASSET_VARIANT).on(variantJoinConditions)
-            .where(
-                ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
-            ).and(entryIdCondition)
+            .join(ASSET_VARIANT).on(calculateJoinVariantConditions(requestedImageAttributes))
+            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
+            .and(entryIdCondition)
             .orderBy(*orderConditions)
             .limit(1)
             .awaitFirstOrNull()
+    }
+
+    private fun calculateJoinVariantConditions(requested: RequestedImageAttributes): Condition {
+        var condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
+        if (requested.isOriginalVariant()) {
+            return condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
+        }
+
+        if (requested.width != null && requested.height != null) {
+            val widthCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString())
+            val heightCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString())
+
+            condition =
+                condition.and(
+                    condition(widthCondition.or(heightCondition)),
+                )
+        } else if (requested.width != null) {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString()))
+        } else if (requested.height != null) {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString()))
+        }
+        requested.mimeType?.let {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "mimeType").eq(it))
+        }
+
+        return condition
     }
 
     private suspend fun fetchWithAllVariants(

@@ -1,5 +1,6 @@
 package image.model
 
+import asset.variant.ImageVariantAttributes
 import io.ktor.utils.io.ByteChannel
 
 data class ProcessedImage(
@@ -23,6 +24,22 @@ data class RequestedImageAttributes(
 
     fun isOriginalVariant(): Boolean {
         return width == null && height == null && mimeType == null
+    }
+
+    fun matchesImageAttributes(attributes: ImageVariantAttributes): Boolean {
+        if (width != null && height != null) {
+            return attributes.width == width || attributes.height == height
+        }
+        if (width != null && attributes.width != width) {
+            return false
+        }
+        if (height != null && attributes.height != height) {
+            return false
+        }
+        if (mimeType != null && attributes.mimeType != mimeType) {
+            return false
+        }
+        return true
     }
 }
 

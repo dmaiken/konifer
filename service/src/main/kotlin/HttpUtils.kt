@@ -3,6 +3,8 @@ package io
 import io.ktor.server.routing.RoutingRequest
 import io.path.PathModifierOption
 
+const val APP_CACHE_STATUS = "App-Cache-Status"
+
 /**
  * Gets the entryId of the request.
  *
@@ -29,4 +31,15 @@ fun getPathModifierOption(request: RoutingRequest): PathModifierOption? {
     return request.queryParameters["mode"]?.let { option ->
         PathModifierOption.fromString(option)
     }
+}
+
+fun getAppStatusCacheHeader(cacheHit: Boolean): Pair<String, String> {
+    val value =
+        if (cacheHit) {
+            "hit"
+        } else {
+            "miss"
+        }
+
+    return Pair(APP_CACHE_STATUS, value)
 }
