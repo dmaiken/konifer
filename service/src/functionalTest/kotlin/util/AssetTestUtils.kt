@@ -3,9 +3,11 @@ package util
 import BaseTestcontainerTest.Companion.BOUNDARY
 import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
+import io.APP_CACHE_STATUS
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -19,9 +21,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.fullPath
+import io.ktor.http.path
 import kotlinx.serialization.json.Json
 
 suspend fun storeAsset(
@@ -74,16 +78,37 @@ suspend fun fetchAsset(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
+    height: Int? = null,
+    width: Int? = null,
+    mimeType: String? = null,
+    expectCacheHit: Boolean? = null,
 ): ByteArray {
+    val urlBuilder = URLBuilder()
+    urlBuilder.path("/assets/$path")
+    if (entryId != null) {
+        urlBuilder.parameters.append("entryId", entryId.toString())
+    }
+    if (height != null) {
+        urlBuilder.parameters.append("h", height.toString())
+    }
+    if (width != null) {
+        urlBuilder.parameters.append("w", width.toString())
+    }
+    if (mimeType != null) {
+        urlBuilder.parameters.append("mimeType", mimeType)
+    }
+    val url = urlBuilder.build()
+    url.fullPath
     val fetchResponse =
-        if (entryId != null) {
-            "/assets/$path?entryId=$entryId"
-        } else {
-            "/assets/$path"
-        }.let {
-            client.get("/assets/$path/").apply {
-                status shouldBe HttpStatusCode.TemporaryRedirect
-                headers["Location"] shouldContain "http://"
+        client.get(url.fullPath).apply {
+            status shouldBe HttpStatusCode.TemporaryRedirect
+            headers["Location"] shouldContain "http://"
+
+            if (expectCacheHit == true) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
+            }
+            if (expectCacheHit == false) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
             }
         }
     val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
@@ -100,11 +125,11 @@ suspend fun fetchAssetInfo(
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? {
     return if (entryId != null) {
-        "/assets/$path?format=metadata&entryId=$entryId"
+        "/assets/$path?return=metadata&entryId=$entryId"
     } else {
-        "/assets/$path?format=metadata"
+        "/assets/$path?return=metadata"
     }.let {
-        val response = client.get("/assets/$path?format=metadata")
+        val response = client.get("/assets/$path?return=metadata")
         response.status shouldBe expectedStatus
 
         if (response.status == HttpStatusCode.NotFound) {

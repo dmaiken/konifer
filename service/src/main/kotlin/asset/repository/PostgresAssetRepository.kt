@@ -3,8 +3,10 @@ package asset.repository
 import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
+import asset.store.PersistResult
 import asset.variant.VariantParameterGenerator
-import io.image.ImageAttributes
+import image.model.ImageAttributes
+import image.model.RequestedImageAttributes
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
@@ -12,14 +14,20 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.Record
+import org.jooq.exception.IntegrityConstraintViolationException
+import org.jooq.impl.DSL.condition
+import org.jooq.impl.DSL.jsonbGetAttributeAsText
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import org.jooq.postgres.extensions.types.Ltree.ltree
+import tessa.jooq.indexes.ASSET_VARIANT_ATTRIBUTES_UQ
+import tessa.jooq.tables.records.AssetTreeRecord
 import tessa.jooq.tables.references.ASSET_TREE
 import tessa.jooq.tables.references.ASSET_VARIANT
 import java.time.LocalDateTime
@@ -54,7 +62,8 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.ASSET_ID, assetId)
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
-                    .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(variantAttributes))
+                    .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(variantAttributes.attributes))
+                    .set(ASSET_VARIANT.ATTRIBUTES_KEY, variantAttributes.key)
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
                     .set(ASSET_VARIANT.CREATED_AT, now)
                     .returning()
@@ -64,13 +73,63 @@ class PostgresAssetRepository(
         }
     }
 
+    override suspend fun storeVariant(
+        treePath: String,
+        entryId: Long,
+        persistResult: PersistResult,
+        imageAttributes: ImageAttributes,
+    ): AssetAndVariants {
+        return dslContext.transactionCoroutine { trx ->
+            val asset =
+                fetchWithVariant(
+                    trx.dsl(),
+                    treePath,
+                    entryId,
+                    RequestedImageAttributes.originalVariant(),
+                )?.into(AssetTreeRecord::class.java)
+            if (asset == null) {
+                throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
+            }
+            val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(imageAttributes)
+
+            val persistedVariant =
+                try {
+                    trx.dsl().insertInto(ASSET_VARIANT)
+                        .set(ASSET_VARIANT.ID, UUID.randomUUID())
+                        .set(ASSET_VARIANT.ASSET_ID, asset.id)
+                        .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, persistResult.bucket)
+                        .set(ASSET_VARIANT.OBJECT_STORE_KEY, persistResult.key)
+                        .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(variantAttributes.attributes))
+                        .set(ASSET_VARIANT.ATTRIBUTES_KEY, variantAttributes.key)
+                        .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
+                        .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
+                        .returning()
+                        .awaitFirst()
+                } catch (e: IntegrityConstraintViolationException) {
+                    if (e.message?.contains(ASSET_VARIANT_ATTRIBUTES_UQ.name) == true) {
+                        throw IllegalArgumentException(
+                            "Variant already exists for asset with entry_id: $entryId at path: $treePath and attributes: $imageAttributes",
+                        )
+                    }
+                    throw e
+                }
+
+            AssetAndVariants.from(asset, persistedVariant)
+        }
+    }
+
     override suspend fun fetchByPath(
         treePath: String,
         entryId: Long?,
-        imageAttributes: ImageAttributes?,
+        requestedImageAttributes: RequestedImageAttributes?,
     ): AssetAndVariants? {
-        return fetchWithVariant(dslContext, treePath, entryId, imageAttributes)?.let {
-            AssetAndVariants.from(listOf(it))
+        return if (requestedImageAttributes != null) {
+            fetchWithVariant(dslContext, treePath, entryId, requestedImageAttributes)?.let { record ->
+                AssetAndVariants.from(listOf(record))
+            }
+        } else {
+            val result = fetchWithAllVariants(dslContext, treePath, entryId)
+            AssetAndVariants.from(result)
         }
     }
 
@@ -84,8 +143,7 @@ class PostgresAssetRepository(
             .asFlow()
             .toList()
             .groupBy { it.get(ASSET_TREE.ID) }
-            .values
-            .map { AssetAndVariants.from(it) }
+            .values.mapNotNull { AssetAndVariants.from(it) }
     }
 
     override suspend fun deleteAssetByPath(
@@ -94,19 +152,23 @@ class PostgresAssetRepository(
     ): List<VariantBucketAndKey> {
         val objectStoreInformation =
             dslContext.transactionCoroutine { trx ->
+                val entryIdCondition =
+                    entryId?.let {
+                        ASSET_TREE.ENTRY_ID.eq(entryId)
+                    } ?: ASSET_TREE.ENTRY_ID.eq(
+                        trx.dsl().select(ASSET_TREE.ENTRY_ID)
+                            .from(ASSET_TREE)
+                            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
+                            .orderBy(ASSET_TREE.ENTRY_ID.desc())
+                            .limit(1),
+                    )
                 val variantObjectStoreInformation =
                     trx.dsl()
                         .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
                         .from(ASSET_TREE)
                         .join(ASSET_VARIANT).on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
-                        .let {
-                            if (entryId != null) {
-                                it.and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                            } else {
-                                it.orderBy(ASSET_TREE.CREATED_AT.desc())
-                            }
-                        }
+                        .and(entryIdCondition)
                         .asFlow()
                         .map {
                             VariantBucketAndKey(
@@ -118,21 +180,8 @@ class PostgresAssetRepository(
                 trx.dsl()
                     .deleteFrom(ASSET_TREE)
                     .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
-                    .let {
-                        if (entryId != null) {
-                            it.and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                        } else {
-                            it.and(
-                                ASSET_TREE.ENTRY_ID.eq(
-                                    trx.dsl().select(ASSET_TREE.ENTRY_ID)
-                                        .from(ASSET_TREE)
-                                        .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
-                                        .orderBy(ASSET_TREE.CREATED_AT.desc())
-                                        .limit(1),
-                                ),
-                            )
-                        }
-                    }.awaitFirstOrNull()
+                    .and(entryIdCondition)
+                    .awaitFirstOrNull()
 
                 variantObjectStoreInformation
             }
@@ -194,31 +243,11 @@ class PostgresAssetRepository(
             ?.inc() ?: 0L
     }
 
-    private suspend fun fetch(
-        context: DSLContext,
-        treePath: String,
-        entryId: Long?,
-    ): Record? {
-        return context.select()
-            .from(ASSET_TREE)
-            .where(
-                ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
-            ).let {
-                if (entryId != null) {
-                    it.and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                } else {
-                    it.orderBy(ASSET_TREE.CREATED_AT.desc())
-                }
-            }
-            .limit(1)
-            .awaitFirstOrNull()
-    }
-
     private suspend fun fetchWithVariant(
         context: DSLContext,
         treePath: String,
         entryId: Long?,
-        imageAttributes: ImageAttributes?,
+        requestedImageAttributes: RequestedImageAttributes,
     ): Record? {
         val entryIdCondition =
             entryId?.let {
@@ -231,35 +260,63 @@ class PostgresAssetRepository(
 
         return context.select()
             .from(ASSET_TREE)
-            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
-            .where(
-                ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
-            ).and(entryIdCondition)
+            .join(ASSET_VARIANT).on(calculateJoinVariantConditions(requestedImageAttributes))
+            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
+            .and(entryIdCondition)
             .orderBy(*orderConditions)
             .limit(1)
             .awaitFirstOrNull()
     }
 
-    private suspend fun fetchAllAtPath(
-        context: DSLContext,
-        treePath: String,
-    ): List<Record> {
-        return context.select()
-            .from(ASSET_TREE)
-            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
-            .asFlow()
-            .toList()
+    private fun calculateJoinVariantConditions(requested: RequestedImageAttributes): Condition {
+        var condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
+        if (requested.isOriginalVariant()) {
+            return condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
+        }
+
+        if (requested.width != null && requested.height != null) {
+            val widthCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString())
+            val heightCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString())
+
+            condition =
+                condition.and(
+                    condition(widthCondition.or(heightCondition)),
+                )
+        } else if (requested.width != null) {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString()))
+        } else if (requested.height != null) {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString()))
+        }
+        requested.mimeType?.let {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "mimeType").eq(it))
+        }
+
+        return condition
     }
 
-    private suspend fun fetchAllUnderPath(
+    private suspend fun fetchWithAllVariants(
         context: DSLContext,
         treePath: String,
+        entryId: Long?,
     ): List<Record> {
+        val entryIdCondition =
+            entryId?.let {
+                ASSET_TREE.ENTRY_ID.eq(entryId)
+            } ?: ASSET_TREE.ENTRY_ID.eq(
+                context.select(ASSET_TREE.ENTRY_ID)
+                    .from(ASSET_TREE)
+                    .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
+                    .orderBy(ASSET_TREE.ENTRY_ID.desc())
+                    .limit(1),
+            )
+
         return context.select()
             .from(ASSET_TREE)
-            .join(ASSET_VARIANT)
-            .on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
-            .where(ASSET_TREE.PATH.contains(Ltree.valueOf(treePath)))
+            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
+            .where(
+                ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
+            ).and(entryIdCondition)
+            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
             .asFlow()
             .toList()
     }

@@ -4,14 +4,12 @@
 package tessa.jooq.tables.records
 
 
-import java.time.LocalDateTime
-import java.util.UUID
-
 import org.jooq.JSONB
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
-
 import tessa.jooq.tables.AssetVariant
+import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -40,13 +38,17 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(4, value)
         get(): JSONB? = get(4) as JSONB?
 
-    open var originalVariant: Boolean?
+    open var attributesKey: ByteArray?
         set(value): Unit = set(5, value)
-        get(): Boolean? = get(5) as Boolean?
+        get(): ByteArray? = get(5) as ByteArray?
+
+    open var originalVariant: Boolean?
+        set(value): Unit = set(6, value)
+        get(): Boolean? = get(6) as Boolean?
 
     open var createdAt: LocalDateTime?
-        set(value): Unit = set(6, value)
-        get(): LocalDateTime? = get(6) as LocalDateTime?
+        set(value): Unit = set(7, value)
+        get(): LocalDateTime? = get(7) as LocalDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -57,20 +59,13 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(
-        id: UUID? = null,
-        assetId: UUID? = null,
-        objectStoreBucket: String? = null,
-        objectStoreKey: String? = null,
-        attributes: JSONB? = null,
-        originalVariant: Boolean? = null,
-        createdAt: LocalDateTime? = null
-    ) : this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: ByteArray? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
         this.objectStoreKey = objectStoreKey
         this.attributes = attributes
+        this.attributesKey = attributesKey
         this.originalVariant = originalVariant
         this.createdAt = createdAt
         resetTouchedOnNotNull()

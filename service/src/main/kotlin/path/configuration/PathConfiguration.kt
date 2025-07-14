@@ -1,7 +1,7 @@
 package io.path.configuration
 
-import io.image.ImageFormat
-import io.image.ImageProperties
+import image.model.ImageFormat
+import image.model.ImageProperties
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES

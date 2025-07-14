@@ -11,7 +11,7 @@ import org.koin.dsl.module
 fun assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
         single<AssetHandler> {
-            AssetHandler(get(), get(), get(), get(), get(), get())
+            AssetHandler(get(), get(), get(), get(), get(), get(), get())
         }
         single<MimeTypeDetector> {
             TikaMimeTypeDetector()

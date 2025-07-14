@@ -18,31 +18,15 @@ import tessa.jooq.Public
 
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 @Suppress("warnings")
-open class LtreeOut : AbstractRoutine<Any>(
-    "ltree_out",
-    Public.PUBLIC,
-    DSL.comment(""),
-    DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\"")
-) {
+open class LtreeOut : AbstractRoutine<Any>("ltree_out", Public.PUBLIC, DSL.comment(""), DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\"")) {
     companion object {
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val RETURN_VALUE: Parameter<Any?> = Internal.createParameter(
-            "RETURN_VALUE",
-            DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\""),
-            false,
-            false
-        )
+        val RETURN_VALUE: Parameter<Any?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\""), false, false)
 
         /**
          * The parameter <code>public.ltree_out._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

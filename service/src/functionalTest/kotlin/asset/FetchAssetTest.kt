@@ -13,7 +13,7 @@ class FetchAssetTest {
     fun `fetching an asset with an incorrect format returns bad request`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}?format=invalid").apply {
+            client.get("/assets/${UUID.randomUUID()}?return=invalid").apply {
                 status shouldBe HttpStatusCode.BadRequest
             }
         }

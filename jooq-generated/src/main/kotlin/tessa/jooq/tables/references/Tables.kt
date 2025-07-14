@@ -9,6 +9,7 @@ import tessa.jooq.tables.AssetTree
 import tessa.jooq.tables.AssetVariant
 
 
+
 /**
  * The table <code>public.asset_tree</code>.
  */

@@ -5,7 +5,7 @@ import org.testcontainers.utility.DockerImageName
 
 class LocalstackContainerManager {
     companion object {
-        val image: DockerImageName = DockerImageName.parse("localstack/localstack:3.5.0")
+        val image: DockerImageName = DockerImageName.parse("localstack/localstack:4.6.0")
     }
 
     private var started = false

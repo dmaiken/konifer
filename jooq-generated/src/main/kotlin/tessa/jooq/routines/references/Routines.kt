@@ -89,7 +89,9 @@ import tessa.jooq.routines._LtxtqRexec
  * Call <code>public._lt_q_regex</code>
  */
 fun _LtQRegex(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Array<Any?>?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Array<Any?>?
 ): Boolean? {
     val f = _LtQRegex()
     f.set__1(__1)
@@ -103,7 +105,8 @@ fun _LtQRegex(
  * Get <code>public._lt_q_regex</code> as a field.
  */
 fun _LtQRegex(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Array<Any?>?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Array<Any?>?
 ): Field<Boolean?> {
     val f = _LtQRegex()
     f.set__1(__1)
@@ -116,7 +119,8 @@ fun _LtQRegex(
  * Get <code>public._lt_q_regex</code> as a field.
  */
 fun _LtQRegex(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Array<Any?>?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Array<Any?>?>
 ): Field<Boolean?> {
     val f = _LtQRegex()
     f.set__1(__1)
@@ -129,7 +133,9 @@ fun _LtQRegex(
  * Call <code>public._lt_q_rregex</code>
  */
 fun _LtQRregex(
-    configuration: Configuration, __1: Array<Any?>?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      configuration: Configuration
+    , __1: Array<Any?>?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Boolean? {
     val f = _LtQRregex()
     f.set__1(__1)
@@ -143,7 +149,8 @@ fun _LtQRregex(
  * Get <code>public._lt_q_rregex</code> as a field.
  */
 fun _LtQRregex(
-    __1: Array<Any?>?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      __1: Array<Any?>?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Field<Boolean?> {
     val f = _LtQRregex()
     f.set__1(__1)
@@ -156,7 +163,8 @@ fun _LtQRregex(
  * Get <code>public._lt_q_rregex</code> as a field.
  */
 fun _LtQRregex(
-    __1: Field<Array<Any?>?>, __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+      __1: Field<Array<Any?>?>
+    , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Boolean?> {
     val f = _LtQRregex()
     f.set__1(__1)
@@ -166,7 +174,9 @@ fun _LtQRregex(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtqExtractRegex(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Ltree? {
     val f = _LtqExtractRegex()
     f.set__1(__1)
@@ -177,7 +187,8 @@ fun _LtqExtractRegex(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtqExtractRegex(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Field<Ltree?> {
     val f = _LtqExtractRegex()
     f.set__1(__1)
@@ -187,7 +198,8 @@ fun _LtqExtractRegex(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtqExtractRegex(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Any?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Any?>
 ): Field<Ltree?> {
     val f = _LtqExtractRegex()
     f.set__1(__1)
@@ -197,7 +209,8 @@ fun _LtqExtractRegex(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeCompress(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = _LtreeCompress()
     f.set__1(__1)
@@ -207,7 +220,7 @@ fun _LtreeCompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeCompress(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = _LtreeCompress()
     f.set__1(__1)
@@ -216,7 +229,7 @@ fun _LtreeCompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeCompress(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = _LtreeCompress()
     f.set__1(__1)
@@ -225,12 +238,12 @@ fun _LtreeCompress(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeConsistent(
-    configuration: Configuration,
-    __1: Any?,
-    __2: Array<org.jooq.postgres.extensions.types.Ltree?>?,
-    __3: Short?,
-    __4: Long?,
-    __5: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __3: Short?
+    , __4: Long?
+    , __5: Any?
 ): Boolean? {
     val f = _LtreeConsistent()
     f.set__1(__1)
@@ -244,7 +257,11 @@ fun _LtreeConsistent(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeConsistent(
-    __1: Any?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?, __3: Short?, __4: Long?, __5: Any?
+      __1: Any?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __3: Short?
+    , __4: Long?
+    , __5: Any?
 ): Field<Boolean?> {
     val f = _LtreeConsistent()
     f.set__1(__1)
@@ -257,11 +274,11 @@ fun _LtreeConsistent(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeConsistent(
-    __1: Field<Any?>,
-    __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>,
-    __3: Field<Short?>,
-    __4: Field<Long?>,
-    __5: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __3: Field<Short?>
+    , __4: Field<Long?>
+    , __5: Field<Any?>
 ): Field<Boolean?> {
     val f = _LtreeConsistent()
     f.set__1(__1)
@@ -277,7 +294,9 @@ fun _LtreeConsistent(
  * Call <code>public._ltree_extract_isparent</code>
  */
 fun _LtreeExtractIsparent(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Ltree? {
     val f = _LtreeExtractIsparent()
     f.set__1(__1)
@@ -291,7 +310,8 @@ fun _LtreeExtractIsparent(
  * Get <code>public._ltree_extract_isparent</code> as a field.
  */
 fun _LtreeExtractIsparent(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Field<Ltree?> {
     val f = _LtreeExtractIsparent()
     f.set__1(__1)
@@ -304,7 +324,8 @@ fun _LtreeExtractIsparent(
  * Get <code>public._ltree_extract_isparent</code> as a field.
  */
 fun _LtreeExtractIsparent(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Ltree?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Ltree?>
 ): Field<Ltree?> {
     val f = _LtreeExtractIsparent()
     f.set__1(__1)
@@ -317,7 +338,9 @@ fun _LtreeExtractIsparent(
  * Call <code>public._ltree_extract_risparent</code>
  */
 fun _LtreeExtractRisparent(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Ltree? {
     val f = _LtreeExtractRisparent()
     f.set__1(__1)
@@ -331,7 +354,8 @@ fun _LtreeExtractRisparent(
  * Get <code>public._ltree_extract_risparent</code> as a field.
  */
 fun _LtreeExtractRisparent(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Field<Ltree?> {
     val f = _LtreeExtractRisparent()
     f.set__1(__1)
@@ -344,7 +368,8 @@ fun _LtreeExtractRisparent(
  * Get <code>public._ltree_extract_risparent</code> as a field.
  */
 fun _LtreeExtractRisparent(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Ltree?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Ltree?>
 ): Field<Ltree?> {
     val f = _LtreeExtractRisparent()
     f.set__1(__1)
@@ -354,7 +379,8 @@ fun _LtreeExtractRisparent(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeGistOptions(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Unit {
     val p = _LtreeGistOptions()
     p.set__1(__1)
@@ -366,7 +392,9 @@ fun _LtreeGistOptions(
  * Call <code>public._ltree_isparent</code>
  */
 fun _LtreeIsparent(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Boolean? {
     val f = _LtreeIsparent()
     f.set__1(__1)
@@ -380,7 +408,8 @@ fun _LtreeIsparent(
  * Get <code>public._ltree_isparent</code> as a field.
  */
 fun _LtreeIsparent(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Ltree?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = _LtreeIsparent()
     f.set__1(__1)
@@ -393,7 +422,8 @@ fun _LtreeIsparent(
  * Get <code>public._ltree_isparent</code> as a field.
  */
 fun _LtreeIsparent(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Ltree?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = _LtreeIsparent()
     f.set__1(__1)
@@ -403,7 +433,10 @@ fun _LtreeIsparent(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePenalty(
-    configuration: Configuration, __1: Any?, __2: Any?, __3: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Any? {
     val f = _LtreePenalty()
     f.set__1(__1)
@@ -415,7 +448,9 @@ fun _LtreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePenalty(
-    __1: Any?, __2: Any?, __3: Any?
+      __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Field<Any?> {
     val f = _LtreePenalty()
     f.set__1(__1)
@@ -426,7 +461,9 @@ fun _LtreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePenalty(
-    __1: Field<Any?>, __2: Field<Any?>, __3: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
+    , __3: Field<Any?>
 ): Field<Any?> {
     val f = _LtreePenalty()
     f.set__1(__1)
@@ -437,7 +474,9 @@ fun _LtreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePicksplit(
-    configuration: Configuration, __1: Any?, __2: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
 ): Any? {
     val f = _LtreePicksplit()
     f.set__1(__1)
@@ -448,7 +487,8 @@ fun _LtreePicksplit(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePicksplit(
-    __1: Any?, __2: Any?
+      __1: Any?
+    , __2: Any?
 ): Field<Any?> {
     val f = _LtreePicksplit()
     f.set__1(__1)
@@ -458,7 +498,8 @@ fun _LtreePicksplit(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreePicksplit(
-    __1: Field<Any?>, __2: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
 ): Field<Any?> {
     val f = _LtreePicksplit()
     f.set__1(__1)
@@ -471,7 +512,9 @@ fun _LtreePicksplit(
  * Call <code>public._ltree_r_isparent</code>
  */
 fun _LtreeRIsparent(
-    configuration: Configuration, __1: Ltree?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Boolean? {
     val f = _LtreeRIsparent()
     f.set__1(__1)
@@ -485,7 +528,8 @@ fun _LtreeRIsparent(
  * Get <code>public._ltree_r_isparent</code> as a field.
  */
 fun _LtreeRIsparent(
-    __1: Ltree?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      __1: Ltree?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Field<Boolean?> {
     val f = _LtreeRIsparent()
     f.set__1(__1)
@@ -498,7 +542,8 @@ fun _LtreeRIsparent(
  * Get <code>public._ltree_r_isparent</code> as a field.
  */
 fun _LtreeRIsparent(
-    __1: Field<Ltree?>, __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+      __1: Field<Ltree?>
+    , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Boolean?> {
     val f = _LtreeRIsparent()
     f.set__1(__1)
@@ -511,7 +556,9 @@ fun _LtreeRIsparent(
  * Call <code>public._ltree_r_risparent</code>
  */
 fun _LtreeRRisparent(
-    configuration: Configuration, __1: Ltree?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Boolean? {
     val f = _LtreeRRisparent()
     f.set__1(__1)
@@ -525,7 +572,8 @@ fun _LtreeRRisparent(
  * Get <code>public._ltree_r_risparent</code> as a field.
  */
 fun _LtreeRRisparent(
-    __1: Ltree?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      __1: Ltree?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Field<Boolean?> {
     val f = _LtreeRRisparent()
     f.set__1(__1)
@@ -538,7 +586,8 @@ fun _LtreeRRisparent(
  * Get <code>public._ltree_r_risparent</code> as a field.
  */
 fun _LtreeRRisparent(
-    __1: Field<Ltree?>, __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+      __1: Field<Ltree?>
+    , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Boolean?> {
     val f = _LtreeRRisparent()
     f.set__1(__1)
@@ -548,7 +597,10 @@ fun _LtreeRRisparent(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeSame(
-    configuration: Configuration, __1: Any?, __2: Any?, __3: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Any? {
     val f = _LtreeSame()
     f.set__1(__1)
@@ -560,7 +612,9 @@ fun _LtreeSame(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeSame(
-    __1: Any?, __2: Any?, __3: Any?
+      __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Field<Any?> {
     val f = _LtreeSame()
     f.set__1(__1)
@@ -571,7 +625,9 @@ fun _LtreeSame(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeSame(
-    __1: Field<Any?>, __2: Field<Any?>, __3: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
+    , __3: Field<Any?>
 ): Field<Any?> {
     val f = _LtreeSame()
     f.set__1(__1)
@@ -582,7 +638,9 @@ fun _LtreeSame(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeUnion(
-    configuration: Configuration, __1: Any?, __2: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
 ): Any? {
     val f = _LtreeUnion()
     f.set__1(__1)
@@ -593,7 +651,8 @@ fun _LtreeUnion(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeUnion(
-    __1: Any?, __2: Any?
+      __1: Any?
+    , __2: Any?
 ): Field<Any?> {
     val f = _LtreeUnion()
     f.set__1(__1)
@@ -603,7 +662,8 @@ fun _LtreeUnion(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtreeUnion(
-    __1: Field<Any?>, __2: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
 ): Field<Any?> {
     val f = _LtreeUnion()
     f.set__1(__1)
@@ -613,7 +673,9 @@ fun _LtreeUnion(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExec(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Boolean? {
     val f = _LtxtqExec()
     f.set__1(__1)
@@ -624,7 +686,8 @@ fun _LtxtqExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExec(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Field<Boolean?> {
     val f = _LtxtqExec()
     f.set__1(__1)
@@ -634,7 +697,8 @@ fun _LtxtqExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExec(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Any?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Any?>
 ): Field<Boolean?> {
     val f = _LtxtqExec()
     f.set__1(__1)
@@ -644,7 +708,9 @@ fun _LtxtqExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExtractExec(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Ltree? {
     val f = _LtxtqExtractExec()
     f.set__1(__1)
@@ -655,7 +721,8 @@ fun _LtxtqExtractExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExtractExec(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?, __2: Any?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+    , __2: Any?
 ): Field<Ltree?> {
     val f = _LtxtqExtractExec()
     f.set__1(__1)
@@ -665,7 +732,8 @@ fun _LtxtqExtractExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqExtractExec(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>, __2: Field<Any?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+    , __2: Field<Any?>
 ): Field<Ltree?> {
     val f = _LtxtqExtractExec()
     f.set__1(__1)
@@ -675,7 +743,9 @@ fun _LtxtqExtractExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqRexec(
-    configuration: Configuration, __1: Any?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Boolean? {
     val f = _LtxtqRexec()
     f.set__1(__1)
@@ -686,7 +756,8 @@ fun _LtxtqRexec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqRexec(
-    __1: Any?, __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      __1: Any?
+    , __2: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Field<Boolean?> {
     val f = _LtxtqRexec()
     f.set__1(__1)
@@ -696,7 +767,8 @@ fun _LtxtqRexec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun _LtxtqRexec(
-    __1: Field<Any?>, __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+      __1: Field<Any?>
+    , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Boolean?> {
     val f = _LtxtqRexec()
     f.set__1(__1)
@@ -709,7 +781,9 @@ fun _LtxtqRexec(
  * Call <code>public.index</code>
  */
 fun index1(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Int? {
     val f = Index1()
     f.set__1(__1)
@@ -723,7 +797,8 @@ fun index1(
  * Get <code>public.index</code> as a field.
  */
 fun index1(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Int?> {
     val f = Index1()
     f.set__1(__1)
@@ -736,7 +811,8 @@ fun index1(
  * Get <code>public.index</code> as a field.
  */
 fun index1(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Int?> {
     val f = Index1()
     f.set__1(__1)
@@ -749,7 +825,10 @@ fun index1(
  * Call <code>public.index</code>
  */
 fun index2(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?, __3: Int?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Int?
 ): Int? {
     val f = Index2()
     f.set__1(__1)
@@ -764,7 +843,9 @@ fun index2(
  * Get <code>public.index</code> as a field.
  */
 fun index2(
-    __1: Ltree?, __2: Ltree?, __3: Int?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Int?
 ): Field<Int?> {
     val f = Index2()
     f.set__1(__1)
@@ -778,7 +859,9 @@ fun index2(
  * Get <code>public.index</code> as a field.
  */
 fun index2(
-    __1: Field<Ltree?>, __2: Field<Ltree?>, __3: Field<Int?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Int?>
 ): Field<Int?> {
     val f = Index2()
     f.set__1(__1)
@@ -792,7 +875,8 @@ fun index2(
  * Call <code>public.lca</code>
  */
 fun lca1(
-    configuration: Configuration, __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      configuration: Configuration
+    , __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Ltree? {
     val f = Lca1()
     f.set__1(__1)
@@ -805,7 +889,7 @@ fun lca1(
  * Get <code>public.lca</code> as a field.
  */
 fun lca1(
-    __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
+      __1: Array<org.jooq.postgres.extensions.types.Ltree?>?
 ): Field<Ltree?> {
     val f = Lca1()
     f.set__1(__1)
@@ -817,7 +901,7 @@ fun lca1(
  * Get <code>public.lca</code> as a field.
  */
 fun lca1(
-    __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
+      __1: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Ltree?> {
     val f = Lca1()
     f.set__1(__1)
@@ -829,7 +913,9 @@ fun lca1(
  * Call <code>public.lca</code>
  */
 fun lca2(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Ltree? {
     val f = Lca2()
     f.set__1(__1)
@@ -843,7 +929,8 @@ fun lca2(
  * Get <code>public.lca</code> as a field.
  */
 fun lca2(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Ltree?> {
     val f = Lca2()
     f.set__1(__1)
@@ -856,7 +943,8 @@ fun lca2(
  * Get <code>public.lca</code> as a field.
  */
 fun lca2(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca2()
     f.set__1(__1)
@@ -869,7 +957,10 @@ fun lca2(
  * Call <code>public.lca</code>
  */
 fun lca3(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?, __3: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
 ): Ltree? {
     val f = Lca3()
     f.set__1(__1)
@@ -884,7 +975,9 @@ fun lca3(
  * Get <code>public.lca</code> as a field.
  */
 fun lca3(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
 ): Field<Ltree?> {
     val f = Lca3()
     f.set__1(__1)
@@ -898,7 +991,9 @@ fun lca3(
  * Get <code>public.lca</code> as a field.
  */
 fun lca3(
-    __1: Field<Ltree?>, __2: Field<Ltree?>, __3: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca3()
     f.set__1(__1)
@@ -912,7 +1007,11 @@ fun lca3(
  * Call <code>public.lca</code>
  */
 fun lca4(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
 ): Ltree? {
     val f = Lca4()
     f.set__1(__1)
@@ -928,7 +1027,10 @@ fun lca4(
  * Get <code>public.lca</code> as a field.
  */
 fun lca4(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
 ): Field<Ltree?> {
     val f = Lca4()
     f.set__1(__1)
@@ -943,7 +1045,10 @@ fun lca4(
  * Get <code>public.lca</code> as a field.
  */
 fun lca4(
-    __1: Field<Ltree?>, __2: Field<Ltree?>, __3: Field<Ltree?>, __4: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
+    , __4: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca4()
     f.set__1(__1)
@@ -958,7 +1063,12 @@ fun lca4(
  * Call <code>public.lca</code>
  */
 fun lca5(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
 ): Ltree? {
     val f = Lca5()
     f.set__1(__1)
@@ -975,7 +1085,11 @@ fun lca5(
  * Get <code>public.lca</code> as a field.
  */
 fun lca5(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
 ): Field<Ltree?> {
     val f = Lca5()
     f.set__1(__1)
@@ -991,7 +1105,11 @@ fun lca5(
  * Get <code>public.lca</code> as a field.
  */
 fun lca5(
-    __1: Field<Ltree?>, __2: Field<Ltree?>, __3: Field<Ltree?>, __4: Field<Ltree?>, __5: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
+    , __4: Field<Ltree?>
+    , __5: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca5()
     f.set__1(__1)
@@ -1007,7 +1125,13 @@ fun lca5(
  * Call <code>public.lca</code>
  */
 fun lca6(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?, __6: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
 ): Ltree? {
     val f = Lca6()
     f.set__1(__1)
@@ -1025,7 +1149,12 @@ fun lca6(
  * Get <code>public.lca</code> as a field.
  */
 fun lca6(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?, __6: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
 ): Field<Ltree?> {
     val f = Lca6()
     f.set__1(__1)
@@ -1042,12 +1171,12 @@ fun lca6(
  * Get <code>public.lca</code> as a field.
  */
 fun lca6(
-    __1: Field<Ltree?>,
-    __2: Field<Ltree?>,
-    __3: Field<Ltree?>,
-    __4: Field<Ltree?>,
-    __5: Field<Ltree?>,
-    __6: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
+    , __4: Field<Ltree?>
+    , __5: Field<Ltree?>
+    , __6: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca6()
     f.set__1(__1)
@@ -1064,14 +1193,14 @@ fun lca6(
  * Call <code>public.lca</code>
  */
 fun lca7(
-    configuration: Configuration,
-    __1: Ltree?,
-    __2: Ltree?,
-    __3: Ltree?,
-    __4: Ltree?,
-    __5: Ltree?,
-    __6: Ltree?,
-    __7: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
+    , __7: Ltree?
 ): Ltree? {
     val f = Lca7()
     f.set__1(__1)
@@ -1090,7 +1219,13 @@ fun lca7(
  * Get <code>public.lca</code> as a field.
  */
 fun lca7(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?, __6: Ltree?, __7: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
+    , __7: Ltree?
 ): Field<Ltree?> {
     val f = Lca7()
     f.set__1(__1)
@@ -1108,13 +1243,13 @@ fun lca7(
  * Get <code>public.lca</code> as a field.
  */
 fun lca7(
-    __1: Field<Ltree?>,
-    __2: Field<Ltree?>,
-    __3: Field<Ltree?>,
-    __4: Field<Ltree?>,
-    __5: Field<Ltree?>,
-    __6: Field<Ltree?>,
-    __7: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
+    , __4: Field<Ltree?>
+    , __5: Field<Ltree?>
+    , __6: Field<Ltree?>
+    , __7: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca7()
     f.set__1(__1)
@@ -1132,15 +1267,15 @@ fun lca7(
  * Call <code>public.lca</code>
  */
 fun lca8(
-    configuration: Configuration,
-    __1: Ltree?,
-    __2: Ltree?,
-    __3: Ltree?,
-    __4: Ltree?,
-    __5: Ltree?,
-    __6: Ltree?,
-    __7: Ltree?,
-    __8: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
+    , __7: Ltree?
+    , __8: Ltree?
 ): Ltree? {
     val f = Lca8()
     f.set__1(__1)
@@ -1160,7 +1295,14 @@ fun lca8(
  * Get <code>public.lca</code> as a field.
  */
 fun lca8(
-    __1: Ltree?, __2: Ltree?, __3: Ltree?, __4: Ltree?, __5: Ltree?, __6: Ltree?, __7: Ltree?, __8: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
+    , __3: Ltree?
+    , __4: Ltree?
+    , __5: Ltree?
+    , __6: Ltree?
+    , __7: Ltree?
+    , __8: Ltree?
 ): Field<Ltree?> {
     val f = Lca8()
     f.set__1(__1)
@@ -1179,14 +1321,14 @@ fun lca8(
  * Get <code>public.lca</code> as a field.
  */
 fun lca8(
-    __1: Field<Ltree?>,
-    __2: Field<Ltree?>,
-    __3: Field<Ltree?>,
-    __4: Field<Ltree?>,
-    __5: Field<Ltree?>,
-    __6: Field<Ltree?>,
-    __7: Field<Ltree?>,
-    __8: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
+    , __3: Field<Ltree?>
+    , __4: Field<Ltree?>
+    , __5: Field<Ltree?>
+    , __6: Field<Ltree?>
+    , __7: Field<Ltree?>
+    , __8: Field<Ltree?>
 ): Field<Ltree?> {
     val f = Lca8()
     f.set__1(__1)
@@ -1202,7 +1344,8 @@ fun lca8(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryIn(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LqueryIn()
     f.set__1(__1)
@@ -1212,7 +1355,7 @@ fun lqueryIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryIn(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LqueryIn()
     f.set__1(__1)
@@ -1221,7 +1364,7 @@ fun lqueryIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryIn(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LqueryIn()
     f.set__1(__1)
@@ -1230,7 +1373,8 @@ fun lqueryIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryOut(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LqueryOut()
     f.set__1(__1)
@@ -1240,7 +1384,7 @@ fun lqueryOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryOut(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LqueryOut()
     f.set__1(__1)
@@ -1249,7 +1393,7 @@ fun lqueryOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryOut(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LqueryOut()
     f.set__1(__1)
@@ -1258,7 +1402,8 @@ fun lqueryOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryRecv(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LqueryRecv()
     f.set__1(__1)
@@ -1268,7 +1413,7 @@ fun lqueryRecv(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryRecv(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LqueryRecv()
     f.set__1(__1)
@@ -1277,7 +1422,7 @@ fun lqueryRecv(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lqueryRecv(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LqueryRecv()
     f.set__1(__1)
@@ -1286,7 +1431,8 @@ fun lqueryRecv(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lquerySend(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): ByteArray? {
     val f = LquerySend()
     f.set__1(__1)
@@ -1296,7 +1442,7 @@ fun lquerySend(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lquerySend(
-    __1: Any?
+      __1: Any?
 ): Field<ByteArray?> {
     val f = LquerySend()
     f.set__1(__1)
@@ -1305,7 +1451,7 @@ fun lquerySend(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun lquerySend(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<ByteArray?> {
     val f = LquerySend()
     f.set__1(__1)
@@ -1317,7 +1463,9 @@ fun lquerySend(
  * Call <code>public.lt_q_regex</code>
  */
 fun ltQRegex(
-    configuration: Configuration, __1: Ltree?, __2: Array<Any?>?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Array<Any?>?
 ): Boolean? {
     val f = LtQRegex()
     f.set__1(__1)
@@ -1331,7 +1479,8 @@ fun ltQRegex(
  * Get <code>public.lt_q_regex</code> as a field.
  */
 fun ltQRegex(
-    __1: Ltree?, __2: Array<Any?>?
+      __1: Ltree?
+    , __2: Array<Any?>?
 ): Field<Boolean?> {
     val f = LtQRegex()
     f.set__1(__1)
@@ -1344,7 +1493,8 @@ fun ltQRegex(
  * Get <code>public.lt_q_regex</code> as a field.
  */
 fun ltQRegex(
-    __1: Field<Ltree?>, __2: Field<Array<Any?>?>
+      __1: Field<Ltree?>
+    , __2: Field<Array<Any?>?>
 ): Field<Boolean?> {
     val f = LtQRegex()
     f.set__1(__1)
@@ -1357,7 +1507,9 @@ fun ltQRegex(
  * Call <code>public.lt_q_rregex</code>
  */
 fun ltQRregex(
-    configuration: Configuration, __1: Array<Any?>?, __2: Ltree?
+      configuration: Configuration
+    , __1: Array<Any?>?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtQRregex()
     f.set__1(__1)
@@ -1371,7 +1523,8 @@ fun ltQRregex(
  * Get <code>public.lt_q_rregex</code> as a field.
  */
 fun ltQRregex(
-    __1: Array<Any?>?, __2: Ltree?
+      __1: Array<Any?>?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtQRregex()
     f.set__1(__1)
@@ -1384,7 +1537,8 @@ fun ltQRregex(
  * Get <code>public.lt_q_rregex</code> as a field.
  */
 fun ltQRregex(
-    __1: Field<Array<Any?>?>, __2: Field<Ltree?>
+      __1: Field<Array<Any?>?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtQRregex()
     f.set__1(__1)
@@ -1397,7 +1551,8 @@ fun ltQRregex(
  * Call <code>public.ltree2text</code>
  */
 fun ltree2text(
-    configuration: Configuration, __1: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
 ): String? {
     val f = Ltree2text()
     f.set__1(__1)
@@ -1410,7 +1565,7 @@ fun ltree2text(
  * Get <code>public.ltree2text</code> as a field.
  */
 fun ltree2text(
-    __1: Ltree?
+      __1: Ltree?
 ): Field<String?> {
     val f = Ltree2text()
     f.set__1(__1)
@@ -1422,7 +1577,7 @@ fun ltree2text(
  * Get <code>public.ltree2text</code> as a field.
  */
 fun ltree2text(
-    __1: Field<Ltree?>
+      __1: Field<Ltree?>
 ): Field<String?> {
     val f = Ltree2text()
     f.set__1(__1)
@@ -1434,7 +1589,9 @@ fun ltree2text(
  * Call <code>public.ltree_addltree</code>
  */
 fun ltreeAddltree(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Ltree? {
     val f = LtreeAddltree()
     f.set__1(__1)
@@ -1448,7 +1605,8 @@ fun ltreeAddltree(
  * Get <code>public.ltree_addltree</code> as a field.
  */
 fun ltreeAddltree(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Ltree?> {
     val f = LtreeAddltree()
     f.set__1(__1)
@@ -1461,7 +1619,8 @@ fun ltreeAddltree(
  * Get <code>public.ltree_addltree</code> as a field.
  */
 fun ltreeAddltree(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Ltree?> {
     val f = LtreeAddltree()
     f.set__1(__1)
@@ -1474,7 +1633,9 @@ fun ltreeAddltree(
  * Call <code>public.ltree_addtext</code>
  */
 fun ltreeAddtext(
-    configuration: Configuration, __1: Ltree?, __2: String?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: String?
 ): Ltree? {
     val f = LtreeAddtext()
     f.set__1(__1)
@@ -1488,7 +1649,8 @@ fun ltreeAddtext(
  * Get <code>public.ltree_addtext</code> as a field.
  */
 fun ltreeAddtext(
-    __1: Ltree?, __2: String?
+      __1: Ltree?
+    , __2: String?
 ): Field<Ltree?> {
     val f = LtreeAddtext()
     f.set__1(__1)
@@ -1501,7 +1663,8 @@ fun ltreeAddtext(
  * Get <code>public.ltree_addtext</code> as a field.
  */
 fun ltreeAddtext(
-    __1: Field<Ltree?>, __2: Field<String?>
+      __1: Field<Ltree?>
+    , __2: Field<String?>
 ): Field<Ltree?> {
     val f = LtreeAddtext()
     f.set__1(__1)
@@ -1514,7 +1677,9 @@ fun ltreeAddtext(
  * Call <code>public.ltree_cmp</code>
  */
 fun ltreeCmp(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Int? {
     val f = LtreeCmp()
     f.set__1(__1)
@@ -1528,7 +1693,8 @@ fun ltreeCmp(
  * Get <code>public.ltree_cmp</code> as a field.
  */
 fun ltreeCmp(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Int?> {
     val f = LtreeCmp()
     f.set__1(__1)
@@ -1541,7 +1707,8 @@ fun ltreeCmp(
  * Get <code>public.ltree_cmp</code> as a field.
  */
 fun ltreeCmp(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Int?> {
     val f = LtreeCmp()
     f.set__1(__1)
@@ -1551,7 +1718,8 @@ fun ltreeCmp(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeCompress(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtreeCompress()
     f.set__1(__1)
@@ -1561,7 +1729,7 @@ fun ltreeCompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeCompress(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtreeCompress()
     f.set__1(__1)
@@ -1570,7 +1738,7 @@ fun ltreeCompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeCompress(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtreeCompress()
     f.set__1(__1)
@@ -1579,7 +1747,12 @@ fun ltreeCompress(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeConsistent(
-    configuration: Configuration, __1: Any?, __2: Ltree?, __3: Short?, __4: Long?, __5: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Ltree?
+    , __3: Short?
+    , __4: Long?
+    , __5: Any?
 ): Boolean? {
     val f = LtreeConsistent()
     f.set__1(__1)
@@ -1593,7 +1766,11 @@ fun ltreeConsistent(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeConsistent(
-    __1: Any?, __2: Ltree?, __3: Short?, __4: Long?, __5: Any?
+      __1: Any?
+    , __2: Ltree?
+    , __3: Short?
+    , __4: Long?
+    , __5: Any?
 ): Field<Boolean?> {
     val f = LtreeConsistent()
     f.set__1(__1)
@@ -1606,7 +1783,11 @@ fun ltreeConsistent(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeConsistent(
-    __1: Field<Any?>, __2: Field<Ltree?>, __3: Field<Short?>, __4: Field<Long?>, __5: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Ltree?>
+    , __3: Field<Short?>
+    , __4: Field<Long?>
+    , __5: Field<Any?>
 ): Field<Boolean?> {
     val f = LtreeConsistent()
     f.set__1(__1)
@@ -1619,7 +1800,8 @@ fun ltreeConsistent(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeDecompress(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtreeDecompress()
     f.set__1(__1)
@@ -1629,7 +1811,7 @@ fun ltreeDecompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeDecompress(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtreeDecompress()
     f.set__1(__1)
@@ -1638,7 +1820,7 @@ fun ltreeDecompress(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeDecompress(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtreeDecompress()
     f.set__1(__1)
@@ -1650,7 +1832,9 @@ fun ltreeDecompress(
  * Call <code>public.ltree_eq</code>
  */
 fun ltreeEq(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeEq()
     f.set__1(__1)
@@ -1664,7 +1848,8 @@ fun ltreeEq(
  * Get <code>public.ltree_eq</code> as a field.
  */
 fun ltreeEq(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeEq()
     f.set__1(__1)
@@ -1677,7 +1862,8 @@ fun ltreeEq(
  * Get <code>public.ltree_eq</code> as a field.
  */
 fun ltreeEq(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeEq()
     f.set__1(__1)
@@ -1690,7 +1876,9 @@ fun ltreeEq(
  * Call <code>public.ltree_ge</code>
  */
 fun ltreeGe(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeGe()
     f.set__1(__1)
@@ -1704,7 +1892,8 @@ fun ltreeGe(
  * Get <code>public.ltree_ge</code> as a field.
  */
 fun ltreeGe(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeGe()
     f.set__1(__1)
@@ -1717,7 +1906,8 @@ fun ltreeGe(
  * Get <code>public.ltree_ge</code> as a field.
  */
 fun ltreeGe(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeGe()
     f.set__1(__1)
@@ -1727,7 +1917,8 @@ fun ltreeGe(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistIn(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtreeGistIn()
     f.set__1(__1)
@@ -1737,7 +1928,7 @@ fun ltreeGistIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistIn(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtreeGistIn()
     f.set__1(__1)
@@ -1746,7 +1937,7 @@ fun ltreeGistIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistIn(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtreeGistIn()
     f.set__1(__1)
@@ -1755,7 +1946,8 @@ fun ltreeGistIn(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistOptions(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Unit {
     val p = LtreeGistOptions()
     p.set__1(__1)
@@ -1764,7 +1956,8 @@ fun ltreeGistOptions(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistOut(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtreeGistOut()
     f.set__1(__1)
@@ -1774,7 +1967,7 @@ fun ltreeGistOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistOut(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtreeGistOut()
     f.set__1(__1)
@@ -1783,7 +1976,7 @@ fun ltreeGistOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeGistOut(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtreeGistOut()
     f.set__1(__1)
@@ -1795,7 +1988,9 @@ fun ltreeGistOut(
  * Call <code>public.ltree_gt</code>
  */
 fun ltreeGt(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeGt()
     f.set__1(__1)
@@ -1809,7 +2004,8 @@ fun ltreeGt(
  * Get <code>public.ltree_gt</code> as a field.
  */
 fun ltreeGt(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeGt()
     f.set__1(__1)
@@ -1822,7 +2018,8 @@ fun ltreeGt(
  * Get <code>public.ltree_gt</code> as a field.
  */
 fun ltreeGt(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeGt()
     f.set__1(__1)
@@ -1832,7 +2029,8 @@ fun ltreeGt(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeIn(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Ltree? {
     val f = LtreeIn()
     f.set__1(__1)
@@ -1842,7 +2040,7 @@ fun ltreeIn(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeIn(
-    __1: Any?
+      __1: Any?
 ): Field<Ltree?> {
     val f = LtreeIn()
     f.set__1(__1)
@@ -1851,7 +2049,7 @@ fun ltreeIn(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeIn(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Ltree?> {
     val f = LtreeIn()
     f.set__1(__1)
@@ -1863,7 +2061,9 @@ fun ltreeIn(
  * Call <code>public.ltree_isparent</code>
  */
 fun ltreeIsparent(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeIsparent()
     f.set__1(__1)
@@ -1877,7 +2077,8 @@ fun ltreeIsparent(
  * Get <code>public.ltree_isparent</code> as a field.
  */
 fun ltreeIsparent(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeIsparent()
     f.set__1(__1)
@@ -1890,7 +2091,8 @@ fun ltreeIsparent(
  * Get <code>public.ltree_isparent</code> as a field.
  */
 fun ltreeIsparent(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeIsparent()
     f.set__1(__1)
@@ -1903,7 +2105,9 @@ fun ltreeIsparent(
  * Call <code>public.ltree_le</code>
  */
 fun ltreeLe(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeLe()
     f.set__1(__1)
@@ -1917,7 +2121,8 @@ fun ltreeLe(
  * Get <code>public.ltree_le</code> as a field.
  */
 fun ltreeLe(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeLe()
     f.set__1(__1)
@@ -1930,7 +2135,8 @@ fun ltreeLe(
  * Get <code>public.ltree_le</code> as a field.
  */
 fun ltreeLe(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeLe()
     f.set__1(__1)
@@ -1943,7 +2149,9 @@ fun ltreeLe(
  * Call <code>public.ltree_lt</code>
  */
 fun ltreeLt(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeLt()
     f.set__1(__1)
@@ -1957,7 +2165,8 @@ fun ltreeLt(
  * Get <code>public.ltree_lt</code> as a field.
  */
 fun ltreeLt(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeLt()
     f.set__1(__1)
@@ -1970,7 +2179,8 @@ fun ltreeLt(
  * Get <code>public.ltree_lt</code> as a field.
  */
 fun ltreeLt(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeLt()
     f.set__1(__1)
@@ -1983,7 +2193,9 @@ fun ltreeLt(
  * Call <code>public.ltree_ne</code>
  */
 fun ltreeNe(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeNe()
     f.set__1(__1)
@@ -1997,7 +2209,8 @@ fun ltreeNe(
  * Get <code>public.ltree_ne</code> as a field.
  */
 fun ltreeNe(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeNe()
     f.set__1(__1)
@@ -2010,7 +2223,8 @@ fun ltreeNe(
  * Get <code>public.ltree_ne</code> as a field.
  */
 fun ltreeNe(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeNe()
     f.set__1(__1)
@@ -2020,7 +2234,8 @@ fun ltreeNe(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeOut(
-    configuration: Configuration, __1: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
 ): Any? {
     val f = LtreeOut()
     f.set__1(__1)
@@ -2030,7 +2245,7 @@ fun ltreeOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeOut(
-    __1: Ltree?
+      __1: Ltree?
 ): Field<Any?> {
     val f = LtreeOut()
     f.set__1(__1)
@@ -2039,7 +2254,7 @@ fun ltreeOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeOut(
-    __1: Field<Ltree?>
+      __1: Field<Ltree?>
 ): Field<Any?> {
     val f = LtreeOut()
     f.set__1(__1)
@@ -2048,7 +2263,10 @@ fun ltreeOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePenalty(
-    configuration: Configuration, __1: Any?, __2: Any?, __3: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Any? {
     val f = LtreePenalty()
     f.set__1(__1)
@@ -2060,7 +2278,9 @@ fun ltreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePenalty(
-    __1: Any?, __2: Any?, __3: Any?
+      __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Field<Any?> {
     val f = LtreePenalty()
     f.set__1(__1)
@@ -2071,7 +2291,9 @@ fun ltreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePenalty(
-    __1: Field<Any?>, __2: Field<Any?>, __3: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
+    , __3: Field<Any?>
 ): Field<Any?> {
     val f = LtreePenalty()
     f.set__1(__1)
@@ -2082,7 +2304,9 @@ fun ltreePenalty(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePicksplit(
-    configuration: Configuration, __1: Any?, __2: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
 ): Any? {
     val f = LtreePicksplit()
     f.set__1(__1)
@@ -2093,7 +2317,8 @@ fun ltreePicksplit(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePicksplit(
-    __1: Any?, __2: Any?
+      __1: Any?
+    , __2: Any?
 ): Field<Any?> {
     val f = LtreePicksplit()
     f.set__1(__1)
@@ -2103,7 +2328,8 @@ fun ltreePicksplit(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreePicksplit(
-    __1: Field<Any?>, __2: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
 ): Field<Any?> {
     val f = LtreePicksplit()
     f.set__1(__1)
@@ -2113,7 +2339,8 @@ fun ltreePicksplit(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeRecv(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Ltree? {
     val f = LtreeRecv()
     f.set__1(__1)
@@ -2123,7 +2350,7 @@ fun ltreeRecv(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeRecv(
-    __1: Any?
+      __1: Any?
 ): Field<Ltree?> {
     val f = LtreeRecv()
     f.set__1(__1)
@@ -2132,7 +2359,7 @@ fun ltreeRecv(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeRecv(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Ltree?> {
     val f = LtreeRecv()
     f.set__1(__1)
@@ -2144,7 +2371,9 @@ fun ltreeRecv(
  * Call <code>public.ltree_risparent</code>
  */
 fun ltreeRisparent(
-    configuration: Configuration, __1: Ltree?, __2: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtreeRisparent()
     f.set__1(__1)
@@ -2158,7 +2387,8 @@ fun ltreeRisparent(
  * Get <code>public.ltree_risparent</code> as a field.
  */
 fun ltreeRisparent(
-    __1: Ltree?, __2: Ltree?
+      __1: Ltree?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtreeRisparent()
     f.set__1(__1)
@@ -2171,7 +2401,8 @@ fun ltreeRisparent(
  * Get <code>public.ltree_risparent</code> as a field.
  */
 fun ltreeRisparent(
-    __1: Field<Ltree?>, __2: Field<Ltree?>
+      __1: Field<Ltree?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtreeRisparent()
     f.set__1(__1)
@@ -2181,7 +2412,10 @@ fun ltreeRisparent(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeSame(
-    configuration: Configuration, __1: Any?, __2: Any?, __3: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Any? {
     val f = LtreeSame()
     f.set__1(__1)
@@ -2193,7 +2427,9 @@ fun ltreeSame(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeSame(
-    __1: Any?, __2: Any?, __3: Any?
+      __1: Any?
+    , __2: Any?
+    , __3: Any?
 ): Field<Any?> {
     val f = LtreeSame()
     f.set__1(__1)
@@ -2204,7 +2440,9 @@ fun ltreeSame(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeSame(
-    __1: Field<Any?>, __2: Field<Any?>, __3: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
+    , __3: Field<Any?>
 ): Field<Any?> {
     val f = LtreeSame()
     f.set__1(__1)
@@ -2218,7 +2456,8 @@ fun ltreeSame(
  * Call <code>public.ltree_send</code>
  */
 fun ltreeSend(
-    configuration: Configuration, __1: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
 ): ByteArray? {
     val f = LtreeSend()
     f.set__1(__1)
@@ -2231,7 +2470,7 @@ fun ltreeSend(
  * Get <code>public.ltree_send</code> as a field.
  */
 fun ltreeSend(
-    __1: Ltree?
+      __1: Ltree?
 ): Field<ByteArray?> {
     val f = LtreeSend()
     f.set__1(__1)
@@ -2243,7 +2482,7 @@ fun ltreeSend(
  * Get <code>public.ltree_send</code> as a field.
  */
 fun ltreeSend(
-    __1: Field<Ltree?>
+      __1: Field<Ltree?>
 ): Field<ByteArray?> {
     val f = LtreeSend()
     f.set__1(__1)
@@ -2255,7 +2494,9 @@ fun ltreeSend(
  * Call <code>public.ltree_textadd</code>
  */
 fun ltreeTextadd(
-    configuration: Configuration, __1: String?, __2: Ltree?
+      configuration: Configuration
+    , __1: String?
+    , __2: Ltree?
 ): Ltree? {
     val f = LtreeTextadd()
     f.set__1(__1)
@@ -2269,7 +2510,8 @@ fun ltreeTextadd(
  * Get <code>public.ltree_textadd</code> as a field.
  */
 fun ltreeTextadd(
-    __1: String?, __2: Ltree?
+      __1: String?
+    , __2: Ltree?
 ): Field<Ltree?> {
     val f = LtreeTextadd()
     f.set__1(__1)
@@ -2282,7 +2524,8 @@ fun ltreeTextadd(
  * Get <code>public.ltree_textadd</code> as a field.
  */
 fun ltreeTextadd(
-    __1: Field<String?>, __2: Field<Ltree?>
+      __1: Field<String?>
+    , __2: Field<Ltree?>
 ): Field<Ltree?> {
     val f = LtreeTextadd()
     f.set__1(__1)
@@ -2292,7 +2535,9 @@ fun ltreeTextadd(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeUnion(
-    configuration: Configuration, __1: Any?, __2: Any?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Any?
 ): Any? {
     val f = LtreeUnion()
     f.set__1(__1)
@@ -2303,7 +2548,8 @@ fun ltreeUnion(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeUnion(
-    __1: Any?, __2: Any?
+      __1: Any?
+    , __2: Any?
 ): Field<Any?> {
     val f = LtreeUnion()
     f.set__1(__1)
@@ -2313,7 +2559,8 @@ fun ltreeUnion(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeUnion(
-    __1: Field<Any?>, __2: Field<Any?>
+      __1: Field<Any?>
+    , __2: Field<Any?>
 ): Field<Any?> {
     val f = LtreeUnion()
     f.set__1(__1)
@@ -2323,7 +2570,11 @@ fun ltreeUnion(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeparentsel(
-    configuration: Configuration, __1: Any?, __2: Long?, __3: Any?, __4: Int?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Long?
+    , __3: Any?
+    , __4: Int?
 ): Double? {
     val f = Ltreeparentsel()
     f.set__1(__1)
@@ -2336,7 +2587,10 @@ fun ltreeparentsel(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeparentsel(
-    __1: Any?, __2: Long?, __3: Any?, __4: Int?
+      __1: Any?
+    , __2: Long?
+    , __3: Any?
+    , __4: Int?
 ): Field<Double?> {
     val f = Ltreeparentsel()
     f.set__1(__1)
@@ -2348,7 +2602,10 @@ fun ltreeparentsel(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltreeparentsel(
-    __1: Field<Any?>, __2: Field<Long?>, __3: Field<Any?>, __4: Field<Int?>
+      __1: Field<Any?>
+    , __2: Field<Long?>
+    , __3: Field<Any?>
+    , __4: Field<Int?>
 ): Field<Double?> {
     val f = Ltreeparentsel()
     f.set__1(__1)
@@ -2360,7 +2617,9 @@ fun ltreeparentsel(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqExec(
-    configuration: Configuration, __1: Ltree?, __2: Any?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Any?
 ): Boolean? {
     val f = LtxtqExec()
     f.set__1(__1)
@@ -2371,7 +2630,8 @@ fun ltxtqExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqExec(
-    __1: Ltree?, __2: Any?
+      __1: Ltree?
+    , __2: Any?
 ): Field<Boolean?> {
     val f = LtxtqExec()
     f.set__1(__1)
@@ -2381,7 +2641,8 @@ fun ltxtqExec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqExec(
-    __1: Field<Ltree?>, __2: Field<Any?>
+      __1: Field<Ltree?>
+    , __2: Field<Any?>
 ): Field<Boolean?> {
     val f = LtxtqExec()
     f.set__1(__1)
@@ -2391,7 +2652,8 @@ fun ltxtqExec(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqIn(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtxtqIn()
     f.set__1(__1)
@@ -2401,7 +2663,7 @@ fun ltxtqIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqIn(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtxtqIn()
     f.set__1(__1)
@@ -2410,7 +2672,7 @@ fun ltxtqIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqIn(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtxtqIn()
     f.set__1(__1)
@@ -2419,7 +2681,8 @@ fun ltxtqIn(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqOut(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtxtqOut()
     f.set__1(__1)
@@ -2429,7 +2692,7 @@ fun ltxtqOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqOut(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtxtqOut()
     f.set__1(__1)
@@ -2438,7 +2701,7 @@ fun ltxtqOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqOut(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtxtqOut()
     f.set__1(__1)
@@ -2447,7 +2710,8 @@ fun ltxtqOut(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRecv(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): Any? {
     val f = LtxtqRecv()
     f.set__1(__1)
@@ -2457,7 +2721,7 @@ fun ltxtqRecv(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRecv(
-    __1: Any?
+      __1: Any?
 ): Field<Any?> {
     val f = LtxtqRecv()
     f.set__1(__1)
@@ -2466,7 +2730,7 @@ fun ltxtqRecv(
 }
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRecv(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<Any?> {
     val f = LtxtqRecv()
     f.set__1(__1)
@@ -2475,7 +2739,9 @@ fun ltxtqRecv(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRexec(
-    configuration: Configuration, __1: Any?, __2: Ltree?
+      configuration: Configuration
+    , __1: Any?
+    , __2: Ltree?
 ): Boolean? {
     val f = LtxtqRexec()
     f.set__1(__1)
@@ -2486,7 +2752,8 @@ fun ltxtqRexec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRexec(
-    __1: Any?, __2: Ltree?
+      __1: Any?
+    , __2: Ltree?
 ): Field<Boolean?> {
     val f = LtxtqRexec()
     f.set__1(__1)
@@ -2496,7 +2763,8 @@ fun ltxtqRexec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqRexec(
-    __1: Field<Any?>, __2: Field<Ltree?>
+      __1: Field<Any?>
+    , __2: Field<Ltree?>
 ): Field<Boolean?> {
     val f = LtxtqRexec()
     f.set__1(__1)
@@ -2506,7 +2774,8 @@ fun ltxtqRexec(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqSend(
-    configuration: Configuration, __1: Any?
+      configuration: Configuration
+    , __1: Any?
 ): ByteArray? {
     val f = LtxtqSend()
     f.set__1(__1)
@@ -2516,7 +2785,7 @@ fun ltxtqSend(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqSend(
-    __1: Any?
+      __1: Any?
 ): Field<ByteArray?> {
     val f = LtxtqSend()
     f.set__1(__1)
@@ -2525,7 +2794,7 @@ fun ltxtqSend(
 }
 @Deprecated(message = "Unknown data type. Parameter type or return type is unknown. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 fun ltxtqSend(
-    __1: Field<Any?>
+      __1: Field<Any?>
 ): Field<ByteArray?> {
     val f = LtxtqSend()
     f.set__1(__1)
@@ -2537,7 +2806,8 @@ fun ltxtqSend(
  * Call <code>public.nlevel</code>
  */
 fun nlevel(
-    configuration: Configuration, __1: Ltree?
+      configuration: Configuration
+    , __1: Ltree?
 ): Int? {
     val f = Nlevel()
     f.set__1(__1)
@@ -2550,7 +2820,7 @@ fun nlevel(
  * Get <code>public.nlevel</code> as a field.
  */
 fun nlevel(
-    __1: Ltree?
+      __1: Ltree?
 ): Field<Int?> {
     val f = Nlevel()
     f.set__1(__1)
@@ -2562,7 +2832,7 @@ fun nlevel(
  * Get <code>public.nlevel</code> as a field.
  */
 fun nlevel(
-    __1: Field<Ltree?>
+      __1: Field<Ltree?>
 ): Field<Int?> {
     val f = Nlevel()
     f.set__1(__1)
@@ -2574,7 +2844,10 @@ fun nlevel(
  * Call <code>public.subltree</code>
  */
 fun subltree(
-    configuration: Configuration, __1: Ltree?, __2: Int?, __3: Int?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Int?
+    , __3: Int?
 ): Ltree? {
     val f = Subltree()
     f.set__1(__1)
@@ -2589,7 +2862,9 @@ fun subltree(
  * Get <code>public.subltree</code> as a field.
  */
 fun subltree(
-    __1: Ltree?, __2: Int?, __3: Int?
+      __1: Ltree?
+    , __2: Int?
+    , __3: Int?
 ): Field<Ltree?> {
     val f = Subltree()
     f.set__1(__1)
@@ -2603,7 +2878,9 @@ fun subltree(
  * Get <code>public.subltree</code> as a field.
  */
 fun subltree(
-    __1: Field<Ltree?>, __2: Field<Int?>, __3: Field<Int?>
+      __1: Field<Ltree?>
+    , __2: Field<Int?>
+    , __3: Field<Int?>
 ): Field<Ltree?> {
     val f = Subltree()
     f.set__1(__1)
@@ -2617,7 +2894,10 @@ fun subltree(
  * Call <code>public.subpath</code>
  */
 fun subpath1(
-    configuration: Configuration, __1: Ltree?, __2: Int?, __3: Int?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Int?
+    , __3: Int?
 ): Ltree? {
     val f = Subpath1()
     f.set__1(__1)
@@ -2632,7 +2912,9 @@ fun subpath1(
  * Get <code>public.subpath</code> as a field.
  */
 fun subpath1(
-    __1: Ltree?, __2: Int?, __3: Int?
+      __1: Ltree?
+    , __2: Int?
+    , __3: Int?
 ): Field<Ltree?> {
     val f = Subpath1()
     f.set__1(__1)
@@ -2646,7 +2928,9 @@ fun subpath1(
  * Get <code>public.subpath</code> as a field.
  */
 fun subpath1(
-    __1: Field<Ltree?>, __2: Field<Int?>, __3: Field<Int?>
+      __1: Field<Ltree?>
+    , __2: Field<Int?>
+    , __3: Field<Int?>
 ): Field<Ltree?> {
     val f = Subpath1()
     f.set__1(__1)
@@ -2660,7 +2944,9 @@ fun subpath1(
  * Call <code>public.subpath</code>
  */
 fun subpath2(
-    configuration: Configuration, __1: Ltree?, __2: Int?
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Int?
 ): Ltree? {
     val f = Subpath2()
     f.set__1(__1)
@@ -2674,7 +2960,8 @@ fun subpath2(
  * Get <code>public.subpath</code> as a field.
  */
 fun subpath2(
-    __1: Ltree?, __2: Int?
+      __1: Ltree?
+    , __2: Int?
 ): Field<Ltree?> {
     val f = Subpath2()
     f.set__1(__1)
@@ -2687,7 +2974,8 @@ fun subpath2(
  * Get <code>public.subpath</code> as a field.
  */
 fun subpath2(
-    __1: Field<Ltree?>, __2: Field<Int?>
+      __1: Field<Ltree?>
+    , __2: Field<Int?>
 ): Field<Ltree?> {
     val f = Subpath2()
     f.set__1(__1)
@@ -2700,7 +2988,8 @@ fun subpath2(
  * Call <code>public.text2ltree</code>
  */
 fun text2ltree(
-    configuration: Configuration, __1: String?
+      configuration: Configuration
+    , __1: String?
 ): Ltree? {
     val f = Text2ltree()
     f.set__1(__1)
@@ -2713,7 +3002,7 @@ fun text2ltree(
  * Get <code>public.text2ltree</code> as a field.
  */
 fun text2ltree(
-    __1: String?
+      __1: String?
 ): Field<Ltree?> {
     val f = Text2ltree()
     f.set__1(__1)
@@ -2725,7 +3014,7 @@ fun text2ltree(
  * Get <code>public.text2ltree</code> as a field.
  */
 fun text2ltree(
-    __1: Field<String?>
+      __1: Field<String?>
 ): Field<Ltree?> {
     val f = Text2ltree()
     f.set__1(__1)

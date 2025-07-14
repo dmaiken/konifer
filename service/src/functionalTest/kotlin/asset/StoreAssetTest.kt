@@ -3,7 +3,7 @@ package asset
 import BaseTestcontainerTest.Companion.BOUNDARY
 import asset.model.StoreAssetRequest
 import config.testInMemory
-import io.image.ImageFormat
+import image.model.ImageFormat
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -33,7 +33,6 @@ class StoreAssetTest {
             val image = "I am not an image".toByteArray()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -85,7 +84,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -108,7 +106,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
@@ -131,13 +128,12 @@ class StoreAssetTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
             storeAsset(client, image, request, path = "users/123/profile")
 
-            client.get("/assets/users/123/profile?format=content").apply {
+            client.get("/assets/users/123/profile?return=content").apply {
                 status shouldBe HttpStatusCode.OK
                 contentType().toString() shouldBe "image/png"
                 val imageBytes = bodyAsBytes()
@@ -169,13 +165,12 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    fileName = "filename.png",
                     type = "image/png",
                     alt = "an image",
                 )
             storeAsset(client, image, request, path = "users/123/profile")
 
-            client.get("/assets/users/123/profile?format=content").apply {
+            client.get("/assets/users/123/profile?return=content").apply {
                 status shouldBe HttpStatusCode.OK
                 contentType().toString() shouldBe format.mimeType
                 val imageBytes = bodyAsBytes()

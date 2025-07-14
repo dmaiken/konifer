@@ -9,7 +9,7 @@ import io.aws.S3Service.Companion.BUCKET
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.runBlocking
 
-private val logger = KtorSimpleLogger("io.image.S3Config")
+private val logger = KtorSimpleLogger("image.S3Config")
 
 fun s3Client(properties: LocalstackProperties? = null): S3Client =
     S3Client {

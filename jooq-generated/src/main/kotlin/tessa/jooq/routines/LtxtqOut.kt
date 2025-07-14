@@ -16,23 +16,12 @@ import tessa.jooq.Public
 
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
 @Suppress("warnings")
-open class LtxtqOut : AbstractRoutine<Any>(
-    "ltxtq_out",
-    Public.PUBLIC,
-    DSL.comment(""),
-    DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\"")
-) {
+open class LtxtqOut : AbstractRoutine<Any>("ltxtq_out", Public.PUBLIC, DSL.comment(""), DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\"")) {
     companion object {
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val RETURN_VALUE: Parameter<Any?> = Internal.createParameter(
-            "RETURN_VALUE",
-            DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\""),
-            false,
-            false
-        )
+        val RETURN_VALUE: Parameter<Any?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"cstring\""), false, false)
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val _1: Parameter<Any?> =
-            Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltxtquery\""), false, true)
+        val _1: Parameter<Any?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltxtquery\""), false, true)
     }
 
     init {

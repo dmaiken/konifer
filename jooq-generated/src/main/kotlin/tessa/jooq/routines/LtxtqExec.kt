@@ -27,22 +27,14 @@ open class LtxtqExec : AbstractRoutine<Boolean>("ltxtq_exec", Public.PUBLIC, DSL
         /**
          * The parameter <code>public.ltxtq_exec.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> =
-            Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
 
         /**
          * The parameter <code>public.ltxtq_exec._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val _2: Parameter<Any?> =
-            Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltxtquery\""), false, true)
+        val _2: Parameter<Any?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltxtquery\""), false, true)
     }
 
     init {

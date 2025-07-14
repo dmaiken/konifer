@@ -1,7 +1,7 @@
 package io.path
 
-import io.image.ImageProperties
-import io.image.PreProcessingProperties
+import image.model.ImageProperties
+import image.model.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.path.configuration.PathConfiguration

@@ -32,13 +32,7 @@ open class Nlevel : AbstractRoutine<Int>("nlevel", Public.PUBLIC, DSL.comment(""
         /**
          * The parameter <code>public.nlevel._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

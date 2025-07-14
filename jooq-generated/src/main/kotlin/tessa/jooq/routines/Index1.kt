@@ -32,24 +32,12 @@ open class Index1 : AbstractRoutine<Int>("index", Public.PUBLIC, DSL.comment("")
         /**
          * The parameter <code>public.index._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
 
         /**
          * The parameter <code>public.index._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter(
-            "_2",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

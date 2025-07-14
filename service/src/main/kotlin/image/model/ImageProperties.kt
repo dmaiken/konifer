@@ -1,4 +1,4 @@
-package io.image
+package image.model
 
 import io.ktor.server.config.ApplicationConfig
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PREPROCESSING

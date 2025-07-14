@@ -4,12 +4,6 @@
 package tessa.jooq.tables
 
 
-import java.time.LocalDateTime
-import java.util.UUID
-
-import kotlin.collections.Collection
-import kotlin.collections.List
-
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -17,6 +11,7 @@ import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.JSONB
 import org.jooq.Name
+import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -29,14 +24,20 @@ import org.jooq.TableField
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
+import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
-
 import tessa.jooq.Public
 import tessa.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
 import tessa.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
+import tessa.jooq.indexes.ASSET_VARIANT_ATTRIBUTES_KEY
+import tessa.jooq.indexes.ASSET_VARIANT_ATTRIBUTES_UQ
 import tessa.jooq.keys.ASSET_VARIANT_PKEY
+import tessa.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
+import tessa.jooq.tables.AssetTree.AssetTreePath
 import tessa.jooq.tables.records.AssetVariantRecord
+import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -51,7 +52,7 @@ open class AssetVariant(
     aliased: Table<AssetVariantRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-) : TableImpl<AssetVariantRecord>(
+): TableImpl<AssetVariantRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -79,93 +80,84 @@ open class AssetVariant(
     /**
      * The column <code>public.asset_variant.id</code>.
      */
-    val ID: TableField<AssetVariantRecord, UUID?> =
-        createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "")
+    val ID: TableField<AssetVariantRecord, UUID?> = createField(DSL.name("id"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.asset_id</code>.
      */
-    val ASSET_ID: TableField<AssetVariantRecord, UUID?> =
-        createField(DSL.name("asset_id"), SQLDataType.UUID.nullable(false), this, "")
+    val ASSET_ID: TableField<AssetVariantRecord, UUID?> = createField(DSL.name("asset_id"), SQLDataType.UUID.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.object_store_bucket</code>.
      */
-    val OBJECT_STORE_BUCKET: TableField<AssetVariantRecord, String?> =
-        createField(DSL.name("object_store_bucket"), SQLDataType.CLOB.nullable(false), this, "")
+    val OBJECT_STORE_BUCKET: TableField<AssetVariantRecord, String?> = createField(DSL.name("object_store_bucket"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.object_store_key</code>.
      */
-    val OBJECT_STORE_KEY: TableField<AssetVariantRecord, String?> =
-        createField(DSL.name("object_store_key"), SQLDataType.CLOB.nullable(false), this, "")
+    val OBJECT_STORE_KEY: TableField<AssetVariantRecord, String?> = createField(DSL.name("object_store_key"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.attributes</code>.
      */
-    val ATTRIBUTES: TableField<AssetVariantRecord, JSONB?> =
-        createField(DSL.name("attributes"), SQLDataType.JSONB.nullable(false), this, "")
+    val ATTRIBUTES: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("attributes"), SQLDataType.JSONB.nullable(false), this, "")
+
+    /**
+     * The column <code>public.asset_variant.attributes_key</code>.
+     */
+    val ATTRIBUTES_KEY: TableField<AssetVariantRecord, ByteArray?> = createField(DSL.name("attributes_key"), SQLDataType.BLOB.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.original_variant</code>.
      */
-    val ORIGINAL_VARIANT: TableField<AssetVariantRecord, Boolean?> =
-        createField(DSL.name("original_variant"), SQLDataType.BOOLEAN.nullable(false), this, "")
+    val ORIGINAL_VARIANT: TableField<AssetVariantRecord, Boolean?> = createField(DSL.name("original_variant"), SQLDataType.BOOLEAN.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.created_at</code>.
      */
-    val CREATED_AT: TableField<AssetVariantRecord, LocalDateTime?> =
-        createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
-    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        null
-    )
-
-    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        parameters,
-        null
-    )
-
-    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, where: Condition?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        where
-    )
+    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
+    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
+    private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
      * Create an aliased <code>public.asset_variant</code> table reference
      */
-    constructor(alias: String) : this(DSL.name(alias))
+    constructor(alias: String): this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.asset_variant</code> table reference
      */
-    constructor(alias: Name) : this(alias, null)
+    constructor(alias: Name): this(alias, null)
 
     /**
      * Create a <code>public.asset_variant</code> table reference
      */
-    constructor() : this(DSL.name("asset_variant"), null)
+    constructor(): this(DSL.name("asset_variant"), null)
+
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AssetVariantRecord>?, parentPath: InverseForeignKey<out Record, AssetVariantRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ASSET_VARIANT, null, null)
+
+    /**
+     * A subtype implementing {@link Path} for simplified path-based joins.
+     */
+    open class AssetVariantPath : AssetVariant, Path<AssetVariantRecord> {
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AssetVariantRecord>?, parentPath: InverseForeignKey<out Record, AssetVariantRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<AssetVariantRecord>): super(alias, aliased)
+        override fun `as`(alias: String): AssetVariantPath = AssetVariantPath(DSL.name(alias), this)
+        override fun `as`(alias: Name): AssetVariantPath = AssetVariantPath(alias, this)
+        override fun `as`(alias: Table<*>): AssetVariantPath = AssetVariantPath(alias.qualifiedName, this)
+    }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> =
-        listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ)
+    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_ATTRIBUTES_KEY, ASSET_VARIANT_ATTRIBUTES_UQ)
     override fun getPrimaryKey(): UniqueKey<AssetVariantRecord> = ASSET_VARIANT_PKEY
+    override fun getReferences(): List<ForeignKey<AssetVariantRecord, *>> = listOf(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID)
+
+    /**
+     * Get the implicit join path to the <code>public.asset_tree</code> table.
+     */
+    fun assetTree(): AssetTreePath = assetTree
+    val assetTree: AssetTreePath by lazy { AssetTreePath(this, ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID, null) }
     override fun `as`(alias: String): AssetVariant = AssetVariant(DSL.name(alias), this)
     override fun `as`(alias: Name): AssetVariant = AssetVariant(alias, this)
     override fun `as`(alias: Table<*>): AssetVariant = AssetVariant(alias.qualifiedName, this)
@@ -188,8 +180,7 @@ open class AssetVariant(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): AssetVariant =
-        AssetVariant(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): AssetVariant = AssetVariant(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -209,28 +200,22 @@ open class AssetVariant(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(condition: SQL): AssetVariant = where(DSL.condition(condition))
+    @PlainSQL override fun where(condition: SQL): AssetVariant = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String): AssetVariant = where(DSL.condition(condition))
+    @PlainSQL override fun where(@Stringly.SQL condition: String): AssetVariant = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AssetVariant =
-        where(DSL.condition(condition, *binds))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AssetVariant = where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AssetVariant =
-        where(DSL.condition(condition, *parts))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AssetVariant = where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

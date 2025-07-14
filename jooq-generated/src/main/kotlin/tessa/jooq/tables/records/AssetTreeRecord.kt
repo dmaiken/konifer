@@ -4,14 +4,12 @@
 package tessa.jooq.tables.records
 
 
-import java.time.LocalDateTime
-import java.util.UUID
-
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
 import org.jooq.postgres.extensions.types.Ltree
-
 import tessa.jooq.tables.AssetTree
+import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -49,13 +47,7 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
     /**
      * Create a detached, initialised AssetTreeRecord
      */
-    constructor(
-        id: UUID? = null,
-        entryId: Long? = null,
-        path: Ltree? = null,
-        alt: String? = null,
-        createdAt: LocalDateTime? = null
-    ) : this() {
+    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.entryId = entryId
         this.path = path

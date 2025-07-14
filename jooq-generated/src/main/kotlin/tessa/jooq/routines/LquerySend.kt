@@ -25,11 +25,9 @@ open class LquerySend : AbstractRoutine<ByteArray>("lquery_send", Public.PUBLIC,
         /**
          * The parameter <code>public.lquery_send.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<ByteArray?> =
-            Internal.createParameter("RETURN_VALUE", SQLDataType.BLOB, false, false)
+        val RETURN_VALUE: Parameter<ByteArray?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BLOB, false, false)
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val _1: Parameter<Any?> =
-            Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"lquery\""), false, true)
+        val _1: Parameter<Any?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"lquery\""), false, true)
     }
 
     init {

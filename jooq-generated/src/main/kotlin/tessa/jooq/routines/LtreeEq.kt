@@ -27,30 +27,17 @@ open class LtreeEq : AbstractRoutine<Boolean>("ltree_eq", Public.PUBLIC, DSL.com
         /**
          * The parameter <code>public.ltree_eq.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> =
-            Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
 
         /**
          * The parameter <code>public.ltree_eq._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
 
         /**
          * The parameter <code>public.ltree_eq._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter(
-            "_2",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS asset_variant
     object_store_bucket TEXT                        NOT NULL,
     object_store_key    TEXT                        NOT NULL,
     attributes          JSONB                       NOT NULL,
+    attributes_key      BYTEA                       NOT NULL,
     original_variant    BOOLEAN                     NOT NULL,
     created_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT fk_asset_variant_asset_id_asset_tree_id FOREIGN KEY (asset_id)
@@ -25,4 +26,6 @@ CREATE TABLE IF NOT EXISTS asset_variant
 );
 
 CREATE INDEX IF NOT EXISTS asset_variant_asset_id_idx ON asset_variant (asset_id);
+CREATE INDEX IF NOT EXISTS asset_variant_attributes_key ON asset_variant (attributes_key);
+CREATE UNIQUE INDEX IF NOT EXISTS asset_variant_attributes_uq ON asset_variant (asset_id, attributes_key);
 CREATE UNIQUE INDEX IF NOT EXISTS asset_variant_asset_id_original_variant_uq ON asset_variant (asset_id, original_variant);

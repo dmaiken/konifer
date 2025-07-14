@@ -1,5 +1,6 @@
-package io.image
+package io.image.model
 
+import image.model.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -13,7 +14,7 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxHeight cannot be less than 0`(maxHeight: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.create(
+                PreProcessingProperties.Companion.create(
                     maxHeight = maxHeight,
                     maxWidth = 100,
                     imageFormat = null,
@@ -28,7 +29,7 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxWidth cannot be less than 0`(maxWidth: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.create(
+                PreProcessingProperties.Companion.create(
                     maxWidth = maxWidth,
                     maxHeight = 100,
                     imageFormat = null,
@@ -41,7 +42,7 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxHeight can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.create(
+            PreProcessingProperties.Companion.create(
                 maxWidth = 100,
                 maxHeight = null,
                 imageFormat = null,
@@ -52,7 +53,7 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxWidth can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.create(
+            PreProcessingProperties.Companion.create(
                 maxWidth = null,
                 maxHeight = 100,
                 imageFormat = null,
@@ -62,7 +63,7 @@ class ImagePropertiesTest {
 
     @Test
     fun `PreProcessingProperties default creates properties with default values`() {
-        val default = PreProcessingProperties.default()
+        val default = PreProcessingProperties.Companion.default()
         default.imageFormat shouldBe null
         default.maxWidth shouldBe null
         default.maxHeight shouldBe null

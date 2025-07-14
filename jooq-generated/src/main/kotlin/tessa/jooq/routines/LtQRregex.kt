@@ -27,29 +27,17 @@ open class LtQRregex : AbstractRoutine<Boolean>("lt_q_rregex", Public.PUBLIC, DS
         /**
          * The parameter <code>public.lt_q_rregex.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> =
-            Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
 
         /**
          * The parameter <code>public.lt_q_rregex._1</code>.
          */
-        val _1: Parameter<Array<Any?>?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"lquery\"").array(),
-            false,
-            true
-        )
+        val _1: Parameter<Array<Any?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"lquery\"").array(), false, true)
 
         /**
          * The parameter <code>public.lt_q_rregex._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter(
-            "_2",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

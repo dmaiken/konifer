@@ -11,16 +11,16 @@ data class AssetAndVariants(
     val variants: List<AssetVariant>,
 ) {
     companion object Factory {
-        fun from(records: List<Record>): AssetAndVariants {
+        fun from(records: List<Record>): AssetAndVariants? {
             if (records.isEmpty()) {
-                throw IllegalArgumentException("No asset records")
+                return null
             }
             val assetsToVariants = mutableMapOf<Asset, MutableList<AssetVariant>>()
             records.forEach { record ->
-                val asset = Asset.from(record)
-                if (assetsToVariants.containsKey(asset)) {
+                if (assetsToVariants.size > 1) {
                     throw IllegalArgumentException("Multiple assets in record set")
                 }
+                val asset = Asset.from(record)
                 val variants = assetsToVariants.computeIfAbsent(asset) { mutableListOf() }
                 variants.add(AssetVariant.from(record))
             }

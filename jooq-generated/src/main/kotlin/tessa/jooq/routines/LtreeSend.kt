@@ -27,19 +27,12 @@ open class LtreeSend : AbstractRoutine<ByteArray>("ltree_send", Public.PUBLIC, D
         /**
          * The parameter <code>public.ltree_send.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<ByteArray?> =
-            Internal.createParameter("RETURN_VALUE", SQLDataType.BLOB, false, false)
+        val RETURN_VALUE: Parameter<ByteArray?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BLOB, false, false)
 
         /**
          * The parameter <code>public.ltree_send._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

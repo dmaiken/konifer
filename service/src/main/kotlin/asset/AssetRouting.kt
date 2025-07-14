@@ -1,6 +1,10 @@
 package asset
 
 import asset.model.StoreAssetRequest
+import io.asset.AssetStreamContainer
+import io.asset.ContentParameters.ALL
+import io.asset.ContentParameters.RETURN
+import io.getAppStatusCacheHeader
 import io.getEntryId
 import io.getPathModifierOption
 import io.ktor.http.ContentType
@@ -13,14 +17,15 @@ import io.ktor.server.plugins.origin
 import io.ktor.server.request.path
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondOutputStream
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.toByteArray
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.copyTo
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
@@ -34,13 +39,13 @@ fun Application.configureAssetRouting() {
     routing {
         get("$ASSET_PATH_PREFIX/{...}") {
             val route = call.request.path().removePrefix(ASSET_PATH_PREFIX)
-            val returnFormat = AssetReturnFormat.fromQueryParam(call.request.queryParameters["format"])
-            val all = call.request.queryParameters["all"]?.toBoolean() ?: false
+            val returnFormat = AssetReturnFormat.fromQueryParam(call.request.queryParameters[RETURN])
+            val all = call.request.queryParameters[ALL]?.toBoolean() ?: false
             val suppliedEntryId = getEntryId(call.request)
 
             if (returnFormat == AssetReturnFormat.METADATA && !all) {
                 logger.info("Navigating to asset info with path: $route")
-                assetHandler.fetchAssetInfoByPath(route, suppliedEntryId)?.let {
+                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId)?.let {
                     logger.info("Found asset info: $it with path: $route")
                     call.respond(HttpStatusCode.OK, it.toResponse())
                 } ?: call.respond(HttpStatusCode.NotFound)
@@ -55,23 +60,29 @@ fun Application.configureAssetRouting() {
                 }
             } else if (returnFormat == AssetReturnFormat.REDIRECT) {
                 logger.info("Navigating to asset with path: $route")
-                assetHandler.fetchAssetByPath(route, suppliedEntryId)?.let { url ->
-                    logger.info("Found asset with url: $url and route: $route")
-                    call.response.headers.append(HttpHeaders.Location, url)
+                assetHandler.fetchAssetByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
+                    logger.info("Found asset with response: $response and route: $route")
+                    call.response.headers.append(HttpHeaders.Location, response.first)
+                    getAppStatusCacheHeader(response.second).let {
+                        call.response.headers.append(it.first, it.second)
+                    }
                     call.respond(HttpStatusCode.TemporaryRedirect)
                 } ?: call.respond(HttpStatusCode.NotFound)
             } else {
                 // Content
                 logger.info("Navigating to asset content with path: $route")
-                assetHandler.fetchAssetInfoByPath(route, suppliedEntryId)?.let { asset ->
+                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
                     logger.info("Found asset content with path: $route")
-                    call.respondOutputStream(
-                        contentType = ContentType.parse(asset.getOriginalVariant().attributes.mimeType),
+                    getAppStatusCacheHeader(response.second).let {
+                        call.response.headers.append(it.first, it.second)
+                    }
+                    call.respondBytesWriter(
+                        contentType = ContentType.parse(response.first.variants.first().attributes.mimeType),
                         status = HttpStatusCode.OK,
                     ) {
                         assetHandler.fetchAssetContent(
-                            asset.getOriginalVariant().objectStoreBucket,
-                            asset.getOriginalVariant().objectStoreKey,
+                            response.first.variants.first().objectStoreBucket,
+                            response.first.variants.first().objectStoreKey,
                             this,
                         )
                     }
@@ -110,7 +121,7 @@ suspend fun createNewAsset(
     assetHandler: AssetHandler,
 ) {
     var assetData: StoreAssetRequest? = null
-    var assetContent: ByteArray? = null
+    var assetContent: ByteChannel? = null
     val multipart = call.receiveMultipart()
     multipart.forEachPart { part ->
         when (part) {
@@ -121,7 +132,11 @@ suspend fun createNewAsset(
             }
 
             is PartData.FileItem -> {
-                assetContent = part.provider().toByteArray()
+                assetContent =
+                    ByteChannel().also {
+                        part.provider().copyTo(it)
+                    }
+                assetContent.close()
             }
 
             else -> {}
@@ -137,7 +152,7 @@ suspend fun createNewAsset(
     val asset =
         assetHandler.storeNewAsset(
             request = checkNotNull(assetData),
-            content = checkNotNull(assetContent),
+            container = AssetStreamContainer(checkNotNull(assetContent)),
             uriPath = call.request.path().removePrefix(ASSET_PATH_PREFIX),
         )
     logger.info("Created asset under path: ${asset.locationPath}")

@@ -1,8 +1,10 @@
 package asset.store
 
-import asset.model.AssetAndVariants
-import asset.model.StoreAssetRequest
-import java.io.OutputStream
+import asset.variant.AssetVariant
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.toByteArray
+import io.ktor.utils.io.writeFully
 import java.util.UUID
 
 class InMemoryObjectStore() : ObjectStore {
@@ -14,11 +16,11 @@ class InMemoryObjectStore() : ObjectStore {
     private val store = mutableMapOf<String, ByteArray>()
 
     override suspend fun persist(
-        data: StoreAssetRequest,
-        image: ByteArray,
+        asset: ByteChannel,
+        contentLength: Long?,
     ): PersistResult {
         val key = UUID.randomUUID().toString()
-        store.put(key, image)
+        store.put(key, asset.toByteArray())
 
         return PersistResult(
             key = key,
@@ -29,24 +31,23 @@ class InMemoryObjectStore() : ObjectStore {
     override suspend fun fetch(
         bucket: String,
         key: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): FetchResult {
         if (bucket != BUCKET) {
-            return FetchResult(
-                found = false,
-                contentLength = 0,
-            )
+            return FetchResult.notFound().also {
+                stream.flushAndClose()
+            }
         }
         return store[key]?.let {
-            stream.write(it)
+            stream.writeFully(it)
+            stream.flushAndClose()
             FetchResult(
                 found = true,
                 contentLength = it.size.toLong(),
             )
-        } ?: FetchResult(
-            found = false,
-            contentLength = 0,
-        )
+        } ?: FetchResult.notFound().also {
+            stream.flushAndClose()
+        }
     }
 
     override suspend fun delete(
@@ -69,9 +70,9 @@ class InMemoryObjectStore() : ObjectStore {
         keys.forEach { delete(bucket, it) }
     }
 
-    override fun generateObjectUrl(assetAndVariant: AssetAndVariants): String {
-        return "http://localhost:$DEFAULT_PORT/objectStore/${assetAndVariant.getOriginalVariant().objectStoreBucket}" +
-            "/${assetAndVariant.getOriginalVariant().objectStoreKey}"
+    override fun generateObjectUrl(variant: AssetVariant): String {
+        return "http://localhost:$DEFAULT_PORT/objectStore/${variant.objectStoreBucket}" +
+            "/${variant.objectStoreKey}"
     }
 
     fun clearObjectStore() {

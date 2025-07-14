@@ -2,7 +2,7 @@ package asset.handler
 
 import asset.model.StoreAssetRequest
 import asset.store.PersistResult
-import io.image.ImageAttributes
+import image.model.ImageAttributes
 
 class StoreAssetDto(
     val mimeType: String,

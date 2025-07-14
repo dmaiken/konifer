@@ -1,19 +1,19 @@
 package asset.store
 
-import asset.model.AssetAndVariants
-import asset.model.StoreAssetRequest
-import java.io.OutputStream
+import asset.variant.AssetVariant
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
 
 interface ObjectStore {
     suspend fun persist(
-        data: StoreAssetRequest,
-        image: ByteArray,
+        asset: ByteChannel,
+        contentLength: Long? = null,
     ): PersistResult
 
     suspend fun fetch(
         bucket: String,
         key: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): FetchResult
 
     /**
@@ -29,7 +29,7 @@ interface ObjectStore {
         keys: List<String>,
     )
 
-    fun generateObjectUrl(assetAndVariant: AssetAndVariants): String
+    fun generateObjectUrl(variant: AssetVariant): String
 }
 
 data class PersistResult(

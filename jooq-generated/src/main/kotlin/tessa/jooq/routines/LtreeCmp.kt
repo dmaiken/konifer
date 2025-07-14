@@ -32,24 +32,12 @@ open class LtreeCmp : AbstractRoutine<Int>("ltree_cmp", Public.PUBLIC, DSL.comme
         /**
          * The parameter <code>public.ltree_cmp._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter(
-            "_1",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
 
         /**
          * The parameter <code>public.ltree_cmp._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter(
-            "_2",
-            DefaultDataType.getDefaultDataType("\"public\".\"ltree\""),
-            false,
-            true,
-            LtreeBinding()
-        )
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
     }
 
     init {

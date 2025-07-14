@@ -1,4 +1,4 @@
-package io.image
+package image.model
 
 enum class ImageFormat(
     val value: Set<String>,

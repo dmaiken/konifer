@@ -1,9 +1,9 @@
 package io
 
 import asset.assetModule
+import image.imageModule
 import io.aws.awsModule
 import io.database.dbModule
-import io.image.imageModule
 import io.inmemory.inMemoryObjectStoreModule
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

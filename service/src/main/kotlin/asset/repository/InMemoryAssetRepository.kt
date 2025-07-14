@@ -4,12 +4,15 @@ import asset.Asset
 import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
+import asset.store.PersistResult
 import asset.variant.AssetVariant
 import asset.variant.ImageVariantAttributes
 import asset.variant.VariantParameterGenerator
-import io.image.ImageAttributes
+import image.model.ImageAttributes
+import image.model.RequestedImageAttributes
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
+import java.util.Base64
 import java.util.UUID
 
 class InMemoryAssetRepository(
@@ -22,6 +25,10 @@ class InMemoryAssetRepository(
     override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
         val entryId = getNextEntryId(asset.treePath)
         logger.info("Persisting asset at path: ${asset.treePath} and entryId: $entryId")
+        val key =
+            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).key.let {
+                Base64.getEncoder().encodeToString(it)
+            }
         val assetAndVariants =
             AssetAndVariants(
                 asset =
@@ -44,39 +51,87 @@ class InMemoryAssetRepository(
                                     mimeType = asset.imageAttributes.mimeType,
                                 ),
                             isOriginalVariant = true,
+                            attributeKey = key,
                             createdAt = LocalDateTime.now(),
                         ),
                     ),
             )
         return assetAndVariants.also {
-            val originalVariantAttributeKey =
-                variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes)
             store.computeIfAbsent(asset.treePath) { mutableListOf() }.add(
                 InMemoryAssetAndVariants(
                     asset = it.asset,
-                    originalVariantAttributeKey = originalVariantAttributeKey,
-                    variants =
-                        mutableMapOf(
-                            originalVariantAttributeKey to it.variants.first(),
-                        ),
+                    variants = it.variants.toMutableList(),
                 ),
             )
             idReference.put(it.asset.id, it.asset)
         }
     }
 
+    override suspend fun storeVariant(
+        treePath: String,
+        entryId: Long,
+        persistResult: PersistResult,
+        imageAttributes: ImageAttributes,
+    ): AssetAndVariants {
+        return store[treePath]?.let { assets ->
+            val asset = assets.first { it.asset.entryId == entryId }
+            val key =
+                variantParameterGenerator.generateImageVariantAttributes(imageAttributes).key.let {
+                    Base64.getEncoder().encodeToString(it)
+                }
+            if (asset.variants.any { it.attributeKey.contentEquals(key) }) {
+                throw IllegalArgumentException(
+                    "Variant already exists for asset with entry_id: $entryId at path: $treePath with attributes: $imageAttributes",
+                )
+            }
+            val variant =
+                AssetVariant(
+                    objectStoreBucket = persistResult.bucket,
+                    objectStoreKey = persistResult.key,
+                    attributes =
+                        ImageVariantAttributes(
+                            height = imageAttributes.height,
+                            width = imageAttributes.width,
+                            mimeType = imageAttributes.mimeType,
+                        ),
+                    isOriginalVariant = false,
+                    attributeKey = key,
+                    createdAt = LocalDateTime.now(),
+                )
+            asset.variants.add(variant)
+            asset.variants.sortByDescending { it.createdAt }
+
+            AssetAndVariants(
+                asset = asset.asset,
+                variants = listOf(variant),
+            )
+        } ?: throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
+    }
+
     override suspend fun fetchByPath(
         treePath: String,
         entryId: Long?,
-        imageAttributes: ImageAttributes?,
+        requestedImageAttributes: RequestedImageAttributes?,
     ): AssetAndVariants? {
         return store[treePath]?.let { assets ->
             val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-            val asset = assets.firstOrNull { it.asset.entryId == resolvedEntryId }
-            asset?.let {
+            assets.firstOrNull { it.asset.entryId == resolvedEntryId }?.let { assetAndVariants ->
+                val variants =
+                    if (requestedImageAttributes == null) {
+                        assetAndVariants.variants
+                    } else if (requestedImageAttributes.isOriginalVariant()) {
+                        listOf(assetAndVariants.variants.first { it.isOriginalVariant })
+                    } else {
+                        assetAndVariants.variants.firstOrNull { variant ->
+                            requestedImageAttributes.matchesImageAttributes(variant.attributes)
+                        }?.let { matched ->
+                            logger.info("Found the variant")
+                            listOf(matched)
+                        } ?: emptyList()
+                    }
                 AssetAndVariants(
-                    asset = it.asset,
-                    variants = it.variants.values.toList(),
+                    asset = assetAndVariants.asset,
+                    variants = variants,
                 )
             }
         }
@@ -86,7 +141,7 @@ class InMemoryAssetRepository(
         return store[treePath]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map {
             AssetAndVariants(
                 asset = it.asset,
-                variants = it.variants.values.toList(),
+                variants = it.variants,
             )
         } ?: emptyList()
     }
@@ -114,8 +169,8 @@ class InMemoryAssetRepository(
         }
         return asset?.variants?.map {
             VariantBucketAndKey(
-                bucket = it.value.objectStoreBucket,
-                key = it.value.objectStoreKey,
+                bucket = it.objectStoreBucket,
+                key = it.objectStoreKey,
             )
         } ?: emptyList()
     }
@@ -153,7 +208,7 @@ class InMemoryAssetRepository(
     }
 
     private fun mapToBucketAndKey(assetAndVariants: InMemoryAssetAndVariants): List<VariantBucketAndKey> {
-        return assetAndVariants.variants.values.map { variant ->
+        return assetAndVariants.variants.map { variant ->
             VariantBucketAndKey(
                 bucket = variant.objectStoreBucket,
                 key = variant.objectStoreKey,
@@ -165,9 +220,24 @@ class InMemoryAssetRepository(
         return store[treePath]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
     }
 
-    private data class InMemoryAssetAndVariants(
-        val asset: Asset,
-        val originalVariantAttributeKey: String,
-        val variants: MutableMap<String, AssetVariant> = mutableMapOf(),
-    )
+    private fun RequestedImageAttributes.matchesImageAttributes(attributes: ImageVariantAttributes): Boolean {
+        if (width != null && height != null) {
+            return attributes.width == width || attributes.height == height
+        }
+        if (width != null && attributes.width != width) {
+            return false
+        }
+        if (height != null && attributes.height != height) {
+            return false
+        }
+        if (mimeType != null && attributes.mimeType != mimeType) {
+            return false
+        }
+        return true
+    }
 }
+
+private data class InMemoryAssetAndVariants(
+    val asset: Asset,
+    val variants: MutableList<AssetVariant>,
+)

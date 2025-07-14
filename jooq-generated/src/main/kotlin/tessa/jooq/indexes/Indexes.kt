@@ -18,17 +18,8 @@ import tessa.jooq.tables.AssetVariant
 // INDEX definitions
 // -------------------------------------------------------------------------
 
-val ASSET_PATH_IDX: Index =
-    Internal.createIndex(DSL.name("asset_path_idx"), AssetTree.ASSET_TREE, arrayOf(AssetTree.ASSET_TREE.PATH), false)
-val ASSET_VARIANT_ASSET_ID_IDX: Index = Internal.createIndex(
-    DSL.name("asset_variant_asset_id_idx"),
-    AssetVariant.ASSET_VARIANT,
-    arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID),
-    false
-)
-val ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ: Index = Internal.createIndex(
-    DSL.name("asset_variant_asset_id_original_variant_uq"),
-    AssetVariant.ASSET_VARIANT,
-    arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.ORIGINAL_VARIANT),
-    true
-)
+val ASSET_PATH_IDX: Index = Internal.createIndex(DSL.name("asset_path_idx"), AssetTree.ASSET_TREE, arrayOf(AssetTree.ASSET_TREE.PATH), false)
+val ASSET_VARIANT_ASSET_ID_IDX: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_idx"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID), false)
+val ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_original_variant_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.ORIGINAL_VARIANT), true)
+val ASSET_VARIANT_ATTRIBUTES_KEY: Index = Internal.createIndex(DSL.name("asset_variant_attributes_key"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ATTRIBUTES_KEY), false)
+val ASSET_VARIANT_ATTRIBUTES_UQ: Index = Internal.createIndex(DSL.name("asset_variant_attributes_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.ATTRIBUTES_KEY), true)

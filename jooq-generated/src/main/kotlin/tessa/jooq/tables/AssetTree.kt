@@ -4,18 +4,13 @@
 package tessa.jooq.tables
 
 
-import java.time.LocalDateTime
-import java.util.UUID
-
-import kotlin.collections.Collection
-import kotlin.collections.List
-
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
 import org.jooq.Index
 import org.jooq.InverseForeignKey
 import org.jooq.Name
+import org.jooq.Path
 import org.jooq.PlainSQL
 import org.jooq.QueryPart
 import org.jooq.Record
@@ -29,15 +24,19 @@ import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultDataType
+import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.postgres.extensions.bindings.LtreeBinding
 import org.jooq.postgres.extensions.types.Ltree
-
 import tessa.jooq.Public
 import tessa.jooq.indexes.ASSET_PATH_IDX
 import tessa.jooq.keys.ASSET_TREE_PKEY
+import tessa.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
+import tessa.jooq.tables.AssetVariant.AssetVariantPath
 import tessa.jooq.tables.records.AssetTreeRecord
+import java.time.LocalDateTime
+import java.util.UUID
 
 
 /**
@@ -52,7 +51,7 @@ open class AssetTree(
     aliased: Table<AssetTreeRecord>?,
     parameters: Array<Field<*>?>?,
     where: Condition?
-) : TableImpl<AssetTreeRecord>(
+): TableImpl<AssetTreeRecord>(
     alias,
     Public.PUBLIC,
     path,
@@ -85,19 +84,12 @@ open class AssetTree(
     /**
      * The column <code>public.asset_tree.entry_id</code>.
      */
-    val ENTRY_ID: TableField<AssetTreeRecord, Long?> =
-        createField(DSL.name("entry_id"), SQLDataType.BIGINT.nullable(false), this, "")
+    val ENTRY_ID: TableField<AssetTreeRecord, Long?> = createField(DSL.name("entry_id"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_tree.path</code>.
      */
-    val PATH: TableField<AssetTreeRecord, Ltree?> = createField(
-        DSL.name("path"),
-        DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").nullable(false),
-        this,
-        "",
-        LtreeBinding()
-    )
+    val PATH: TableField<AssetTreeRecord, Ltree?> = createField(DSL.name("path"), DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").nullable(false), this, "", LtreeBinding())
 
     /**
      * The column <code>public.asset_tree.alt</code>.
@@ -107,56 +99,58 @@ open class AssetTree(
     /**
      * The column <code>public.asset_tree.created_at</code>.
      */
-    val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> =
-        createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
-    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        null
-    )
-
-    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, parameters: Array<Field<*>?>?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        parameters,
-        null
-    )
-
-    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, where: Condition?) : this(
-        alias,
-        null,
-        null,
-        null,
-        aliased,
-        null,
-        where
-    )
+    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?): this(alias, null, null, null, aliased, null, null)
+    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
+    private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
 
     /**
      * Create an aliased <code>public.asset_tree</code> table reference
      */
-    constructor(alias: String) : this(DSL.name(alias))
+    constructor(alias: String): this(DSL.name(alias))
 
     /**
      * Create an aliased <code>public.asset_tree</code> table reference
      */
-    constructor(alias: Name) : this(alias, null)
+    constructor(alias: Name): this(alias, null)
 
     /**
      * Create a <code>public.asset_tree</code> table reference
      */
-    constructor() : this(DSL.name("asset_tree"), null)
+    constructor(): this(DSL.name("asset_tree"), null)
+
+    constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AssetTreeRecord>?, parentPath: InverseForeignKey<out Record, AssetTreeRecord>?): this(Internal.createPathAlias(path, childPath, parentPath), path, childPath, parentPath, ASSET_TREE, null, null)
+
+    /**
+     * A subtype implementing {@link Path} for simplified path-based joins.
+     */
+    open class AssetTreePath : AssetTree, Path<AssetTreeRecord> {
+        constructor(path: Table<out Record>, childPath: ForeignKey<out Record, AssetTreeRecord>?, parentPath: InverseForeignKey<out Record, AssetTreeRecord>?): super(path, childPath, parentPath)
+        private constructor(alias: Name, aliased: Table<AssetTreeRecord>): super(alias, aliased)
+        override fun `as`(alias: String): AssetTreePath = AssetTreePath(DSL.name(alias), this)
+        override fun `as`(alias: Name): AssetTreePath = AssetTreePath(alias, this)
+        override fun `as`(alias: Table<*>): AssetTreePath = AssetTreePath(alias.qualifiedName, this)
+    }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
     override fun getIndexes(): List<Index> = listOf(ASSET_PATH_IDX)
     override fun getPrimaryKey(): UniqueKey<AssetTreeRecord> = ASSET_TREE_PKEY
+
+    private lateinit var _assetVariant: AssetVariantPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.asset_variant</code> table
+     */
+    fun assetVariant(): AssetVariantPath {
+        if (!this::_assetVariant.isInitialized)
+            _assetVariant = AssetVariantPath(this, null, ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID.inverseKey)
+
+        return _assetVariant;
+    }
+
+    val assetVariant: AssetVariantPath
+        get(): AssetVariantPath = assetVariant()
     override fun `as`(alias: String): AssetTree = AssetTree(DSL.name(alias), this)
     override fun `as`(alias: Name): AssetTree = AssetTree(alias, this)
     override fun `as`(alias: Table<*>): AssetTree = AssetTree(alias.qualifiedName, this)
@@ -179,8 +173,7 @@ open class AssetTree(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): AssetTree =
-        AssetTree(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): AssetTree = AssetTree(qualifiedName, if (aliased()) this else null, condition)
 
     /**
      * Create an inline derived table from this table
@@ -200,28 +193,22 @@ open class AssetTree(
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(condition: SQL): AssetTree = where(DSL.condition(condition))
+    @PlainSQL override fun where(condition: SQL): AssetTree = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String): AssetTree = where(DSL.condition(condition))
+    @PlainSQL override fun where(@Stringly.SQL condition: String): AssetTree = where(DSL.condition(condition))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AssetTree =
-        where(DSL.condition(condition, *binds))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg binds: Any?): AssetTree = where(DSL.condition(condition, *binds))
 
     /**
      * Create an inline derived table from this table
      */
-    @PlainSQL
-    override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AssetTree =
-        where(DSL.condition(condition, *parts))
+    @PlainSQL override fun where(@Stringly.SQL condition: String, vararg parts: QueryPart): AssetTree = where(DSL.condition(condition, *parts))
 
     /**
      * Create an inline derived table from this table

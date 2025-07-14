@@ -4,13 +4,10 @@
 package tessa.jooq
 
 
-import kotlin.collections.List
-
 import org.jooq.Catalog
 import org.jooq.Table
 import org.jooq.impl.DSL
 import org.jooq.impl.SchemaImpl
-
 import tessa.jooq.tables.AssetTree
 import tessa.jooq.tables.AssetVariant
 
@@ -19,8 +16,7 @@ import tessa.jooq.tables.AssetVariant
  * standard public schema
  */
 @Suppress("warnings")
-open class Public :
-    SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALOG, DSL.comment("standard public schema")) {
+open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALOG, DSL.comment("standard public schema")) {
     companion object {
 
         /**

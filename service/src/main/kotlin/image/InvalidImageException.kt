@@ -1,3 +1,3 @@
-package io.image
+package image
 
 class InvalidImageException(message: String) : RuntimeException(message)

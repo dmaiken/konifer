@@ -5,14 +5,19 @@ import asset.model.AssetAndVariants
 import asset.model.StoreAssetRequest
 import asset.repository.AssetRepository
 import asset.store.ObjectStore
-import io.image.ImageProcessor
-import io.image.InvalidImageException
+import image.ImageProcessor
+import image.InvalidImageException
+import image.model.RequestedImageAttributes
+import io.asset.AssetStreamContainer
+import io.asset.ImageAttributeAdapter
+import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
 import io.path.PathAdapter
 import io.path.PathModifierOption
 import io.path.configuration.PathConfiguration
 import io.path.configuration.PathConfigurationService
-import java.io.OutputStream
 
 class AssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -21,19 +26,20 @@ class AssetHandler(
     private val imageProcessor: ImageProcessor,
     private val objectStore: ObjectStore,
     private val pathConfigurationService: PathConfigurationService,
+    private val imageAttributeAdapter: ImageAttributeAdapter,
 ) {
     private val logger = KtorSimpleLogger("asset")
 
     suspend fun storeNewAsset(
         request: StoreAssetRequest,
-        content: ByteArray,
+        container: AssetStreamContainer,
         uriPath: String,
     ): AssetAndLocation {
-        val mimeType = deriveValidMimeType(content)
+        val mimeType = deriveValidMimeType(container.readNBytes(1024, true))
         val pathConfiguration = validatePathConfiguration(uriPath, mimeType)
         val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        val preProcessed = imageProcessor.preprocess(content, mimeType, pathConfiguration)
-        val persistResult = objectStore.persist(request, preProcessed.image)
+        val preProcessed = imageProcessor.preprocess(container, mimeType, pathConfiguration)
+        val persistResult = objectStore.persist(preProcessed.channel)
         val assetAndVariants =
             assetRepository.store(
                 StoreAssetDto(
@@ -54,13 +60,46 @@ class AssetHandler(
     suspend fun fetchAssetByPath(
         uriPath: String,
         entryId: Long?,
-    ): String? {
-        return fetchAssetInfoByPath(uriPath, entryId)?.let {
-            objectStore.generateObjectUrl(it)
+        parameters: Parameters,
+    ): Pair<String, Boolean>? {
+        val assetAndCacheStatus = fetchAssetMetadataByPath(uriPath, entryId, parameters)
+
+        if (assetAndCacheStatus == null) {
+            return null
+        }
+
+        return Pair(objectStore.generateObjectUrl(assetAndCacheStatus.first.variants.first()), assetAndCacheStatus.second)
+    }
+
+    suspend fun fetchAssetMetadataByPath(
+        uriPath: String,
+        entryId: Long?,
+        parameters: Parameters,
+    ): Pair<AssetAndVariants, Boolean>? {
+        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
+        val requestedAttributes = imageAttributeAdapter.fromParameters(parameters)
+        logger.info("Fetching asset info by path: $treePath with attributes: $requestedAttributes")
+
+        val assetAndVariants = assetRepository.fetchByPath(treePath, entryId, requestedAttributes)
+        if (assetAndVariants == null) {
+            return null
+        }
+        return if (assetAndVariants.variants.isEmpty()) {
+            logger.info("Generating variant of asset with path: $uriPath and entryId: $entryId")
+            return cacheVariant(
+                treePath = assetAndVariants.asset.path,
+                entryId = assetAndVariants.asset.entryId,
+                requestedAttributes = requestedAttributes,
+            )?.let {
+                Pair(it, false)
+            }
+        } else {
+            logger.info("Variant found for asset with path: $uriPath and entryId: $entryId")
+            Pair(assetAndVariants, true)
         }
     }
 
-    suspend fun fetchAssetInfoByPath(
+    suspend fun fetchAssetMetadataByPath(
         uriPath: String,
         entryId: Long?,
     ): AssetAndVariants? {
@@ -78,7 +117,7 @@ class AssetHandler(
     suspend fun fetchAssetContent(
         bucket: String,
         storeKey: String,
-        stream: OutputStream,
+        stream: ByteWriteChannel,
     ): Long {
         return objectStore.fetch(bucket, storeKey, stream)
             .takeIf { it.found }?.contentLength
@@ -114,6 +153,7 @@ class AssetHandler(
     private fun deriveValidMimeType(content: ByteArray): String {
         val mimeType = mimeTypeDetector.detect(content)
         if (!validate(mimeType)) {
+            logger.error("Not an image type: $mimeType")
             throw InvalidImageException("Not an image type")
         }
         return mimeType
@@ -134,6 +174,35 @@ class AssetHandler(
                 }
             }
         }
+    }
+
+    private suspend fun cacheVariant(
+        treePath: String,
+        entryId: Long,
+        requestedAttributes: RequestedImageAttributes,
+    ): AssetAndVariants? {
+        val original = assetRepository.fetchByPath(treePath, entryId, RequestedImageAttributes.originalVariant())
+        // Defense
+        if (original == null) {
+            return null
+        }
+        val originalVariant = original.getOriginalVariant()
+        val channel = ByteChannel(autoFlush = true)
+        val found = objectStore.fetch(originalVariant.objectStoreBucket, originalVariant.objectStoreKey, channel)
+        if (!found.found) {
+            throw IllegalStateException(
+                "Cannot locate object with bucket: ${originalVariant.objectStoreBucket} key: ${originalVariant.objectStoreKey}",
+            )
+        }
+        val newVariant =
+            imageProcessor.generateFrom(
+                from = AssetStreamContainer(channel),
+                requestedAttributes = requestedAttributes,
+                generatedFromAttributes = originalVariant.attributes,
+            )
+        val persistResult = objectStore.persist(newVariant.channel)
+
+        return assetRepository.storeVariant(original.asset.path, original.asset.entryId, persistResult, newVariant.attributes)
     }
 }
 
