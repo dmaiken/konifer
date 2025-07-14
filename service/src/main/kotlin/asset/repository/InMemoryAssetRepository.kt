@@ -219,6 +219,22 @@ class InMemoryAssetRepository(
     private fun getNextEntryId(treePath: String): Long {
         return store[treePath]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
     }
+
+    private fun RequestedImageAttributes.matchesImageAttributes(attributes: ImageVariantAttributes): Boolean {
+        if (width != null && height != null) {
+            return attributes.width == width || attributes.height == height
+        }
+        if (width != null && attributes.width != width) {
+            return false
+        }
+        if (height != null && attributes.height != height) {
+            return false
+        }
+        if (mimeType != null && attributes.mimeType != mimeType) {
+            return false
+        }
+        return true
+    }
 }
 
 private data class InMemoryAssetAndVariants(
