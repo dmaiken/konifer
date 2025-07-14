@@ -47,12 +47,4 @@ data class ImageAttributes(
     val width: Int,
     val height: Int,
     val mimeType: String,
-) {
-    fun toRequestedAttributes(): RequestedImageAttributes {
-        return RequestedImageAttributes(
-            width = width,
-            height = height,
-            mimeType = mimeType,
-        )
-    }
-}
+)

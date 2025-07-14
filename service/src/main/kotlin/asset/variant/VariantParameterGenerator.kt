@@ -1,19 +1,19 @@
 package asset.variant
 
-import image.model.RequestedImageAttributes
+import image.model.ImageAttributes
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.json.Json
 
 class VariantParameterGenerator {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    fun generateImageVariantAttributes(requestedImageAttributes: RequestedImageAttributes): VariantAttributesAndKey {
+    fun generateImageVariantAttributes(requestedImageAttributes: ImageAttributes): VariantAttributesAndKey {
         val attributes =
             Json.encodeToString(
                 ImageVariantAttributes(
-                    height = checkNotNull(requestedImageAttributes.height),
-                    width = checkNotNull(requestedImageAttributes.width),
-                    mimeType = checkNotNull(requestedImageAttributes.mimeType),
+                    height = requestedImageAttributes.height,
+                    width = requestedImageAttributes.width,
+                    mimeType = requestedImageAttributes.mimeType,
                 ),
             )
         logger.info("Generated attributes: $attributes")

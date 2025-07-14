@@ -42,7 +42,7 @@ class PostgresAssetRepository(
     override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
         val assetId = UUID.randomUUID()
         val now = LocalDateTime.now()
-        val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes.toRequestedAttributes())
+        val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes)
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), asset.treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: ${asset.treePath}")
@@ -90,7 +90,7 @@ class PostgresAssetRepository(
             if (asset == null) {
                 throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
             }
-            val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(imageAttributes.toRequestedAttributes())
+            val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(imageAttributes)
 
             val persistedVariant =
                 try {

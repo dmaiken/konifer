@@ -26,7 +26,7 @@ class InMemoryAssetRepository(
         val entryId = getNextEntryId(asset.treePath)
         logger.info("Persisting asset at path: ${asset.treePath} and entryId: $entryId")
         val key =
-            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes.toRequestedAttributes()).key.let {
+            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).key.let {
                 Base64.getEncoder().encodeToString(it)
             }
         val assetAndVariants =
@@ -76,7 +76,7 @@ class InMemoryAssetRepository(
         return store[treePath]?.let { assets ->
             val asset = assets.first { it.asset.entryId == entryId }
             val key =
-                variantParameterGenerator.generateImageVariantAttributes(imageAttributes.toRequestedAttributes()).key.let {
+                variantParameterGenerator.generateImageVariantAttributes(imageAttributes).key.let {
                     Base64.getEncoder().encodeToString(it)
                 }
             if (asset.variants.any { it.attributeKey.contentEquals(key) }) {
