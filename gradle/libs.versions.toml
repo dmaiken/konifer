@@ -14,6 +14,7 @@ photofix-libvips-version = "1.5.2"
 mockk-version = "1.14.2"
 tika-version = "3.1.0"
 postgres-version = "42.7.2"
+zero-allocation-version = "0.16"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -40,6 +41,7 @@ r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool-version
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgresql-version" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version = "1.10.1" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
+zero-allocation-hashing = { module = "net.openhft:zero-allocation-hashing", version.ref = "zero-allocation-version" }
 
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }

@@ -42,7 +42,7 @@ class PostgresAssetRepository(
     override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
         val assetId = UUID.randomUUID()
         val now = LocalDateTime.now()
-        val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes)
+        val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes)
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), asset.treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: ${asset.treePath}")
@@ -62,8 +62,8 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.ASSET_ID, assetId)
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
-                    .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(variantAttributes.attributes))
-                    .set(ASSET_VARIANT.ATTRIBUTES_KEY, variantAttributes.key)
+                    .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
+                    .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
                     .set(ASSET_VARIANT.CREATED_AT, now)
                     .returning()
@@ -90,7 +90,7 @@ class PostgresAssetRepository(
             if (asset == null) {
                 throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
             }
-            val variantAttributes = variantParameterGenerator.generateImageVariantAttributes(imageAttributes)
+            val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(imageAttributes)
 
             val persistedVariant =
                 try {
@@ -99,8 +99,8 @@ class PostgresAssetRepository(
                         .set(ASSET_VARIANT.ASSET_ID, asset.id)
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, persistResult.bucket)
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, persistResult.key)
-                        .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(variantAttributes.attributes))
-                        .set(ASSET_VARIANT.ATTRIBUTES_KEY, variantAttributes.key)
+                        .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
+                        .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
                         .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
                         .returning()

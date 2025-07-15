@@ -105,7 +105,7 @@ open class AssetVariant(
     /**
      * The column <code>public.asset_variant.attributes_key</code>.
      */
-    val ATTRIBUTES_KEY: TableField<AssetVariantRecord, ByteArray?> = createField(DSL.name("attributes_key"), SQLDataType.BLOB.nullable(false), this, "")
+    val ATTRIBUTES_KEY: TableField<AssetVariantRecord, Long?> = createField(DSL.name("attributes_key"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.original_variant</code>.

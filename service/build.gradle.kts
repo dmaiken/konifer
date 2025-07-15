@@ -34,9 +34,6 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
-    testImplementation(libs.mockk)
 
     implementation(libs.r2dbc.migrate)
     implementation(libs.r2dbc.migrate.resource.reader)
@@ -44,6 +41,10 @@ dependencies {
     implementation(libs.r2dbc.pool)
     implementation(libs.kotlinx.coroutines.reactive)
     testImplementation(libs.ktor.client.content.negotiation)
+
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.mockk)
 
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
@@ -57,6 +58,8 @@ dependencies {
 
     implementation(libs.libvips.ffm)
     implementation(libs.tika.core)
+
+    implementation(libs.zero.allocation.hashing)
 }
 
 tasks.withType<Test>().configureEach {

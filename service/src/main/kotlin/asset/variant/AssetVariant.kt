@@ -5,14 +5,13 @@ import kotlinx.serialization.json.Json
 import org.jooq.Record
 import tessa.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
 import java.time.LocalDateTime
-import java.util.Base64
 
 data class AssetVariant(
     val objectStoreBucket: String,
     val objectStoreKey: String,
     val attributes: ImageVariantAttributes,
     val isOriginalVariant: Boolean,
-    val attributeKey: String,
+    val attributeKey: Long,
     val createdAt: LocalDateTime,
 ) {
     companion object Factory {
@@ -22,10 +21,7 @@ data class AssetVariant(
                 objectStoreKey = record.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
                 attributes = Json.decodeFromString(record.getNonNull(ASSET_VARIANT.ATTRIBUTES).data()),
                 isOriginalVariant = record.getNonNull(ASSET_VARIANT.ORIGINAL_VARIANT),
-                attributeKey =
-                    record.getNonNull(ASSET_VARIANT.ATTRIBUTES_KEY).let {
-                        Base64.getEncoder().encodeToString(it)
-                    },
+                attributeKey = record.getNonNull(ASSET_VARIANT.ATTRIBUTES_KEY),
                 createdAt = record.getNonNull(ASSET_VARIANT.CREATED_AT),
             )
         }

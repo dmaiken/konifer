@@ -12,7 +12,6 @@ import image.model.ImageAttributes
 import image.model.RequestedImageAttributes
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
-import java.util.Base64
 import java.util.UUID
 
 class InMemoryAssetRepository(
@@ -26,9 +25,7 @@ class InMemoryAssetRepository(
         val entryId = getNextEntryId(asset.treePath)
         logger.info("Persisting asset at path: ${asset.treePath} and entryId: $entryId")
         val key =
-            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).key.let {
-                Base64.getEncoder().encodeToString(it)
-            }
+            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).second
         val assetAndVariants =
             AssetAndVariants(
                 asset =
@@ -76,10 +73,8 @@ class InMemoryAssetRepository(
         return store[treePath]?.let { assets ->
             val asset = assets.first { it.asset.entryId == entryId }
             val key =
-                variantParameterGenerator.generateImageVariantAttributes(imageAttributes).key.let {
-                    Base64.getEncoder().encodeToString(it)
-                }
-            if (asset.variants.any { it.attributeKey.contentEquals(key) }) {
+                variantParameterGenerator.generateImageVariantAttributes(imageAttributes).second
+            if (asset.variants.any { it.attributeKey == key }) {
                 throw IllegalArgumentException(
                     "Variant already exists for asset with entry_id: $entryId at path: $treePath with attributes: $imageAttributes",
                 )

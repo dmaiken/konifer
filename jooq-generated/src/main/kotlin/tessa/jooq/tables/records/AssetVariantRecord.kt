@@ -38,9 +38,9 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(4, value)
         get(): JSONB? = get(4) as JSONB?
 
-    open var attributesKey: ByteArray?
+    open var attributesKey: Long?
         set(value): Unit = set(5, value)
-        get(): ByteArray? = get(5) as ByteArray?
+        get(): Long? = get(5) as Long?
 
     open var originalVariant: Boolean?
         set(value): Unit = set(6, value)
@@ -59,7 +59,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: ByteArray? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: Long? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
