@@ -19,6 +19,7 @@ data class AssetVariantResponse(
     val bucket: String,
     val storeKey: String,
     val imageAttributes: ImageAttributeResponse,
+    val lqip: LQIPResponse,
 )
 
 @Serializable
@@ -26,6 +27,12 @@ data class ImageAttributeResponse(
     val height: Int,
     val width: Int,
     val mimeType: String,
+)
+
+@Serializable
+data class LQIPResponse(
+    val blurhash: String?,
+    val thumbhash: String?,
 )
 
 enum class AssetClass {

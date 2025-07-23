@@ -1,4 +1,4 @@
-package io.image
+package io.image.vips
 
 import app.photofox.vipsffm.VCustomSource
 import app.photofox.vipsffm.VCustomSource.ReadCallback
@@ -8,6 +8,7 @@ import app.photofox.vipsffm.VSource
 import app.photofox.vipsffm.VipsError
 import app.photofox.vipsffm.VipsOption
 import io.asset.AssetStreamContainer
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
@@ -15,7 +16,9 @@ import kotlin.math.min
 
 object VImageFactory {
     /**
-     * Adapted from [VImage.newFromStream]
+     * Adapted from [VImage.newFromStream].
+     *
+     * This blocks!! Don't call it from [kotlinx.coroutines.Dispatchers.Default]
      */
     @JvmStatic
     fun newFromContainer(
@@ -45,7 +48,9 @@ object VImageFactory {
                 val clippedLength = min(length, Int.Companion.MAX_VALUE.toLong()).toInt()
                 val bytes =
                     try {
-                        container.readNBytes(clippedLength, false)
+                        runBlocking {
+                            container.readNBytes(clippedLength, false)
+                        }
                     } catch (e: IOException) {
                         throw VipsError("failed to read bytes from stream", e)
                     }

@@ -16,7 +16,7 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -26,6 +26,8 @@ import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.fullPath
 import io.ktor.http.path
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 
 suspend fun storeAsset(
@@ -113,9 +115,12 @@ suspend fun fetchAsset(
         }
     val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
     val storeResponse = client.get(location)
+    val channel = storeResponse.bodyAsChannel()
     storeResponse.status shouldBe HttpStatusCode.OK
 
-    return storeResponse.bodyAsBytes()
+    return channel.readRemaining().asInputStream().use {
+        it.readAllBytes()
+    }
 }
 
 suspend fun fetchAssetInfo(

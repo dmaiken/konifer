@@ -4,7 +4,9 @@ import asset.handler.StoreAssetDto
 import asset.model.StoreAssetRequest
 import asset.store.PersistResult
 import image.model.ImageAttributes
+import image.model.LQIPs
 import image.model.RequestedImageAttributes
+import io.asset.handler.StoreAssetVariantDto
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
@@ -162,8 +164,8 @@ abstract class AssetRepositoryTest {
         runTest {
             val dto = createAssetDto("root.users.123")
             val assetAndVariants = repository.store(dto)
-            val persistedVariant =
-                repository.storeVariant(
+            val variant =
+                StoreAssetVariantDto(
                     treePath = assetAndVariants.asset.path,
                     entryId = assetAndVariants.asset.entryId,
                     persistResult =
@@ -177,7 +179,9 @@ abstract class AssetRepositoryTest {
                             width = 10,
                             mimeType = "image/png",
                         ),
+                    lqips = LQIPs.NONE,
                 )
+            val persistedVariant = repository.storeVariant(variant)
 
             val fetchedVariant =
                 repository.fetchByPath(
@@ -330,10 +334,13 @@ abstract class AssetRepositoryTest {
 
             val newVariant =
                 repository.storeVariant(
-                    persistedAssetAndVariants.asset.path,
-                    persistedAssetAndVariants.asset.entryId,
-                    persistResult,
-                    imageAttributes,
+                    StoreAssetVariantDto(
+                        treePath = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        persistResult = persistResult,
+                        imageAttributes = imageAttributes,
+                        lqips = LQIPs.NONE,
+                    ),
                 )
             newVariant.asset shouldBe persistedAssetAndVariants.asset
             newVariant.variants shouldHaveSize 1
@@ -373,7 +380,15 @@ abstract class AssetRepositoryTest {
                 )
 
             shouldThrow<IllegalArgumentException> {
-                repository.storeVariant("path.does.not.exist", 1, persistResult, imageAttributes)
+                repository.storeVariant(
+                    StoreAssetVariantDto(
+                        treePath = "path.does.not.exist",
+                        entryId = 1,
+                        persistResult = persistResult,
+                        imageAttributes = imageAttributes,
+                        lqips = LQIPs.NONE,
+                    ),
+                )
             }
         }
 
@@ -395,13 +410,16 @@ abstract class AssetRepositoryTest {
                     mimeType = "image/png",
                 )
 
-            val newVariant =
-                repository.storeVariant(
-                    persistedAssetAndVariants.asset.path,
-                    persistedAssetAndVariants.asset.entryId,
-                    persistResult,
-                    imageAttributes,
+            val variantDto =
+                StoreAssetVariantDto(
+                    treePath = persistedAssetAndVariants.asset.path,
+                    entryId = persistedAssetAndVariants.asset.entryId,
+                    persistResult = persistResult,
+                    imageAttributes = imageAttributes,
+                    lqips = LQIPs.NONE,
                 )
+            val newVariant = repository.storeVariant(variantDto)
+
             newVariant.asset shouldBe persistedAssetAndVariants.asset
             newVariant.variants shouldHaveSize 1
             newVariant.variants.first { !it.isOriginalVariant }.apply {
@@ -414,12 +432,7 @@ abstract class AssetRepositoryTest {
             }
 
             shouldThrow<IllegalArgumentException> {
-                repository.storeVariant(
-                    persistedAssetAndVariants.asset.path,
-                    persistedAssetAndVariants.asset.entryId,
-                    persistResult,
-                    imageAttributes,
-                )
+                repository.storeVariant(variantDto)
             }
         }
 
@@ -443,6 +456,7 @@ abstract class AssetRepositoryTest {
                     key = UUID.randomUUID().toString(),
                     bucket = "bucket",
                 ),
+            lqips = LQIPs.NONE,
         )
     }
 }

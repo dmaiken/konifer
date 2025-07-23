@@ -16,11 +16,13 @@ class PathConfigurationTest {
                     allowedContentTypes = listOf("not/supported"),
                     imageProperties =
                         ImageProperties.create(
-                            PreProcessingProperties.create(
-                                maxWidth = null,
-                                maxHeight = null,
-                                imageFormat = null,
-                            ),
+                            preProcessing =
+                                PreProcessingProperties.create(
+                                    maxWidth = null,
+                                    maxHeight = null,
+                                    imageFormat = null,
+                                ),
+                            lqip = setOf(),
                         ),
                 )
             }

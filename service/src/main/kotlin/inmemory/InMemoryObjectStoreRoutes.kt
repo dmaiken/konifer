@@ -10,7 +10,6 @@ import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.ktor.utils.io.ByteChannel
 import org.koin.ktor.ext.inject
 
 fun Application.configureInMemoryObjectStoreRouting() {
@@ -20,11 +19,8 @@ fun Application.configureInMemoryObjectStoreRouting() {
         get("objectStore/{bucket}/{key}") {
             val key = requireNotNull(call.parameters["key"])
             val bucket = requireNotNull(call.parameters["bucket"])
-            val channel = ByteChannel(autoFlush = true)
-            val result = objectStore.fetch(bucket, key, channel)
-            channel.flushAndClose()
 
-            if (result.found) {
+            if (objectStore.exists(bucket, key)) {
                 call.respondBytesWriter(
                     contentType = ContentType.parse(call.parameters["contentType"] ?: "application/octet-stream"),
                     status = HttpStatusCode.OK,

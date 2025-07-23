@@ -15,6 +15,7 @@ mockk-version = "1.14.2"
 tika-version = "3.1.0"
 postgres-version = "42.7.2"
 zero-allocation-version = "0.16"
+blurhash-version = "0.3.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -52,6 +53,7 @@ kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kote
 kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
+blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }
 
 # JDBC
 postresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }

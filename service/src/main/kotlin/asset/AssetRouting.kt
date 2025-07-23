@@ -26,6 +26,9 @@ import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
@@ -119,24 +122,35 @@ fun Application.configureAssetRouting() {
 suspend fun createNewAsset(
     call: RoutingCall,
     assetHandler: AssetHandler,
-) {
-    var assetData: StoreAssetRequest? = null
-    var assetContent: ByteChannel? = null
+) = coroutineScope {
+    logger.info("Received request to store a new asset")
+    var assetData = CompletableDeferred<StoreAssetRequest>()
+    val assetContent = ByteChannel(true)
     val multipart = call.receiveMultipart()
+
+    val deferredAsset =
+        async {
+            assetHandler.storeNewAsset(
+                deferredRequest = assetData,
+                container = AssetStreamContainer(assetContent),
+                uriPath = call.request.path().removePrefix(ASSET_PATH_PREFIX),
+            )
+        }
+
     multipart.forEachPart { part ->
         when (part) {
             is PartData.FormItem -> {
                 if (part.name == "metadata") {
-                    assetData = Json.decodeFromString(part.value)
+                    assetData.complete(Json.decodeFromString(part.value))
                 }
             }
 
             is PartData.FileItem -> {
-                assetContent =
-                    ByteChannel().also {
-                        part.provider().copyTo(it)
-                    }
-                assetContent.close()
+                try {
+                    part.provider().copyTo(assetContent)
+                } finally {
+                    assetContent.close()
+                }
             }
 
             else -> {}
@@ -146,15 +160,8 @@ suspend fun createNewAsset(
     if (assetData == null) {
         throw IllegalArgumentException("No asset metadata supplied")
     }
-    if (assetContent == null) {
-        throw IllegalArgumentException("No asset content supplied")
-    }
-    val asset =
-        assetHandler.storeNewAsset(
-            request = checkNotNull(assetData),
-            container = AssetStreamContainer(checkNotNull(assetContent)),
-            uriPath = call.request.path().removePrefix(ASSET_PATH_PREFIX),
-        )
+    val asset = deferredAsset.await()
+
     logger.info("Created asset under path: ${asset.locationPath}")
 
     call.response.headers.append(HttpHeaders.Location, "http//${call.request.origin.localAddress}${asset.locationPath}")

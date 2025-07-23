@@ -62,6 +62,11 @@ data class AssetAndVariants(
                                 width = variant.attributes.width,
                                 mimeType = variant.attributes.mimeType,
                             ),
+                        lqip =
+                            LQIPResponse(
+                                thumbhash = variant.lqip.thumbhash,
+                                blurhash = variant.lqip.blurhash,
+                            ),
                     )
                 },
             createdAt = asset.createdAt,

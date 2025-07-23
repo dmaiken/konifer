@@ -10,6 +10,7 @@ object ConfigurationProperties {
 
         object ImageProperties {
             const val PREPROCESSING = "preprocessing"
+            const val LQIP = "lqip"
 
             object PreProcessingProperties {
                 const val MAX_HEIGHT = "max-height"

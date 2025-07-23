@@ -5,17 +5,25 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.toByteArray
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class AssetStreamContainer(
     private val channel: ByteChannel,
 ) {
     companion object Factory {
-        suspend fun fromReadChannel(readChannel: ByteReadChannel): AssetStreamContainer {
+        fun fromReadChannel(
+            scope: CoroutineScope,
+            readChannel: ByteReadChannel,
+        ): AssetStreamContainer {
             val byteChannel = ByteChannel(autoFlush = true)
-            readChannel.copyTo(byteChannel)
-            byteChannel.flushAndClose()
+            scope.launch {
+                try {
+                    readChannel.copyTo(byteChannel)
+                } finally {
+                    byteChannel.close()
+                }
+            }
 
             return AssetStreamContainer(byteChannel)
         }
@@ -29,7 +37,7 @@ class AssetStreamContainer(
      * internal buffer for reuse. Calling this method after buffering the previously read bytes will result in the
      * buffered bytes being returned again.
      */
-    fun readNBytes(
+    suspend fun readNBytes(
         n: Int,
         bufferBytes: Boolean,
     ): ByteArray {
@@ -47,10 +55,7 @@ class AssetStreamContainer(
 
         // Then from the channel
         while (offset < n) {
-            val read =
-                runBlocking(Dispatchers.IO) {
-                    channel.readAvailable(result, offset, n - offset)
-                }
+            val read = channel.readAvailable(result, offset, n - offset)
             if (read == -1) break
             offset += read
         }

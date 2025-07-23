@@ -3,10 +3,9 @@ package asset.repository
 import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
-import asset.store.PersistResult
 import asset.variant.VariantParameterGenerator
-import image.model.ImageAttributes
 import image.model.RequestedImageAttributes
+import io.asset.handler.StoreAssetVariantDto
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.serialization.json.Json
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
@@ -56,6 +56,7 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
+            val lqip = Json.encodeToString(asset.lqips)
             val persistedVariant =
                 trx.dsl().insertInto(ASSET_VARIANT)
                     .set(ASSET_VARIANT.ID, UUID.randomUUID())
@@ -64,6 +65,7 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
                     .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                     .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
+                    .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
                     .set(ASSET_VARIANT.CREATED_AT, now)
                     .returning()
@@ -73,34 +75,33 @@ class PostgresAssetRepository(
         }
     }
 
-    override suspend fun storeVariant(
-        treePath: String,
-        entryId: Long,
-        persistResult: PersistResult,
-        imageAttributes: ImageAttributes,
-    ): AssetAndVariants {
+    override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
         return dslContext.transactionCoroutine { trx ->
             val asset =
                 fetchWithVariant(
                     trx.dsl(),
-                    treePath,
-                    entryId,
-                    RequestedImageAttributes.originalVariant(),
+                    variant.treePath,
+                    variant.entryId,
+                    RequestedImageAttributes.ORIGINAL_VARIANT,
                 )?.into(AssetTreeRecord::class.java)
             if (asset == null) {
-                throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
+                throw IllegalArgumentException(
+                    "Asset with path: ${variant.treePath} and entry id: ${variant.entryId} not found in database",
+                )
             }
-            val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(imageAttributes)
+            val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(variant.imageAttributes)
+            val lqip = Json.encodeToString(variant.lqips)
 
             val persistedVariant =
                 try {
                     trx.dsl().insertInto(ASSET_VARIANT)
                         .set(ASSET_VARIANT.ID, UUID.randomUUID())
                         .set(ASSET_VARIANT.ASSET_ID, asset.id)
-                        .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, persistResult.bucket)
-                        .set(ASSET_VARIANT.OBJECT_STORE_KEY, persistResult.key)
+                        .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
+                        .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.persistResult.key)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                         .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
+                        .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
                         .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
                         .returning()
@@ -108,7 +109,8 @@ class PostgresAssetRepository(
                 } catch (e: IntegrityConstraintViolationException) {
                     if (e.message?.contains(ASSET_VARIANT_ATTRIBUTES_UQ.name) == true) {
                         throw IllegalArgumentException(
-                            "Variant already exists for asset with entry_id: $entryId at path: $treePath and attributes: $imageAttributes",
+                            "Variant already exists for asset with entry_id: ${variant.entryId} at " +
+                                "path: ${variant.treePath} and attributes: ${variant.imageAttributes}",
                         )
                     }
                     throw e

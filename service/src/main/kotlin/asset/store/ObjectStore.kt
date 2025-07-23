@@ -16,6 +16,11 @@ interface ObjectStore {
         stream: ByteWriteChannel,
     ): FetchResult
 
+    suspend fun exists(
+        bucket: String,
+        key: String,
+    ): Boolean
+
     /**
      * Delete an object by key. This method is idempotent and will not throw an exception if the object does not exist
      */

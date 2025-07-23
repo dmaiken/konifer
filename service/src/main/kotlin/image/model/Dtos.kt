@@ -1,10 +1,10 @@
 package image.model
 
-import io.ktor.utils.io.ByteChannel
+import kotlinx.serialization.Serializable
 
 data class ProcessedImage(
-    val channel: ByteChannel,
     val attributes: ImageAttributes,
+    val lqip: LQIPs,
 )
 
 data class RequestedImageAttributes(
@@ -13,7 +13,7 @@ data class RequestedImageAttributes(
     val mimeType: String?,
 ) {
     companion object Factory {
-        fun originalVariant(): RequestedImageAttributes =
+        val ORIGINAL_VARIANT =
             RequestedImageAttributes(
                 width = null,
                 height = null,
@@ -31,3 +31,13 @@ data class ImageAttributes(
     val height: Int,
     val mimeType: String,
 )
+
+@Serializable
+data class LQIPs(
+    val blurhash: String?,
+    val thumbhash: String?,
+) {
+    companion object Factory {
+        val NONE = LQIPs(null, null)
+    }
+}

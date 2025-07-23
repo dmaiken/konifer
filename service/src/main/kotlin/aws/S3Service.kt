@@ -9,7 +9,9 @@ import aws.sdk.kotlin.services.s3.model.Delete
 import aws.sdk.kotlin.services.s3.model.DeleteObjectRequest
 import aws.sdk.kotlin.services.s3.model.DeleteObjectsRequest
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
+import aws.sdk.kotlin.services.s3.model.HeadObjectRequest
 import aws.sdk.kotlin.services.s3.model.NoSuchKey
+import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.ObjectIdentifier
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
@@ -84,6 +86,24 @@ class S3Service(
                 }
             }
         }
+
+    override suspend fun exists(
+        bucket: String,
+        key: String,
+    ): Boolean {
+        return try {
+            s3Client.headObject(
+                HeadObjectRequest {
+                    this.bucket = bucket
+                    this.key = key
+                },
+            )
+            true
+        } catch (e: NotFound) {
+            logger.info("Object with key $key in bucket $bucket does not exist", e)
+            false
+        }
+    }
 
     override suspend fun delete(
         bucket: String,

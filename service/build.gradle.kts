@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.tika.core)
 
     implementation(libs.zero.allocation.hashing)
+
+    implementation(libs.blurhash)
 }
 
 tasks.withType<Test>().configureEach {

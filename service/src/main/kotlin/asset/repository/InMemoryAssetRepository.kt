@@ -4,12 +4,11 @@ import asset.Asset
 import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
-import asset.store.PersistResult
 import asset.variant.AssetVariant
 import asset.variant.ImageVariantAttributes
 import asset.variant.VariantParameterGenerator
-import image.model.ImageAttributes
 import image.model.RequestedImageAttributes
+import io.asset.handler.StoreAssetVariantDto
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
@@ -48,6 +47,7 @@ class InMemoryAssetRepository(
                                     mimeType = asset.imageAttributes.mimeType,
                                 ),
                             isOriginalVariant = true,
+                            lqip = asset.lqips,
                             attributeKey = key,
                             createdAt = LocalDateTime.now(),
                         ),
@@ -64,32 +64,29 @@ class InMemoryAssetRepository(
         }
     }
 
-    override suspend fun storeVariant(
-        treePath: String,
-        entryId: Long,
-        persistResult: PersistResult,
-        imageAttributes: ImageAttributes,
-    ): AssetAndVariants {
-        return store[treePath]?.let { assets ->
-            val asset = assets.first { it.asset.entryId == entryId }
+    override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
+        return store[variant.treePath]?.let { assets ->
+            val asset = assets.first { it.asset.entryId == variant.entryId }
             val key =
-                variantParameterGenerator.generateImageVariantAttributes(imageAttributes).second
+                variantParameterGenerator.generateImageVariantAttributes(variant.imageAttributes).second
             if (asset.variants.any { it.attributeKey == key }) {
                 throw IllegalArgumentException(
-                    "Variant already exists for asset with entry_id: $entryId at path: $treePath with attributes: $imageAttributes",
+                    "Variant already exists for asset with entry_id: ${variant.entryId} at path: ${variant.treePath} " +
+                        "with attributes: ${variant.imageAttributes}",
                 )
             }
             val variant =
                 AssetVariant(
-                    objectStoreBucket = persistResult.bucket,
-                    objectStoreKey = persistResult.key,
+                    objectStoreBucket = variant.persistResult.bucket,
+                    objectStoreKey = variant.persistResult.key,
                     attributes =
                         ImageVariantAttributes(
-                            height = imageAttributes.height,
-                            width = imageAttributes.width,
-                            mimeType = imageAttributes.mimeType,
+                            height = variant.imageAttributes.height,
+                            width = variant.imageAttributes.width,
+                            mimeType = variant.imageAttributes.mimeType,
                         ),
                     isOriginalVariant = false,
+                    lqip = variant.lqips,
                     attributeKey = key,
                     createdAt = LocalDateTime.now(),
                 )
@@ -100,7 +97,7 @@ class InMemoryAssetRepository(
                 asset = asset.asset,
                 variants = listOf(variant),
             )
-        } ?: throw IllegalArgumentException("Asset with path: $treePath and entry id: $entryId not found in database")
+        } ?: throw IllegalArgumentException("Asset with path: ${variant.treePath} and entry id: ${variant.entryId} not found in database")
     }
 
     override suspend fun fetchByPath(

@@ -31,7 +31,7 @@ class DeleteAssetTest {
     fun `can delete asset by path`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -53,7 +53,7 @@ class DeleteAssetTest {
     fun `deleting asset by path causes next oldest asset to be returned when fetching by path`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -81,7 +81,7 @@ class DeleteAssetTest {
     fun `can delete asset by path and entryId`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -120,7 +120,7 @@ class DeleteAssetTest {
     fun `can delete assets at path but not recursively`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -144,7 +144,7 @@ class DeleteAssetTest {
     fun `can delete assets at path recursively`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",

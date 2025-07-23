@@ -18,7 +18,7 @@ class ImageAssetVariantTest {
     fun `can fetch image variant by height`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
 
@@ -57,7 +57,7 @@ class ImageAssetVariantTest {
     fun `can fetch image variant by width`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
 
@@ -96,7 +96,7 @@ class ImageAssetVariantTest {
     fun `can fetch image variant by height and width and the aspect ratio is respected`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
 
@@ -145,7 +145,7 @@ class ImageAssetVariantTest {
     fun `can fetch image variant by content type`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
 

@@ -81,7 +81,7 @@ class StoreAssetTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -103,7 +103,7 @@ class StoreAssetTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",
@@ -124,7 +124,7 @@ class StoreAssetTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
@@ -162,7 +162,7 @@ class StoreAssetTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     type = "image/png",

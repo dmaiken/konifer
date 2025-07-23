@@ -31,7 +31,7 @@ class FetchAssetRedirectTest {
     fun `can fetch asset and render`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(

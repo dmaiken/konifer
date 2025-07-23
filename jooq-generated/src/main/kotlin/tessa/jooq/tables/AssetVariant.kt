@@ -108,6 +108,11 @@ open class AssetVariant(
     val ATTRIBUTES_KEY: TableField<AssetVariantRecord, Long?> = createField(DSL.name("attributes_key"), SQLDataType.BIGINT.nullable(false), this, "")
 
     /**
+     * The column <code>public.asset_variant.lqip</code>.
+     */
+    val LQIP: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("lqip"), SQLDataType.JSONB.nullable(false), this, "")
+
+    /**
      * The column <code>public.asset_variant.original_variant</code>.
      */
     val ORIGINAL_VARIANT: TableField<AssetVariantRecord, Boolean?> = createField(DSL.name("original_variant"), SQLDataType.BOOLEAN.nullable(false), this, "")

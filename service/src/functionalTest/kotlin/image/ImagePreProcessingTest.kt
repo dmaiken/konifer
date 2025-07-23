@@ -56,7 +56,7 @@ class ImagePreProcessingTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
@@ -103,7 +103,7 @@ class ImagePreProcessingTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
@@ -156,7 +156,7 @@ class ImagePreProcessingTest {
         """.trimIndent(),
     ) {
         val client = createJsonClient(followRedirects = false)
-        val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
@@ -206,7 +206,7 @@ class ImagePreProcessingTest {
         """.trimIndent(),
     ) {
         val client = createJsonClient(followRedirects = false)
-        val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
@@ -260,7 +260,7 @@ class ImagePreProcessingTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/img.png")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =

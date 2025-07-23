@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS asset_variant
     object_store_key    TEXT                        NOT NULL,
     attributes          JSONB                       NOT NULL,
     attributes_key      BIGINT                      NOT NULL,
+    lqip                JSONB                       NOT NULL,
     original_variant    BOOLEAN                     NOT NULL,
     created_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT fk_asset_variant_asset_id_asset_tree_id FOREIGN KEY (asset_id)

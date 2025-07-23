@@ -1,6 +1,7 @@
 package asset.variant
 
 import asset.repository.getNonNull
+import image.model.LQIPs
 import kotlinx.serialization.json.Json
 import org.jooq.Record
 import tessa.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
@@ -12,6 +13,7 @@ data class AssetVariant(
     val attributes: ImageVariantAttributes,
     val isOriginalVariant: Boolean,
     val attributeKey: Long,
+    val lqip: LQIPs,
     val createdAt: LocalDateTime,
 ) {
     companion object Factory {
@@ -22,6 +24,7 @@ data class AssetVariant(
                 attributes = Json.decodeFromString(record.getNonNull(ASSET_VARIANT.ATTRIBUTES).data()),
                 isOriginalVariant = record.getNonNull(ASSET_VARIANT.ORIGINAL_VARIANT),
                 attributeKey = record.getNonNull(ASSET_VARIANT.ATTRIBUTES_KEY),
+                lqip = Json.decodeFromString(record.getNonNull(ASSET_VARIANT.LQIP).data()),
                 createdAt = record.getNonNull(ASSET_VARIANT.CREATED_AT),
             )
         }

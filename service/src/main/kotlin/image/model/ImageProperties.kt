@@ -1,6 +1,9 @@
 package image.model
 
+import io.image.hash.LQIPImplementation
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.tryGetStringList
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.LQIP
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PREPROCESSING
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PreProcessingProperties.IMAGE_FORMAT
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PreProcessingProperties.MAX_HEIGHT
@@ -11,11 +14,15 @@ import io.tryGetConfig
 
 class ImageProperties private constructor(
     val preProcessing: PreProcessingProperties,
+    val previews: Set<LQIPImplementation>,
 ) : ValidatedProperties {
     override fun validate() {}
 
     companion object {
-        fun create(preProcessing: PreProcessingProperties) = validateAndCreate { ImageProperties(preProcessing) }
+        fun create(
+            preProcessing: PreProcessingProperties,
+            lqip: Set<LQIPImplementation>,
+        ) = validateAndCreate { ImageProperties(preProcessing, lqip) }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -27,11 +34,16 @@ class ImageProperties private constructor(
                         applicationConfig?.tryGetConfig(PREPROCESSING),
                         parent?.preProcessing,
                     ),
+                lqip =
+                    applicationConfig?.tryGetStringList(LQIP)
+                        ?.map { LQIPImplementation.valueOf(it.uppercase()) }
+                        ?.toSet() ?: parent?.previews ?: setOf(),
             )
 
         fun default() =
             ImageProperties(
                 preProcessing = PreProcessingProperties.default(),
+                previews = setOf(),
             )
     }
 

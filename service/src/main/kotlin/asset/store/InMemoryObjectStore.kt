@@ -32,22 +32,32 @@ class InMemoryObjectStore() : ObjectStore {
         bucket: String,
         key: String,
         stream: ByteWriteChannel,
-    ): FetchResult {
-        if (bucket != BUCKET) {
-            return FetchResult.notFound().also {
-                stream.flushAndClose()
+    ): FetchResult =
+        try {
+            if (bucket != BUCKET) {
+                FetchResult.notFound()
             }
+            store[key]?.let {
+                stream.writeFully(it)
+                FetchResult(
+                    found = true,
+                    contentLength = it.size.toLong(),
+                )
+            } ?: FetchResult.notFound()
+        } finally {
+            stream.flushAndClose()
+        }
+
+    override suspend fun exists(
+        bucket: String,
+        key: String,
+    ): Boolean {
+        if (bucket != BUCKET) {
+            return false
         }
         return store[key]?.let {
-            stream.writeFully(it)
-            stream.flushAndClose()
-            FetchResult(
-                found = true,
-                contentLength = it.size.toLong(),
-            )
-        } ?: FetchResult.notFound().also {
-            stream.flushAndClose()
-        }
+            true
+        } ?: false
     }
 
     override suspend fun delete(

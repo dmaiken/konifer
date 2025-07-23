@@ -42,13 +42,17 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(5, value)
         get(): Long? = get(5) as Long?
 
-    open var originalVariant: Boolean?
+    open var lqip: JSONB?
         set(value): Unit = set(6, value)
-        get(): Boolean? = get(6) as Boolean?
+        get(): JSONB? = get(6) as JSONB?
+
+    open var originalVariant: Boolean?
+        set(value): Unit = set(7, value)
+        get(): Boolean? = get(7) as Boolean?
 
     open var createdAt: LocalDateTime?
-        set(value): Unit = set(7, value)
-        get(): LocalDateTime? = get(7) as LocalDateTime?
+        set(value): Unit = set(8, value)
+        get(): LocalDateTime? = get(8) as LocalDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -59,13 +63,14 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: Long? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: Long? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
         this.objectStoreKey = objectStoreKey
         this.attributes = attributes
         this.attributesKey = attributesKey
+        this.lqip = lqip
         this.originalVariant = originalVariant
         this.createdAt = createdAt
         resetTouchedOnNotNull()
