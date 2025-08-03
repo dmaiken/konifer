@@ -7,9 +7,6 @@ import org.koin.dsl.module
 
 fun Application.pathModule(): Module =
     module {
-        single<PathAdapter> {
-            PathAdapter()
-        }
         single<PathConfigurationService> {
             PathConfigurationService(environment.config)
         }

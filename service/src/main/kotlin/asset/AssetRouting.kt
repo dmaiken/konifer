@@ -2,11 +2,9 @@ package asset
 
 import asset.model.StoreAssetRequest
 import io.asset.AssetStreamContainer
-import io.asset.ContentParameters.ALL
-import io.asset.ContentParameters.RETURN
+import io.asset.context.RequestContextFactory
+import io.asset.context.ReturnFormat
 import io.getAppStatusCacheHeader
-import io.getEntryId
-import io.getPathModifierOption
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -26,6 +24,7 @@ import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
+import io.path.DeleteMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -38,58 +37,69 @@ const val ASSET_PATH_PREFIX = "/assets"
 
 fun Application.configureAssetRouting() {
     val assetHandler by inject<AssetHandler>()
+    val requestContextFactory by inject<RequestContextFactory>()
 
     routing {
         get("$ASSET_PATH_PREFIX/{...}") {
-            val route = call.request.path().removePrefix(ASSET_PATH_PREFIX)
-            val returnFormat = AssetReturnFormat.fromQueryParam(call.request.queryParameters[RETURN])
-            val all = call.request.queryParameters[ALL]?.toBoolean() ?: false
-            val suppliedEntryId = getEntryId(call.request)
+            val requestContext = requestContextFactory.fromGetRequest(call.request.path(), call.queryParameters)
 
-            if (returnFormat == AssetReturnFormat.METADATA && !all) {
-                logger.info("Navigating to asset info with path: $route")
-                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId)?.let {
-                    logger.info("Found asset info: $it with path: $route")
-                    call.respond(HttpStatusCode.OK, it.toResponse())
-                } ?: call.respond(HttpStatusCode.NotFound)
-                return@get
-            } else if (returnFormat == AssetReturnFormat.METADATA) {
-                logger.info("Navigating to asset info of all assets with path: $route")
-                assetHandler.fetchAssetInfoInPath(route).map {
-                    it.toResponse()
-                }.let {
-                    logger.info("Found asset info for ${it.size} assets in path: $route")
-                    call.respond(HttpStatusCode.OK, it)
+            when (requestContext.modifiers.returnFormat) {
+                ReturnFormat.METADATA -> {
+                    if (requestContext.modifiers.limit == 1) {
+                        logger.info("Navigating to asset info with path: ${requestContext.path}")
+                        assetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let {
+                            logger.info("Found asset info: $it with path: ${requestContext.path}")
+                            call.respond(HttpStatusCode.OK, it.first.toResponse())
+                        } ?: call.respond(HttpStatusCode.NotFound)
+                        return@get
+                    } else {
+                        logger.info("Navigating to asset info of all assets with path: ${requestContext.path}")
+                        assetHandler.fetchAssetMetadataInPath(requestContext).map {
+                            it.toResponse()
+                        }.let {
+                            logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
+                            call.respond(HttpStatusCode.OK, it)
+                        }
+                    }
                 }
-            } else if (returnFormat == AssetReturnFormat.REDIRECT) {
-                logger.info("Navigating to asset with path: $route")
-                assetHandler.fetchAssetByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
-                    logger.info("Found asset with response: $response and route: $route")
-                    call.response.headers.append(HttpHeaders.Location, response.first)
-                    getAppStatusCacheHeader(response.second).let {
-                        call.response.headers.append(it.first, it.second)
-                    }
-                    call.respond(HttpStatusCode.TemporaryRedirect)
-                } ?: call.respond(HttpStatusCode.NotFound)
-            } else {
-                // Content
-                logger.info("Navigating to asset content with path: $route")
-                assetHandler.fetchAssetMetadataByPath(route, suppliedEntryId, call.request.queryParameters)?.let { response ->
-                    logger.info("Found asset content with path: $route")
-                    getAppStatusCacheHeader(response.second).let {
-                        call.response.headers.append(it.first, it.second)
-                    }
-                    call.respondBytesWriter(
-                        contentType = ContentType.parse(response.first.variants.first().attributes.mimeType),
-                        status = HttpStatusCode.OK,
-                    ) {
-                        assetHandler.fetchAssetContent(
-                            response.first.variants.first().objectStoreBucket,
-                            response.first.variants.first().objectStoreKey,
-                            this,
-                        )
-                    }
-                } ?: call.respond(HttpStatusCode.NotFound)
+                ReturnFormat.REDIRECT -> {
+                    logger.info("Navigating to asset with path (${ReturnFormat.REDIRECT}): ${requestContext.path}")
+                    assetHandler.fetchAssetLinksByPath(requestContext)?.let { response ->
+                        call.response.headers.append(HttpHeaders.Location, response.url)
+                        getAppStatusCacheHeader(response.cacheHit).let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        call.respond(HttpStatusCode.TemporaryRedirect)
+                    } ?: call.respond(HttpStatusCode.NotFound)
+                }
+                ReturnFormat.LINK -> {
+                    logger.info("Navigating to asset with path (${ReturnFormat.LINK}: ${requestContext.path}")
+                    assetHandler.fetchAssetLinksByPath(requestContext)?.let { response ->
+                        getAppStatusCacheHeader(response.cacheHit).let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        call.respond(HttpStatusCode.OK, response.toResponse())
+                    } ?: call.respond(HttpStatusCode.NotFound)
+                }
+                ReturnFormat.CONTENT -> {
+                    logger.info("Navigating to asset content with path: ${requestContext.path}")
+                    assetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
+                        logger.info("Found asset content with path: ${requestContext.path}")
+                        getAppStatusCacheHeader(response.second).let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        call.respondBytesWriter(
+                            contentType = ContentType.parse(response.first.variants.first().attributes.mimeType),
+                            status = HttpStatusCode.OK,
+                        ) {
+                            assetHandler.fetchAssetContent(
+                                response.first.variants.first().objectStoreBucket,
+                                response.first.variants.first().objectStoreKey,
+                                this,
+                            )
+                        }
+                    } ?: call.respond(HttpStatusCode.NotFound)
+                }
             }
         }
 
@@ -102,16 +112,12 @@ fun Application.configureAssetRouting() {
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {
-            val suppliedEntryId = getEntryId(call.request)
-            val suppliedOption = getPathModifierOption(call.request)
-            val route = call.request.path().removePrefix(ASSET_PATH_PREFIX)
-            if (suppliedOption != null && suppliedEntryId != null) {
-                throw IllegalArgumentException("Both entryId and option cannot both be supplied")
-            }
-            if (suppliedOption != null) {
-                assetHandler.deleteAssets(route, suppliedOption)
+            val requestContext = requestContextFactory.fromDeleteRequest(call.request.path())
+            logger.info("Deleting asset with path: ${requestContext.path}")
+            if (requestContext.modifiers.mode != DeleteMode.SINGLE) {
+                assetHandler.deleteAssets(requestContext.path, requestContext.modifiers.mode)
             } else {
-                assetHandler.deleteAsset(route, suppliedEntryId)
+                assetHandler.deleteAsset(requestContext.path, requestContext.modifiers.entryId)
             }
 
             call.respond(HttpStatusCode.NoContent)
@@ -124,7 +130,7 @@ suspend fun createNewAsset(
     assetHandler: AssetHandler,
 ) = coroutineScope {
     logger.info("Received request to store a new asset")
-    var assetData = CompletableDeferred<StoreAssetRequest>()
+    val assetData = CompletableDeferred<StoreAssetRequest>()
     val assetContent = ByteChannel(true)
     val multipart = call.receiveMultipart()
 
@@ -157,7 +163,7 @@ suspend fun createNewAsset(
         }
         part.dispose()
     }
-    if (assetData == null) {
+    if (!assetData.isCompleted) {
         throw IllegalArgumentException("No asset metadata supplied")
     }
     val asset = deferredAsset.await()

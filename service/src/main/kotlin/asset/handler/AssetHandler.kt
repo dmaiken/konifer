@@ -9,14 +9,14 @@ import image.InvalidImageException
 import image.VipsImageProcessor
 import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
-import io.asset.ImageAttributeAdapter
+import io.asset.context.QueryRequestContext
+import io.asset.handler.AssetLinkDto
 import io.asset.handler.StoreAssetVariantDto
-import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.path.DeleteMode
 import io.path.PathAdapter
-import io.path.PathModifierOption
 import io.path.configuration.PathConfiguration
 import io.path.configuration.PathConfigurationService
 import kotlinx.coroutines.CompletableDeferred
@@ -27,11 +27,9 @@ import kotlinx.coroutines.launch
 class AssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
-    private val pathGenerator: PathAdapter,
     private val imageProcessor: VipsImageProcessor,
     private val objectStore: ObjectStore,
     private val pathConfigurationService: PathConfigurationService,
-    private val imageAttributeAdapter: ImageAttributeAdapter,
 ) {
     private val logger = KtorSimpleLogger("asset")
 
@@ -43,7 +41,7 @@ class AssetHandler(
         coroutineScope {
             val mimeType = deriveValidMimeType(container.readNBytes(1024, true))
             val pathConfiguration = validatePathConfiguration(uriPath, mimeType)
-            val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
+            val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
             val processedAssetChannel = ByteChannel(true)
             val persistResult =
                 async {
@@ -69,69 +67,60 @@ class AssetHandler(
             )
         }
 
-    suspend fun fetchAssetByPath(
-        uriPath: String,
-        entryId: Long?,
-        parameters: Parameters,
-    ): Pair<String, Boolean>? {
-        val assetAndCacheStatus = fetchAssetMetadataByPath(uriPath, entryId, parameters)
+    suspend fun fetchAssetLinksByPath(context: QueryRequestContext): AssetLinkDto? {
+        val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
+        logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
+        val variant = assetAndCacheStatus.first.variants.first()
 
-        if (assetAndCacheStatus == null) {
-            return null
-        }
-
-        return Pair(objectStore.generateObjectUrl(assetAndCacheStatus.first.variants.first()), assetAndCacheStatus.second)
+        return AssetLinkDto(
+            url = objectStore.generateObjectUrl(variant),
+            cacheHit = assetAndCacheStatus.second,
+            lqip = variant.lqip,
+        )
     }
 
     suspend fun fetchAssetMetadataByPath(
-        uriPath: String,
-        entryId: Long?,
-        parameters: Parameters,
+        context: QueryRequestContext,
+        generateVariant: Boolean,
     ): Pair<AssetAndVariants, Boolean>? {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        val requestedAttributes = imageAttributeAdapter.fromParameters(parameters)
-        logger.info("Fetching asset info by path: $treePath with attributes: $requestedAttributes")
+        val treePath = PathAdapter.toTreePathFromUriPath(context.path)
+        val entryId = context.modifiers.entryId
+        logger.info("Fetching asset info by path: $treePath with attributes: ${context.requestedImageAttributes}")
 
-        val assetAndVariants = assetRepository.fetchByPath(treePath, entryId, requestedAttributes)
+        val assetAndVariants = assetRepository.fetchByPath(treePath, entryId, context.requestedImageAttributes)
         if (assetAndVariants == null) {
             return null
         }
+        if (!generateVariant) {
+            return Pair(assetAndVariants, true)
+        }
 
-        return if (assetAndVariants.variants.isEmpty()) {
-            logger.info("Generating variant of asset with path: $uriPath and entryId: $entryId")
+        return if (assetAndVariants.variants.isEmpty() && context.requestedImageAttributes != null) {
+            logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
             val requestedMimeType =
-                requestedAttributes.mimeType ?: assetRepository.fetchByPath(
+                context.requestedImageAttributes.mimeType ?: assetRepository.fetchByPath(
                     treePath, entryId, RequestedImageAttributes.ORIGINAL_VARIANT,
                 )?.getOriginalVariant()?.attributes?.mimeType ?: throw IllegalStateException(
-                    "No original variant found for asset at path: $uriPath and entryId: $entryId",
+                    "No original variant found for asset at path: ${context.path} and entryId: $entryId",
                 )
-            validatePathConfiguration(uriPath, requestedMimeType)
+            validatePathConfiguration(context.path, requestedMimeType)
             return cacheVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
-                requestedAttributes = requestedAttributes,
+                requestedAttributes = context.requestedImageAttributes,
             )?.let {
                 Pair(it, false)
             }
         } else {
-            logger.info("Variant found for asset with path: $uriPath and entryId: $entryId")
+            logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
             Pair(assetAndVariants, true)
         }
     }
 
-    suspend fun fetchAssetMetadataByPath(
-        uriPath: String,
-        entryId: Long?,
-    ): AssetAndVariants? {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        logger.info("Fetching asset info by path: $treePath")
-        return assetRepository.fetchByPath(treePath, entryId, null)
-    }
-
-    suspend fun fetchAssetInfoInPath(uriPath: String): List<AssetAndVariants> {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
+    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
+        val treePath = PathAdapter.toTreePathFromUriPath(context.path)
         logger.info("Fetching asset info in path: $treePath")
-        return assetRepository.fetchAllByPath(treePath)
+        return assetRepository.fetchAllByPath(treePath, null)
     }
 
     suspend fun fetchAssetContent(
@@ -148,7 +137,7 @@ class AssetHandler(
         uriPath: String,
         entryId: Long? = null,
     ) {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
+        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
         if (entryId == null) {
             logger.info("Deleting asset with path: $treePath")
         } else {
@@ -159,15 +148,15 @@ class AssetHandler(
 
     suspend fun deleteAssets(
         uriPath: String,
-        mode: PathModifierOption,
+        mode: DeleteMode,
     ) {
-        val treePath = pathGenerator.toTreePathFromUriPath(uriPath)
-        if (mode == PathModifierOption.CHILDREN) {
-            logger.info("Deleting assets at path: $treePath")
-        } else {
-            logger.info("Deleting assets at path: $treePath and all underneath it!")
+        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
+        when (mode) {
+            DeleteMode.SINGLE -> throw IllegalArgumentException("Delete mode of: $mode not allowed")
+            DeleteMode.CHILDREN -> logger.info("Deleting assets at path: $treePath")
+            DeleteMode.RECURSIVE -> logger.info("Deleting assets at path: $treePath and all underneath it!")
         }
-        assetRepository.deleteAssetsByPath(treePath, mode == PathModifierOption.RECURSIVE)
+        assetRepository.deleteAssetsByPath(treePath, mode == DeleteMode.RECURSIVE)
     }
 
     private fun deriveValidMimeType(content: ByteArray): String {

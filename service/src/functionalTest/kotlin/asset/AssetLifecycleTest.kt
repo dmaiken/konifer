@@ -1,17 +1,14 @@
 package asset
 
 import asset.model.AssetClass
-import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 import util.createJsonClient
+import util.fetchAssetInfo
 import util.storeAsset
 
 class AssetLifecycleTest {
@@ -33,10 +30,7 @@ class AssetLifecycleTest {
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>() shouldBe storeAssetResponse
-            }
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @Test
@@ -55,12 +49,8 @@ class AssetLifecycleTest {
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>().apply {
-                    entryIds[1] shouldBe entryId
-                    entryId shouldBe 1
-                }
+            fetchAssetInfo(client, path = "profile")!!.apply {
+                entryId shouldBe entryIds[1]
             }
         }
 }

@@ -22,7 +22,9 @@ data class AssetAndVariants(
                 }
                 val asset = Asset.from(record)
                 val variants = assetsToVariants.computeIfAbsent(asset) { mutableListOf() }
-                variants.add(AssetVariant.from(record))
+                AssetVariant.from(record)?.let {
+                    variants.add(it)
+                }
             }
             val results =
                 assetsToVariants.map { (asset, variants) ->
@@ -41,7 +43,7 @@ data class AssetAndVariants(
         ): AssetAndVariants {
             return AssetAndVariants(
                 asset = Asset.from(asset),
-                variants = listOf(AssetVariant.from(variant)),
+                variants = listOfNotNull(AssetVariant.from(variant)),
             )
         }
     }

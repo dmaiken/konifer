@@ -4,6 +4,7 @@ import asset.repository.AssetRepository
 import asset.repository.InMemoryAssetRepository
 import asset.repository.PostgresAssetRepository
 import asset.variant.VariantParameterGenerator
+import io.asset.context.RequestContextFactory
 import io.r2dbc.spi.ConnectionFactory
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -11,7 +12,7 @@ import org.koin.dsl.module
 fun assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
         single<AssetHandler> {
-            AssetHandler(get(), get(), get(), get(), get(), get(), get())
+            AssetHandler(get(), get(), get(), get(), get())
         }
         single<MimeTypeDetector> {
             TikaMimeTypeDetector()
@@ -25,5 +26,9 @@ fun assetModule(connectionFactory: ConnectionFactory?): Module =
 
         single<VariantParameterGenerator> {
             VariantParameterGenerator()
+        }
+
+        single<RequestContextFactory> {
+            RequestContextFactory(get())
         }
     }

@@ -1,16 +1,15 @@
 package asset
 
-import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.body
 import io.ktor.client.request.delete
-import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
+import util.assertAssetDoesNotExist
 import util.createJsonClient
+import util.deleteAsset
 import util.fetchAssetInfo
 import util.storeAsset
 import java.util.UUID
@@ -38,15 +37,10 @@ class DeleteAssetTest {
                     alt = "an image",
                 )
             storeAsset(client, image, request, path = "profile")
-
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-            }
-            client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
-            client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
+            fetchAssetInfo(client, path = "profile")
+            deleteAsset(client, path = "profile")
+            assertAssetDoesNotExist(client, path = "profile")
+            deleteAsset(client, path = "profile")
         }
 
     @Test
@@ -62,18 +56,12 @@ class DeleteAssetTest {
             val firstAsset = storeAsset(client, image, request, path = "profile")
             val secondAsset = storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>().apply {
-                    entryId shouldBe secondAsset?.entryId
-                }
+            fetchAssetInfo(client, path = "profile")!!.apply {
+                entryId shouldBe secondAsset?.entryId
             }
-            client.delete("/assets/profile").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>().apply {
-                    entryId shouldBe firstAsset?.entryId
-                }
+            deleteAsset(client, path = "profile")
+            fetchAssetInfo(client, path = "profile")!!.apply {
+                entryId shouldBe firstAsset?.entryId
             }
         }
 
@@ -90,30 +78,26 @@ class DeleteAssetTest {
             val firstAsset = storeAsset(client, image, request, path = "profile")
             val secondAsset = storeAsset(client, image, request, path = "profile")
 
-            client.delete("/assets/profile?entryId=${firstAsset!!.entryId}").status shouldBe HttpStatusCode.NoContent
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>().apply {
-                    entryId shouldBe secondAsset?.entryId
-                }
+            deleteAsset(client, path = "profile", entryId = firstAsset!!.entryId)
+
+            fetchAssetInfo(client, path = "profile")!!.apply {
+                entryId shouldBe secondAsset?.entryId
             }
-            client.get("/assets/profile?return=metadata&entryId=${firstAsset.entryId}").apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
+            fetchAssetInfo(client, path = "profile", entryId = firstAsset.entryId, expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
     fun `cannot supply invalid entryId when deleting asset`() =
         testInMemory {
             val client = createJsonClient()
-            client.delete("/assets/profile?entryId=notANumber").status shouldBe HttpStatusCode.BadRequest
+            client.delete("/assets/profile/-/entry/notANumber").status shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
     fun `cannot supply negative entryId when deleting asset`() =
         testInMemory {
             val client = createJsonClient()
-            client.delete("/assets/profile?entryId=-1").status shouldBe HttpStatusCode.BadRequest
+            client.delete("/assets/profile/-/entry/-1").status shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
@@ -130,7 +114,7 @@ class DeleteAssetTest {
             val secondAsset = storeAsset(client, image, request, path = "user/123")
             val assetToNotDelete = storeAsset(client, image, request, path = "user/123/profile")
 
-            client.delete("/assets/user/123?mode=children").status shouldBe HttpStatusCode.NoContent
+            client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
 
             fetchAssetInfo(client, "user/123", entryId = null, HttpStatusCode.NotFound)
             fetchAssetInfo(client, "user/123", firstAsset!!.entryId, HttpStatusCode.NotFound)
@@ -156,7 +140,7 @@ class DeleteAssetTest {
             val thirdAsset = storeAsset(client, image, request, path = "user/123/profile")
             val fourthAsset = storeAsset(client, image, request, path = "user/123/profile/other")
 
-            client.delete("/assets/user/123?mode=recursive").status shouldBe HttpStatusCode.NoContent
+            client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
 
             fetchAssetInfo(client, "user/123", entryId = null, HttpStatusCode.NotFound)
             fetchAssetInfo(client, "user/123", firstAsset!!.entryId, HttpStatusCode.NotFound)
@@ -171,6 +155,6 @@ class DeleteAssetTest {
     @Test
     fun `cannot set both entryId and mode when deleting assets`() =
         testInMemory {
-            client.delete("/assets/user/123?mode=recursive&entryId=1").status shouldBe HttpStatusCode.BadRequest
+            client.delete("/assets/user/123/-/entry/1/recursive").status shouldBe HttpStatusCode.BadRequest
         }
 }

@@ -1,15 +1,14 @@
 package asset
 
-import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 import util.createJsonClient
+import util.fetchAssetInfo
+import util.fetchAssetsInfo
 import util.storeAsset
 import java.util.UUID
 
@@ -31,20 +30,14 @@ class FetchAssetInfoTest {
                 }
             }
             entryIds shouldHaveSize 2
-            client.get("/assets/profile?return=metadata").apply {
-                status shouldBe HttpStatusCode.OK
-                body<AssetResponse>().apply {
-                    entryIds[1] shouldBe entryId
-                }
+            fetchAssetInfo(client, "profile")!!.apply {
+                entryId shouldBe entryIds[1]
             }
 
-            client.get("/assets/profile?return=metadata&all=true").apply {
-                status shouldBe HttpStatusCode.OK
-                body<List<AssetResponse>>().apply {
-                    size shouldBe 2
-                    get(0).entryId shouldBe entryIds[1]
-                    get(1).entryId shouldBe entryIds[0]
-                }
+            fetchAssetsInfo(client, path = "profile", limit = 10).apply {
+                size shouldBe 2
+                get(0).entryId shouldBe entryIds[1]
+                get(1).entryId shouldBe entryIds[0]
             }
         }
 
@@ -52,8 +45,6 @@ class FetchAssetInfoTest {
     fun `fetching info of asset that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}?return=metadata").apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
+            fetchAssetInfo(client, UUID.randomUUID().toString(), expectedStatus = HttpStatusCode.NotFound)
         }
 }

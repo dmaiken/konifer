@@ -1,9 +1,11 @@
 package util
 
 import BaseTestcontainerTest.Companion.BOUNDARY
+import asset.model.AssetLinkResponse
 import asset.model.AssetResponse
 import asset.model.StoreAssetRequest
 import io.APP_CACHE_STATUS
+import io.asset.context.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -11,11 +13,13 @@ import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -76,7 +80,7 @@ suspend fun storeAsset(
     }
 }
 
-suspend fun fetchAsset(
+suspend fun fetchAssetViaRedirect(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
@@ -84,27 +88,80 @@ suspend fun fetchAsset(
     width: Int? = null,
     mimeType: String? = null,
     expectCacheHit: Boolean? = null,
-): ByteArray {
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
+): ByteArray? {
     val urlBuilder = URLBuilder()
-    urlBuilder.path("/assets/$path")
     if (entryId != null) {
-        urlBuilder.parameters.append("entryId", entryId.toString())
+        urlBuilder.path("/assets/$path/-/redirect/entry/$entryId")
+    } else {
+        urlBuilder.path("/assets/$path/-/redirect")
     }
-    if (height != null) {
-        urlBuilder.parameters.append("h", height.toString())
-    }
-    if (width != null) {
-        urlBuilder.parameters.append("w", width.toString())
-    }
-    if (mimeType != null) {
-        urlBuilder.parameters.append("mimeType", mimeType)
-    }
+
+    attachVariantModifiers(urlBuilder, height, width, mimeType)
     val url = urlBuilder.build()
-    url.fullPath
     val fetchResponse =
         client.get(url.fullPath).apply {
-            status shouldBe HttpStatusCode.TemporaryRedirect
-            headers["Location"] shouldContain "http://"
+            status shouldBe expectedStatusCode
+            if (expectedStatusCode == HttpStatusCode.TemporaryRedirect) {
+                headers[HttpHeaders.Location] shouldContain "http://"
+
+                if (expectCacheHit == true) {
+                    headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
+                }
+                if (expectCacheHit == false) {
+                    headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
+                }
+            } else {
+                headers.contains(HttpHeaders.Location) shouldBe false
+                headers.contains(APP_CACHE_STATUS) shouldBe false
+            }
+        }
+    if (fetchResponse.status != HttpStatusCode.TemporaryRedirect) {
+        return null
+    }
+    val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
+    val objectStoreResponse = client.get(location)
+    val channel = objectStoreResponse.bodyAsChannel()
+    objectStoreResponse.status shouldBe HttpStatusCode.OK
+
+    return channel.readRemaining().asInputStream().use {
+        it.readAllBytes()
+    }
+}
+
+suspend fun fetchAssetContent(
+    client: HttpClient,
+    path: String = "profile",
+    entryId: Long? = null,
+    height: Int? = null,
+    width: Int? = null,
+    mimeType: String? = null,
+    expectCacheHit: Boolean? = null,
+    expectedMimeType: String? = null,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
+): ByteArray? {
+    val urlBuilder = URLBuilder()
+    if (entryId != null) {
+        urlBuilder.path("/assets/$path/-/content/entry/$entryId")
+    } else {
+        urlBuilder.path("/assets/$path/-/content")
+    }
+
+    attachVariantModifiers(urlBuilder, height, width, mimeType)
+    val url = urlBuilder.build()
+    client.get(url.fullPath).apply {
+        status shouldBe expectedStatusCode
+        return if (status == HttpStatusCode.OK) {
+            headers.contains(HttpHeaders.Location) shouldBe false
+            if (expectedMimeType != null) {
+                headers[HttpHeaders.ContentType] shouldBe expectedMimeType
+            } else if (mimeType != null) {
+                (
+                    headers[HttpHeaders.ContentType] shouldBe mimeType
+                )
+            } else {
+                headers[HttpHeaders.ContentType] shouldNotBe null
+            }
 
             if (expectCacheHit == true) {
                 headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
@@ -112,14 +169,74 @@ suspend fun fetchAsset(
             if (expectCacheHit == false) {
                 headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
             }
-        }
-    val location = Url(fetchResponse.headers[HttpHeaders.Location]!!).fullPath
-    val storeResponse = client.get(location)
-    val channel = storeResponse.bodyAsChannel()
-    storeResponse.status shouldBe HttpStatusCode.OK
 
-    return channel.readRemaining().asInputStream().use {
-        it.readAllBytes()
+            bodyAsBytes()
+        } else {
+            headers.contains(HttpHeaders.Location) shouldBe false
+            headers.contains(HttpHeaders.ContentType) shouldBe false
+
+            null
+        }
+    }
+}
+
+suspend fun fetchAssetLink(
+    client: HttpClient,
+    path: String = "profile",
+    entryId: Long? = null,
+    height: Int? = null,
+    width: Int? = null,
+    mimeType: String? = null,
+    expectCacheHit: Boolean? = null,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
+): AssetLinkResponse? {
+    val urlBuilder = URLBuilder()
+    if (entryId != null) {
+        urlBuilder.path("/assets/$path/-/link/entry/$entryId")
+    } else {
+        urlBuilder.path("/assets/$path/-/link")
+    }
+
+    attachVariantModifiers(urlBuilder, height, width, mimeType)
+    val fetchUrl = urlBuilder.build()
+    client.get(fetchUrl.fullPath).apply {
+        status shouldBe expectedStatusCode
+        headers[HttpHeaders.Location] shouldBe null
+        return if (expectedStatusCode == HttpStatusCode.OK) {
+            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+
+            if (expectCacheHit == true) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
+            }
+            if (expectCacheHit == false) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
+            }
+
+            body<AssetLinkResponse>().apply {
+                url shouldContain "http://"
+            }
+        } else {
+            null
+        }
+    }
+}
+
+suspend fun assertAssetDoesNotExist(
+    client: HttpClient,
+    path: String = "profile",
+    entryId: Long? = null,
+) {
+    ReturnFormat.entries.forEach { format ->
+        val urlBuilder = URLBuilder()
+        if (entryId != null) {
+            urlBuilder.path("/assets/$path/-/${format.name}/entry/$entryId")
+        } else {
+            urlBuilder.path("/assets/$path/-/${format.name}")
+        }
+        client.get(urlBuilder.build()).apply {
+            status shouldBe HttpStatusCode.NotFound
+            headers.contains(HttpHeaders.Location) shouldBe false
+        }
     }
 }
 
@@ -130,11 +247,11 @@ suspend fun fetchAssetInfo(
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? {
     return if (entryId != null) {
-        "/assets/$path?return=metadata&entryId=$entryId"
+        "/assets/$path/-/metadata/entry/$entryId"
     } else {
-        "/assets/$path?return=metadata"
-    }.let {
-        val response = client.get("/assets/$path?return=metadata")
+        "/assets/$path/-/metadata"
+    }.let { requestPath ->
+        val response = client.get(requestPath)
         response.status shouldBe expectedStatus
 
         if (response.status == HttpStatusCode.NotFound) {
@@ -144,5 +261,52 @@ suspend fun fetchAssetInfo(
                 entryId shouldBe entryId
             }
         }
+    }
+}
+
+suspend fun fetchAssetsInfo(
+    client: HttpClient,
+    path: String,
+    limit: Int = 1,
+    expectedStatus: HttpStatusCode = HttpStatusCode.OK,
+): List<AssetResponse> {
+    val requestPath = "/assets/$path/-/metadata/$limit"
+    val response = client.get(requestPath)
+    response.status shouldBe expectedStatus
+
+    return if (response.status == HttpStatusCode.NotFound) {
+        emptyList()
+    } else {
+        response.body<List<AssetResponse>>()
+    }
+}
+
+suspend fun deleteAsset(
+    client: HttpClient,
+    path: String = "profile",
+    entryId: Long? = null,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
+) {
+    if (entryId != null) {
+        client.delete("/assets/$path/-/entry/$entryId").status shouldBe expectedStatusCode
+    } else {
+        client.delete("/assets/$path").status shouldBe expectedStatusCode
+    }
+}
+
+private fun attachVariantModifiers(
+    urlBuilder: URLBuilder,
+    height: Int? = null,
+    width: Int? = null,
+    mimeType: String? = null,
+) {
+    if (height != null) {
+        urlBuilder.parameters.append("h", height.toString())
+    }
+    if (width != null) {
+        urlBuilder.parameters.append("w", width.toString())
+    }
+    if (mimeType != null) {
+        urlBuilder.parameters.append("mimeType", mimeType)
     }
 }

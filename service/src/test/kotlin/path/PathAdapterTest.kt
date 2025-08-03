@@ -7,21 +7,19 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class PathAdapterTest {
-    private val pathAdapter = PathAdapter()
-
     @ParameterizedTest
     @ValueSource(strings = ["", "/"])
     fun `root path is used when uri path is the root`(uriPath: String) {
-        val treePath = pathAdapter.toTreePathFromUriPath(uriPath)
+        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
 
-        treePath shouldBe PathAdapter.Companion.TREE_ROOT
+        treePath shouldBe PathAdapter.TREE_ROOT
     }
 
     @ParameterizedTest
     @ValueSource(strings = ["/;", "/:", "/.", "/profile-picture/1.2.3"])
     fun `path is rejected if not valid`(uriPath: String) {
         shouldThrow<IllegalArgumentException> {
-            pathAdapter.toTreePathFromUriPath(uriPath)
+            PathAdapter.toTreePathFromUriPath(uriPath)
         }
     }
 
@@ -29,8 +27,8 @@ class PathAdapterTest {
     fun `generates the tree path correctly`() {
         val uriPath = "/user1/profile-picture/"
 
-        val treePath = pathAdapter.toTreePathFromUriPath(uriPath)
+        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
 
-        treePath shouldBe "${PathAdapter.Companion.TREE_ROOT}.user1.profile-picture"
+        treePath shouldBe "${PathAdapter.TREE_ROOT}.user1.profile-picture"
     }
 }

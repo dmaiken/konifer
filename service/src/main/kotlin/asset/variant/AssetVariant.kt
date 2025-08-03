@@ -17,7 +17,10 @@ data class AssetVariant(
     val createdAt: LocalDateTime,
 ) {
     companion object Factory {
-        fun from(record: Record): AssetVariant {
+        fun from(record: Record): AssetVariant? {
+            if (record.get(ASSET_VARIANT.ID) == null) {
+                return null
+            }
             return AssetVariant(
                 objectStoreBucket = record.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
                 objectStoreKey = record.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),

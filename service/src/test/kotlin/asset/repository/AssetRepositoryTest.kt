@@ -9,6 +9,7 @@ import image.model.RequestedImageAttributes
 import io.asset.handler.StoreAssetVariantDto
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -198,7 +199,7 @@ abstract class AssetRepositoryTest {
             val dto = createAssetDto("root.users.123")
             val assetAndVariant = repository.store(dto)
 
-            repository.fetchAllByPath("root.users.123") shouldBe listOf(assetAndVariant)
+            repository.fetchAllByPath("root.users.123", null) shouldBe listOf(assetAndVariant)
         }
 
     @Test
@@ -209,13 +210,146 @@ abstract class AssetRepositoryTest {
             val assetAndVariant1 = repository.store(dto1)
             val assetAndVariant2 = repository.store(dto2)
 
-            repository.fetchAllByPath("root.users.123") shouldBe listOf(assetAndVariant2, assetAndVariant1)
+            repository.fetchAllByPath("root.users.123", null) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+        }
+
+    @Test
+    fun `fetchAllByPath returns all assets even if they do not have a requested variant`() =
+        runTest {
+            val count = 3
+            repeat(count) {
+                val dto = createAssetDto("root.users.123")
+                val persistedAssetAndVariants = repository.store(dto)
+
+                val persistResult =
+                    PersistResult(
+                        bucket = "bucket",
+                        key = UUID.randomUUID().toString(),
+                    )
+                val imageAttributes =
+                    ImageAttributes(
+                        width = 10,
+                        height = 10,
+                        mimeType = "image/png",
+                    )
+
+                repository.storeVariant(
+                    StoreAssetVariantDto(
+                        treePath = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        persistResult = persistResult,
+                        imageAttributes = imageAttributes,
+                        lqips = LQIPs.NONE,
+                    ),
+                )
+            }
+            val requestedImageAttributes =
+                RequestedImageAttributes(
+                    width = 8,
+                    height = 5,
+                    mimeType = null,
+                )
+
+            val fetched = repository.fetchAllByPath("root.users.123", requestedImageAttributes)
+            fetched shouldHaveSize 3
+            fetched.forAll {
+                it.variants shouldHaveSize 0
+            }
+        }
+
+    @Test
+    fun `fetchAllByPath returns all assets and all variants`() =
+        runTest {
+            val count = 3
+            repeat(count) {
+                val dto = createAssetDto("root.users.123")
+                val persistedAssetAndVariants = repository.store(dto)
+
+                val persistResult =
+                    PersistResult(
+                        bucket = "bucket",
+                        key = UUID.randomUUID().toString(),
+                    )
+                val imageAttributes =
+                    ImageAttributes(
+                        width = 10,
+                        height = 10,
+                        mimeType = "image/png",
+                    )
+
+                repository.storeVariant(
+                    StoreAssetVariantDto(
+                        treePath = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        persistResult = persistResult,
+                        imageAttributes = imageAttributes,
+                        lqips = LQIPs.NONE,
+                    ),
+                )
+            }
+            val requestedImageAttributes =
+                RequestedImageAttributes(
+                    width = 10,
+                    height = null,
+                    mimeType = null,
+                )
+
+            val fetched = repository.fetchAllByPath("root.users.123", requestedImageAttributes)
+            fetched shouldHaveSize 3
+            fetched.forAll {
+                it.variants shouldHaveSize 1
+                it.variants.first().apply {
+                    attributes.height shouldBe 10
+                    attributes.height shouldBe 10
+                    isOriginalVariant shouldBe false
+                }
+            }
+        }
+
+    @Test
+    fun `fetchAllByPath returns all assets and the existing requested variant`() =
+        runTest {
+            val count = 3
+            repeat(count) {
+                val dto = createAssetDto("root.users.123")
+                val persistedAssetAndVariants = repository.store(dto)
+
+                val persistResult =
+                    PersistResult(
+                        bucket = "bucket",
+                        key = UUID.randomUUID().toString(),
+                    )
+                val imageAttributes =
+                    ImageAttributes(
+                        width = 10,
+                        height = 10,
+                        mimeType = "image/png",
+                    )
+
+                repository.storeVariant(
+                    StoreAssetVariantDto(
+                        treePath = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        persistResult = persistResult,
+                        imageAttributes = imageAttributes,
+                        lqips = LQIPs.NONE,
+                    ),
+                )
+            }
+
+            val fetched = repository.fetchAllByPath("root.users.123", null)
+            fetched shouldHaveSize 3
+            fetched.forAll {
+                it.variants shouldHaveSize 2
+                it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
+                it.variants.find { variant -> variant.attributes.height == 10 && variant.attributes.width == 10 } shouldNotBe null
+            }
         }
 
     @Test
     fun `fetchAllByPath returns empty list if no assets in path`() =
         runTest {
-            repository.fetchAllByPath("root.users.123") shouldBe emptyList()
+            repository.fetchAllByPath("root.users.123", null) shouldBe emptyList()
         }
 
     @Test
@@ -247,7 +381,7 @@ abstract class AssetRepositoryTest {
             }
 
             repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null) shouldBe assetAndVariants
-            repository.fetchAllByPath("root.users.123") shouldBe listOf(assetAndVariants)
+            repository.fetchAllByPath("root.users.123", null) shouldBe listOf(assetAndVariants)
         }
 
     @Test
@@ -262,7 +396,7 @@ abstract class AssetRepositoryTest {
 
             repository.fetchByPath(assetAndVariant1.asset.path, assetAndVariant1.asset.entryId, null) shouldBe null
             repository.fetchByPath(assetAndVariant2.asset.path, assetAndVariant2.asset.entryId, null) shouldBe null
-            repository.fetchAllByPath("root.users.123") shouldBe emptyList()
+            repository.fetchAllByPath("root.users.123", null) shouldBe emptyList()
         }
 
     @Test
@@ -280,8 +414,8 @@ abstract class AssetRepositoryTest {
             repository.fetchByPath(assetAndVariants1.asset.path, assetAndVariants1.asset.entryId, null) shouldBe null
             repository.fetchByPath(assetAndVariants2.asset.path, assetAndVariants2.asset.entryId, null) shouldBe null
             repository.fetchByPath(assetAndVariants3.asset.path, assetAndVariants3.asset.entryId, null) shouldBe null
-            repository.fetchAllByPath("root.users.123") shouldBe emptyList()
-            repository.fetchAllByPath("root.users.123.profile") shouldBe emptyList()
+            repository.fetchAllByPath("root.users.123", null) shouldBe emptyList()
+            repository.fetchAllByPath("root.users.123.profile", null) shouldBe emptyList()
         }
 
     @ParameterizedTest

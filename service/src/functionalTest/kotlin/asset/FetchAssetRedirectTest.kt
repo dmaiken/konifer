@@ -14,6 +14,7 @@ import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import util.byteArrayToImage
 import util.createJsonClient
+import util.fetchAssetViaRedirect
 import util.storeAsset
 import java.util.UUID
 
@@ -22,9 +23,7 @@ class FetchAssetRedirectTest {
     fun `fetching asset that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}").apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
+            fetchAssetViaRedirect(client, path = UUID.randomUUID().toString(), expectedStatusCode = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -40,7 +39,7 @@ class FetchAssetRedirectTest {
                 )
             val storedAssetInfo = storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile/").apply {
+            client.get("/assets/profile/-/redirect").apply {
                 status shouldBe HttpStatusCode.TemporaryRedirect
                 headers[HttpHeaders.Location] shouldContain "http://"
                 headers[HttpHeaders.Location] shouldContain storedAssetInfo!!.variants.first().storeKey

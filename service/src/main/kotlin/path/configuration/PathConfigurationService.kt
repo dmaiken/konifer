@@ -23,7 +23,7 @@ class PathConfigurationService(
     }
 
     fun fetchConfigurationForPath(path: String): PathConfiguration {
-        val segments = path.trim('/').lowercase().split("/").filter { it.isNotBlank() }
+        val segments = path.trim('/').lowercase().split('/').filter { it.isNotBlank() }
 
         return matchRecursive(root, segments).node.config
     }

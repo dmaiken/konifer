@@ -135,17 +135,19 @@ class PostgresAssetRepository(
         }
     }
 
-    override suspend fun fetchAllByPath(treePath: String): List<AssetAndVariants> {
-        return dslContext.select()
-            .from(ASSET_TREE)
-            .join(ASSET_VARIANT)
-            .on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
-            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
-            .orderBy(ASSET_TREE.ENTRY_ID.desc(), ASSET_VARIANT.CREATED_AT.desc())
-            .asFlow()
-            .toList()
-            .groupBy { it.get(ASSET_TREE.ID) }
-            .values.mapNotNull { AssetAndVariants.from(it) }
+    override suspend fun fetchAllByPath(
+        treePath: String,
+        requestedImageAttributes: RequestedImageAttributes?,
+    ): List<AssetAndVariants> {
+        return if (requestedImageAttributes != null) {
+            fetchAllWithVariant(dslContext, treePath, requestedImageAttributes)
+                .groupBy { it.get(ASSET_TREE.ID) }
+                .values.mapNotNull { AssetAndVariants.from(it) }
+        } else {
+            fetchAllWithAllVariants(dslContext, treePath)
+                .groupBy { it.get(ASSET_TREE.ID) }
+                .values.mapNotNull { AssetAndVariants.from(it) }
+        }
     }
 
     override suspend fun deleteAssetByPath(
@@ -270,6 +272,21 @@ class PostgresAssetRepository(
             .awaitFirstOrNull()
     }
 
+    private suspend fun fetchAllWithVariant(
+        context: DSLContext,
+        treePath: String,
+        requestedImageAttributes: RequestedImageAttributes,
+    ): List<Record> {
+        return context.select()
+            .from(ASSET_TREE)
+            .leftJoin(ASSET_VARIANT)
+            .on(calculateJoinVariantConditions(requestedImageAttributes))
+            .where(ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)))
+            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
+            .asFlow()
+            .toList()
+    }
+
     private fun calculateJoinVariantConditions(requested: RequestedImageAttributes): Condition {
         var condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
         if (requested.isOriginalVariant()) {
@@ -318,6 +335,21 @@ class PostgresAssetRepository(
             .where(
                 ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
             ).and(entryIdCondition)
+            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
+            .asFlow()
+            .toList()
+    }
+
+    private suspend fun fetchAllWithAllVariants(
+        context: DSLContext,
+        treePath: String,
+    ): List<Record> {
+        return context.select()
+            .from(ASSET_TREE)
+            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
+            .where(
+                ASSET_TREE.PATH.eq(Ltree.valueOf(treePath)),
+            )
             .orderBy(ASSET_VARIANT.CREATED_AT.desc())
             .asFlow()
             .toList()

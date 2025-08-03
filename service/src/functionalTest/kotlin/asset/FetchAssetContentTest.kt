@@ -3,14 +3,12 @@ package asset
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import util.byteArrayToImage
 import util.createJsonClient
+import util.fetchAssetContent
 import util.storeAsset
 import java.util.UUID
 
@@ -19,9 +17,7 @@ class FetchAssetContentTest {
     fun `fetching asset content that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            client.get("/assets/${UUID.randomUUID()}?return=content").apply {
-                status shouldBe HttpStatusCode.Companion.NotFound
-            }
+            fetchAssetContent(client, path = UUID.randomUUID().toString(), expectedStatusCode = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -37,10 +33,7 @@ class FetchAssetContentTest {
                 )
             storeAsset(client, image, request, path = "profile")
 
-            client.get("/assets/profile?return=content").apply {
-                status shouldBe HttpStatusCode.Companion.OK
-                contentType().toString() shouldBe "image/png"
-                val imageBytes = bodyAsBytes()
+            fetchAssetContent(client, path = "profile", expectedMimeType = "image/png")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
                 rendered.width shouldBe bufferedImage.width
                 rendered.height shouldBe bufferedImage.height

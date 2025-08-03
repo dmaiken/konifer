@@ -7,10 +7,8 @@ import image.model.ImageFormat
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -23,6 +21,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import util.byteArrayToImage
 import util.createJsonClient
+import util.fetchAssetContent
 import util.storeAsset
 
 class StoreAssetTest {
@@ -133,10 +132,7 @@ class StoreAssetTest {
                 )
             storeAsset(client, image, request, path = "users/123/profile")
 
-            client.get("/assets/users/123/profile?return=content").apply {
-                status shouldBe HttpStatusCode.OK
-                contentType().toString() shouldBe "image/png"
-                val imageBytes = bodyAsBytes()
+            fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
                 rendered.width shouldBe bufferedImage.width
                 rendered.height shouldBe bufferedImage.height
@@ -170,10 +166,7 @@ class StoreAssetTest {
                 )
             storeAsset(client, image, request, path = "users/123/profile")
 
-            client.get("/assets/users/123/profile?return=content").apply {
-                status shouldBe HttpStatusCode.OK
-                contentType().toString() shouldBe format.mimeType
-                val imageBytes = bodyAsBytes()
+            fetchAssetContent(client, path = "users/123/profile", expectedMimeType = format.mimeType)!!.let { imageBytes ->
                 Tika().detect(imageBytes) shouldBe format.mimeType
             }
         }

@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import util.byteArrayToImage
 import util.createJsonClient
-import util.fetchAsset
+import util.fetchAssetViaRedirect
 import util.matcher.shouldBeApproximately
 import util.storeAsset
 import java.util.stream.Stream
@@ -79,7 +79,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-            val fetchedAsset = fetchAsset(client)
+            val fetchedAsset = fetchAssetViaRedirect(client)!!
             Tika().detect(fetchedAsset) shouldBe "image/png"
             val fetchedImage = byteArrayToImage(fetchedAsset)
             fetchedImage.width shouldBe 100
@@ -128,7 +128,7 @@ class ImagePreProcessingTest {
                     }
                 }
 
-            val fetchedAsset = fetchAsset(client, entryId = storedAssetInfo.entryId)
+            val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)!!
             Tika().detect(fetchedAsset) shouldBe "image/png"
             val fetchedImage = byteArrayToImage(fetchedAsset)
             fetchedImage.height shouldBe 50
@@ -179,7 +179,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-        val fetchedAsset = fetchAsset(client, entryId = storedAssetInfo.entryId)
+        val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)!!
         Tika().detect(fetchedAsset) shouldBe "image/png"
         val fetchedImage = byteArrayToImage(fetchedAsset)
         fetchedImage.width shouldBe bufferedImage.width
@@ -229,7 +229,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-        val fetchedAsset = fetchAsset(client, entryId = storedAssetInfo.entryId)
+        val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)
         Tika().detect(fetchedAsset) shouldBe expectedType
     }
 
@@ -285,7 +285,7 @@ class ImagePreProcessingTest {
                     }
                 }
 
-            val fetchedAsset = fetchAsset(client, path = "users/123/profile", entryId = storedAssetInfo.entryId)
+            val fetchedAsset = fetchAssetViaRedirect(client, path = "users/123/profile", entryId = storedAssetInfo.entryId)
             Tika().detect(fetchedAsset) shouldBe "image/webp"
         }
 }

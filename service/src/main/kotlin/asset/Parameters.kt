@@ -8,5 +8,5 @@ object ManipulationParameters {
 
 object ContentParameters {
     const val RETURN = "return"
-    const val ALL = "all"
+    const val SCOPE = "scope"
 }

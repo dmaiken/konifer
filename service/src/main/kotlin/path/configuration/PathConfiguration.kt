@@ -15,6 +15,12 @@ class PathConfiguration private constructor(
     val imageProperties: ImageProperties,
 ) : ValidatedProperties {
     companion object {
+        val DEFAULT =
+            PathConfiguration(
+                allowedContentTypes = null,
+                imageProperties = ImageProperties.default(),
+            )
+
         fun create(
             applicationConfig: ApplicationConfig?,
             parent: PathConfiguration? = null,

@@ -1,10 +1,12 @@
 package asset
 
+import io.asset.context.ReturnFormat
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
@@ -13,12 +15,14 @@ class AssetReturnFormatTest {
         @JvmStatic
         fun fromQueryParamSource(): Stream<Arguments> =
             Stream.of(
-                Arguments.of("redirect", AssetReturnFormat.REDIRECT),
-                Arguments.of("metadata", AssetReturnFormat.METADATA),
-                Arguments.of("content", AssetReturnFormat.CONTENT),
-                Arguments.of("REDIRECT", AssetReturnFormat.REDIRECT),
-                Arguments.of("METADATA", AssetReturnFormat.METADATA),
-                Arguments.of("CONTENT", AssetReturnFormat.CONTENT),
+                arguments("redirect", ReturnFormat.REDIRECT),
+                arguments("metadata", ReturnFormat.METADATA),
+                arguments("content", ReturnFormat.CONTENT),
+                arguments("link", ReturnFormat.LINK),
+                arguments("REDIRECT", ReturnFormat.REDIRECT),
+                arguments("METADATA", ReturnFormat.METADATA),
+                arguments("CONTENT", ReturnFormat.CONTENT),
+                arguments("LINK", ReturnFormat.LINK),
             )
     }
 
@@ -26,20 +30,20 @@ class AssetReturnFormatTest {
     @MethodSource("fromQueryParamSource")
     fun `fromQueryParam returns correct asset format`(
         string: String,
-        expected: AssetReturnFormat,
+        expected: ReturnFormat,
     ) {
-        AssetReturnFormat.fromQueryParam(string) shouldBe expected
+        ReturnFormat.fromQueryParam(string) shouldBe expected
     }
 
     @Test
     fun `fromQueryParam sets default type`() {
-        AssetReturnFormat.fromQueryParam(null) shouldBe AssetReturnFormat.REDIRECT
+        ReturnFormat.fromQueryParam(null) shouldBe ReturnFormat.LINK
     }
 
     @Test
     fun `fromQueryParam throws exception on invalid value`() {
         shouldThrow<IllegalArgumentException> {
-            AssetReturnFormat.fromQueryParam("invalid")
+            ReturnFormat.fromQueryParam("invalid")
         }
     }
 }

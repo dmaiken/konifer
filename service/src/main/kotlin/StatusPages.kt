@@ -1,6 +1,7 @@
 package io
 
 import image.InvalidImageException
+import io.asset.context.InvalidPathException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -17,6 +18,10 @@ fun Application.configureStatusPages() =
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
         }
         exception<IllegalArgumentException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
+        }
+        exception<InvalidPathException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
         }

@@ -35,6 +35,12 @@ data class LQIPResponse(
     val thumbhash: String?,
 )
 
+@Serializable
+data class AssetLinkResponse(
+    val url: String,
+    val lqip: LQIPResponse,
+)
+
 enum class AssetClass {
     IMAGE,
 }

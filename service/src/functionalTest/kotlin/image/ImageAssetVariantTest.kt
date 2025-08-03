@@ -9,7 +9,7 @@ import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import util.byteArrayToImage
 import util.createJsonClient
-import util.fetchAsset
+import util.fetchAssetViaRedirect
 import util.matcher.shouldBeApproximately
 import util.storeAsset
 
@@ -44,7 +44,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAsset(client, height = bufferedImage.height - 10, expectCacheHit = (count == 1)).apply {
+                fetchAssetViaRedirect(client, height = bufferedImage.height - 10, expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.height shouldBe bufferedImage.height - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
@@ -83,7 +83,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAsset(client, width = bufferedImage.width - 10, expectCacheHit = (count == 1)).apply {
+                fetchAssetViaRedirect(client, width = bufferedImage.width - 10, expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe bufferedImage.width - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
@@ -122,12 +122,12 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAsset(
+                fetchAssetViaRedirect(
                     client,
                     width = bufferedImage.width - 10,
                     height = bufferedImage.height - 10,
                     expectCacheHit = (count == 1),
-                ).apply {
+                )!!.apply {
                     val variantImage = byteArrayToImage(this)
                     if (variantImage.width == bufferedImage.width - 10) {
                         variantImage.height shouldNotBe bufferedImage.height - 10
@@ -171,7 +171,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAsset(client, mimeType = "image/jpeg", expectCacheHit = (count == 1)).apply {
+                fetchAssetViaRedirect(client, mimeType = "image/jpeg", expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe bufferedImage.width
                     variantImage.height shouldBe bufferedImage.height

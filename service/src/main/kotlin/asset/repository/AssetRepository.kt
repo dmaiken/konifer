@@ -17,7 +17,10 @@ interface AssetRepository {
         requestedImageAttributes: RequestedImageAttributes?,
     ): AssetAndVariants?
 
-    suspend fun fetchAllByPath(treePath: String): List<AssetAndVariants>
+    suspend fun fetchAllByPath(
+        treePath: String,
+        requestedImageAttributes: RequestedImageAttributes?,
+    ): List<AssetAndVariants>
 
     suspend fun deleteAssetByPath(
         treePath: String,

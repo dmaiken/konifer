@@ -117,7 +117,6 @@ class InMemoryAssetRepository(
                         assetAndVariants.variants.firstOrNull { variant ->
                             requestedImageAttributes.matchesImageAttributes(variant.attributes)
                         }?.let { matched ->
-                            logger.info("Found the variant")
                             listOf(matched)
                         } ?: emptyList()
                     }
@@ -129,11 +128,26 @@ class InMemoryAssetRepository(
         }
     }
 
-    override suspend fun fetchAllByPath(treePath: String): List<AssetAndVariants> {
-        return store[treePath]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map {
+    override suspend fun fetchAllByPath(
+        treePath: String,
+        requestedImageAttributes: RequestedImageAttributes?,
+    ): List<AssetAndVariants> {
+        return store[treePath]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map { assetAndVariants ->
+            val variants =
+                if (requestedImageAttributes == null) {
+                    assetAndVariants.variants
+                } else if (requestedImageAttributes.isOriginalVariant()) {
+                    listOf(assetAndVariants.variants.first { it.isOriginalVariant })
+                } else {
+                    assetAndVariants.variants.firstOrNull { variant ->
+                        requestedImageAttributes.matchesImageAttributes(variant.attributes)
+                    }?.let { matched ->
+                        listOf(matched)
+                    } ?: emptyList()
+                }
             AssetAndVariants(
-                asset = it.asset,
-                variants = it.variants,
+                asset = assetAndVariants.asset,
+                variants = variants,
             )
         } ?: emptyList()
     }

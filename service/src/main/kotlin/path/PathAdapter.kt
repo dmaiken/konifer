@@ -1,16 +1,10 @@
 package io.path
 
-import io.ktor.util.logging.KtorSimpleLogger
-
-class PathAdapter {
-    companion object {
-        private val validPathRegex = Regex("^(?!/)[a-zA-Z0-9_~!$'()*+=@/-]*$")
-        private const val TREE_PATH_DELIMITER = "."
-        private const val URI_PATH_DELIMITER = "/"
-        const val TREE_ROOT = "root"
-    }
-
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+object PathAdapter {
+    private val validPathRegex = Regex("^(?!/)[a-zA-Z0-9_~!$'()*+=@/-]*$")
+    private const val TREE_PATH_DELIMITER = "."
+    private const val URI_PATH_DELIMITER = "/"
+    const val TREE_ROOT = "root"
 
     fun toTreePathFromUriPath(uriPath: String): String {
         val trimmedPath =

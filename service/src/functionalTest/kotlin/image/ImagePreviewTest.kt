@@ -11,8 +11,8 @@ import io.ktor.client.HttpClient
 import org.junit.jupiter.api.Test
 import util.byteArrayToImage
 import util.createJsonClient
-import util.fetchAsset
 import util.fetchAssetInfo
+import util.fetchAssetViaRedirect
 import util.storeAsset
 
 class ImagePreviewTest {
@@ -157,7 +157,7 @@ class ImagePreviewTest {
             storeAndAssert(client, image, request, setOf(LQIPImplementation.BLURHASH, LQIPImplementation.THUMBHASH))
 
             // Generate the variant
-            fetchAsset(
+            fetchAssetViaRedirect(
                 client,
                 width = bufferedImage.width - 10,
                 height = bufferedImage.height - 10,
@@ -211,6 +211,6 @@ class ImagePreviewTest {
                 }
             }
         }
-        fetchAsset(client, PATH)
+        fetchAssetViaRedirect(client, PATH)
     }
 }
