@@ -6,7 +6,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.properties.ConfigurationProperties
 import io.properties.ConfigurationProperties.PathConfigurationProperties.PATH
 
-class PathConfigurationService(
+class PathConfigurationRepository(
     applicationConfig: ApplicationConfig,
 ) {
     companion object {
@@ -22,7 +22,7 @@ class PathConfigurationService(
         constructPathConfigurationTrie(applicationConfig)
     }
 
-    fun fetchConfigurationForPath(path: String): PathConfiguration {
+    fun fetch(path: String): PathConfiguration {
         val segments = path.trim('/').lowercase().split('/').filter { it.isNotBlank() }
 
         return matchRecursive(root, segments).node.config

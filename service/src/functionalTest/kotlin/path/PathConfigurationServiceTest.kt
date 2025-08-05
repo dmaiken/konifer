@@ -3,7 +3,7 @@ package path
 import config.testInMemory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.path.configuration.PathConfigurationService
+import io.path.configuration.PathConfigurationRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -31,8 +31,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/users/123/profile")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -59,12 +59,12 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
                 listOf(
                     "/users/123/profile",
                     "/USERS/123/profile",
                 ).forEach { path ->
-                    val pathConfiguration = pathConfigurationService.fetchConfigurationForPath(path)
+                    val pathConfiguration = pathConfigurationRepository.fetch(path)
                     pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
                 }
             }
@@ -86,8 +86,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/users/123/profile")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -108,8 +108,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/users/123/profile")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -137,8 +137,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                pathConfigurationService.fetchConfigurationForPath("/notAUser/123/profile").apply {
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
                     imageProperties.apply {
                         preProcessing.enabled shouldBe false
                     }
@@ -170,9 +170,9 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
                 val pathConfiguration =
-                    pathConfigurationService.fetchConfigurationForPath("/users/lastName/firstName/profile/last")
+                    pathConfigurationRepository.fetch("/users/lastName/firstName/profile/last")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -207,8 +207,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/users/123/profile")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf()
                 pathConfiguration.imageProperties.preProcessing.maxWidth shouldBe 10
                 pathConfiguration.imageProperties.preProcessing.maxHeight shouldBe 10
@@ -236,8 +236,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/recipe/123")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/recipe/123")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -272,8 +272,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("/users/123/profile")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf()
                 pathConfiguration.imageProperties.preProcessing.maxWidth shouldBe 10
                 pathConfiguration.imageProperties.preProcessing.maxHeight shouldBe 10
@@ -296,8 +296,8 @@ class PathConfigurationServiceTest {
             """.trimIndent(),
         ) {
             application {
-                val pathConfigurationService = PathConfigurationService(environment.config)
-                val pathConfiguration = pathConfigurationService.fetchConfigurationForPath("// //123")
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("// //123")
                 pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
             }
         }
@@ -319,7 +319,7 @@ class PathConfigurationServiceTest {
             application {
                 val exception =
                     shouldThrow<IllegalArgumentException> {
-                        PathConfigurationService(environment.config)
+                        PathConfigurationRepository(environment.config)
                     }
                 exception.message shouldBe "Path configuration must be supplied"
             }

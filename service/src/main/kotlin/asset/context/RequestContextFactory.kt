@@ -3,15 +3,18 @@ package io.asset.context
 import image.model.RequestedImageAttributes
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
+import io.asset.variant.VariantProfileRepository
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.path.DeleteMode
-import io.path.configuration.PathConfigurationService
+import io.path.configuration.PathConfigurationRepository
 import io.properties.validateAndCreate
 
 class RequestContextFactory(
-    private val pathConfigurationService: PathConfigurationService,
+    private val pathConfigurationRepository: PathConfigurationRepository,
+    private val variantProfileRepository: VariantProfileRepository,
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -34,7 +37,7 @@ class RequestContextFactory(
 
         return QueryRequestContext(
             path = segments.first(),
-            pathConfiguration = pathConfigurationService.fetchConfigurationForPath(segments[0]),
+            pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
             modifiers = queryModifiers,
             requestedImageAttributes = requestedImageAttributes,
         )
@@ -191,14 +194,18 @@ class RequestContextFactory(
     }
 
     private fun extractRequestedImageAttributes(parameters: Parameters): RequestedImageAttributes? {
-        return if (parameters[WIDTH] == null && parameters[HEIGHT] == null && parameters[MIME_TYPE] == null) {
+        val variantProfile =
+            parameters[VARIANT_PROFILE]?.let { profileName ->
+                variantProfileRepository.fetch(profileName)
+            }
+        return if (variantProfile == null && (parameters[WIDTH] == null && parameters[HEIGHT] == null && parameters[MIME_TYPE] == null)) {
             null
         } else {
             validateAndCreate {
                 RequestedImageAttributes(
-                    width = parameters[WIDTH]?.toIntOrNull(),
-                    height = parameters[HEIGHT]?.toIntOrNull(),
-                    mimeType = parameters[MIME_TYPE],
+                    width = parameters[WIDTH]?.toIntOrNull() ?: variantProfile?.width,
+                    height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
+                    mimeType = parameters[MIME_TYPE] ?: variantProfile?.mimeType,
                 )
             }
         }

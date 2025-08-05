@@ -18,7 +18,7 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.path.DeleteMode
 import io.path.PathAdapter
 import io.path.configuration.PathConfiguration
-import io.path.configuration.PathConfigurationService
+import io.path.configuration.PathConfigurationRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -29,7 +29,7 @@ class AssetHandler(
     private val assetRepository: AssetRepository,
     private val imageProcessor: VipsImageProcessor,
     private val objectStore: ObjectStore,
-    private val pathConfigurationService: PathConfigurationService,
+    private val pathConfigurationRepository: PathConfigurationRepository,
 ) {
     private val logger = KtorSimpleLogger("asset")
 
@@ -176,7 +176,7 @@ class AssetHandler(
         uriPath: String,
         mimeType: String,
     ): PathConfiguration {
-        return pathConfigurationService.fetchConfigurationForPath(uriPath).also { config ->
+        return pathConfigurationRepository.fetch(uriPath).also { config ->
             config.allowedContentTypes?.contains(mimeType)?.let { allowedContentTypes ->
                 if (!allowedContentTypes) {
                     throw IllegalArgumentException("Not an allowed content type: $mimeType for path: $uriPath")

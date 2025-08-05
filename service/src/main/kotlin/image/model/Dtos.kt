@@ -1,6 +1,11 @@
 package image.model
 
 import asset.model.LQIPResponse
+import io.asset.ManipulationParameters.HEIGHT
+import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.WIDTH
+import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.tryGetString
 import io.properties.ValidatedProperties
 import kotlinx.serialization.Serializable
 
@@ -21,6 +26,15 @@ data class RequestedImageAttributes(
                 height = null,
                 mimeType = null,
             )
+
+        fun create(applicationConfig: ApplicationConfig): RequestedImageAttributes =
+            RequestedImageAttributes(
+                width = applicationConfig.tryGetString(WIDTH)?.toInt(),
+                height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
+                mimeType = applicationConfig.tryGetString(MIME_TYPE),
+            ).apply {
+                validate()
+            }
     }
 
     fun isOriginalVariant(): Boolean {

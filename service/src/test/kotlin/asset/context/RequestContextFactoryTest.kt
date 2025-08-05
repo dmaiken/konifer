@@ -1,6 +1,7 @@
 package io.asset.context
 
 import image.model.RequestedImageAttributes
+import io.asset.variant.VariantProfileRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -9,7 +10,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.path.DeleteMode
 import io.path.configuration.PathConfiguration
-import io.path.configuration.PathConfigurationService
+import io.path.configuration.PathConfigurationRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -277,13 +278,14 @@ class RequestContextFactoryTest {
             )
     }
 
-    private val pathConfigurationService = mockk<PathConfigurationService>()
-    private val requestContextFactory = RequestContextFactory(pathConfigurationService)
+    private val pathConfigurationRepository = mockk<PathConfigurationRepository>()
+    private val variantProfileRepository = mockk<VariantProfileRepository>()
+    private val requestContextFactory = RequestContextFactory(pathConfigurationRepository, variantProfileRepository)
 
     @BeforeEach
     fun beforeEach() {
         every {
-            pathConfigurationService.fetchConfigurationForPath(any())
+            pathConfigurationRepository.fetch(any())
         } returns PathConfiguration.DEFAULT
     }
 
@@ -320,6 +322,60 @@ class RequestContextFactoryTest {
 
         context.pathConfiguration shouldBe PathConfiguration.DEFAULT
         context.modifiers shouldBe queryModifiers
+    }
+
+    @Test
+    fun `if variant profile is supplied then it is used to populate the requested image attributes`() {
+        val profileName = "small"
+        val variantConfig =
+            RequestedImageAttributes(
+                width = 10,
+                height = 20,
+                mimeType = "image/png",
+            )
+        every {
+            variantProfileRepository.fetch(profileName)
+        } returns variantConfig
+
+        val context =
+            requestContextFactory.fromGetRequest(
+                "/assets/user/",
+                ParametersBuilder(1).apply {
+                    append("profile", profileName)
+                }.build(),
+            )
+
+        context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+        context.requestedImageAttributes shouldBe variantConfig
+    }
+
+    @Test
+    fun `specified image attributes override variant profile if supplied`() {
+        val profileName = "small"
+        every {
+            variantProfileRepository.fetch(profileName)
+        } returns
+            RequestedImageAttributes(
+                width = 10,
+                height = 20,
+                mimeType = "image/png",
+            )
+
+        val context =
+            requestContextFactory.fromGetRequest(
+                "/assets/user/",
+                ParametersBuilder(4).apply {
+                    append("profile", profileName)
+                    append("h", "100")
+                    append("w", "500")
+                    append("mimeType", "image/jpeg")
+                }.build(),
+            )
+
+        context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+        context.requestedImageAttributes?.height shouldBe 100
+        context.requestedImageAttributes?.width shouldBe 500
+        context.requestedImageAttributes?.mimeType shouldBe "image/jpeg"
     }
 
     @Test

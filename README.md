@@ -124,7 +124,7 @@ If the server starts successfully, you'll see the following output:
 
 ### Formatting
 
-This project uses Ktlint to enforce a code style. To run:
+This project uses Ktlint to enforce code styling. To run:
 
 ```shell
  ./gradlew ktlintFormat

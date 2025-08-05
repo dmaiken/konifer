@@ -84,6 +84,7 @@ suspend fun fetchAssetViaRedirect(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
+    profile: String? = null,
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
@@ -97,7 +98,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -133,6 +134,7 @@ suspend fun fetchAssetContent(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
+    profile: String? = null,
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
@@ -147,7 +149,7 @@ suspend fun fetchAssetContent(
         urlBuilder.path("/assets/$path/-/content")
     }
 
-    attachVariantModifiers(urlBuilder, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -184,6 +186,7 @@ suspend fun fetchAssetLink(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
+    profile: String? = null,
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
@@ -197,7 +200,7 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link")
     }
 
-    attachVariantModifiers(urlBuilder, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
     val fetchUrl = urlBuilder.build()
     client.get(fetchUrl.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -296,10 +299,14 @@ suspend fun deleteAsset(
 
 private fun attachVariantModifiers(
     urlBuilder: URLBuilder,
+    profile: String? = null,
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
 ) {
+    if (profile != null) {
+        urlBuilder.parameters.append("profile", profile)
+    }
     if (height != null) {
         urlBuilder.parameters.append("h", height.toString())
     }

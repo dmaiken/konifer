@@ -5,11 +5,13 @@ import asset.repository.InMemoryAssetRepository
 import asset.repository.PostgresAssetRepository
 import asset.variant.VariantParameterGenerator
 import io.asset.context.RequestContextFactory
+import io.asset.variant.VariantProfileRepository
+import io.ktor.server.application.Application
 import io.r2dbc.spi.ConnectionFactory
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-fun assetModule(connectionFactory: ConnectionFactory?): Module =
+fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
         single<AssetHandler> {
             AssetHandler(get(), get(), get(), get(), get())
@@ -29,6 +31,10 @@ fun assetModule(connectionFactory: ConnectionFactory?): Module =
         }
 
         single<RequestContextFactory> {
-            RequestContextFactory(get())
+            RequestContextFactory(get(), get())
+        }
+
+        single<VariantProfileRepository> {
+            VariantProfileRepository(environment.config)
         }
     }
