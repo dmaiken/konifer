@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-class PathConfigurationServiceTest {
+class PathConfigurationRepositoryTest {
     @Test
     fun `fetch returns a path configuration when the path matches exactly`() =
         testInMemory(
