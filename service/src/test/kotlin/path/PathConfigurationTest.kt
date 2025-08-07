@@ -24,6 +24,7 @@ class PathConfigurationTest {
                                 ),
                             lqip = setOf(),
                         ),
+                    eagerVariants = emptyList(),
                 )
             }
 

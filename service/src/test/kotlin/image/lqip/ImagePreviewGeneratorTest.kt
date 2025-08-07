@@ -169,14 +169,14 @@ class ImagePreviewGeneratorTest {
             exception.message shouldBe "Image must be smaller than ${MAX_WIDTH}x$MAX_HEIGHT to generate previews"
         }
 
-    private fun generatePathConfiguration(previews: Set<LQIPImplementation>): PathConfiguration {
-        return PathConfiguration.create(
+    private fun generatePathConfiguration(previews: Set<LQIPImplementation>): PathConfiguration =
+        PathConfiguration.create(
             allowedContentTypes = null,
             imageProperties =
                 ImageProperties.create(
                     preProcessing = PreProcessingProperties.default(),
                     lqip = previews,
                 ),
+            eagerVariants = emptyList(),
         )
-    }
 }

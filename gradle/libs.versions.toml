@@ -16,6 +16,7 @@ tika-version = "3.1.0"
 postgres-version = "42.7.2"
 zero-allocation-version = "0.16"
 blurhash-version = "0.3.0"
+awaitility-version = "4.3.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -51,6 +52,8 @@ testcontainers-localstack = { module = "org.testcontainers:localstack", version.
 
 kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
+awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility-version" }
+awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility-version" }
 
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
 blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }

@@ -1,0 +1,253 @@
+package io.asset.variant
+
+import asset.handler.StoreAssetDto
+import asset.model.AssetAndVariants
+import asset.model.StoreAssetRequest
+import asset.repository.InMemoryAssetRepository
+import asset.store.InMemoryObjectStore
+import asset.variant.VariantParameterGenerator
+import image.VipsImageProcessor
+import image.model.ImageAttributes
+import image.model.LQIPs
+import image.model.RequestedImageAttributes
+import io.image.hash.ImagePreviewGenerator
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.inspectors.forExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.writeFully
+import io.mockk.coEvery
+import io.mockk.spyk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
+
+class VariantGeneratorTest {
+    private val assetRepository = InMemoryAssetRepository(VariantParameterGenerator())
+    private val objectStore = InMemoryObjectStore()
+    private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
+    private val channel = Channel<VariantGenerationJob>()
+
+    private val variantGenerator =
+        VariantGenerator(
+            assetRepository = assetRepository,
+            objectStore = objectStore,
+            imageProcessor = imageProcessor,
+            channel = channel,
+        )
+
+    private val path = "root.profile.123"
+    private lateinit var asset: AssetAndVariants
+    private lateinit var bufferedImage: BufferedImage
+
+    @BeforeEach
+    fun beforeEach(): Unit =
+        runBlocking {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readAllBytes()
+            bufferedImage = ImageIO.read(ByteArrayInputStream(image))
+            val channel = ByteChannel(autoFlush = true)
+            val resultDeferred =
+                async {
+                    objectStore.persist(channel, image.size.toLong())
+                }
+            channel.writeFully(image)
+            channel.close()
+            val objectStoreResponse = resultDeferred.await()
+
+            asset =
+                assetRepository.store(
+                    StoreAssetDto(
+                        mimeType = "image/png",
+                        treePath = path,
+                        request =
+                            StoreAssetRequest(
+                                type = "image/png",
+                                alt = "an image",
+                            ),
+                        imageAttributes =
+                            ImageAttributes(
+                                mimeType = "image/png",
+                                width = bufferedImage.width,
+                                height = bufferedImage.height,
+                            ),
+                        persistResult = objectStoreResponse,
+                        lqips = LQIPs.NONE,
+                    ),
+                )
+        }
+
+    @Test
+    fun `can generate variant from channel`() =
+        runTest {
+            val result = CompletableDeferred<AssetAndVariants>()
+            val variantGenerationJob =
+                VariantGenerationJob(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedImageAttributes =
+                        listOf(
+                            RequestedImageAttributes(
+                                height = 50,
+                                width = null,
+                                mimeType = null,
+                            ),
+                        ),
+                    deferredResult = result,
+                )
+            channel.send(variantGenerationJob)
+
+            result.await().apply {
+                variants shouldHaveSize 1
+                variants.forExactly(1) {
+                    it.isOriginalVariant shouldBe false
+                    it.attributes.height shouldNotBe bufferedImage.width
+                }
+            }
+        }
+
+    @Test
+    fun `can generate multiple variants for same image through single channel request`() =
+        runTest {
+            val result = CompletableDeferred<AssetAndVariants>()
+            val variantGenerationJob =
+                VariantGenerationJob(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedImageAttributes =
+                        listOf(
+                            RequestedImageAttributes(
+                                height = 50,
+                                width = null,
+                                mimeType = null,
+                            ),
+                            RequestedImageAttributes(
+                                height = null,
+                                width = 50,
+                                mimeType = "image/avif",
+                            ),
+                        ),
+                    deferredResult = result,
+                )
+            channel.send(variantGenerationJob)
+
+            result.await().apply {
+                variants shouldHaveSize 2
+                variants.forExactly(1) {
+                    it.isOriginalVariant shouldBe false
+                    it.attributes.height shouldBe 50
+                    it.attributes.width shouldNotBe bufferedImage.width
+                }
+                variants.forExactly(1) {
+                    it.isOriginalVariant shouldBe false
+                    it.attributes.height shouldNotBe bufferedImage.height
+                    it.attributes.width shouldBe 50
+                    it.attributes.mimeType shouldBe "image/avif"
+                }
+            }
+        }
+
+    @Test
+    fun `can generate variant synchronously`() =
+        runTest {
+            val result =
+                variantGenerator.generateVariant(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedAttributes =
+                        RequestedImageAttributes(
+                            height = 50,
+                            width = null,
+                            mimeType = null,
+                        ),
+                )
+
+            result.variants shouldHaveSize 1
+            result.variants.forExactly(1) {
+                it.isOriginalVariant shouldBe false
+                it.attributes.height shouldNotBe bufferedImage.width
+            }
+        }
+
+    @Test
+    fun `if original asset does not exist then exception is thrown`() =
+        runTest {
+            shouldThrow<IllegalStateException> {
+                variantGenerator.generateVariant(
+                    treePath = "does.not.exist",
+                    entryId = asset.asset.entryId,
+                    requestedAttributes =
+                        RequestedImageAttributes(
+                            height = 50,
+                            width = null,
+                            mimeType = null,
+                        ),
+                )
+            }
+        }
+
+    @Test
+    fun `if no variants are in request then nothing is processed`() =
+        runTest {
+            val result = CompletableDeferred<AssetAndVariants>()
+            val variantGenerationJob =
+                VariantGenerationJob(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedImageAttributes = listOf(),
+                    deferredResult = result,
+                )
+            channel.send(variantGenerationJob)
+
+            shouldThrow<IllegalArgumentException> {
+                result.await()
+            }
+        }
+
+    @Test
+    fun `if variant fails to generate then channel is still live`() =
+        runTest {
+            val result = CompletableDeferred<AssetAndVariants>()
+            val variantGenerationJob =
+                VariantGenerationJob(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedImageAttributes =
+                        listOf(
+                            RequestedImageAttributes(
+                                height = 50,
+                                width = null,
+                                mimeType = null,
+                            ),
+                        ),
+                    deferredResult = result,
+                )
+
+            coEvery {
+                imageProcessor.generateVariant(any(), any(), any(), any())
+            }.throws(RuntimeException())
+                .coAndThen { callOriginal() }
+
+            channel.send(variantGenerationJob)
+
+            shouldThrow<RuntimeException> {
+                result.await()
+            }
+
+            val newResult = CompletableDeferred<AssetAndVariants>()
+            channel.send(variantGenerationJob.copy(deferredResult = newResult))
+
+            shouldNotThrowAny {
+                newResult.await()
+            }
+        }
+}

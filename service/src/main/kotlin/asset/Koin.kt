@@ -5,16 +5,19 @@ import asset.repository.InMemoryAssetRepository
 import asset.repository.PostgresAssetRepository
 import asset.variant.VariantParameterGenerator
 import io.asset.context.RequestContextFactory
+import io.asset.variant.VariantGenerationJob
+import io.asset.variant.VariantGenerator
 import io.asset.variant.VariantProfileRepository
 import io.ktor.server.application.Application
 import io.r2dbc.spi.ConnectionFactory
+import kotlinx.coroutines.channels.Channel
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
         single<AssetHandler> {
-            AssetHandler(get(), get(), get(), get(), get())
+            AssetHandler(get(), get(), get(), get(), get(), get(), get(), get())
         }
         single<MimeTypeDetector> {
             TikaMimeTypeDetector()
@@ -36,5 +39,11 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
 
         single<VariantProfileRepository> {
             VariantProfileRepository(environment.config)
+        }
+
+        single { Channel<VariantGenerationJob>() }
+
+        single<VariantGenerator> {
+            VariantGenerator(get(), get(), get(), get())
         }
     }

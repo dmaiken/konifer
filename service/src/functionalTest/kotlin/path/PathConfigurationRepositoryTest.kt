@@ -324,4 +324,46 @@ class PathConfigurationRepositoryTest {
                 exception.message shouldBe "Path configuration must be supplied"
             }
         }
+
+    @Test
+    fun `eager variants are parsed`() =
+        testInMemory(
+            """
+            path-configuration = [
+              {
+                path = "/**"
+                eager-variants = [small, large]
+              }
+            ]
+            """.trimIndent(),
+        ) {
+            application {
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/profile")
+                pathConfiguration.eagerVariants shouldBe listOf("small", "large")
+            }
+        }
+
+    @Test
+    fun `eager variants override parent paths`() =
+        testInMemory(
+            """
+            path-configuration = [
+              {
+                path = "/**"
+                eager-variants = [small, large]
+              },
+              {
+                path = "/profile/*"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent(),
+        ) {
+            application {
+                val pathConfigurationRepository = PathConfigurationRepository(environment.config)
+                val pathConfiguration = pathConfigurationRepository.fetch("/profile/123")
+                pathConfiguration.eagerVariants shouldBe listOf("large")
+            }
+        }
 }

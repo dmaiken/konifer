@@ -576,7 +576,7 @@ abstract class AssetRepositoryTest {
             treePath = treePath,
             request =
                 StoreAssetRequest(
-                    type = "image.png",
+                    type = "image/png",
                     alt = "an image",
                 ),
             imageAttributes =

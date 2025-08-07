@@ -71,6 +71,7 @@ class VipsImageProcessorTest {
                             preProcessing = PreProcessingProperties.default(),
                             lqip = setOf(),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -145,6 +146,7 @@ class VipsImageProcessorTest {
                                 ),
                             lqip = setOf(),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -197,6 +199,7 @@ class VipsImageProcessorTest {
                                 ),
                             lqip = setOf(),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -248,6 +251,7 @@ class VipsImageProcessorTest {
                                 ),
                             lqip = setOf(),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -291,6 +295,7 @@ class VipsImageProcessorTest {
                                 ),
                             lqip = setOf(LQIPImplementation.BLURHASH),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -340,6 +345,7 @@ class VipsImageProcessorTest {
                                 ),
                             lqip = setOf(LQIPImplementation.THUMBHASH),
                         ),
+                    eagerVariants = emptyList(),
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -400,6 +406,7 @@ class VipsImageProcessorTest {
                             ),
                         lqip = lqips,
                     ),
+                eagerVariants = emptyList(),
             )
 
         val container = AssetStreamContainer.fromReadChannel(this, imageChannel)

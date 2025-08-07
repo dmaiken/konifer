@@ -8,6 +8,7 @@ object ConfigurationProperties {
         const val PATH = "path"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val VARIANT_PROFILES = "variant-profiles"
+        const val EAGER_VARIANTS = "eager-variants"
 
         object ImageProperties {
             const val PREPROCESSING = "preprocessing"

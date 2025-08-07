@@ -5,6 +5,7 @@ import image.model.ImageProperties
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES
+import io.properties.ConfigurationProperties.PathConfigurationProperties.EAGER_VARIANTS
 import io.properties.ConfigurationProperties.PathConfigurationProperties.IMAGE
 import io.properties.ValidatedProperties
 import io.properties.validateAndCreate
@@ -13,12 +14,14 @@ import io.tryGetConfig
 class PathConfiguration private constructor(
     val allowedContentTypes: List<String>?,
     val imageProperties: ImageProperties,
+    val eagerVariants: List<String>,
 ) : ValidatedProperties {
     companion object {
         val DEFAULT =
             PathConfiguration(
                 allowedContentTypes = null,
                 imageProperties = ImageProperties.default(),
+                eagerVariants = emptyList(),
             )
 
         fun create(
@@ -26,7 +29,7 @@ class PathConfiguration private constructor(
             parent: PathConfiguration? = null,
         ): PathConfiguration {
             if (applicationConfig == null) {
-                return default()
+                return DEFAULT
             }
             return create(
                 allowedContentTypes =
@@ -37,26 +40,24 @@ class PathConfiguration private constructor(
                         applicationConfig.tryGetConfig(IMAGE),
                         parent?.imageProperties,
                     ),
+                eagerVariants =
+                    applicationConfig.tryGetStringList(EAGER_VARIANTS)
+                        ?: parent?.eagerVariants ?: emptyList(),
             )
         }
 
         fun create(
             allowedContentTypes: List<String>?,
             imageProperties: ImageProperties,
+            eagerVariants: List<String>,
         ): PathConfiguration =
             validateAndCreate {
                 PathConfiguration(
                     allowedContentTypes = allowedContentTypes,
                     imageProperties = imageProperties,
+                    eagerVariants = eagerVariants,
                 )
             }
-
-        fun default(): PathConfiguration {
-            return PathConfiguration(
-                allowedContentTypes = null,
-                imageProperties = ImageProperties.default(),
-            )
-        }
     }
 
     override fun validate() {

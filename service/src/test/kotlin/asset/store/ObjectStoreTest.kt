@@ -30,7 +30,7 @@ abstract class ObjectStoreTest {
             channel.close()
 
             val result = resultDeferred.await()
-            result.bucket shouldBe InMemoryObjectStore.BUCKET
+            result.bucket shouldBe BUCKET
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =

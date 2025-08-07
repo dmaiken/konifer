@@ -11,7 +11,9 @@ import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
 import io.asset.context.QueryRequestContext
 import io.asset.handler.AssetLinkDto
-import io.asset.handler.StoreAssetVariantDto
+import io.asset.variant.VariantGenerationJob
+import io.asset.variant.VariantGenerator
+import io.asset.variant.VariantProfileRepository
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -21,8 +23,8 @@ import io.path.configuration.PathConfiguration
 import io.path.configuration.PathConfigurationRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 class AssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -30,6 +32,9 @@ class AssetHandler(
     private val imageProcessor: VipsImageProcessor,
     private val objectStore: ObjectStore,
     private val pathConfigurationRepository: PathConfigurationRepository,
+    private val variantGenerator: VariantGenerator,
+    private val variantGenerationChannel: Channel<VariantGenerationJob>,
+    private val variantProfileRepository: VariantProfileRepository,
 ) {
     private val logger = KtorSimpleLogger("asset")
 
@@ -64,7 +69,19 @@ class AssetHandler(
             AssetAndLocation(
                 assetAndVariants = assetAndVariants,
                 locationPath = uriPath,
-            )
+            ).also { response ->
+                val variants =
+                    pathConfiguration.eagerVariants.map {
+                        variantProfileRepository.fetch(it)
+                    }
+                variantGenerationChannel.send(
+                    VariantGenerationJob(
+                        treePath = response.assetAndVariants.asset.path,
+                        entryId = response.assetAndVariants.asset.entryId,
+                        requestedImageAttributes = variants,
+                    ),
+                )
+            }
         }
 
     suspend fun fetchAssetLinksByPath(context: QueryRequestContext): AssetLinkDto? {
@@ -104,11 +121,11 @@ class AssetHandler(
                     "No original variant found for asset at path: ${context.path} and entryId: $entryId",
                 )
             validatePathConfiguration(context.path, requestedMimeType)
-            return cacheVariant(
+            return variantGenerator.generateVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
                 requestedAttributes = context.requestedImageAttributes,
-            )?.let {
+            ).let {
                 Pair(it, false)
             }
         } else {
@@ -184,54 +201,6 @@ class AssetHandler(
             }
         }
     }
-
-    private suspend fun cacheVariant(
-        treePath: String,
-        entryId: Long,
-        requestedAttributes: RequestedImageAttributes,
-    ): AssetAndVariants? =
-        coroutineScope {
-            val original = assetRepository.fetchByPath(treePath, entryId, RequestedImageAttributes.ORIGINAL_VARIANT)
-            // Defense
-            if (original == null) {
-                return@coroutineScope null
-            }
-            val originalVariant = original.getOriginalVariant()
-            val found = objectStore.exists(originalVariant.objectStoreBucket, originalVariant.objectStoreKey)
-            if (!found) {
-                throw IllegalStateException(
-                    "Cannot locate object with bucket: ${originalVariant.objectStoreBucket} key: ${originalVariant.objectStoreKey}",
-                )
-            }
-            val originalVariantChannel = ByteChannel(true)
-            val fetchOriginalVariantJob =
-                launch {
-                    objectStore.fetch(originalVariant.objectStoreBucket, originalVariant.objectStoreKey, originalVariantChannel)
-                }
-            val processedAssetChannel = ByteChannel(true)
-            val persistResult =
-                async {
-                    objectStore.persist(processedAssetChannel)
-                }
-            val newVariant =
-                imageProcessor.generateVariant(
-                    source = AssetStreamContainer(originalVariantChannel),
-                    requestedAttributes = requestedAttributes,
-                    originalVariant = originalVariant,
-                    outputChannel = processedAssetChannel,
-                )
-            fetchOriginalVariantJob.join()
-
-            assetRepository.storeVariant(
-                StoreAssetVariantDto(
-                    treePath = original.asset.path,
-                    entryId = original.asset.entryId,
-                    persistResult = persistResult.await(),
-                    imageAttributes = newVariant.attributes,
-                    lqips = newVariant.lqip,
-                ),
-            )
-        }
 }
 
 data class AssetAndLocation(
