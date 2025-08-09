@@ -5,7 +5,7 @@ import image.model.ImageAttributes
 import image.model.LQIPs
 
 data class StoreAssetVariantDto(
-    val treePath: String,
+    val path: String,
     val entryId: Long,
     val persistResult: PersistResult,
     val imageAttributes: ImageAttributes,

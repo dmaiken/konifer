@@ -12,23 +12,23 @@ interface AssetRepository {
     suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants
 
     suspend fun fetchByPath(
-        treePath: String,
+        path: String,
         entryId: Long?,
         requestedImageAttributes: RequestedImageAttributes?,
     ): AssetAndVariants?
 
     suspend fun fetchAllByPath(
-        treePath: String,
+        path: String,
         requestedImageAttributes: RequestedImageAttributes?,
     ): List<AssetAndVariants>
 
     suspend fun deleteAssetByPath(
-        treePath: String,
+        path: String,
         entryId: Long? = null,
     ): List<VariantBucketAndKey>
 
     suspend fun deleteAssetsByPath(
-        treePath: String,
+        path: String,
         recursive: Boolean,
     ): List<VariantBucketAndKey>
 }

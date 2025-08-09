@@ -7,7 +7,7 @@ import image.model.LQIPs
 
 class StoreAssetDto(
     val mimeType: String,
-    val treePath: String,
+    val path: String,
     val request: StoreAssetRequest,
     val imageAttributes: ImageAttributes,
     val persistResult: PersistResult,

@@ -9,7 +9,9 @@ import image.InvalidImageException
 import image.VipsImageProcessor
 import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
+import io.asset.context.ContentTypeNotPermittedException
 import io.asset.context.QueryRequestContext
+import io.asset.context.RequestContextFactory
 import io.asset.handler.AssetLinkDto
 import io.asset.variant.VariantGenerationJob
 import io.asset.variant.VariantGenerator
@@ -18,9 +20,6 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.path.DeleteMode
-import io.path.PathAdapter
-import io.path.configuration.PathConfiguration
-import io.path.configuration.PathConfigurationRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -31,10 +30,10 @@ class AssetHandler(
     private val assetRepository: AssetRepository,
     private val imageProcessor: VipsImageProcessor,
     private val objectStore: ObjectStore,
-    private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantGenerator: VariantGenerator,
     private val variantGenerationChannel: Channel<VariantGenerationJob>,
     private val variantProfileRepository: VariantProfileRepository,
+    private val requestContextFactory: RequestContextFactory,
 ) {
     private val logger = KtorSimpleLogger("asset")
 
@@ -45,21 +44,20 @@ class AssetHandler(
     ): AssetAndLocation =
         coroutineScope {
             val mimeType = deriveValidMimeType(container.readNBytes(1024, true))
-            val pathConfiguration = validatePathConfiguration(uriPath, mimeType)
-            val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
+            val context = requestContextFactory.fromStoreRequest(uriPath, mimeType)
             val processedAssetChannel = ByteChannel(true)
             val persistResult =
                 async {
                     objectStore.persist(processedAssetChannel)
                 }
-            val preProcessed = imageProcessor.preprocess(container, mimeType, pathConfiguration, processedAssetChannel)
+            val preProcessed = imageProcessor.preprocess(container, mimeType, context.pathConfiguration, processedAssetChannel)
 
             val assetAndVariants =
                 assetRepository.store(
                     StoreAssetDto(
                         request = deferredRequest.await(),
                         mimeType = mimeType,
-                        treePath = treePath,
+                        path = context.path,
                         imageAttributes = preProcessed.attributes,
                         persistResult = persistResult.await(),
                         lqips = preProcessed.lqip,
@@ -68,10 +66,10 @@ class AssetHandler(
 
             AssetAndLocation(
                 assetAndVariants = assetAndVariants,
-                locationPath = uriPath,
+                locationPath = context.path,
             ).also { response ->
                 val variants =
-                    pathConfiguration.eagerVariants.map {
+                    context.pathConfiguration.eagerVariants.map {
                         variantProfileRepository.fetch(it)
                     }
                 variantGenerationChannel.send(
@@ -100,11 +98,10 @@ class AssetHandler(
         context: QueryRequestContext,
         generateVariant: Boolean,
     ): Pair<AssetAndVariants, Boolean>? {
-        val treePath = PathAdapter.toTreePathFromUriPath(context.path)
         val entryId = context.modifiers.entryId
-        logger.info("Fetching asset info by path: $treePath with attributes: ${context.requestedImageAttributes}")
+        logger.info("Fetching asset info by path: ${context.path} with attributes: ${context.requestedImageAttributes}")
 
-        val assetAndVariants = assetRepository.fetchByPath(treePath, entryId, context.requestedImageAttributes)
+        val assetAndVariants = assetRepository.fetchByPath(context.path, entryId, context.requestedImageAttributes)
         if (assetAndVariants == null) {
             return null
         }
@@ -116,11 +113,15 @@ class AssetHandler(
             logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
             val requestedMimeType =
                 context.requestedImageAttributes.mimeType ?: assetRepository.fetchByPath(
-                    treePath, entryId, RequestedImageAttributes.ORIGINAL_VARIANT,
+                    context.path, entryId, RequestedImageAttributes.ORIGINAL_VARIANT,
                 )?.getOriginalVariant()?.attributes?.mimeType ?: throw IllegalStateException(
                     "No original variant found for asset at path: ${context.path} and entryId: $entryId",
                 )
-            validatePathConfiguration(context.path, requestedMimeType)
+            context.pathConfiguration.allowedContentTypes?.let {
+                if (!it.contains(requestedMimeType)) {
+                    throw ContentTypeNotPermittedException("Content type: $requestedMimeType not permitted")
+                }
+            }
             return variantGenerator.generateVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
@@ -135,9 +136,8 @@ class AssetHandler(
     }
 
     suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
-        val treePath = PathAdapter.toTreePathFromUriPath(context.path)
-        logger.info("Fetching asset info in path: $treePath")
-        return assetRepository.fetchAllByPath(treePath, null)
+        logger.info("Fetching asset info in path: ${context.path}")
+        return assetRepository.fetchAllByPath(context.path, null)
     }
 
     suspend fun fetchAssetContent(
@@ -154,26 +154,24 @@ class AssetHandler(
         uriPath: String,
         entryId: Long? = null,
     ) {
-        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
         if (entryId == null) {
-            logger.info("Deleting asset with path: $treePath")
+            logger.info("Deleting asset with path: $uriPath")
         } else {
-            logger.info("Deleting asset with path: $treePath and entry id: $entryId")
+            logger.info("Deleting asset with path: $uriPath and entry id: $entryId")
         }
-        assetRepository.deleteAssetByPath(treePath, entryId)
+        assetRepository.deleteAssetByPath(uriPath, entryId)
     }
 
     suspend fun deleteAssets(
         uriPath: String,
         mode: DeleteMode,
     ) {
-        val treePath = PathAdapter.toTreePathFromUriPath(uriPath)
         when (mode) {
             DeleteMode.SINGLE -> throw IllegalArgumentException("Delete mode of: $mode not allowed")
-            DeleteMode.CHILDREN -> logger.info("Deleting assets at path: $treePath")
-            DeleteMode.RECURSIVE -> logger.info("Deleting assets at path: $treePath and all underneath it!")
+            DeleteMode.CHILDREN -> logger.info("Deleting assets at path: $uriPath")
+            DeleteMode.RECURSIVE -> logger.info("Deleting assets at path: $uriPath and all underneath it!")
         }
-        assetRepository.deleteAssetsByPath(treePath, mode == DeleteMode.RECURSIVE)
+        assetRepository.deleteAssetsByPath(uriPath, mode == DeleteMode.RECURSIVE)
     }
 
     private fun deriveValidMimeType(content: ByteArray): String {
@@ -187,19 +185,6 @@ class AssetHandler(
 
     private fun validate(mimeType: String): Boolean {
         return mimeType.startsWith("image/")
-    }
-
-    private fun validatePathConfiguration(
-        uriPath: String,
-        mimeType: String,
-    ): PathConfiguration {
-        return pathConfigurationRepository.fetch(uriPath).also { config ->
-            config.allowedContentTypes?.contains(mimeType)?.let { allowedContentTypes ->
-                if (!allowedContentTypes) {
-                    throw IllegalArgumentException("Not an allowed content type: $mimeType for path: $uriPath")
-                }
-            }
-        }
     }
 }
 

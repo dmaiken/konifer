@@ -1,6 +1,7 @@
 package asset
 
 import asset.repository.getNonNull
+import io.asset.repository.toPath
 import org.jooq.Record
 import tessa.jooq.tables.AssetTree.Companion.ASSET_TREE
 import java.time.LocalDateTime
@@ -19,7 +20,7 @@ data class Asset(
                 id = record.getNonNull(ASSET_TREE.ID),
                 alt = record.getNonNull(ASSET_TREE.ALT),
                 entryId = record.getNonNull(ASSET_TREE.ENTRY_ID),
-                path = record.getNonNull(ASSET_TREE.PATH).toString(),
+                path = record.getNonNull(ASSET_TREE.PATH).toPath(),
                 createdAt = record.getNonNull(ASSET_TREE.CREATED_AT),
             )
     }

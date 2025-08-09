@@ -20,7 +20,7 @@ import javax.imageio.ImageIO
 
 class EagerVariantTest {
     @Test
-    fun `can store asset and eager variannts are generated`() =
+    fun `can store asset and eager variants are generated`() =
         testInMemory(
             """
             variant-profiles = [

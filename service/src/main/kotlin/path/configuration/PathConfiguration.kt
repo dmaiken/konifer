@@ -20,7 +20,7 @@ class PathConfiguration private constructor(
         val DEFAULT =
             PathConfiguration(
                 allowedContentTypes = null,
-                imageProperties = ImageProperties.default(),
+                imageProperties = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
             )
 

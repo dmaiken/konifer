@@ -139,7 +139,7 @@ suspend fun createNewAsset(
             assetHandler.storeNewAsset(
                 deferredRequest = assetData,
                 container = AssetStreamContainer(assetContent),
-                uriPath = call.request.path().removePrefix(ASSET_PATH_PREFIX),
+                uriPath = call.request.path(),
             )
         }
 

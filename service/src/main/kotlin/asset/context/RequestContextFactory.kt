@@ -24,6 +24,27 @@ class RequestContextFactory(
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
+    fun fromStoreRequest(
+        path: String,
+        mimeType: String,
+    ): StoreRequestContext {
+        if (extractPathSegments(path).size > 1) {
+            throw InvalidPathException("Store request cannot have modifiers in path: $path")
+        }
+        val route = extractRoute(path)
+        val pathConfiguration = pathConfigurationRepository.fetch(route)
+        pathConfiguration.allowedContentTypes?.let {
+            if (!it.contains(mimeType)) {
+                throw ContentTypeNotPermittedException("Content type: $mimeType not permitted")
+            }
+        }
+
+        return StoreRequestContext(
+            path = route,
+            pathConfiguration = pathConfiguration,
+        )
+    }
+
     fun fromGetRequest(
         path: String,
         queryParameters: Parameters,
@@ -54,7 +75,7 @@ class RequestContextFactory(
 
     private fun extractPathSegments(path: String): List<String> {
         val route = extractRoute(path)
-        val segments = route.trim('/').split("$PATH_NAMESPACE_SEPARATOR/")
+        val segments = route.removeSuffix("/").split("$PATH_NAMESPACE_SEPARATOR/")
         if (segments.size > 2) {
             throw InvalidPathException("$path has more than one '$PATH_NAMESPACE_SEPARATOR' segment")
         }

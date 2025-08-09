@@ -86,7 +86,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test
@@ -108,7 +108,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test

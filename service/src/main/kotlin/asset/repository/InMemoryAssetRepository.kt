@@ -9,6 +9,7 @@ import asset.variant.ImageVariantAttributes
 import asset.variant.VariantParameterGenerator
 import image.model.RequestedImageAttributes
 import io.asset.handler.StoreAssetVariantDto
+import io.asset.repository.InMemoryPathAdapter
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
@@ -21,8 +22,9 @@ class InMemoryAssetRepository(
     private val idReference = mutableMapOf<UUID, Asset>()
 
     override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
-        val entryId = getNextEntryId(asset.treePath)
-        logger.info("Persisting asset at path: ${asset.treePath} and entryId: $entryId")
+        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+        val entryId = getNextEntryId(path)
+        logger.info("Persisting asset at path: $path and entryId: $entryId")
         val key =
             variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).second
         val assetAndVariants =
@@ -32,7 +34,7 @@ class InMemoryAssetRepository(
                         id = UUID.randomUUID(),
                         alt = asset.request.alt,
                         entryId = entryId,
-                        path = asset.treePath,
+                        path = path,
                         createdAt = LocalDateTime.now(),
                     ),
                 variants =
@@ -54,7 +56,7 @@ class InMemoryAssetRepository(
                     ),
             )
         return assetAndVariants.also {
-            store.computeIfAbsent(asset.treePath) { mutableListOf() }.add(
+            store.computeIfAbsent(path) { mutableListOf() }.add(
                 InMemoryAssetAndVariants(
                     asset = it.asset,
                     variants = it.variants.toMutableList(),
@@ -65,13 +67,14 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
-        return store[variant.treePath]?.let { assets ->
+        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(variant.path)
+        return store[path]?.let { assets ->
             val asset = assets.first { it.asset.entryId == variant.entryId }
             val key =
                 variantParameterGenerator.generateImageVariantAttributes(variant.imageAttributes).second
             if (asset.variants.any { it.attributeKey == key }) {
                 throw IllegalArgumentException(
-                    "Variant already exists for asset with entry_id: ${variant.entryId} at path: ${variant.treePath} " +
+                    "Variant already exists for asset with entry_id: ${variant.entryId} at path: $path " +
                         "with attributes: ${variant.imageAttributes}",
                 )
             }
@@ -97,15 +100,15 @@ class InMemoryAssetRepository(
                 asset = asset.asset,
                 variants = listOf(variant),
             )
-        } ?: throw IllegalArgumentException("Asset with path: ${variant.treePath} and entry id: ${variant.entryId} not found in database")
+        } ?: throw IllegalArgumentException("Asset with path: $path and entry id: ${variant.entryId} not found in database")
     }
 
     override suspend fun fetchByPath(
-        treePath: String,
+        path: String,
         entryId: Long?,
         requestedImageAttributes: RequestedImageAttributes?,
     ): AssetAndVariants? {
-        return store[treePath]?.let { assets ->
+        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.let { assets ->
             val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
             assets.firstOrNull { it.asset.entryId == resolvedEntryId }?.let { assetAndVariants ->
                 val variants =
@@ -129,10 +132,11 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun fetchAllByPath(
-        treePath: String,
+        path: String,
         requestedImageAttributes: RequestedImageAttributes?,
     ): List<AssetAndVariants> {
-        return store[treePath]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map { assetAndVariants ->
+        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map {
+                assetAndVariants ->
             val variants =
                 if (requestedImageAttributes == null) {
                     assetAndVariants.variants
@@ -153,13 +157,14 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun deleteAssetByPath(
-        treePath: String,
+        path: String,
         entryId: Long?,
     ): List<VariantBucketAndKey> {
-        logger.info("Deleting asset at path: $treePath and entryId: ${entryId ?: "not specified"}")
+        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
+        logger.info("Deleting asset at path: $inMemoryPath and entryId: ${entryId ?: "not specified"}")
 
         val asset =
-            store[treePath]?.let { assets ->
+            store[inMemoryPath]?.let { assets ->
                 val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
                 assets.firstOrNull { it.asset.entryId == resolvedEntryId }
             }
@@ -167,7 +172,7 @@ class InMemoryAssetRepository(
         asset?.let {
             idReference.remove(it.asset.id)
         }
-        store[treePath]?.let { assets ->
+        store[inMemoryPath]?.let { assets ->
             val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
             resolvedEntryId?.let {
                 assets.removeIf { it.asset.entryId == resolvedEntryId }
@@ -182,13 +187,14 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun deleteAssetsByPath(
-        treePath: String,
+        path: String,
         recursive: Boolean,
     ): List<VariantBucketAndKey> {
+        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
         val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
         if (recursive) {
-            logger.info("Deleting assets (recursively) at path: $treePath")
-            store.keys.filter { it.startsWith(treePath) }.forEach { path ->
+            logger.info("Deleting assets (recursively) at path: $inMemoryPath")
+            store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
                 val assetAndVariants = store[path]
                 assetAndVariants?.forEach {
                     objectStoreInformation.addAll(mapToBucketAndKey(it))
@@ -199,15 +205,15 @@ class InMemoryAssetRepository(
                 store.remove(path)
             }
         } else {
-            logger.info("Deleting assets at path: $treePath")
-            val assetAndVariants = store[treePath]
+            logger.info("Deleting assets at path: $inMemoryPath")
+            val assetAndVariants = store[inMemoryPath]
             assetAndVariants?.forEach {
                 objectStoreInformation.addAll(mapToBucketAndKey(it))
             }
             assetAndVariants?.map { it.asset.id }?.forEach {
                 idReference.remove(it)
             }
-            store.remove(treePath)
+            store.remove(inMemoryPath)
         }
 
         return objectStoreInformation
@@ -222,8 +228,8 @@ class InMemoryAssetRepository(
         }
     }
 
-    private fun getNextEntryId(treePath: String): Long {
-        return store[treePath]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
+    private fun getNextEntryId(path: String): Long {
+        return store[path]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
     }
 
     private fun RequestedImageAttributes.matchesImageAttributes(attributes: ImageVariantAttributes): Boolean {

@@ -1,6 +1,7 @@
 package io
 
 import image.InvalidImageException
+import io.asset.context.ContentTypeNotPermittedException
 import io.asset.context.InvalidPathException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -24,5 +25,9 @@ fun Application.configureStatusPages() =
         exception<InvalidPathException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
+        }
+        exception<ContentTypeNotPermittedException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.Forbidden} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.Forbidden, cause.message ?: "")
         }
     }

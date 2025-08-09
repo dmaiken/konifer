@@ -110,7 +110,7 @@ class VariantGenerator(
                 val assetAndVariant =
                     assetRepository.storeVariant(
                         StoreAssetVariantDto(
-                            treePath = original.asset.path,
+                            path = original.asset.path,
                             entryId = original.asset.entryId,
                             persistResult = persistResult.await(),
                             imageAttributes = newVariant.attributes,

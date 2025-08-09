@@ -1,5 +1,6 @@
 package io.asset.context
 
+import image.model.ImageProperties
 import image.model.RequestedImageAttributes
 import io.asset.variant.VariantProfileRepository
 import io.kotest.assertions.throwables.shouldThrow
@@ -515,14 +516,14 @@ class RequestContextFactoryTest {
     fun `can parse GET asset path from the uri request path`() {
         val context = requestContextFactory.fromGetRequest("/assets/profile/123/-/metadata/2", Parameters.Empty)
 
-        context.path shouldBe "profile/123/"
+        context.path shouldBe "/profile/123/"
     }
 
     @Test
     fun `can parse DELETE asset path from the uri request path`() {
         val context = requestContextFactory.fromDeleteRequest("/assets/profile/123/-/children")
 
-        context.path shouldBe "profile/123/"
+        context.path shouldBe "/profile/123/"
     }
 
     @ParameterizedTest
@@ -559,5 +560,60 @@ class RequestContextFactoryTest {
             }
 
         exception.message shouldBe "Asset path must start with: /assets"
+    }
+
+    @Test
+    fun `can create store asset request context`() {
+        val path = "/assets/profile/123"
+        val context = requestContextFactory.fromStoreRequest(path, "image/png")
+
+        context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+        context.path shouldBe "/profile/123"
+    }
+
+    @Test
+    fun `can create store asset request context if mimeType is permitted`() {
+        val path = "/assets/profile/123"
+        every {
+            pathConfigurationRepository.fetch("/profile/123")
+        } returns
+            PathConfiguration.create(
+                allowedContentTypes = listOf("image/png"),
+                imageProperties = ImageProperties.DEFAULT,
+                eagerVariants = listOf(),
+            )
+        val context = requestContextFactory.fromStoreRequest(path, "image/png")
+
+        context.pathConfiguration.allowedContentTypes shouldBe listOf("image/png")
+        context.path shouldBe "/profile/123"
+    }
+
+    @Test
+    fun `store asset path cannot have modifiers`() {
+        val path = "/assets/profile/123/-/created"
+        val exception =
+            shouldThrow<InvalidPathException> {
+                requestContextFactory.fromStoreRequest(path, "image/png")
+            }
+        exception.message shouldBe "Store request cannot have modifiers in path: $path"
+    }
+
+    @Test
+    fun `throws if content type is not permitted`() {
+        val path = "/assets/profile/123"
+        every {
+            pathConfigurationRepository.fetch("/profile/123")
+        } returns
+            PathConfiguration.create(
+                allowedContentTypes = listOf("image/jpeg"),
+                imageProperties = ImageProperties.DEFAULT,
+                eagerVariants = listOf(),
+            )
+
+        val exception =
+            shouldThrow<ContentTypeNotPermittedException> {
+                requestContextFactory.fromStoreRequest(path, "image/png")
+            }
+        exception.message shouldBe "Content type: image/png not permitted"
     }
 }

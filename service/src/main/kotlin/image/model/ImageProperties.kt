@@ -19,6 +19,12 @@ class ImageProperties private constructor(
     override fun validate() {}
 
     companion object {
+        val DEFAULT =
+            ImageProperties(
+                preProcessing = PreProcessingProperties.default(),
+                previews = setOf(),
+            )
+
         fun create(
             preProcessing: PreProcessingProperties,
             lqip: Set<LQIPImplementation>,
@@ -38,12 +44,6 @@ class ImageProperties private constructor(
                     applicationConfig?.tryGetStringList(LQIP)
                         ?.map { LQIPImplementation.valueOf(it.uppercase()) }
                         ?.toSet() ?: parent?.previews ?: setOf(),
-            )
-
-        fun default() =
-            ImageProperties(
-                preProcessing = PreProcessingProperties.default(),
-                previews = setOf(),
             )
     }
 
