@@ -3,6 +3,7 @@ package io.asset.context
 import image.model.ImageProperties
 import image.model.RequestedImageAttributes
 import io.asset.variant.VariantProfileRepository
+import io.aws.S3Properties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -581,6 +582,7 @@ class RequestContextFactoryTest {
                 allowedContentTypes = listOf("image/png"),
                 imageProperties = ImageProperties.DEFAULT,
                 eagerVariants = listOf(),
+                s3Properties = S3Properties.DEFAULT,
             )
         val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -608,6 +610,7 @@ class RequestContextFactoryTest {
                 allowedContentTypes = listOf("image/jpeg"),
                 imageProperties = ImageProperties.DEFAULT,
                 eagerVariants = listOf(),
+                s3Properties = S3Properties.DEFAULT,
             )
 
         val exception =

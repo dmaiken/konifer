@@ -4,7 +4,7 @@ import image.model.RequestedImageAttributes
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.properties.ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES
-import io.properties.ConfigurationProperties.PathConfigurationProperties.VariantProfileProperties.NAME
+import io.properties.ConfigurationProperties.PathConfigurationProperties.VariantProfilePropertyKeys.NAME
 
 class VariantProfileRepository(
     applicationConfig: ApplicationConfig,

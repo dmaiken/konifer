@@ -3,11 +3,11 @@ package image.model
 import io.image.hash.LQIPImplementation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.LQIP
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PREPROCESSING
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PreProcessingProperties.IMAGE_FORMAT
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PreProcessingProperties.MAX_HEIGHT
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImageProperties.PreProcessingProperties.MAX_WIDTH
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT
+import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
 import io.properties.ValidatedProperties
 import io.properties.validateAndCreate
 import io.tryGetConfig
@@ -21,7 +21,7 @@ class ImageProperties private constructor(
     companion object {
         val DEFAULT =
             ImageProperties(
-                preProcessing = PreProcessingProperties.default(),
+                preProcessing = PreProcessingProperties.DEFAULT,
                 previews = setOf(),
             )
 
@@ -69,6 +69,13 @@ class PreProcessingProperties private constructor(
     }
 
     companion object {
+        val DEFAULT =
+            PreProcessingProperties(
+                maxWidth = null,
+                maxHeight = null,
+                imageFormat = null,
+            )
+
         fun create(
             maxWidth: Int?,
             maxHeight: Int?,
@@ -91,13 +98,6 @@ class PreProcessingProperties private constructor(
                         ImageFormat.fromFormat(it)
                     } ?: parent?.imageFormat,
         )
-
-        fun default() =
-            PreProcessingProperties(
-                maxWidth = null,
-                maxHeight = null,
-                imageFormat = null,
-            )
     }
 
     override fun toString(): String {

@@ -1,6 +1,5 @@
 package asset.store
 
-import asset.store.InMemoryObjectStore.Companion.BUCKET
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,7 +14,13 @@ import java.util.UUID
 abstract class ObjectStoreTest {
     abstract fun createObjectStore(): ObjectStore
 
-    val store = createObjectStore()
+    protected val store = createObjectStore()
+
+    companion object {
+        protected const val BUCKET_1 = "bucket-1"
+        protected const val BUCKET_2 = "bucket-2"
+        protected const val BUCKET_3 = "bucket-3"
+    }
 
     @Test
     fun `can persist and fetch an object`() =
@@ -24,13 +29,13 @@ abstract class ObjectStoreTest {
             val channel = ByteChannel(autoFlush = true)
             val resultDeferred =
                 async {
-                    store.persist(channel, image.size.toLong())
+                    store.persist(BUCKET_1, channel, image.size.toLong())
                 }
             channel.writeFully(image)
             channel.close()
 
             val result = resultDeferred.await()
-            result.bucket shouldBe BUCKET
+            result.bucket shouldBe BUCKET_1
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
@@ -61,7 +66,7 @@ abstract class ObjectStoreTest {
             val channel = ByteChannel(autoFlush = true)
             val resultDeferred =
                 async {
-                    store.persist(channel, image.size.toLong())
+                    store.persist(BUCKET_1, channel, image.size.toLong())
                 }
             channel.writeFully(image)
             channel.close()
@@ -95,7 +100,7 @@ abstract class ObjectStoreTest {
             val channel1 = ByteChannel(autoFlush = true)
             val result1Deferred =
                 async {
-                    store.persist(channel1, bytes1.size.toLong())
+                    store.persist(BUCKET_1, channel1, bytes1.size.toLong())
                 }
             channel1.writeFully(bytes1)
             channel1.close()
@@ -105,7 +110,7 @@ abstract class ObjectStoreTest {
             val channel2 = ByteChannel(autoFlush = true)
             val result2Deferred =
                 async {
-                    store.persist(channel2, bytes2.size.toLong())
+                    store.persist(BUCKET_1, channel2, bytes2.size.toLong())
                 }
             channel2.writeFully(bytes1)
             channel2.close()
@@ -115,7 +120,7 @@ abstract class ObjectStoreTest {
             val channel3 = ByteChannel(autoFlush = true)
             val result3Deferred =
                 async {
-                    store.persist(channel3, bytes3.size.toLong())
+                    store.persist(BUCKET_1, channel3, bytes3.size.toLong())
                 }
             channel3.writeFully(bytes1)
             channel3.close()
@@ -163,13 +168,13 @@ abstract class ObjectStoreTest {
             val channel = ByteChannel(autoFlush = true)
             val result1Deferred =
                 async {
-                    store.persist(channel, bytes.size.toLong())
+                    store.persist(BUCKET_1, channel, bytes.size.toLong())
                 }
             channel.writeFully(bytes)
             channel.close()
             val result = result1Deferred.await()
 
-            store.deleteAll("somethingelse", listOf(result.key))
+            store.deleteAll(BUCKET_2, listOf(result.key))
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
@@ -190,7 +195,7 @@ abstract class ObjectStoreTest {
             val channel = ByteChannel(autoFlush = true)
             val result1Deferred =
                 async {
-                    store.persist(channel, bytes.size.toLong())
+                    store.persist(BUCKET_1, channel, bytes.size.toLong())
                 }
             channel.writeFully(bytes)
             channel.close()
@@ -217,7 +222,7 @@ abstract class ObjectStoreTest {
             val channel = ByteChannel(autoFlush = true)
             val resultDeferred =
                 async {
-                    store.persist(channel, image.size.toLong())
+                    store.persist(BUCKET_1, channel, image.size.toLong())
                 }
             channel.writeFully(image)
             channel.close()
@@ -236,6 +241,6 @@ abstract class ObjectStoreTest {
     @Test
     fun `exists returns false if the key does not exist in the object store`() =
         runTest {
-            store.exists(BUCKET, UUID.randomUUID().toString()) shouldBe false
+            store.exists(BUCKET_1, UUID.randomUUID().toString()) shouldBe false
         }
 }

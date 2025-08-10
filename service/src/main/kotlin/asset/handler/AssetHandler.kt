@@ -48,7 +48,7 @@ class AssetHandler(
             val processedAssetChannel = ByteChannel(true)
             val persistResult =
                 async {
-                    objectStore.persist(processedAssetChannel)
+                    objectStore.persist(context.pathConfiguration.s3Properties.bucket, processedAssetChannel)
                 }
             val preProcessed = imageProcessor.preprocess(container, mimeType, context.pathConfiguration, processedAssetChannel)
 
@@ -77,6 +77,7 @@ class AssetHandler(
                         treePath = response.assetAndVariants.asset.path,
                         entryId = response.assetAndVariants.asset.entryId,
                         requestedImageAttributes = variants,
+                        newVariantBucket = context.pathConfiguration.s3Properties.bucket,
                     ),
                 )
             }
@@ -125,6 +126,7 @@ class AssetHandler(
             return variantGenerator.generateVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
+                newVariantBucket = context.pathConfiguration.s3Properties.bucket,
                 requestedAttributes = context.requestedImageAttributes,
             ).let {
                 Pair(it, false)

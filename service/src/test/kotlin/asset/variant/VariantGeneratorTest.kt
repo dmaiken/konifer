@@ -33,6 +33,11 @@ import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
 class VariantGeneratorTest {
+    companion object {
+        private const val PATH = "root.profile.123"
+        private const val BUCKET = "bucket"
+    }
+
     private val assetRepository = InMemoryAssetRepository(VariantParameterGenerator())
     private val objectStore = InMemoryObjectStore()
     private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
@@ -46,7 +51,6 @@ class VariantGeneratorTest {
             channel = channel,
         )
 
-    private val path = "root.profile.123"
     private lateinit var asset: AssetAndVariants
     private lateinit var bufferedImage: BufferedImage
 
@@ -58,7 +62,7 @@ class VariantGeneratorTest {
             val channel = ByteChannel(autoFlush = true)
             val resultDeferred =
                 async {
-                    objectStore.persist(channel, image.size.toLong())
+                    objectStore.persist(BUCKET, channel, image.size.toLong())
                 }
             channel.writeFully(image)
             channel.close()
@@ -68,7 +72,7 @@ class VariantGeneratorTest {
                 assetRepository.store(
                     StoreAssetDto(
                         mimeType = "image/png",
-                        path = path,
+                        path = PATH,
                         request =
                             StoreAssetRequest(
                                 type = "image/png",
@@ -103,6 +107,7 @@ class VariantGeneratorTest {
                             ),
                         ),
                     deferredResult = result,
+                    newVariantBucket = BUCKET,
                 )
             channel.send(variantGenerationJob)
 
@@ -111,6 +116,38 @@ class VariantGeneratorTest {
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
                     it.attributes.height shouldNotBe bufferedImage.width
+                    it.objectStoreBucket shouldBe BUCKET
+                }
+            }
+        }
+
+    @Test
+    fun `variant created from channel uses supplied bucket`() =
+        runTest {
+            val result = CompletableDeferred<AssetAndVariants>()
+            val variantGenerationJob =
+                VariantGenerationJob(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedImageAttributes =
+                        listOf(
+                            RequestedImageAttributes(
+                                height = 50,
+                                width = null,
+                                mimeType = null,
+                            ),
+                        ),
+                    deferredResult = result,
+                    newVariantBucket = "different-bucket",
+                )
+            channel.send(variantGenerationJob)
+
+            result.await().apply {
+                variants shouldHaveSize 1
+                variants.forExactly(1) {
+                    it.isOriginalVariant shouldBe false
+                    it.attributes.height shouldNotBe bufferedImage.width
+                    it.objectStoreBucket shouldBe "different-bucket"
                 }
             }
         }
@@ -137,6 +174,7 @@ class VariantGeneratorTest {
                             ),
                         ),
                     deferredResult = result,
+                    newVariantBucket = BUCKET,
                 )
             channel.send(variantGenerationJob)
 
@@ -146,12 +184,14 @@ class VariantGeneratorTest {
                     it.isOriginalVariant shouldBe false
                     it.attributes.height shouldBe 50
                     it.attributes.width shouldNotBe bufferedImage.width
+                    it.objectStoreBucket shouldBe BUCKET
                 }
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
                     it.attributes.height shouldNotBe bufferedImage.height
                     it.attributes.width shouldBe 50
                     it.attributes.mimeType shouldBe "image/avif"
+                    it.objectStoreBucket shouldBe BUCKET
                 }
             }
         }
@@ -169,12 +209,38 @@ class VariantGeneratorTest {
                             width = null,
                             mimeType = null,
                         ),
+                    newVariantBucket = BUCKET,
                 )
 
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
                 it.attributes.height shouldNotBe bufferedImage.width
+                it.objectStoreBucket shouldBe BUCKET
+            }
+        }
+
+    @Test
+    fun `variant created synchronously uses supplied bucket`() =
+        runTest {
+            val result =
+                variantGenerator.generateVariant(
+                    treePath = asset.asset.path,
+                    entryId = asset.asset.entryId,
+                    requestedAttributes =
+                        RequestedImageAttributes(
+                            height = 50,
+                            width = null,
+                            mimeType = null,
+                        ),
+                    newVariantBucket = "different-bucket",
+                )
+
+            result.variants shouldHaveSize 1
+            result.variants.forExactly(1) {
+                it.isOriginalVariant shouldBe false
+                it.attributes.height shouldNotBe bufferedImage.width
+                it.objectStoreBucket shouldBe "different-bucket"
             }
         }
 
@@ -191,6 +257,7 @@ class VariantGeneratorTest {
                             width = null,
                             mimeType = null,
                         ),
+                    newVariantBucket = BUCKET,
                 )
             }
         }
@@ -205,6 +272,7 @@ class VariantGeneratorTest {
                     entryId = asset.asset.entryId,
                     requestedImageAttributes = listOf(),
                     deferredResult = result,
+                    newVariantBucket = BUCKET,
                 )
             channel.send(variantGenerationJob)
 
@@ -230,6 +298,7 @@ class VariantGeneratorTest {
                             ),
                         ),
                     deferredResult = result,
+                    newVariantBucket = BUCKET,
                 )
 
             coEvery {

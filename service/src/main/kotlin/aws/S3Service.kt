@@ -30,13 +30,10 @@ class S3Service(
     private val s3Client: S3Client,
     private val awsProperties: AWSProperties,
 ) : ObjectStore {
-    companion object {
-        const val BUCKET = "assets"
-    }
-
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun persist(
+        bucket: String,
         asset: ByteChannel,
         contentLength: Long?,
     ): PersistResult =
@@ -45,7 +42,7 @@ class S3Service(
             s3Client.putObject(
                 input =
                     PutObjectRequest {
-                        bucket = BUCKET
+                        this.bucket = bucket
                         this.key = key
                         // Content type is needed in order for the SDK to calculate a valid checksum
                         body = ByteStream.fromInputStream(asset.toInputStream(), contentLength)
@@ -54,7 +51,7 @@ class S3Service(
 
             PersistResult(
                 key = key,
-                bucket = BUCKET,
+                bucket = bucket,
             )
         }
 

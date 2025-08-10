@@ -10,21 +10,22 @@ import java.util.UUID
 class InMemoryObjectStore() : ObjectStore {
     companion object {
         const val DEFAULT_PORT = 8080
-        const val BUCKET = "assets"
     }
 
-    private val store = mutableMapOf<String, ByteArray>()
+    private val store = mutableMapOf<String, MutableMap<String, ByteArray>>()
 
     override suspend fun persist(
+        bucket: String,
         asset: ByteChannel,
         contentLength: Long?,
     ): PersistResult {
         val key = UUID.randomUUID().toString()
-        store.put(key, asset.toByteArray())
+        store.computeIfAbsent(bucket) { mutableMapOf() }
+        store[bucket]?.put(key, asset.toByteArray())
 
         return PersistResult(
             key = key,
-            bucket = BUCKET,
+            bucket = bucket,
         )
     }
 
@@ -34,10 +35,7 @@ class InMemoryObjectStore() : ObjectStore {
         stream: ByteWriteChannel,
     ): FetchResult =
         try {
-            if (bucket != BUCKET) {
-                FetchResult.notFound()
-            }
-            store[key]?.let {
+            store[bucket]?.get(key)?.let {
                 stream.writeFully(it)
                 FetchResult(
                     found = true,
@@ -51,32 +49,19 @@ class InMemoryObjectStore() : ObjectStore {
     override suspend fun exists(
         bucket: String,
         key: String,
-    ): Boolean {
-        if (bucket != BUCKET) {
-            return false
-        }
-        return store[key]?.let {
-            true
-        } ?: false
-    }
+    ): Boolean = store[bucket]?.contains(key) == true
 
     override suspend fun delete(
         bucket: String,
         key: String,
     ) {
-        if (bucket != BUCKET) {
-            return
-        }
-        store.remove(key)
+        store[bucket]?.remove(key)
     }
 
     override suspend fun deleteAll(
         bucket: String,
         keys: List<String>,
     ) {
-        if (bucket != BUCKET) {
-            return
-        }
         keys.forEach { delete(bucket, it) }
     }
 

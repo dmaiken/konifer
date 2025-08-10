@@ -9,6 +9,7 @@ import image.model.ImageFormat
 import image.model.ImageProperties
 import image.model.PreProcessingProperties
 import io.asset.AssetStreamContainer
+import io.aws.S3Properties
 import io.image.hash.ImagePreviewGenerator
 import io.image.hash.LQIPImplementation
 import io.image.vips.aspectRatio
@@ -68,10 +69,11 @@ class VipsImageProcessorTest {
                     allowedContentTypes = null,
                     imageProperties =
                         ImageProperties.create(
-                            preProcessing = PreProcessingProperties.default(),
+                            preProcessing = PreProcessingProperties.DEFAULT,
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -147,6 +149,7 @@ class VipsImageProcessorTest {
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -200,6 +203,7 @@ class VipsImageProcessorTest {
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -252,6 +256,7 @@ class VipsImageProcessorTest {
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -296,6 +301,7 @@ class VipsImageProcessorTest {
                             lqip = setOf(LQIPImplementation.BLURHASH),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -346,6 +352,7 @@ class VipsImageProcessorTest {
                             lqip = setOf(LQIPImplementation.THUMBHASH),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
 
             val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
@@ -407,6 +414,7 @@ class VipsImageProcessorTest {
                         lqip = lqips,
                     ),
                 eagerVariants = emptyList(),
+                s3Properties = S3Properties.DEFAULT,
             )
 
         val container = AssetStreamContainer.fromReadChannel(this, imageChannel)

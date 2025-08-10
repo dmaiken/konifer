@@ -4,6 +4,7 @@ import com.vanniktech.blurhash.BlurHash
 import image.lqip.ThumbHash
 import image.model.ImageProperties
 import image.model.PreProcessingProperties
+import io.aws.S3Properties
 import io.image.hash.ImagePreviewGenerator
 import io.image.hash.ImagePreviewGenerator.Companion.MAX_HEIGHT
 import io.image.hash.ImagePreviewGenerator.Companion.MAX_WIDTH
@@ -174,9 +175,10 @@ class ImagePreviewGeneratorTest {
             allowedContentTypes = null,
             imageProperties =
                 ImageProperties.create(
-                    preProcessing = PreProcessingProperties.default(),
+                    preProcessing = PreProcessingProperties.DEFAULT,
                     lqip = previews,
                 ),
             eagerVariants = emptyList(),
+            s3Properties = S3Properties.DEFAULT,
         )
 }

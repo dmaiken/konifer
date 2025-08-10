@@ -7,7 +7,7 @@ import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
 import io.aws.AWSProperties
 import io.aws.S3Service
-import io.createImageBucket
+import io.createImageBuckets
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -51,7 +51,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 endpointUrl = Url.parse(localstack.endpoint.toString())
                 region = localstack.region
             }
-        createImageBucket(s3Client)
+        createImageBuckets(s3Client, BUCKET_1, BUCKET_2, BUCKET_3)
         // Create bucket for test
         runBlocking {
             s3Client.createBucket(

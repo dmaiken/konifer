@@ -45,7 +45,12 @@ class VariantGenerator(
                 val job = channel.receive()
                 logger.info("Received variant generation job: {}", job)
                 try {
-                    generateVariants(job.treePath, job.entryId, job.requestedImageAttributes).also {
+                    generateVariants(
+                        treePath = job.treePath,
+                        entryId = job.entryId,
+                        newVariantBucket = job.newVariantBucket,
+                        requestedAttributes = job.requestedImageAttributes,
+                    ).also {
                         job.deferredResult?.complete(it)
                     }
                 } catch (e: Exception) {
@@ -60,12 +65,14 @@ class VariantGenerator(
     suspend fun generateVariant(
         treePath: String,
         entryId: Long,
+        newVariantBucket: String,
         requestedAttributes: RequestedImageAttributes,
-    ): AssetAndVariants = generateVariants(treePath, entryId, listOf(requestedAttributes))
+    ): AssetAndVariants = generateVariants(treePath, entryId, newVariantBucket, listOf(requestedAttributes))
 
     private suspend fun generateVariants(
         treePath: String,
         entryId: Long,
+        newVariantBucket: String,
         requestedAttributes: List<RequestedImageAttributes>,
     ): AssetAndVariants =
         coroutineScope {
@@ -86,7 +93,7 @@ class VariantGenerator(
             }
 
             var asset: Asset? = null
-            var variants = mutableListOf<AssetVariant>()
+            val variants = mutableListOf<AssetVariant>()
             requestedAttributes.map { request ->
                 val originalVariantChannel = ByteChannel(true)
                 val fetchOriginalVariantJob =
@@ -96,7 +103,7 @@ class VariantGenerator(
                 val processedAssetChannel = ByteChannel(true)
                 val persistResult =
                     async {
-                        objectStore.persist(processedAssetChannel)
+                        objectStore.persist(newVariantBucket, processedAssetChannel)
                     }
                 val newVariant =
                     imageProcessor.generateVariant(

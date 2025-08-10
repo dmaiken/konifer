@@ -6,6 +6,7 @@ import io.ktor.utils.io.ByteWriteChannel
 
 interface ObjectStore {
     suspend fun persist(
+        bucket: String,
         asset: ByteChannel,
         contentLength: Long? = null,
     ): PersistResult

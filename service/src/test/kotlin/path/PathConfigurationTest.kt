@@ -2,6 +2,7 @@ package io.path
 
 import image.model.ImageProperties
 import image.model.PreProcessingProperties
+import io.aws.S3Properties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.path.configuration.PathConfiguration
@@ -25,6 +26,7 @@ class PathConfigurationTest {
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
+                    s3Properties = S3Properties.DEFAULT,
                 )
             }
 
