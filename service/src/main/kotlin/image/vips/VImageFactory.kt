@@ -31,6 +31,16 @@ object VImageFactory {
         return newFromSource(arena, source, *options)
     }
 
+    fun thumbnailFromContainer(
+        arena: Arena,
+        container: AssetStreamContainer,
+        vararg options: VipsOption,
+    ): VImage {
+        val source = newSourceFromContainer(arena, container)
+
+        return VImage.thumbnailSource(arena, source, *options)
+    }
+
     /**
      * Adapted from [VSource.newFromInputStream]
      */

@@ -130,6 +130,7 @@ class VipsImageProcessor(
             var attributes: ImageAttributes? = null
             try {
                 Vips.run { arena ->
+                    VImage.thumbnail()
                     val image = VImageFactory.newFromContainer(arena, source)
                     // Determine if we need to downscale or upscale
                     val resized =
@@ -193,6 +194,14 @@ class VipsImageProcessor(
         logger.info("Scaling image to $scale based on max width $width and max height $height")
 
         return image.resize(scale)
+    }
+
+    private fun thumbnail(
+        image: VImage,
+        width: Int,
+        height: Int
+    ): VImage {
+        VImage.thumbnail()
     }
 
     private fun determineMimeType(
