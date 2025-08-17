@@ -62,19 +62,12 @@ dependencies {
     implementation(libs.tika.core)
 
     implementation(libs.zero.allocation.hashing)
-
     implementation(libs.blurhash)
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("kotest.extensions.autoscan.disable", "true")
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
-    }
 }
 
 sourceSets {
@@ -110,4 +103,16 @@ tasks.named<ProcessResources>("processFunctionalTestResources") {
 
 tasks.named("check") {
     dependsOn("functionalTest")
+}
+
+kotlin {
+    jvmToolchain(24)
+}
+
+ktor {
+    docker {
+        jreVersion.set(JavaVersion.VERSION_24)
+        localImageName.set("tessa")
+        imageTag.set("0.0.1-preview")
+    }
 }

@@ -122,6 +122,19 @@ If the server starts successfully, you'll see the following output:
 2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
+## Docker
+
+To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS):
+```shell
+docker build . -t tessa:latest
+```
+Then, to run, mount a file to `/app/config/tessa.conf` like so:
+```
+docker run -v path/to/your/conf/file:/app/config/tessa.conf -p 8080:8080 tessa
+# Example
+docker run -v ~/tessa-test/config.conf:/app/config/tessa.conf -p 8080:8080 tessa
+```
+
 ### Formatting
 
 This project uses Ktlint to enforce code styling. To run:

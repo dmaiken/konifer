@@ -18,6 +18,12 @@ tasks.matching { it.name.startsWith("ktlint") }.configureEach {
     enabled = false
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
 kotlin {
-    jvmToolchain(23)
+    jvmToolchain(24)
 }
