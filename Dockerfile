@@ -1,40 +1,24 @@
-# Stage 1: Cache Gradle dependencies
-FROM gradle:latest AS cache
+FROM gradle:9.0.0-jdk24 AS cache
 WORKDIR /home/gradle/app
 
-# Copy Gradle wrapper + root config
-COPY gradlew gradlew
-COPY gradlew.bat gradlew.bat
+# Copy Gradle config
 COPY gradle gradle
-COPY settings.gradle.kts settings.gradle.kts
-COPY build.gradle.kts build.gradle.kts
-COPY gradle.properties gradle.properties
-COPY .gradle .gradle
-
-# Copy only the service module's build scripts for dependency resolution
+COPY gradle.properties .
+COPY settings.gradle.kts .
+COPY build.gradle.kts .
 COPY service/build.gradle.kts service/
 
-# Warm up the Gradle dependency cache
-RUN ./gradlew :service:dependencies --no-daemon || true
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    gradle --no-transfer-progress :service:dependencies || true
 
 
-# Stage 2: Build Application
-FROM gradle:latest AS build
+FROM gradle:9.0.0-jdk24 AS build
 WORKDIR /home/gradle/app
 
-# Copy everything (now including source)
 COPY . .
 
-COPY --from=cache /home/gradle/app/.gradle /home/gradle/app/.gradle
-COPY --from=cache /home/gradle/app/gradlew /home/gradle/app/gradlew
-COPY --from=cache /home/gradle/app/gradlew.bat /home/gradle/app/gradlew.bat
-COPY --from=cache /home/gradle/app/gradle /home/gradle/app/gradle
+RUN --mount=type=cache,target=/home/gradle/.gradle gradle :service:buildFatJar
 
-# Build the service fat jar only
-RUN ./gradlew :service:buildFatJar --no-daemon
-
-
-# Stage 3: Create the Runtime Image
 FROM eclipse-temurin:24-jre AS runtime
 
 RUN apt-get -y update && apt-get -y install \
@@ -100,7 +84,10 @@ RUN tar xf vips-${VIPS_VERSION}.tar.xz \
   # Clean up build tools and meson
   && apt-get remove -y build-essential pkg-config ninja-build \
   && apt-get autoremove -y \
-  && rm -rf /var/lib/apt/lists/* /usr/local/src/vips-${VIPS_VERSION}
+  && rm -rf /var/lib/apt/lists/* /usr/local/src/vips-${VIPS_VERSION} \
+  && rm -rf /var/lib/apt/lists/* \
+  /usr/local/src/vips-${VIPS_VERSION} \
+  /usr/local/src/vips-${VIPS_VERSION}.tar.xz
 
 # Verify supported image formats
 RUN vips list format
