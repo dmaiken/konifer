@@ -1,9 +1,11 @@
 package image.model
 
 import asset.model.LQIPResponse
+import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.WIDTH
+import io.image.model.Fit
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.properties.ValidatedProperties
@@ -15,30 +17,36 @@ data class ProcessedImage(
 )
 
 data class RequestedImageAttributes(
+    val originalVariant: Boolean = false,
     val width: Int?,
     val height: Int?,
-    val mimeType: String?,
+    val format: ImageFormat?,
+    val fit: Fit,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
             RequestedImageAttributes(
+                originalVariant = true,
                 width = null,
                 height = null,
-                mimeType = null,
+                format = null,
+                fit = Fit.SCALE,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageAttributes =
             RequestedImageAttributes(
+                originalVariant = false,
                 width = applicationConfig.tryGetString(WIDTH)?.toInt(),
                 height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
-                mimeType = applicationConfig.tryGetString(MIME_TYPE),
+                format = applicationConfig.tryGetString(MIME_TYPE)?.let { ImageFormat.fromMimeType(it) },
+                fit = Fit.fromString(applicationConfig.tryGetString(FIT)),
             ).apply {
                 validate()
             }
     }
 
     fun isOriginalVariant(): Boolean {
-        return width == null && height == null && mimeType == null
+        return width == null && height == null && format == null
     }
 
     override fun validate() {
@@ -48,16 +56,14 @@ data class RequestedImageAttributes(
         if (height != null && height < 1) {
             throw IllegalArgumentException("Height cannot be < 1")
         }
-        if (mimeType != null) {
-            ImageFormat.fromMimeType(mimeType)
-        }
     }
 }
 
 data class ImageAttributes(
     val width: Int,
     val height: Int,
-    val mimeType: String,
+    val fit: Fit = Fit.SCALE,
+    val format: ImageFormat,
 )
 
 @Serializable

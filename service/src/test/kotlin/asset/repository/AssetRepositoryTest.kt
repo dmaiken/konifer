@@ -4,9 +4,11 @@ import asset.handler.StoreAssetDto
 import asset.model.StoreAssetRequest
 import asset.store.PersistResult
 import image.model.ImageAttributes
+import image.model.ImageFormat
 import image.model.LQIPs
 import image.model.RequestedImageAttributes
 import io.asset.handler.StoreAssetVariantDto
+import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
@@ -38,7 +40,8 @@ abstract class AssetRepositoryTest {
                         RequestedImageAttributes(
                             height = 10,
                             width = null,
-                            mimeType = null,
+                            format = null,
+                            fit = Fit.SCALE,
                         ),
                     ),
                 ),
@@ -48,7 +51,8 @@ abstract class AssetRepositoryTest {
                         RequestedImageAttributes(
                             height = null,
                             width = 10,
-                            mimeType = null,
+                            format = null,
+                            fit = Fit.SCALE,
                         ),
                     ),
                 ),
@@ -58,7 +62,8 @@ abstract class AssetRepositoryTest {
                         RequestedImageAttributes(
                             height = 10,
                             width = 5,
-                            mimeType = null,
+                            format = null,
+                            fit = Fit.SCALE,
                         ),
                     ),
                 ),
@@ -68,7 +73,8 @@ abstract class AssetRepositoryTest {
                         RequestedImageAttributes(
                             height = 10,
                             width = 5,
-                            mimeType = "image/png",
+                            format = ImageFormat.PNG,
+                            fit = Fit.SCALE,
                         ),
                     ),
                 ),
@@ -78,7 +84,8 @@ abstract class AssetRepositoryTest {
                         RequestedImageAttributes(
                             height = 10,
                             width = 10,
-                            mimeType = "image/png",
+                            format = ImageFormat.PNG,
+                            fit = Fit.SCALE,
                         ),
                     ),
                 ),
@@ -201,7 +208,7 @@ abstract class AssetRepositoryTest {
                         ImageAttributes(
                             height = 10,
                             width = 10,
-                            mimeType = "image/png",
+                            format = ImageFormat.PNG,
                         ),
                     lqips = LQIPs.NONE,
                 )
@@ -253,7 +260,7 @@ abstract class AssetRepositoryTest {
                     ImageAttributes(
                         width = 10,
                         height = 10,
-                        mimeType = "image/png",
+                        format = ImageFormat.PNG,
                     )
 
                 repository.storeVariant(
@@ -270,7 +277,8 @@ abstract class AssetRepositoryTest {
                 RequestedImageAttributes(
                     width = 8,
                     height = 5,
-                    mimeType = null,
+                    format = null,
+                    fit = Fit.SCALE,
                 )
 
             val fetched = repository.fetchAllByPath("/users/123", requestedImageAttributes)
@@ -297,7 +305,7 @@ abstract class AssetRepositoryTest {
                     ImageAttributes(
                         width = 10,
                         height = 10,
-                        mimeType = "image/png",
+                        format = ImageFormat.PNG,
                     )
 
                 repository.storeVariant(
@@ -314,7 +322,8 @@ abstract class AssetRepositoryTest {
                 RequestedImageAttributes(
                     width = 10,
                     height = null,
-                    mimeType = null,
+                    format = null,
+                    fit = Fit.SCALE,
                 )
 
             val fetched = repository.fetchAllByPath("/users/123", requestedImageAttributes)
@@ -346,7 +355,7 @@ abstract class AssetRepositoryTest {
                     ImageAttributes(
                         width = 10,
                         height = 10,
-                        mimeType = "image/png",
+                        format = ImageFormat.PNG,
                     )
 
                 repository.storeVariant(
@@ -486,7 +495,7 @@ abstract class AssetRepositoryTest {
                 ImageAttributes(
                     width = 10,
                     height = 10,
-                    mimeType = "image/png",
+                    format = ImageFormat.PNG,
                 )
 
             val newVariant =
@@ -504,7 +513,7 @@ abstract class AssetRepositoryTest {
             newVariant.variants.first().apply {
                 attributes.height shouldBe imageAttributes.height
                 attributes.width shouldBe imageAttributes.width
-                attributes.mimeType shouldBe imageAttributes.mimeType
+                attributes.format shouldBe imageAttributes.format
                 objectStoreBucket shouldBe persistResult.bucket
                 objectStoreKey shouldBe persistResult.key
                 isOriginalVariant shouldBe false
@@ -533,7 +542,7 @@ abstract class AssetRepositoryTest {
                 ImageAttributes(
                     width = 100,
                     height = 100,
-                    mimeType = "image/png",
+                    format = ImageFormat.PNG,
                 )
 
             shouldThrow<IllegalArgumentException> {
@@ -564,7 +573,7 @@ abstract class AssetRepositoryTest {
                 ImageAttributes(
                     width = 50,
                     height = 100,
-                    mimeType = "image/png",
+                    format = ImageFormat.PNG,
                 )
 
             val variantDto =
@@ -582,7 +591,7 @@ abstract class AssetRepositoryTest {
             newVariant.variants.first { !it.isOriginalVariant }.apply {
                 attributes.height shouldBe imageAttributes.height
                 attributes.width shouldBe imageAttributes.width
-                attributes.mimeType shouldBe imageAttributes.mimeType
+                attributes.format shouldBe imageAttributes.format
                 objectStoreBucket shouldBe persistResult.bucket
                 objectStoreKey shouldBe persistResult.key
                 isOriginalVariant shouldBe false
@@ -604,7 +613,7 @@ abstract class AssetRepositoryTest {
                 ),
             imageAttributes =
                 ImageAttributes(
-                    mimeType = "image/png",
+                    format = ImageFormat.PNG,
                     width = 100,
                     height = 100,
                 ),

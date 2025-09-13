@@ -180,4 +180,44 @@ class ImageAssetVariantTest {
                 count++
             }
         }
+
+    @Test
+    fun `can fetch image by fit`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)!!.apply {
+                createdAt shouldNotBe null
+                alt shouldBe "an image"
+                `class` shouldBe AssetClass.IMAGE
+
+                variants.apply {
+                    size shouldBe 1
+                    first().imageAttributes.apply {
+                        this.height shouldBe bufferedImage.height
+                        this.width shouldBe bufferedImage.width
+                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
+                    }
+                }
+            }
+
+            var count = 0
+            repeat(2) {
+                fetchAssetViaRedirect(client, fit = "fit", expectCacheHit = (count == 1))!!.apply {
+                    val variantImage = byteArrayToImage(this)
+                    variantImage.width shouldBe bufferedImage.width
+                    variantImage.height shouldBe bufferedImage.height
+                    Tika().detect(this) shouldBe "image/png"
+                }
+                count++
+            }
+        }
 }

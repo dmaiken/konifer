@@ -62,7 +62,7 @@ data class AssetAndVariants(
                             ImageAttributeResponse(
                                 height = variant.attributes.height,
                                 width = variant.attributes.width,
-                                mimeType = variant.attributes.mimeType,
+                                mimeType = variant.attributes.format.mimeType,
                             ),
                         lqip =
                             LQIPResponse(

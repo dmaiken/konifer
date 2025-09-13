@@ -11,14 +11,15 @@ import image.model.ProcessedImage
 import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
 import io.image.ByteChannelOutputStream
-import io.image.hash.ImagePreviewGenerator
+import io.image.lqip.ImagePreviewGenerator
+import io.image.model.Fit
 import io.image.vips.VImageFactory
+import io.image.vips.transformation.Resize
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.min
 import kotlin.time.measureTime
 
 class VipsImageProcessor(
@@ -36,7 +37,7 @@ class VipsImageProcessor(
      */
     suspend fun preprocess(
         container: AssetStreamContainer,
-        mimeType: String,
+        sourceFormat: ImageFormat,
         pathConfiguration: PathConfiguration,
         processedChannel: ByteChannel,
     ): ProcessedImage =
@@ -47,63 +48,54 @@ class VipsImageProcessor(
             val preProcessingProperties =
                 pathConfiguration.imageProperties.preProcessing
             val resizedPreviewChannel = ByteChannel(autoFlush = true)
-            if (!preProcessingProperties.enabled) {
-                try {
-                    Vips.run { arena ->
-                        val sourceImage = VImageFactory.newFromContainer(arena, container)
-                        if (pathConfiguration.imageProperties.previews.isNotEmpty()) {
-                            generatePreviewVariant(sourceImage, resizedPreviewChannel)
-                        }
-                        ByteChannelOutputStream(processedChannel).use {
-                            sourceImage.writeToStream(it, ".${ImageFormat.fromMimeType(mimeType).extension}")
-                        }
-                        attributes =
-                            ImageAttributes(
-                                height = sourceImage.height,
-                                width = sourceImage.width,
-                                mimeType = mimeType,
-                            )
-                    }
-                } finally {
-                    resizedPreviewChannel.close()
-                }
-                return@withContext ProcessedImage(
-                    attributes = attributes ?: throw IllegalStateException(),
-                    lqip =
-                        if (pathConfiguration.imageProperties.previews.isNotEmpty()) {
-                            createImagePreviews(resizedPreviewChannel, pathConfiguration)
-                        } else {
-                            LQIPs.NONE
-                        },
-                )
-            }
             try {
                 Vips.run { arena ->
                     val sourceImage = VImageFactory.newFromContainer(arena, container)
+
+                    val resized =
+                        if (preProcessingProperties.enabled) {
+                            Resize(
+                                width = preProcessingProperties.maxWidth,
+                                height = preProcessingProperties.maxHeight,
+                                fit = preProcessingProperties.fit,
+                                upscale = false,
+                            ).transform(sourceImage)
+                        } else {
+                            sourceImage
+                        }
+
+                    val format =
+                        if (preProcessingProperties.enabled) {
+                            determineFormat(sourceFormat, preProcessingProperties)
+                        } else {
+                            sourceFormat
+                        }
                     try {
                         if (pathConfiguration.imageProperties.previews.isNotEmpty()) {
-                            generatePreviewVariant(sourceImage, resizedPreviewChannel)
+                            generatePreviewVariant(
+                                sourceImage = resized,
+                                channel = resizedPreviewChannel,
+                            )
                         }
                     } finally {
                         resizedPreviewChannel.close()
                     }
-
-                    val resized =
-                        scale(
-                            image = sourceImage,
-                            width = preProcessingProperties.maxWidth,
-                            height = preProcessingProperties.maxHeight,
-                        )
-
-                    val newMimeType = determineMimeType(mimeType, preProcessingProperties)
                     ByteChannelOutputStream(processedChannel).use {
-                        resized.writeToStream(it, ".${ImageFormat.fromMimeType(newMimeType).extension}")
+                        resized.writeToStream(it, ".${format.extension}")
                     }
+                    val fitAttribute =
+                        if (resized.height >= sourceImage.height && resized.width >= sourceImage.width) {
+                            // Crop was not used since the image was upscaled, so set the attribute to SCALE
+                            Fit.SCALE
+                        } else {
+                            preProcessingProperties.fit
+                        }
                     attributes =
                         ImageAttributes(
                             height = resized.height,
                             width = resized.width,
-                            mimeType = newMimeType,
+                            format = format,
+                            fit = fitAttribute,
                         )
                 }
                 ProcessedImage(
@@ -122,99 +114,80 @@ class VipsImageProcessor(
 
     suspend fun generateVariant(
         source: AssetStreamContainer,
+        pathConfiguration: PathConfiguration,
         requestedAttributes: RequestedImageAttributes,
         originalVariant: AssetVariant,
         outputChannel: ByteChannel,
     ): ProcessedImage =
         withContext(Dispatchers.IO) {
             var attributes: ImageAttributes? = null
+            val resizedPreviewChannel = ByteChannel(autoFlush = true)
+            var regenerateLqip = false
             try {
                 Vips.run { arena ->
-                    VImage.thumbnail()
                     val image = VImageFactory.newFromContainer(arena, source)
                     // Determine if we need to downscale or upscale
-                    val resized =
-                        scale(
-                            image = image,
+                    val transformer =
+                        Resize(
                             width = requestedAttributes.width,
                             height = requestedAttributes.height,
+                            fit = requestedAttributes.fit,
+                            upscale = true,
                         )
-                    val mimeType = requestedAttributes.mimeType ?: originalVariant.attributes.mimeType
-                    val imageFormat = ImageFormat.fromMimeType(mimeType)
+                    val resized = transformer.transform(image)
+                    val requiresLqipRegeneration = transformer.requiresLqipRegeneration(image)
+                    val newFormat = requestedAttributes.format ?: originalVariant.attributes.format
+                    try {
+                        if (requiresLqipRegeneration && pathConfiguration.imageProperties.previews.isNotEmpty()) {
+                            regenerateLqip = true
+                            generatePreviewVariant(
+                                sourceImage = resized,
+                                channel = resizedPreviewChannel,
+                            )
+                        }
+                    } finally {
+                        resizedPreviewChannel.close()
+                    }
 
                     ByteChannelOutputStream(outputChannel).use {
-                        resized.writeToStream(it, ".${imageFormat.extension}")
+                        resized.writeToStream(it, ".${newFormat.extension}")
                     }
 
                     attributes =
                         ImageAttributes(
                             width = resized.width,
                             height = resized.height,
-                            mimeType = mimeType,
+                            format = newFormat,
                         )
                 }
 
                 ProcessedImage(
                     attributes = attributes ?: throw IllegalStateException(),
                     // This will change when we start adding color filters
-                    lqip = originalVariant.lqip,
+                    lqip =
+                        if (regenerateLqip) {
+                            createImagePreviews(resizedPreviewChannel, pathConfiguration)
+                        } else {
+                            originalVariant.lqip
+                        },
                 )
             } finally {
                 outputChannel.close()
             }
         }
 
-    /**
-     * Scales the image to fit within the given width and height. Height or width may be smaller based on the
-     * image's aspect ratio. If both width and height are null, the image is not downscaled.
-     */
-    private fun scale(
-        image: VImage,
-        width: Int?,
-        height: Int?,
-    ): VImage {
-        if (width == null && height == null) {
-            logger.info("Preprocessing width and height are not set, skipping preprocessing downscaling")
-            return image
-        }
-        // Compute scale so that the image fits within max dimensions
-        val widthRatio =
-            width?.let {
-                it.toDouble() / image.width
-            } ?: 1.0
-        val heightRatio =
-            height?.let {
-                it.toDouble() / image.height
-            } ?: 1.0
-        val scale = min(widthRatio, heightRatio)
-
-        // Don't upscale
-        if (scale >= 1.0) return image
-
-        logger.info("Scaling image to $scale based on max width $width and max height $height")
-
-        return image.resize(scale)
-    }
-
-    private fun thumbnail(
-        image: VImage,
-        width: Int,
-        height: Int
-    ): VImage {
-        VImage.thumbnail()
-    }
-
-    private fun determineMimeType(
-        originalMimeType: String,
+    private fun determineFormat(
+        originalFormat: ImageFormat,
         preProcessingProperties: PreProcessingProperties,
-    ) = if (preProcessingProperties.imageFormat != null) {
-        if (preProcessingProperties.imageFormat.mimeType != originalMimeType) {
-            logger.info("Converting image from $originalMimeType to ${preProcessingProperties.imageFormat.mimeType}")
+    ): ImageFormat =
+        if (preProcessingProperties.imageFormat != null) {
+            if (preProcessingProperties.imageFormat != originalFormat) {
+                logger.info("Converting image from $originalFormat to ${preProcessingProperties.imageFormat}")
+            }
+            preProcessingProperties.imageFormat
+        } else {
+            originalFormat
         }
-        preProcessingProperties.imageFormat.mimeType
-    } else {
-        originalMimeType
-    }
 
     private suspend fun createImagePreviews(
         previewImageChannel: ByteChannel,
@@ -231,15 +204,16 @@ class VipsImageProcessor(
     }
 
     private fun generatePreviewVariant(
-        originalImage: VImage,
+        sourceImage: VImage,
         channel: ByteChannel,
     ) {
         val previewImage =
-            scale(
-                image = originalImage,
+            Resize(
                 width = 32,
                 height = 32,
-            )
+                fit = Fit.SCALE,
+                upscale = false,
+            ).transform(sourceImage)
         ByteChannelOutputStream(channel).use {
             previewImage.writeToStream(it, ".${ImageFormat.PNG.extension}")
         }

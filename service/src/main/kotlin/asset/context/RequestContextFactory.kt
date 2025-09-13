@@ -1,11 +1,14 @@
 package io.asset.context
 
+import image.model.ImageFormat
 import image.model.RequestedImageAttributes
+import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
 import io.asset.variant.VariantProfileRepository
+import io.image.model.Fit
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.path.DeleteMode
@@ -226,7 +229,8 @@ class RequestContextFactory(
                 RequestedImageAttributes(
                     width = parameters[WIDTH]?.toIntOrNull() ?: variantProfile?.width,
                     height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
-                    mimeType = parameters[MIME_TYPE] ?: variantProfile?.mimeType,
+                    format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
+                    fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.SCALE,
                 )
             }
         }

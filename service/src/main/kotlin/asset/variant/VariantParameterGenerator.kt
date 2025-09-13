@@ -21,7 +21,7 @@ class VariantParameterGenerator {
                 ImageVariantAttributes(
                     height = imageAttributes.height,
                     width = imageAttributes.width,
-                    mimeType = imageAttributes.mimeType,
+                    format = imageAttributes.format,
                 ),
             )
         val key = generateAttributesKey(attributes)

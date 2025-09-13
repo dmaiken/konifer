@@ -312,8 +312,8 @@ class PostgresAssetRepository(
         } else if (requested.height != null) {
             condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString()))
         }
-        requested.mimeType?.let {
-            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "mimeType").eq(it))
+        requested.format?.let {
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "mimeType").eq(it.mimeType))
         }
 
         return condition

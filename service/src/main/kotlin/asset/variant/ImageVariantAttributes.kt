@@ -1,5 +1,6 @@
 package asset.variant
 
+import image.model.ImageFormat
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,5 +11,5 @@ import kotlinx.serialization.Serializable
 data class ImageVariantAttributes(
     val height: Int,
     val width: Int,
-    val mimeType: String,
+    val format: ImageFormat,
 )

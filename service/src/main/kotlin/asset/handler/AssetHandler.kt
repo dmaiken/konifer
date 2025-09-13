@@ -7,6 +7,7 @@ import asset.repository.AssetRepository
 import asset.store.ObjectStore
 import image.InvalidImageException
 import image.VipsImageProcessor
+import image.model.ImageFormat
 import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
 import io.asset.context.ContentTypeNotPermittedException
@@ -43,20 +44,20 @@ class AssetHandler(
         uriPath: String,
     ): AssetAndLocation =
         coroutineScope {
-            val mimeType = deriveValidMimeType(container.readNBytes(1024, true))
-            val context = requestContextFactory.fromStoreRequest(uriPath, mimeType)
+            val format = deriveValidImageFormat(container.readNBytes(1024, true))
+            val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
             val processedAssetChannel = ByteChannel(true)
             val persistResult =
                 async {
                     objectStore.persist(context.pathConfiguration.s3Properties.bucket, processedAssetChannel)
                 }
-            val preProcessed = imageProcessor.preprocess(container, mimeType, context.pathConfiguration, processedAssetChannel)
+            val preProcessed = imageProcessor.preprocess(container, format, context.pathConfiguration, processedAssetChannel)
 
             val assetAndVariants =
                 assetRepository.store(
                     StoreAssetDto(
                         request = deferredRequest.await(),
-                        mimeType = mimeType,
+                        mimeType = format.mimeType,
                         path = context.path,
                         imageAttributes = preProcessed.attributes,
                         persistResult = persistResult.await(),
@@ -72,14 +73,16 @@ class AssetHandler(
                     context.pathConfiguration.eagerVariants.map {
                         variantProfileRepository.fetch(it)
                     }
-                variantGenerationChannel.send(
-                    VariantGenerationJob(
-                        treePath = response.assetAndVariants.asset.path,
-                        entryId = response.assetAndVariants.asset.entryId,
-                        requestedImageAttributes = variants,
-                        newVariantBucket = context.pathConfiguration.s3Properties.bucket,
-                    ),
-                )
+                if (variants.isNotEmpty()) {
+                    variantGenerationChannel.send(
+                        VariantGenerationJob(
+                            treePath = response.assetAndVariants.asset.path,
+                            entryId = response.assetAndVariants.asset.entryId,
+                            requestedImageAttributes = variants,
+                            pathConfiguration = context.pathConfiguration,
+                        ),
+                    )
+                }
             }
         }
 
@@ -102,31 +105,29 @@ class AssetHandler(
         val entryId = context.modifiers.entryId
         logger.info("Fetching asset info by path: ${context.path} with attributes: ${context.requestedImageAttributes}")
 
-        val assetAndVariants = assetRepository.fetchByPath(context.path, entryId, context.requestedImageAttributes)
-        if (assetAndVariants == null) {
-            return null
-        }
+        val assetAndVariants =
+            assetRepository.fetchByPath(context.path, entryId, context.requestedImageAttributes) ?: return null
         if (!generateVariant) {
             return Pair(assetAndVariants, true)
         }
 
         return if (assetAndVariants.variants.isEmpty() && context.requestedImageAttributes != null) {
             logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
-            val requestedMimeType =
-                context.requestedImageAttributes.mimeType ?: assetRepository.fetchByPath(
+            val requestedImageFormat =
+                context.requestedImageAttributes.format ?: assetRepository.fetchByPath(
                     context.path, entryId, RequestedImageAttributes.ORIGINAL_VARIANT,
-                )?.getOriginalVariant()?.attributes?.mimeType ?: throw IllegalStateException(
+                )?.getOriginalVariant()?.attributes?.format ?: throw IllegalStateException(
                     "No original variant found for asset at path: ${context.path} and entryId: $entryId",
                 )
             context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(requestedMimeType)) {
-                    throw ContentTypeNotPermittedException("Content type: $requestedMimeType not permitted")
+                if (!it.contains(requestedImageFormat.mimeType)) {
+                    throw ContentTypeNotPermittedException("Content type: $requestedImageFormat not permitted")
                 }
             }
             return variantGenerator.generateVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
-                newVariantBucket = context.pathConfiguration.s3Properties.bucket,
+                pathConfiguration = context.pathConfiguration,
                 requestedAttributes = context.requestedImageAttributes,
             ).let {
                 Pair(it, false)
@@ -176,13 +177,13 @@ class AssetHandler(
         assetRepository.deleteAssetsByPath(uriPath, mode == DeleteMode.RECURSIVE)
     }
 
-    private fun deriveValidMimeType(content: ByteArray): String {
+    private fun deriveValidImageFormat(content: ByteArray): ImageFormat {
         val mimeType = mimeTypeDetector.detect(content)
         if (!validate(mimeType)) {
             logger.error("Not an image type: $mimeType")
             throw InvalidImageException("Not an image type")
         }
-        return mimeType
+        return ImageFormat.fromMimeType(mimeType)
     }
 
     private fun validate(mimeType: String): Boolean {

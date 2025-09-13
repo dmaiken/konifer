@@ -31,16 +31,6 @@ object VImageFactory {
         return newFromSource(arena, source, *options)
     }
 
-    fun thumbnailFromContainer(
-        arena: Arena,
-        container: AssetStreamContainer,
-        vararg options: VipsOption,
-    ): VImage {
-        val source = newSourceFromContainer(arena, container)
-
-        return VImage.thumbnailSource(arena, source, *options)
-    }
-
     /**
      * Adapted from [VSource.newFromInputStream]
      */
@@ -55,7 +45,7 @@ object VImageFactory {
                     throw VipsError("invalid length to read provided: $length")
                 }
                 // bytebuffer only supports reading int max bytes at a time
-                val clippedLength = min(length, Int.Companion.MAX_VALUE.toLong()).toInt()
+                val clippedLength = min(length, Int.MAX_VALUE.toLong()).toInt()
                 val bytes =
                     try {
                         runBlocking {

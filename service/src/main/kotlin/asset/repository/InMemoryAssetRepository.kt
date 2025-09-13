@@ -46,7 +46,7 @@ class InMemoryAssetRepository(
                                 ImageVariantAttributes(
                                     height = asset.imageAttributes.height,
                                     width = asset.imageAttributes.width,
-                                    mimeType = asset.imageAttributes.mimeType,
+                                    format = asset.imageAttributes.format,
                                 ),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
@@ -86,7 +86,7 @@ class InMemoryAssetRepository(
                         ImageVariantAttributes(
                             height = variant.imageAttributes.height,
                             width = variant.imageAttributes.width,
-                            mimeType = variant.imageAttributes.mimeType,
+                            format = variant.imageAttributes.format,
                         ),
                     isOriginalVariant = false,
                     lqip = variant.lqips,
@@ -242,7 +242,7 @@ class InMemoryAssetRepository(
         if (height != null && attributes.height != height) {
             return false
         }
-        if (mimeType != null && attributes.mimeType != mimeType) {
+        if (format != null && attributes.format != format) {
             return false
         }
         return true

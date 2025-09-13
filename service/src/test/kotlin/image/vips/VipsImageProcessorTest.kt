@@ -1,4 +1,4 @@
-package io.image
+package io.image.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
@@ -10,9 +10,8 @@ import image.model.ImageProperties
 import image.model.PreProcessingProperties
 import io.asset.AssetStreamContainer
 import io.aws.S3Properties
-import io.image.hash.ImagePreviewGenerator
-import io.image.hash.LQIPImplementation
-import io.image.vips.aspectRatio
+import io.image.lqip.ImagePreviewGenerator
+import io.image.lqip.LQIPImplementation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -82,9 +81,9 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.PNG.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.PNG, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
-            processedImage.attributes.mimeType shouldBe ImageFormat.PNG.mimeType
+            processedImage.attributes.format shouldBe ImageFormat.PNG
             processedImage.attributes.height shouldBe bufferedImage.height
             processedImage.attributes.width shouldBe bufferedImage.width
 
@@ -123,7 +122,7 @@ class VipsImageProcessorTest {
 
     @ParameterizedTest
     @EnumSource(ImageFormat::class)
-    fun `image is resized by height if enabled`(format: ImageFormat) =
+    fun `image is resized by height if enabled when preprocessing`(format: ImageFormat) =
         runTest {
             val maxHeight = 200
             val image =
@@ -158,10 +157,10 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, format.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, format, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.mimeType shouldBe format.mimeType
+            processedImage.attributes.format shouldBe format
             Tika().detect(outputBytes) shouldBe format.mimeType
             Vips.run { arena ->
                 val sourceVImage = VImage.newFromBytes(arena, image)
@@ -177,7 +176,7 @@ class VipsImageProcessorTest {
 
     @ParameterizedTest
     @EnumSource(ImageFormat::class)
-    fun `image is resized by width if enabled`(format: ImageFormat) =
+    fun `image is resized by width if enabled when preprocessing`(format: ImageFormat) =
         runTest {
             val maxWidth = 200
             val image =
@@ -212,10 +211,10 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, format.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, format, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.mimeType shouldBe format.mimeType
+            processedImage.attributes.format shouldBe format
             Tika().detect(outputBytes) shouldBe format.mimeType
             Vips.run { arena ->
                 val sourceVImage = VImage.newFromBytes(arena, image)
@@ -230,7 +229,7 @@ class VipsImageProcessorTest {
         }
 
     @Test
-    fun `image lqips are not generated if not enabled`() =
+    fun `image lqips are not generated if not enabled when preprocessing`() =
         runTest {
             val maxWidth = 200
             val image =
@@ -265,10 +264,10 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.mimeType shouldBe ImageFormat.JPEG.mimeType
+            processedImage.attributes.format shouldBe ImageFormat.JPEG
             Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
             processedImage.lqip.blurhash shouldBe null
             processedImage.lqip.thumbhash shouldBe null
@@ -276,7 +275,7 @@ class VipsImageProcessorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `image blurhash is generated regardless of whether preprocessing is enabled`(preprocessingEnabled: Boolean) =
+    fun `image blurhash is generated regardless of whether preprocessing is enabled when preprocessing`(preprocessingEnabled: Boolean) =
         runTest {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.use {
@@ -310,10 +309,10 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.mimeType shouldBe ImageFormat.JPEG.mimeType
+            processedImage.attributes.format shouldBe ImageFormat.JPEG
             Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
             processedImage.lqip.blurhash shouldNotBe null
             processedImage.lqip.thumbhash shouldBe null
@@ -327,7 +326,7 @@ class VipsImageProcessorTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `image thumbhash is generated regardless of whether preprocessing is enabled`(preprocessingEnabled: Boolean) =
+    fun `image thumbhash is generated regardless of whether preprocessing is enabled when preprocessing`(preprocessingEnabled: Boolean) =
         runTest {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.use {
@@ -361,10 +360,10 @@ class VipsImageProcessorTest {
                 async {
                     outputChannel.toInputStream().readAllBytes()
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG.mimeType, pathConfig, outputChannel)
+            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
             val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.mimeType shouldBe ImageFormat.JPEG.mimeType
+            processedImage.attributes.format shouldBe ImageFormat.JPEG
             Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
             processedImage.lqip.blurhash shouldBe null
             processedImage.lqip.thumbhash shouldNotBe null
@@ -376,14 +375,9 @@ class VipsImageProcessorTest {
 
     @ParameterizedTest
     @EnumSource(ImageFormat::class)
-    fun `image lqips are generated regardless of image format`(format: ImageFormat) =
+    fun `image lqips are generated regardless of image format when preprocessing`(format: ImageFormat) =
         runTest {
             testImageFormatConversion(ImageFormat.JPEG, format, LQIPImplementation.entries.toSet())
-        }
-
-    @Test
-    fun `image lqips are not modified when generating variant without color changes`() =
-        runTest {
         }
 
     private suspend fun testImageFormatConversion(
@@ -423,10 +417,10 @@ class VipsImageProcessorTest {
             async {
                 outputChannel.toInputStream().readAllBytes()
             }
-        val processedImage = vipsImageProcessor.preprocess(container, from.mimeType, pathConfig, outputChannel)
+        val processedImage = vipsImageProcessor.preprocess(container, from, pathConfig, outputChannel)
         val outputBytes = outputBytesDeferred.await()
 
-        processedImage.attributes.mimeType shouldBe to.mimeType
+        processedImage.attributes.format shouldBe to
         Tika().detect(outputBytes) shouldBe to.mimeType
         if (lqips.contains(LQIPImplementation.THUMBHASH)) {
             shouldNotThrowAny {

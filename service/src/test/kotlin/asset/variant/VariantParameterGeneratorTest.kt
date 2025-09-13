@@ -3,6 +3,7 @@ package io.asset.variant
 import asset.variant.ImageVariantAttributes
 import asset.variant.VariantParameterGenerator
 import image.model.ImageAttributes
+import image.model.ImageFormat
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
@@ -19,7 +20,7 @@ class VariantParameterGeneratorTest {
                 ImageVariantAttributes(
                     height = 100,
                     width = 100,
-                    mimeType = "image/jpeg",
+                    format = ImageFormat.JPEG,
                 ),
             )
         val (attributes, key) =
@@ -28,7 +29,7 @@ class VariantParameterGeneratorTest {
                     ImageAttributes(
                         height = 100,
                         width = 100,
-                        mimeType = "image/jpeg",
+                        format = ImageFormat.JPEG,
                     ),
             )
 
@@ -43,7 +44,7 @@ class VariantParameterGeneratorTest {
                 ImageVariantAttributes(
                     height = 100,
                     width = 100,
-                    mimeType = "image/jpeg",
+                    format = ImageFormat.JPEG,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -53,7 +54,7 @@ class VariantParameterGeneratorTest {
                     ImageAttributes(
                         height = 100,
                         width = 100,
-                        mimeType = "image/jpeg",
+                        format = ImageFormat.JPEG,
                     ),
             )
         val (attributes2, key2) =
@@ -62,7 +63,7 @@ class VariantParameterGeneratorTest {
                     ImageAttributes(
                         height = 100,
                         width = 100,
-                        mimeType = "image/jpeg",
+                        format = ImageFormat.JPEG,
                     ),
             )
 

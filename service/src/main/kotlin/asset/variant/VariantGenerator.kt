@@ -11,6 +11,7 @@ import io.asset.AssetStreamContainer
 import io.asset.handler.StoreAssetVariantDto
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
+import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,7 @@ class VariantGenerator(
     private val channel: Channel<VariantGenerationJob>,
 ) {
     private val exceptionHandler =
-        CoroutineExceptionHandler { context, exception ->
+        CoroutineExceptionHandler { _, exception ->
             logger.error("Variant generation failed", exception)
         }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
@@ -48,7 +49,7 @@ class VariantGenerator(
                     generateVariants(
                         treePath = job.treePath,
                         entryId = job.entryId,
-                        newVariantBucket = job.newVariantBucket,
+                        pathConfiguration = job.pathConfiguration,
                         requestedAttributes = job.requestedImageAttributes,
                     ).also {
                         job.deferredResult?.complete(it)
@@ -65,14 +66,14 @@ class VariantGenerator(
     suspend fun generateVariant(
         treePath: String,
         entryId: Long,
-        newVariantBucket: String,
+        pathConfiguration: PathConfiguration,
         requestedAttributes: RequestedImageAttributes,
-    ): AssetAndVariants = generateVariants(treePath, entryId, newVariantBucket, listOf(requestedAttributes))
+    ): AssetAndVariants = generateVariants(treePath, entryId, pathConfiguration, listOf(requestedAttributes))
 
     private suspend fun generateVariants(
         treePath: String,
         entryId: Long,
-        newVariantBucket: String,
+        pathConfiguration: PathConfiguration,
         requestedAttributes: List<RequestedImageAttributes>,
     ): AssetAndVariants =
         coroutineScope {
@@ -103,7 +104,7 @@ class VariantGenerator(
                 val processedAssetChannel = ByteChannel(true)
                 val persistResult =
                     async {
-                        objectStore.persist(newVariantBucket, processedAssetChannel)
+                        objectStore.persist(pathConfiguration.s3Properties.bucket, processedAssetChannel)
                     }
                 val newVariant =
                     imageProcessor.generateVariant(
@@ -111,6 +112,7 @@ class VariantGenerator(
                         requestedAttributes = request,
                         originalVariant = originalVariant,
                         outputChannel = processedAssetChannel,
+                        pathConfiguration = pathConfiguration,
                     )
                 fetchOriginalVariantJob.join()
 

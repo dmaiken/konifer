@@ -1,4 +1,4 @@
-package io.image.hash
+package io.image.lqip
 
 import com.vanniktech.blurhash.BlurHash
 import image.lqip.ThumbHash

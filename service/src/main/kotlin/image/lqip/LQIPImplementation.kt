@@ -1,4 +1,4 @@
-package io.image.hash
+package io.image.lqip
 
 enum class LQIPImplementation {
     BLURHASH,

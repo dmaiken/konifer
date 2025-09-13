@@ -1,8 +1,10 @@
 package asset.variant
 
 import config.testInMemory
+import image.model.ImageFormat
 import image.model.RequestedImageAttributes
 import io.asset.variant.VariantProfileRepository
+import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -34,7 +36,8 @@ class VariantProfileRepositoryTest {
                             RequestedImageAttributes(
                                 height = 10,
                                 width = 15,
-                                mimeType = "image/png",
+                                format = ImageFormat.PNG,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -53,7 +56,8 @@ class VariantProfileRepositoryTest {
                             RequestedImageAttributes(
                                 height = 10,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -71,7 +75,8 @@ class VariantProfileRepositoryTest {
                             RequestedImageAttributes(
                                 height = 10,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -89,7 +94,8 @@ class VariantProfileRepositoryTest {
                             RequestedImageAttributes(
                                 height = null,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -111,13 +117,15 @@ class VariantProfileRepositoryTest {
                             RequestedImageAttributes(
                                 height = null,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                         "medium" to
                             RequestedImageAttributes(
                                 height = 15,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),

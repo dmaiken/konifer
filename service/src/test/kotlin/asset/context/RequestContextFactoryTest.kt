@@ -1,9 +1,11 @@
 package io.asset.context
 
+import image.model.ImageFormat
 import image.model.ImageProperties
 import image.model.RequestedImageAttributes
 import io.asset.variant.VariantProfileRepository
 import io.aws.S3Properties
+import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -243,7 +245,8 @@ class RequestContextFactoryTest {
                     RequestedImageAttributes(
                         width = 10,
                         height = 20,
-                        mimeType = "image/png",
+                        format = ImageFormat.PNG,
+                        fit = Fit.SCALE,
                     ),
                 ),
                 arguments(
@@ -254,7 +257,8 @@ class RequestContextFactoryTest {
                     RequestedImageAttributes(
                         width = 10,
                         height = 20,
-                        mimeType = null,
+                        format = null,
+                        fit = Fit.SCALE,
                     ),
                 ),
                 arguments(
@@ -264,7 +268,8 @@ class RequestContextFactoryTest {
                     RequestedImageAttributes(
                         width = 10,
                         height = null,
-                        mimeType = null,
+                        format = null,
+                        fit = Fit.SCALE,
                     ),
                 ),
                 arguments(
@@ -274,7 +279,8 @@ class RequestContextFactoryTest {
                     RequestedImageAttributes(
                         width = null,
                         height = null,
-                        mimeType = "image/png",
+                        format = ImageFormat.PNG,
+                        fit = Fit.SCALE,
                     ),
                 ),
             )
@@ -333,7 +339,8 @@ class RequestContextFactoryTest {
             RequestedImageAttributes(
                 width = 10,
                 height = 20,
-                mimeType = "image/png",
+                format = ImageFormat.PNG,
+                fit = Fit.SCALE,
             )
         every {
             variantProfileRepository.fetch(profileName)
@@ -360,7 +367,8 @@ class RequestContextFactoryTest {
             RequestedImageAttributes(
                 width = 10,
                 height = 20,
-                mimeType = "image/png",
+                format = ImageFormat.PNG,
+                fit = Fit.SCALE,
             )
 
         val context =
@@ -377,7 +385,7 @@ class RequestContextFactoryTest {
         context.pathConfiguration shouldBe PathConfiguration.DEFAULT
         context.requestedImageAttributes?.height shouldBe 100
         context.requestedImageAttributes?.width shouldBe 500
-        context.requestedImageAttributes?.mimeType shouldBe "image/jpeg"
+        context.requestedImageAttributes?.format shouldBe ImageFormat.JPEG
     }
 
     @Test
