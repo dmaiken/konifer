@@ -5,11 +5,14 @@ import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
 import asset.variant.AssetVariant
-import asset.variant.ImageVariantAttributes
+import asset.variant.ImageVariantTransformations
 import asset.variant.VariantParameterGenerator
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
+import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.repository.InMemoryPathAdapter
+import io.asset.variant.ImageVariantAttributes
+import io.image.model.Fit
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
@@ -26,7 +29,7 @@ class InMemoryAssetRepository(
         val entryId = getNextEntryId(path)
         logger.info("Persisting asset at path: $path and entryId: $entryId")
         val key =
-            variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes).second
+            variantParameterGenerator.generateImageVariantTransformations(asset.attributes).second
         val assetAndVariants =
             AssetAndVariants(
                 asset =
@@ -42,15 +45,21 @@ class InMemoryAssetRepository(
                         AssetVariant(
                             objectStoreBucket = asset.persistResult.bucket,
                             objectStoreKey = asset.persistResult.key,
-                            attributes =
-                                ImageVariantAttributes(
-                                    height = asset.imageAttributes.height,
-                                    width = asset.imageAttributes.width,
-                                    format = asset.imageAttributes.format,
+                            attributes = ImageVariantAttributes(
+                                height = asset.attributes.height,
+                                width = asset.attributes.width,
+                                format = asset.attributes.format,
+                            ),
+                            transformations =
+                                ImageVariantTransformations(
+                                    height = asset.attributes.height,
+                                    width = asset.attributes.width,
+                                    format = asset.attributes.format,
+                                    fit = Fit.FIT
                                 ),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
-                            attributeKey = key,
+                            transformationKey = key,
                             createdAt = LocalDateTime.now(),
                         ),
                     ),
@@ -62,7 +71,7 @@ class InMemoryAssetRepository(
                     variants = it.variants.toMutableList(),
                 ),
             )
-            idReference.put(it.asset.id, it.asset)
+            idReference[it.asset.id] = it.asset
         }
     }
 
@@ -71,26 +80,32 @@ class InMemoryAssetRepository(
         return store[path]?.let { assets ->
             val asset = assets.first { it.asset.entryId == variant.entryId }
             val key =
-                variantParameterGenerator.generateImageVariantAttributes(variant.imageAttributes).second
-            if (asset.variants.any { it.attributeKey == key }) {
+                variantParameterGenerator.generateImageVariantTransformations(variant.attributes).second
+            if (asset.variants.any { it.transformationKey == key }) {
                 throw IllegalArgumentException(
                     "Variant already exists for asset with entry_id: ${variant.entryId} at path: $path " +
-                        "with attributes: ${variant.imageAttributes}",
+                        "with attributes: ${variant.attributes}",
                 )
             }
             val variant =
                 AssetVariant(
                     objectStoreBucket = variant.persistResult.bucket,
                     objectStoreKey = variant.persistResult.key,
-                    attributes =
-                        ImageVariantAttributes(
-                            height = variant.imageAttributes.height,
-                            width = variant.imageAttributes.width,
-                            format = variant.imageAttributes.format,
+                    attributes = ImageVariantAttributes(
+                        height = variant.attributes.height,
+                        width = variant.attributes.width,
+                        format = variant.attributes.format,
+                    ),
+                    transformations =
+                        ImageVariantTransformations(
+                            height = variant.transformation.height,
+                            width = variant.transformation.width,
+                            format = variant.transformation.format,
+                            fit = variant.transformation.fit
                         ),
                     isOriginalVariant = false,
                     lqip = variant.lqips,
-                    attributeKey = key,
+                    transformationKey = key,
                     createdAt = LocalDateTime.now(),
                 )
             asset.variants.add(variant)
@@ -106,19 +121,19 @@ class InMemoryAssetRepository(
     override suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        requestedImageAttributes: RequestedImageAttributes?,
+        transformation: Transformation?,
     ): AssetAndVariants? {
         return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.let { assets ->
             val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
             assets.firstOrNull { it.asset.entryId == resolvedEntryId }?.let { assetAndVariants ->
                 val variants =
-                    if (requestedImageAttributes == null) {
+                    if (transformation == null) {
                         assetAndVariants.variants
-                    } else if (requestedImageAttributes.isOriginalVariant()) {
+                    } else if (transformation.originalVariant) {
                         listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                     } else {
                         assetAndVariants.variants.firstOrNull { variant ->
-                            requestedImageAttributes.matchesImageAttributes(variant.attributes)
+                            transformation == variant.transformations
                         }?.let { matched ->
                             listOf(matched)
                         } ?: emptyList()
@@ -133,18 +148,18 @@ class InMemoryAssetRepository(
 
     override suspend fun fetchAllByPath(
         path: String,
-        requestedImageAttributes: RequestedImageAttributes?,
+        transformation: Transformation?,
     ): List<AssetAndVariants> {
         return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map {
                 assetAndVariants ->
             val variants =
-                if (requestedImageAttributes == null) {
+                if (transformation == null) {
                     assetAndVariants.variants
-                } else if (requestedImageAttributes.isOriginalVariant()) {
+                } else if (transformation.originalVariant) {
                     listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                 } else {
                     assetAndVariants.variants.firstOrNull { variant ->
-                        requestedImageAttributes.matchesImageAttributes(variant.attributes)
+                        transformation == variant.transformations
                     }?.let { matched ->
                         listOf(matched)
                     } ?: emptyList()
@@ -232,7 +247,7 @@ class InMemoryAssetRepository(
         return store[path]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
     }
 
-    private fun RequestedImageAttributes.matchesImageAttributes(attributes: ImageVariantAttributes): Boolean {
+    private fun RequestedImageTransformation.matchesImageAttributes(attributes: ImageVariantTransformations): Boolean {
         if (width != null && height != null) {
             return attributes.width == width || attributes.height == height
         }

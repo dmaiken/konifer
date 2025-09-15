@@ -7,11 +7,11 @@ import asset.repository.InMemoryAssetRepository
 import asset.store.InMemoryObjectStore
 import asset.variant.VariantParameterGenerator
 import image.VipsImageProcessor
-import image.model.ImageAttributes
+import image.model.Attributes
 import image.model.ImageFormat
 import image.model.ImageProperties
 import image.model.LQIPs
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
 import io.aws.S3Properties
 import io.image.lqip.ImagePreviewGenerator
 import io.image.model.Fit
@@ -83,8 +83,8 @@ class VariantGeneratorTest {
                                 type = "image/png",
                                 alt = "an image",
                             ),
-                        imageAttributes =
-                            ImageAttributes(
+                        attributes =
+                            Attributes(
                                 format = ImageFormat.PNG,
                                 width = bufferedImage.width,
                                 height = bufferedImage.height,
@@ -103,9 +103,9 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
                                 format = null,
@@ -121,7 +121,7 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.width
+                    it.transformations.height shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -135,9 +135,9 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
                                 format = null,
@@ -159,7 +159,7 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.width
+                    it.transformations.height shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe "different-bucket"
                 }
             }
@@ -173,15 +173,15 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
                             ),
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 50,
                                 format = ImageFormat.AVIF,
@@ -197,15 +197,15 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldBe 50
-                    it.attributes.width shouldNotBe bufferedImage.width
+                    it.transformations.height shouldBe 50
+                    it.transformations.width shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe BUCKET
                 }
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.height
-                    it.attributes.width shouldBe 50
-                    it.attributes.format shouldBe ImageFormat.AVIF
+                    it.transformations.height shouldNotBe bufferedImage.height
+                    it.transformations.width shouldBe 50
+                    it.transformations.format shouldBe ImageFormat.AVIF
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -218,8 +218,8 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        RequestedImageTransformation(
                             height = 50,
                             width = null,
                             format = null,
@@ -231,7 +231,7 @@ class VariantGeneratorTest {
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.attributes.height shouldNotBe bufferedImage.width
+                it.transformations.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe BUCKET
             }
         }
@@ -243,8 +243,8 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        RequestedImageTransformation(
                             height = 50,
                             width = null,
                             format = null,
@@ -262,7 +262,7 @@ class VariantGeneratorTest {
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.attributes.height shouldNotBe bufferedImage.width
+                it.transformations.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe "different-bucket"
             }
         }
@@ -274,8 +274,8 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = "does.not.exist",
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        RequestedImageTransformation(
                             height = 50,
                             width = null,
                             format = null,
@@ -294,7 +294,7 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes = listOf(),
+                    transformations = listOf(),
                     deferredResult = result,
                     pathConfiguration = PathConfiguration.DEFAULT,
                 )
@@ -313,9 +313,9 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
                                 format = null,

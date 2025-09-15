@@ -12,11 +12,17 @@ import io.properties.ValidatedProperties
 import kotlinx.serialization.Serializable
 
 data class ProcessedImage(
-    val attributes: ImageAttributes,
+    val attributes: Attributes,
+    val transformation: Transformation,
     val lqip: LQIPs,
 )
 
-data class RequestedImageAttributes(
+data class PreProcessedImage(
+    val attributes: Attributes,
+    val lqip: LQIPs,
+)
+
+data class RequestedImageTransformation(
     val originalVariant: Boolean = false,
     val width: Int?,
     val height: Int?,
@@ -25,7 +31,7 @@ data class RequestedImageAttributes(
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
-            RequestedImageAttributes(
+            RequestedImageTransformation(
                 originalVariant = true,
                 width = null,
                 height = null,
@@ -33,8 +39,8 @@ data class RequestedImageAttributes(
                 fit = Fit.SCALE,
             )
 
-        fun create(applicationConfig: ApplicationConfig): RequestedImageAttributes =
-            RequestedImageAttributes(
+        fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
+            RequestedImageTransformation(
                 originalVariant = false,
                 width = applicationConfig.tryGetString(WIDTH)?.toInt(),
                 height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
@@ -50,21 +56,52 @@ data class RequestedImageAttributes(
     }
 
     override fun validate() {
+        if (originalVariant) {
+            return
+        }
         if (width != null && width < 1) {
             throw IllegalArgumentException("Width cannot be < 1")
         }
         if (height != null && height < 1) {
             throw IllegalArgumentException("Height cannot be < 1")
         }
+        when (fit) {
+            Fit.SCALE -> {
+                if (height == null && width == null) {
+                    throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
+                }
+            }
+            Fit.FIT, Fit.STRETCH -> {
+                if (height == null || width == null) {
+                    throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
+                }
+            }
+        }
     }
 }
 
-data class ImageAttributes(
+data class Attributes(
+    val width: Int,
+    val height: Int,
+    val format: ImageFormat,
+)
+
+data class Transformation(
+    val originalVariant: Boolean = false,
     val width: Int,
     val height: Int,
     val fit: Fit = Fit.SCALE,
     val format: ImageFormat,
-)
+) {
+    companion object Factory {
+        val ORIGINAL_VARIANT = Transformation(
+            originalVariant = true,
+            width = 1,
+            height = 1,
+            format = ImageFormat.PNG
+        )
+    }
+}
 
 @Serializable
 data class LQIPs(

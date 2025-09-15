@@ -6,7 +6,7 @@ import asset.repository.AssetRepository
 import asset.store.ObjectStore
 import asset.variant.AssetVariant
 import image.VipsImageProcessor
-import image.model.RequestedImageAttributes
+import image.model.Transformation
 import io.asset.AssetStreamContainer
 import io.asset.handler.StoreAssetVariantDto
 import io.ktor.util.logging.KtorSimpleLogger
@@ -50,7 +50,7 @@ class VariantGenerator(
                         treePath = job.treePath,
                         entryId = job.entryId,
                         pathConfiguration = job.pathConfiguration,
-                        requestedAttributes = job.requestedImageAttributes,
+                        transformations = job.transformations,
                     ).also {
                         job.deferredResult?.complete(it)
                     }
@@ -67,22 +67,22 @@ class VariantGenerator(
         treePath: String,
         entryId: Long,
         pathConfiguration: PathConfiguration,
-        requestedAttributes: RequestedImageAttributes,
-    ): AssetAndVariants = generateVariants(treePath, entryId, pathConfiguration, listOf(requestedAttributes))
+        transformation: Transformation,
+    ): AssetAndVariants = generateVariants(treePath, entryId, pathConfiguration, listOf(transformation))
 
     private suspend fun generateVariants(
         treePath: String,
         entryId: Long,
         pathConfiguration: PathConfiguration,
-        requestedAttributes: List<RequestedImageAttributes>,
+        transformations: List<Transformation>,
     ): AssetAndVariants =
         coroutineScope {
-            if (requestedAttributes.isEmpty()) {
+            if (transformations.isEmpty()) {
                 logger.info("Got request to create variant for path: $treePath and entryId: $entryId but no specified variants")
                 throw IllegalArgumentException("Job must contain requested image attributes")
             }
             val original =
-                assetRepository.fetchByPath(treePath, entryId, RequestedImageAttributes.ORIGINAL_VARIANT)
+                assetRepository.fetchByPath(treePath, entryId, Transformation.ORIGINAL_VARIANT)
                     ?: throw IllegalStateException("No asset found for: $treePath and entryId: $entryId")
 
             val originalVariant = original.getOriginalVariant()
@@ -95,7 +95,7 @@ class VariantGenerator(
 
             var asset: Asset? = null
             val variants = mutableListOf<AssetVariant>()
-            requestedAttributes.map { request ->
+            transformations.map { request ->
                 val originalVariantChannel = ByteChannel(true)
                 val fetchOriginalVariantJob =
                     launch {
@@ -109,7 +109,7 @@ class VariantGenerator(
                 val newVariant =
                     imageProcessor.generateVariant(
                         source = AssetStreamContainer(originalVariantChannel),
-                        requestedAttributes = request,
+                        transformation = request,
                         originalVariant = originalVariant,
                         outputChannel = processedAssetChannel,
                         pathConfiguration = pathConfiguration,
@@ -122,8 +122,9 @@ class VariantGenerator(
                             path = original.asset.path,
                             entryId = original.asset.entryId,
                             persistResult = persistResult.await(),
-                            imageAttributes = newVariant.attributes,
+                            attributes = newVariant.attributes,
                             lqips = newVariant.lqip,
+                            transformation = newVariant.transformation
                         ),
                     )
                 if (asset == null) {

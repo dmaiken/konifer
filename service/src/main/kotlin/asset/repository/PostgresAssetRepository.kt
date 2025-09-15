@@ -4,9 +4,12 @@ import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
 import asset.variant.VariantParameterGenerator
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.repository.PathAdapter
+import io.asset.variant.ImageVariantAttributes
+import io.asset.variant.VariantUtils.requiresOriginalToQueryVariant
+import io.image.DimensionCalculator.calculateDimensions
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
@@ -26,7 +29,7 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
-import tessa.jooq.indexes.ASSET_VARIANT_ATTRIBUTES_UQ
+import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATIONS_UQ
 import tessa.jooq.tables.records.AssetTreeRecord
 import tessa.jooq.tables.references.ASSET_TREE
 import tessa.jooq.tables.references.ASSET_VARIANT
@@ -43,7 +46,8 @@ class PostgresAssetRepository(
         val assetId = UUID.randomUUID()
         val now = LocalDateTime.now()
         val treePath = PathAdapter.toTreePathFromUriPath(asset.path)
-        val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(asset.imageAttributes)
+        val (transformations, transformationKey) = variantParameterGenerator.generateImageVariantTransformations(asset.attributes)
+        val attributes = variantParameterGenerator.generateImageVariantAttributes(asset.attributes)
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
@@ -65,7 +69,8 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
                     .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
-                    .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
+                    .set(ASSET_VARIANT.TRANSFORMATIONS, JSONB.valueOf(transformations))
+                    .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationKey)
                     .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
                     .set(ASSET_VARIANT.CREATED_AT, now)
@@ -84,14 +89,15 @@ class PostgresAssetRepository(
                     trx.dsl(),
                     treePath,
                     variant.entryId,
-                    RequestedImageAttributes.ORIGINAL_VARIANT,
+                    RequestedImageTransformation.ORIGINAL_VARIANT,
                 )?.into(AssetTreeRecord::class.java)
             if (asset == null) {
                 throw IllegalArgumentException(
                     "Asset with path: $treePath and entry id: ${variant.entryId} not found in database",
                 )
             }
-            val (attributes, attributesKey) = variantParameterGenerator.generateImageVariantAttributes(variant.imageAttributes)
+            val (transformations, transformationsKey) = variantParameterGenerator.generateImageVariantTransformations(variant.transformation)
+            val attributes = variantParameterGenerator.generateImageVariantAttributes(variant.attributes)
             val lqip = Json.encodeToString(variant.lqips)
 
             val persistedVariant =
@@ -102,17 +108,18 @@ class PostgresAssetRepository(
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.persistResult.key)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
-                        .set(ASSET_VARIANT.ATTRIBUTES_KEY, attributesKey)
+                        .set(ASSET_VARIANT.TRANSFORMATIONS, JSONB.valueOf(transformations))
+                        .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationsKey)
                         .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
                         .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
                         .returning()
                         .awaitFirst()
                 } catch (e: IntegrityConstraintViolationException) {
-                    if (e.message?.contains(ASSET_VARIANT_ATTRIBUTES_UQ.name) == true) {
+                    if (e.message?.contains(ASSET_VARIANT_TRANSFORMATIONS_UQ.name) == true) {
                         throw IllegalArgumentException(
                             "Variant already exists for asset with entry_id: ${variant.entryId} at " +
-                                "path: $treePath and attributes: ${variant.imageAttributes}",
+                                "path: $treePath and attributes: ${variant.attributes}",
                         )
                     }
                     throw e
@@ -125,11 +132,11 @@ class PostgresAssetRepository(
     override suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        requestedImageAttributes: RequestedImageAttributes?,
+        requestedImageTransformation: RequestedImageTransformation?,
     ): AssetAndVariants? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return if (requestedImageAttributes != null) {
-            fetchWithVariant(dslContext, treePath, entryId, requestedImageAttributes)?.let { record ->
+        return if (requestedImageTransformation != null) {
+            fetchWithVariant(dslContext, treePath, entryId, requestedImageTransformation)?.let { record ->
                 AssetAndVariants.from(listOf(record))
             }
         } else {
@@ -140,11 +147,11 @@ class PostgresAssetRepository(
 
     override suspend fun fetchAllByPath(
         path: String,
-        requestedImageAttributes: RequestedImageAttributes?,
+        requestedImageTransformation: RequestedImageTransformation?,
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return if (requestedImageAttributes != null) {
-            fetchAllWithVariant(dslContext, treePath, requestedImageAttributes)
+        return if (requestedImageTransformation != null) {
+            fetchAllWithVariant(dslContext, treePath, requestedImageTransformation)
                 .groupBy { it.get(ASSET_TREE.ID) }
                 .values.mapNotNull { AssetAndVariants.from(it) }
         } else {
@@ -257,7 +264,7 @@ class PostgresAssetRepository(
         context: DSLContext,
         treePath: Ltree,
         entryId: Long?,
-        requestedImageAttributes: RequestedImageAttributes,
+        requestedImageTransformation: RequestedImageTransformation,
     ): Record? {
         val entryIdCondition =
             entryId?.let {
@@ -270,8 +277,34 @@ class PostgresAssetRepository(
 
         return context.select()
             .from(ASSET_TREE)
-            .join(ASSET_VARIANT).on(calculateJoinVariantConditions(requestedImageAttributes))
+            .join(ASSET_VARIANT)
+            .on(calculateJoinVariantConditions(context, treePath, entryId, requestedImageTransformation))
             .where(ASSET_TREE.PATH.eq(treePath))
+            .and(entryIdCondition)
+            .orderBy(*orderConditions)
+            .limit(1)
+            .awaitFirstOrNull()
+    }
+
+    private suspend fun fetchWithOriginalVariant(
+        context: DSLContext,
+        treePath: Ltree,
+        entryId: Long?
+    ): Record? {
+        val entryIdCondition =
+            entryId?.let {
+                ASSET_TREE.ENTRY_ID.eq(entryId)
+            } ?: noCondition()
+        val orderConditions =
+            entryId?.let {
+                arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_VARIANT.CREATED_AT.desc())
+            } ?: arrayOf(ASSET_VARIANT.CREATED_AT.desc())
+
+        return context.select()
+            .from(ASSET_TREE)
+            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
+            .where(ASSET_TREE.PATH.eq(treePath))
+            .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
             .and(entryIdCondition)
             .orderBy(*orderConditions)
             .limit(1)
@@ -281,39 +314,42 @@ class PostgresAssetRepository(
     private suspend fun fetchAllWithVariant(
         context: DSLContext,
         treePath: Ltree,
-        requestedImageAttributes: RequestedImageAttributes,
+        requestedImageTransformation: RequestedImageTransformation,
     ): List<Record> {
         return context.select()
             .from(ASSET_TREE)
             .leftJoin(ASSET_VARIANT)
-            .on(calculateJoinVariantConditions(requestedImageAttributes))
+            .on(calculateJoinVariantConditions(context, treePath, null, requestedImageTransformation))
             .where(ASSET_TREE.PATH.eq(treePath))
             .orderBy(ASSET_VARIANT.CREATED_AT.desc())
             .asFlow()
             .toList()
     }
 
-    private fun calculateJoinVariantConditions(requested: RequestedImageAttributes): Condition {
+    private suspend fun calculateJoinVariantConditions(context: DSLContext, treePath: Ltree, entryId: Long?, requested: RequestedImageTransformation): Condition {
         var condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
         if (requested.isOriginalVariant()) {
             return condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
         }
-
-        if (requested.width != null && requested.height != null) {
-            val widthCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString())
-            val heightCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString())
-
-            condition =
-                condition.and(
-                    condition(widthCondition.or(heightCondition)),
-                )
-        } else if (requested.width != null) {
-            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(requested.width.toString()))
-        } else if (requested.height != null) {
-            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(requested.height.toString()))
+        val originalAttributes = if (requiresOriginalToQueryVariant(requested)) {
+            Json.decodeFromString<ImageVariantAttributes>(requireNotNull(fetchWithOriginalVariant(context, treePath, entryId)).getNonNull(ASSET_VARIANT.ATTRIBUTES).data())
+        } else {
+            null
         }
+        val (width, height) = calculateDimensions(
+            originalAttributes = originalAttributes,
+            width = requested.width,
+            height = requested.height,
+            fit = requested.fit,
+        )
+        val widthCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "width").eq(width.toString())
+        val heightCondition = jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "height").eq(height.toString())
+        condition =
+            condition.and(
+                condition(widthCondition.or(heightCondition)),
+            )
         requested.format?.let {
-            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "mimeType").eq(it.mimeType))
+            condition = condition.and(jsonbGetAttributeAsText(ASSET_VARIANT.ATTRIBUTES, "format").eq(it.name))
         }
 
         return condition

@@ -61,7 +61,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -92,7 +92,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -123,7 +123,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -154,7 +154,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -185,7 +185,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -216,7 +216,7 @@ class ResizeTest {
             val processedStream = ByteArrayOutputStream()
             processedImage.writeToStream(processedStream, ".${format.extension}")
 
-            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan hammingDistanceCeiling
+            PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
         }
     }
 

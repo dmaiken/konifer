@@ -3,7 +3,7 @@ package asset.repository
 import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
-import image.model.RequestedImageAttributes
+import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 
 interface AssetRepository {
@@ -14,12 +14,12 @@ interface AssetRepository {
     suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        requestedImageAttributes: RequestedImageAttributes?,
+        transformation: Transformation?,
     ): AssetAndVariants?
 
     suspend fun fetchAllByPath(
         path: String,
-        requestedImageAttributes: RequestedImageAttributes?,
+        transformation: Transformation?,
     ): List<AssetAndVariants>
 
     suspend fun deleteAssetByPath(

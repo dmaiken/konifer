@@ -18,7 +18,6 @@ enum class Fit {
      * stretch to fit exactly, ignores aspect ratio.
      */
     STRETCH,
-
     ;
 
     companion object Factory {
@@ -34,5 +33,7 @@ enum class Fit {
             parameters[parameterName]?.let {
                 valueOf(it.uppercase())
             }
+
+        val default = SCALE
     }
 }

@@ -1,12 +1,13 @@
 package io.asset.context
 
 import image.model.ImageFormat
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
+import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.image.model.Fit
 import io.ktor.http.Parameters
@@ -18,6 +19,7 @@ import io.properties.validateAndCreate
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantProfileRepository: VariantProfileRepository,
+    private val requestedTransformationNormalizer: RequestedTransformationNormalizer
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -48,7 +50,7 @@ class RequestContextFactory(
         )
     }
 
-    fun fromGetRequest(
+    suspend fun fromGetRequest(
         path: String,
         queryParameters: Parameters,
     ): QueryRequestContext {
@@ -63,7 +65,11 @@ class RequestContextFactory(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
             modifiers = queryModifiers,
-            requestedImageAttributes = requestedImageAttributes,
+            transformation = requestedTransformationNormalizer.normalize(
+                treePath = segments.first(),
+                entryId = queryModifiers.entryId,
+                requested = requestedImageAttributes
+            ),
         )
     }
 
@@ -217,7 +223,7 @@ class RequestContextFactory(
         return queryModifiers
     }
 
-    private fun extractRequestedImageAttributes(parameters: Parameters): RequestedImageAttributes? {
+    private fun extractRequestedImageAttributes(parameters: Parameters): RequestedImageTransformation? {
         val variantProfile =
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
@@ -226,11 +232,11 @@ class RequestContextFactory(
             null
         } else {
             validateAndCreate {
-                RequestedImageAttributes(
+                RequestedImageTransformation(
                     width = parameters[WIDTH]?.toIntOrNull() ?: variantProfile?.width,
                     height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
                     format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
-                    fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.SCALE,
+                    fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                 )
             }
         }

@@ -3,6 +3,7 @@ package io.image.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsSize
+import io.image.DimensionCalculator.calculateDimensions
 import io.image.model.Fit
 import io.image.vips.VipsOption.VIPS_OPTION_CROP
 import io.image.vips.VipsOption.VIPS_OPTION_HEIGHT
@@ -75,33 +76,4 @@ class Resize(
 
         return false
     }
-
-    private fun calculateDimensions(
-        image: VImage,
-        width: Int?,
-        height: Int?,
-        fit: Fit,
-    ): Pair<Int, Int> =
-        when (fit) {
-            Fit.SCALE -> {
-                val widthRatio =
-                    width?.let {
-                        it.toDouble() / image.width
-                    } ?: 1.0
-                val heightRatio =
-                    height?.let {
-                        it.toDouble() / image.height
-                    } ?: 1.0
-                Pair((image.width * widthRatio).toInt(), (image.height * heightRatio).toInt())
-            }
-            Fit.FIT, Fit.STRETCH ->
-                Pair(
-                    requireNotNull(width) {
-                        "Width must be specified if fit is '${Fit.FIT.name.lowercase()}' or '${Fit.STRETCH.name.lowercase()}'"
-                    },
-                    requireNotNull(height) {
-                        "Height must be specified if fit is '${Fit.FIT.name.lowercase()}' or '${Fit.STRETCH.name.lowercase()}'"
-                    },
-                )
-        }
 }

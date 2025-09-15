@@ -3,10 +3,11 @@ package asset.repository
 import asset.handler.StoreAssetDto
 import asset.model.StoreAssetRequest
 import asset.store.PersistResult
-import image.model.ImageAttributes
+import image.model.Attributes
 import image.model.ImageFormat
 import image.model.LQIPs
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
+import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -37,7 +38,7 @@ abstract class AssetRepositoryTest {
                 arguments(
                     named(
                         "only height",
-                        RequestedImageAttributes(
+                        RequestedImageTransformation(
                             height = 10,
                             width = null,
                             format = null,
@@ -48,7 +49,7 @@ abstract class AssetRepositoryTest {
                 arguments(
                     named(
                         "only width",
-                        RequestedImageAttributes(
+                        RequestedImageTransformation(
                             height = null,
                             width = 10,
                             format = null,
@@ -59,7 +60,7 @@ abstract class AssetRepositoryTest {
                 arguments(
                     named(
                         "height and width but only one matches",
-                        RequestedImageAttributes(
+                        RequestedImageTransformation(
                             height = 10,
                             width = 5,
                             format = null,
@@ -70,7 +71,7 @@ abstract class AssetRepositoryTest {
                 arguments(
                     named(
                         "height and width but only one matches with mimeType",
-                        RequestedImageAttributes(
+                        RequestedImageTransformation(
                             height = 10,
                             width = 5,
                             format = ImageFormat.PNG,
@@ -81,7 +82,7 @@ abstract class AssetRepositoryTest {
                 arguments(
                     named(
                         "exact match",
-                        RequestedImageAttributes(
+                        RequestedImageTransformation(
                             height = 10,
                             width = 10,
                             format = ImageFormat.PNG,
@@ -160,7 +161,7 @@ abstract class AssetRepositoryTest {
             repository.store(dto1)
             val asset2 = repository.store(dto2)
 
-            repository.fetchByPath("/users/123", entryId = null, requestedImageAttributes = null) shouldBe asset2
+            repository.fetchByPath("/users/123", entryId = null, transformation = null) shouldBe asset2
         }
 
     @Test
@@ -171,14 +172,14 @@ abstract class AssetRepositoryTest {
             val assetAndVariant1 = repository.store(dto1)
             val assetAndVariant2 = repository.store(dto2)
 
-            repository.fetchByPath("/users/123", entryId = 0, requestedImageAttributes = null) shouldBe assetAndVariant1
-            repository.fetchByPath("/users/123", entryId = 1, requestedImageAttributes = null) shouldBe assetAndVariant2
+            repository.fetchByPath("/users/123", entryId = 0, transformation = null) shouldBe assetAndVariant1
+            repository.fetchByPath("/users/123", entryId = 1, transformation = null) shouldBe assetAndVariant2
         }
 
     @Test
     fun `fetchByPath returns null if there is no asset in path`() =
         runTest {
-            repository.fetchByPath("/users/123", entryId = null, requestedImageAttributes = null) shouldBe null
+            repository.fetchByPath("/users/123", entryId = null, transformation = null) shouldBe null
         }
 
     @Test
@@ -186,12 +187,12 @@ abstract class AssetRepositoryTest {
         runTest {
             val dto = createAssetDto("/users/123")
             repository.store(dto)
-            repository.fetchByPath("/users/123", entryId = 1, requestedImageAttributes = null) shouldBe null
+            repository.fetchByPath("/users/123", entryId = 1, transformation = null) shouldBe null
         }
 
     @ParameterizedTest
     @MethodSource("requestVariantSource")
-    fun `fetchByPath returns variant based on requested attributes`(requested: RequestedImageAttributes) =
+    fun `fetchByPath returns variant based on requested transformation`(requested: RequestedImageTransformation) =
         runTest {
             val dto = createAssetDto("/users/123")
             val assetAndVariants = repository.store(dto)
@@ -204,12 +205,17 @@ abstract class AssetRepositoryTest {
                             key = UUID.randomUUID().toString(),
                             bucket = UUID.randomUUID().toString(),
                         ),
-                    imageAttributes =
-                        ImageAttributes(
+                    attributes =
+                        Attributes(
                             height = 10,
                             width = 10,
                             format = ImageFormat.PNG,
                         ),
+                    transformation = Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                    ),
                     lqips = LQIPs.NONE,
                 )
             val persistedVariant = repository.storeVariant(variant)
@@ -218,10 +224,15 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = assetAndVariants.asset.path,
                     entryId = assetAndVariants.asset.entryId,
-                    requestedImageAttributes = requested,
+                    transformation = requested,
                 )
             fetchedVariant shouldBe persistedVariant
         }
+
+    @Test
+    fun `fetchByPath returns original variant if querying by format only`() = runTest {
+
+    }
 
     @Test
     fun `fetchAllByPath returns asset at path`() =
@@ -256,8 +267,8 @@ abstract class AssetRepositoryTest {
                         bucket = "bucket",
                         key = UUID.randomUUID().toString(),
                     )
-                val imageAttributes =
-                    ImageAttributes(
+                val attributes =
+                    Attributes(
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
@@ -268,20 +279,25 @@ abstract class AssetRepositoryTest {
                         path = persistedAssetAndVariants.asset.path,
                         entryId = persistedAssetAndVariants.asset.entryId,
                         persistResult = persistResult,
-                        imageAttributes = imageAttributes,
+                        attributes = attributes,
+                        transformation = Transformation(
+                            height = 10,
+                            width = 10,
+                            format = ImageFormat.PNG,
+                        ),
                         lqips = LQIPs.NONE,
                     ),
                 )
             }
-            val requestedImageAttributes =
-                RequestedImageAttributes(
+            val requestedImageTransformation =
+                RequestedImageTransformation(
                     width = 8,
                     height = 5,
                     format = null,
                     fit = Fit.SCALE,
                 )
 
-            val fetched = repository.fetchAllByPath("/users/123", requestedImageAttributes)
+            val fetched = repository.fetchAllByPath("/users/123", requestedImageTransformation)
             fetched shouldHaveSize 3
             fetched.forAll {
                 it.variants shouldHaveSize 0
@@ -301,8 +317,8 @@ abstract class AssetRepositoryTest {
                         bucket = "bucket",
                         key = UUID.randomUUID().toString(),
                     )
-                val imageAttributes =
-                    ImageAttributes(
+                val attributes =
+                    Attributes(
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
@@ -313,26 +329,31 @@ abstract class AssetRepositoryTest {
                         path = persistedAssetAndVariants.asset.path,
                         entryId = persistedAssetAndVariants.asset.entryId,
                         persistResult = persistResult,
-                        imageAttributes = imageAttributes,
+                        attributes = attributes,
+                        transformation = Transformation(
+                            height = 10,
+                            width = 10,
+                            format = ImageFormat.PNG,
+                        ),
                         lqips = LQIPs.NONE,
                     ),
                 )
             }
-            val requestedImageAttributes =
-                RequestedImageAttributes(
+            val requestedImageTransformation =
+                RequestedImageTransformation(
                     width = 10,
                     height = null,
                     format = null,
                     fit = Fit.SCALE,
                 )
 
-            val fetched = repository.fetchAllByPath("/users/123", requestedImageAttributes)
+            val fetched = repository.fetchAllByPath("/users/123", requestedImageTransformation)
             fetched shouldHaveSize 3
             fetched.forAll {
                 it.variants shouldHaveSize 1
                 it.variants.first().apply {
-                    attributes.height shouldBe 10
-                    attributes.height shouldBe 10
+                    transformations.height shouldBe 10
+                    transformations.height shouldBe 10
                     isOriginalVariant shouldBe false
                 }
             }
@@ -351,8 +372,8 @@ abstract class AssetRepositoryTest {
                         bucket = "bucket",
                         key = UUID.randomUUID().toString(),
                     )
-                val imageAttributes =
-                    ImageAttributes(
+                val attributes =
+                    Attributes(
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
@@ -363,7 +384,12 @@ abstract class AssetRepositoryTest {
                         path = persistedAssetAndVariants.asset.path,
                         entryId = persistedAssetAndVariants.asset.entryId,
                         persistResult = persistResult,
-                        imageAttributes = imageAttributes,
+                        attributes = attributes,
+                        transformation = Transformation(
+                            height = 10,
+                            width = 10,
+                            format = ImageFormat.PNG,
+                        ),
                         lqips = LQIPs.NONE,
                     ),
                 )
@@ -374,7 +400,7 @@ abstract class AssetRepositoryTest {
             fetched.forAll {
                 it.variants shouldHaveSize 2
                 it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
-                it.variants.find { variant -> variant.attributes.height == 10 && variant.attributes.width == 10 } shouldNotBe null
+                it.variants.find { variant -> variant.transformations.height == 10 && variant.transformations.width == 10 } shouldNotBe null
             }
         }
 
@@ -392,7 +418,7 @@ abstract class AssetRepositoryTest {
             repository.deleteAssetByPath("/users/123")
 
             repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null) shouldBe null
-            repository.fetchByPath("/users/123", entryId = null, requestedImageAttributes = null) shouldBe null
+            repository.fetchByPath("/users/123", entryId = null, transformation = null) shouldBe null
         }
 
     @Test
@@ -491,8 +517,8 @@ abstract class AssetRepositoryTest {
                     bucket = "bucket",
                     key = "key",
                 )
-            val imageAttributes =
-                ImageAttributes(
+            val attributes =
+                Attributes(
                     width = 10,
                     height = 10,
                     format = ImageFormat.PNG,
@@ -504,16 +530,21 @@ abstract class AssetRepositoryTest {
                         path = persistedAssetAndVariants.asset.path,
                         entryId = persistedAssetAndVariants.asset.entryId,
                         persistResult = persistResult,
-                        imageAttributes = imageAttributes,
+                        attributes = attributes,
+                        transformation = Transformation(
+                            height = 10,
+                            width = 10,
+                            format = ImageFormat.PNG,
+                        ),
                         lqips = LQIPs.NONE,
                     ),
                 )
             newVariant.asset shouldBe persistedAssetAndVariants.asset
             newVariant.variants shouldHaveSize 1
             newVariant.variants.first().apply {
-                attributes.height shouldBe imageAttributes.height
-                attributes.width shouldBe imageAttributes.width
-                attributes.format shouldBe imageAttributes.format
+                attributes.height shouldBe attributes.height
+                attributes.width shouldBe attributes.width
+                attributes.format shouldBe attributes.format
                 objectStoreBucket shouldBe persistResult.bucket
                 objectStoreKey shouldBe persistResult.key
                 isOriginalVariant shouldBe false
@@ -538,8 +569,8 @@ abstract class AssetRepositoryTest {
                     bucket = "bucket",
                     key = "key",
                 )
-            val imageAttributes =
-                ImageAttributes(
+            val attributes =
+                Attributes(
                     width = 100,
                     height = 100,
                     format = ImageFormat.PNG,
@@ -551,7 +582,12 @@ abstract class AssetRepositoryTest {
                         path = "path/does/not/exist",
                         entryId = 1,
                         persistResult = persistResult,
-                        imageAttributes = imageAttributes,
+                        attributes = attributes,
+                        transformation = Transformation(
+                            height = 100,
+                            width = 100,
+                            format = ImageFormat.PNG,
+                        ),
                         lqips = LQIPs.NONE,
                     ),
                 )
@@ -569,8 +605,8 @@ abstract class AssetRepositoryTest {
                     bucket = "bucket",
                     key = "key",
                 )
-            val imageAttributes =
-                ImageAttributes(
+            val attributes =
+                Attributes(
                     width = 50,
                     height = 100,
                     format = ImageFormat.PNG,
@@ -581,7 +617,12 @@ abstract class AssetRepositoryTest {
                     path = persistedAssetAndVariants.asset.path,
                     entryId = persistedAssetAndVariants.asset.entryId,
                     persistResult = persistResult,
-                    imageAttributes = imageAttributes,
+                    attributes = attributes,
+                    transformation = Transformation(
+                        height = 50,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                    ),
                     lqips = LQIPs.NONE,
                 )
             val newVariant = repository.storeVariant(variantDto)
@@ -589,9 +630,9 @@ abstract class AssetRepositoryTest {
             newVariant.asset shouldBe persistedAssetAndVariants.asset
             newVariant.variants shouldHaveSize 1
             newVariant.variants.first { !it.isOriginalVariant }.apply {
-                attributes.height shouldBe imageAttributes.height
-                attributes.width shouldBe imageAttributes.width
-                attributes.format shouldBe imageAttributes.format
+                attributes.height shouldBe attributes.height
+                attributes.width shouldBe attributes.width
+                attributes.format shouldBe attributes.format
                 objectStoreBucket shouldBe persistResult.bucket
                 objectStoreKey shouldBe persistResult.key
                 isOriginalVariant shouldBe false
@@ -611,8 +652,8 @@ abstract class AssetRepositoryTest {
                     type = "image/png",
                     alt = "an image",
                 ),
-            imageAttributes =
-                ImageAttributes(
+            attributes =
+                Attributes(
                     format = ImageFormat.PNG,
                     width = 100,
                     height = 100,

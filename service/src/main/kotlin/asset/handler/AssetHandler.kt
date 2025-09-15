@@ -8,7 +8,6 @@ import asset.store.ObjectStore
 import image.InvalidImageException
 import image.VipsImageProcessor
 import image.model.ImageFormat
-import image.model.RequestedImageAttributes
 import io.asset.AssetStreamContainer
 import io.asset.context.ContentTypeNotPermittedException
 import io.asset.context.QueryRequestContext
@@ -59,7 +58,7 @@ class AssetHandler(
                         request = deferredRequest.await(),
                         mimeType = format.mimeType,
                         path = context.path,
-                        imageAttributes = preProcessed.attributes,
+                        attributes = preProcessed.attributes,
                         persistResult = persistResult.await(),
                         lqips = preProcessed.lqip,
                     ),
@@ -78,7 +77,7 @@ class AssetHandler(
                         VariantGenerationJob(
                             treePath = response.assetAndVariants.asset.path,
                             entryId = response.assetAndVariants.asset.entryId,
-                            requestedImageAttributes = variants,
+                            transformations = variants,
                             pathConfiguration = context.pathConfiguration,
                         ),
                     )
@@ -103,32 +102,26 @@ class AssetHandler(
         generateVariant: Boolean,
     ): Pair<AssetAndVariants, Boolean>? {
         val entryId = context.modifiers.entryId
-        logger.info("Fetching asset info by path: ${context.path} with attributes: ${context.requestedImageAttributes}")
+        logger.info("Fetching asset info by path: ${context.path} with attributes: ${context.transformation}")
 
         val assetAndVariants =
-            assetRepository.fetchByPath(context.path, entryId, context.requestedImageAttributes) ?: return null
+            assetRepository.fetchByPath(context.path, entryId, context.transformation) ?: return null
         if (!generateVariant) {
             return Pair(assetAndVariants, true)
         }
 
-        return if (assetAndVariants.variants.isEmpty() && context.requestedImageAttributes != null) {
+        return if (assetAndVariants.variants.isEmpty() && context.transformation != null) {
             logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
-            val requestedImageFormat =
-                context.requestedImageAttributes.format ?: assetRepository.fetchByPath(
-                    context.path, entryId, RequestedImageAttributes.ORIGINAL_VARIANT,
-                )?.getOriginalVariant()?.attributes?.format ?: throw IllegalStateException(
-                    "No original variant found for asset at path: ${context.path} and entryId: $entryId",
-                )
             context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(requestedImageFormat.mimeType)) {
-                    throw ContentTypeNotPermittedException("Content type: $requestedImageFormat not permitted")
+                if (!it.contains(context.transformation.format.mimeType)) {
+                    throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
                 }
             }
             return variantGenerator.generateVariant(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
                 pathConfiguration = context.pathConfiguration,
-                requestedAttributes = context.requestedImageAttributes,
+                transformation = context.transformation,
             ).let {
                 Pair(it, false)
             }

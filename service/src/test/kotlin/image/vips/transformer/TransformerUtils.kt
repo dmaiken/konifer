@@ -1,3 +1,3 @@
 package io.image.vips.transformer
 
-val hammingDistanceCeiling = 12
+const val HAMMING_DISTANCE_CEILING = 12

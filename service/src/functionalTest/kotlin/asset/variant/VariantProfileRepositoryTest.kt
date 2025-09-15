@@ -2,7 +2,7 @@ package asset.variant
 
 import config.testInMemory
 import image.model.ImageFormat
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
 import io.asset.variant.VariantProfileRepository
 import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -33,7 +33,7 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = 15,
                                 format = ImageFormat.PNG,
@@ -53,7 +53,7 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = 15,
                                 format = null,
@@ -72,7 +72,7 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = null,
                                 format = null,
@@ -91,7 +91,7 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 15,
                                 format = null,
@@ -114,14 +114,14 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 15,
                                 format = null,
                                 fit = Fit.SCALE,
                             ),
                         "medium" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 15,
                                 width = null,
                                 format = null,
@@ -207,7 +207,7 @@ class VariantProfileRepositoryTest {
     @MethodSource("validProfilesSource")
     fun `can populate variant profiles`(
         config: String,
-        expectedProfiles: Map<String, RequestedImageAttributes>,
+        expectedProfiles: Map<String, RequestedImageTransformation>,
     ) = testInMemory(config) {
         application {
             val repository = VariantProfileRepository(environment.config)
