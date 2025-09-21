@@ -34,25 +34,29 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var attributes: JSONB?
+    open var transformation: JSONB?
         set(value): Unit = set(4, value)
         get(): JSONB? = get(4) as JSONB?
 
-    open var attributesKey: Long?
+    open var transformationKey: Long?
         set(value): Unit = set(5, value)
         get(): Long? = get(5) as Long?
 
-    open var lqip: JSONB?
+    open var attributes: JSONB?
         set(value): Unit = set(6, value)
         get(): JSONB? = get(6) as JSONB?
 
-    open var originalVariant: Boolean?
+    open var lqip: JSONB?
         set(value): Unit = set(7, value)
-        get(): Boolean? = get(7) as Boolean?
+        get(): JSONB? = get(7) as JSONB?
+
+    open var originalVariant: Boolean?
+        set(value): Unit = set(8, value)
+        get(): Boolean? = get(8) as Boolean?
 
     open var createdAt: LocalDateTime?
-        set(value): Unit = set(8, value)
-        get(): LocalDateTime? = get(8) as LocalDateTime?
+        set(value): Unit = set(9, value)
+        get(): LocalDateTime? = get(9) as LocalDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -63,13 +67,14 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, attributes: JSONB? = null, attributesKey: Long? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, transformationKey: Long? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
         this.objectStoreKey = objectStoreKey
+        this.transformation = transformation
+        this.transformationKey = transformationKey
         this.attributes = attributes
-        this.attributesKey = attributesKey
         this.lqip = lqip
         this.originalVariant = originalVariant
         this.createdAt = createdAt

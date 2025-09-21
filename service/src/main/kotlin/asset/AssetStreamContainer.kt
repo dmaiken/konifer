@@ -8,7 +8,7 @@ import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class AssetStreamContainer(
+open class AssetStreamContainer(
     private val channel: ByteChannel,
 ) {
     companion object Factory {
@@ -62,7 +62,7 @@ class AssetStreamContainer(
 
         return result.copyOf(offset).also {
             if (bufferBytes) {
-                headerBytes = headerBytes + it
+                headerBytes += it
             }
         }
     }

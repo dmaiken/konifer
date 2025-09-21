@@ -1,6 +1,8 @@
 package image.model
 
-import io.image.hash.LQIPImplementation
+import io.asset.ManipulationParameters.FIT
+import io.image.lqip.LQIPImplementation
+import io.image.model.Fit
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
@@ -56,8 +58,9 @@ class PreProcessingProperties private constructor(
     val maxWidth: Int?,
     val maxHeight: Int?,
     val imageFormat: ImageFormat?,
+    val fit: Fit,
 ) : ValidatedProperties {
-    val enabled: Boolean = maxWidth != null || maxHeight != null || imageFormat != null
+    val enabled: Boolean = maxWidth != null || maxHeight != null || imageFormat != null || fit != Fit.SCALE
 
     override fun validate() {
         maxWidth?.let {
@@ -74,13 +77,15 @@ class PreProcessingProperties private constructor(
                 maxWidth = null,
                 maxHeight = null,
                 imageFormat = null,
+                fit = Fit.default,
             )
 
         fun create(
             maxWidth: Int?,
             maxHeight: Int?,
             imageFormat: ImageFormat?,
-        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, imageFormat) }
+            fit: Fit = Fit.default,
+        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, imageFormat, fit) }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -97,6 +102,11 @@ class PreProcessingProperties private constructor(
                     ?.let {
                         ImageFormat.fromFormat(it)
                     } ?: parent?.imageFormat,
+            fit =
+                applicationConfig?.propertyOrNull(FIT)?.getString()
+                    ?.let {
+                        Fit.fromString(it)
+                    } ?: parent?.fit ?: Fit.default,
         )
     }
 

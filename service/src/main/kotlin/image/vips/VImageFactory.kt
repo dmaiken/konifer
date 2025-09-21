@@ -45,7 +45,7 @@ object VImageFactory {
                     throw VipsError("invalid length to read provided: $length")
                 }
                 // bytebuffer only supports reading int max bytes at a time
-                val clippedLength = min(length, Int.Companion.MAX_VALUE.toLong()).toInt()
+                val clippedLength = min(length, Int.MAX_VALUE.toLong()).toInt()
                 val bytes =
                     try {
                         runBlocking {

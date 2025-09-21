@@ -1,8 +1,10 @@
 package asset.variant
 
 import config.testInMemory
-import image.model.RequestedImageAttributes
+import image.model.ImageFormat
+import image.model.RequestedImageTransformation
 import io.asset.variant.VariantProfileRepository
+import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -31,10 +33,11 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = 15,
-                                mimeType = "image/png",
+                                format = ImageFormat.PNG,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -50,10 +53,11 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -68,10 +72,11 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 10,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -86,10 +91,11 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -108,16 +114,18 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 15,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                         "medium" to
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 15,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                     ),
                 ),
@@ -199,7 +207,7 @@ class VariantProfileRepositoryTest {
     @MethodSource("validProfilesSource")
     fun `can populate variant profiles`(
         config: String,
-        expectedProfiles: Map<String, RequestedImageAttributes>,
+        expectedProfiles: Map<String, RequestedImageTransformation>,
     ) = testInMemory(config) {
         application {
             val repository = VariantProfileRepository(environment.config)

@@ -1,14 +1,17 @@
 package image.model
 
+import io.image.model.VipsProperties
+
 enum class ImageFormat(
     val value: Set<String>,
     val mimeType: String,
     val extension: String,
+    val vipsProperties: VipsProperties,
 ) {
-    JPEG(setOf("jpeg", "jpg"), "image/jpeg", "jpeg"),
-    PNG(setOf("png"), "image/png", "png"),
-    WEBP(setOf("webp"), "image/webp", "webp"),
-    AVIF(setOf("avif"), "image/avif", "avif"),
+    JPEG(setOf("jpeg", "jpg"), "image/jpeg", "jpeg", VipsProperties(true)),
+    PNG(setOf("png"), "image/png", "png", VipsProperties(false)),
+    WEBP(setOf("webp"), "image/webp", "webp", VipsProperties(true)),
+    AVIF(setOf("avif"), "image/avif", "avif", VipsProperties(true)),
     ;
 
     companion object {

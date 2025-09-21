@@ -2,7 +2,7 @@ package image
 
 import asset.model.StoreAssetRequest
 import config.testInMemory
-import io.image.hash.LQIPImplementation
+import io.image.lqip.LQIPImplementation
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

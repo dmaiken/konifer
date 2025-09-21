@@ -1,11 +1,16 @@
 package io.asset.context
 
-import image.model.RequestedImageAttributes
+import image.model.ImageFormat
+import image.model.RequestedImageTransformation
+import io.asset.ManipulationParameters.ALL_PARAMETERS
+import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
+import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
+import io.image.model.Fit
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.path.DeleteMode
@@ -15,6 +20,7 @@ import io.properties.validateAndCreate
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantProfileRepository: VariantProfileRepository,
+    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -45,14 +51,18 @@ class RequestContextFactory(
         )
     }
 
-    fun fromGetRequest(
+    suspend fun fromGetRequest(
         path: String,
         queryParameters: Parameters,
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
         val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
-        val requestedImageAttributes = extractRequestedImageAttributes(queryParameters)
-        if (queryModifiers.returnFormat == ReturnFormat.METADATA && requestedImageAttributes != null) {
+        val requestedImageAttributes = extractRequestedImageAttributes(queryModifiers, queryParameters)
+        if (
+            queryModifiers.returnFormat == ReturnFormat.METADATA &&
+            requestedImageAttributes != null &&
+            !requestedImageAttributes.originalVariant
+        ) {
             throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
         }
 
@@ -60,7 +70,14 @@ class RequestContextFactory(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
             modifiers = queryModifiers,
-            requestedImageAttributes = requestedImageAttributes,
+            transformation =
+                requestedImageAttributes?.let {
+                    requestedTransformationNormalizer.normalize(
+                        treePath = segments.first(),
+                        entryId = queryModifiers.entryId,
+                        requested = it,
+                    )
+                },
         )
     }
 
@@ -214,19 +231,29 @@ class RequestContextFactory(
         return queryModifiers
     }
 
-    private fun extractRequestedImageAttributes(parameters: Parameters): RequestedImageAttributes? {
+    private fun extractRequestedImageAttributes(
+        queryModifiers: QueryModifiers,
+        parameters: Parameters,
+    ): RequestedImageTransformation? {
         val variantProfile =
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
             }
-        return if (variantProfile == null && (parameters[WIDTH] == null && parameters[HEIGHT] == null && parameters[MIME_TYPE] == null)) {
+        return if (queryModifiers.returnFormat == ReturnFormat.METADATA && variantProfile == null &&
+            ALL_PARAMETERS.none {
+                parameters.contains(it)
+            }
+        ) {
             null
+        } else if (variantProfile == null && ALL_PARAMETERS.none { parameters.contains(it) }) {
+            RequestedImageTransformation.ORIGINAL_VARIANT
         } else {
             validateAndCreate {
-                RequestedImageAttributes(
+                RequestedImageTransformation(
                     width = parameters[WIDTH]?.toIntOrNull() ?: variantProfile?.width,
                     height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
-                    mimeType = parameters[MIME_TYPE] ?: variantProfile?.mimeType,
+                    format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
+                    fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                 )
             }
         }

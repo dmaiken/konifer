@@ -52,6 +52,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.localstack)
     testImplementation(libs.testcontainers.jupiter)
+    testImplementation(libs.junit.pioneer)
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.assertions)
@@ -63,6 +64,9 @@ dependencies {
 
     implementation(libs.zero.allocation.hashing)
     implementation(libs.blurhash)
+
+    testImplementation(libs.twelvemonkeys.imageio.webp)
+    implementation(libs.commons.math3)
 }
 
 tasks.withType<Test>().configureEach {

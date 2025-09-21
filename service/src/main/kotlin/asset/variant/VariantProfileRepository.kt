@@ -1,6 +1,6 @@
 package io.asset.variant
 
-import image.model.RequestedImageAttributes
+import image.model.RequestedImageTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.properties.ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES
@@ -11,11 +11,11 @@ class VariantProfileRepository(
 ) {
     private val profiles = populateProfiles(applicationConfig)
 
-    fun fetch(profileName: String): RequestedImageAttributes =
+    fun fetch(profileName: String): RequestedImageTransformation =
         profiles[profileName.lowercase()]
             ?: throw IllegalArgumentException("Variant profile: '$profileName' not found")
 
-    private fun populateProfiles(applicationConfig: ApplicationConfig): Map<String, RequestedImageAttributes> =
+    private fun populateProfiles(applicationConfig: ApplicationConfig): Map<String, RequestedImageTransformation> =
         buildMap {
             applicationConfig.configList(VARIANT_PROFILES).forEach { profileConfig ->
                 val profileName =
@@ -28,7 +28,7 @@ class VariantProfileRepository(
                     throw IllegalArgumentException("Profile name: '$profileName' already exists")
                 }
 
-                put(profileName, RequestedImageAttributes.create(profileConfig))
+                put(profileName, RequestedImageTransformation.create(profileConfig))
             }
         }
 

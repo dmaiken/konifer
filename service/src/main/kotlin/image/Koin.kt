@@ -1,6 +1,6 @@
 package image
 
-import io.image.hash.ImagePreviewGenerator
+import io.image.lqip.ImagePreviewGenerator
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

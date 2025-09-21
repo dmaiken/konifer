@@ -5,10 +5,8 @@ import image.lqip.ThumbHash
 import image.model.ImageProperties
 import image.model.PreProcessingProperties
 import io.aws.S3Properties
-import io.image.hash.ImagePreviewGenerator
-import io.image.hash.ImagePreviewGenerator.Companion.MAX_HEIGHT
-import io.image.hash.ImagePreviewGenerator.Companion.MAX_WIDTH
-import io.image.hash.LQIPImplementation
+import io.image.lqip.ImagePreviewGenerator.Companion.MAX_HEIGHT
+import io.image.lqip.ImagePreviewGenerator.Companion.MAX_WIDTH
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -37,6 +35,7 @@ class ImagePreviewGeneratorTest {
             val imageChannel = ByteChannel(true)
             launch {
                 ByteReadChannel(image).copyTo(imageChannel)
+                imageChannel.close()
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.BLURHASH))
 
@@ -62,6 +61,7 @@ class ImagePreviewGeneratorTest {
             val imageChannel = ByteChannel(true)
             launch {
                 ByteReadChannel(image).copyTo(imageChannel)
+                imageChannel.close()
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH))
 
@@ -94,6 +94,7 @@ class ImagePreviewGeneratorTest {
             val imageChannel = ByteChannel(true)
             launch {
                 ByteReadChannel(image).copyTo(imageChannel)
+                imageChannel.close()
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH, LQIPImplementation.BLURHASH))
 
@@ -144,6 +145,7 @@ class ImagePreviewGeneratorTest {
             val imageChannel = ByteChannel(true)
             launch {
                 ByteReadChannel(image).copyTo(imageChannel)
+                imageChannel.close()
             }
             val pathConfiguration = generatePathConfiguration(setOf())
 
@@ -160,6 +162,7 @@ class ImagePreviewGeneratorTest {
             val imageChannel = ByteChannel(true)
             launch {
                 ByteReadChannel(image).copyTo(imageChannel)
+                imageChannel.close()
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.BLURHASH))
 

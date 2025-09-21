@@ -7,10 +7,17 @@ import asset.repository.InMemoryAssetRepository
 import asset.store.InMemoryObjectStore
 import asset.variant.VariantParameterGenerator
 import image.VipsImageProcessor
-import image.model.ImageAttributes
+import image.model.Attributes
+import image.model.ImageFormat
+import image.model.ImageProperties
 import image.model.LQIPs
-import image.model.RequestedImageAttributes
-import io.image.hash.ImagePreviewGenerator
+import image.model.RequestedImageTransformation
+import image.model.Transformation
+import io.asset.handler.RequestedTransformationNormalizer
+import io.aws.S3Properties
+import io.image.DimensionCalculator.calculateDimensions
+import io.image.lqip.ImagePreviewGenerator
+import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forExactly
@@ -21,6 +28,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
 import io.mockk.coEvery
 import io.mockk.spyk
+import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -35,13 +43,15 @@ import javax.imageio.ImageIO
 class VariantGeneratorTest {
     companion object {
         private const val PATH = "root.profile.123"
-        private const val BUCKET = "bucket"
+        private const val BUCKET = "assets"
     }
 
-    private val assetRepository = InMemoryAssetRepository(VariantParameterGenerator())
+    private val variantParameterGenerator = VariantParameterGenerator()
+    private val assetRepository = InMemoryAssetRepository(variantParameterGenerator)
     private val objectStore = InMemoryObjectStore()
     private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
     private val channel = Channel<VariantGenerationJob>()
+    private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(variantParameterGenerator))
 
     private val variantGenerator =
         VariantGenerator(
@@ -49,6 +59,7 @@ class VariantGeneratorTest {
             objectStore = objectStore,
             imageProcessor = imageProcessor,
             channel = channel,
+            requestedTransformationNormalizer = requestedTransformationNormalizer,
         )
 
     private lateinit var asset: AssetAndVariants
@@ -78,11 +89,11 @@ class VariantGeneratorTest {
                                 type = "image/png",
                                 alt = "an image",
                             ),
-                        imageAttributes =
-                            ImageAttributes(
-                                mimeType = "image/png",
+                        attributes =
+                            Attributes(
                                 width = bufferedImage.width,
                                 height = bufferedImage.height,
+                                format = ImageFormat.PNG,
                             ),
                         persistResult = objectStoreResponse,
                         lqips = LQIPs.NONE,
@@ -98,24 +109,39 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                         ),
                     deferredResult = result,
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
             channel.send(variantGenerationJob)
 
+            val (expectedWidth, expectedHeight) =
+                calculateDimensions(
+                    bufferedImage = bufferedImage,
+                    height = 50,
+                    width = null,
+                    fit = Fit.SCALE,
+                )
+            expectedHeight shouldBe 50
             result.await().apply {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.width
+                    it.transformation.apply {
+                        height shouldBe 50
+                        width shouldBe expectedWidth
+                        fit shouldBe Fit.SCALE
+                        format shouldBe ImageFormat.PNG
+                    }
+
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -129,16 +155,23 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                         ),
                     deferredResult = result,
-                    newVariantBucket = "different-bucket",
+                    pathConfiguration =
+                        PathConfiguration.create(
+                            allowedContentTypes = null,
+                            imageProperties = ImageProperties.DEFAULT,
+                            eagerVariants = emptyList(),
+                            s3Properties = S3Properties.create("different-bucket"),
+                        ),
                 )
             channel.send(variantGenerationJob)
 
@@ -146,7 +179,7 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.width
+                    it.transformation.height shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe "different-bucket"
                 }
             }
@@ -160,21 +193,23 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = null,
                                 width = 50,
-                                mimeType = "image/avif",
+                                format = ImageFormat.AVIF,
+                                fit = Fit.SCALE,
                             ),
                         ),
                     deferredResult = result,
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
             channel.send(variantGenerationJob)
 
@@ -182,15 +217,15 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldBe 50
-                    it.attributes.width shouldNotBe bufferedImage.width
+                    it.transformation.height shouldBe 50
+                    it.transformation.width shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe BUCKET
                 }
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.attributes.height shouldNotBe bufferedImage.height
-                    it.attributes.width shouldBe 50
-                    it.attributes.mimeType shouldBe "image/avif"
+                    it.transformation.height shouldNotBe bufferedImage.height
+                    it.transformation.width shouldBe 50
+                    it.transformation.format shouldBe ImageFormat.AVIF
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -203,19 +238,20 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        Transformation(
                             height = 50,
-                            width = null,
-                            mimeType = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
+                            fit = Fit.SCALE,
                         ),
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
 
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.attributes.height shouldNotBe bufferedImage.width
+                it.transformation.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe BUCKET
             }
         }
@@ -227,19 +263,26 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        Transformation(
                             height = 50,
-                            width = null,
-                            mimeType = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
+                            fit = Fit.SCALE,
                         ),
-                    newVariantBucket = "different-bucket",
+                    pathConfiguration =
+                        PathConfiguration.create(
+                            allowedContentTypes = null,
+                            imageProperties = ImageProperties.DEFAULT,
+                            eagerVariants = emptyList(),
+                            s3Properties = S3Properties.create("different-bucket"),
+                        ),
                 )
 
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.attributes.height shouldNotBe bufferedImage.width
+                it.transformation.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe "different-bucket"
             }
         }
@@ -251,13 +294,14 @@ class VariantGeneratorTest {
                 variantGenerator.generateVariant(
                     treePath = "does.not.exist",
                     entryId = asset.asset.entryId,
-                    requestedAttributes =
-                        RequestedImageAttributes(
+                    transformation =
+                        Transformation(
                             height = 50,
-                            width = null,
-                            mimeType = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
+                            fit = Fit.SCALE,
                         ),
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
             }
         }
@@ -270,9 +314,9 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes = listOf(),
+                    transformations = listOf(),
                     deferredResult = result,
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
             channel.send(variantGenerationJob)
 
@@ -289,20 +333,21 @@ class VariantGeneratorTest {
                 VariantGenerationJob(
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
-                    requestedImageAttributes =
+                    transformations =
                         listOf(
-                            RequestedImageAttributes(
+                            RequestedImageTransformation(
                                 height = 50,
                                 width = null,
-                                mimeType = null,
+                                format = null,
+                                fit = Fit.SCALE,
                             ),
                         ),
                     deferredResult = result,
-                    newVariantBucket = BUCKET,
+                    pathConfiguration = PathConfiguration.DEFAULT,
                 )
 
             coEvery {
-                imageProcessor.generateVariant(any(), any(), any(), any())
+                imageProcessor.generateVariant(any(), PathConfiguration.DEFAULT, any(), any(), any())
             }.throws(RuntimeException())
                 .coAndThen { callOriginal() }
 

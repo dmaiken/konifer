@@ -10,13 +10,16 @@ r2dbc-pool-version = "1.0.2.RELEASE"
 r2dbc-postgresql-version = "1.0.7.RELEASE"
 testcontainers-version = "1.20.6"
 kotest-version = "5.9.1"
-photofix-libvips-version = "1.5.2"
+photofix-libvips-version = "1.8.0"
 mockk-version = "1.14.5"
 tika-version = "3.1.0"
 postgres-version = "42.7.2"
 zero-allocation-version = "0.16"
 blurhash-version = "0.3.0"
 awaitility-version = "4.3.0"
+junit-pioneer-version = "2.3.0"
+twelvemonkeys-imageio-webp-version = "3.12.0"
+commons-math3-version = "3.6.1"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -54,12 +57,16 @@ kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kote
 kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility-version" }
 awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility-version" }
+junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junit-pioneer-version" }
+twelvemonkeys-imageio-webp = { module = "com.twelvemonkeys.imageio:imageio-webp", version.ref = "twelvemonkeys-imageio-webp-version" }
 
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
 blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }
 
 # JDBC
 postresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
+
+commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

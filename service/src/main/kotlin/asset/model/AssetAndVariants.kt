@@ -60,9 +60,9 @@ data class AssetAndVariants(
                         storeKey = variant.objectStoreKey,
                         imageAttributes =
                             ImageAttributeResponse(
-                                height = variant.attributes.height,
-                                width = variant.attributes.width,
-                                mimeType = variant.attributes.mimeType,
+                                height = variant.transformation.height,
+                                width = variant.transformation.width,
+                                mimeType = variant.transformation.format.mimeType,
                             ),
                         lqip =
                             LQIPResponse(

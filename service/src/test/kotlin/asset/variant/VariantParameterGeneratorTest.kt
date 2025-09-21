@@ -1,8 +1,11 @@
 package io.asset.variant
 
-import asset.variant.ImageVariantAttributes
+import asset.variant.ImageVariantTransformation
 import asset.variant.VariantParameterGenerator
-import image.model.ImageAttributes
+import image.model.Attributes
+import image.model.ImageFormat
+import image.model.Transformation
+import io.image.model.Fit
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
@@ -17,56 +20,58 @@ class VariantParameterGeneratorTest {
         val expectedAttributes =
             Json.encodeToString(
                 ImageVariantAttributes(
-                    height = 100,
                     width = 100,
-                    mimeType = "image/jpeg",
+                    height = 100,
+                    format = ImageFormat.JPEG,
                 ),
             )
-        val (attributes, key) =
+        val attributes =
             variantParameterGenerator.generateImageVariantAttributes(
                 imageAttributes =
-                    ImageAttributes(
-                        height = 100,
+                    Attributes(
                         width = 100,
-                        mimeType = "image/jpeg",
+                        height = 100,
+                        format = ImageFormat.JPEG,
                     ),
             )
 
-        key shouldBe xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
         attributes shouldBe expectedAttributes
     }
 
     @Test
-    fun `the same attributes and key are generated based on the same parameters`() {
+    fun `the same transformations and key are generated based on the same parameters`() {
         val expectedAttributes =
             Json.encodeToString(
-                ImageVariantAttributes(
-                    height = 100,
+                ImageVariantTransformation(
                     width = 100,
-                    mimeType = "image/jpeg",
+                    height = 100,
+                    format = ImageFormat.JPEG,
+                    fit = Fit.FIT,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
-        val (attributes1, key1) =
-            variantParameterGenerator.generateImageVariantAttributes(
-                imageAttributes =
-                    ImageAttributes(
+        val (transformations1, key1) =
+            variantParameterGenerator.generateImageVariantTransformations(
+                imageTransformation =
+                    Transformation(
                         height = 100,
                         width = 100,
-                        mimeType = "image/jpeg",
+                        format = ImageFormat.JPEG,
+                        fit = Fit.FIT,
                     ),
             )
-        val (attributes2, key2) =
-            variantParameterGenerator.generateImageVariantAttributes(
-                imageAttributes =
-                    ImageAttributes(
+        val (transformations2, key2) =
+            variantParameterGenerator.generateImageVariantTransformations(
+                imageTransformation =
+                    Transformation(
                         height = 100,
                         width = 100,
-                        mimeType = "image/jpeg",
+                        format = ImageFormat.JPEG,
+                        fit = Fit.FIT,
                     ),
             )
 
-        attributes1 shouldBe attributes2 shouldBe expectedAttributes
+        transformations1 shouldBe transformations2 shouldBe expectedAttributes
         key1 shouldBe key2 shouldBe expectedKey
     }
 }

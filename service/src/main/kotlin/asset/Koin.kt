@@ -5,6 +5,7 @@ import asset.repository.InMemoryAssetRepository
 import asset.repository.PostgresAssetRepository
 import asset.variant.VariantParameterGenerator
 import io.asset.context.RequestContextFactory
+import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantGenerationJob
 import io.asset.variant.VariantGenerator
 import io.asset.variant.VariantProfileRepository
@@ -34,7 +35,7 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
         }
 
         single<RequestContextFactory> {
-            RequestContextFactory(get(), get())
+            RequestContextFactory(get(), get(), get())
         }
 
         single<VariantProfileRepository> {
@@ -44,6 +45,10 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
         single { Channel<VariantGenerationJob>() }
 
         single<VariantGenerator> {
-            VariantGenerator(get(), get(), get(), get())
+            VariantGenerator(get(), get(), get(), get(), get())
+        }
+
+        single<RequestedTransformationNormalizer> {
+            RequestedTransformationNormalizer(get())
         }
     }

@@ -88,6 +88,7 @@ suspend fun fetchAssetViaRedirect(
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
+    fit: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
 ): ByteArray? {
@@ -98,7 +99,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -138,6 +139,7 @@ suspend fun fetchAssetContent(
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
+    fit: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -190,6 +192,7 @@ suspend fun fetchAssetLink(
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
+    fit: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): AssetLinkResponse? {
@@ -303,6 +306,7 @@ private fun attachVariantModifiers(
     height: Int? = null,
     width: Int? = null,
     mimeType: String? = null,
+    fit: String? = null,
 ) {
     if (profile != null) {
         urlBuilder.parameters.append("profile", profile)
@@ -315,5 +319,8 @@ private fun attachVariantModifiers(
     }
     if (mimeType != null) {
         urlBuilder.parameters.append("mimeType", mimeType)
+    }
+    if (fit != null) {
+        urlBuilder.parameters.append("fit", fit)
     }
 }
