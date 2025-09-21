@@ -7,6 +7,9 @@ object ManipulationParameters {
     const val WIDTH = "w"
     const val FIT = "fit"
     const val MIME_TYPE = "mimeType"
+    const val ROTATE = "r"
+    const val FLIP = "f"
+
     const val VARIANT_PROFILE = "profile"
 
     /**
@@ -19,5 +22,7 @@ object ManipulationParameters {
             WIDTH,
             FIT,
             MIME_TYPE,
+            ROTATE,
+            FLIP
         )
 }

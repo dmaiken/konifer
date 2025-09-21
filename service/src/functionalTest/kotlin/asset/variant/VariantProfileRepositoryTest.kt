@@ -5,6 +5,8 @@ import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.variant.VariantProfileRepository
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -38,6 +40,8 @@ class VariantProfileRepositoryTest {
                                 width = 15,
                                 format = ImageFormat.PNG,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -58,6 +62,8 @@ class VariantProfileRepositoryTest {
                                 width = 15,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -77,6 +83,8 @@ class VariantProfileRepositoryTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -96,6 +104,8 @@ class VariantProfileRepositoryTest {
                                 width = 15,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -119,6 +129,8 @@ class VariantProfileRepositoryTest {
                                 width = 15,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                         "medium" to
                             RequestedImageTransformation(
@@ -126,6 +138,8 @@ class VariantProfileRepositoryTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                     ),
                 ),

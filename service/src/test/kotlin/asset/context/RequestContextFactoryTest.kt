@@ -9,6 +9,8 @@ import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.aws.S3Properties
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -348,6 +350,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     height = 20,
                     format = ImageFormat.PNG,
                     fit = Fit.SCALE,
+                    rotate = Rotate.ZERO,
+                    flip = Flip.NONE,
                 )
             every {
                 variantProfileRepository.fetch(profileName)
@@ -383,6 +387,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     height = 20,
                     format = ImageFormat.PNG,
                     fit = Fit.SCALE,
+                    rotate = Rotate.ZERO,
+                    flip = Flip.NONE,
                 )
 
             val context =

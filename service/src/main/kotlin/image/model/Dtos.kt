@@ -2,10 +2,14 @@ package image.model
 
 import asset.model.LQIPResponse
 import io.asset.ManipulationParameters.FIT
+import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.properties.ValidatedProperties
@@ -28,6 +32,8 @@ data class RequestedImageTransformation(
     val height: Int?,
     val format: ImageFormat?,
     val fit: Fit,
+    val rotate: Rotate,
+    val flip: Flip,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -37,6 +43,8 @@ data class RequestedImageTransformation(
                 height = null,
                 format = null,
                 fit = Fit.default,
+                rotate = Rotate.default,
+                flip = Flip.default,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -46,6 +54,8 @@ data class RequestedImageTransformation(
                 height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
                 format = applicationConfig.tryGetString(MIME_TYPE)?.let { ImageFormat.fromMimeType(it) },
                 fit = Fit.fromString(applicationConfig.tryGetString(FIT)),
+                rotate = Rotate.fromString(applicationConfig.tryGetString(ROTATE)),
+                flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
             ).apply {
                 validate()
             }

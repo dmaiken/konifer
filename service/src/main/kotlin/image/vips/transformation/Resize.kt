@@ -24,7 +24,7 @@ class Resize(
      */
     override fun transform(source: VImage): VImage {
         if (width == null && height == null) {
-            logger.info("Preprocessing width and height are not set, skipping preprocessing downscaling")
+            logger.info("width and height are not set, skipping resize transformation")
             return source
         }
 
