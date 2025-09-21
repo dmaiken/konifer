@@ -13,7 +13,7 @@ data class AssetVariant(
     val objectStoreKey: String,
     val isOriginalVariant: Boolean,
     val attributes: ImageVariantAttributes,
-    val transformations: ImageVariantTransformations,
+    val transformations: ImageVariantTransformation,
     val transformationKey: Long,
     val lqip: LQIPs,
     val createdAt: LocalDateTime,

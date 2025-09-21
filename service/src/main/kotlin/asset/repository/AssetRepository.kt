@@ -11,6 +11,15 @@ interface AssetRepository {
 
     suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants
 
+    /**
+     * Fetch the asset by path. If the asset itself does not exist, null is returned.
+     * If the asset exists but has no variants that match the [transformation], then
+     * [AssetAndVariants] will contain an empty [AssetAndVariants.variants].
+     *
+     * @param path the url path
+     * @param entryId the entryId, can be null
+     * @param transformation null means fetch all variants
+     */
     suspend fun fetchByPath(
         path: String,
         entryId: Long?,

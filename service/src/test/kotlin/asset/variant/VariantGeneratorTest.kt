@@ -12,7 +12,10 @@ import image.model.ImageFormat
 import image.model.ImageProperties
 import image.model.LQIPs
 import image.model.RequestedImageTransformation
+import image.model.Transformation
+import io.asset.handler.RequestedTransformationNormalizer
 import io.aws.S3Properties
+import io.image.DimensionCalculator.calculateDimensions
 import io.image.lqip.ImagePreviewGenerator
 import io.image.model.Fit
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -43,10 +46,12 @@ class VariantGeneratorTest {
         private const val BUCKET = "assets"
     }
 
-    private val assetRepository = InMemoryAssetRepository(VariantParameterGenerator())
+    private val variantParameterGenerator = VariantParameterGenerator()
+    private val assetRepository = InMemoryAssetRepository(variantParameterGenerator)
     private val objectStore = InMemoryObjectStore()
     private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
     private val channel = Channel<VariantGenerationJob>()
+    private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(variantParameterGenerator))
 
     private val variantGenerator =
         VariantGenerator(
@@ -54,6 +59,7 @@ class VariantGeneratorTest {
             objectStore = objectStore,
             imageProcessor = imageProcessor,
             channel = channel,
+            requestedTransformationNormalizer = requestedTransformationNormalizer,
         )
 
     private lateinit var asset: AssetAndVariants
@@ -85,9 +91,9 @@ class VariantGeneratorTest {
                             ),
                         attributes =
                             Attributes(
-                                format = ImageFormat.PNG,
                                 width = bufferedImage.width,
                                 height = bufferedImage.height,
+                                format = ImageFormat.PNG,
                             ),
                         persistResult = objectStoreResponse,
                         lqips = LQIPs.NONE,
@@ -117,11 +123,25 @@ class VariantGeneratorTest {
                 )
             channel.send(variantGenerationJob)
 
+            val (expectedWidth, expectedHeight) =
+                calculateDimensions(
+                    bufferedImage = bufferedImage,
+                    height = 50,
+                    width = null,
+                    fit = Fit.SCALE,
+                )
+            expectedHeight shouldBe 50
             result.await().apply {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.transformations.height shouldNotBe bufferedImage.width
+                    it.transformations.apply {
+                        height shouldBe 50
+                        width shouldBe expectedWidth
+                        fit shouldBe Fit.SCALE
+                        format shouldBe ImageFormat.PNG
+                    }
+
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -219,10 +239,10 @@ class VariantGeneratorTest {
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
                     transformation =
-                        RequestedImageTransformation(
+                        Transformation(
                             height = 50,
-                            width = null,
-                            format = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
                             fit = Fit.SCALE,
                         ),
                     pathConfiguration = PathConfiguration.DEFAULT,
@@ -244,10 +264,10 @@ class VariantGeneratorTest {
                     treePath = asset.asset.path,
                     entryId = asset.asset.entryId,
                     transformation =
-                        RequestedImageTransformation(
+                        Transformation(
                             height = 50,
-                            width = null,
-                            format = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
                             fit = Fit.SCALE,
                         ),
                     pathConfiguration =
@@ -275,10 +295,10 @@ class VariantGeneratorTest {
                     treePath = "does.not.exist",
                     entryId = asset.asset.entryId,
                     transformation =
-                        RequestedImageTransformation(
+                        Transformation(
                             height = 50,
-                            width = null,
-                            format = null,
+                            width = 50,
+                            format = ImageFormat.PNG,
                             fit = Fit.SCALE,
                         ),
                     pathConfiguration = PathConfiguration.DEFAULT,

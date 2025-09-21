@@ -99,7 +99,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -321,6 +321,6 @@ private fun attachVariantModifiers(
         urlBuilder.parameters.append("mimeType", mimeType)
     }
     if (fit != null) {
-        urlBuilder.parameters.append("fit", fit.toString())
+        urlBuilder.parameters.append("fit", fit)
     }
 }

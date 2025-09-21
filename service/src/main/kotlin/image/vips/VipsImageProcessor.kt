@@ -86,8 +86,8 @@ class VipsImageProcessor(
                     }
                     attributes =
                         Attributes(
-                            height = resized.height,
                             width = resized.width,
+                            height = resized.height,
                             format = format,
                         )
                 }
@@ -162,12 +162,7 @@ class VipsImageProcessor(
                         } else {
                             originalVariant.lqip
                         },
-                    transformation = Transformation(
-                        width = attributes.width,
-                        height = attributes.height,
-                        fit = transformation.fit,
-                        format = attributes.format
-                    )
+                    transformation = transformation,
                 )
             } finally {
                 outputChannel.close()

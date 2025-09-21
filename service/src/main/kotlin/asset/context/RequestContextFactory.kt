@@ -2,6 +2,7 @@ package io.asset.context
 
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
+import io.asset.ManipulationParameters.ALL_PARAMETERS
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
@@ -19,7 +20,7 @@ import io.properties.validateAndCreate
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantProfileRepository: VariantProfileRepository,
-    private val requestedTransformationNormalizer: RequestedTransformationNormalizer
+    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -56,8 +57,12 @@ class RequestContextFactory(
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
         val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
-        val requestedImageAttributes = extractRequestedImageAttributes(queryParameters)
-        if (queryModifiers.returnFormat == ReturnFormat.METADATA && requestedImageAttributes != null) {
+        val requestedImageAttributes = extractRequestedImageAttributes(queryModifiers, queryParameters)
+        if (
+            queryModifiers.returnFormat == ReturnFormat.METADATA &&
+            requestedImageAttributes != null &&
+            !requestedImageAttributes.originalVariant
+        ) {
             throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
         }
 
@@ -65,11 +70,14 @@ class RequestContextFactory(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
             modifiers = queryModifiers,
-            transformation = requestedTransformationNormalizer.normalize(
-                treePath = segments.first(),
-                entryId = queryModifiers.entryId,
-                requested = requestedImageAttributes
-            ),
+            transformation =
+                requestedImageAttributes?.let {
+                    requestedTransformationNormalizer.normalize(
+                        treePath = segments.first(),
+                        entryId = queryModifiers.entryId,
+                        requested = it,
+                    )
+                },
         )
     }
 
@@ -223,13 +231,22 @@ class RequestContextFactory(
         return queryModifiers
     }
 
-    private fun extractRequestedImageAttributes(parameters: Parameters): RequestedImageTransformation? {
+    private fun extractRequestedImageAttributes(
+        queryModifiers: QueryModifiers,
+        parameters: Parameters,
+    ): RequestedImageTransformation? {
         val variantProfile =
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
             }
-        return if (variantProfile == null && (parameters[WIDTH] == null && parameters[HEIGHT] == null && parameters[MIME_TYPE] == null)) {
+        return if (queryModifiers.returnFormat == ReturnFormat.METADATA && variantProfile == null &&
+            ALL_PARAMETERS.none {
+                parameters.contains(it)
+            }
+        ) {
             null
+        } else if (variantProfile == null && ALL_PARAMETERS.none { parameters.contains(it) }) {
+            RequestedImageTransformation.ORIGINAL_VARIANT
         } else {
             validateAndCreate {
                 RequestedImageTransformation(

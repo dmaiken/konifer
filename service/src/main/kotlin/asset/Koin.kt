@@ -45,7 +45,7 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
         single { Channel<VariantGenerationJob>() }
 
         single<VariantGenerator> {
-            VariantGenerator(get(), get(), get(), get())
+            VariantGenerator(get(), get(), get(), get(), get())
         }
 
         single<RequestedTransformationNormalizer> {

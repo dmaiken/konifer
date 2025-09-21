@@ -77,14 +77,14 @@ class PreProcessingProperties private constructor(
                 maxWidth = null,
                 maxHeight = null,
                 imageFormat = null,
-                fit = Fit.SCALE,
+                fit = Fit.default,
             )
 
         fun create(
             maxWidth: Int?,
             maxHeight: Int?,
             imageFormat: ImageFormat?,
-            fit: Fit = Fit.SCALE,
+            fit: Fit = Fit.default,
         ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, imageFormat, fit) }
 
         fun create(
@@ -106,7 +106,7 @@ class PreProcessingProperties private constructor(
                 applicationConfig?.propertyOrNull(FIT)?.getString()
                     ?.let {
                         Fit.fromString(it)
-                    } ?: parent?.fit ?: Fit.SCALE,
+                    } ?: parent?.fit ?: Fit.default,
         )
     }
 

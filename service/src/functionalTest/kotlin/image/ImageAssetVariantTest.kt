@@ -93,7 +93,7 @@ class ImageAssetVariantTest {
         }
 
     @Test
-    fun `can fetch image variant by height and width and the aspect ratio is respected`() =
+    fun `can fetch image variant by height and width with scale fit and the aspect ratio is respected`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -120,20 +120,22 @@ class ImageAssetVariantTest {
                 }
             }
 
+            val variantHeight = bufferedImage.height - 100
+            val variantWidth = bufferedImage.width - 100
             var count = 0
             repeat(2) {
                 fetchAssetViaRedirect(
                     client,
-                    width = bufferedImage.width - 10,
-                    height = bufferedImage.height - 10,
+                    width = variantWidth,
+                    height = variantHeight,
                     expectCacheHit = (count == 1),
                 )!!.apply {
                     val variantImage = byteArrayToImage(this)
-                    if (variantImage.width == bufferedImage.width - 10) {
-                        variantImage.height shouldNotBe bufferedImage.height - 10
+                    if (variantImage.width == variantWidth) {
+                        variantImage.height shouldNotBe variantHeight
                     }
-                    if (variantImage.height == bufferedImage.height - 10) {
-                        variantImage.width shouldNotBe bufferedImage.width - 10
+                    if (variantImage.height == variantHeight) {
+                        variantImage.width shouldNotBe variantWidth
                     }
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
                 }
@@ -182,7 +184,7 @@ class ImageAssetVariantTest {
         }
 
     @Test
-    fun `can fetch image by fit`() =
+    fun `can fetch image with fit mode of fit`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -211,13 +213,49 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(client, fit = "fit", expectCacheHit = (count == 1))!!.apply {
+                fetchAssetViaRedirect(client, height = 200, width = 200, fit = "fit", expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
-                    variantImage.width shouldBe bufferedImage.width
-                    variantImage.height shouldBe bufferedImage.height
+                    variantImage.width shouldBe 200
+                    variantImage.height shouldBe 200
                     Tika().detect(this) shouldBe "image/png"
                 }
                 count++
+            }
+        }
+
+    @Test
+    fun `can fetch original variant by height and width`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)!!.apply {
+                createdAt shouldNotBe null
+                alt shouldBe "an image"
+                `class` shouldBe AssetClass.IMAGE
+
+                variants.apply {
+                    size shouldBe 1
+                    first().imageAttributes.apply {
+                        this.height shouldBe bufferedImage.height
+                        this.width shouldBe bufferedImage.width
+                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
+                    }
+                }
+            }
+
+            fetchAssetViaRedirect(client, height = bufferedImage.height, width = bufferedImage.width, expectCacheHit = true)!!.apply {
+                val variantImage = byteArrayToImage(this)
+                variantImage.width shouldBe bufferedImage.width
+                variantImage.height shouldBe bufferedImage.height
+                Tika().detect(this) shouldBe "image/png"
             }
         }
 }

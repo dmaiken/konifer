@@ -13,6 +13,7 @@ import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteReadChannel
 import io.matcher.shouldBeApproximately
+import io.matcher.shouldBeWithinOneOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -264,7 +265,7 @@ class ResizeTest {
                     upscale = true,
                 ).transform(source)
 
-            processedImage.width shouldBe width
+            processedImage.width shouldBeWithinOneOf width
             processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
         }
     }

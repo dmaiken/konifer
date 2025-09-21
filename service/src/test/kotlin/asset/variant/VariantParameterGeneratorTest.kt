@@ -1,6 +1,6 @@
 package io.asset.variant
 
-import asset.variant.ImageVariantTransformations
+import asset.variant.ImageVariantTransformation
 import asset.variant.VariantParameterGenerator
 import image.model.Attributes
 import image.model.ImageFormat
@@ -20,8 +20,8 @@ class VariantParameterGeneratorTest {
         val expectedAttributes =
             Json.encodeToString(
                 ImageVariantAttributes(
-                    height = 100,
                     width = 100,
+                    height = 100,
                     format = ImageFormat.JPEG,
                 ),
             )
@@ -29,8 +29,8 @@ class VariantParameterGeneratorTest {
             variantParameterGenerator.generateImageVariantAttributes(
                 imageAttributes =
                     Attributes(
-                        height = 100,
                         width = 100,
+                        height = 100,
                         format = ImageFormat.JPEG,
                     ),
             )
@@ -42,11 +42,11 @@ class VariantParameterGeneratorTest {
     fun `the same transformations and key are generated based on the same parameters`() {
         val expectedAttributes =
             Json.encodeToString(
-                ImageVariantTransformations(
-                    height = 100,
+                ImageVariantTransformation(
                     width = 100,
+                    height = 100,
                     format = ImageFormat.JPEG,
-                    fit = Fit.FIT
+                    fit = Fit.FIT,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -57,7 +57,7 @@ class VariantParameterGeneratorTest {
                         height = 100,
                         width = 100,
                         format = ImageFormat.JPEG,
-                        fit = Fit.FIT
+                        fit = Fit.FIT,
                     ),
             )
         val (transformations2, key2) =
@@ -67,7 +67,7 @@ class VariantParameterGeneratorTest {
                         height = 100,
                         width = 100,
                         format = ImageFormat.JPEG,
-                        fit = Fit.FIT
+                        fit = Fit.FIT,
                     ),
             )
 

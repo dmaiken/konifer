@@ -29,7 +29,7 @@ class Resize(
         }
 
         val (resizeWidth, resizeHeight) = calculateDimensions(source, width, height, fit)
-        logger.info("Scaling image with dimensions ($width, $height) to ($resizeWidth, $resizeHeight) using crop: $fit")
+        logger.info("Scaling image with dimensions (${source.width}, ${source.height}) to ($resizeWidth, $resizeHeight) using crop: $fit")
 
         val scaled =
             when (fit) {

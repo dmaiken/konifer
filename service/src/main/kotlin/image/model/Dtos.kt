@@ -36,7 +36,7 @@ data class RequestedImageTransformation(
                 width = null,
                 height = null,
                 format = null,
-                fit = Fit.SCALE,
+                fit = Fit.default,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -51,10 +51,6 @@ data class RequestedImageTransformation(
             }
     }
 
-    fun isOriginalVariant(): Boolean {
-        return width == null && height == null && format == null
-    }
-
     override fun validate() {
         if (originalVariant) {
             return
@@ -67,9 +63,7 @@ data class RequestedImageTransformation(
         }
         when (fit) {
             Fit.SCALE -> {
-                if (height == null && width == null) {
-                    throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
-                }
+                return
             }
             Fit.FIT, Fit.STRETCH -> {
                 if (height == null || width == null) {
@@ -90,16 +84,17 @@ data class Transformation(
     val originalVariant: Boolean = false,
     val width: Int,
     val height: Int,
-    val fit: Fit = Fit.SCALE,
+    val fit: Fit = Fit.default,
     val format: ImageFormat,
 ) {
     companion object Factory {
-        val ORIGINAL_VARIANT = Transformation(
-            originalVariant = true,
-            width = 1,
-            height = 1,
-            format = ImageFormat.PNG
-        )
+        val ORIGINAL_VARIANT =
+            Transformation(
+                originalVariant = true,
+                width = 1,
+                height = 1,
+                format = ImageFormat.PNG,
+            )
     }
 }
 

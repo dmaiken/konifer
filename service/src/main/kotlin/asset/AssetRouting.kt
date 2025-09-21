@@ -64,7 +64,7 @@ fun Application.configureAssetRouting() {
                 }
                 ReturnFormat.REDIRECT -> {
                     logger.info("Navigating to asset with path (${ReturnFormat.REDIRECT}): ${requestContext.path}")
-                    assetHandler.fetchAssetLinksByPath(requestContext)?.let { response ->
+                    assetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
                         call.response.headers.append(HttpHeaders.Location, response.url)
                         getAppStatusCacheHeader(response.cacheHit).let {
                             call.response.headers.append(it.first, it.second)
@@ -74,7 +74,7 @@ fun Application.configureAssetRouting() {
                 }
                 ReturnFormat.LINK -> {
                     logger.info("Navigating to asset with path (${ReturnFormat.LINK}: ${requestContext.path}")
-                    assetHandler.fetchAssetLinksByPath(requestContext)?.let { response ->
+                    assetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
                         getAppStatusCacheHeader(response.cacheHit).let {
                             call.response.headers.append(it.first, it.second)
                         }

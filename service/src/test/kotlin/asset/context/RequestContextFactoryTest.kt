@@ -1,9 +1,10 @@
 package io.asset.context
 
-import asset.repository.AssetRepository
 import image.model.ImageFormat
 import image.model.ImageProperties
 import image.model.RequestedImageTransformation
+import image.model.Transformation
+import io.BaseUnitTest
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.aws.S3Properties
@@ -27,7 +28,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
-class RequestContextFactoryTest {
+class RequestContextFactoryTest : BaseUnitTest() {
     companion object {
         @JvmStatic
         fun queryModifierSource(): List<Arguments> =
@@ -237,7 +238,7 @@ class RequestContextFactoryTest {
             )
 
         @JvmStatic
-        fun requestedImageAttributesSource(): List<Arguments> =
+        fun transformationSource(): List<Arguments> =
             listOf(
                 arguments(
                     ParametersBuilder(3).apply {
@@ -245,7 +246,7 @@ class RequestContextFactoryTest {
                         append("h", "20")
                         append("mimeType", "image/png")
                     }.build(),
-                    RequestedImageTransformation(
+                    Transformation(
                         width = 10,
                         height = 20,
                         format = ImageFormat.PNG,
@@ -257,10 +258,10 @@ class RequestContextFactoryTest {
                         append("w", "10")
                         append("h", "20")
                     }.build(),
-                    RequestedImageTransformation(
+                    Transformation(
                         width = 10,
                         height = 20,
-                        format = null,
+                        format = ImageFormat.PNG,
                         fit = Fit.SCALE,
                     ),
                 ),
@@ -268,21 +269,21 @@ class RequestContextFactoryTest {
                     ParametersBuilder(1).apply {
                         append("w", "10")
                     }.build(),
-                    RequestedImageTransformation(
+                    Transformation(
                         width = 10,
-                        height = null,
-                        format = null,
+                        height = 10,
+                        format = ImageFormat.PNG,
                         fit = Fit.SCALE,
                     ),
                 ),
                 arguments(
                     ParametersBuilder(1).apply {
-                        append("mimeType", "image/png")
+                        append("mimeType", "image/jpeg")
                     }.build(),
-                    RequestedImageTransformation(
-                        width = null,
-                        height = null,
-                        format = ImageFormat.PNG,
+                    Transformation(
+                        width = 100,
+                        height = 100,
+                        format = ImageFormat.JPEG,
                         fit = Fit.SCALE,
                     ),
                 ),
@@ -291,9 +292,9 @@ class RequestContextFactoryTest {
 
     private val pathConfigurationRepository = mockk<PathConfigurationRepository>()
     private val variantProfileRepository = mockk<VariantProfileRepository>()
-    private val assetRepository = mockk<AssetRepository>()
     private val requestedTransformationNormalizer = RequestedTransformationNormalizer(assetRepository)
-    private val requestContextFactory = RequestContextFactory(pathConfigurationRepository, variantProfileRepository, requestedTransformationNormalizer)
+    private val requestContextFactory =
+        RequestContextFactory(pathConfigurationRepository, variantProfileRepository, requestedTransformationNormalizer)
 
     @BeforeEach
     fun beforeEach() {
@@ -338,70 +339,79 @@ class RequestContextFactoryTest {
     }
 
     @Test
-    fun `if variant profile is supplied then it is used to populate the requested image attributes`() = runTest {
-        val profileName = "small"
-        val variantConfig =
-            RequestedImageTransformation(
-                width = 10,
-                height = 20,
-                format = ImageFormat.PNG,
-                fit = Fit.SCALE,
-            )
-        every {
-            variantProfileRepository.fetch(profileName)
-        } returns variantConfig
+    fun `if variant profile is supplied then it is used to populate the requested image attributes`() =
+        runTest {
+            val profileName = "small"
+            val variantConfig =
+                RequestedImageTransformation(
+                    width = 10,
+                    height = 20,
+                    format = ImageFormat.PNG,
+                    fit = Fit.SCALE,
+                )
+            every {
+                variantProfileRepository.fetch(profileName)
+            } returns variantConfig
 
-        val context =
-            requestContextFactory.fromGetRequest(
-                "/assets/user/",
-                ParametersBuilder(1).apply {
-                    append("profile", profileName)
-                }.build(),
-            )
+            val context =
+                requestContextFactory.fromGetRequest(
+                    "/assets/user/",
+                    ParametersBuilder(1).apply {
+                        append("profile", profileName)
+                    }.build(),
+                )
 
-        context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-        context.transformation shouldBe variantConfig
-    }
-
-    @Test
-    fun `specified image attributes override variant profile if supplied`() = runTest {
-        val profileName = "small"
-        every {
-            variantProfileRepository.fetch(profileName)
-        } returns
-            RequestedImageTransformation(
-                width = 10,
-                height = 20,
-                format = ImageFormat.PNG,
-                fit = Fit.SCALE,
-            )
-
-        val context =
-            requestContextFactory.fromGetRequest(
-                "/assets/user/",
-                ParametersBuilder(4).apply {
-                    append("profile", profileName)
-                    append("h", "100")
-                    append("w", "500")
-                    append("mimeType", "image/jpeg")
-                }.build(),
-            )
-
-        context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-        context.transformation?.height shouldBe 100
-        context.transformation?.width shouldBe 500
-        context.transformation?.format shouldBe ImageFormat.JPEG
-    }
+            context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+            context.transformation shouldBe
+                Transformation(
+                    height = variantConfig.height!!,
+                    width = variantConfig.width!!,
+                    format = variantConfig.format!!,
+                    fit = variantConfig.fit,
+                )
+        }
 
     @Test
-    fun `can fetch DELETE request context with entryId`() = runTest {
-        val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10")
+    fun `specified image attributes override variant profile if supplied`() =
+        runTest {
+            val profileName = "small"
+            every {
+                variantProfileRepository.fetch(profileName)
+            } returns
+                RequestedImageTransformation(
+                    width = 10,
+                    height = 20,
+                    format = ImageFormat.PNG,
+                    fit = Fit.SCALE,
+                )
 
-        context.modifiers shouldBe
-            DeleteModifiers(
-                entryId = 10,
-            )
-    }
+            val context =
+                requestContextFactory.fromGetRequest(
+                    "/assets/user/",
+                    ParametersBuilder(4).apply {
+                        append("profile", profileName)
+                        append("h", "100")
+                        append("w", "500")
+                        append("mimeType", "image/jpeg")
+                    }.build(),
+                )
+
+            context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+            context.transformation?.height shouldBe 100
+            context.transformation?.width shouldBe 500
+            context.transformation?.format shouldBe ImageFormat.JPEG
+        }
+
+    @Test
+    fun `can fetch DELETE request context with entryId`() =
+        runTest {
+            val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10")
+
+            context.modifiers shouldBe
+                DeleteModifiers(
+                    entryId = 10,
+                )
+        }
 
     @ParameterizedTest
     @ValueSource(
@@ -419,11 +429,12 @@ class RequestContextFactoryTest {
             "/assets/profile/-/metadata/link/created/10/",
         ],
     )
-    fun `throws when GET query modifiers are invalid`(path: String) = runTest {
-        shouldThrow<InvalidQueryModifiersException> {
-            requestContextFactory.fromGetRequest(path, Parameters.Empty)
+    fun `throws when GET query modifiers are invalid`(path: String) =
+        runTest {
+            shouldThrow<InvalidQueryModifiersException> {
+                requestContextFactory.fromGetRequest(path, Parameters.Empty)
+            }
         }
-    }
 
     @ParameterizedTest
     @ValueSource(
@@ -448,11 +459,12 @@ class RequestContextFactoryTest {
             "/assets/profile/-/metadata/entry/abc",
         ],
     )
-    fun `entryId must be positive when fetching GET request context`(path: String) = runTest {
-        shouldThrow<InvalidQueryModifiersException> {
-            requestContextFactory.fromGetRequest(path, Parameters.Empty)
+    fun `entryId must be positive when fetching GET request context`(path: String) =
+        runTest {
+            shouldThrow<InvalidQueryModifiersException> {
+                requestContextFactory.fromGetRequest(path, Parameters.Empty)
+            }
         }
-    }
 
     @ParameterizedTest
     @ValueSource(
@@ -469,24 +481,26 @@ class RequestContextFactoryTest {
 
     @ParameterizedTest
     @EnumSource(value = ReturnFormat::class, mode = EnumSource.Mode.INCLUDE, names = ["REDIRECT", "CONTENT"])
-    fun `cannot have limit greater than one with certain return formats`(returnFormat: ReturnFormat) = runTest {
-        val exception =
-            shouldThrow<InvalidQueryModifiersException> {
-                requestContextFactory.fromGetRequest("/assets/profile/user/123/-/$returnFormat/2", Parameters.Empty)
-            }
+    fun `cannot have limit greater than one with certain return formats`(returnFormat: ReturnFormat) =
+        runTest {
+            val exception =
+                shouldThrow<InvalidQueryModifiersException> {
+                    requestContextFactory.fromGetRequest("/assets/profile/user/123/-/$returnFormat/2", Parameters.Empty)
+                }
 
-        exception.message shouldBe "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}"
-    }
+            exception.message shouldBe "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}"
+        }
 
     @Test
-    fun `path can only have one namespace separator in GET request context`() = runTest {
-        val path = "/assets/profile/-/-/metadata/created/10/"
-        val exception =
-            shouldThrow<InvalidPathException> {
-                requestContextFactory.fromGetRequest(path, Parameters.Empty)
-            }
-        exception.message shouldBe "$path has more than one '-' segment"
-    }
+    fun `path can only have one namespace separator in GET request context`() =
+        runTest {
+            val path = "/assets/profile/-/-/metadata/created/10/"
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                }
+            exception.message shouldBe "$path has more than one '-' segment"
+        }
 
     @Test
     fun `path can only have one namespace separator in DELETE request context`() {
@@ -499,46 +513,54 @@ class RequestContextFactoryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("requestedImageAttributesSource")
+    @MethodSource("transformationSource")
     fun `can parse requested image attributes in GET request context`(
         parameters: Parameters,
-        requestedImageTransformation: RequestedImageTransformation,
+        transformation: Transformation,
     ) = runTest {
         val path = "/assets/profile/-/link/created/10/"
-
+        storeAsset(
+            height = 100,
+            width = 100,
+            format = ImageFormat.PNG,
+            path = "/profile/",
+        )
         val context = requestContextFactory.fromGetRequest(path, parameters)
-        context.transformation shouldBe requestedImageTransformation
+        context.transformation shouldBe transformation
     }
 
     @Test
-    fun `cannot create GET context if requesting metadata with image attributes`() = runTest {
-        val parameters =
-            ParametersBuilder(3).apply {
-                append("w", "10")
-                append("h", "20")
-                append("mimeType", "image/png")
-            }.build()
+    fun `cannot create GET context if requesting metadata with image attributes`() =
+        runTest {
+            val parameters =
+                ParametersBuilder(3).apply {
+                    append("w", "10")
+                    append("h", "20")
+                    append("mimeType", "image/png")
+                }.build()
 
-        val exception =
-            shouldThrow<InvalidPathException> {
-                requestContextFactory.fromGetRequest("/assets/profile/-/metadata/created/10/", parameters)
-            }
-        exception.message shouldBe "Cannot specify image attributes when requesting asset metadata"
-    }
-
-    @Test
-    fun `can parse GET asset path from the uri request path`() = runTest {
-        val context = requestContextFactory.fromGetRequest("/assets/profile/123/-/metadata/2", Parameters.Empty)
-
-        context.path shouldBe "/profile/123/"
-    }
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromGetRequest("/assets/profile/-/metadata/created/10/", parameters)
+                }
+            exception.message shouldBe "Cannot specify image attributes when requesting asset metadata"
+        }
 
     @Test
-    fun `can parse DELETE asset path from the uri request path`() = runTest {
-        val context = requestContextFactory.fromDeleteRequest("/assets/profile/123/-/children")
+    fun `can parse GET asset path from the uri request path`() =
+        runTest {
+            val context = requestContextFactory.fromGetRequest("/assets/profile/123/-/metadata/2", Parameters.Empty)
 
-        context.path shouldBe "/profile/123/"
-    }
+            context.path shouldBe "/profile/123/"
+        }
+
+    @Test
+    fun `can parse DELETE asset path from the uri request path`() =
+        runTest {
+            val context = requestContextFactory.fromDeleteRequest("/assets/profile/123/-/children")
+
+            context.path shouldBe "/profile/123/"
+        }
 
     @ParameterizedTest
     @ValueSource(
@@ -549,14 +571,15 @@ class RequestContextFactoryTest {
             "/profile/-/created/10/",
         ],
     )
-    fun `throws if GET uri path does not start with correct prefix`(path: String) = runTest {
-        val exception =
-            shouldThrow<InvalidPathException> {
-                requestContextFactory.fromGetRequest(path, Parameters.Empty)
-            }
+    fun `throws if GET uri path does not start with correct prefix`(path: String) =
+        runTest {
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                }
 
-        exception.message shouldBe "Asset path must start with: /assets"
-    }
+            exception.message shouldBe "Asset path must start with: /assets"
+        }
 
     @ParameterizedTest
     @ValueSource(

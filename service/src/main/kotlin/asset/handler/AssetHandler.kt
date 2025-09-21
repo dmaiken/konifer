@@ -85,7 +85,7 @@ class AssetHandler(
             }
         }
 
-    suspend fun fetchAssetLinksByPath(context: QueryRequestContext): AssetLinkDto? {
+    suspend fun fetchAssetLinkByPath(context: QueryRequestContext): AssetLinkDto? {
         val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
         logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
         val variant = assetAndCacheStatus.first.variants.first()
@@ -110,10 +110,10 @@ class AssetHandler(
             return Pair(assetAndVariants, true)
         }
 
-        return if (assetAndVariants.variants.isEmpty() && context.transformation != null) {
+        return if (assetAndVariants.variants.isEmpty()) {
             logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
             context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(context.transformation.format.mimeType)) {
+                if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
                     throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
                 }
             }
@@ -121,7 +121,7 @@ class AssetHandler(
                 treePath = assetAndVariants.asset.path,
                 entryId = assetAndVariants.asset.entryId,
                 pathConfiguration = context.pathConfiguration,
-                transformation = context.transformation,
+                transformation = checkNotNull(context.transformation),
             ).let {
                 Pair(it, false)
             }

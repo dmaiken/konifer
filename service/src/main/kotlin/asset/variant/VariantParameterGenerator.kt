@@ -21,9 +21,9 @@ class VariantParameterGenerator {
     fun generateImageVariantTransformations(imageTransformation: Transformation): Pair<String, Long> {
         val transformations =
             Json.encodeToString(
-                ImageVariantTransformations(
-                    height = imageTransformation.height,
+                ImageVariantTransformation(
                     width = imageTransformation.width,
+                    height = imageTransformation.height,
                     format = imageTransformation.format,
                     fit = imageTransformation.fit,
                 ),
@@ -34,12 +34,16 @@ class VariantParameterGenerator {
         return Pair(transformations, key)
     }
 
+    /**
+     * Generate [ImageVariantTransformation] using [Attributes]. This should only be used when persisting
+     * the original variant since there will be no [Transformation] to use. The attributes "represent" the transformation.
+     */
     fun generateImageVariantTransformations(attributes: Attributes): Pair<String, Long> {
         val transformations =
             Json.encodeToString(
-                ImageVariantTransformations(
-                    height = attributes.height,
+                ImageVariantTransformation(
                     width = attributes.width,
+                    height = attributes.height,
                     format = attributes.format,
                     fit = Fit.default,
                 ),
@@ -50,13 +54,14 @@ class VariantParameterGenerator {
         return Pair(transformations, key)
     }
 
-    fun generateImageVariantAttributes(imageAttributes: Attributes): String = Json.encodeToString(
-        ImageVariantAttributes(
-            height = imageAttributes.height,
-            width = imageAttributes.width,
-            format = imageAttributes.format,
+    fun generateImageVariantAttributes(imageAttributes: Attributes): String =
+        Json.encodeToString(
+            ImageVariantAttributes(
+                width = imageAttributes.width,
+                height = imageAttributes.height,
+                format = imageAttributes.format,
+            ),
         )
-    )
 
     private fun generateTransformationKey(attributes: String): Long {
         return xx3.hashBytes(attributes.toByteArray(Charsets.UTF_8))

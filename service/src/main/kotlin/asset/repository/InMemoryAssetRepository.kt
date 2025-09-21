@@ -5,9 +5,8 @@ import asset.handler.StoreAssetDto
 import asset.model.AssetAndVariants
 import asset.model.VariantBucketAndKey
 import asset.variant.AssetVariant
-import asset.variant.ImageVariantTransformations
+import asset.variant.ImageVariantTransformation
 import asset.variant.VariantParameterGenerator
-import image.model.RequestedImageTransformation
 import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.repository.InMemoryPathAdapter
@@ -45,17 +44,18 @@ class InMemoryAssetRepository(
                         AssetVariant(
                             objectStoreBucket = asset.persistResult.bucket,
                             objectStoreKey = asset.persistResult.key,
-                            attributes = ImageVariantAttributes(
-                                height = asset.attributes.height,
-                                width = asset.attributes.width,
-                                format = asset.attributes.format,
-                            ),
-                            transformations =
-                                ImageVariantTransformations(
-                                    height = asset.attributes.height,
+                            attributes =
+                                ImageVariantAttributes(
                                     width = asset.attributes.width,
+                                    height = asset.attributes.height,
                                     format = asset.attributes.format,
-                                    fit = Fit.FIT
+                                ),
+                            transformations =
+                                ImageVariantTransformation(
+                                    width = asset.attributes.width,
+                                    height = asset.attributes.height,
+                                    format = asset.attributes.format,
+                                    fit = Fit.SCALE,
                                 ),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
@@ -80,28 +80,29 @@ class InMemoryAssetRepository(
         return store[path]?.let { assets ->
             val asset = assets.first { it.asset.entryId == variant.entryId }
             val key =
-                variantParameterGenerator.generateImageVariantTransformations(variant.attributes).second
+                variantParameterGenerator.generateImageVariantTransformations(variant.transformation).second
             if (asset.variants.any { it.transformationKey == key }) {
                 throw IllegalArgumentException(
                     "Variant already exists for asset with entry_id: ${variant.entryId} at path: $path " +
-                        "with attributes: ${variant.attributes}",
+                        "with attributes: ${variant.attributes}, transformation: ${variant.transformation}",
                 )
             }
             val variant =
                 AssetVariant(
                     objectStoreBucket = variant.persistResult.bucket,
                     objectStoreKey = variant.persistResult.key,
-                    attributes = ImageVariantAttributes(
-                        height = variant.attributes.height,
-                        width = variant.attributes.width,
-                        format = variant.attributes.format,
-                    ),
+                    attributes =
+                        ImageVariantAttributes(
+                            width = variant.attributes.width,
+                            height = variant.attributes.height,
+                            format = variant.attributes.format,
+                        ),
                     transformations =
-                        ImageVariantTransformations(
-                            height = variant.transformation.height,
+                        ImageVariantTransformation(
                             width = variant.transformation.width,
+                            height = variant.transformation.height,
                             format = variant.transformation.format,
-                            fit = variant.transformation.fit
+                            fit = variant.transformation.fit,
                         ),
                     isOriginalVariant = false,
                     lqip = variant.lqips,
@@ -123,27 +124,26 @@ class InMemoryAssetRepository(
         entryId: Long?,
         transformation: Transformation?,
     ): AssetAndVariants? {
-        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.let { assets ->
-            val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-            assets.firstOrNull { it.asset.entryId == resolvedEntryId }?.let { assetAndVariants ->
-                val variants =
-                    if (transformation == null) {
-                        assetAndVariants.variants
-                    } else if (transformation.originalVariant) {
-                        listOf(assetAndVariants.variants.first { it.isOriginalVariant })
-                    } else {
-                        assetAndVariants.variants.firstOrNull { variant ->
-                            transformation == variant.transformations
-                        }?.let { matched ->
-                            listOf(matched)
-                        } ?: emptyList()
-                    }
-                AssetAndVariants(
-                    asset = assetAndVariants.asset,
-                    variants = variants,
-                )
+        val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
+
+        val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
+        val assetAndVariants = assets.firstOrNull { it.asset.entryId == resolvedEntryId } ?: return null
+        val variants =
+            if (transformation == null) {
+                assetAndVariants.variants
+            } else if (transformation.originalVariant) {
+                listOf(assetAndVariants.variants.first { it.isOriginalVariant })
+            } else {
+                assetAndVariants.variants.firstOrNull { variant ->
+                    ImageVariantTransformation.from(transformation) == variant.transformations
+                }?.let { matched ->
+                    listOf(matched)
+                } ?: emptyList()
             }
-        }
+        return AssetAndVariants(
+            asset = assetAndVariants.asset,
+            variants = variants,
+        )
     }
 
     override suspend fun fetchAllByPath(
@@ -159,7 +159,7 @@ class InMemoryAssetRepository(
                     listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                 } else {
                     assetAndVariants.variants.firstOrNull { variant ->
-                        transformation == variant.transformations
+                        ImageVariantTransformation.from(transformation) == variant.transformations
                     }?.let { matched ->
                         listOf(matched)
                     } ?: emptyList()
@@ -245,22 +245,6 @@ class InMemoryAssetRepository(
 
     private fun getNextEntryId(path: String): Long {
         return store[path]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
-    }
-
-    private fun RequestedImageTransformation.matchesImageAttributes(attributes: ImageVariantTransformations): Boolean {
-        if (width != null && height != null) {
-            return attributes.width == width || attributes.height == height
-        }
-        if (width != null && attributes.width != width) {
-            return false
-        }
-        if (height != null && attributes.height != height) {
-            return false
-        }
-        if (format != null && attributes.format != format) {
-            return false
-        }
-        return true
     }
 }
 

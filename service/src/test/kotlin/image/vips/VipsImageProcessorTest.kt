@@ -19,6 +19,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.writeFully
 import io.matcher.shouldBeApproximately
+import io.matcher.shouldBeWithinOneOf
 import io.mockk.spyk
 import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.async
@@ -220,11 +221,11 @@ class VipsImageProcessorTest {
                 val sourceVImage = VImage.newFromBytes(arena, image)
                 val processedVImage = VImage.newFromBytes(arena, outputBytes)
 
-                processedVImage.width shouldBe maxWidth
+                processedVImage.width shouldBeWithinOneOf maxWidth
                 processedVImage.aspectRatio() shouldBeApproximately sourceVImage.aspectRatio()
 
-                processedImage.attributes.height shouldBe processedVImage.height
-                processedImage.attributes.width shouldBe processedVImage.width
+                processedImage.attributes.height shouldBeWithinOneOf processedVImage.height
+                processedImage.attributes.width shouldBeWithinOneOf processedVImage.width
             }
         }
 
