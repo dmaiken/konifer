@@ -25,7 +25,7 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
-import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATIONS_UQ
+import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import tessa.jooq.tables.records.AssetTreeRecord
 import tessa.jooq.tables.references.ASSET_TREE
 import tessa.jooq.tables.references.ASSET_VARIANT
@@ -65,7 +65,7 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
                     .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
-                    .set(ASSET_VARIANT.TRANSFORMATIONS, JSONB.valueOf(transformations))
+                    .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
                     .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationKey)
                     .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
@@ -107,7 +107,7 @@ class PostgresAssetRepository(
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.persistResult.key)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
-                        .set(ASSET_VARIANT.TRANSFORMATIONS, JSONB.valueOf(transformations))
+                        .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
                         .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationsKey)
                         .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
@@ -115,7 +115,7 @@ class PostgresAssetRepository(
                         .returning()
                         .awaitFirst()
                 } catch (e: IntegrityConstraintViolationException) {
-                    if (e.message?.contains(ASSET_VARIANT_TRANSFORMATIONS_UQ.name) == true) {
+                    if (e.message?.contains(ASSET_VARIANT_TRANSFORMATION_UQ.name) == true) {
                         throw IllegalArgumentException(
                             "Variant already exists for asset with entry_id: ${variant.entryId} at " +
                                 "path: $treePath and attributes: ${variant.attributes}",
@@ -306,10 +306,10 @@ class PostgresAssetRepository(
             condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
         } else {
             condition
-                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATIONS, "width").eq(transformation.width.toString()))
-                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATIONS, "height").eq(transformation.height.toString()))
-                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATIONS, "format").eq(transformation.format.name))
-                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATIONS, "fit").eq(transformation.fit.name))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "width").eq(transformation.width.toString()))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "height").eq(transformation.height.toString()))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "format").eq(transformation.format.name))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "fit").eq(transformation.fit.name))
         }
     }
 

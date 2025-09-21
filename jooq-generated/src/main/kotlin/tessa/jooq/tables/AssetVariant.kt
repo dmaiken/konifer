@@ -30,8 +30,8 @@ import org.jooq.impl.TableImpl
 import tessa.jooq.Public
 import tessa.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
 import tessa.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
-import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATIONS_UQ
 import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_KEY
+import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import tessa.jooq.keys.ASSET_VARIANT_PKEY
 import tessa.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import tessa.jooq.tables.AssetTree.AssetTreePath
@@ -98,9 +98,9 @@ open class AssetVariant(
     val OBJECT_STORE_KEY: TableField<AssetVariantRecord, String?> = createField(DSL.name("object_store_key"), SQLDataType.CLOB.nullable(false), this, "")
 
     /**
-     * The column <code>public.asset_variant.transformations</code>.
+     * The column <code>public.asset_variant.transformation</code>.
      */
-    val TRANSFORMATIONS: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("transformations"), SQLDataType.JSONB.nullable(false), this, "")
+    val TRANSFORMATION: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("transformation"), SQLDataType.JSONB.nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.transformation_key</code>.
@@ -159,7 +159,7 @@ open class AssetVariant(
         override fun `as`(alias: Table<*>): AssetVariantPath = AssetVariantPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_TRANSFORMATION_KEY, ASSET_VARIANT_TRANSFORMATIONS_UQ)
+    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_TRANSFORMATION_KEY, ASSET_VARIANT_TRANSFORMATION_UQ)
     override fun getPrimaryKey(): UniqueKey<AssetVariantRecord> = ASSET_VARIANT_PKEY
     override fun getReferences(): List<ForeignKey<AssetVariantRecord, *>> = listOf(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID)
 

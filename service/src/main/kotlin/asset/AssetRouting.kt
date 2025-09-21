@@ -89,7 +89,7 @@ fun Application.configureAssetRouting() {
                             call.response.headers.append(it.first, it.second)
                         }
                         call.respondBytesWriter(
-                            contentType = ContentType.parse(response.first.variants.first().transformations.format.mimeType),
+                            contentType = ContentType.parse(response.first.variants.first().transformation.format.mimeType),
                             status = HttpStatusCode.OK,
                         ) {
                             assetHandler.fetchAssetContent(

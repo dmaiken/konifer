@@ -135,7 +135,7 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.transformations.apply {
+                    it.transformation.apply {
                         height shouldBe 50
                         width shouldBe expectedWidth
                         fit shouldBe Fit.SCALE
@@ -179,7 +179,7 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 1
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.transformations.height shouldNotBe bufferedImage.width
+                    it.transformation.height shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe "different-bucket"
                 }
             }
@@ -217,15 +217,15 @@ class VariantGeneratorTest {
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.transformations.height shouldBe 50
-                    it.transformations.width shouldNotBe bufferedImage.width
+                    it.transformation.height shouldBe 50
+                    it.transformation.width shouldNotBe bufferedImage.width
                     it.objectStoreBucket shouldBe BUCKET
                 }
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe false
-                    it.transformations.height shouldNotBe bufferedImage.height
-                    it.transformations.width shouldBe 50
-                    it.transformations.format shouldBe ImageFormat.AVIF
+                    it.transformation.height shouldNotBe bufferedImage.height
+                    it.transformation.width shouldBe 50
+                    it.transformation.format shouldBe ImageFormat.AVIF
                     it.objectStoreBucket shouldBe BUCKET
                 }
             }
@@ -251,7 +251,7 @@ class VariantGeneratorTest {
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.transformations.height shouldNotBe bufferedImage.width
+                it.transformation.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe BUCKET
             }
         }
@@ -282,7 +282,7 @@ class VariantGeneratorTest {
             result.variants shouldHaveSize 1
             result.variants.forExactly(1) {
                 it.isOriginalVariant shouldBe false
-                it.transformations.height shouldNotBe bufferedImage.width
+                it.transformation.height shouldNotBe bufferedImage.width
                 it.objectStoreBucket shouldBe "different-bucket"
             }
         }

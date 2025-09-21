@@ -2,7 +2,6 @@ package io.asset
 
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 
-
 object ManipulationParameters {
     const val HEIGHT = "h"
     const val WIDTH = "w"

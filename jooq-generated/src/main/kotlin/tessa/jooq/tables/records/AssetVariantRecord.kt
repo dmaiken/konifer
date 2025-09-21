@@ -34,7 +34,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var transformations: JSONB?
+    open var transformation: JSONB?
         set(value): Unit = set(4, value)
         get(): JSONB? = get(4) as JSONB?
 
@@ -67,12 +67,12 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformations: JSONB? = null, transformationKey: Long? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, transformationKey: Long? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
         this.objectStoreKey = objectStoreKey
-        this.transformations = transformations
+        this.transformation = transformation
         this.transformationKey = transformationKey
         this.attributes = attributes
         this.lqip = lqip

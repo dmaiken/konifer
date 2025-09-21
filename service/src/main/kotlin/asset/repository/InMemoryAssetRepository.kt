@@ -50,7 +50,7 @@ class InMemoryAssetRepository(
                                     height = asset.attributes.height,
                                     format = asset.attributes.format,
                                 ),
-                            transformations =
+                            transformation =
                                 ImageVariantTransformation(
                                     width = asset.attributes.width,
                                     height = asset.attributes.height,
@@ -97,7 +97,7 @@ class InMemoryAssetRepository(
                             height = variant.attributes.height,
                             format = variant.attributes.format,
                         ),
-                    transformations =
+                    transformation =
                         ImageVariantTransformation(
                             width = variant.transformation.width,
                             height = variant.transformation.height,
@@ -135,7 +135,7 @@ class InMemoryAssetRepository(
                 listOf(assetAndVariants.variants.first { it.isOriginalVariant })
             } else {
                 assetAndVariants.variants.firstOrNull { variant ->
-                    ImageVariantTransformation.from(transformation) == variant.transformations
+                    ImageVariantTransformation.from(transformation) == variant.transformation
                 }?.let { matched ->
                     listOf(matched)
                 } ?: emptyList()
@@ -159,7 +159,7 @@ class InMemoryAssetRepository(
                     listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                 } else {
                     assetAndVariants.variants.firstOrNull { variant ->
-                        ImageVariantTransformation.from(transformation) == variant.transformations
+                        ImageVariantTransformation.from(transformation) == variant.transformation
                     }?.let { matched ->
                         listOf(matched)
                     } ?: emptyList()

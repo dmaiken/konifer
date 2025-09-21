@@ -45,10 +45,10 @@ abstract class AssetRepositoryTest {
                     attributes.height shouldBe dto.attributes.height
                     attributes.width shouldBe dto.attributes.width
                     this.attributes.format shouldBe dto.attributes.format
-                    this.transformations.height shouldBe dto.attributes.height
-                    this.transformations.width shouldBe dto.attributes.width
-                    this.transformations.format shouldBe dto.attributes.format
-                    this.transformations.fit shouldBe Fit.SCALE
+                    this.transformation.height shouldBe dto.attributes.height
+                    this.transformation.width shouldBe dto.attributes.width
+                    this.transformation.format shouldBe dto.attributes.format
+                    this.transformation.fit shouldBe Fit.SCALE
                     this.isOriginalVariant shouldBe true
                     this.lqip shouldBe LQIPs.NONE
                 }
@@ -147,10 +147,10 @@ abstract class AssetRepositoryTest {
                     this.attributes.height shouldBe attributes.height
                     this.attributes.width shouldBe attributes.width
                     this.attributes.format shouldBe attributes.format
-                    this.transformations.height shouldBe variantTransformation.height
-                    this.transformations.width shouldBe variantTransformation.width
-                    this.transformations.format shouldBe variantTransformation.format
-                    this.transformations.fit shouldBe variantTransformation.fit
+                    this.transformation.height shouldBe variantTransformation.height
+                    this.transformation.width shouldBe variantTransformation.width
+                    this.transformation.format shouldBe variantTransformation.format
+                    this.transformation.fit shouldBe variantTransformation.fit
                     this.objectStoreBucket shouldBe persistResult.bucket
                     this.objectStoreKey shouldBe persistResult.key
                     objectStoreBucket shouldBe persistResult.bucket
@@ -563,8 +563,8 @@ abstract class AssetRepositoryTest {
                 fetched.forAll {
                     it.variants shouldHaveSize 1
                     it.variants.first().apply {
-                        transformations.height shouldBe 10
-                        transformations.height shouldBe 10
+                        transformation.height shouldBe 10
+                        transformation.height shouldBe 10
                         isOriginalVariant shouldBe false
                     }
                 }
@@ -614,7 +614,7 @@ abstract class AssetRepositoryTest {
                     it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
                     it.variants.find {
                             variant ->
-                        variant.transformations.height == 10 && variant.transformations.width == 10
+                        variant.transformation.height == 10 && variant.transformation.width == 10
                     } shouldNotBe null
                 }
             }
