@@ -13,9 +13,11 @@ import image.model.Transformation
 import io.asset.AssetStreamContainer
 import io.image.ByteChannelOutputStream
 import io.image.lqip.ImagePreviewGenerator
-import io.image.model.Fit
 import io.image.vips.VImageFactory
+import io.image.vips.VipsPipelines.lqipVariantPipeline
 import io.image.vips.transformation.Resize
+import io.image.vips.transformation.RotateFlip
+import io.image.vips.vipsPipeline
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.path.configuration.PathConfiguration
@@ -43,6 +45,7 @@ class VipsImageProcessor(
         processedChannel: ByteChannel,
     ): PreProcessedImage =
         withContext(Dispatchers.IO) {
+//            pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
             // Note: You cannot use coroutines in here unless we change up the way the arena is defined
             // FFM requires that only one thread access the native memory arena
             var attributes: Attributes? = null
@@ -53,6 +56,25 @@ class VipsImageProcessor(
                 Vips.run { arena ->
                     val sourceImage = VImageFactory.newFromContainer(arena, container)
 
+                    vipsPipeline {
+                        checkIfLqipRegenerationNeeded = false
+                        if (preProcessingProperties.enabled) {
+                            add(
+                                Resize(
+                                    width = preProcessingProperties.maxWidth,
+                                    height = preProcessingProperties.maxHeight,
+                                    fit = preProcessingProperties.fit,
+                                    upscale = false,
+                                )
+                            )
+//                            add(
+//                                RotateFlip(
+//                                    rotate = preProcessingProperties.rotate,
+//
+//                                )
+//                            )
+                        }
+                    }
                     val resized =
                         if (preProcessingProperties.enabled) {
                             Resize(
@@ -119,21 +141,28 @@ class VipsImageProcessor(
             try {
                 Vips.run { arena ->
                     val image = VImageFactory.newFromContainer(arena, source)
-                    // Determine if we need to downscale or upscale
-                    val transformer =
-                        Resize(
-                            width = transformation.width,
-                            height = transformation.height,
-                            fit = transformation.fit,
-                            upscale = true,
+                    val pipeline = vipsPipeline {
+                        add(
+                            Resize(
+                                width = transformation.width,
+                                height = transformation.height,
+                                fit = transformation.fit,
+                                upscale = true,
+                            )
                         )
-                    val resized = transformer.transform(image)
-                    val requiresLqipRegeneration = transformer.requiresLqipRegeneration(image)
+                        add(
+                            RotateFlip(
+                                rotate = transformation.rotate,
+                                horizontalFlip = transformation.horizontalFlip
+                            )
+                        )
+                    }.build()
+                    val (variant, requiresLqipRegeneration) = pipeline.run(image)
                     try {
                         if (requiresLqipRegeneration && pathConfiguration.imageProperties.previews.isNotEmpty()) {
                             regenerateLqip = true
                             generatePreviewVariant(
-                                sourceImage = resized,
+                                sourceImage = variant,
                                 channel = resizedPreviewChannel,
                             )
                         }
@@ -142,13 +171,13 @@ class VipsImageProcessor(
                     }
 
                     ByteChannelOutputStream(outputChannel).use {
-                        resized.writeToStream(it, ".${transformation.format.extension}")
+                        variant.writeToStream(it, ".${transformation.format.extension}")
                     }
 
                     attributes =
                         Attributes(
-                            width = resized.width,
-                            height = resized.height,
+                            width = variant.width,
+                            height = variant.height,
                             format = transformation.format,
                         )
                 }
@@ -200,13 +229,7 @@ class VipsImageProcessor(
         sourceImage: VImage,
         channel: ByteChannel,
     ) {
-        val previewImage =
-            Resize(
-                width = 32,
-                height = 32,
-                fit = Fit.SCALE,
-                upscale = false,
-            ).transform(sourceImage)
+        val (previewImage, _) = lqipVariantPipeline.run(sourceImage)
         ByteChannelOutputStream(channel).use {
             previewImage.writeToStream(it, ".${ImageFormat.PNG.extension}")
         }

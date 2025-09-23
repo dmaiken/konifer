@@ -1,8 +1,14 @@
 package image.model
 
 import io.asset.ManipulationParameters.FIT
+import io.asset.ManipulationParameters.FLIP
+import io.asset.ManipulationParameters.HEIGHT
+import io.asset.ManipulationParameters.ROTATE
+import io.asset.ManipulationParameters.WIDTH
 import io.image.lqip.LQIPImplementation
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
@@ -57,8 +63,12 @@ class ImageProperties private constructor(
 class PreProcessingProperties private constructor(
     val maxWidth: Int?,
     val maxHeight: Int?,
+    val width: Int?,
+    val height: Int?,
     val imageFormat: ImageFormat?,
     val fit: Fit,
+    val rotate: Rotate,
+    val flip: Flip,
 ) : ValidatedProperties {
     val enabled: Boolean = maxWidth != null || maxHeight != null || imageFormat != null || fit != Fit.SCALE
 
@@ -76,16 +86,24 @@ class PreProcessingProperties private constructor(
             PreProcessingProperties(
                 maxWidth = null,
                 maxHeight = null,
+                width = null,
+                height = null,
                 imageFormat = null,
                 fit = Fit.default,
+                rotate = Rotate.default,
+                flip = Flip.default,
             )
 
         fun create(
             maxWidth: Int?,
             maxHeight: Int?,
+            width: Int?,
+            height: Int?,
             imageFormat: ImageFormat?,
-            fit: Fit = Fit.default,
-        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, imageFormat, fit) }
+            fit: Fit,
+            rotate: Rotate,
+            flip: Flip,
+        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, imageFormat, fit, rotate, flip) }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -97,6 +115,10 @@ class PreProcessingProperties private constructor(
             maxHeight =
                 applicationConfig?.propertyOrNull(MAX_HEIGHT)?.getString()
                     ?.toInt() ?: parent?.maxHeight,
+            width = applicationConfig?.propertyOrNull(WIDTH)?.getString()
+                ?.toInt() ?: parent?.width,
+            height = applicationConfig?.propertyOrNull(HEIGHT)?.getString()
+                ?.toInt() ?: parent?.height,
             imageFormat =
                 applicationConfig?.propertyOrNull(IMAGE_FORMAT)?.getString()
                     ?.let {
@@ -107,8 +129,28 @@ class PreProcessingProperties private constructor(
                     ?.let {
                         Fit.fromString(it)
                     } ?: parent?.fit ?: Fit.default,
+            rotate = applicationConfig?.propertyOrNull(ROTATE)?.getString()
+                ?.let {
+                    Rotate.fromString(it)
+                } ?: parent?.rotate ?: Rotate.default,
+            flip = applicationConfig?.propertyOrNull(FLIP)?.getString()
+                ?.let {
+                    Flip.fromString(it)
+                } ?: parent?.flip ?: Flip.default,
         )
     }
+
+    val requestedImageTransformation by lazy { toRequestedImageTransformation() }
+
+    private fun toRequestedImageTransformation(): RequestedImageTransformation = RequestedImageTransformation(
+        width = width ?: maxWidth,
+        height = height ?: maxHeight,
+        format = imageFormat,
+        fit = fit,
+        rotate = rotate,
+        flip = flip,
+        canUpscale = maxWidth == null && maxHeight == null,
+    )
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$imageFormat)"

@@ -4,10 +4,10 @@ import io.asset.ManipulationParameters.ROTATE
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ParametersBuilder
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class RotateTest {
 
@@ -39,23 +39,25 @@ class RotateTest {
         Rotate.fromQueryParameters(parameters, ROTATE) shouldBe rotation
     }
 
-    @Test
-    fun `fromParameters invalid rotation angle is rejected`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["-90", "91", "-180", "-270", "1"])
+    fun `fromParameters invalid rotation angle is rejected`(invalid: String) {
         val parameters = ParametersBuilder().apply {
-            set(ROTATE, "91")
+            set(ROTATE, invalid)
         }.build()
 
         val exception = shouldThrow<IllegalArgumentException> {
             Rotate.fromQueryParameters(parameters, ROTATE)
         }
-        exception.message shouldBe "Invalid rotation: 91. Must be increments of 90"
+        exception.message shouldBe "Invalid rotation: $invalid. Must be increments of 90"
     }
 
-    @Test
-    fun `fromString invalid rotation angle is rejected`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["-90", "91", "-180", "-270", "1"])
+    fun `fromString invalid rotation angle is rejected`(invalid: String) {
         val exception = shouldThrow<IllegalArgumentException> {
-            Rotate.fromString("91")
+            Rotate.fromString(invalid)
         }
-        exception.message shouldBe "Invalid rotation: 91. Must be increments of 90"
+        exception.message shouldBe "Invalid rotation: $invalid. Must be increments of 90"
     }
 }

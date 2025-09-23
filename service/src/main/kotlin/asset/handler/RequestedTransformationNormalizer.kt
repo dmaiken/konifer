@@ -5,7 +5,10 @@ import asset.repository.AssetRepository
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import image.model.Transformation
+import io.image.model.ExifOrientations
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -80,12 +83,15 @@ class RequestedTransformationNormalizer(
             return Transformation.ORIGINAL_VARIANT
         }
         val (width, height) = normalizeDimensions(requested, originalVariantDeferred)
+        val (rotate, horizontalFlip) = normalizeRotation(requested.rotate, requested.flip)
 
         return Transformation(
             width = width,
             height = height,
             fit = requested.fit,
             format = normalizeFormat(requested, originalVariantDeferred),
+            rotate = rotate,
+            horizontalFlip = horizontalFlip
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalVariantDeferred.isActive && !originalVariantDeferred.isCompleted) {
@@ -123,6 +129,31 @@ class RequestedTransformationNormalizer(
             Fit.FIT, Fit.STRETCH -> {
                 Pair(requireNotNull(requested.width), requireNotNull(requested.height))
             }
+        }
+    }
+
+    /**
+     * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
+     */
+    private fun normalizeRotation(rotate: Rotate = Rotate.default, flip: Flip = Flip.default): Pair<Rotate, Boolean> {
+        return if (rotate == Rotate.ZERO && flip == Flip.NONE) {
+            ExifOrientations.ONE
+        } else if ((rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.H) || (rotate == Rotate.ZERO && flip == Flip.V)) {
+            ExifOrientations.TWO
+        } else if (rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.NONE) {
+            ExifOrientations.THREE
+        } else if ((rotate == Rotate.ZERO && flip == Flip.H) || (rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.V)) {
+            ExifOrientations.FOUR
+        } else if ((rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.H) || (rotate == Rotate.NINETY && flip == Flip.V)) {
+            ExifOrientations.FIVE
+        } else if (rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.NONE) {
+            ExifOrientations.SIX
+        } else if ((rotate == Rotate.NINETY && flip == Flip.H) || (rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.V)) {
+            ExifOrientations.SEVEN
+        } else if (rotate == Rotate.NINETY && flip == Flip.NONE) {
+            ExifOrientations.EIGHT
+        } else {
+            throw IllegalArgumentException("Rotation not supported: $rotate, Flip: $flip")
         }
     }
 
