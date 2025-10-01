@@ -12,4 +12,29 @@ object ExifOrientations {
     val SIX = Pair(Rotate.TWO_HUNDRED_SEVENTY, false)
     val SEVEN = Pair(Rotate.NINETY, true)
     val EIGHT = Pair(Rotate.NINETY, false)
+
+    /**
+     * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
+     */
+    fun normalizeOrientation(rotate: Rotate = Rotate.default, flip: Flip = Flip.default): Pair<Rotate, Boolean> {
+        return if (rotate == Rotate.ZERO && flip == Flip.NONE) {
+            ExifOrientations.ONE
+        } else if ((rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.H) || (rotate == Rotate.ZERO && flip == Flip.V)) {
+            ExifOrientations.TWO
+        } else if (rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.NONE) {
+            ExifOrientations.THREE
+        } else if ((rotate == Rotate.ZERO && flip == Flip.H) || (rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.V)) {
+            ExifOrientations.FOUR
+        } else if ((rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.H) || (rotate == Rotate.NINETY && flip == Flip.V)) {
+            ExifOrientations.FIVE
+        } else if (rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.NONE) {
+            ExifOrientations.SIX
+        } else if ((rotate == Rotate.NINETY && flip == Flip.H) || (rotate == Rotate.TWO_HUNDRED_SEVENTY && flip == Flip.V)) {
+            ExifOrientations.SEVEN
+        } else if (rotate == Rotate.NINETY && flip == Flip.NONE) {
+            ExifOrientations.EIGHT
+        } else {
+            throw IllegalArgumentException("Rotation not supported: $rotate, Flip: $flip")
+        }
+    }
 }

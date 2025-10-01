@@ -11,6 +11,8 @@ import image.model.PreProcessingProperties
 import image.model.ProcessedImage
 import image.model.Transformation
 import io.asset.AssetStreamContainer
+import io.asset.handler.RequestedTransformationNormalizer
+import io.asset.variant.ImageVariantAttributes
 import io.image.ByteChannelOutputStream
 import io.image.lqip.ImagePreviewGenerator
 import io.image.vips.VImageFactory
@@ -22,11 +24,13 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlin.time.measureTime
 
 class VipsImageProcessor(
     private val imagePreviewGenerator: ImagePreviewGenerator,
+    private val requestedTransformationNormalizer: RequestedTransformationNormalizer
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -45,7 +49,7 @@ class VipsImageProcessor(
         processedChannel: ByteChannel,
     ): PreProcessedImage =
         withContext(Dispatchers.IO) {
-//            pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
+            val requestedTransformation = pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
             // Note: You cannot use coroutines in here unless we change up the way the arena is defined
             // FFM requires that only one thread access the native memory arena
             var attributes: Attributes? = null
@@ -59,20 +63,32 @@ class VipsImageProcessor(
                     vipsPipeline {
                         checkIfLqipRegenerationNeeded = false
                         if (preProcessingProperties.enabled) {
+                            // Need a better way to do this, but that requires not using
+                            // Vips to get the image attributes
+                            val transformation = runBlocking {
+                                requestedTransformationNormalizer.normalize(
+                                    requested = requestedTransformation,
+                                    originalVariantAttributes = ImageVariantAttributes(
+                                        width = sourceImage.width,
+                                        height = sourceImage.height,
+                                        format = sourceFormat
+                                    )
+                                )
+                            }
                             add(
                                 Resize(
-                                    width = preProcessingProperties.maxWidth,
-                                    height = preProcessingProperties.maxHeight,
-                                    fit = preProcessingProperties.fit,
+                                    width = transformation.width,
+                                    height = transformation.height,
+                                    fit = transformation.fit,
                                     upscale = false,
                                 )
                             )
-//                            add(
-//                                RotateFlip(
-//                                    rotate = preProcessingProperties.rotate,
-//
-//                                )
-//                            )
+                            add(
+                                RotateFlip(
+                                    rotate = transformation.rotate,
+                                    horizontalFlip = transformation.horizontalFlip,
+                                )
+                            )
                         }
                     }
                     val resized =

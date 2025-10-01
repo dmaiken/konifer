@@ -51,9 +51,9 @@ class VariantGeneratorTest {
     private val variantParameterGenerator = VariantParameterGenerator()
     private val assetRepository = InMemoryAssetRepository(variantParameterGenerator)
     private val objectStore = InMemoryObjectStore()
-    private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
-    private val channel = Channel<VariantGenerationJob>()
     private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(variantParameterGenerator))
+    private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator(), requestedTransformationNormalizer))
+    private val channel = Channel<VariantGenerationJob>()
 
     private val variantGenerator =
         VariantGenerator(

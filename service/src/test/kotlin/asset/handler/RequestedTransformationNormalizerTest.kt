@@ -378,7 +378,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
-                        originalAsset = asset,
+                        originalVariantAttributes = asset.getOriginalVariant().attributes,
                         requested = listOf(requested1, requested2),
                     )
 
@@ -425,7 +425,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
-                        originalAsset = asset,
+                        originalVariantAttributes = asset.getOriginalVariant().attributes,
                         requested = listOf(requested1, requested2),
                     )
 

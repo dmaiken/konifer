@@ -81,7 +81,7 @@ class PreProcessingProperties private constructor(
         }
     }
 
-    companion object {
+    companion object Factory {
         val DEFAULT =
             PreProcessingProperties(
                 maxWidth = null,

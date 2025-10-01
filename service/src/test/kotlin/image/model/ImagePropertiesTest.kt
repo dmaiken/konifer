@@ -14,10 +14,15 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxHeight cannot be less than 0`(maxHeight: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.Companion.create(
+                PreProcessingProperties.create(
                     maxHeight = maxHeight,
                     maxWidth = 100,
                     imageFormat = null,
+                    width = null,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
                 )
             }
 
@@ -29,10 +34,15 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxWidth cannot be less than 0`(maxWidth: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.Companion.create(
+                PreProcessingProperties.create(
                     maxWidth = maxWidth,
                     maxHeight = 100,
                     imageFormat = null,
+                    width = null,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
                 )
             }
 
@@ -42,10 +52,15 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxHeight can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.Companion.create(
+            PreProcessingProperties.create(
                 maxWidth = 100,
                 maxHeight = null,
                 imageFormat = null,
+                width = null,
+                height = null,
+                fit = Fit.default,
+                rotate = Rotate.default,
+                flip = Flip.default,
             )
         }
     }
@@ -53,19 +68,28 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxWidth can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.Companion.create(
+            PreProcessingProperties.create(
                 maxWidth = null,
                 maxHeight = 100,
                 imageFormat = null,
+                width = null,
+                height = null,
+                fit = Fit.default,
+                rotate = Rotate.default,
+                flip = Flip.default,
             )
         }
     }
 
     @Test
-    fun `PreProcessingProperties default creates properties with default values`() {
+    fun `PreProcessingProperties default contains default values`() {
         val default = PreProcessingProperties.DEFAULT
         default.imageFormat shouldBe null
         default.maxWidth shouldBe null
         default.maxHeight shouldBe null
+        default.width shouldBe null
+        default.height shouldBe null
+        default.rotate shouldBe Rotate.default
+        default.flip shouldBe Flip.default
     }
 }
