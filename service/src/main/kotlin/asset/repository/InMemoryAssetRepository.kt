@@ -12,6 +12,7 @@ import io.asset.handler.StoreAssetVariantDto
 import io.asset.repository.InMemoryPathAdapter
 import io.asset.variant.ImageVariantAttributes
 import io.image.model.Fit
+import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
@@ -56,6 +57,8 @@ class InMemoryAssetRepository(
                                     height = asset.attributes.height,
                                     format = asset.attributes.format,
                                     fit = Fit.SCALE,
+                                    rotate = Rotate.ZERO,
+                                    horizontalFlip = false,
                                 ),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
@@ -97,13 +100,7 @@ class InMemoryAssetRepository(
                             height = variant.attributes.height,
                             format = variant.attributes.format,
                         ),
-                    transformation =
-                        ImageVariantTransformation(
-                            width = variant.transformation.width,
-                            height = variant.transformation.height,
-                            format = variant.transformation.format,
-                            fit = variant.transformation.fit,
-                        ),
+                    transformation = ImageVariantTransformation.from(variant.transformation),
                     isOriginalVariant = false,
                     lqip = variant.lqips,
                     transformationKey = key,

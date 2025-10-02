@@ -1,10 +1,11 @@
 package io.asset.handler
 
-import asset.model.AssetAndVariants
 import asset.repository.AssetRepository
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import image.model.Transformation
+import io.asset.variant.ImageVariantAttributes
+import io.image.model.ExifOrientations.normalizeOrientation
 import io.image.model.Fit
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -40,56 +41,72 @@ class RequestedTransformationNormalizer(
                         path = treePath,
                         entryId = entryId,
                         transformation = Transformation.ORIGINAL_VARIANT,
-                    ) ?: throw IllegalArgumentException(
+                    )?.getOriginalVariant()?.attributes ?: throw IllegalArgumentException(
                         "Original variant not found with path: $treePath, entryId: ${entryId ?: "Not Specified"}",
                     )
                 }
 
             doNormalize(
                 requested = requested,
-                originalVariantDeferred = originalVariantDeferred,
+                originalAttributesDeferred = originalVariantDeferred,
             )
         }
 
     suspend fun normalize(
         requested: List<RequestedImageTransformation>,
-        originalAsset: AssetAndVariants,
+        originalVariantAttributes: ImageVariantAttributes,
     ): List<Transformation> =
         coroutineScope {
             if (requested.isEmpty()) {
-                logger.debug { "Requested original variant for path: ${originalAsset.asset.path}, entryId: ${originalAsset.asset.entryId}" }
                 return@coroutineScope emptyList()
             }
 
             requested.map { request ->
                 doNormalize(
                     requested = request,
-                    originalVariantDeferred =
+                    originalAttributesDeferred =
                         async {
-                            originalAsset
+                            originalVariantAttributes
                         },
                 )
             }
         }
 
+    suspend fun normalize(
+        requested: RequestedImageTransformation,
+        originalVariantAttributes: ImageVariantAttributes,
+    ): Transformation =
+        coroutineScope {
+            doNormalize(
+                requested = requested,
+                originalAttributesDeferred =
+                    async {
+                        originalVariantAttributes
+                    },
+            )
+        }
+
     private suspend fun doNormalize(
         requested: RequestedImageTransformation,
-        originalVariantDeferred: Deferred<AssetAndVariants>,
+        originalAttributesDeferred: Deferred<ImageVariantAttributes>,
     ): Transformation {
         if (requested.originalVariant) {
             return Transformation.ORIGINAL_VARIANT
         }
-        val (width, height) = normalizeDimensions(requested, originalVariantDeferred)
+        val (width, height) = normalizeDimensions(requested, originalAttributesDeferred)
+        val (rotate, horizontalFlip) = normalizeOrientation(requested.rotate, requested.flip)
 
         return Transformation(
             width = width,
             height = height,
             fit = requested.fit,
-            format = normalizeFormat(requested, originalVariantDeferred),
+            format = normalizeFormat(requested, originalAttributesDeferred),
+            rotate = rotate,
+            horizontalFlip = horizontalFlip,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
-            if (!originalVariantDeferred.isActive && !originalVariantDeferred.isCompleted) {
-                originalVariantDeferred.cancel()
+            if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
+                originalAttributesDeferred.cancel()
             }
             logger.info("Normalized requested transformation: $requested to: $it")
         }
@@ -97,15 +114,15 @@ class RequestedTransformationNormalizer(
 
     private suspend fun normalizeDimensions(
         requested: RequestedImageTransformation,
-        originalVariantDeferred: Deferred<AssetAndVariants>,
+        originalVariantDeferred: Deferred<ImageVariantAttributes>,
     ): Pair<Int, Int> {
         return when (requested.fit) {
             Fit.SCALE -> {
                 if ((requested.width == null && requested.height != null) || (requested.width != null && requested.height == null)) {
                     val originalVariant = originalVariantDeferred.await()
 
-                    val originalWidth = originalVariant.getOriginalVariant().attributes.width.toDouble()
-                    val originalHeight = originalVariant.getOriginalVariant().attributes.height.toDouble()
+                    val originalWidth = originalVariant.width.toDouble()
+                    val originalHeight = originalVariant.height.toDouble()
                     // Derive height/width if needed
                     Pair(
                         requested.width ?: ((originalWidth * requireNotNull(requested.height)) / originalHeight).roundToInt(),
@@ -115,8 +132,8 @@ class RequestedTransformationNormalizer(
                     Pair(requested.width, requested.height)
                 } else {
                     Pair(
-                        originalVariantDeferred.await().getOriginalVariant().attributes.width,
-                        originalVariantDeferred.await().getOriginalVariant().attributes.height,
+                        originalVariantDeferred.await().width,
+                        originalVariantDeferred.await().height,
                     )
                 }
             }
@@ -128,6 +145,6 @@ class RequestedTransformationNormalizer(
 
     private suspend fun normalizeFormat(
         requested: RequestedImageTransformation,
-        originalVariantDeferred: Deferred<AssetAndVariants>,
-    ): ImageFormat = requested.format ?: originalVariantDeferred.await().getOriginalVariant().attributes.format
+        originalVariantDeferred: Deferred<ImageVariantAttributes>,
+    ): ImageFormat = requested.format ?: originalVariantDeferred.await().format
 }

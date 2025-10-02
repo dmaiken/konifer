@@ -17,12 +17,7 @@ class PathConfigurationTest {
                     allowedContentTypes = listOf("not/supported"),
                     imageProperties =
                         ImageProperties.create(
-                            preProcessing =
-                                PreProcessingProperties.create(
-                                    maxWidth = null,
-                                    maxHeight = null,
-                                    imageFormat = null,
-                                ),
+                            preProcessing = PreProcessingProperties.DEFAULT,
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),

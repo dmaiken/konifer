@@ -7,7 +7,7 @@ import org.koin.dsl.module
 fun imageModule(): Module =
     module {
         single<VipsImageProcessor> {
-            VipsImageProcessor(get())
+            VipsImageProcessor(get(), get())
         }
 
         single<ImagePreviewGenerator> {

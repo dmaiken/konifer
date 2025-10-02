@@ -4,13 +4,17 @@ import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.ManipulationParameters.ALL_PARAMETERS
 import io.asset.ManipulationParameters.FIT
+import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.path.DeleteMode
@@ -254,6 +258,8 @@ class RequestContextFactory(
                     height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
                     format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
                     fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
+                    rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
+                    flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                 )
             }
         }

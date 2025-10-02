@@ -89,6 +89,8 @@ suspend fun fetchAssetViaRedirect(
     width: Int? = null,
     mimeType: String? = null,
     fit: String? = null,
+    rotate: String? = null,
+    flip: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
 ): ByteArray? {
@@ -99,7 +101,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, rotate, flip)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -140,6 +142,8 @@ suspend fun fetchAssetContent(
     width: Int? = null,
     mimeType: String? = null,
     fit: String? = null,
+    rotate: String? = null,
+    flip: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -151,7 +155,7 @@ suspend fun fetchAssetContent(
         urlBuilder.path("/assets/$path/-/content")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, rotate, flip)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -193,6 +197,8 @@ suspend fun fetchAssetLink(
     width: Int? = null,
     mimeType: String? = null,
     fit: String? = null,
+    rotate: String? = null,
+    flip: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): AssetLinkResponse? {
@@ -203,7 +209,7 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, rotate, flip)
     val fetchUrl = urlBuilder.build()
     client.get(fetchUrl.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -307,6 +313,8 @@ private fun attachVariantModifiers(
     width: Int? = null,
     mimeType: String? = null,
     fit: String? = null,
+    rotate: String? = null,
+    flip: String? = null,
 ) {
     if (profile != null) {
         urlBuilder.parameters.append("profile", profile)
@@ -322,5 +330,11 @@ private fun attachVariantModifiers(
     }
     if (fit != null) {
         urlBuilder.parameters.append("fit", fit)
+    }
+    if (rotate != null) {
+        urlBuilder.parameters.append("r", rotate)
+    }
+    if (flip != null) {
+        urlBuilder.parameters.append("f", flip)
     }
 }

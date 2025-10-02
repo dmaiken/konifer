@@ -18,6 +18,8 @@ import io.aws.S3Properties
 import io.image.DimensionCalculator.calculateDimensions
 import io.image.lqip.ImagePreviewGenerator
 import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forExactly
@@ -49,9 +51,9 @@ class VariantGeneratorTest {
     private val variantParameterGenerator = VariantParameterGenerator()
     private val assetRepository = InMemoryAssetRepository(variantParameterGenerator)
     private val objectStore = InMemoryObjectStore()
-    private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator()))
-    private val channel = Channel<VariantGenerationJob>()
     private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(variantParameterGenerator))
+    private val imageProcessor = spyk<VipsImageProcessor>(VipsImageProcessor(ImagePreviewGenerator(), requestedTransformationNormalizer))
+    private val channel = Channel<VariantGenerationJob>()
 
     private val variantGenerator =
         VariantGenerator(
@@ -116,6 +118,8 @@ class VariantGeneratorTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                         ),
                     deferredResult = result,
@@ -162,6 +166,8 @@ class VariantGeneratorTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                         ),
                     deferredResult = result,
@@ -200,12 +206,16 @@ class VariantGeneratorTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                             RequestedImageTransformation(
                                 height = null,
                                 width = 50,
                                 format = ImageFormat.AVIF,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                         ),
                     deferredResult = result,
@@ -340,6 +350,8 @@ class VariantGeneratorTest {
                                 width = null,
                                 format = null,
                                 fit = Fit.SCALE,
+                                rotate = Rotate.ZERO,
+                                flip = Flip.NONE,
                             ),
                         ),
                     deferredResult = result,

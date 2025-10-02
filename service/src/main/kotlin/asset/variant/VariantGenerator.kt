@@ -90,7 +90,7 @@ class VariantGenerator(
                 job.transformations.let {
                     requestedTransformationNormalizer.normalize(
                         requested = it,
-                        originalAsset = original,
+                        originalVariantAttributes = original.getOriginalVariant().attributes,
                     )
                 },
             original = original,
