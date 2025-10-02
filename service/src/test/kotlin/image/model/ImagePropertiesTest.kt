@@ -92,4 +92,95 @@ class ImagePropertiesTest {
         default.rotate shouldBe Rotate.default
         default.flip shouldBe Flip.default
     }
+
+    @Test
+    fun `toRequestedImageTransformation uses the width over the maxWidth if supplied`() {
+        val properties =
+            shouldNotThrowAny {
+                PreProcessingProperties.create(
+                    maxWidth = 100,
+                    maxHeight = null,
+                    imageFormat = null,
+                    width = 200,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
+                )
+            }
+        properties.requestedImageTransformation.width shouldBe 200
+    }
+
+    @Test
+    fun `toRequestedImageTransformation uses the height over the maxHeight if supplied`() {
+        val properties =
+            shouldNotThrowAny {
+                PreProcessingProperties.create(
+                    maxWidth = null,
+                    maxHeight = 100,
+                    imageFormat = null,
+                    width = null,
+                    height = 200,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
+                )
+            }
+        properties.requestedImageTransformation.height shouldBe 200
+    }
+
+    @Test
+    fun `toRequestedImageTransformation canUpscale is false if maxWidth is true`() {
+        val properties =
+            shouldNotThrowAny {
+                PreProcessingProperties.create(
+                    maxWidth = 100,
+                    maxHeight = null,
+                    imageFormat = null,
+                    width = null,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
+                )
+            }
+        properties.requestedImageTransformation.canUpscale shouldBe false
+    }
+
+    @Test
+    fun `toRequestedImageTransformation canUpscale is false if maxHeight is true`() {
+        val properties =
+            shouldNotThrowAny {
+                PreProcessingProperties.create(
+                    maxWidth = null,
+                    maxHeight = 100,
+                    imageFormat = null,
+                    width = null,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
+                )
+            }
+        properties.requestedImageTransformation.canUpscale shouldBe false
+    }
+
+    @Test
+    fun `toRequestedImageTransformation canUpscale is true if maxHeight and maxWidth are null`() {
+        val properties =
+            shouldNotThrowAny {
+                PreProcessingProperties.create(
+                    maxWidth = null,
+                    maxHeight = null,
+                    imageFormat = null,
+                    width = 100,
+                    height = null,
+                    fit = Fit.default,
+                    rotate = Rotate.default,
+                    flip = Flip.default,
+                )
+            }
+        properties.requestedImageTransformation.canUpscale shouldBe true
+        properties.enabled
+    }
 }

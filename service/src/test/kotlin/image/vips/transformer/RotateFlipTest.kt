@@ -16,49 +16,55 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 class RotateFlipTest {
-
     companion object {
         @JvmStatic
-        fun rotateFlipSource() = listOf(
-            arguments(Rotate.ZERO, false),
-            arguments(Rotate.ZERO, true),
-            arguments(Rotate.NINETY, false),
-            arguments(Rotate.NINETY, true),
-            arguments(Rotate.ONE_HUNDRED_EIGHTY, false),
-            arguments(Rotate.ONE_HUNDRED_EIGHTY, true),
-            arguments(Rotate.TWO_HUNDRED_SEVENTY, false),
-            arguments(Rotate.TWO_HUNDRED_SEVENTY, true),
-        )
+        fun rotateFlipSource() =
+            listOf(
+                arguments(Rotate.ZERO, false),
+                arguments(Rotate.ZERO, true),
+                arguments(Rotate.NINETY, false),
+                arguments(Rotate.NINETY, true),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, false),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, true),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, false),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, true),
+            )
     }
 
     @ParameterizedTest
     @MethodSource("rotateFlipSource")
-    fun `can rotate and flip`(rotate: Rotate, horizontalFlip: Boolean) = runTest {
-        val rotateFlip = RotateFlip(
-            rotate = rotate,
-            horizontalFlip = horizontalFlip
-        )
+    fun `can rotate and flip`(
+        rotate: Rotate,
+        horizontalFlip: Boolean,
+    ) = runTest {
+        val rotateFlip =
+            RotateFlip(
+                rotate = rotate,
+                horizontalFlip = horizontalFlip,
+            )
         val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
         Vips.run { arena ->
             val transformed = rotateFlip.transform(VImage.newFromBytes(arena, image))
 
-            val angle = when (rotate) {
-                Rotate.ZERO -> 0
-                Rotate.NINETY -> 90
-                Rotate.ONE_HUNDRED_EIGHTY -> 180
-                Rotate.TWO_HUNDRED_SEVENTY -> 270
-                else -> throw IllegalStateException()
-            }.toDouble()
-            val expected = VImage.newFromBytes(arena, image)
-                .rotate(angle)
-                .let {
-                    if (horizontalFlip) {
-                        it.flip(VipsDirection.DIRECTION_HORIZONTAL)
-                    } else {
-                        it
+            val angle =
+                when (rotate) {
+                    Rotate.ZERO -> 0
+                    Rotate.NINETY -> 90
+                    Rotate.ONE_HUNDRED_EIGHTY -> 180
+                    Rotate.TWO_HUNDRED_SEVENTY -> 270
+                    else -> throw IllegalStateException()
+                }.toDouble()
+            val expected =
+                VImage.newFromBytes(arena, image)
+                    .rotate(angle)
+                    .let {
+                        if (horizontalFlip) {
+                            it.flip(VipsDirection.DIRECTION_HORIZONTAL)
+                        } else {
+                            it
+                        }
                     }
-                }
 
             val expectedStream = ByteArrayOutputStream()
             expected.writeToStream(expectedStream, ".jpeg")

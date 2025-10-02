@@ -4,7 +4,6 @@ import app.photofox.vipsffm.VImage
 import io.image.vips.transformation.VipsTransformer
 
 class VipsPipelineBuilder {
-
     private val transformers = mutableListOf<VipsTransformer>()
 
     var checkIfLqipRegenerationNeeded = false
@@ -41,7 +40,6 @@ fun vipsPipeline(initializer: VipsPipelineBuilder.() -> Unit): VipsPipelineBuild
 
 data class VipsPipelineResult(
     val processed: VImage,
-
     /**
      * If [VipsPipelineBuilder.checkIfLqipRegenerationNeeded] is false, then this will always be false.
      * Otherwise, if true, a new LQIP(s) will need to be generated for the [processed] image.

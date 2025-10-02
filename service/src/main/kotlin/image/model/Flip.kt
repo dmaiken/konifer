@@ -3,7 +3,6 @@ package io.image.model
 import io.ktor.http.Parameters
 
 enum class Flip {
-
     /**
      * Horizontal
      */
@@ -14,19 +13,21 @@ enum class Flip {
      */
     V,
 
-    NONE;
+    NONE,
+
+    ;
 
     companion object Factory {
         val default = NONE
 
-        fun fromString(string: String?): Flip = string?.let {
-            valueOf(it.uppercase())
-        } ?: default
+        fun fromString(string: String?): Flip =
+            string?.let {
+                valueOf(it.uppercase())
+            } ?: default
 
         fun fromQueryParameters(
             parameters: Parameters,
-            parameterName: String
+            parameterName: String,
         ): Flip? = parameters[parameterName]?.let { valueOf(it.uppercase()) }
-
     }
 }

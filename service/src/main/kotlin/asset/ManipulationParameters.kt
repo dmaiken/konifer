@@ -23,6 +23,6 @@ object ManipulationParameters {
             FIT,
             MIME_TYPE,
             ROTATE,
-            FLIP
+            FLIP,
         )
 }

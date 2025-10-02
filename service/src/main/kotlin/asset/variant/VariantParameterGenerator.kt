@@ -4,6 +4,7 @@ import image.model.Attributes
 import image.model.Transformation
 import io.asset.variant.ImageVariantAttributes
 import io.image.model.Fit
+import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
@@ -19,15 +20,7 @@ class VariantParameterGenerator {
      * @return the attributes as a json string and a key which is an xxh3 hash of the attributes
      */
     fun generateImageVariantTransformations(imageTransformation: Transformation): Pair<String, Long> {
-        val transformations =
-            Json.encodeToString(
-                ImageVariantTransformation(
-                    width = imageTransformation.width,
-                    height = imageTransformation.height,
-                    format = imageTransformation.format,
-                    fit = imageTransformation.fit,
-                ),
-            )
+        val transformations = Json.encodeToString(ImageVariantTransformation.from(imageTransformation))
         val key = generateTransformationKey(transformations)
 
         logger.info("Generated transformations: $transformations with key: $key")
@@ -46,6 +39,8 @@ class VariantParameterGenerator {
                     height = attributes.height,
                     format = attributes.format,
                     fit = Fit.default,
+                    rotate = Rotate.default,
+                    horizontalFlip = false,
                 ),
             )
         val key = generateTransformationKey(transformations)

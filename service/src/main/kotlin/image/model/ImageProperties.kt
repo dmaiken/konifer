@@ -70,7 +70,9 @@ class PreProcessingProperties private constructor(
     val rotate: Rotate,
     val flip: Flip,
 ) : ValidatedProperties {
-    val enabled: Boolean = maxWidth != null || maxHeight != null || imageFormat != null || fit != Fit.SCALE
+    val enabled: Boolean =
+        maxWidth != null || maxHeight != null || imageFormat != null ||
+            fit != Fit.default || rotate != Rotate.default || flip != Flip.default
 
     override fun validate() {
         maxWidth?.let {
@@ -115,10 +117,12 @@ class PreProcessingProperties private constructor(
             maxHeight =
                 applicationConfig?.propertyOrNull(MAX_HEIGHT)?.getString()
                     ?.toInt() ?: parent?.maxHeight,
-            width = applicationConfig?.propertyOrNull(WIDTH)?.getString()
-                ?.toInt() ?: parent?.width,
-            height = applicationConfig?.propertyOrNull(HEIGHT)?.getString()
-                ?.toInt() ?: parent?.height,
+            width =
+                applicationConfig?.propertyOrNull(WIDTH)?.getString()
+                    ?.toInt() ?: parent?.width,
+            height =
+                applicationConfig?.propertyOrNull(HEIGHT)?.getString()
+                    ?.toInt() ?: parent?.height,
             imageFormat =
                 applicationConfig?.propertyOrNull(IMAGE_FORMAT)?.getString()
                     ?.let {
@@ -129,28 +133,31 @@ class PreProcessingProperties private constructor(
                     ?.let {
                         Fit.fromString(it)
                     } ?: parent?.fit ?: Fit.default,
-            rotate = applicationConfig?.propertyOrNull(ROTATE)?.getString()
-                ?.let {
-                    Rotate.fromString(it)
-                } ?: parent?.rotate ?: Rotate.default,
-            flip = applicationConfig?.propertyOrNull(FLIP)?.getString()
-                ?.let {
-                    Flip.fromString(it)
-                } ?: parent?.flip ?: Flip.default,
+            rotate =
+                applicationConfig?.propertyOrNull(ROTATE)?.getString()
+                    ?.let {
+                        Rotate.fromString(it)
+                    } ?: parent?.rotate ?: Rotate.default,
+            flip =
+                applicationConfig?.propertyOrNull(FLIP)?.getString()
+                    ?.let {
+                        Flip.fromString(it)
+                    } ?: parent?.flip ?: Flip.default,
         )
     }
 
     val requestedImageTransformation by lazy { toRequestedImageTransformation() }
 
-    private fun toRequestedImageTransformation(): RequestedImageTransformation = RequestedImageTransformation(
-        width = width ?: maxWidth,
-        height = height ?: maxHeight,
-        format = imageFormat,
-        fit = fit,
-        rotate = rotate,
-        flip = flip,
-        canUpscale = maxWidth == null && maxHeight == null,
-    )
+    private fun toRequestedImageTransformation(): RequestedImageTransformation =
+        RequestedImageTransformation(
+            width = width ?: maxWidth,
+            height = height ?: maxHeight,
+            format = imageFormat,
+            fit = fit,
+            rotate = rotate,
+            flip = flip,
+            canUpscale = maxWidth == null && maxHeight == null,
+        )
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$imageFormat)"

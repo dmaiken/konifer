@@ -30,7 +30,7 @@ import kotlin.time.measureTime
 
 class VipsImageProcessor(
     private val imagePreviewGenerator: ImagePreviewGenerator,
-    private val requestedTransformationNormalizer: RequestedTransformationNormalizer
+    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -65,29 +65,31 @@ class VipsImageProcessor(
                         if (preProcessingProperties.enabled) {
                             // Need a better way to do this, but that requires not using
                             // Vips to get the image attributes
-                            val transformation = runBlocking {
-                                requestedTransformationNormalizer.normalize(
-                                    requested = requestedTransformation,
-                                    originalVariantAttributes = ImageVariantAttributes(
-                                        width = sourceImage.width,
-                                        height = sourceImage.height,
-                                        format = sourceFormat
+                            val transformation =
+                                runBlocking {
+                                    requestedTransformationNormalizer.normalize(
+                                        requested = requestedTransformation,
+                                        originalVariantAttributes =
+                                            ImageVariantAttributes(
+                                                width = sourceImage.width,
+                                                height = sourceImage.height,
+                                                format = sourceFormat,
+                                            ),
                                     )
-                                )
-                            }
+                                }
                             add(
                                 Resize(
                                     width = transformation.width,
                                     height = transformation.height,
                                     fit = transformation.fit,
                                     upscale = false,
-                                )
+                                ),
                             )
                             add(
                                 RotateFlip(
                                     rotate = transformation.rotate,
                                     horizontalFlip = transformation.horizontalFlip,
-                                )
+                                ),
                             )
                         }
                     }
@@ -157,22 +159,23 @@ class VipsImageProcessor(
             try {
                 Vips.run { arena ->
                     val image = VImageFactory.newFromContainer(arena, source)
-                    val pipeline = vipsPipeline {
-                        add(
-                            Resize(
-                                width = transformation.width,
-                                height = transformation.height,
-                                fit = transformation.fit,
-                                upscale = true,
+                    val pipeline =
+                        vipsPipeline {
+                            add(
+                                Resize(
+                                    width = transformation.width,
+                                    height = transformation.height,
+                                    fit = transformation.fit,
+                                    upscale = true,
+                                ),
                             )
-                        )
-                        add(
-                            RotateFlip(
-                                rotate = transformation.rotate,
-                                horizontalFlip = transformation.horizontalFlip
+                            add(
+                                RotateFlip(
+                                    rotate = transformation.rotate,
+                                    horizontalFlip = transformation.horizontalFlip,
+                                ),
                             )
-                        )
-                    }.build()
+                        }.build()
                     val (variant, requiresLqipRegeneration) = pipeline.run(image)
                     try {
                         if (requiresLqipRegeneration && pathConfiguration.imageProperties.previews.isNotEmpty()) {

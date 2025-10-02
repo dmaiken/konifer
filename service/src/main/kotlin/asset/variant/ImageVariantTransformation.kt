@@ -3,6 +3,7 @@ package asset.variant
 import image.model.ImageFormat
 import image.model.Transformation
 import io.image.model.Fit
+import io.image.model.Rotate
 import kotlinx.serialization.Serializable
 
 /**
@@ -15,6 +16,8 @@ data class ImageVariantTransformation(
     val height: Int,
     val format: ImageFormat,
     val fit: Fit,
+    val rotate: Rotate,
+    val horizontalFlip: Boolean,
 ) {
     companion object Factory {
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -23,6 +26,8 @@ data class ImageVariantTransformation(
                 height = transformation.height,
                 format = transformation.format,
                 fit = transformation.fit,
+                rotate = transformation.rotate,
+                horizontalFlip = transformation.horizontalFlip,
             )
     }
 }

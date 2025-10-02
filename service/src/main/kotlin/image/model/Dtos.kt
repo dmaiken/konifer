@@ -34,7 +34,7 @@ data class RequestedImageTransformation(
     val fit: Fit,
     val rotate: Rotate,
     val flip: Flip,
-    val canUpscale: Boolean = true
+    val canUpscale: Boolean = true,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =

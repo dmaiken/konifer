@@ -79,9 +79,10 @@ class RequestedTransformationNormalizer(
         coroutineScope {
             doNormalize(
                 requested = requested,
-                originalAttributesDeferred = async {
-                    originalVariantAttributes
-                }
+                originalAttributesDeferred =
+                    async {
+                        originalVariantAttributes
+                    },
             )
         }
 
@@ -101,7 +102,7 @@ class RequestedTransformationNormalizer(
             fit = requested.fit,
             format = normalizeFormat(requested, originalAttributesDeferred),
             rotate = rotate,
-            horizontalFlip = horizontalFlip
+            horizontalFlip = horizontalFlip,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {

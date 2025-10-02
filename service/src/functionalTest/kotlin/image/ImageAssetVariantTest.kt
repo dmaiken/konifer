@@ -1,10 +1,14 @@
 package image
 
+import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.enums.VipsDirection
 import asset.model.AssetClass
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.matcher.shouldHaveSamePixelContentAs
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import util.byteArrayToImage
@@ -12,6 +16,10 @@ import util.createJsonClient
 import util.fetchAssetViaRedirect
 import util.matcher.shouldBeApproximately
 import util.storeAsset
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import javax.imageio.ImageIO
 
 class ImageAssetVariantTest {
     @Test
@@ -256,6 +264,40 @@ class ImageAssetVariantTest {
                 variantImage.width shouldBe bufferedImage.width
                 variantImage.height shouldBe bufferedImage.height
                 Tika().detect(this) shouldBe "image/png"
+            }
+        }
+
+    @Test
+    fun `variant can be fetched that is rotated and flipped`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)
+
+            fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = false)!!.apply {
+                Tika().detect(this) shouldBe "image/png"
+            }
+            val result = fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = true)!!
+            Vips.run { arena ->
+                val expected =
+                    VImage.newFromBytes(arena, image)
+                        .rotate(90.0)
+                        .flip(VipsDirection.DIRECTION_HORIZONTAL)
+                val expectedStream = ByteArrayOutputStream()
+                expected.writeToStream(expectedStream, ".png")
+
+                val actualImage = ImageIO.read(ByteArrayInputStream(result))
+                val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+                File("actual.png").writeBytes(result)
+                File("expected.png").writeBytes(expectedStream.toByteArray())
+
+                actualImage shouldHaveSamePixelContentAs expectedImage
             }
         }
 }

@@ -7,7 +7,8 @@ enum class Rotate {
     NINETY,
     ONE_HUNDRED_EIGHTY,
     TWO_HUNDRED_SEVENTY,
-    AUTO;
+    AUTO,
+    ;
 
     companion object Factory {
         val default = ZERO
@@ -25,14 +26,15 @@ enum class Rotate {
                 toRotate(it)
             }
 
-        private fun toRotate(value: String): Rotate = value.toIntOrNull()?.let {
-            when (it) {
-                0 -> ZERO
-                90 -> NINETY
-                180 -> ONE_HUNDRED_EIGHTY
-                270 -> TWO_HUNDRED_SEVENTY
-                else -> throw IllegalArgumentException("Invalid rotation: $value. Must be increments of 90")
-            }
-        } ?: valueOf(value.uppercase())
+        private fun toRotate(value: String): Rotate =
+            value.toIntOrNull()?.let {
+                when (it) {
+                    0 -> ZERO
+                    90 -> NINETY
+                    180 -> ONE_HUNDRED_EIGHTY
+                    270 -> TWO_HUNDRED_SEVENTY
+                    else -> throw IllegalArgumentException("Invalid rotation: $value. Must be increments of 90")
+                }
+            } ?: valueOf(value.uppercase())
     }
 }

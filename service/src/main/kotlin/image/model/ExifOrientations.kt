@@ -16,7 +16,10 @@ object ExifOrientations {
     /**
      * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
      */
-    fun normalizeOrientation(rotate: Rotate = Rotate.default, flip: Flip = Flip.default): Pair<Rotate, Boolean> {
+    fun normalizeOrientation(
+        rotate: Rotate = Rotate.default,
+        flip: Flip = Flip.default,
+    ): Pair<Rotate, Boolean> {
         return if (rotate == Rotate.ZERO && flip == Flip.NONE) {
             ExifOrientations.ONE
         } else if ((rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.H) || (rotate == Rotate.ZERO && flip == Flip.V)) {

@@ -24,21 +24,31 @@ import org.junit.jupiter.params.provider.MethodSource
 class RequestedTransformationNormalizerTest : BaseUnitTest() {
     companion object {
         @JvmStatic
-        fun rotateFlipSource() = listOf(
-            arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false), // 1
-            arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true), // 2
-            arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true), // 2
-            arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false), // 3
-            arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true), // 4
-            arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true), // 4
-            arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true), // 5
-            arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true), // 5
-            arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false), // 6
-            arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true), // 7
-            arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true), // 7
-            arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false), // 8
-        )
+        fun rotateFlipSource() =
+            listOf(
+                // 1
+                arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false),
+                // 2
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true),
+                arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true),
+                // 3
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false),
+                // 4
+                arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true),
+                // 5
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true),
+                arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true),
+                // 6
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false),
+                // 7
+                arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true),
+                // 8
+                arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false),
+            )
     }
+
     private val requestedTransformationNormalizer =
         RequestedTransformationNormalizer(
             assetRepository = assetRepository,
@@ -451,14 +461,13 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
 
     @Nested
     inner class NormalizeRotateFlipTests {
-
         @ParameterizedTest
         @MethodSource("io.asset.handler.RequestedTransformationNormalizerTest#rotateFlipSource")
         fun `can normalize rotation and flip transformation attributes`(
             suppliedRotate: Rotate,
             suppliedFlip: Flip,
             expectedRotate: Rotate,
-            expectedHorizontalFlip: Boolean
+            expectedHorizontalFlip: Boolean,
         ) = runTest {
             val asset = storeAsset()
             val requested =
