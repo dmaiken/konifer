@@ -18,7 +18,6 @@ import util.matcher.shouldBeApproximately
 import util.storeAsset
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.imageio.ImageIO
 
 class ImageAssetVariantTest {
@@ -294,8 +293,6 @@ class ImageAssetVariantTest {
 
                 val actualImage = ImageIO.read(ByteArrayInputStream(result))
                 val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
-                File("actual.png").writeBytes(result)
-                File("expected.png").writeBytes(expectedStream.toByteArray())
 
                 actualImage shouldHaveSamePixelContentAs expectedImage
             }

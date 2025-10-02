@@ -45,7 +45,7 @@ class RotateFlipTest {
         val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
         Vips.run { arena ->
-            val transformed = rotateFlip.transform(VImage.newFromBytes(arena, image))
+            val transformed = rotateFlip.transform(arena, VImage.newFromBytes(arena, image))
 
             val angle =
                 when (rotate) {

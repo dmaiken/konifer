@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsDirection
 import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
+import java.lang.foreign.Arena
 
 class RotateFlip(
     /**
@@ -17,7 +18,10 @@ class RotateFlip(
 ) : VipsTransformer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override fun transform(source: VImage): VImage {
+    override fun transform(
+        arena: Arena,
+        source: VImage,
+    ): VImage {
         if (rotate == Rotate.ZERO && !horizontalFlip) {
             logger.info("Rotation is: $rotate and no flipping requested, skipping RotateFlip transformation")
             return source

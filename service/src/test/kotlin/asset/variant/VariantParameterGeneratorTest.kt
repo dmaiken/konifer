@@ -6,6 +6,7 @@ import image.model.Attributes
 import image.model.ImageFormat
 import image.model.Transformation
 import io.image.model.Fit
+import io.image.model.Rotate
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
@@ -47,6 +48,8 @@ class VariantParameterGeneratorTest {
                     height = 100,
                     format = ImageFormat.JPEG,
                     fit = Fit.FIT,
+                    rotate = Rotate.ONE_HUNDRED_EIGHTY,
+                    horizontalFlip = true,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -58,6 +61,8 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        rotate = Rotate.ONE_HUNDRED_EIGHTY,
+                        horizontalFlip = true,
                     ),
             )
         val (transformations2, key2) =
@@ -68,6 +73,8 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        rotate = Rotate.ONE_HUNDRED_EIGHTY,
+                        horizontalFlip = true,
                     ),
             )
 

@@ -9,6 +9,7 @@ import io.image.vips.VipsOption.VIPS_OPTION_CROP
 import io.image.vips.VipsOption.VIPS_OPTION_HEIGHT
 import io.image.vips.VipsOption.VIPS_OPTION_SIZE
 import io.ktor.util.logging.KtorSimpleLogger
+import java.lang.foreign.Arena
 
 class Resize(
     private val width: Int?,
@@ -22,7 +23,10 @@ class Resize(
      * Scales the image to fit within the given width and height. [fit] is used to define the method of firring the
      * image into the requested height and width
      */
-    override fun transform(source: VImage): VImage {
+    override fun transform(
+        arena: Arena,
+        source: VImage,
+    ): VImage {
         if (width == null && height == null) {
             logger.info("width and height are not set, skipping resize transformation")
             return source

@@ -2,6 +2,7 @@ package io.image.vips
 
 import app.photofox.vipsffm.VImage
 import io.image.vips.transformation.VipsTransformer
+import java.lang.foreign.Arena
 
 class VipsPipelineBuilder {
     private val transformers = mutableListOf<VipsTransformer>()
@@ -19,12 +20,17 @@ class VipsPipeline(
     private val transformers: List<VipsTransformer>,
     private val checkIfLqipRegenerationNeeded: Boolean,
 ) {
-    fun run(source: VImage): VipsPipelineResult {
+    fun run(
+        arena: Arena,
+        source: VImage,
+    ): VipsPipelineResult {
         var processed = source
         var requiresLqipRegeneration = false
+
         transformers.forEach { transformer ->
-            processed = transformer.transform(processed)
-            requiresLqipRegeneration = checkIfLqipRegenerationNeeded && (requiresLqipRegeneration || transformer.requiresLqipRegeneration(processed))
+            processed = transformer.transform(arena, processed)
+            requiresLqipRegeneration = checkIfLqipRegenerationNeeded &&
+                (requiresLqipRegeneration || transformer.requiresLqipRegeneration(processed))
         }
 
         return VipsPipelineResult(

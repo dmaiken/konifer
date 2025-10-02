@@ -60,7 +60,6 @@ class VipsImageProcessorTest {
 
     @Nested
     inner class PreProcessTests {
-        //        @Disabled
         @Test
         fun `image is not preprocessed if not enabled`() =
             runTest {

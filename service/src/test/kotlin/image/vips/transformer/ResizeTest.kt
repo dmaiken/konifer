@@ -54,7 +54,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.SCALE,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             (processedImage.height == height || processedImage.width == width) shouldBe true
             processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
@@ -85,7 +85,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.FIT,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.height shouldBe height
             processedImage.width shouldBe width
@@ -116,7 +116,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.STRETCH,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.height shouldBe height
             processedImage.width shouldBe width
@@ -147,7 +147,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.SCALE,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             (processedImage.height == height || processedImage.width == width) shouldBe true
             processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
@@ -178,7 +178,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.FIT,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.height shouldBe height
             processedImage.width shouldBe width
@@ -209,7 +209,7 @@ class ResizeTest {
                     height = height,
                     fit = Fit.STRETCH,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.height shouldBe height
             processedImage.width shouldBe width
@@ -239,7 +239,7 @@ class ResizeTest {
                         height = height,
                         fit = Fit.SCALE,
                         upscale = true,
-                    ).transform(source)
+                    ).transform(arena, source)
 
                 processedImage.height shouldBe height
                 processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
@@ -263,7 +263,7 @@ class ResizeTest {
                     height = null,
                     fit = Fit.SCALE,
                     upscale = true,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.width shouldBeWithinOneOf width
             processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
@@ -286,7 +286,7 @@ class ResizeTest {
                     height = null,
                     fit = Fit.SCALE,
                     upscale = false,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.width shouldBe source.width
             processedImage.height shouldBe source.height
@@ -310,7 +310,7 @@ class ResizeTest {
                     height = null,
                     fit = fit,
                     upscale = false,
-                ).transform(source)
+                ).transform(arena, source)
 
             processedImage.width shouldBe source.width
             processedImage.height shouldBe source.height
