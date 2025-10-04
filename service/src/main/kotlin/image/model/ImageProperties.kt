@@ -1,11 +1,13 @@
 package image.model
 
+import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
 import io.image.lqip.LQIPImplementation
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
 import io.image.model.Rotate
@@ -69,6 +71,7 @@ class PreProcessingProperties private constructor(
     val fit: Fit,
     val rotate: Rotate,
     val flip: Flip,
+    val filter: Filter,
 ) : ValidatedProperties {
     val enabled: Boolean =
         maxWidth != null || maxHeight != null || imageFormat != null ||
@@ -94,6 +97,7 @@ class PreProcessingProperties private constructor(
                 fit = Fit.default,
                 rotate = Rotate.default,
                 flip = Flip.default,
+                filter = Filter.default,
             )
 
         fun create(
@@ -101,11 +105,12 @@ class PreProcessingProperties private constructor(
             maxHeight: Int?,
             width: Int?,
             height: Int?,
-            imageFormat: ImageFormat?,
+            format: ImageFormat?,
             fit: Fit,
             rotate: Rotate,
             flip: Flip,
-        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, imageFormat, fit, rotate, flip) }
+            filter: Filter,
+        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, format, fit, rotate, flip, filter) }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -123,7 +128,7 @@ class PreProcessingProperties private constructor(
             height =
                 applicationConfig?.propertyOrNull(HEIGHT)?.getString()
                     ?.toInt() ?: parent?.height,
-            imageFormat =
+            format =
                 applicationConfig?.propertyOrNull(IMAGE_FORMAT)?.getString()
                     ?.let {
                         ImageFormat.fromFormat(it)
@@ -143,6 +148,11 @@ class PreProcessingProperties private constructor(
                     ?.let {
                         Flip.fromString(it)
                     } ?: parent?.flip ?: Flip.default,
+            filter =
+                applicationConfig?.propertyOrNull(FILTER)?.getString()
+                    ?.let {
+                        Filter.fromString(it)
+                    } ?: parent?.filter ?: Filter.default,
         )
     }
 
@@ -157,6 +167,7 @@ class PreProcessingProperties private constructor(
             rotate = rotate,
             flip = flip,
             canUpscale = maxWidth == null && maxHeight == null,
+            filter = filter,
         )
 
     override fun toString(): String {

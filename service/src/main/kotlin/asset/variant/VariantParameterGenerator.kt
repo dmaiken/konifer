@@ -3,8 +3,6 @@ package asset.variant
 import image.model.Attributes
 import image.model.Transformation
 import io.asset.variant.ImageVariantAttributes
-import io.image.model.Fit
-import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
@@ -34,14 +32,7 @@ class VariantParameterGenerator {
     fun generateImageVariantTransformations(attributes: Attributes): Pair<String, Long> {
         val transformations =
             Json.encodeToString(
-                ImageVariantTransformation(
-                    width = attributes.width,
-                    height = attributes.height,
-                    format = attributes.format,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    horizontalFlip = false,
-                ),
+                ImageVariantTransformation.originalTransformation(attributes),
             )
         val key = generateTransformationKey(transformations)
 

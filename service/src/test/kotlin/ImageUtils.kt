@@ -6,6 +6,13 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsSize
+import image.model.ImageFormat
+import image.model.PreProcessingProperties
+import image.model.RequestedImageTransformation
+import io.image.model.Filter
+import io.image.model.Fit
+import io.image.model.Flip
+import io.image.model.Rotate
 import org.apache.commons.math3.transform.DctNormalization
 import org.apache.commons.math3.transform.FastCosineTransformer
 import org.apache.commons.math3.transform.TransformType
@@ -147,3 +154,45 @@ object PHash {
         h2: ByteArray,
     ): Int = hammingDistance(compute(h1), compute(h2))
 }
+
+fun createRequestedImageTransformation(
+    width: Int? = null,
+    height: Int? = null,
+    format: ImageFormat? = null,
+    fit: Fit = Fit.default,
+    rotate: Rotate = Rotate.default,
+    flip: Flip = Flip.default,
+    filter: Filter = Filter.default,
+): RequestedImageTransformation =
+    RequestedImageTransformation(
+        width = width,
+        height = height,
+        format = format,
+        fit = fit,
+        rotate = rotate,
+        flip = flip,
+        filter = filter,
+    )
+
+fun createPreProcessingProperties(
+    maxWidth: Int? = null,
+    maxHeight: Int? = null,
+    width: Int? = null,
+    height: Int? = null,
+    format: ImageFormat? = null,
+    fit: Fit = Fit.default,
+    rotate: Rotate = Rotate.default,
+    flip: Flip = Flip.default,
+    filter: Filter = Filter.default,
+): PreProcessingProperties =
+    PreProcessingProperties.create(
+        maxWidth = maxWidth,
+        maxHeight = maxHeight,
+        width = width,
+        height = height,
+        format = format,
+        fit = fit,
+        rotate = rotate,
+        flip = flip,
+        filter = filter,
+    )

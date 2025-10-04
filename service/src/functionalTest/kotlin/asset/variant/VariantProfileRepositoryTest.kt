@@ -4,12 +4,15 @@ import config.testInMemory
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.variant.VariantProfileRepository
+import io.createRequestedImageTransformation
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
 import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -35,13 +38,10 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageTransformation(
-                                height = 10,
+                            createRequestedImageTransformation(
                                 width = 15,
+                                height = 10,
                                 format = ImageFormat.PNG,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -57,13 +57,9 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageTransformation(
-                                height = 10,
+                            createRequestedImageTransformation(
                                 width = 15,
-                                format = null,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
+                                height = 10,
                             ),
                     ),
                 ),
@@ -78,13 +74,8 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageTransformation(
+                            createRequestedImageTransformation(
                                 height = 10,
-                                width = null,
-                                format = null,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -99,13 +90,8 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageTransformation(
-                                height = null,
+                            createRequestedImageTransformation(
                                 width = 15,
-                                format = null,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
                             ),
                     ),
                 ),
@@ -124,22 +110,54 @@ class VariantProfileRepositoryTest {
                     """.trimIndent(),
                     mapOf(
                         "small" to
-                            RequestedImageTransformation(
-                                height = null,
+                            createRequestedImageTransformation(
                                 width = 15,
-                                format = null,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
                             ),
                         "medium" to
-                            RequestedImageTransformation(
+                            createRequestedImageTransformation(
                                 height = 15,
-                                width = null,
-                                format = null,
-                                fit = Fit.SCALE,
-                                rotate = Rotate.ZERO,
-                                flip = Flip.NONE,
+                            ),
+                    ),
+                ),
+                arguments(
+                    """
+                    variant-profiles = [
+                        {
+                            name = small
+                            w = 15
+                            h = 10
+                            fit = stretch
+                            r = auto
+                            filter = greyscale
+                        },
+                        {
+                            name = medium
+                            w = 15
+                            h = 10
+                            fit = fit
+                            r = 180
+                            f = v
+                            filter = black_white
+                        }
+                    ]
+                    """.trimIndent(),
+                    mapOf(
+                        "small" to
+                            createRequestedImageTransformation(
+                                width = 15,
+                                height = 10,
+                                fit = Fit.STRETCH,
+                                rotate = Rotate.AUTO,
+                                filter = Filter.GREYSCALE,
+                            ),
+                        "medium" to
+                            createRequestedImageTransformation(
+                                width = 15,
+                                height = 10,
+                                fit = Fit.FIT,
+                                rotate = Rotate.ONE_HUNDRED_EIGHTY,
+                                flip = Flip.V,
+                                filter = Filter.BLACK_WHITE,
                             ),
                     ),
                 ),
@@ -213,6 +231,102 @@ class VariantProfileRepositoryTest {
                         }
                     ]
                     """.trimIndent(),
+                ),
+            )
+
+        @JvmStatic
+        fun invalidProfileSource() =
+            listOf(
+                arguments(
+                    named(
+                        "bad width",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                w = 0
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad height",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                h = 0
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad mimeType",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                mimeType = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad fit",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                fit = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad rotate",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                r = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad flip",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                f = "bad"
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad filter",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                filter = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
                 ),
             )
     }
@@ -327,6 +441,17 @@ class VariantProfileRepositoryTest {
                         VariantProfileRepository(environment.config)
                     }
                 exception.message shouldBe "Profile name: 'small' already exists"
+            }
+        }
+
+    @ParameterizedTest
+    @MethodSource("invalidProfileSource")
+    fun `cannot have invalid variant profile definitions`(config: String) =
+        testInMemory(config) {
+            application {
+                shouldThrow<IllegalArgumentException> {
+                    VariantProfileRepository(environment.config)
+                }
             }
         }
 }

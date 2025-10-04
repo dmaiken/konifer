@@ -11,8 +11,6 @@ import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.repository.InMemoryPathAdapter
 import io.asset.variant.ImageVariantAttributes
-import io.image.model.Fit
-import io.image.model.Rotate
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
@@ -45,21 +43,9 @@ class InMemoryAssetRepository(
                         AssetVariant(
                             objectStoreBucket = asset.persistResult.bucket,
                             objectStoreKey = asset.persistResult.key,
-                            attributes =
-                                ImageVariantAttributes(
-                                    width = asset.attributes.width,
-                                    height = asset.attributes.height,
-                                    format = asset.attributes.format,
-                                ),
+                            attributes = ImageVariantAttributes.from(asset.attributes),
                             transformation =
-                                ImageVariantTransformation(
-                                    width = asset.attributes.width,
-                                    height = asset.attributes.height,
-                                    format = asset.attributes.format,
-                                    fit = Fit.SCALE,
-                                    rotate = Rotate.ZERO,
-                                    horizontalFlip = false,
-                                ),
+                                ImageVariantTransformation.originalTransformation(asset.attributes),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
                             transformationKey = key,
@@ -94,12 +80,7 @@ class InMemoryAssetRepository(
                 AssetVariant(
                     objectStoreBucket = variant.persistResult.bucket,
                     objectStoreKey = variant.persistResult.key,
-                    attributes =
-                        ImageVariantAttributes(
-                            width = variant.attributes.width,
-                            height = variant.attributes.height,
-                            format = variant.attributes.format,
-                        ),
+                    attributes = ImageVariantAttributes.from(variant.attributes),
                     transformation = ImageVariantTransformation.from(variant.transformation),
                     isOriginalVariant = false,
                     lqip = variant.lqips,

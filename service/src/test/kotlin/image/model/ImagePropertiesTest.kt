@@ -1,6 +1,7 @@
 package io.image.model
 
 import image.model.PreProcessingProperties
+import io.createPreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -14,15 +15,8 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxHeight cannot be less than 0`(maxHeight: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.create(
+                createPreProcessingProperties(
                     maxHeight = maxHeight,
-                    maxWidth = 100,
-                    imageFormat = null,
-                    width = null,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
 
@@ -34,15 +28,8 @@ class ImagePropertiesTest {
     fun `PreProcessingProperties maxWidth cannot be less than 0`(maxWidth: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PreProcessingProperties.create(
+                createPreProcessingProperties(
                     maxWidth = maxWidth,
-                    maxHeight = 100,
-                    imageFormat = null,
-                    width = null,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
 
@@ -52,15 +39,9 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxHeight can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.create(
+            createPreProcessingProperties(
                 maxWidth = 100,
                 maxHeight = null,
-                imageFormat = null,
-                width = null,
-                height = null,
-                fit = Fit.default,
-                rotate = Rotate.default,
-                flip = Flip.default,
             )
         }
     }
@@ -68,15 +49,9 @@ class ImagePropertiesTest {
     @Test
     fun `PreProcessingProperties maxWidth can be null`() {
         shouldNotThrowAny {
-            PreProcessingProperties.create(
+            createPreProcessingProperties(
                 maxWidth = null,
                 maxHeight = 100,
-                imageFormat = null,
-                width = null,
-                height = null,
-                fit = Fit.default,
-                rotate = Rotate.default,
-                flip = Flip.default,
             )
         }
     }
@@ -97,15 +72,9 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation uses the width over the maxWidth if supplied`() {
         val properties =
             shouldNotThrowAny {
-                PreProcessingProperties.create(
+                createPreProcessingProperties(
                     maxWidth = 100,
-                    maxHeight = null,
-                    imageFormat = null,
                     width = 200,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
         properties.requestedImageTransformation.width shouldBe 200
@@ -115,15 +84,9 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation uses the height over the maxHeight if supplied`() {
         val properties =
             shouldNotThrowAny {
-                PreProcessingProperties.create(
-                    maxWidth = null,
+                createPreProcessingProperties(
                     maxHeight = 100,
-                    imageFormat = null,
-                    width = null,
                     height = 200,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
         properties.requestedImageTransformation.height shouldBe 200
@@ -133,15 +96,8 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is false if maxWidth is true`() {
         val properties =
             shouldNotThrowAny {
-                PreProcessingProperties.create(
+                createPreProcessingProperties(
                     maxWidth = 100,
-                    maxHeight = null,
-                    imageFormat = null,
-                    width = null,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
         properties.requestedImageTransformation.canUpscale shouldBe false
@@ -151,15 +107,8 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is false if maxHeight is true`() {
         val properties =
             shouldNotThrowAny {
-                PreProcessingProperties.create(
-                    maxWidth = null,
+                createPreProcessingProperties(
                     maxHeight = 100,
-                    imageFormat = null,
-                    width = null,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
                 )
             }
         properties.requestedImageTransformation.canUpscale shouldBe false
@@ -169,15 +118,8 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is true if maxHeight and maxWidth are null`() {
         val properties =
             shouldNotThrowAny {
-                PreProcessingProperties.create(
-                    maxWidth = null,
-                    maxHeight = null,
-                    imageFormat = null,
-                    width = 100,
-                    height = null,
-                    fit = Fit.default,
-                    rotate = Rotate.default,
-                    flip = Flip.default,
+                createPreProcessingProperties(
+                    width = 200,
                 )
             }
         properties.requestedImageTransformation.canUpscale shouldBe true

@@ -4,6 +4,8 @@ import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import image.model.Transformation
 import io.BaseUnitTest
+import io.createRequestedImageTransformation
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
 import io.image.model.Rotate
@@ -55,19 +57,17 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
         )
 
     @Nested
-    inner class NormalizeSingleRequestedTransformationTest {
+    inner class NormalizeSingleRequestedTransformationTests {
         @Test
         fun `can normalize requested transformation`() =
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
                         height = 200,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -108,13 +108,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
         fun `if original is needed and cannot be found then exception is thrown`() =
             runTest {
                 val requested =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
-                        height = null,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 shouldThrow<IllegalArgumentException> {
                     requestedTransformationNormalizer.normalize(
@@ -134,13 +131,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
-                        height = null,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -164,13 +158,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
-                        width = null,
+                    createRequestedImageTransformation(
                         height = 200,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -194,13 +185,9 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
-                        width = null,
+                    createRequestedImageTransformation(
                         height = 200,
-                        format = null,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -218,6 +205,31 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
                 }
             }
+
+        @Test
+        fun `can normalize filter and not fetch original variant`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        filter = Filter.GREYSCALE,
+                    )
+                val normalized =
+                    requestedTransformationNormalizer.normalize(
+                        treePath = asset.asset.path,
+                        entryId = asset.asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.filter shouldBe Filter.GREYSCALE
+
+                coVerify(exactly = 0) {
+                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                }
+            }
     }
 
     @Nested
@@ -227,13 +239,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
                         height = 200,
-                        format = null,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -259,13 +268,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
-                        width = null,
+                    createRequestedImageTransformation(
                         height = 200,
                         format = ImageFormat.PNG,
                         fit = fit,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 shouldThrow<IllegalArgumentException> {
                     requestedTransformationNormalizer.normalize(
@@ -281,13 +287,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
-                        width = null,
+                    createRequestedImageTransformation(
                         height = 200,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     shouldNotThrowAny {
@@ -308,13 +311,10 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
-                        height = null,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     shouldNotThrowAny {
@@ -335,13 +335,9 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested =
-                    RequestedImageTransformation(
-                        width = null,
-                        height = null,
+                    createRequestedImageTransformation(
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     shouldNotThrowAny {
@@ -369,22 +365,18 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested1 =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
                         height = 200,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val requested2 =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 300,
                         height = 300,
                         format = ImageFormat.JPEG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -416,22 +408,16 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val requested1 =
-                    RequestedImageTransformation(
+                    createRequestedImageTransformation(
                         width = 200,
-                        height = null,
                         format = ImageFormat.PNG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val requested2 =
-                    RequestedImageTransformation(
-                        width = null,
+                    createRequestedImageTransformation(
                         height = 300,
                         format = ImageFormat.JPEG,
                         fit = Fit.SCALE,
-                        rotate = Rotate.ZERO,
-                        flip = Flip.NONE,
                     )
                 val normalized =
                     requestedTransformationNormalizer.normalize(
@@ -471,7 +457,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
         ) = runTest {
             val asset = storeAsset()
             val requested =
-                RequestedImageTransformation(
+                createRequestedImageTransformation(
                     width = 20,
                     height = 20,
                     format = ImageFormat.PNG,

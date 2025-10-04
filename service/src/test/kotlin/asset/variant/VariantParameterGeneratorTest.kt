@@ -5,6 +5,7 @@ import asset.variant.VariantParameterGenerator
 import image.model.Attributes
 import image.model.ImageFormat
 import image.model.Transformation
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Rotate
 import io.kotest.matchers.shouldBe
@@ -50,6 +51,7 @@ class VariantParameterGeneratorTest {
                     fit = Fit.FIT,
                     rotate = Rotate.ONE_HUNDRED_EIGHTY,
                     horizontalFlip = true,
+                    filter = Filter.GREYSCALE,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -63,6 +65,7 @@ class VariantParameterGeneratorTest {
                         fit = Fit.FIT,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
+                        filter = Filter.GREYSCALE,
                     ),
             )
         val (transformations2, key2) =
@@ -75,6 +78,7 @@ class VariantParameterGeneratorTest {
                         fit = Fit.FIT,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
+                        filter = Filter.GREYSCALE,
                     ),
             )
 

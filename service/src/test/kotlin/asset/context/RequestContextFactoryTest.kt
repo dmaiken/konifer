@@ -2,15 +2,13 @@ package io.asset.context
 
 import image.model.ImageFormat
 import image.model.ImageProperties
-import image.model.RequestedImageTransformation
 import image.model.Transformation
 import io.BaseUnitTest
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.aws.S3Properties
+import io.createRequestedImageTransformation
 import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -345,13 +343,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
         runTest {
             val profileName = "small"
             val variantConfig =
-                RequestedImageTransformation(
+                createRequestedImageTransformation(
                     width = 10,
-                    height = 20,
+                    height = 10,
                     format = ImageFormat.PNG,
-                    fit = Fit.SCALE,
-                    rotate = Rotate.ZERO,
-                    flip = Flip.NONE,
                 )
             every {
                 variantProfileRepository.fetch(profileName)
@@ -382,15 +377,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
             every {
                 variantProfileRepository.fetch(profileName)
             } returns
-                RequestedImageTransformation(
+                createRequestedImageTransformation(
                     width = 10,
                     height = 20,
                     format = ImageFormat.PNG,
-                    fit = Fit.SCALE,
-                    rotate = Rotate.ZERO,
-                    flip = Flip.NONE,
                 )
-
             val context =
                 requestContextFactory.fromGetRequest(
                     "/assets/user/",

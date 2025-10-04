@@ -1,5 +1,6 @@
 package io.asset.variant
 
+import image.model.Attributes
 import image.model.ImageFormat
 import kotlinx.serialization.Serializable
 
@@ -9,6 +10,15 @@ data class ImageVariantAttributes(
     val height: Int,
     val format: ImageFormat,
 ) {
+    companion object Factory {
+        fun from(attributes: Attributes) =
+            ImageVariantAttributes(
+                width = attributes.width,
+                height = attributes.height,
+                format = attributes.format,
+            )
+    }
+
     val aspectRatio: Double
         get() = width.toDouble() / height
 }

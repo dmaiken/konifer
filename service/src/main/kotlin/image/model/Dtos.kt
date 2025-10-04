@@ -1,12 +1,14 @@
 package image.model
 
 import asset.model.LQIPResponse
+import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
 import io.image.model.Rotate
@@ -35,6 +37,7 @@ data class RequestedImageTransformation(
     val rotate: Rotate,
     val flip: Flip,
     val canUpscale: Boolean = true,
+    val filter: Filter,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -46,6 +49,7 @@ data class RequestedImageTransformation(
                 fit = Fit.default,
                 rotate = Rotate.default,
                 flip = Flip.default,
+                filter = Filter.default,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -57,6 +61,7 @@ data class RequestedImageTransformation(
                 fit = Fit.fromString(applicationConfig.tryGetString(FIT)),
                 rotate = Rotate.fromString(applicationConfig.tryGetString(ROTATE)),
                 flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
+                filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
             ).apply {
                 validate()
             }
@@ -99,6 +104,7 @@ data class Transformation(
     val format: ImageFormat,
     val rotate: Rotate = Rotate.default,
     val horizontalFlip: Boolean = false,
+    val filter: Filter = Filter.default,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =

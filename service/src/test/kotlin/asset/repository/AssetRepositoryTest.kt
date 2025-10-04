@@ -8,7 +8,9 @@ import image.model.ImageFormat
 import image.model.LQIPs
 import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
+import io.image.model.Filter
 import io.image.model.Fit
+import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
@@ -20,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
@@ -701,6 +704,311 @@ abstract class AssetRepositoryTest {
                 shouldNotThrowAny {
                     repository.deleteAssetsByPath("/users/123", recursive)
                 }
+            }
+    }
+
+    /**
+     * These test the repository's ability to fetch a variant by a given transformation. Both a positive
+     * and negative match should be tested for each new transformation component.
+     */
+    @Nested
+    inner class FetchVariantByTransformationTests {
+        @ParameterizedTest
+        @EnumSource(value = Fit::class)
+        fun `can fetch variant by height and width transformation`(fit: Fit) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        fit = fit,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(fit = Fit.entries.first { it != fit }),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @ParameterizedTest
+        @EnumSource(value = ImageFormat::class)
+        fun `can fetch variant by format transformation`(format: ImageFormat) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = format,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = format,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(format = ImageFormat.entries.first { it != format }),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @ParameterizedTest
+        @EnumSource(value = Rotate::class)
+        fun `can fetch variant by rotation transformation`(rotate: Rotate) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        rotate = rotate,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(rotate = Rotate.entries.first { it != rotate }),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [true, false])
+        fun `can fetch variant by horizontal flip transformation`(horizontalFlip: Boolean) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        horizontalFlip = horizontalFlip,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(horizontalFlip = !horizontalFlip),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @ParameterizedTest
+        @EnumSource(value = Filter::class)
+        fun `can fetch variant by filter transformation`(filter: Filter) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        filter = filter,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(filter = Filter.entries.first { it != filter }),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
+        fun `can fetch variant by all transformations at once`() =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        horizontalFlip = true,
+                        rotate = Rotate.ONE_HUNDRED_EIGHTY,
+                        fit = Fit.STRETCH,
+                        filter = Filter.GREYSCALE,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
             }
     }
 

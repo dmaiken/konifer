@@ -13,11 +13,9 @@ import image.model.PreProcessingProperties
 import io.asset.AssetStreamContainer
 import io.asset.handler.RequestedTransformationNormalizer
 import io.aws.S3Properties
+import io.createPreProcessingProperties
 import io.image.lqip.ImagePreviewGenerator
 import io.image.lqip.LQIPImplementation
-import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -148,15 +146,8 @@ class VipsImageProcessorTest {
                         imageProperties =
                             ImageProperties.create(
                                 preProcessing =
-                                    PreProcessingProperties.create(
-                                        maxWidth = null,
+                                    createPreProcessingProperties(
                                         maxHeight = maxHeight,
-                                        imageFormat = null,
-                                        width = null,
-                                        height = null,
-                                        fit = Fit.default,
-                                        rotate = Rotate.default,
-                                        flip = Flip.default,
                                     ),
                                 lqip = setOf(),
                             ),
@@ -207,15 +198,8 @@ class VipsImageProcessorTest {
                         imageProperties =
                             ImageProperties.create(
                                 preProcessing =
-                                    PreProcessingProperties.create(
+                                    createPreProcessingProperties(
                                         maxWidth = maxWidth,
-                                        maxHeight = null,
-                                        imageFormat = null,
-                                        width = null,
-                                        height = null,
-                                        fit = Fit.default,
-                                        rotate = Rotate.default,
-                                        flip = Flip.default,
                                     ),
                                 lqip = setOf(),
                             ),
@@ -265,15 +249,8 @@ class VipsImageProcessorTest {
                         imageProperties =
                             ImageProperties.create(
                                 preProcessing =
-                                    PreProcessingProperties.create(
+                                    createPreProcessingProperties(
                                         maxWidth = maxWidth,
-                                        maxHeight = null,
-                                        imageFormat = null,
-                                        width = null,
-                                        height = null,
-                                        fit = Fit.default,
-                                        rotate = Rotate.default,
-                                        flip = Flip.default,
                                     ),
                                 lqip = setOf(),
                             ),
@@ -315,15 +292,9 @@ class VipsImageProcessorTest {
                         imageProperties =
                             ImageProperties.create(
                                 preProcessing =
-                                    PreProcessingProperties.create(
+                                    createPreProcessingProperties(
                                         maxWidth = if (preprocessingEnabled) 100 else null,
                                         maxHeight = if (preprocessingEnabled) 100 else null,
-                                        imageFormat = null,
-                                        width = null,
-                                        height = null,
-                                        fit = Fit.default,
-                                        rotate = Rotate.default,
-                                        flip = Flip.default,
                                     ),
                                 lqip = setOf(LQIPImplementation.BLURHASH),
                             ),
@@ -372,15 +343,9 @@ class VipsImageProcessorTest {
                     imageProperties =
                         ImageProperties.create(
                             preProcessing =
-                                PreProcessingProperties.create(
+                                createPreProcessingProperties(
                                     maxWidth = if (preprocessingEnabled) 100 else null,
                                     maxHeight = if (preprocessingEnabled) 100 else null,
-                                    imageFormat = null,
-                                    width = null,
-                                    height = null,
-                                    fit = Fit.default,
-                                    rotate = Rotate.default,
-                                    flip = Flip.default,
                                 ),
                             lqip = setOf(LQIPImplementation.THUMBHASH),
                         ),
@@ -434,15 +399,8 @@ class VipsImageProcessorTest {
                     imageProperties =
                         ImageProperties.create(
                             preProcessing =
-                                PreProcessingProperties.create(
-                                    maxWidth = null,
-                                    maxHeight = null,
-                                    imageFormat = to,
-                                    width = null,
-                                    height = null,
-                                    fit = Fit.default,
-                                    rotate = Rotate.default,
-                                    flip = Flip.default,
+                                createPreProcessingProperties(
+                                    format = to,
                                 ),
                             lqip = lqips,
                         ),

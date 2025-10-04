@@ -9,6 +9,7 @@ object ManipulationParameters {
     const val MIME_TYPE = "mimeType"
     const val ROTATE = "r"
     const val FLIP = "f"
+    const val FILTER = "filter"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -24,5 +25,6 @@ object ManipulationParameters {
             MIME_TYPE,
             ROTATE,
             FLIP,
+            FILTER,
         )
 }

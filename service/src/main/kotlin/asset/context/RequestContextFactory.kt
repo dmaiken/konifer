@@ -3,6 +3,7 @@ package io.asset.context
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.ManipulationParameters.ALL_PARAMETERS
+import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.HEIGHT
@@ -12,6 +13,7 @@ import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.VariantProfileRepository
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
 import io.image.model.Rotate
@@ -260,6 +262,7 @@ class RequestContextFactory(
                     fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                     rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                     flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
+                    filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
                 )
             }
         }

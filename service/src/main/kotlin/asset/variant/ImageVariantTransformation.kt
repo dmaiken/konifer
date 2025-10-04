@@ -1,7 +1,9 @@
 package asset.variant
 
+import image.model.Attributes
 import image.model.ImageFormat
 import image.model.Transformation
+import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Rotate
 import kotlinx.serialization.Serializable
@@ -18,8 +20,20 @@ data class ImageVariantTransformation(
     val fit: Fit,
     val rotate: Rotate,
     val horizontalFlip: Boolean,
+    val filter: Filter,
 ) {
     companion object Factory {
+        fun originalTransformation(attributes: Attributes) =
+            ImageVariantTransformation(
+                width = attributes.width,
+                height = attributes.height,
+                format = attributes.format,
+                fit = Fit.default,
+                rotate = Rotate.default,
+                horizontalFlip = false,
+                filter = Filter.default,
+            )
+
         fun from(transformation: Transformation): ImageVariantTransformation =
             ImageVariantTransformation(
                 width = transformation.width,
@@ -28,6 +42,7 @@ data class ImageVariantTransformation(
                 fit = transformation.fit,
                 rotate = transformation.rotate,
                 horizontalFlip = transformation.horizontalFlip,
+                filter = transformation.filter,
             )
     }
 }

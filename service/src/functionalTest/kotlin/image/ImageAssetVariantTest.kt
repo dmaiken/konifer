@@ -3,14 +3,20 @@ package image
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsDirection
+import app.photofox.vipsffm.enums.VipsInterpretation
 import asset.model.AssetClass
 import asset.model.StoreAssetRequest
 import config.testInMemory
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.HttpClient
+import io.ktor.http.HttpStatusCode
 import io.matcher.shouldHaveSamePixelContentAs
 import org.apache.tika.Tika
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import util.byteArrayToImage
 import util.createJsonClient
 import util.fetchAssetViaRedirect
@@ -297,4 +303,104 @@ class ImageAssetVariantTest {
                 actualImage shouldHaveSamePixelContentAs expectedImage
             }
         }
+
+    @Test
+    fun `variant can be fetched that is has a filter applied`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)
+
+            fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = false)!!.apply {
+                Tika().detect(this) shouldBe "image/png"
+            }
+            val result = fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = true)!!
+            val expectedStream = ByteArrayOutputStream()
+            Vips.run { arena ->
+                VImage.newFromBytes(arena, image)
+                    .colourspace(VipsInterpretation.INTERPRETATION_GREY16)
+                    .writeToStream(expectedStream, ".png")
+
+                val actualImage = ImageIO.read(ByteArrayInputStream(result))
+                val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+
+                actualImage shouldHaveSamePixelContentAs expectedImage
+            }
+        }
+
+    @Nested
+    inner class InvalidVariantRequestTests {
+        @ParameterizedTest
+        @ValueSource(ints = [0, -1])
+        fun `cannot request an image with invalid height`(height: Int) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, height = height, expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @ParameterizedTest
+        @ValueSource(ints = [0, -1])
+        fun `cannot request an image with invalid width`(width: Int) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, width = width, expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid fit`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, fit = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid rotate`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, rotate = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid flip`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, flip = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid filter`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, filter = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        private suspend fun storeAsset(client: HttpClient) {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)
+        }
+    }
 }
