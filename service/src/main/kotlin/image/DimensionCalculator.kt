@@ -62,13 +62,15 @@ object DimensionCalculator {
                     else -> Pair(sourceWidth, sourceHeight)
                 }
             }
-            Fit.FIT, Fit.STRETCH ->
+            Fit.FIT, Fit.STRETCH, Fit.CROP ->
                 Pair(
                     requireNotNull(width) {
-                        "Width must be specified if fit is '${Fit.FIT.name.lowercase()}' or '${Fit.STRETCH.name.lowercase()}'"
+                        "Width must be specified if fit is '${Fit.FIT.name.lowercase()}', " +
+                            "'${Fit.STRETCH.name.lowercase()}', or '${Fit.CROP.name.lowercase()}'"
                     },
                     requireNotNull(height) {
-                        "Height must be specified if fit is '${Fit.FIT.name.lowercase()}' or '${Fit.STRETCH.name.lowercase()}'"
+                        "Height must be specified if fit is '${Fit.FIT.name.lowercase()}', " +
+                            "'${Fit.STRETCH.name.lowercase()}', or '${Fit.CROP.name.lowercase()}'"
                     },
                 )
         }

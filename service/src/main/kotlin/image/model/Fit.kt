@@ -18,13 +18,20 @@ enum class Fit {
      * stretch to fit exactly, ignores aspect ratio.
      */
     STRETCH,
+
+    /**
+     * using gravity value, crop image to height and width specified
+     */
+    CROP,
     ;
 
     companion object Factory {
+        val default = SCALE
+
         fun fromString(string: String?): Fit =
             string?.let {
                 valueOf(string.uppercase(getDefault()))
-            } ?: SCALE
+            } ?: default
 
         fun fromQueryParameters(
             parameters: Parameters,
@@ -33,7 +40,5 @@ enum class Fit {
             parameters[parameterName]?.let {
                 valueOf(it.uppercase())
             }
-
-        val default = SCALE
     }
 }

@@ -10,6 +10,7 @@ import image.model.Transformation
 import io.asset.handler.StoreAssetVariantDto
 import io.image.model.Filter
 import io.image.model.Fit
+import io.image.model.Gravity
 import io.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -967,6 +968,57 @@ abstract class AssetRepositoryTest {
                 noVariant!!.variants shouldHaveSize 0
             }
 
+        @ParameterizedTest
+        @EnumSource(value = Gravity::class)
+        fun `can fetch variant by gravity transformation`(gravity: Gravity) =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        gravity = gravity,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(gravity = Gravity.entries.first { it != gravity }),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
         @Test
         fun `can fetch variant by all transformations at once`() =
             runTest {
@@ -981,6 +1033,7 @@ abstract class AssetRepositoryTest {
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         fit = Fit.STRETCH,
                         filter = Filter.GREYSCALE,
+                        gravity = Gravity.ENTROPY,
                     )
                 val variant =
                     StoreAssetVariantDto(

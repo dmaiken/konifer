@@ -7,6 +7,7 @@ import image.model.ImageFormat
 import image.model.Transformation
 import io.image.model.Filter
 import io.image.model.Fit
+import io.image.model.Gravity
 import io.image.model.Rotate
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
@@ -49,6 +50,7 @@ class VariantParameterGeneratorTest {
                     height = 100,
                     format = ImageFormat.JPEG,
                     fit = Fit.FIT,
+                    gravity = Gravity.ENTROPY,
                     rotate = Rotate.ONE_HUNDRED_EIGHTY,
                     horizontalFlip = true,
                     filter = Filter.GREYSCALE,
@@ -63,6 +65,7 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
                         filter = Filter.GREYSCALE,
@@ -76,6 +79,7 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
                         filter = Filter.GREYSCALE,

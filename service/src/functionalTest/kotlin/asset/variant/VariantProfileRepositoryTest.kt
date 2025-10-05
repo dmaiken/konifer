@@ -328,6 +328,22 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
+                arguments(
+                    named(
+                        "bad gravity",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                h = 10
+                                w = 10
+                                fit = crop
+                                g = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
             )
     }
 

@@ -3,6 +3,7 @@ package image.model
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
+import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
@@ -10,6 +11,7 @@ import io.image.lqip.LQIPImplementation
 import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
+import io.image.model.Gravity
 import io.image.model.Rotate
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
@@ -67,14 +69,15 @@ class PreProcessingProperties private constructor(
     val maxHeight: Int?,
     val width: Int?,
     val height: Int?,
-    val imageFormat: ImageFormat?,
+    val format: ImageFormat?,
     val fit: Fit,
+    val gravity: Gravity,
     val rotate: Rotate,
     val flip: Flip,
     val filter: Filter,
 ) : ValidatedProperties {
     val enabled: Boolean =
-        maxWidth != null || maxHeight != null || imageFormat != null ||
+        maxWidth != null || maxHeight != null || format != null ||
             fit != Fit.default || rotate != Rotate.default || flip != Flip.default
 
     override fun validate() {
@@ -93,8 +96,9 @@ class PreProcessingProperties private constructor(
                 maxHeight = null,
                 width = null,
                 height = null,
-                imageFormat = null,
+                format = null,
                 fit = Fit.default,
+                gravity = Gravity.default,
                 rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
@@ -107,10 +111,11 @@ class PreProcessingProperties private constructor(
             height: Int?,
             format: ImageFormat?,
             fit: Fit,
+            gravity: Gravity,
             rotate: Rotate,
             flip: Flip,
             filter: Filter,
-        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, format, fit, rotate, flip, filter) }
+        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter) }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -132,12 +137,17 @@ class PreProcessingProperties private constructor(
                 applicationConfig?.propertyOrNull(IMAGE_FORMAT)?.getString()
                     ?.let {
                         ImageFormat.fromFormat(it)
-                    } ?: parent?.imageFormat,
+                    } ?: parent?.format,
             fit =
                 applicationConfig?.propertyOrNull(FIT)?.getString()
                     ?.let {
                         Fit.fromString(it)
                     } ?: parent?.fit ?: Fit.default,
+            gravity =
+                applicationConfig?.propertyOrNull(GRAVITY)?.getString()
+                    ?.let {
+                        Gravity.fromString(it)
+                    } ?: parent?.gravity ?: Gravity.default,
             rotate =
                 applicationConfig?.propertyOrNull(ROTATE)?.getString()
                     ?.let {
@@ -162,8 +172,9 @@ class PreProcessingProperties private constructor(
         RequestedImageTransformation(
             width = width ?: maxWidth,
             height = height ?: maxHeight,
-            format = imageFormat,
+            format = format,
             fit = fit,
+            gravity = gravity,
             rotate = rotate,
             flip = flip,
             canUpscale = maxWidth == null && maxHeight == null,
@@ -171,6 +182,8 @@ class PreProcessingProperties private constructor(
         )
 
     override fun toString(): String {
-        return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$imageFormat)"
+        return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
+            "width=$width, height=$height, format=$format, fit=$fit, gravity=$gravity, rotate=$rotate, " +
+            "flip=$flip, filter=$filter)"
     }
 }

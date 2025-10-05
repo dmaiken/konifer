@@ -12,6 +12,7 @@ import image.model.RequestedImageTransformation
 import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
+import io.image.model.Gravity
 import io.image.model.Rotate
 import org.apache.commons.math3.transform.DctNormalization
 import org.apache.commons.math3.transform.FastCosineTransformer
@@ -160,6 +161,7 @@ fun createRequestedImageTransformation(
     height: Int? = null,
     format: ImageFormat? = null,
     fit: Fit = Fit.default,
+    gravity: Gravity = Gravity.default,
     rotate: Rotate = Rotate.default,
     flip: Flip = Flip.default,
     filter: Filter = Filter.default,
@@ -169,6 +171,7 @@ fun createRequestedImageTransformation(
         height = height,
         format = format,
         fit = fit,
+        gravity = gravity,
         rotate = rotate,
         flip = flip,
         filter = filter,
@@ -181,6 +184,7 @@ fun createPreProcessingProperties(
     height: Int? = null,
     format: ImageFormat? = null,
     fit: Fit = Fit.default,
+    gravity: Gravity = Gravity.default,
     rotate: Rotate = Rotate.default,
     flip: Flip = Flip.default,
     filter: Filter = Filter.default,
@@ -192,6 +196,7 @@ fun createPreProcessingProperties(
         height = height,
         format = format,
         fit = fit,
+        gravity = gravity,
         rotate = rotate,
         flip = flip,
         filter = filter,

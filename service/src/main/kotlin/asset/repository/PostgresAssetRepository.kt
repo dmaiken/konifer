@@ -313,6 +313,7 @@ class PostgresAssetRepository(
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "rotate").eq(transformation.rotate.name))
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "horizontalFlip").eq(transformation.horizontalFlip.toString()))
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "filter").eq(transformation.filter.name))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "gravity").eq(transformation.gravity.name))
         }
     }
 

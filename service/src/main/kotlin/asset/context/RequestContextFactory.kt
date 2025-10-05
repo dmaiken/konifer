@@ -6,6 +6,7 @@ import io.asset.ManipulationParameters.ALL_PARAMETERS
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
+import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.ROTATE
@@ -16,6 +17,7 @@ import io.asset.variant.VariantProfileRepository
 import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
+import io.image.model.Gravity
 import io.image.model.Rotate
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
@@ -260,6 +262,7 @@ class RequestContextFactory(
                     height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
                     format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
                     fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
+                    gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
                     rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                     flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                     filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,

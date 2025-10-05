@@ -6,7 +6,6 @@ import image.model.RequestedImageTransformation
 import image.model.Transformation
 import io.asset.variant.ImageVariantAttributes
 import io.image.model.ExifOrientations.normalizeOrientation
-import io.image.model.Filter
 import io.image.model.Fit
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -101,10 +100,11 @@ class RequestedTransformationNormalizer(
             width = width,
             height = height,
             fit = requested.fit,
+            gravity = requested.gravity,
             format = normalizeFormat(requested, originalAttributesDeferred),
             rotate = rotate,
             horizontalFlip = horizontalFlip,
-            filter = normalizeFilter(requested),
+            filter = requested.filter,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -139,7 +139,7 @@ class RequestedTransformationNormalizer(
                     )
                 }
             }
-            Fit.FIT, Fit.STRETCH -> {
+            Fit.FIT, Fit.STRETCH, Fit.CROP -> {
                 Pair(requireNotNull(requested.width), requireNotNull(requested.height))
             }
         }
@@ -149,6 +149,4 @@ class RequestedTransformationNormalizer(
         requested: RequestedImageTransformation,
         originalVariantDeferred: Deferred<ImageVariantAttributes>,
     ): ImageFormat = requested.format ?: originalVariantDeferred.await().format
-
-    private fun normalizeFilter(requested: RequestedImageTransformation): Filter = requested.filter
 }

@@ -2,11 +2,14 @@ package image
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsDirection
+import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
 import asset.model.AssetClass
 import asset.model.StoreAssetRequest
 import config.testInMemory
+import io.image.vips.VipsOption.VIPS_OPTION_INTERESTING
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
@@ -334,6 +337,48 @@ class ImageAssetVariantTest {
             }
         }
 
+    @Test
+    fun `variant can be fetched that is has a crop with gravity applied`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)
+
+            fetchAssetViaRedirect(client, fit = "crop", height = 200, width = 200, gravity = "entropy", expectCacheHit = false)!!.apply {
+                Tika().detect(this) shouldBe "image/png"
+            }
+            val result =
+                fetchAssetViaRedirect(
+                    client,
+                    fit = "crop",
+                    height = 200,
+                    width = 200,
+                    gravity = "entropy",
+                    expectCacheHit = true,
+                )!!
+            val expectedStream = ByteArrayOutputStream()
+            Vips.run { arena ->
+                VImage.newFromBytes(arena, image)
+                    .smartcrop(
+                        200,
+                        200,
+                        VipsOption.Enum(VIPS_OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
+                    )
+                    .writeToStream(expectedStream, ".png")
+
+                val actualImage = ImageIO.read(ByteArrayInputStream(result))
+                val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+
+                actualImage shouldHaveSamePixelContentAs expectedImage
+            }
+        }
+
     @Nested
     inner class InvalidVariantRequestTests {
         @ParameterizedTest
@@ -385,6 +430,15 @@ class ImageAssetVariantTest {
 
         @Test
         fun `cannot request an image with invalid filter`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, filter = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid gravity`() =
             testInMemory {
                 val client = createJsonClient(followRedirects = false)
                 storeAsset(client)

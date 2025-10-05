@@ -6,6 +6,7 @@ object ManipulationParameters {
     const val HEIGHT = "h"
     const val WIDTH = "w"
     const val FIT = "fit"
+    const val GRAVITY = "g"
     const val MIME_TYPE = "mimeType"
     const val ROTATE = "r"
     const val FLIP = "f"
@@ -22,6 +23,7 @@ object ManipulationParameters {
             HEIGHT,
             WIDTH,
             FIT,
+            GRAVITY,
             MIME_TYPE,
             ROTATE,
             FLIP,

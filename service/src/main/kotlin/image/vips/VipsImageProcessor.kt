@@ -86,6 +86,7 @@ class VipsImageProcessor(
                                         height = transformation.height,
                                         fit = transformation.fit,
                                         upscale = false,
+                                        gravity = transformation.gravity,
                                     ),
                                 )
                                 add(
@@ -166,6 +167,7 @@ class VipsImageProcessor(
                                     height = transformation.height,
                                     fit = transformation.fit,
                                     upscale = true,
+                                    gravity = transformation.gravity,
                                 ),
                             )
                             add(
@@ -226,11 +228,11 @@ class VipsImageProcessor(
         originalFormat: ImageFormat,
         preProcessingProperties: PreProcessingProperties,
     ): ImageFormat =
-        if (preProcessingProperties.imageFormat != null) {
-            if (preProcessingProperties.imageFormat != originalFormat) {
-                logger.info("Converting image from $originalFormat to ${preProcessingProperties.imageFormat}")
+        if (preProcessingProperties.format != null) {
+            if (preProcessingProperties.format != originalFormat) {
+                logger.info("Converting image from $originalFormat to ${preProcessingProperties.format}")
             }
-            preProcessingProperties.imageFormat
+            preProcessingProperties.format
         } else {
             originalFormat
         }

@@ -5,6 +5,7 @@ import image.model.ImageFormat
 import image.model.Transformation
 import io.image.model.Filter
 import io.image.model.Fit
+import io.image.model.Gravity
 import io.image.model.Rotate
 import kotlinx.serialization.Serializable
 
@@ -18,6 +19,7 @@ data class ImageVariantTransformation(
     val height: Int,
     val format: ImageFormat,
     val fit: Fit,
+    val gravity: Gravity,
     val rotate: Rotate,
     val horizontalFlip: Boolean,
     val filter: Filter,
@@ -29,6 +31,7 @@ data class ImageVariantTransformation(
                 height = attributes.height,
                 format = attributes.format,
                 fit = Fit.default,
+                gravity = Gravity.default,
                 rotate = Rotate.default,
                 horizontalFlip = false,
                 filter = Filter.default,
@@ -40,6 +43,7 @@ data class ImageVariantTransformation(
                 height = transformation.height,
                 format = transformation.format,
                 fit = transformation.fit,
+                gravity = transformation.gravity,
                 rotate = transformation.rotate,
                 horizontalFlip = transformation.horizontalFlip,
                 filter = transformation.filter,

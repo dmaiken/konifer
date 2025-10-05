@@ -4,6 +4,7 @@ import asset.model.LQIPResponse
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
+import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
 import io.asset.ManipulationParameters.ROTATE
@@ -11,6 +12,7 @@ import io.asset.ManipulationParameters.WIDTH
 import io.image.model.Filter
 import io.image.model.Fit
 import io.image.model.Flip
+import io.image.model.Gravity
 import io.image.model.Rotate
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
@@ -34,6 +36,7 @@ data class RequestedImageTransformation(
     val height: Int?,
     val format: ImageFormat?,
     val fit: Fit,
+    val gravity: Gravity,
     val rotate: Rotate,
     val flip: Flip,
     val canUpscale: Boolean = true,
@@ -47,6 +50,7 @@ data class RequestedImageTransformation(
                 height = null,
                 format = null,
                 fit = Fit.default,
+                gravity = Gravity.default,
                 rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
@@ -59,6 +63,7 @@ data class RequestedImageTransformation(
                 height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
                 format = applicationConfig.tryGetString(MIME_TYPE)?.let { ImageFormat.fromMimeType(it) },
                 fit = Fit.fromString(applicationConfig.tryGetString(FIT)),
+                gravity = Gravity.fromString(applicationConfig.tryGetString(GRAVITY)),
                 rotate = Rotate.fromString(applicationConfig.tryGetString(ROTATE)),
                 flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
                 filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
@@ -81,7 +86,7 @@ data class RequestedImageTransformation(
             Fit.SCALE -> {
                 return
             }
-            Fit.FIT, Fit.STRETCH -> {
+            Fit.FIT, Fit.STRETCH, Fit.CROP -> {
                 if (height == null || width == null) {
                     throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
                 }
@@ -101,6 +106,7 @@ data class Transformation(
     val width: Int,
     val height: Int,
     val fit: Fit = Fit.default,
+    val gravity: Gravity = Gravity.default,
     val format: ImageFormat,
     val rotate: Rotate = Rotate.default,
     val horizontalFlip: Boolean = false,

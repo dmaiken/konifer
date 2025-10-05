@@ -1,6 +1,7 @@
 package io.image.vips
 
 import io.image.model.Fit
+import io.image.model.Gravity
 import io.image.vips.transformation.Resize
 
 object VipsPipelines {
@@ -13,6 +14,7 @@ object VipsPipelines {
                     height = 32,
                     fit = Fit.SCALE,
                     upscale = false,
+                    gravity = Gravity.CENTER,
                 ),
             )
         }.build()
