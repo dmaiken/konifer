@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import util.byteArrayToImage
 import util.createJsonClient
+import util.fetchAssetLink
 import util.fetchAssetViaRedirect
 import util.matcher.shouldBeApproximately
 import util.storeAsset
@@ -380,6 +381,112 @@ class ImageAssetVariantTest {
         }
 
     @Nested
+    inner class BlurVariantTests {
+        @Test
+        fun `variant can be fetched that is has a blur applied`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                fetchAssetViaRedirect(client, blur = 50, expectCacheHit = false)!!.apply {
+                    Tika().detect(this) shouldBe "image/png"
+                }
+                val result =
+                    fetchAssetViaRedirect(
+                        client,
+                        blur = 50,
+                        expectCacheHit = true,
+                    )!!
+                val expectedStream = ByteArrayOutputStream()
+                Vips.run { arena ->
+                    VImage.newFromBytes(arena, image)
+                        .gaussblur(50 / 2.0)
+                        .writeToStream(expectedStream, ".png")
+
+                    val actualImage = ImageIO.read(ByteArrayInputStream(result))
+                    val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+
+                    actualImage shouldHaveSamePixelContentAs expectedImage
+                }
+            }
+
+        @Test
+        fun `original variant is fetched if requesting blur of 0`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val result =
+                    fetchAssetViaRedirect(
+                        client,
+                        blur = 0,
+                        expectCacheHit = true,
+                    )!!
+
+                val original =
+                    fetchAssetViaRedirect(
+                        client,
+                        expectCacheHit = true,
+                    )!!
+                result shouldBe original
+            }
+
+        @Test
+        fun `lqips are not regenerated when requesting variant with blur`() =
+            testInMemory(
+                """
+                path-configuration = [
+                    {
+                        path = "/**"
+                        image {
+                            lqip = [ "thumbhash", "blurhash" ]
+                        }
+                    }
+                ]
+                """.trimIndent(),
+            ) {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+                val result =
+                    fetchAssetLink(
+                        client,
+                        blur = 50,
+                        expectCacheHit = false,
+                    )!!
+
+                val original =
+                    fetchAssetLink(
+                        client,
+                        expectCacheHit = true,
+                    )!!
+
+                result.lqip.blurhash shouldBe original.lqip.blurhash
+                result.lqip.thumbhash shouldBe original.lqip.thumbhash
+            }
+    }
+
+    @Nested
     inner class InvalidVariantRequestTests {
         @ParameterizedTest
         @ValueSource(ints = [0, -1])
@@ -444,6 +551,16 @@ class ImageAssetVariantTest {
                 storeAsset(client)
 
                 fetchAssetViaRedirect(client, filter = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @ParameterizedTest
+        @ValueSource(ints = [-1, 151])
+        fun `cannot request an image with invalid blur`(blurAmount: Int) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, blur = blurAmount, expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
             }
 
         private suspend fun storeAsset(client: HttpClient) {

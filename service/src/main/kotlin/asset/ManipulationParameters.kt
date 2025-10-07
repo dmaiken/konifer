@@ -11,6 +11,7 @@ object ManipulationParameters {
     const val ROTATE = "r"
     const val FLIP = "f"
     const val FILTER = "filter"
+    const val BLUR = "blur"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -28,5 +29,6 @@ object ManipulationParameters {
             ROTATE,
             FLIP,
             FILTER,
+            BLUR,
         )
 }

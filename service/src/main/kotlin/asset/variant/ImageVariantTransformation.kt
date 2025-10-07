@@ -23,6 +23,7 @@ data class ImageVariantTransformation(
     val rotate: Rotate,
     val horizontalFlip: Boolean,
     val filter: Filter,
+    val blur: Int,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -35,6 +36,7 @@ data class ImageVariantTransformation(
                 rotate = Rotate.default,
                 horizontalFlip = false,
                 filter = Filter.default,
+                blur = 0,
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -47,6 +49,7 @@ data class ImageVariantTransformation(
                 rotate = transformation.rotate,
                 horizontalFlip = transformation.horizontalFlip,
                 filter = transformation.filter,
+                blur = transformation.blur,
             )
     }
 }

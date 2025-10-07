@@ -1,5 +1,6 @@
 package image.model
 
+import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
@@ -75,10 +76,12 @@ class PreProcessingProperties private constructor(
     val rotate: Rotate,
     val flip: Flip,
     val filter: Filter,
+    val blur: Int?,
 ) : ValidatedProperties {
     val enabled: Boolean =
         maxWidth != null || maxHeight != null || format != null ||
-            fit != Fit.default || rotate != Rotate.default || flip != Flip.default
+            fit != Fit.default || rotate != Rotate.default || flip != Flip.default ||
+            filter != Filter.default || (blur != null && blur > 0)
 
     override fun validate() {
         maxWidth?.let {
@@ -86,6 +89,9 @@ class PreProcessingProperties private constructor(
         }
         maxHeight?.let {
             require(it > 0) { "'${MAX_HEIGHT}' must be greater than 0" }
+        }
+        blur?.let {
+            require(it in 0..150) { "'$BLUR' must be between 0 and 150" }
         }
     }
 
@@ -102,6 +108,7 @@ class PreProcessingProperties private constructor(
                 rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
+                blur = null,
             )
 
         fun create(
@@ -115,7 +122,12 @@ class PreProcessingProperties private constructor(
             rotate: Rotate,
             flip: Flip,
             filter: Filter,
-        ) = validateAndCreate { PreProcessingProperties(maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter) }
+            blur: Int?,
+        ) = validateAndCreate {
+            PreProcessingProperties(
+                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur,
+            )
+        }
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -163,6 +175,9 @@ class PreProcessingProperties private constructor(
                     ?.let {
                         Filter.fromString(it)
                     } ?: parent?.filter ?: Filter.default,
+            blur =
+                applicationConfig?.propertyOrNull(BLUR)?.getString()
+                    ?.toInt() ?: parent?.blur,
         )
     }
 
@@ -179,11 +194,12 @@ class PreProcessingProperties private constructor(
             flip = flip,
             canUpscale = maxWidth == null && maxHeight == null,
             filter = filter,
+            blur = blur,
         )
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
             "width=$width, height=$height, format=$format, fit=$fit, gravity=$gravity, rotate=$rotate, " +
-            "flip=$flip, filter=$filter)"
+            "flip=$flip, filter=$filter, blur=$blur)"
     }
 }

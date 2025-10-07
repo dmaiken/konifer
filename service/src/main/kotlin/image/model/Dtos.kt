@@ -1,6 +1,7 @@
 package image.model
 
 import asset.model.LQIPResponse
+import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
@@ -41,6 +42,7 @@ data class RequestedImageTransformation(
     val flip: Flip,
     val canUpscale: Boolean = true,
     val filter: Filter,
+    val blur: Int?,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -54,6 +56,7 @@ data class RequestedImageTransformation(
                 rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
+                blur = 0,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -67,6 +70,7 @@ data class RequestedImageTransformation(
                 rotate = Rotate.fromString(applicationConfig.tryGetString(ROTATE)),
                 flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
                 filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
+                blur = applicationConfig.tryGetString(BLUR)?.toInt(),
             ).apply {
                 validate()
             }
@@ -83,14 +87,15 @@ data class RequestedImageTransformation(
             throw IllegalArgumentException("Height cannot be < 1")
         }
         when (fit) {
-            Fit.SCALE -> {
-                return
-            }
+            Fit.SCALE -> {}
             Fit.FIT, Fit.STRETCH, Fit.CROP -> {
                 if (height == null || width == null) {
                     throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
                 }
             }
+        }
+        if (blur != null && (blur !in 0..150)) {
+            throw IllegalArgumentException("Blur must be between 0 and 150")
         }
     }
 }
@@ -111,6 +116,7 @@ data class Transformation(
     val rotate: Rotate = Rotate.default,
     val horizontalFlip: Boolean = false,
     val filter: Filter = Filter.default,
+    val blur: Int = 0,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =

@@ -105,6 +105,7 @@ class RequestedTransformationNormalizer(
             rotate = rotate,
             horizontalFlip = horizontalFlip,
             filter = requested.filter,
+            blur = requested.blur ?: 0,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {

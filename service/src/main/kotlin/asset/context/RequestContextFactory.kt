@@ -3,6 +3,7 @@ package io.asset.context
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.ManipulationParameters.ALL_PARAMETERS
+import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
@@ -258,14 +259,15 @@ class RequestContextFactory(
         } else {
             validateAndCreate {
                 RequestedImageTransformation(
-                    width = parameters[WIDTH]?.toIntOrNull() ?: variantProfile?.width,
-                    height = parameters[HEIGHT]?.toIntOrNull() ?: variantProfile?.height,
+                    width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
+                    height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
                     format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
                     fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                     gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
                     rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                     flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                     filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
+                    blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur ?: 0,
                 )
             }
         }
