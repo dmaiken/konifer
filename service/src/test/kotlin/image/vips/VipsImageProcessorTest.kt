@@ -46,7 +46,7 @@ class VipsImageProcessorTest {
     private val imagePreviewGenerator = spyk<ImagePreviewGenerator>()
     private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(VariantParameterGenerator()))
 
-    private val vipsImageProcessor = VipsImageProcessor(imagePreviewGenerator, requestedTransformationNormalizer)
+    private val vipsImageProcessor = VipsImageProcessor(imagePreviewGenerator, requestedTransformationNormalizer, VipsEncoder())
 
     companion object {
         @BeforeAll

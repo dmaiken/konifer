@@ -35,7 +35,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.imageio.ImageIO
 
 class ResizeTest {
@@ -325,7 +324,6 @@ class ResizeTest {
 
                 val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
-                File("expected_$gravity.png").writeBytes(expectedStream.toByteArray())
 
                 actualImage shouldHaveSamePixelContentAs expectedImage
             }
@@ -443,7 +441,6 @@ class ResizeTest {
                 val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
-                File("cropped_$gravity.png").writeBytes(expectedStream.toByteArray())
                 actualImage shouldHaveSamePixelContentAs expectedImage
             }
         }

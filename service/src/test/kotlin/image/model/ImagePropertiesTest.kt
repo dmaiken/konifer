@@ -56,6 +56,26 @@ class ImagePropertiesTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = [-1, 151])
+    fun `blur cannot be outside bounds`(blur: Int) {
+        shouldThrow<IllegalArgumentException> {
+            createPreProcessingProperties(
+                blur = blur,
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, 101])
+    fun `quality cannot be outside bounds`(quality: Int) {
+        shouldThrow<IllegalArgumentException> {
+            createPreProcessingProperties(
+                quality = quality,
+            )
+        }
+    }
+
     @Test
     fun `PreProcessingProperties default contains default values`() {
         val default = PreProcessingProperties.DEFAULT
@@ -66,6 +86,9 @@ class ImagePropertiesTest {
         default.height shouldBe null
         default.rotate shouldBe Rotate.default
         default.flip shouldBe Flip.default
+        default.blur shouldBe null
+        default.quality shouldBe null
+        default.gravity shouldBe Gravity.default
     }
 
     @Test

@@ -8,10 +8,46 @@ enum class ImageFormat(
     val extension: String,
     val vipsProperties: VipsProperties,
 ) {
-    JPEG(setOf("jpeg", "jpg"), "image/jpeg", "jpeg", VipsProperties(true)),
-    PNG(setOf("png"), "image/png", "png", VipsProperties(false)),
-    WEBP(setOf("webp"), "image/webp", "webp", VipsProperties(true)),
-    AVIF(setOf("avif"), "image/avif", "avif", VipsProperties(true)),
+    JPEG(
+        setOf("jpeg", "jpg"),
+        "image/jpeg",
+        "jpeg",
+        VipsProperties(
+            supportsQuality = true,
+            // Sharp's default quality setting
+            defaultQuality = 80,
+        ),
+    ),
+    PNG(
+        setOf("png"),
+        "image/png",
+        "png",
+        VipsProperties(
+            supportsQuality = false,
+            // Not used since PNG does not support lossy compression
+            defaultQuality = 100,
+        ),
+    ),
+    WEBP(
+        setOf("webp"),
+        "image/webp",
+        "webp",
+        VipsProperties(
+            supportsQuality = true,
+            // Sharp's default quality setting
+            defaultQuality = 80,
+        ),
+    ),
+    AVIF(
+        setOf("avif"),
+        "image/avif",
+        "avif",
+        VipsProperties(
+            supportsQuality = true,
+            // Sharp's default quality setting
+            defaultQuality = 50,
+        ),
+    ),
     ;
 
     companion object {

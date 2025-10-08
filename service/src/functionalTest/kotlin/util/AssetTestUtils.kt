@@ -94,6 +94,7 @@ suspend fun fetchAssetViaRedirect(
     flip: String? = null,
     filter: String? = null,
     blur: Int? = null,
+    quality: Int? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
 ): ByteArray? {
@@ -104,7 +105,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -150,6 +151,7 @@ suspend fun fetchAssetContent(
     flip: String? = null,
     filter: String? = null,
     blur: Int? = null,
+    quality: Int? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -161,7 +163,7 @@ suspend fun fetchAssetContent(
         urlBuilder.path("/assets/$path/-/content")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -208,6 +210,7 @@ suspend fun fetchAssetLink(
     flip: String? = null,
     filter: String? = null,
     blur: Int? = null,
+    quality: Int? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): AssetLinkResponse? {
@@ -218,7 +221,7 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur)
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality)
     val fetchUrl = urlBuilder.build()
     client.get(fetchUrl.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -327,6 +330,7 @@ private fun attachVariantModifiers(
     flip: String? = null,
     filter: String? = null,
     blur: Int? = null,
+    quality: Int? = null,
 ) {
     if (profile != null) {
         urlBuilder.parameters.append("profile", profile)
@@ -357,5 +361,8 @@ private fun attachVariantModifiers(
     }
     if (blur != null) {
         urlBuilder.parameters.append("blur", blur.toString())
+    }
+    if (quality != null) {
+        urlBuilder.parameters.append("q", quality.toString())
     }
 }

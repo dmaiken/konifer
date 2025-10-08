@@ -6,6 +6,7 @@ import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
+import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
 import io.image.lqip.LQIPImplementation
@@ -15,6 +16,7 @@ import io.image.model.Flip
 import io.image.model.Gravity
 import io.image.model.Rotate
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
 import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
@@ -77,11 +79,13 @@ class PreProcessingProperties private constructor(
     val flip: Flip,
     val filter: Filter,
     val blur: Int?,
+    val quality: Int?,
 ) : ValidatedProperties {
+    // I think we can be smarter about this
     val enabled: Boolean =
         maxWidth != null || maxHeight != null || format != null ||
             fit != Fit.default || rotate != Rotate.default || flip != Flip.default ||
-            filter != Filter.default || (blur != null && blur > 0)
+            filter != Filter.default || (blur != null && blur > 0) || quality != null
 
     override fun validate() {
         maxWidth?.let {
@@ -92,6 +96,9 @@ class PreProcessingProperties private constructor(
         }
         blur?.let {
             require(it in 0..150) { "'$BLUR' must be between 0 and 150" }
+        }
+        quality?.let {
+            require(it in 1..100) { "'$QUALITY' must be between 1 and 100" }
         }
     }
 
@@ -109,6 +116,7 @@ class PreProcessingProperties private constructor(
                 flip = Flip.default,
                 filter = Filter.default,
                 blur = null,
+                quality = null,
             )
 
         fun create(
@@ -123,9 +131,10 @@ class PreProcessingProperties private constructor(
             flip: Flip,
             filter: Filter,
             blur: Int?,
+            quality: Int?,
         ) = validateAndCreate {
             PreProcessingProperties(
-                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur,
+                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality,
             )
         }
 
@@ -134,50 +143,53 @@ class PreProcessingProperties private constructor(
             parent: PreProcessingProperties?,
         ) = create(
             maxWidth =
-                applicationConfig?.propertyOrNull(MAX_WIDTH)?.getString()
+                applicationConfig?.tryGetString(MAX_WIDTH)
                     ?.toInt() ?: parent?.maxWidth,
             maxHeight =
-                applicationConfig?.propertyOrNull(MAX_HEIGHT)?.getString()
+                applicationConfig?.tryGetString(MAX_HEIGHT)
                     ?.toInt() ?: parent?.maxHeight,
             width =
-                applicationConfig?.propertyOrNull(WIDTH)?.getString()
+                applicationConfig?.tryGetString(WIDTH)
                     ?.toInt() ?: parent?.width,
             height =
-                applicationConfig?.propertyOrNull(HEIGHT)?.getString()
+                applicationConfig?.tryGetString(HEIGHT)
                     ?.toInt() ?: parent?.height,
             format =
-                applicationConfig?.propertyOrNull(IMAGE_FORMAT)?.getString()
+                applicationConfig?.tryGetString(IMAGE_FORMAT)
                     ?.let {
                         ImageFormat.fromFormat(it)
                     } ?: parent?.format,
             fit =
-                applicationConfig?.propertyOrNull(FIT)?.getString()
+                applicationConfig?.tryGetString(FIT)
                     ?.let {
                         Fit.fromString(it)
                     } ?: parent?.fit ?: Fit.default,
             gravity =
-                applicationConfig?.propertyOrNull(GRAVITY)?.getString()
+                applicationConfig?.tryGetString(GRAVITY)
                     ?.let {
                         Gravity.fromString(it)
                     } ?: parent?.gravity ?: Gravity.default,
             rotate =
-                applicationConfig?.propertyOrNull(ROTATE)?.getString()
+                applicationConfig?.tryGetString(ROTATE)
                     ?.let {
                         Rotate.fromString(it)
                     } ?: parent?.rotate ?: Rotate.default,
             flip =
-                applicationConfig?.propertyOrNull(FLIP)?.getString()
+                applicationConfig?.tryGetString(FLIP)
                     ?.let {
                         Flip.fromString(it)
                     } ?: parent?.flip ?: Flip.default,
             filter =
-                applicationConfig?.propertyOrNull(FILTER)?.getString()
+                applicationConfig?.tryGetString(FILTER)
                     ?.let {
                         Filter.fromString(it)
                     } ?: parent?.filter ?: Filter.default,
             blur =
-                applicationConfig?.propertyOrNull(BLUR)?.getString()
+                applicationConfig?.tryGetString(BLUR)
                     ?.toInt() ?: parent?.blur,
+            quality =
+                applicationConfig?.tryGetString(QUALITY)
+                    ?.toInt() ?: parent?.quality,
         )
     }
 
@@ -195,11 +207,12 @@ class PreProcessingProperties private constructor(
             canUpscale = maxWidth == null && maxHeight == null,
             filter = filter,
             blur = blur,
+            quality = quality,
         )
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
             "width=$width, height=$height, format=$format, fit=$fit, gravity=$gravity, rotate=$rotate, " +
-            "flip=$flip, filter=$filter, blur=$blur)"
+            "flip=$flip, filter=$filter, blur=$blur, quality=$quality)"
     }
 }

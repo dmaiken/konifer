@@ -1,5 +1,6 @@
 package io.image.model
 
 data class VipsProperties(
-    val useShrinkOnLoad: Boolean,
+    val supportsQuality: Boolean,
+    val defaultQuality: Int,
 )

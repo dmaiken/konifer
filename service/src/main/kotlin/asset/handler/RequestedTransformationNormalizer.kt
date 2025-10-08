@@ -95,17 +95,18 @@ class RequestedTransformationNormalizer(
         }
         val (width, height) = normalizeDimensions(requested, originalAttributesDeferred)
         val (rotate, horizontalFlip) = normalizeOrientation(requested.rotate, requested.flip)
-
+        val format = normalizeFormat(requested, originalAttributesDeferred)
         return Transformation(
             width = width,
             height = height,
             fit = requested.fit,
             gravity = requested.gravity,
-            format = normalizeFormat(requested, originalAttributesDeferred),
+            format = format,
             rotate = rotate,
             horizontalFlip = horizontalFlip,
             filter = requested.filter,
             blur = requested.blur ?: 0,
+            quality = normalizeQuality(requested, format),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -150,4 +151,15 @@ class RequestedTransformationNormalizer(
         requested: RequestedImageTransformation,
         originalVariantDeferred: Deferred<ImageVariantAttributes>,
     ): ImageFormat = requested.format ?: originalVariantDeferred.await().format
+
+    private fun normalizeQuality(
+        requested: RequestedImageTransformation,
+        normalizedFormat: ImageFormat,
+    ): Int {
+        if (!normalizedFormat.vipsProperties.supportsQuality) {
+            return normalizedFormat.vipsProperties.defaultQuality
+        }
+
+        return requested.quality ?: normalizedFormat.vipsProperties.defaultQuality
+    }
 }

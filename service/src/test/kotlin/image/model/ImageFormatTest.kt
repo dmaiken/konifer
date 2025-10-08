@@ -37,14 +37,14 @@ class ImageFormatTest {
         string: String,
         expected: ImageFormat,
     ) {
-        ImageFormat.Companion.fromFormat(string) shouldBe expected
+        ImageFormat.fromFormat(string) shouldBe expected
     }
 
     @Test
     fun `test fromFormat with unsupported image type`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                ImageFormat.Companion.fromFormat("unsupported")
+                ImageFormat.fromFormat("unsupported")
             }
         exception.message shouldBe "Unsupported image format: unsupported"
     }
@@ -55,14 +55,14 @@ class ImageFormatTest {
         mimeType: String,
         expected: ImageFormat,
     ) {
-        ImageFormat.Companion.fromMimeType(mimeType) shouldBe expected
+        ImageFormat.fromMimeType(mimeType) shouldBe expected
     }
 
     @Test
     fun `test fromMimeType with unsupported image type`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                ImageFormat.Companion.fromMimeType("unsupported")
+                ImageFormat.fromMimeType("unsupported")
             }
         exception.message shouldBe "Unsupported image mime type: unsupported"
     }

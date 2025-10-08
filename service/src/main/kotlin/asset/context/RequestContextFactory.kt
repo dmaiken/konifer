@@ -10,6 +10,7 @@ import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
@@ -267,7 +268,8 @@ class RequestContextFactory(
                     rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                     flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                     filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
-                    blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur ?: 0,
+                    blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
+                    quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
                 )
             }
         }

@@ -482,4 +482,111 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             }
         }
     }
+
+    @Nested
+    inner class NormalizeBlurTests {
+        @Test
+        fun `if blur is not supplied then default is used`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.JPEG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.blur shouldBe 0
+            }
+
+        @Test
+        fun `if blur is supplied blur is used`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        blur = 50,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.blur shouldBe 50
+            }
+    }
+
+    @Nested
+    inner class NormalizeQualityTests {
+        @Test
+        fun `if format does not support quality then supplied quality is ignored`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.PNG,
+                        quality = 40,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.quality shouldBe ImageFormat.PNG.vipsProperties.defaultQuality
+                normalized.format shouldBe ImageFormat.PNG
+            }
+
+        @Test
+        fun `if format does support quality then supplied quality is not ignored`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.JPEG,
+                        quality = 40,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.quality shouldBe 40
+                normalized.format shouldBe ImageFormat.JPEG
+            }
+
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class)
+        fun `if quality is not supplied then format-specific default is used`(format: ImageFormat) =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = format,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.quality shouldBe format.vipsProperties.defaultQuality
+                normalized.format shouldBe format
+            }
+    }
 }

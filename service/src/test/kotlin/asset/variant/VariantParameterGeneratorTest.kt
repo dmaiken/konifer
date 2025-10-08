@@ -55,6 +55,7 @@ class VariantParameterGeneratorTest {
                     horizontalFlip = true,
                     filter = Filter.GREYSCALE,
                     blur = 10,
+                    quality = 30,
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -71,6 +72,7 @@ class VariantParameterGeneratorTest {
                         horizontalFlip = true,
                         filter = Filter.GREYSCALE,
                         blur = 10,
+                        quality = 30,
                     ),
             )
         val (transformations2, key2) =
@@ -86,6 +88,7 @@ class VariantParameterGeneratorTest {
                         horizontalFlip = true,
                         filter = Filter.GREYSCALE,
                         blur = 10,
+                        quality = 30,
                     ),
             )
 

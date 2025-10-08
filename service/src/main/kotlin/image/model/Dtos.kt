@@ -8,6 +8,7 @@ import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
 import io.image.model.Filter
@@ -43,6 +44,7 @@ data class RequestedImageTransformation(
     val canUpscale: Boolean = true,
     val filter: Filter,
     val blur: Int?,
+    val quality: Int?,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -56,7 +58,8 @@ data class RequestedImageTransformation(
                 rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
-                blur = 0,
+                blur = null,
+                quality = null,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -71,6 +74,7 @@ data class RequestedImageTransformation(
                 flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
                 filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
                 blur = applicationConfig.tryGetString(BLUR)?.toInt(),
+                quality = applicationConfig.tryGetString(QUALITY)?.toInt(),
             ).apply {
                 validate()
             }
@@ -97,6 +101,9 @@ data class RequestedImageTransformation(
         if (blur != null && (blur !in 0..150)) {
             throw IllegalArgumentException("Blur must be between 0 and 150")
         }
+        if (quality != null && (quality !in 1..100)) {
+            throw IllegalArgumentException("Quality must be between 1 and 100")
+        }
     }
 }
 
@@ -117,6 +124,7 @@ data class Transformation(
     val horizontalFlip: Boolean = false,
     val filter: Filter = Filter.default,
     val blur: Int = 0,
+    val quality: Int = format.vipsProperties.defaultQuality,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =

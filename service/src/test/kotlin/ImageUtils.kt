@@ -166,6 +166,7 @@ fun createRequestedImageTransformation(
     flip: Flip = Flip.default,
     filter: Filter = Filter.default,
     blur: Int? = null,
+    quality: Int? = null,
 ): RequestedImageTransformation =
     RequestedImageTransformation(
         width = width,
@@ -177,6 +178,7 @@ fun createRequestedImageTransformation(
         flip = flip,
         filter = filter,
         blur = blur,
+        quality = quality,
     )
 
 fun createPreProcessingProperties(
@@ -191,6 +193,7 @@ fun createPreProcessingProperties(
     flip: Flip = Flip.default,
     filter: Filter = Filter.default,
     blur: Int? = null,
+    quality: Int? = null,
 ): PreProcessingProperties =
     PreProcessingProperties.create(
         maxWidth = maxWidth,
@@ -204,4 +207,5 @@ fun createPreProcessingProperties(
         flip = flip,
         filter = filter,
         blur = blur,
+        quality = quality,
     )

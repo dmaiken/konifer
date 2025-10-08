@@ -9,7 +9,11 @@ import app.photofox.vipsffm.enums.VipsInterpretation
 import asset.model.AssetClass
 import asset.model.StoreAssetRequest
 import config.testInMemory
+import image.model.ImageFormat
 import io.image.vips.VipsOption.VIPS_OPTION_INTERESTING
+import io.image.vips.VipsOption.VIPS_OPTION_QUALITY
+import io.kotest.matchers.collections.shouldBeSameSizeAs
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
@@ -19,7 +23,9 @@ import org.apache.tika.Tika
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.junitpioneer.jupiter.cartesian.CartesianTest
 import util.byteArrayToImage
 import util.createJsonClient
 import util.fetchAssetLink
@@ -483,6 +489,133 @@ class ImageAssetVariantTest {
 
                 result.lqip.blurhash shouldBe original.lqip.blurhash
                 result.lqip.thumbhash shouldBe original.lqip.thumbhash
+            }
+    }
+
+    @Nested
+    inner class QualityTests {
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PNG"])
+        fun `variant can be fetched that is has quality applied`(variantFormat: ImageFormat) =
+            testInMemory {
+                val quality = 40
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                fetchAssetViaRedirect(client, mimeType = variantFormat.mimeType, quality = quality, expectCacheHit = false)!!.apply {
+                    Tika().detect(this) shouldBe variantFormat.mimeType
+                }
+                val result =
+                    fetchAssetViaRedirect(
+                        client,
+                        mimeType = variantFormat.mimeType,
+                        quality = quality,
+                        expectCacheHit = true,
+                    )!!
+                val higherQualityResult =
+                    fetchAssetViaRedirect(
+                        client,
+                        mimeType = variantFormat.mimeType,
+                        quality = quality + 10,
+                        expectCacheHit = false,
+                    )!!
+                val expectedStream = ByteArrayOutputStream()
+                Vips.run { arena ->
+                    VImage.newFromBytes(arena, image)
+                        .writeToStream(
+                            expectedStream,
+                            ".${variantFormat.extension}",
+                            VipsOption.Int(VIPS_OPTION_QUALITY, quality),
+                        )
+
+                    // Cannot use BufferedImage since AVIF is not supported
+                    // PHash would not capture quality differences, so lets just compare filesize
+                    result shouldBeSameSizeAs expectedStream.toByteArray()
+                    higherQualityResult.size shouldBeGreaterThan expectedStream.toByteArray().size
+                }
+            }
+
+        @CartesianTest
+        fun `variant can be fetched that is has highest or lowest quality applied`(
+            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PNG"]) variantFormat: ImageFormat,
+            @CartesianTest.Values(ints = [1, 100]) quality: Int,
+        ) = testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAsset(client, image, request)
+
+            val result =
+                fetchAssetViaRedirect(
+                    client,
+                    mimeType = variantFormat.mimeType,
+                    quality = quality,
+                    expectCacheHit = false,
+                )!!
+            val expectedStream = ByteArrayOutputStream()
+            Vips.run { arena ->
+                VImage.newFromBytes(arena, image)
+                    .writeToStream(
+                        expectedStream,
+                        ".${variantFormat.extension}",
+                        VipsOption.Int(VIPS_OPTION_QUALITY, quality),
+                    )
+
+                result shouldBeSameSizeAs expectedStream.toByteArray()
+            }
+        }
+
+        @Test
+        fun `png encoding is not affected by quality parameter`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val lowerQualityResult =
+                    fetchAssetViaRedirect(
+                        client,
+                        mimeType = ImageFormat.PNG.mimeType,
+                        quality = 40,
+                        expectCacheHit = true,
+                    )!!
+                val higherQualityResult =
+                    fetchAssetViaRedirect(
+                        client,
+                        mimeType = ImageFormat.PNG.mimeType,
+                        quality = 100,
+                        expectCacheHit = true,
+                    )!!
+                val expectedStream = ByteArrayOutputStream()
+                Vips.run { arena ->
+                    VImage.newFromBytes(arena, image)
+                        .writeToStream(expectedStream, ".png")
+
+                    val lowerQualityImage = ImageIO.read(ByteArrayInputStream(lowerQualityResult))
+                    val higherQualityImage = ImageIO.read(ByteArrayInputStream(higherQualityResult))
+                    val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+
+                    lowerQualityImage shouldHaveSamePixelContentAs higherQualityImage
+                    higherQualityImage shouldHaveSamePixelContentAs expectedImage
+                }
             }
     }
 
