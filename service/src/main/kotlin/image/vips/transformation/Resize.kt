@@ -40,14 +40,14 @@ class Resize(
         logger.info("Scaling image with dimensions (${source.width}, ${source.height}) to ($resizeWidth, $resizeHeight) using crop: $fit")
         val scaled =
             when (fit) {
-                Fit.SCALE ->
+                Fit.FIT ->
                     source.thumbnailImage(
                         resizeWidth,
                         VipsOption.Int(VIPS_OPTION_HEIGHT, resizeHeight),
                         VipsOption.Boolean(VIPS_OPTION_CROP, false),
                         VipsOption.Enum(VIPS_OPTION_SIZE, if (upscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
-                Fit.FIT -> {
+                Fit.FILL -> {
                     source.thumbnailImage(
                         resizeWidth,
                         VipsOption.Int(VIPS_OPTION_HEIGHT, resizeHeight),
@@ -82,10 +82,10 @@ class Resize(
 
     override fun requiresLqipRegeneration(source: VImage): Boolean {
         val (resizeWidth, resizeHeight) = calculateDimensions(source, width, height, fit)
-        if ((fit == Fit.STRETCH || fit == Fit.FIT) && upscale && (resizeWidth > source.width || resizeHeight > source.height)) {
+        if ((fit == Fit.STRETCH || fit == Fit.FILL) && upscale && (resizeWidth > source.width || resizeHeight > source.height)) {
             return true
         }
-        if ((fit == Fit.STRETCH || fit == Fit.FIT) && (resizeWidth < source.width || resizeHeight < source.height)) {
+        if ((fit == Fit.STRETCH || fit == Fit.FILL) && (resizeWidth < source.width || resizeHeight < source.height)) {
             return true
         }
 

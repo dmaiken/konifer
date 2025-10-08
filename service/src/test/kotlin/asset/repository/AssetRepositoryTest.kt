@@ -52,7 +52,7 @@ abstract class AssetRepositoryTest {
                     this.transformation.height shouldBe dto.attributes.height
                     this.transformation.width shouldBe dto.attributes.width
                     this.transformation.format shouldBe dto.attributes.format
-                    this.transformation.fit shouldBe Fit.SCALE
+                    this.transformation.fit shouldBe Fit.FIT
                     this.isOriginalVariant shouldBe true
                     this.lqip shouldBe LQIPs.NONE
                 }
@@ -132,7 +132,7 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = ImageFormat.PNG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     )
                 val newVariant =
                     repository.storeVariant(
@@ -389,7 +389,7 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = ImageFormat.PNG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     )
                 val newVariant =
                     repository.storeVariant(
@@ -426,7 +426,7 @@ abstract class AssetRepositoryTest {
                         height = dto.attributes.height,
                         width = dto.attributes.width,
                         format = dto.attributes.format,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     )
 
                 val assetAndVariants =
@@ -507,7 +507,7 @@ abstract class AssetRepositoryTest {
                         width = 8,
                         height = 5,
                         format = ImageFormat.JPEG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     )
 
                 val fetched = repository.fetchAllByPath("/users/123", transformation)

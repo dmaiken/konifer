@@ -15,7 +15,7 @@ object AssetRepositoryTestDataProviders {
                     height = 101,
                     width = 10,
                     format = ImageFormat.PNG,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                 ),
             ),
             named(
@@ -24,7 +24,7 @@ object AssetRepositoryTestDataProviders {
                     height = 10,
                     width = 101,
                     format = ImageFormat.PNG,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                 ),
             ),
             named(
@@ -33,7 +33,7 @@ object AssetRepositoryTestDataProviders {
                     height = 10,
                     width = 10,
                     format = ImageFormat.JPEG,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                 ),
             ),
             named(
@@ -42,7 +42,7 @@ object AssetRepositoryTestDataProviders {
                     height = 10,
                     width = 10,
                     format = ImageFormat.PNG,
-                    fit = Fit.FIT,
+                    fit = Fit.FILL,
                 ),
             ),
             named(

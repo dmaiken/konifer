@@ -62,7 +62,7 @@ class ResizeTest {
                 Resize(
                     width = 10000,
                     height = null,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                     upscale = false,
                     gravity = Gravity.CENTER,
                 ).transform(arena, source)
@@ -98,124 +98,6 @@ class ResizeTest {
     }
 
     @Nested
-    inner class ScaleResizeTests {
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `can resize down with scale mode`(format: ImageFormat) {
-            val height = 50
-            val width = 50
-            val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
-                    it.readBytes()
-                }
-            val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize(
-                        width = width,
-                        height = height,
-                        fit = Fit.SCALE,
-                        upscale = true,
-                        gravity = Gravity.CENTER,
-                    ).transform(arena, source)
-
-                (processedImage.height == height || processedImage.width == width) shouldBe true
-                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
-
-                val processedStream = ByteArrayOutputStream()
-                processedImage.writeToStream(processedStream, ".${format.extension}")
-
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
-            }
-        }
-
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `can resize up with scale mode`(format: ImageFormat) {
-            val height = 2000
-            val width = 2000
-            val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
-                    it.readBytes()
-                }
-            val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize(
-                        width = width,
-                        height = height,
-                        fit = Fit.SCALE,
-                        upscale = true,
-                        gravity = Gravity.CENTER,
-                    ).transform(arena, source)
-
-                (processedImage.height == height || processedImage.width == width) shouldBe true
-                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
-
-                val processedStream = ByteArrayOutputStream()
-                processedImage.writeToStream(processedStream, ".${format.extension}")
-
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
-            }
-        }
-
-        @Test
-        fun `can resize by height only with scale mode`() =
-            runTest {
-                val height = 200
-                val image =
-                    javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
-                        it.readBytes()
-                    }
-                val imageChannel = ByteReadChannel(image)
-                val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
-                Vips.run { arena ->
-                    val source = VImageFactory.newFromContainer(arena, container)
-                    val processedImage =
-                        Resize(
-                            width = null,
-                            height = height,
-                            fit = Fit.SCALE,
-                            upscale = true,
-                            gravity = Gravity.CENTER,
-                        ).transform(arena, source)
-
-                    processedImage.height shouldBe height
-                    processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
-                }
-            }
-
-        @Test
-        fun `can resize by width only with scale mode`() {
-            val width = 200
-            val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
-                    it.readBytes()
-                }
-            val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize(
-                        width = width,
-                        height = null,
-                        fit = Fit.SCALE,
-                        upscale = true,
-                        gravity = Gravity.CENTER,
-                    ).transform(arena, source)
-
-                processedImage.width shouldBeWithinOneOf width
-                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
-            }
-        }
-    }
-
-    @Nested
     inner class FitResizeTests {
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
@@ -239,13 +121,13 @@ class ResizeTest {
                         gravity = Gravity.CENTER,
                     ).transform(arena, source)
 
-                processedImage.height shouldBe height
-                processedImage.width shouldBe width
+                (processedImage.height == height || processedImage.width == width) shouldBe true
+                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
 
                 val processedStream = ByteArrayOutputStream()
                 processedImage.writeToStream(processedStream, ".${format.extension}")
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
         }
 
@@ -271,6 +153,124 @@ class ResizeTest {
                         gravity = Gravity.CENTER,
                     ).transform(arena, source)
 
+                (processedImage.height == height || processedImage.width == width) shouldBe true
+                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
+
+                val processedStream = ByteArrayOutputStream()
+                processedImage.writeToStream(processedStream, ".${format.extension}")
+
+                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+            }
+        }
+
+        @Test
+        fun `can resize by height only with fit mode`() =
+            runTest {
+                val height = 200
+                val image =
+                    javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                        it.readBytes()
+                    }
+                val imageChannel = ByteReadChannel(image)
+                val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize(
+                            width = null,
+                            height = height,
+                            fit = Fit.FIT,
+                            upscale = true,
+                            gravity = Gravity.CENTER,
+                        ).transform(arena, source)
+
+                    processedImage.height shouldBe height
+                    processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
+                }
+            }
+
+        @Test
+        fun `can resize by width only with fit mode`() {
+            val width = 200
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                    it.readBytes()
+                }
+            val imageChannel = ByteReadChannel(image)
+            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container)
+                val processedImage =
+                    Resize(
+                        width = width,
+                        height = null,
+                        fit = Fit.FIT,
+                        upscale = true,
+                        gravity = Gravity.CENTER,
+                    ).transform(arena, source)
+
+                processedImage.width shouldBeWithinOneOf width
+                processedImage.aspectRatio() shouldBeApproximately source.aspectRatio()
+            }
+        }
+    }
+
+    @Nested
+    inner class FillResizeTests {
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class)
+        fun `can resize down with fill mode`(format: ImageFormat) {
+            val height = 50
+            val width = 50
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                    it.readBytes()
+                }
+            val imageChannel = ByteReadChannel(image)
+            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container)
+                val processedImage =
+                    Resize(
+                        width = width,
+                        height = height,
+                        fit = Fit.FILL,
+                        upscale = true,
+                        gravity = Gravity.CENTER,
+                    ).transform(arena, source)
+
+                processedImage.height shouldBe height
+                processedImage.width shouldBe width
+
+                val processedStream = ByteArrayOutputStream()
+                processedImage.writeToStream(processedStream, ".${format.extension}")
+
+                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+            }
+        }
+
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class)
+        fun `can resize up with fill mode`(format: ImageFormat) {
+            val height = 2000
+            val width = 2000
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                    it.readBytes()
+                }
+            val imageChannel = ByteReadChannel(image)
+            val container = AssetStreamContainer.fromReadChannel(scope, imageChannel)
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container)
+                val processedImage =
+                    Resize(
+                        width = width,
+                        height = height,
+                        fit = Fit.FILL,
+                        upscale = true,
+                        gravity = Gravity.CENTER,
+                    ).transform(arena, source)
+
                 processedImage.height shouldBe height
                 processedImage.width shouldBe width
 
@@ -283,7 +283,7 @@ class ResizeTest {
 
         @ParameterizedTest
         @EnumSource(Gravity::class)
-        fun `can apply gravity to fit mode`(gravity: Gravity) {
+        fun `can apply gravity to fill mode`(gravity: Gravity) {
             val height = 200
             val width = 200
             val image =
@@ -309,7 +309,7 @@ class ResizeTest {
                     Resize(
                         width = width,
                         height = height,
-                        fit = Fit.FIT,
+                        fit = Fit.FILL,
                         upscale = true,
                         gravity = gravity,
                     ).transform(arena, VImage.newFromBytes(arena, image))
@@ -449,7 +449,7 @@ class ResizeTest {
     @Nested
     inner class LQIPRegenerationTests {
         @ParameterizedTest
-        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FIT", "STRETCH"])
+        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FILL", "STRETCH"])
         fun `lqip regeneration is required if scaling down with certain fits`(fit: Fit) {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
@@ -472,7 +472,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FIT", "STRETCH"])
+        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FILL", "STRETCH"])
         fun `lqip regeneration is required if scaling up with certain fits`(fit: Fit) {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
@@ -495,7 +495,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FIT", "STRETCH"])
+        @EnumSource(Fit::class, mode = EnumSource.Mode.INCLUDE, names = ["FILL", "STRETCH"])
         fun `lqip regeneration is not required if scaling up with certain fits but upscaling is disabled`(fit: Fit) {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
@@ -531,7 +531,7 @@ class ResizeTest {
                     Resize(
                         width = 2000,
                         height = 2000,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                         upscale = true,
                         gravity = Gravity.CENTER,
                     )
@@ -553,7 +553,7 @@ class ResizeTest {
                     Resize(
                         width = 50,
                         height = 50,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                         upscale = true,
                         gravity = Gravity.CENTER,
                     )

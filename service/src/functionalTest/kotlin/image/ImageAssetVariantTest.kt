@@ -207,7 +207,7 @@ class ImageAssetVariantTest {
         }
 
     @Test
-    fun `can fetch image with fit mode of fit`() =
+    fun `can fetch image with fit mode of fill`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -236,7 +236,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(client, height = 200, width = 200, fit = "fit", expectCacheHit = (count == 1))!!.apply {
+                fetchAssetViaRedirect(client, height = 200, width = 200, fit = "fill", expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe 200
                     variantImage.height shouldBe 200

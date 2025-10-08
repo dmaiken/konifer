@@ -121,7 +121,7 @@ class RequestedTransformationNormalizer(
         originalVariantDeferred: Deferred<ImageVariantAttributes>,
     ): Pair<Int, Int> {
         return when (requested.fit) {
-            Fit.SCALE -> {
+            Fit.FIT -> {
                 if ((requested.width == null && requested.height != null) || (requested.width != null && requested.height == null)) {
                     val originalVariant = originalVariantDeferred.await()
 
@@ -141,7 +141,7 @@ class RequestedTransformationNormalizer(
                     )
                 }
             }
-            Fit.FIT, Fit.STRETCH, Fit.CROP -> {
+            Fit.FILL, Fit.STRETCH, Fit.CROP -> {
                 Pair(requireNotNull(requested.width), requireNotNull(requested.height))
             }
         }

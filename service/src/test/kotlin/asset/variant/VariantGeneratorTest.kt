@@ -120,7 +120,7 @@ class VariantGeneratorTest {
                         listOf(
                             createRequestedImageTransformation(
                                 height = 50,
-                                fit = Fit.SCALE,
+                                fit = Fit.FIT,
                             ),
                         ),
                     deferredResult = result,
@@ -133,7 +133,7 @@ class VariantGeneratorTest {
                     bufferedImage = bufferedImage,
                     height = 50,
                     width = null,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                 )
             expectedHeight shouldBe 50
             result.await().apply {
@@ -143,7 +143,7 @@ class VariantGeneratorTest {
                     it.transformation.apply {
                         height shouldBe 50
                         width shouldBe expectedWidth
-                        fit shouldBe Fit.SCALE
+                        fit shouldBe Fit.FIT
                         format shouldBe ImageFormat.PNG
                     }
 
@@ -164,7 +164,7 @@ class VariantGeneratorTest {
                         listOf(
                             createRequestedImageTransformation(
                                 height = 50,
-                                fit = Fit.SCALE,
+                                fit = Fit.FIT,
                             ),
                         ),
                     deferredResult = result,
@@ -200,12 +200,12 @@ class VariantGeneratorTest {
                         listOf(
                             createRequestedImageTransformation(
                                 height = 50,
-                                fit = Fit.SCALE,
+                                fit = Fit.FIT,
                             ),
                             createRequestedImageTransformation(
                                 width = 50,
                                 format = ImageFormat.AVIF,
-                                fit = Fit.SCALE,
+                                fit = Fit.FIT,
                             ),
                         ),
                     deferredResult = result,
@@ -243,7 +243,7 @@ class VariantGeneratorTest {
                             height = 50,
                             width = 50,
                             format = ImageFormat.PNG,
-                            fit = Fit.SCALE,
+                            fit = Fit.FIT,
                         ),
                     pathConfiguration = PathConfiguration.DEFAULT,
                 )
@@ -268,7 +268,7 @@ class VariantGeneratorTest {
                             height = 50,
                             width = 50,
                             format = ImageFormat.PNG,
-                            fit = Fit.SCALE,
+                            fit = Fit.FIT,
                         ),
                     pathConfiguration =
                         PathConfiguration.create(
@@ -299,7 +299,7 @@ class VariantGeneratorTest {
                             height = 50,
                             width = 50,
                             format = ImageFormat.PNG,
-                            fit = Fit.SCALE,
+                            fit = Fit.FIT,
                         ),
                     pathConfiguration = PathConfiguration.DEFAULT,
                 )

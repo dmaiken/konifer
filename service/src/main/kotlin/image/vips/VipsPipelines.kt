@@ -12,7 +12,7 @@ object VipsPipelines {
                 Resize(
                     width = 32,
                     height = 32,
-                    fit = Fit.SCALE,
+                    fit = Fit.FIT,
                     upscale = false,
                     gravity = Gravity.CENTER,
                 ),

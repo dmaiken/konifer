@@ -42,7 +42,7 @@ object DimensionCalculator {
         fit: Fit,
     ): Pair<Int, Int> {
         return when (fit) {
-            Fit.SCALE -> {
+            Fit.FIT -> {
                 when {
                     width != null && height == null -> {
                         // Width specified, calculate height
@@ -62,14 +62,14 @@ object DimensionCalculator {
                     else -> Pair(sourceWidth, sourceHeight)
                 }
             }
-            Fit.FIT, Fit.STRETCH, Fit.CROP ->
+            Fit.FILL, Fit.STRETCH, Fit.CROP ->
                 Pair(
                     requireNotNull(width) {
-                        "Width must be specified if fit is '${Fit.FIT.name.lowercase()}', " +
+                        "Width must be specified if fit is '${Fit.FILL.name.lowercase()}', " +
                             "'${Fit.STRETCH.name.lowercase()}', or '${Fit.CROP.name.lowercase()}'"
                     },
                     requireNotNull(height) {
-                        "Height must be specified if fit is '${Fit.FIT.name.lowercase()}', " +
+                        "Height must be specified if fit is '${Fit.FILL.name.lowercase()}', " +
                             "'${Fit.STRETCH.name.lowercase()}', or '${Fit.CROP.name.lowercase()}'"
                     },
                 )

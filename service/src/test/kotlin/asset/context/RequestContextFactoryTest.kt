@@ -250,7 +250,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = 10,
                         height = 20,
                         format = ImageFormat.PNG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     ),
                 ),
                 arguments(
@@ -262,7 +262,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = 10,
                         height = 20,
                         format = ImageFormat.PNG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     ),
                 ),
                 arguments(
@@ -273,7 +273,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     ),
                 ),
                 arguments(
@@ -284,7 +284,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = 100,
                         height = 100,
                         format = ImageFormat.JPEG,
-                        fit = Fit.SCALE,
+                        fit = Fit.FIT,
                     ),
                 ),
             )

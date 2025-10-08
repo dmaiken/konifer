@@ -134,7 +134,7 @@ class VariantProfileRepositoryTest {
                             name = medium
                             w = 15
                             h = 10
-                            fit = fit
+                            fit = fill
                             r = 180
                             f = v
                             filter = black_white
@@ -154,7 +154,7 @@ class VariantProfileRepositoryTest {
                             createRequestedImageTransformation(
                                 width = 15,
                                 height = 10,
-                                fit = Fit.FIT,
+                                fit = Fit.FILL,
                                 rotate = Rotate.ONE_HUNDRED_EIGHTY,
                                 flip = Flip.V,
                                 filter = Filter.BLACK_WHITE,

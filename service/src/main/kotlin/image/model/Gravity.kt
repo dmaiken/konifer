@@ -4,7 +4,7 @@ import io.ktor.http.Parameters
 import java.util.Locale.getDefault
 
 /**
- * This is ignored if the [Fit] is not [Fit.CROP] or [Fit.FIT]
+ * This is ignored if the [Fit] is not [Fit.CROP] or [Fit.FILL]
  */
 enum class Gravity {
     CENTER,

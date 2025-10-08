@@ -91,8 +91,8 @@ data class RequestedImageTransformation(
             throw IllegalArgumentException("Height cannot be < 1")
         }
         when (fit) {
-            Fit.SCALE -> {}
-            Fit.FIT, Fit.STRETCH, Fit.CROP -> {
+            Fit.FIT -> {}
+            Fit.FILL, Fit.STRETCH, Fit.CROP -> {
                 if (height == null || width == null) {
                     throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
                 }

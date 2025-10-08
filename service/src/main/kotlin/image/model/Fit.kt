@@ -5,14 +5,14 @@ import java.util.Locale.getDefault
 
 enum class Fit {
     /**
-     * fit within box, preserve aspect ratio, may leave empty padding.
-     */
-    SCALE,
-
-    /**
-     * fill box, crop overflow
+     * fit within box, preserve aspect ratio, may leave empty padding. Identical to CSS contain.
      */
     FIT,
+
+    /**
+     * fill box, crop overflow. Identical to CSS cover.
+     */
+    FILL,
 
     /**
      * stretch to fit exactly, ignores aspect ratio.
@@ -26,7 +26,7 @@ enum class Fit {
     ;
 
     companion object Factory {
-        val default = SCALE
+        val default = FIT
 
         fun fromString(string: String?): Fit =
             string?.let {
