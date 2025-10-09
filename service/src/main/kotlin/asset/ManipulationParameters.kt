@@ -13,6 +13,8 @@ object ManipulationParameters {
     const val FILTER = "filter"
     const val BLUR = "blur"
     const val QUALITY = "q"
+    const val PAD = "pad"
+    const val BACKGROUND = "bg"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -31,5 +33,8 @@ object ManipulationParameters {
             FLIP,
             FILTER,
             BLUR,
+            QUALITY,
+            PAD,
+            BACKGROUND,
         )
 }

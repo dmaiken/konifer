@@ -4,6 +4,8 @@ import asset.repository.AssetRepository
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import image.model.Transformation
+import io.asset.handler.ColorConverter.transparent
+import io.asset.handler.ColorConverter.white
 import io.asset.variant.ImageVariantAttributes
 import io.image.model.ExifOrientations.normalizeOrientation
 import io.image.model.Fit
@@ -107,6 +109,8 @@ class RequestedTransformationNormalizer(
             filter = requested.filter,
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
+            pad = requested.pad ?: 0,
+            background = normalizeBackground(requested, format)
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -161,5 +165,24 @@ class RequestedTransformationNormalizer(
         }
 
         return requested.quality ?: normalizedFormat.vipsProperties.defaultQuality
+    }
+
+    /**
+     * Normalizes to a list of elements representing rgba or empty if no background at all.
+     */
+    private fun normalizeBackground(
+        requested: RequestedImageTransformation,
+        normalizedFormat: ImageFormat,
+    ): List<Int> {
+        if (requested.pad == null || requested.pad == 0) {
+            // Background is useless unless padding is defined
+            return emptyList()
+        }
+        if (requested.background == null) {
+            return if (normalizedFormat.vipsProperties.supportsAlpha) transparent else white
+        }
+
+        return ColorConverter.toRgba(requested.background)
+
     }
 }
