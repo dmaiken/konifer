@@ -28,7 +28,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -39,14 +38,6 @@ import javax.imageio.ImageIO
 
 class ResizeTest {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            Vips.init()
-        }
-    }
 
     @Test
     fun `upscaling will not happen if not enabled`() {

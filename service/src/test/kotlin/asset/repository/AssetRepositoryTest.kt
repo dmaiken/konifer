@@ -1020,6 +1020,156 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `can fetch variant by quality transformation`() =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        quality = 10,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(quality = 50),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
+        fun `can fetch variant by pad transformation`() =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        pad = 10,
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(pad = 50),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
+        fun `can fetch variant by background transformation`() =
+            runTest {
+                val dto = createAssetDto("/users/123")
+                val assetAndVariants = repository.store(dto)
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        background = listOf(255, 255, 255, 255),
+                    )
+                val variant =
+                    StoreAssetVariantDto(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        persistResult =
+                            PersistResult(
+                                key = UUID.randomUUID().toString(),
+                                bucket = UUID.randomUUID().toString(),
+                            ),
+                        attributes =
+                            Attributes(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                            ),
+                        transformation = transformation,
+                        lqips = LQIPs.NONE,
+                    )
+                val persistedVariant = repository.storeVariant(variant)
+
+                val fetchedVariant =
+                    repository.fetchByPath(
+                        path = assetAndVariants.asset.path,
+                        entryId = assetAndVariants.asset.entryId,
+                        transformation = transformation,
+                    )
+                fetchedVariant shouldBe persistedVariant
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persistedVariant.asset.path,
+                        entryId = persistedVariant.asset.entryId,
+                        transformation = transformation.copy(background = listOf(240, 255, 255, 255)),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
         fun `can fetch variant by all transformations at once`() =
             runTest {
                 val dto = createAssetDto("/users/123")
@@ -1034,6 +1184,9 @@ abstract class AssetRepositoryTest {
                         fit = Fit.STRETCH,
                         filter = Filter.GREYSCALE,
                         gravity = Gravity.ENTROPY,
+                        quality = 50,
+                        pad = 10,
+                        background = listOf(100, 50, 34, 100),
                     )
                 val variant =
                     StoreAssetVariantDto(

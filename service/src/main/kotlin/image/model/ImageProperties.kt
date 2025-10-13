@@ -90,7 +90,7 @@ class PreProcessingProperties private constructor(
         maxWidth != null || maxHeight != null || format != null ||
             fit != Fit.default || rotate != Rotate.default || flip != Flip.default ||
             filter != Filter.default || (blur != null && blur > 0) || quality != null ||
-                (pad != null && pad > 0)
+            (pad != null && pad > 0)
 
     override fun validate() {
         maxWidth?.let {
@@ -149,7 +149,7 @@ class PreProcessingProperties private constructor(
             background: String?,
         ) = validateAndCreate {
             PreProcessingProperties(
-                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background
+                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background,
             )
         }
 

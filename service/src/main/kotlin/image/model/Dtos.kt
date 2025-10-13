@@ -82,7 +82,7 @@ data class RequestedImageTransformation(
                 blur = applicationConfig.tryGetString(BLUR)?.toInt(),
                 quality = applicationConfig.tryGetString(QUALITY)?.toInt(),
                 pad = applicationConfig.tryGetString(PAD)?.toInt(),
-                background = applicationConfig.tryGetString(BACKGROUND)
+                background = applicationConfig.tryGetString(BACKGROUND),
             ).apply {
                 validate()
             }
@@ -115,7 +115,7 @@ data class RequestedImageTransformation(
         if (pad != null && pad < 0) {
             throw IllegalArgumentException("Pad must not be negative")
         }
-        if (background != null && !background.startsWith('#') && background.drop(1).toLongOrNull(16) == null) {
+        if (background != null && (!background.startsWith('#') || background.drop(1).toLongOrNull(16) == null)) {
             throw IllegalArgumentException("Background must be a hex value starting with '#'")
         }
     }
@@ -140,6 +140,9 @@ data class Transformation(
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
     val pad: Int = 0,
+    /**
+     * Background will be a 4-element list representing RGBA
+     */
     val background: List<Int> = emptyList(),
 ) {
     companion object Factory {

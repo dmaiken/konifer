@@ -344,6 +344,32 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
+                arguments(
+                    named(
+                        "bad pad",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                pad = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
+                arguments(
+                    named(
+                        "bad background",
+                        """
+                        variant-profiles = [
+                            {
+                                name = small
+                                bg = bad
+                            }
+                        ]
+                        """.trimIndent(),
+                    ),
+                ),
             )
     }
 

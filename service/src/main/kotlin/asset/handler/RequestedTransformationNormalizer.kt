@@ -110,7 +110,7 @@ class RequestedTransformationNormalizer(
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
             pad = requested.pad ?: 0,
-            background = normalizeBackground(requested, format)
+            background = normalizeBackground(requested, format),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -183,6 +183,5 @@ class RequestedTransformationNormalizer(
         }
 
         return ColorConverter.toRgba(requested.background)
-
     }
 }

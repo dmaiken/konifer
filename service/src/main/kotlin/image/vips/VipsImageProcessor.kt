@@ -20,6 +20,7 @@ import io.image.vips.VipsEncoder
 import io.image.vips.VipsPipelines.lqipVariantPipeline
 import io.image.vips.transformation.ColorFilter
 import io.image.vips.transformation.GaussianBlur
+import io.image.vips.transformation.Pad
 import io.image.vips.transformation.Resize
 import io.image.vips.transformation.RotateFlip
 import io.image.vips.vipsPipeline
@@ -113,6 +114,13 @@ class VipsImageProcessor(
                                         blurAmount = transformation.blur,
                                     ),
                                 )
+                                add(
+                                    Pad(
+                                        pad = transformation.pad,
+                                        background = transformation.background,
+                                        format = transformation.format,
+                                    ),
+                                )
                             }
                         }.build()
                     val preProcessed = pipeline.run(arena, sourceImage)
@@ -196,6 +204,13 @@ class VipsImageProcessor(
                             add(
                                 GaussianBlur(
                                     blurAmount = transformation.blur,
+                                ),
+                            )
+                            add(
+                                Pad(
+                                    pad = transformation.pad,
+                                    background = transformation.background,
+                                    format = transformation.format,
                                 ),
                             )
                         }.build()
