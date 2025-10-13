@@ -3,10 +3,11 @@ plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ktlint)
+    `java-test-fixtures`
 }
 
-group = "io"
 version = "0.0.1"
+group = "io"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -17,6 +18,36 @@ application {
 
 repositories {
     mavenCentral()
+}
+
+java {
+    sourceSets {
+        val functionalTest by creating {
+            kotlin.srcDir("src/functionalTest/kotlin")
+            resources.srcDir("src/functionalTest/resources")
+        }
+
+        getByName("testFixtures") {
+            resources.srcDir("src/testFixtures/resources")
+        }
+    }
+}
+
+val functionalTestImplementation: Configuration by configurations
+
+configurations {
+    // Make functionalTest see main + test + testFixtures
+    named("functionalTestImplementation") {
+        extendsFrom(configurations["implementation"])
+        extendsFrom(configurations["testImplementation"])
+        extendsFrom(configurations["testFixturesImplementation"])
+    }
+
+    named("functionalTestRuntimeOnly") {
+        extendsFrom(configurations["runtimeOnly"])
+        extendsFrom(configurations["testRuntimeOnly"])
+        extendsFrom(configurations["testFixturesRuntimeOnly"])
+    }
 }
 
 dependencies {
@@ -66,7 +97,16 @@ dependencies {
     implementation(libs.blurhash)
 
     testImplementation(libs.twelvemonkeys.imageio.webp)
-    implementation(libs.commons.math3)
+
+    // Dependencies needed by testFixtures
+    testFixturesImplementation(libs.kotlin.test.junit)
+    testFixturesImplementation(libs.mockk)
+    testFixturesImplementation(libs.kotest.runner)
+    testFixturesImplementation(libs.kotest.assertions)
+    testFixturesImplementation(libs.libvips.ffm)
+    testFixturesImplementation(libs.commons.math3)
+
+    "functionalTestImplementation"(testFixtures(project))
 }
 
 tasks.withType<Test>().configureEach {
@@ -74,30 +114,13 @@ tasks.withType<Test>().configureEach {
     systemProperty("kotest.extensions.autoscan.disable", "true")
 }
 
-sourceSets {
-    create("functionalTest") {
-        java.srcDir("src/functionalTest/kotlin")
-        resources.srcDir("src/functionalTest/resources")
-        compileClasspath += sourceSets["main"].output + sourceSets["test"].output
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-configurations.named("functionalTestImplementation") {
-    extendsFrom(configurations["testImplementation"])
-}
-
-configurations.named("functionalTestRuntimeOnly") {
-    extendsFrom(configurations["testRuntimeOnly"])
-}
-
+// Register the task
 tasks.register<Test>("functionalTest") {
-    description = "Runs functional tests."
+    description = "Runs functional tests"
     group = "verification"
 
     testClassesDirs = sourceSets["functionalTest"].output.classesDirs
     classpath = sourceSets["functionalTest"].runtimeClasspath
-
     shouldRunAfter(tasks.test)
 }
 
