@@ -6,4 +6,6 @@ object VipsOption {
     const val VIPS_OPTION_SIZE = "size"
     const val VIPS_OPTION_INTERESTING = "interesting"
     const val VIPS_OPTION_QUALITY = "Q"
+    const val VIPS_EXTEND = "extend"
+    const val VIPS_BACKGROUND = "background"
 }

@@ -56,6 +56,8 @@ class VariantParameterGeneratorTest {
                     filter = Filter.GREYSCALE,
                     blur = 10,
                     quality = 30,
+                    pad = 10,
+                    background = listOf(100, 100, 50, 10),
                 ),
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
@@ -73,6 +75,8 @@ class VariantParameterGeneratorTest {
                         filter = Filter.GREYSCALE,
                         blur = 10,
                         quality = 30,
+                        pad = 10,
+                        background = listOf(100, 100, 50, 10),
                     ),
             )
         val (transformations2, key2) =
@@ -89,6 +93,8 @@ class VariantParameterGeneratorTest {
                         filter = Filter.GREYSCALE,
                         blur = 10,
                         quality = 30,
+                        pad = 10,
+                        background = listOf(100, 100, 50, 10),
                     ),
             )
 

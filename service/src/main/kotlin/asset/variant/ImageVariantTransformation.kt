@@ -25,6 +25,8 @@ data class ImageVariantTransformation(
     val filter: Filter,
     val blur: Int,
     val quality: Int,
+    val pad: Int,
+    val background: List<Int>,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -39,6 +41,8 @@ data class ImageVariantTransformation(
                 filter = Filter.default,
                 blur = 0,
                 quality = attributes.format.vipsProperties.defaultQuality,
+                pad = 0,
+                background = emptyList(),
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -53,6 +57,8 @@ data class ImageVariantTransformation(
                 filter = transformation.filter,
                 blur = transformation.blur,
                 quality = transformation.quality,
+                pad = transformation.pad,
+                background = transformation.background,
             )
     }
 }

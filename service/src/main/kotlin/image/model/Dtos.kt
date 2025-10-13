@@ -1,6 +1,7 @@
 package image.model
 
 import asset.model.LQIPResponse
+import io.asset.ManipulationParameters.BACKGROUND
 import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
@@ -8,6 +9,7 @@ import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.PAD
 import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
@@ -45,6 +47,8 @@ data class RequestedImageTransformation(
     val filter: Filter,
     val blur: Int?,
     val quality: Int?,
+    val pad: Int?,
+    val background: String?,
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -60,6 +64,8 @@ data class RequestedImageTransformation(
                 filter = Filter.default,
                 blur = null,
                 quality = null,
+                pad = null,
+                background = null,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
@@ -75,6 +81,8 @@ data class RequestedImageTransformation(
                 filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
                 blur = applicationConfig.tryGetString(BLUR)?.toInt(),
                 quality = applicationConfig.tryGetString(QUALITY)?.toInt(),
+                pad = applicationConfig.tryGetString(PAD)?.toInt(),
+                background = applicationConfig.tryGetString(BACKGROUND),
             ).apply {
                 validate()
             }
@@ -104,6 +112,12 @@ data class RequestedImageTransformation(
         if (quality != null && (quality !in 1..100)) {
             throw IllegalArgumentException("Quality must be between 1 and 100")
         }
+        if (pad != null && pad < 0) {
+            throw IllegalArgumentException("Pad must not be negative")
+        }
+        if (background != null && (!background.startsWith('#') || background.drop(1).toLongOrNull(16) == null)) {
+            throw IllegalArgumentException("Background must be a hex value starting with '#'")
+        }
     }
 }
 
@@ -125,6 +139,11 @@ data class Transformation(
     val filter: Filter = Filter.default,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
+    val pad: Int = 0,
+    /**
+     * Background will be a 4-element list representing RGBA
+     */
+    val background: List<Int> = emptyList(),
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =

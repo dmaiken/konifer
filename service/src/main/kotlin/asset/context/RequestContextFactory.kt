@@ -3,6 +3,7 @@ package io.asset.context
 import image.model.ImageFormat
 import image.model.RequestedImageTransformation
 import io.asset.ManipulationParameters.ALL_PARAMETERS
+import io.asset.ManipulationParameters.BACKGROUND
 import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
@@ -10,6 +11,7 @@ import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
 import io.asset.ManipulationParameters.MIME_TYPE
+import io.asset.ManipulationParameters.PAD
 import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
@@ -270,6 +272,8 @@ class RequestContextFactory(
                     filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
                     blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
                     quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
+                    pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
+                    background = parameters[BACKGROUND] ?: variantProfile?.background,
                 )
             }
         }

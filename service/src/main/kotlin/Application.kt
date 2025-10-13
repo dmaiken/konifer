@@ -1,6 +1,5 @@
 package io
 
-import app.photofox.vipsffm.Vips
 import asset.configureAssetRouting
 import io.database.connectToPostgres
 import io.database.migrateSchema
@@ -17,9 +16,6 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    logger.info("Initializing Vips")
-    Vips.init()
-
     val inMemoryObjectStoreEnabled = environment.config.tryGetString("object-store.in-memory")?.toBoolean() ?: false
     if (environment.config.tryGetString("database.in-memory")?.toBoolean() == true) {
         configureKoin(null, inMemoryObjectStoreEnabled)

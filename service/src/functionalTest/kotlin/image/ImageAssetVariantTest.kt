@@ -620,6 +620,121 @@ class ImageAssetVariantTest {
     }
 
     @Nested
+    inner class PadTests {
+        @Test
+        fun `can fetch variant with padding`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val pad = 20
+                fetchAssetViaRedirect(client, pad = pad, background = "#FF0000", expectCacheHit = false)
+                val result =
+                    fetchAssetViaRedirect(
+                        client,
+                        pad = pad,
+                        background = "#FF0000",
+                        expectCacheHit = true,
+                    )!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, image)
+                    val withBorder = VImage.newFromBytes(arena, result)
+
+                    withBorder.width shouldBe source.width + pad * 2
+                    withBorder.height shouldBe source.height + pad * 2
+                }
+            }
+
+        @Test
+        fun `fetching variant with 255 alpha background will return variant with no alpha 255 in background`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val pad = 20
+                val resultWithAlphaDefined = fetchAssetViaRedirect(client, pad = pad, background = "#FF0000FF", expectCacheHit = false)!!
+                val resultWithoutAlphaDefined =
+                    fetchAssetViaRedirect(
+                        client,
+                        pad = pad,
+                        background = "#FF0000",
+                        expectCacheHit = true,
+                    )!!
+                val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
+                val withoutAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithoutAlphaDefined))
+
+                withAlphaDefined shouldHaveSamePixelContentAs withoutAlphaDefined
+            }
+
+        @Test
+        fun `fetching variant without 255 alpha background will return variant with alpha 255 in background`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val pad = 20
+                val resultWithAlphaDefined = fetchAssetViaRedirect(client, pad = pad, background = "#FF0000", expectCacheHit = false)!!
+                val resultWithoutAlphaDefined =
+                    fetchAssetViaRedirect(
+                        client,
+                        pad = pad,
+                        background = "#FF0000FF",
+                        expectCacheHit = true,
+                    )!!
+                val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
+                val withoutAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithoutAlphaDefined))
+
+                withAlphaDefined shouldHaveSamePixelContentAs withoutAlphaDefined
+            }
+
+        @Test
+        fun `fetching with no padding will fetch the original variant`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+                val request =
+                    StoreAssetRequest(
+                        type = "image/png",
+                        alt = "an image",
+                    )
+                storeAsset(client, image, request)
+
+                val result =
+                    fetchAssetViaRedirect(
+                        client,
+                        pad = 0,
+                        background = "#FF0000",
+                        expectCacheHit = true,
+                    )!!
+                val originalVariant = fetchAssetViaRedirect(client)
+                ImageIO.read(ByteArrayInputStream(result)) shouldHaveSamePixelContentAs
+                    ImageIO.read(ByteArrayInputStream(originalVariant))
+            }
+    }
+
+    @Nested
     inner class InvalidVariantRequestTests {
         @ParameterizedTest
         @ValueSource(ints = [0, -1])
@@ -694,6 +809,24 @@ class ImageAssetVariantTest {
                 storeAsset(client)
 
                 fetchAssetViaRedirect(client, blur = blurAmount, expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid pad`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, pad = -1, expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
+            }
+
+        @Test
+        fun `cannot request an image with invalid background`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(client, background = "bad", expectCacheHit = false, expectedStatusCode = HttpStatusCode.BadRequest)
             }
 
         private suspend fun storeAsset(client: HttpClient) {

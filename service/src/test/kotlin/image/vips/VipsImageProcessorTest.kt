@@ -32,7 +32,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.apache.tika.Tika
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -47,14 +46,6 @@ class VipsImageProcessorTest {
     private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(VariantParameterGenerator()))
 
     private val vipsImageProcessor = VipsImageProcessor(imagePreviewGenerator, requestedTransformationNormalizer, VipsEncoder())
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
-            Vips.init()
-        }
-    }
 
     @Nested
     inner class PreProcessTests {

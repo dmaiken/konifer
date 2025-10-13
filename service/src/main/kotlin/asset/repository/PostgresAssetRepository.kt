@@ -314,6 +314,9 @@ class PostgresAssetRepository(
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "horizontalFlip").eq(transformation.horizontalFlip.toString()))
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "filter").eq(transformation.filter.name))
                 .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "gravity").eq(transformation.gravity.name))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "quality").eq(transformation.quality.toString()))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "pad").eq(transformation.pad.toString()))
+                .and(jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "background").eq(transformation.background.toString()))
         }
     }
 

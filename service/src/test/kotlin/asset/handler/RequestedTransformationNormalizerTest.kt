@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class RequestedTransformationNormalizerTest : BaseUnitTest() {
     companion object {
@@ -587,6 +588,145 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     }
                 normalized.quality shouldBe format.vipsProperties.defaultQuality
                 normalized.format shouldBe format
+            }
+    }
+
+    @Nested
+    inner class NormalizeBackgroundTests {
+        @Test
+        fun `if background is null and format supports alpha then transparent background is used`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 1,
+                        background = null,
+                        format = ImageFormat.PNG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.pad shouldBe 1
+                normalized.background shouldBe listOf(0, 0, 0, 0)
+            }
+
+        @Test
+        fun `if background is null and format does not support alpha then white background is used`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 1,
+                        background = null,
+                        format = ImageFormat.JPEG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.pad shouldBe 1
+                normalized.background shouldBe listOf(255, 255, 255, 255)
+            }
+
+        @Test
+        fun `alpha background is normalized`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 1,
+                        background = "#FA9B1E01",
+                        format = ImageFormat.PNG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.pad shouldBe 1
+                normalized.background shouldBe listOf(250, 155, 30, 1)
+            }
+
+        @Test
+        fun `non-alpha background is normalized`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 1,
+                        background = "#FA9B1E",
+                        format = ImageFormat.PNG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.pad shouldBe 1
+                normalized.background shouldBe listOf(250, 155, 30, 255)
+            }
+
+        @Test
+        fun `if padding is 0 then background is empty`() =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 0,
+                        background = "#FA9B1E",
+                        format = ImageFormat.PNG,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.pad shouldBe 0
+                normalized.background shouldBe emptyList()
+            }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "#", "", " ", "#F", "#-1", "FFFFFF", "##",
+            ],
+        )
+        fun `throws when normalizing invalidBackground`(badBackground: String) =
+            runTest {
+                val asset = storeAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        pad = 10,
+                        background = badBackground,
+                        format = ImageFormat.PNG,
+                    )
+                val exception =
+                    shouldThrow<IllegalArgumentException> {
+                        requestedTransformationNormalizer.normalize(
+                            treePath = asset.asset.path,
+                            entryId = asset.asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                exception.message shouldBe "Invalid hex string: $badBackground"
             }
     }
 }

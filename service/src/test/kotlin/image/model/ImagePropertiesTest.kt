@@ -77,6 +77,15 @@ class ImagePropertiesTest {
     }
 
     @Test
+    fun `pad cannot be negative`() {
+        shouldThrow<IllegalArgumentException> {
+            createPreProcessingProperties(
+                pad = -1,
+            )
+        }
+    }
+
+    @Test
     fun `PreProcessingProperties default contains default values`() {
         val default = PreProcessingProperties.DEFAULT
         default.format shouldBe null
@@ -89,6 +98,8 @@ class ImagePropertiesTest {
         default.blur shouldBe null
         default.quality shouldBe null
         default.gravity shouldBe Gravity.default
+        default.pad shouldBe null
+        default.background shouldBe null
     }
 
     @Test

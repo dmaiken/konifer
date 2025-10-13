@@ -1,11 +1,13 @@
 package image.model
 
+import io.asset.ManipulationParameters.BACKGROUND
 import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
 import io.asset.ManipulationParameters.FIT
 import io.asset.ManipulationParameters.FLIP
 import io.asset.ManipulationParameters.GRAVITY
 import io.asset.ManipulationParameters.HEIGHT
+import io.asset.ManipulationParameters.PAD
 import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.WIDTH
@@ -80,12 +82,15 @@ class PreProcessingProperties private constructor(
     val filter: Filter,
     val blur: Int?,
     val quality: Int?,
+    val pad: Int?,
+    val background: String?,
 ) : ValidatedProperties {
     // I think we can be smarter about this
     val enabled: Boolean =
         maxWidth != null || maxHeight != null || format != null ||
             fit != Fit.default || rotate != Rotate.default || flip != Flip.default ||
-            filter != Filter.default || (blur != null && blur > 0) || quality != null
+            filter != Filter.default || (blur != null && blur > 0) || quality != null ||
+            (pad != null && pad > 0)
 
     override fun validate() {
         maxWidth?.let {
@@ -99,6 +104,12 @@ class PreProcessingProperties private constructor(
         }
         quality?.let {
             require(it in 1..100) { "'$QUALITY' must be between 1 and 100" }
+        }
+        pad?.let {
+            require(it > 0) { "'$PAD' must be greater than 0" }
+        }
+        background?.let {
+            require(it.isNotBlank() && it.length > 3 && it.startsWith('#')) { "'$BACKGROUND' must not be blank" }
         }
     }
 
@@ -117,6 +128,8 @@ class PreProcessingProperties private constructor(
                 filter = Filter.default,
                 blur = null,
                 quality = null,
+                pad = null,
+                background = null,
             )
 
         fun create(
@@ -132,9 +145,11 @@ class PreProcessingProperties private constructor(
             filter: Filter,
             blur: Int?,
             quality: Int?,
+            pad: Int?,
+            background: String?,
         ) = validateAndCreate {
             PreProcessingProperties(
-                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality,
+                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background,
             )
         }
 
@@ -190,6 +205,12 @@ class PreProcessingProperties private constructor(
             quality =
                 applicationConfig?.tryGetString(QUALITY)
                     ?.toInt() ?: parent?.quality,
+            pad =
+                applicationConfig?.tryGetString(PAD)
+                    ?.toInt() ?: parent?.pad,
+            background =
+                applicationConfig?.tryGetString(BACKGROUND)
+                    ?: parent?.background,
         )
     }
 
@@ -208,11 +229,13 @@ class PreProcessingProperties private constructor(
             filter = filter,
             blur = blur,
             quality = quality,
+            pad = pad,
+            background = background,
         )
 
     override fun toString(): String {
         return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
             "width=$width, height=$height, format=$format, fit=$fit, gravity=$gravity, rotate=$rotate, " +
-            "flip=$flip, filter=$filter, blur=$blur, quality=$quality)"
+            "flip=$flip, filter=$filter, blur=$blur, quality=$quality, pad=$pad, background=$background)"
     }
 }
