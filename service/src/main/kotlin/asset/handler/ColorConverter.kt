@@ -21,7 +21,7 @@ object ColorConverter {
                 // #RGBA → #RRGGBBAA
                 4 -> cleanHex.map { "$it$it" }.joinToString("")
                 // #RRGGBB → add alpha=255
-                6 -> cleanHex + "FF"
+                6 -> cleanHex + MAX_ALPHA
                 // #RRGGBBAA
                 8 -> cleanHex
                 else -> throw IllegalArgumentException("Invalid hex color: $hex")
