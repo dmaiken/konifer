@@ -95,7 +95,7 @@ RUN vips list format
 WORKDIR /app
 
 # Copy the built jar from the service module
-COPY --from=build /home/gradle/app/service/build/libs/*.jar tessa.jar
+COPY --from=build /home/gradle/app/service/build/libs/*.jar direkt.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","tessa.jar", "-config=application.conf", "-config=/app/config/tessa.conf"]
+ENTRYPOINT ["java","-jar","direkt.jar", "-config=application.conf", "-config=/app/config/direkt.conf"]

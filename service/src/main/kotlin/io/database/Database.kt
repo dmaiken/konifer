@@ -30,7 +30,7 @@ fun Application.connectToPostgres(): ConnectionFactory {
     val port = environment.config.property("postgres.port").getString().toInt()
     val options =
         builder()
-            .option(DATABASE, "tessa")
+            .option(DATABASE, "direkt")
             .option(DRIVER, "pool")
             .option(PROTOCOL, "postgresql")
             .option(USER, user)

@@ -69,7 +69,7 @@ fun main() {
                 excludes = "migrations"
             }
             target = Target().apply {
-                packageName = "tessa.jooq"
+                packageName = "direkt.jooq"
                 directory = "../jooq-generated/src/main/kotlin"
             }
             generate = Generate().apply {

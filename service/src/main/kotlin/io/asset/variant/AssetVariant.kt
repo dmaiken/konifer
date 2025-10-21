@@ -1,12 +1,12 @@
 package io.asset.variant
 
+import direkt.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
 import io.asset.repository.getNonNull
 import io.image.model.Attributes
 import io.image.model.LQIPs
 import io.image.model.Transformation
 import kotlinx.serialization.json.Json
 import org.jooq.Record
-import tessa.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
 import java.time.LocalDateTime
 
 data class AssetVariant(

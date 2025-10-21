@@ -1,9 +1,9 @@
 package io.asset.model
 
+import direkt.jooq.tables.AssetTree.Companion.ASSET_TREE
 import io.asset.repository.getNonNull
 import io.asset.repository.toPath
 import org.jooq.Record
-import tessa.jooq.tables.AssetTree.Companion.ASSET_TREE
 import java.time.LocalDateTime
 import java.util.UUID
 

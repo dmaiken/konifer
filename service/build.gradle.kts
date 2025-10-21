@@ -139,7 +139,7 @@ kotlin {
 ktor {
     docker {
         jreVersion.set(JavaVersion.VERSION_24)
-        localImageName.set("tessa")
+        localImageName.set("direkt")
         imageTag.set("0.0.1-preview")
     }
 }

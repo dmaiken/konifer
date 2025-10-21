@@ -1,5 +1,9 @@
 package io.asset.repository
 
+import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
+import direkt.jooq.tables.records.AssetTreeRecord
+import direkt.jooq.tables.references.ASSET_TREE
+import direkt.jooq.tables.references.ASSET_VARIANT
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.model.AssetAndVariants
@@ -24,10 +28,6 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
-import tessa.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
-import tessa.jooq.tables.records.AssetTreeRecord
-import tessa.jooq.tables.references.ASSET_TREE
-import tessa.jooq.tables.references.ASSET_VARIANT
 import java.time.LocalDateTime
 import java.util.UUID
 

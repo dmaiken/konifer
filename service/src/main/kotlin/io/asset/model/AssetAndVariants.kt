@@ -1,9 +1,9 @@
 package io.asset.model
 
+import direkt.jooq.tables.records.AssetTreeRecord
+import direkt.jooq.tables.records.AssetVariantRecord
 import io.asset.variant.AssetVariant
 import org.jooq.Record
-import tessa.jooq.tables.records.AssetTreeRecord
-import tessa.jooq.tables.records.AssetVariantRecord
 
 data class AssetAndVariants(
     val asset: Asset,
