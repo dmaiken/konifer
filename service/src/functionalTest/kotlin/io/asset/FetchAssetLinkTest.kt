@@ -19,7 +19,7 @@ import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.util.createJsonClient
 import io.util.fetchAssetLink
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -43,7 +43,7 @@ class FetchAssetLinkTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAsset(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipart(client, image, request, path = "profile")
 
             client.get("/assets/profile/-/link").apply {
                 status shouldBe HttpStatusCode.OK
@@ -91,7 +91,7 @@ class FetchAssetLinkTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAsset(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipart(client, image, request, path = "profile")
 
             fetchAssetLink(client, path = "profile")!!.apply {
                 lqip.blurhash shouldNotBe null
@@ -133,7 +133,7 @@ class FetchAssetLinkTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAsset(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipart(client, image, request, path = "profile")
 
             var count = 0
             repeat(2) {

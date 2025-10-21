@@ -34,7 +34,7 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 
-suspend fun storeAsset(
+suspend fun storeAssetMultipart(
     client: HttpClient,
     asset: ByteArray,
     request: StoreAssetRequest,
@@ -66,6 +66,29 @@ suspend fun storeAsset(
                 ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
             ),
         )
+    }.let { response ->
+        response.status shouldBe expectedStatus
+        if (response.status == HttpStatusCode.Created) {
+            response.body<AssetResponse>().apply {
+                entryId shouldNotBe null
+                createdAt shouldNotBe null
+                variants shouldHaveSize 1 // original variant
+            }
+        } else {
+            null
+        }
+    }
+}
+
+suspend fun storeAssetUrl(
+    client: HttpClient,
+    request: StoreAssetRequest,
+    path: String = "profile",
+    expectedStatus: HttpStatusCode = HttpStatusCode.Created,
+): AssetResponse? {
+    return client.post("/assets/$path") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
     }.let { response ->
         response.status shouldBe expectedStatus
         if (response.status == HttpStatusCode.Created) {

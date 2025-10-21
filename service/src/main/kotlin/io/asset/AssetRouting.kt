@@ -2,6 +2,7 @@ package io.asset
 
 import io.asset.context.RequestContextFactory
 import io.asset.context.ReturnFormat
+import io.asset.handler.AssetAndLocation
 import io.asset.handler.AssetHandler
 import io.asset.model.StoreAssetRequest
 import io.getAppStatusCacheHeader
@@ -12,7 +13,9 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.origin
+import io.ktor.server.request.contentType
 import io.ktor.server.request.path
+import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytesWriter
@@ -26,6 +29,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
 import io.path.DeleteMode
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
@@ -104,11 +108,11 @@ fun Application.configureAssetRouting() {
         }
 
         post(ASSET_PATH_PREFIX) {
-            createNewAsset(call, assetHandler)
+            storeNewAsset(call, assetHandler)
         }
 
         post("$ASSET_PATH_PREFIX/{...}") {
-            createNewAsset(call, assetHandler)
+            storeNewAsset(call, assetHandler)
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {
@@ -125,48 +129,62 @@ fun Application.configureAssetRouting() {
     }
 }
 
-suspend fun createNewAsset(
+suspend fun storeNewAsset(
     call: RoutingCall,
     assetHandler: AssetHandler,
 ) = coroutineScope {
-    logger.info("Received request to store a new asset")
-    val assetData = CompletableDeferred<StoreAssetRequest>()
-    val assetContent = ByteChannel(true)
-    val multipart = call.receiveMultipart()
-
-    val deferredAsset =
-        async {
-            assetHandler.storeNewAsset(
-                deferredRequest = assetData,
-                container = AssetStreamContainer(assetContent),
-                uriPath = call.request.path(),
-            )
-        }
-
-    multipart.forEachPart { part ->
-        when (part) {
-            is PartData.FormItem -> {
-                if (part.name == "metadata") {
-                    assetData.complete(Json.decodeFromString(part.value))
+    var deferredAsset: Deferred<AssetAndLocation>? = null
+    when (call.request.contentType().withoutParameters()) {
+        ContentType.MultiPart.FormData -> {
+            logger.info("Received multipart request to store a new asset")
+            val assetData = CompletableDeferred<StoreAssetRequest>()
+            val assetContentChannel = ByteChannel(true)
+            deferredAsset =
+                async {
+                    assetHandler.storeNewAsset(
+                        deferredRequest = assetData,
+                        multiPartContainer = AssetStreamContainer(assetContentChannel),
+                        uriPath = call.request.path(),
+                    )
                 }
-            }
+            val multipart = call.receiveMultipart()
+            multipart.forEachPart { part ->
+                when (part) {
+                    is PartData.FormItem -> {
+                        if (part.name == "metadata") {
+                            assetData.complete(Json.decodeFromString(part.value))
+                        }
+                    }
 
-            is PartData.FileItem -> {
-                try {
-                    part.provider().copyTo(assetContent)
-                } finally {
-                    assetContent.close()
+                    is PartData.FileItem -> {
+                        try {
+                            part.provider().copyTo(assetContentChannel)
+                        } finally {
+                            assetContentChannel.close()
+                        }
+                    }
+
+                    else -> {}
                 }
+                part.dispose()
             }
-
-            else -> {}
+            if (!assetData.isCompleted) {
+                throw IllegalArgumentException("No asset metadata supplied")
+            }
         }
-        part.dispose()
+        ContentType.Application.Json -> {
+            val payload = call.receive(StoreAssetRequest::class)
+            deferredAsset =
+                async {
+                    assetHandler.storeNewAsset(
+                        deferredRequest = CompletableDeferred(payload),
+                        multiPartContainer = null,
+                        uriPath = call.request.path(),
+                    )
+                }
+        }
     }
-    if (!assetData.isCompleted) {
-        throw IllegalArgumentException("No asset metadata supplied")
-    }
-    val asset = deferredAsset.await()
+    val asset = checkNotNull(deferredAsset).await()
 
     logger.info("Created asset under path: ${asset.locationPath}")
 

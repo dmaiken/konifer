@@ -10,7 +10,7 @@ import io.util.assertAssetDoesNotExist
 import io.util.createJsonClient
 import io.util.deleteAsset
 import io.util.fetchAssetInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -36,7 +36,7 @@ class DeleteAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "profile")
+            storeAssetMultipart(client, image, request, path = "profile")
             fetchAssetInfo(client, path = "profile")
             deleteAsset(client, path = "profile")
             assertAssetDoesNotExist(client, path = "profile")
@@ -53,8 +53,8 @@ class DeleteAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val firstAsset = storeAsset(client, image, request, path = "profile")
-            val secondAsset = storeAsset(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
+            val secondAsset = storeAssetMultipart(client, image, request, path = "profile")
 
             fetchAssetInfo(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset?.entryId
@@ -75,8 +75,8 @@ class DeleteAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val firstAsset = storeAsset(client, image, request, path = "profile")
-            val secondAsset = storeAsset(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
+            val secondAsset = storeAssetMultipart(client, image, request, path = "profile")
 
             deleteAsset(client, path = "profile", entryId = firstAsset!!.entryId)
 
@@ -115,9 +115,9 @@ class DeleteAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val firstAsset = storeAsset(client, image, request, path = "user/123")
-            val secondAsset = storeAsset(client, image, request, path = "user/123")
-            val assetToNotDelete = storeAsset(client, image, request, path = "user/123/profile")
+            val firstAsset = storeAssetMultipart(client, image, request, path = "user/123")
+            val secondAsset = storeAssetMultipart(client, image, request, path = "user/123")
+            val assetToNotDelete = storeAssetMultipart(client, image, request, path = "user/123/profile")
 
             client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
 
@@ -139,11 +139,11 @@ class DeleteAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val control = storeAsset(client, image, request, path = "user")
-            val firstAsset = storeAsset(client, image, request, path = "user/123")
-            val secondAsset = storeAsset(client, image, request, path = "user/123")
-            val thirdAsset = storeAsset(client, image, request, path = "user/123/profile")
-            val fourthAsset = storeAsset(client, image, request, path = "user/123/profile/other")
+            val control = storeAssetMultipart(client, image, request, path = "user")
+            val firstAsset = storeAssetMultipart(client, image, request, path = "user/123")
+            val secondAsset = storeAssetMultipart(client, image, request, path = "user/123")
+            val thirdAsset = storeAssetMultipart(client, image, request, path = "user/123/profile")
+            val fourthAsset = storeAssetMultipart(client, image, request, path = "user/123/profile/other")
 
             client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
 

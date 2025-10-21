@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
 import io.util.fetchAssetInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 
 class AssetLifecycleTest {
@@ -22,7 +22,7 @@ class AssetLifecycleTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storeAssetResponse = storeAsset(client, image, request)
+            val storeAssetResponse = storeAssetMultipart(client, image, request)
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
@@ -45,7 +45,7 @@ class AssetLifecycleTest {
                 )
             val entryIds = mutableListOf<Long>()
             repeat(2) {
-                val response = storeAsset(client, image, request)
+                val response = storeAssetMultipart(client, image, request)
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2

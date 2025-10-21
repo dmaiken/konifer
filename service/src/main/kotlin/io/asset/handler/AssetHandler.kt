@@ -38,10 +38,19 @@ class AssetHandler(
 
     suspend fun storeNewAsset(
         deferredRequest: CompletableDeferred<StoreAssetRequest>,
-        container: AssetStreamContainer,
+        multiPartContainer: AssetStreamContainer?,
         uriPath: String,
     ): AssetAndLocation =
         coroutineScope {
+            val container =
+                multiPartContainer ?: deferredRequest.await().let { request ->
+                    AssetStreamContainer.fromUrl(
+                        this,
+                        requireNotNull(request.url) {
+                            "Request must contain and image multipart or supply a URL"
+                        },
+                    )
+                }
             val format = deriveValidImageFormat(container.readNBytes(1024, true))
             val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
             val processedAssetChannel = ByteChannel(true)
@@ -191,9 +200,6 @@ class AssetHandler(
             throw InvalidImageException("Not an image type")
         }
         return ImageFormat.fromMimeType(mimeType)
-    }
-
-    private fun preprocess() {
     }
 
     private fun validate(mimeType: String): Boolean {

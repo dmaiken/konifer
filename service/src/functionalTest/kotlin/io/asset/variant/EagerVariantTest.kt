@@ -11,7 +11,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
 import io.util.fetchAssetInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -50,7 +50,7 @@ class EagerVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storeResponse = storeAsset(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1
@@ -114,7 +114,7 @@ class EagerVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            val storeResponse = storeAsset(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1

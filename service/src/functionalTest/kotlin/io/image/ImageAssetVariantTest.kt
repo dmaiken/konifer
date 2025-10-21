@@ -24,7 +24,7 @@ import io.matchers.shouldHaveSamePixelContentAs
 import io.util.createJsonClient
 import io.util.fetchAssetLink
 import io.util.fetchAssetViaRedirect
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -50,7 +50,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -93,7 +93,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -132,7 +132,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -183,7 +183,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -223,7 +223,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -269,7 +269,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)!!.apply {
+            storeAssetMultipart(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -308,7 +308,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)
+            storeAssetMultipart(client, image, request)
 
             fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = false)!!.apply {
                 Tika().detect(this) shouldBe "image/png"
@@ -340,7 +340,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)
+            storeAssetMultipart(client, image, request)
 
             fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = false)!!.apply {
                 Tika().detect(this) shouldBe "image/png"
@@ -370,7 +370,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)
+            storeAssetMultipart(client, image, request)
 
             fetchAssetViaRedirect(
                 client,
@@ -421,7 +421,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 fetchAssetViaRedirect(client, blur = 50, expectCacheHit = false)!!.apply {
                     Tika().detect(this) shouldBe "image/png"
@@ -456,7 +456,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val result =
                     fetchAssetViaRedirect(
@@ -495,7 +495,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
                 val result =
                     fetchAssetLink(
                         client,
@@ -529,7 +529,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 fetchAssetViaRedirect(
                     client,
@@ -582,7 +582,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)
+            storeAssetMultipart(client, image, request)
 
             val result =
                 fetchAssetViaRedirect(
@@ -615,7 +615,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val lowerQualityResult =
                     fetchAssetViaRedirect(
@@ -659,7 +659,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val pad = 20
                 fetchAssetViaRedirect(client, pad = pad, background = "#FF0000", expectCacheHit = false)
@@ -690,7 +690,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val pad = 20
                 val resultWithAlphaDefined =
@@ -719,7 +719,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val pad = 20
                 val resultWithAlphaDefined =
@@ -748,7 +748,7 @@ class ImageAssetVariantTest {
                         type = "image/png",
                         alt = "an image",
                     )
-                storeAsset(client, image, request)
+                storeAssetMultipart(client, image, request)
 
                 val result =
                     fetchAssetViaRedirect(
@@ -916,7 +916,7 @@ class ImageAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request)
+            storeAssetMultipart(client, image, request)
         }
     }
 }

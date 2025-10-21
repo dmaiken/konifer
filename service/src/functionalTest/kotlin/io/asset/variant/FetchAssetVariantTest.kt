@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.util.createJsonClient
 import io.util.fetchAssetContent
 import io.util.fetchAssetInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 
 class FetchAssetVariantTest {
@@ -39,7 +39,7 @@ class FetchAssetVariantTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "/users/123")
+            storeAssetMultipart(client, image, request, path = "/users/123")
 
             // "create" the variant by requesting it
             fetchAssetContent(client, path = "/users/123", expectedMimeType = "image/png", height = 100, width = 100)

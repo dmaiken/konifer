@@ -8,7 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
 import io.util.fetchAssetInfo
 import io.util.fetchAssetsInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -25,7 +25,7 @@ class FetchAssetInfoTest {
                 )
             val entryIds = mutableListOf<Long>()
             repeat(2) {
-                storeAsset(client, image, request, path = "profile")?.apply {
+                storeAssetMultipart(client, image, request, path = "profile")?.apply {
                     entryIds.add(entryId)
                 }
             }

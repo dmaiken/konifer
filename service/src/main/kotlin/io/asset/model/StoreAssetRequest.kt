@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class StoreAssetRequest(
     val type: String,
     val alt: String? = null,
+    val url: String? = null,
 )

@@ -12,7 +12,7 @@ import io.ktor.client.HttpClient
 import io.util.createJsonClient
 import io.util.fetchAssetInfo
 import io.util.fetchAssetViaRedirect
-import io.util.storeAsset
+import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 
 class ImagePreviewTest {
@@ -181,7 +181,7 @@ class ImagePreviewTest {
         request: StoreAssetRequest,
         lqips: Set<LQIPImplementation>,
     ) {
-        storeAsset(client, image, request, path = PATH)!!.apply {
+        storeAssetMultipart(client, image, request, path = PATH)!!.apply {
             variants.apply {
                 size shouldBe 1
                 if (lqips.contains(LQIPImplementation.BLURHASH)) {

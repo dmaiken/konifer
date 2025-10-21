@@ -3,10 +3,16 @@ package io.asset
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 
 open class AssetStreamContainer(
     private val channel: ByteChannel,
@@ -21,6 +27,35 @@ open class AssetStreamContainer(
                 try {
                     readChannel.copyTo(byteChannel)
                 } finally {
+                    byteChannel.close()
+                }
+            }
+
+            return AssetStreamContainer(byteChannel)
+        }
+
+        fun fromUrl(
+            scope: CoroutineScope,
+            url: String,
+        ): AssetStreamContainer {
+            val httpClient = HttpClient.newBuilder().build()
+            val byteChannel = ByteChannel(autoFlush = true)
+
+            val request =
+                HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build()
+
+            val response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream())
+            val input = response.body()
+            scope.launch(Dispatchers.IO) {
+                try {
+                    input.toByteReadChannel(this.coroutineContext).copyTo(byteChannel)
+                } catch (_: Throwable) {
+                    byteChannel.close()
+                } finally {
+                    input.close()
                     byteChannel.close()
                 }
             }

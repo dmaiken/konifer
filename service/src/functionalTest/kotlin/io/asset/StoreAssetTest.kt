@@ -1,12 +1,14 @@
 package io.asset
 
 import io.BaseTestcontainerTest.Companion.BOUNDARY
+import io.asset.model.AssetClass
 import io.asset.model.StoreAssetRequest
 import io.byteArrayToImage
 import io.config.testInMemory
 import io.image.model.ImageFormat
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.post
@@ -19,7 +21,8 @@ import io.ktor.http.contentType
 import io.util.createJsonClient
 import io.util.fetchAssetContent
 import io.util.fetchAssetInfo
-import io.util.storeAsset
+import io.util.storeAssetMultipart
+import io.util.storeAssetUrl
 import kotlinx.serialization.json.Json
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
@@ -88,7 +91,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test
@@ -110,7 +113,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test
@@ -132,7 +135,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile")
+            storeAssetMultipart(client, image, request, path = "users/123/profile")
 
             fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
@@ -169,7 +172,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile")
+            storeAssetMultipart(client, image, request, path = "users/123/profile")
 
             fetchAssetInfo(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {
@@ -202,7 +205,7 @@ class StoreAssetTest {
                     type = "image/png",
                     alt = "an image",
                 )
-            storeAsset(client, image, request, path = "users/123/profile")
+            storeAssetMultipart(client, image, request, path = "users/123/profile")
 
             fetchAssetContent(
                 client,
@@ -211,5 +214,28 @@ class StoreAssetTest {
             )!!.let { imageBytes ->
                 Tika().detect(imageBytes) shouldBe format.mimeType
             }
+        }
+
+    @Test
+    fun `can store asset uploaded as link`() =
+        testInMemory {
+            val client = createJsonClient()
+            // Come up with a better way to not rely on the internet
+            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val request =
+                StoreAssetRequest(
+                    type = "image/jpeg",
+                    alt = "an image",
+                    url = url,
+                )
+            val storeAssetResponse = storeAssetUrl(client, request)
+            storeAssetResponse!!.createdAt shouldNotBe null
+            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeKey shouldNotBe null
+            storeAssetResponse.variants.first().imageAttributes.mimeType shouldBe "image/jpeg"
+            storeAssetResponse.`class` shouldBe AssetClass.IMAGE
+            storeAssetResponse.alt shouldBe "an image"
+            storeAssetResponse.entryId shouldBe 0
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 }
