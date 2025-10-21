@@ -9,28 +9,28 @@ import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.AssetRepository
 import io.asset.store.ObjectStore
-import io.asset.variant.VariantGenerationJob
-import io.asset.variant.VariantGenerator
 import io.asset.variant.VariantProfileRepository
+import io.asset.variant.generation.EagerVariantGenerationJob
+import io.asset.variant.generation.ImageProcessingJob
+import io.asset.variant.generation.PreProcessJob
+import io.asset.variant.generation.PriorityChannelScheduler
+import io.asset.variant.generation.VariantGenerationJob
 import io.image.InvalidImageException
 import io.image.model.ImageFormat
-import io.image.vips.VipsImageProcessor
+import io.image.model.PreProcessedImage
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.path.DeleteMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 
 class AssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
-    private val imageProcessor: VipsImageProcessor,
     private val objectStore: ObjectStore,
-    private val variantGenerator: VariantGenerator,
-    private val variantGenerationChannel: Channel<VariantGenerationJob>,
+    private val variantJobScheduler: PriorityChannelScheduler<ImageProcessingJob<*>>,
     private val variantProfileRepository: VariantProfileRepository,
     private val requestContextFactory: RequestContextFactory,
 ) {
@@ -49,7 +49,18 @@ class AssetHandler(
                 async {
                     objectStore.persist(context.pathConfiguration.s3Properties.bucket, processedAssetChannel)
                 }
-            val preProcessed = imageProcessor.preprocess(container, format, context.pathConfiguration, processedAssetChannel)
+            val preProcessedDeferred = CompletableDeferred<PreProcessedImage>()
+            variantJobScheduler.scheduleSynchronousJob(
+                PreProcessJob(
+                    treePath = context.path,
+                    pathConfiguration = context.pathConfiguration,
+                    deferredResult = preProcessedDeferred,
+                    sourceFormat = format,
+                    sourceContainer = container,
+                    outputChannel = processedAssetChannel,
+                ),
+            )
+            val preProcessed = preProcessedDeferred.await()
 
             val assetAndVariants =
                 assetRepository.store(
@@ -72,11 +83,11 @@ class AssetHandler(
                         variantProfileRepository.fetch(it)
                     }
                 if (variants.isNotEmpty()) {
-                    variantGenerationChannel.send(
-                        VariantGenerationJob(
+                    variantJobScheduler.scheduleBackgroundJob(
+                        EagerVariantGenerationJob(
                             treePath = response.assetAndVariants.asset.path,
                             entryId = response.assetAndVariants.asset.entryId,
-                            transformations = variants,
+                            requestedTransformations = variants,
                             pathConfiguration = context.pathConfiguration,
                         ),
                     )
@@ -116,14 +127,18 @@ class AssetHandler(
                     throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
                 }
             }
-            return variantGenerator.generateVariant(
-                treePath = assetAndVariants.asset.path,
-                entryId = assetAndVariants.asset.entryId,
-                pathConfiguration = context.pathConfiguration,
-                transformation = checkNotNull(context.transformation),
-            ).let {
-                Pair(it, false)
-            }
+
+            val deferred = CompletableDeferred<AssetAndVariants>()
+            variantJobScheduler.scheduleSynchronousJob(
+                VariantGenerationJob(
+                    treePath = assetAndVariants.asset.path,
+                    entryId = assetAndVariants.asset.entryId,
+                    pathConfiguration = context.pathConfiguration,
+                    transformations = listOf(checkNotNull(context.transformation)),
+                    deferredResult = deferred,
+                ),
+            )
+            return Pair(deferred.await(), false)
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
             Pair(assetAndVariants, true)
@@ -176,6 +191,9 @@ class AssetHandler(
             throw InvalidImageException("Not an image type")
         }
         return ImageFormat.fromMimeType(mimeType)
+    }
+
+    private fun preprocess() {
     }
 
     private fun validate(mimeType: String): Boolean {

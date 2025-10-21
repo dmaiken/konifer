@@ -3,7 +3,7 @@ package io.asset.handler
 import io.asset.handler.ColorConverter.transparent
 import io.asset.handler.ColorConverter.white
 import io.asset.repository.AssetRepository
-import io.asset.variant.ImageVariantAttributes
+import io.image.model.Attributes
 import io.image.model.ExifOrientations.normalizeOrientation
 import io.image.model.Fit
 import io.image.model.ImageFormat
@@ -56,7 +56,7 @@ class RequestedTransformationNormalizer(
 
     suspend fun normalize(
         requested: List<RequestedImageTransformation>,
-        originalVariantAttributes: ImageVariantAttributes,
+        originalVariantAttributes: Attributes,
     ): List<Transformation> =
         coroutineScope {
             if (requested.isEmpty()) {
@@ -76,7 +76,7 @@ class RequestedTransformationNormalizer(
 
     suspend fun normalize(
         requested: RequestedImageTransformation,
-        originalVariantAttributes: ImageVariantAttributes,
+        originalVariantAttributes: Attributes,
     ): Transformation =
         coroutineScope {
             doNormalize(
@@ -90,7 +90,7 @@ class RequestedTransformationNormalizer(
 
     private suspend fun doNormalize(
         requested: RequestedImageTransformation,
-        originalAttributesDeferred: Deferred<ImageVariantAttributes>,
+        originalAttributesDeferred: Deferred<Attributes>,
     ): Transformation {
         if (requested.originalVariant) {
             return Transformation.ORIGINAL_VARIANT
@@ -123,12 +123,12 @@ class RequestedTransformationNormalizer(
 
     private suspend fun normalizeDimensions(
         requested: RequestedImageTransformation,
-        originalVariantDeferred: Deferred<ImageVariantAttributes>,
+        originalAttributesDeferred: Deferred<Attributes>,
     ): Pair<Int, Int> {
         return when (requested.fit) {
             Fit.FIT -> {
                 if ((requested.width == null && requested.height != null) || (requested.width != null && requested.height == null)) {
-                    val originalVariant = originalVariantDeferred.await()
+                    val originalVariant = originalAttributesDeferred.await()
 
                     val originalWidth = originalVariant.width.toDouble()
                     val originalHeight = originalVariant.height.toDouble()
@@ -141,8 +141,8 @@ class RequestedTransformationNormalizer(
                     Pair(requested.width, requested.height)
                 } else {
                     Pair(
-                        originalVariantDeferred.await().width,
-                        originalVariantDeferred.await().height,
+                        originalAttributesDeferred.await().width,
+                        originalAttributesDeferred.await().height,
                     )
                 }
             }
@@ -154,8 +154,8 @@ class RequestedTransformationNormalizer(
 
     private suspend fun normalizeFormat(
         requested: RequestedImageTransformation,
-        originalVariantDeferred: Deferred<ImageVariantAttributes>,
-    ): ImageFormat = requested.format ?: originalVariantDeferred.await().format
+        originalAttributesDeferred: Deferred<Attributes>,
+    ): ImageFormat = requested.format ?: originalAttributesDeferred.await().format
 
     private fun normalizeQuality(
         requested: RequestedImageTransformation,

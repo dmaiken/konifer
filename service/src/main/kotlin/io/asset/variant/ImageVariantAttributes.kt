@@ -21,4 +21,11 @@ data class ImageVariantAttributes(
 
     val aspectRatio: Double
         get() = width.toDouble() / height
+
+    fun toAttributes(): Attributes =
+        Attributes(
+            width = this.width,
+            height = this.height,
+            format = this.format,
+        )
 }

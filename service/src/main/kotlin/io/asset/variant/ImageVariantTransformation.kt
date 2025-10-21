@@ -61,4 +61,20 @@ data class ImageVariantTransformation(
                 background = transformation.background,
             )
     }
+
+    fun toTransformation(): Transformation =
+        Transformation(
+            width = this.width,
+            height = this.height,
+            format = this.format,
+            fit = this.fit,
+            gravity = this.gravity,
+            rotate = this.rotate,
+            horizontalFlip = this.horizontalFlip,
+            filter = this.filter,
+            blur = this.blur,
+            quality = this.quality,
+            pad = this.pad,
+            background = this.background,
+        )
 }

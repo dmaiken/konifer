@@ -5,14 +5,13 @@ import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.InMemoryAssetRepository
 import io.asset.store.PersistResult
-import io.asset.variant.VariantParameterGenerator
 import io.image.model.Attributes
 import io.image.model.ImageFormat
 import io.image.model.LQIPs
 import io.mockk.spyk
 
 abstract class BaseUnitTest {
-    protected val assetRepository = spyk(InMemoryAssetRepository(VariantParameterGenerator()))
+    protected val assetRepository = spyk(InMemoryAssetRepository())
 
     protected suspend fun storeAsset(
         path: String = "/users/123",

@@ -5,7 +5,6 @@ import app.photofox.vipsffm.Vips
 import io.asset.AssetStreamContainer
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.variant.AssetVariant
-import io.asset.variant.ImageVariantAttributes
 import io.image.ByteChannelOutputStream
 import io.image.lqip.ImagePreviewGenerator
 import io.image.model.Attributes
@@ -30,9 +29,7 @@ import java.lang.foreign.Arena
 import kotlin.time.measureTime
 
 class VipsImageProcessor(
-    private val imagePreviewGenerator: ImagePreviewGenerator,
     private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
-    private val vipsEncoder: VipsEncoder,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -80,7 +77,7 @@ class VipsImageProcessor(
                                 requestedTransformationNormalizer.normalize(
                                     requested = requestedTransformation,
                                     originalVariantAttributes =
-                                        ImageVariantAttributes(
+                                        Attributes(
                                             width = sourceImage.width,
                                             height = sourceImage.height,
                                             format = sourceFormat,
@@ -109,7 +106,7 @@ class VipsImageProcessor(
                     } finally {
                         resizedPreviewChannel.close()
                     }
-                    vipsEncoder.writeToStream(preProcessed.processed, format, transformation?.quality, outputChannel)
+                    VipsEncoder.writeToStream(preProcessed.processed, format, transformation?.quality, outputChannel)
 
                     attributes =
                         Attributes(
@@ -159,7 +156,7 @@ class VipsImageProcessor(
                     } finally {
                         resizedPreviewChannel.close()
                     }
-                    vipsEncoder.writeToStream(variantResult.processed, transformation, outputChannel)
+                    VipsEncoder.writeToStream(variantResult.processed, transformation, outputChannel)
 
                     attributes =
                         Attributes(
@@ -205,7 +202,7 @@ class VipsImageProcessor(
         val previews: LQIPs
         val duration =
             measureTime {
-                previews = imagePreviewGenerator.generatePreviews(previewImageChannel, pathConfiguration)
+                previews = ImagePreviewGenerator.generatePreviews(previewImageChannel, pathConfiguration)
             }
         logger.info("Created previews in: ${duration.inWholeMilliseconds}ms")
 

@@ -6,7 +6,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction
 
-class VariantParameterGenerator {
+object VariantParameterGenerator {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val xx3 = LongHashFunction.xx3()
 

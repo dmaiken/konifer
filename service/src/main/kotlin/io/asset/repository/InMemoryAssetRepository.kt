@@ -6,7 +6,6 @@ import io.asset.model.Asset
 import io.asset.model.AssetAndVariants
 import io.asset.model.VariantBucketAndKey
 import io.asset.variant.AssetVariant
-import io.asset.variant.ImageVariantAttributes
 import io.asset.variant.ImageVariantTransformation
 import io.asset.variant.VariantParameterGenerator
 import io.image.model.Transformation
@@ -14,9 +13,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
 
-class InMemoryAssetRepository(
-    private val variantParameterGenerator: VariantParameterGenerator,
-) : AssetRepository {
+class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val store = mutableMapOf<String, MutableList<InMemoryAssetAndVariants>>()
     private val idReference = mutableMapOf<UUID, Asset>()
@@ -26,7 +23,7 @@ class InMemoryAssetRepository(
         val entryId = getNextEntryId(path)
         logger.info("Persisting asset at path: $path and entryId: $entryId")
         val key =
-            variantParameterGenerator.generateImageVariantTransformations(asset.attributes).second
+            VariantParameterGenerator.generateImageVariantTransformations(asset.attributes).second
         val assetAndVariants =
             AssetAndVariants(
                 asset =
@@ -42,9 +39,8 @@ class InMemoryAssetRepository(
                         AssetVariant(
                             objectStoreBucket = asset.persistResult.bucket,
                             objectStoreKey = asset.persistResult.key,
-                            attributes = ImageVariantAttributes.from(asset.attributes),
-                            transformation =
-                                ImageVariantTransformation.originalTransformation(asset.attributes),
+                            attributes = asset.attributes,
+                            transformation = ImageVariantTransformation.originalTransformation(asset.attributes).toTransformation(),
                             isOriginalVariant = true,
                             lqip = asset.lqips,
                             transformationKey = key,
@@ -68,7 +64,7 @@ class InMemoryAssetRepository(
         return store[path]?.let { assets ->
             val asset = assets.first { it.asset.entryId == variant.entryId }
             val key =
-                variantParameterGenerator.generateImageVariantTransformations(variant.transformation).second
+                VariantParameterGenerator.generateImageVariantTransformations(variant.transformation).second
             if (asset.variants.any { it.transformationKey == key }) {
                 throw IllegalArgumentException(
                     "Variant already exists for asset with entry_id: ${variant.entryId} at path: $path " +
@@ -79,8 +75,8 @@ class InMemoryAssetRepository(
                 AssetVariant(
                     objectStoreBucket = variant.persistResult.bucket,
                     objectStoreKey = variant.persistResult.key,
-                    attributes = ImageVariantAttributes.from(variant.attributes),
-                    transformation = ImageVariantTransformation.from(variant.transformation),
+                    attributes = variant.attributes,
+                    transformation = variant.transformation,
                     isOriginalVariant = false,
                     lqip = variant.lqips,
                     transformationKey = key,
@@ -112,7 +108,7 @@ class InMemoryAssetRepository(
                 listOf(assetAndVariants.variants.first { it.isOriginalVariant })
             } else {
                 assetAndVariants.variants.firstOrNull { variant ->
-                    ImageVariantTransformation.from(transformation) == variant.transformation
+                    transformation == variant.transformation
                 }?.let { matched ->
                     listOf(matched)
                 } ?: emptyList()
@@ -136,7 +132,7 @@ class InMemoryAssetRepository(
                     listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                 } else {
                     assetAndVariants.variants.firstOrNull { variant ->
-                        ImageVariantTransformation.from(transformation) == variant.transformation
+                        transformation == variant.transformation
                     }?.let { matched ->
                         listOf(matched)
                     } ?: emptyList()

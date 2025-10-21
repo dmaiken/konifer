@@ -1,4 +1,4 @@
-package io.asset.variant
+package io.asset.variant.generation
 
 import io.asset.AssetStreamContainer
 import io.asset.handler.RequestedTransformationNormalizer
@@ -7,6 +7,8 @@ import io.asset.model.Asset
 import io.asset.model.AssetAndVariants
 import io.asset.repository.AssetRepository
 import io.asset.store.ObjectStore
+import io.asset.variant.AssetVariant
+import io.image.model.PreProcessedImage
 import io.image.model.Transformation
 import io.image.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
@@ -17,7 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -26,58 +27,77 @@ class VariantGenerator(
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectStore,
     private val imageProcessor: VipsImageProcessor,
-    private val channel: Channel<VariantGenerationJob>,
+    private val scheduler: PriorityChannelScheduler<ImageProcessingJob<*>>,
     private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
+    numberOfWorkers: Int,
 ) {
     private val exceptionHandler =
         CoroutineExceptionHandler { _, exception ->
             logger.error("Variant generation failed", exception)
         }
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
+
+    /**
+     * Since these jobs will interact with vips-ffm, the dispatcher must be IO
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     init {
-        start()
-    }
-
-    fun start() {
-        scope.launch {
-            logger.info("Starting variant generator channel listener")
-            while (isActive) {
-                val job = channel.receive()
-                logger.info("Received variant generation job: {}", job)
-                try {
-                    handleVariantGenerationJob(job).also {
-                        job.deferredResult?.complete(it)
-                    }
-                } catch (e: Exception) {
-                    logger.error("Error while generating variant generation with request: {}", job, e)
-                    job.deferredResult?.completeExceptionally(e)
-                }
-            }
-            logger.info("Shut down variant generator channel listener")
+        logger.info("Starting $numberOfWorkers variant generator workers")
+        repeat(numberOfWorkers) { index ->
+            start(index)
         }
     }
 
-    suspend fun generateVariant(
-        treePath: String,
-        entryId: Long,
-        pathConfiguration: PathConfiguration,
-        transformation: Transformation,
-    ): AssetAndVariants {
+    fun start(index: Int) {
+        scope.launch {
+            logger.info("Starting variant generator channel listener: $index")
+            while (isActive) {
+                val job = scheduler.nextJob()
+                handleVariantGenerationJob(job)
+            }
+            logger.info("Shut down variant generator channel listener: $index")
+        }
+    }
+
+    private suspend fun handleVariantGenerationJob(job: ImageProcessingJob<*>) {
+        try {
+            when (job) {
+                is VariantGenerationJob ->
+                    handleVariantGenerationJob(job).also {
+                        job.deferredResult.complete(it)
+                    }
+                is EagerVariantGenerationJob ->
+                    handleEagerVariantGenerationJob(job).also {
+                        job.deferredResult?.complete(it)
+                    }
+                is PreProcessJob ->
+                    handlePreProcessJob(job).also {
+                        job.deferredResult.complete(it)
+                    }
+            }
+        } catch (e: Exception) {
+            logger.error("Error while generating variant generation with request: {}", job, e)
+            job.deferredResult?.completeExceptionally(e)
+        }
+    }
+
+    private suspend fun handleVariantGenerationJob(job: VariantGenerationJob): AssetAndVariants {
+        logger.info("Handling variant generation job: $job")
         val original =
-            assetRepository.fetchByPath(treePath, entryId, Transformation.ORIGINAL_VARIANT)
-                ?: throw IllegalStateException("No asset found for: $treePath and entryId: $entryId")
+            assetRepository.fetchByPath(job.treePath, job.entryId, Transformation.ORIGINAL_VARIANT)
+                ?: throw IllegalStateException("No asset found for: ${job.treePath} and entryId: ${job.entryId}")
         return generateVariants(
-            treePath = treePath,
-            entryId = entryId,
-            pathConfiguration = pathConfiguration,
-            transformations = listOf(transformation),
+            treePath = job.treePath,
+            entryId = job.entryId,
+            pathConfiguration = job.pathConfiguration,
+            transformations = job.transformations,
             original = original,
         )
     }
 
-    private suspend fun handleVariantGenerationJob(job: VariantGenerationJob): AssetAndVariants {
+    private suspend fun handleEagerVariantGenerationJob(job: EagerVariantGenerationJob): AssetAndVariants {
+        logger.info("Handling eager variant generation job: $job")
         val original =
             assetRepository.fetchByPath(job.treePath, job.entryId, Transformation.ORIGINAL_VARIANT)
                 ?: throw IllegalStateException("No asset found for: ${job.treePath} and entryId: ${job.entryId}")
@@ -86,7 +106,7 @@ class VariantGenerator(
             entryId = job.entryId,
             pathConfiguration = job.pathConfiguration,
             transformations =
-                job.transformations.let {
+                job.requestedTransformations.let {
                     requestedTransformationNormalizer.normalize(
                         requested = it,
                         originalVariantAttributes = original.getOriginalVariant().attributes,
@@ -96,9 +116,19 @@ class VariantGenerator(
         )
     }
 
+    private suspend fun handlePreProcessJob(job: PreProcessJob): PreProcessedImage {
+        logger.info("Handling preprocessing job: $job")
+        return imageProcessor.preprocess(
+            container = job.sourceContainer,
+            sourceFormat = job.sourceFormat,
+            pathConfiguration = job.pathConfiguration,
+            outputChannel = job.outputChannel,
+        )
+    }
+
     private suspend fun generateVariants(
         treePath: String,
-        entryId: Long,
+        entryId: Long?,
         pathConfiguration: PathConfiguration,
         transformations: List<Transformation>,
         original: AssetAndVariants,

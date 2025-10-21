@@ -6,10 +6,8 @@ import com.vanniktech.blurhash.BlurHash
 import io.asset.AssetStreamContainer
 import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.repository.InMemoryAssetRepository
-import io.asset.variant.VariantParameterGenerator
 import io.aws.S3Properties
 import io.createPreProcessingProperties
-import io.image.lqip.ImagePreviewGenerator
 import io.image.lqip.LQIPImplementation
 import io.image.model.ImageFormat
 import io.image.model.ImageProperties
@@ -24,7 +22,6 @@ import io.lqip.image.ThumbHash
 import io.matchers.shouldBeApproximately
 import io.matchers.shouldBeWithinOneOf
 import io.matchers.shouldHaveSamePixelContentAs
-import io.mockk.spyk
 import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -41,10 +38,9 @@ import java.util.Base64
 import javax.imageio.ImageIO
 
 class VipsImageProcessorTest {
-    private val imagePreviewGenerator = spyk<ImagePreviewGenerator>()
-    private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository(VariantParameterGenerator()))
+    private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository())
 
-    private val vipsImageProcessor = VipsImageProcessor(imagePreviewGenerator, requestedTransformationNormalizer, VipsEncoder())
+    private val vipsImageProcessor = VipsImageProcessor(requestedTransformationNormalizer)
 
     @Nested
     inner class PreProcessTests {

@@ -14,11 +14,9 @@ import java.awt.image.BufferedImage
 import java.util.Base64
 import javax.imageio.ImageIO
 
-class ImagePreviewGenerator {
-    companion object {
-        const val MAX_WIDTH = 100
-        const val MAX_HEIGHT = 100
-    }
+object ImagePreviewGenerator {
+    const val MAX_WIDTH = 100
+    const val MAX_HEIGHT = 100
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 

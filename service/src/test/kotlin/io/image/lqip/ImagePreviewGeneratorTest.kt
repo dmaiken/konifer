@@ -2,8 +2,8 @@ package io.image.lqip
 
 import com.vanniktech.blurhash.BlurHash
 import io.aws.S3Properties
-import io.image.lqip.ImagePreviewGenerator.Companion.MAX_HEIGHT
-import io.image.lqip.ImagePreviewGenerator.Companion.MAX_WIDTH
+import io.image.lqip.ImagePreviewGenerator.MAX_HEIGHT
+import io.image.lqip.ImagePreviewGenerator.MAX_WIDTH
 import io.image.model.ImageProperties
 import io.image.model.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -25,8 +25,6 @@ import java.util.Base64
 import javax.imageio.ImageIO
 
 class ImagePreviewGeneratorTest {
-    private val previewGenerator = ImagePreviewGenerator()
-
     @Test
     fun `can generate blurhash from png`() =
         runTest {
@@ -39,7 +37,7 @@ class ImagePreviewGeneratorTest {
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.BLURHASH))
 
-            val previews = previewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
 
             previews.blurhash shouldNotBe null
             previews.thumbhash shouldBe null
@@ -65,7 +63,7 @@ class ImagePreviewGeneratorTest {
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH))
 
-            val previews = previewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldNotBe null
@@ -98,7 +96,7 @@ class ImagePreviewGeneratorTest {
             }
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH, LQIPImplementation.BLURHASH))
 
-            val previews = previewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
 
             previews.blurhash shouldNotBe null
             previews.thumbhash shouldNotBe null
@@ -132,7 +130,7 @@ class ImagePreviewGeneratorTest {
         runTest {
             val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH))
 
-            val previews = previewGenerator.generatePreviews(null, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(null, pathConfiguration)
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldBe null
@@ -149,7 +147,7 @@ class ImagePreviewGeneratorTest {
             }
             val pathConfiguration = generatePathConfiguration(setOf())
 
-            val previews = previewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldBe null
@@ -168,7 +166,7 @@ class ImagePreviewGeneratorTest {
 
             val exception =
                 shouldThrow<IllegalArgumentException> {
-                    previewGenerator.generatePreviews(imageChannel, pathConfiguration)
+                    ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
                 }
             exception.message shouldBe "Image must be smaller than ${MAX_WIDTH}x$MAX_HEIGHT to generate previews"
         }

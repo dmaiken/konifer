@@ -33,7 +33,6 @@ import java.util.UUID
 
 class PostgresAssetRepository(
     private val dslContext: DSLContext,
-    private val variantParameterGenerator: VariantParameterGenerator,
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -41,8 +40,8 @@ class PostgresAssetRepository(
         val assetId = UUID.randomUUID()
         val now = LocalDateTime.now()
         val treePath = PathAdapter.toTreePathFromUriPath(asset.path)
-        val (transformations, transformationKey) = variantParameterGenerator.generateImageVariantTransformations(asset.attributes)
-        val attributes = variantParameterGenerator.generateImageVariantAttributes(asset.attributes)
+        val (transformations, transformationKey) = VariantParameterGenerator.generateImageVariantTransformations(asset.attributes)
+        val attributes = VariantParameterGenerator.generateImageVariantAttributes(asset.attributes)
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
@@ -92,10 +91,10 @@ class PostgresAssetRepository(
                 )
             }
             val (transformations, transformationsKey) =
-                variantParameterGenerator.generateImageVariantTransformations(
+                VariantParameterGenerator.generateImageVariantTransformations(
                     variant.transformation,
                 )
-            val attributes = variantParameterGenerator.generateImageVariantAttributes(variant.attributes)
+            val attributes = VariantParameterGenerator.generateImageVariantAttributes(variant.attributes)
             val lqip = Json.encodeToString(variant.lqips)
 
             val persistedVariant =

@@ -8,10 +8,8 @@ import io.image.model.Transformation
 import io.image.vips.VipsOption.VIPS_OPTION_QUALITY
 import io.ktor.utils.io.ByteChannel
 
-class VipsEncoder {
-    companion object {
-        private val noOptions = emptyArray<VipsOption>()
-    }
+object VipsEncoder {
+    private val noOptions = emptyArray<VipsOption>()
 
     fun writeToStream(
         source: VImage,

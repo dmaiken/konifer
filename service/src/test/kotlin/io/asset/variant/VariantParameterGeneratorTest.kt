@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
 
 class VariantParameterGeneratorTest {
     private val xx3 = LongHashFunction.xx3()
-    private val variantParameterGenerator = VariantParameterGenerator()
 
     @Test
     fun `can generate variant attributes and key`() {
@@ -27,7 +26,7 @@ class VariantParameterGeneratorTest {
                 ),
             )
         val attributes =
-            variantParameterGenerator.generateImageVariantAttributes(
+            VariantParameterGenerator.generateImageVariantAttributes(
                 imageAttributes =
                     Attributes(
                         width = 100,
@@ -60,7 +59,7 @@ class VariantParameterGeneratorTest {
             )
         val expectedKey = xx3.hashBytes(expectedAttributes.toByteArray(Charsets.UTF_8))
         val (transformations1, key1) =
-            variantParameterGenerator.generateImageVariantTransformations(
+            VariantParameterGenerator.generateImageVariantTransformations(
                 imageTransformation =
                     Transformation(
                         height = 100,
@@ -78,7 +77,7 @@ class VariantParameterGeneratorTest {
                     ),
             )
         val (transformations2, key2) =
-            variantParameterGenerator.generateImageVariantTransformations(
+            VariantParameterGenerator.generateImageVariantTransformations(
                 imageTransformation =
                     Transformation(
                         height = 100,
