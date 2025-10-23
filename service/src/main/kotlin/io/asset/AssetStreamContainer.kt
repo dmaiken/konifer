@@ -1,71 +1,22 @@
 package io.asset
 
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.copyTo
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import io.ktor.utils.io.CountedByteReadChannel
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readAvailable
-import io.ktor.utils.io.toByteArray
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
-open class AssetStreamContainer(
-    private val channel: ByteChannel,
+/**
+ * 100MB
+ */
+const val MAX_BYTES_DEFAULT = (1024 * 1024 * 100).toLong()
+
+class AssetStreamContainer(
+    channel: ByteReadChannel,
+    private val maxBytes: Long = MAX_BYTES_DEFAULT,
 ) {
-    companion object Factory {
-        fun fromReadChannel(
-            scope: CoroutineScope,
-            readChannel: ByteReadChannel,
-        ): AssetStreamContainer {
-            val byteChannel = ByteChannel(autoFlush = true)
-            scope.launch {
-                try {
-                    readChannel.copyTo(byteChannel)
-                } finally {
-                    byteChannel.close()
-                }
-            }
-
-            return AssetStreamContainer(byteChannel)
-        }
-
-        fun fromUrl(
-            scope: CoroutineScope,
-            url: String,
-        ): AssetStreamContainer {
-            val httpClient = HttpClient.newBuilder().build()
-            val byteChannel = ByteChannel(autoFlush = true)
-
-            val request =
-                HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build()
-
-            val response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream())
-            val input = response.body()
-            scope.launch(Dispatchers.IO) {
-                try {
-                    input.toByteReadChannel(this.coroutineContext).copyTo(byteChannel)
-                } catch (_: Throwable) {
-                    byteChannel.close()
-                } finally {
-                    input.close()
-                    byteChannel.close()
-                }
-            }
-
-            return AssetStreamContainer(byteChannel)
-        }
-    }
-
     private var headerOffset = 0
     private var headerBytes = ByteArray(0)
+    private val counterChannel = CountedByteReadChannel(channel)
 
     /**
      * Reads [n] bytes from the backing channel. If [bufferBytes] is true, then the read bytes are also read into an
@@ -90,7 +41,7 @@ open class AssetStreamContainer(
 
         // Then from the channel
         while (offset < n) {
-            val read = channel.readAvailable(result, offset, n - offset)
+            val read = counterChannel.readAvailable(result, offset, n - offset)
             if (read == -1) break
             offset += read
         }
@@ -99,10 +50,11 @@ open class AssetStreamContainer(
             if (bufferBytes) {
                 headerBytes += it
             }
-        }
-    }
 
-    suspend fun readAll(): ByteArray {
-        return headerBytes + channel.toByteArray()
+            if (counterChannel.totalBytesRead > maxBytes) {
+                counterChannel.cancel()
+                throw IllegalArgumentException("Asset is too large")
+            }
+        }
     }
 }

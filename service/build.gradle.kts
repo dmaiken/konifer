@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.client.java)
 
     implementation(libs.r2dbc.migrate)
     implementation(libs.r2dbc.migrate.resource.reader)

@@ -28,6 +28,7 @@ import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class StoreAssetTest {
     @Test
@@ -218,7 +219,17 @@ class StoreAssetTest {
 
     @Test
     fun `can store asset uploaded as link`() =
-        testInMemory {
+        testInMemory(
+            """
+            source = {
+              url = {
+                allowed-domains = [
+                  daniel.haxx.se
+                ]
+              }
+            }
+            """.trimIndent(),
+        ) {
             val client = createJsonClient()
             // Come up with a better way to not rely on the internet
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
@@ -237,5 +248,113 @@ class StoreAssetTest {
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
             fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
+        }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "httpssss://daniel.haxx.se/daniel/b-daniel-at-snow.jpg",
+            "url",
+            "ftp://hello",
+            "; DROP TABLE ASSET_TREE",
+        ],
+    )
+    fun `cannot store asset uploaded as link if url is not valid`(badUrl: String) =
+        testInMemory(
+            """
+            source = {
+              url = {
+                allowed-domains = [
+                  daniel.haxx.se
+                ]
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            // Come up with a better way to not rely on the internet
+            val request =
+                StoreAssetRequest(
+                    type = "image/jpeg",
+                    alt = "an image",
+                    url = badUrl,
+                )
+            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset using url if domain is not allowed`() =
+        testInMemory(
+            """
+            source = {
+              url = {
+                allowed-domains = [ ]
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            // Come up with a better way to not rely on the internet
+            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val request =
+                StoreAssetRequest(
+                    type = "image/jpeg",
+                    alt = "an image",
+                    url = url,
+                )
+
+            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset via url that is larger than configured max value`() =
+        testInMemory(
+            """
+            source = {
+              url = {
+                allowed-domains = [ daniel.haxx.se ]
+                max-bytes = 100
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            // Come up with a better way to not rely on the internet
+            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val request =
+                StoreAssetRequest(
+                    type = "image/jpeg",
+                    alt = "an image",
+                    url = url,
+                )
+
+            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset via upload that is larger than configured max value`() =
+        testInMemory(
+            """
+            source = {
+              multipart = {
+                max-bytes = 100
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            // Come up with a better way to not rely on the internet
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request =
+                StoreAssetRequest(
+                    type = "image/png",
+                    alt = "an image",
+                )
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 }

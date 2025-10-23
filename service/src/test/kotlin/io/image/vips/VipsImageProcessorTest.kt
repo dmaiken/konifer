@@ -69,7 +69,7 @@ class VipsImageProcessorTest {
                         s3Properties = S3Properties.DEFAULT,
                     )
 
-                val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+                val container = AssetStreamContainer(imageChannel)
                 val outputChannel = ByteChannel(true)
                 val outputBytesDeferred =
                     async {
@@ -141,7 +141,7 @@ class VipsImageProcessorTest {
                         s3Properties = S3Properties.DEFAULT,
                     )
 
-                val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+                val container = AssetStreamContainer(imageChannel)
                 val outputChannel = ByteChannel(true)
                 val outputBytesDeferred =
                     async {
@@ -193,7 +193,7 @@ class VipsImageProcessorTest {
                         s3Properties = S3Properties.DEFAULT,
                     )
 
-                val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+                val container = AssetStreamContainer(imageChannel)
                 val outputChannel = ByteChannel(true)
                 val outputBytesDeferred =
                     async {
@@ -244,7 +244,7 @@ class VipsImageProcessorTest {
                         s3Properties = S3Properties.DEFAULT,
                     )
 
-                val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+                val container = AssetStreamContainer(imageChannel)
                 val outputChannel = ByteChannel(true)
                 val outputBytesDeferred =
                     async {
@@ -288,7 +288,7 @@ class VipsImageProcessorTest {
                         s3Properties = S3Properties.DEFAULT,
                     )
 
-                val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+                val container = AssetStreamContainer(imageChannel)
                 val outputChannel = ByteChannel(true)
                 val outputBytesDeferred =
                     async {
@@ -339,7 +339,7 @@ class VipsImageProcessorTest {
                     s3Properties = S3Properties.DEFAULT,
                 )
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val outputChannel = ByteChannel(true)
             val outputBytesDeferred =
                 async {
@@ -394,7 +394,7 @@ class VipsImageProcessorTest {
                     s3Properties = S3Properties.DEFAULT,
                 )
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val outputChannel = ByteChannel(true)
             val outputBytesDeferred =
                 async {

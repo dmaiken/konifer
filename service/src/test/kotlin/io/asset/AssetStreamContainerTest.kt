@@ -1,5 +1,6 @@
 package io.asset
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.test.runTest
@@ -13,7 +14,7 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val streamed = container.readNBytes(image.size, false)
 
             Tika().detect(image) shouldBe "image/png"
@@ -28,7 +29,7 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val header = container.readNBytes(1024, true)
 
             header shouldBe container.readNBytes(1024, false)
@@ -43,7 +44,7 @@ class AssetStreamContainerTest {
             image.copyInto(expected, endIndex = expected.size)
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val streamed = container.readNBytes(2048, false)
 
             streamed shouldBe expected
@@ -55,7 +56,7 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val streamed = container.readNBytes(image.size + 1000, true)
 
             streamed shouldBe image
@@ -67,7 +68,7 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer.fromReadChannel(this, imageChannel)
+            val container = AssetStreamContainer(imageChannel)
             val header = container.readNBytes(1024, true)
             val header2 = container.readNBytes(1024, true)
             val header3 = container.readNBytes(1024, true)
@@ -78,5 +79,19 @@ class AssetStreamContainerTest {
 
             val streamed = container.readNBytes(image.size, false)
             streamed shouldBe image
+        }
+
+    @Test
+    fun `when content read exceeds maxBytes then exception is thrown`() =
+        runTest {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val imageChannel = ByteReadChannel(image)
+
+            val container = AssetStreamContainer(imageChannel, maxBytes = 8092)
+            container.readNBytes(8092, false)
+
+            shouldThrow<IllegalArgumentException> {
+                container.readNBytes(1, false)
+            }
         }
 }
