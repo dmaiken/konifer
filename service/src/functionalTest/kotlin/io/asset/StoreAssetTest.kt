@@ -38,7 +38,6 @@ class StoreAssetTest {
             val image = "I am not an image".toByteArray()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             client.post("/assets") {
@@ -89,7 +88,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
@@ -111,7 +109,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
@@ -133,7 +130,6 @@ class StoreAssetTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile")
@@ -170,7 +166,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile")
@@ -203,7 +198,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile")
@@ -235,7 +229,6 @@ class StoreAssetTest {
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
                 StoreAssetRequest(
-                    type = "image/jpeg",
                     alt = "an image",
                     url = url,
                 )
@@ -275,7 +268,6 @@ class StoreAssetTest {
             // Come up with a better way to not rely on the internet
             val request =
                 StoreAssetRequest(
-                    type = "image/jpeg",
                     alt = "an image",
                     url = badUrl,
                 )
@@ -299,7 +291,6 @@ class StoreAssetTest {
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
                 StoreAssetRequest(
-                    type = "image/jpeg",
                     alt = "an image",
                     url = url,
                 )
@@ -325,7 +316,6 @@ class StoreAssetTest {
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
                 StoreAssetRequest(
-                    type = "image/jpeg",
                     alt = "an image",
                     url = url,
                 )
@@ -350,7 +340,6 @@ class StoreAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)

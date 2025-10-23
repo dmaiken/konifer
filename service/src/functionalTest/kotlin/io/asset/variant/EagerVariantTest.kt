@@ -47,7 +47,6 @@ class EagerVariantTest {
             val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")
@@ -111,7 +110,6 @@ class EagerVariantTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")

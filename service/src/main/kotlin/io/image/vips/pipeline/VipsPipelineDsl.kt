@@ -5,8 +5,6 @@ import io.image.model.Transformation
 import io.image.vips.transformation.VipsTransformer
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
-import kotlin.time.Duration
-import kotlin.time.measureTime
 
 class VipsPipelineBuilder {
     private val transformers = mutableListOf<VipsTransformer>()
@@ -34,7 +32,6 @@ class VipsPipeline(
                 processed = source,
                 requiresLqipRegeneration = false,
                 appliedTransformations = emptyList(),
-                executionTime = Duration.ZERO,
             )
         }
         val appliedTransformations = mutableListOf<AppliedTransformation>()
@@ -45,44 +42,41 @@ class VipsPipeline(
             )
         var failed = false
 
-        val executionTime =
-            measureTime {
-                for (transformer in transformers) {
-                    if (failed) {
-                        break
-                    }
-                    if (transformer.requiresTransformation(
+        for (transformer in transformers) {
+            if (failed) {
+                break
+            }
+            if (transformer.requiresTransformation(
+                    arena = arena,
+                    source = processed.processed,
+                    transformation = transformation,
+                )
+            ) {
+                try {
+                    processed =
+                        transformer.transform(
                             arena = arena,
                             source = processed.processed,
                             transformation = transformation,
                         )
-                    ) {
-                        try {
-                            processed =
-                                transformer.transform(
-                                    arena = arena,
-                                    source = processed.processed,
-                                    transformation = transformation,
-                                )
-                            appliedTransformations.add(
-                                AppliedTransformation(
-                                    name = transformer.name,
-                                    exceptionMessage = null,
-                                ),
-                            )
-                        } catch (e: Exception) {
-                            logger.error("Vips pipeline failed! Pipeline results: $appliedTransformations", e)
-                            failed = true
-                            appliedTransformations.add(
-                                AppliedTransformation(
-                                    name = transformer.name,
-                                    exceptionMessage = e.message,
-                                ),
-                            )
-                        }
-                    }
+                    appliedTransformations.add(
+                        AppliedTransformation(
+                            name = transformer.name,
+                            exceptionMessage = null,
+                        ),
+                    )
+                } catch (e: Exception) {
+                    logger.error("Vips pipeline failed! Pipeline results: $appliedTransformations", e)
+                    failed = true
+                    appliedTransformations.add(
+                        AppliedTransformation(
+                            name = transformer.name,
+                            exceptionMessage = e.message,
+                        ),
+                    )
                 }
             }
+        }
 
         if (!failed) {
             logger.info("Successfully processed image with transformation: $transformation with results: $appliedTransformations")
@@ -93,7 +87,6 @@ class VipsPipeline(
             processed = processed.processed,
             requiresLqipRegeneration = processed.requiresLqipRegeneration,
             appliedTransformations = appliedTransformations,
-            executionTime = executionTime,
         )
     }
 }
@@ -115,7 +108,6 @@ data class VipsPipelineResult(
     val processed: VImage,
     val requiresLqipRegeneration: Boolean,
     val appliedTransformations: List<AppliedTransformation>,
-    val executionTime: Duration,
 )
 
 data class AppliedTransformation(

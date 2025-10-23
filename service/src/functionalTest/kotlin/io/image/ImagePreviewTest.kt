@@ -37,9 +37,7 @@ class ImagePreviewTest {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf(LQIPImplementation.BLURHASH))
         }
 
@@ -60,9 +58,7 @@ class ImagePreviewTest {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf(LQIPImplementation.THUMBHASH))
         }
 
@@ -83,9 +79,7 @@ class ImagePreviewTest {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf(LQIPImplementation.BLURHASH, LQIPImplementation.THUMBHASH))
         }
 
@@ -106,9 +100,7 @@ class ImagePreviewTest {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf())
         }
 
@@ -127,9 +119,7 @@ class ImagePreviewTest {
             val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf())
         }
 
@@ -151,9 +141,7 @@ class ImagePreviewTest {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
-                StoreAssetRequest(
-                    type = "image/png",
-                )
+                StoreAssetRequest()
             storeAndAssert(client, image, request, setOf(LQIPImplementation.BLURHASH, LQIPImplementation.THUMBHASH))
 
             // Generate the variant

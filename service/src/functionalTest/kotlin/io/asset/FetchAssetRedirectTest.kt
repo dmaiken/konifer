@@ -38,7 +38,6 @@ class FetchAssetRedirectTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val storedAssetInfo = storeAssetMultipart(client, image, request, path = "profile")

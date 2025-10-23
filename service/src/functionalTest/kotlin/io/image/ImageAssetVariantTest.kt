@@ -47,7 +47,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -90,7 +89,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -129,7 +127,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -180,7 +177,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -220,7 +216,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -266,7 +261,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -305,7 +299,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)
@@ -337,7 +330,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)
@@ -367,7 +359,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)
@@ -418,7 +409,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -453,7 +443,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -492,7 +481,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -526,7 +514,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -579,7 +566,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)
@@ -612,7 +598,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -656,7 +641,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -687,7 +671,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -716,7 +699,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -745,7 +727,6 @@ class ImageAssetVariantTest {
 
                 val request =
                     StoreAssetRequest(
-                        type = "image/png",
                         alt = "an image",
                     )
                 storeAssetMultipart(client, image, request)
@@ -913,7 +894,6 @@ class ImageAssetVariantTest {
 
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)

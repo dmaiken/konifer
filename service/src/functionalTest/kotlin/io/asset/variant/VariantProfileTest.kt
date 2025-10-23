@@ -30,7 +30,6 @@ class VariantProfileTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "profile")
@@ -56,7 +55,6 @@ class VariantProfileTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "profile")
@@ -87,7 +85,6 @@ class VariantProfileTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "profile")

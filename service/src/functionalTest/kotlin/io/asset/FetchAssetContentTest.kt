@@ -28,7 +28,6 @@ class FetchAssetContentTest {
             val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "profile")

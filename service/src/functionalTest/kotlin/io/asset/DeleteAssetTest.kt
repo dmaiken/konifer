@@ -33,7 +33,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request, path = "profile")
@@ -50,7 +49,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
@@ -72,7 +70,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
@@ -112,7 +109,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val firstAsset = storeAssetMultipart(client, image, request, path = "user/123")
@@ -136,7 +132,6 @@ class DeleteAssetTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val control = storeAssetMultipart(client, image, request, path = "user")

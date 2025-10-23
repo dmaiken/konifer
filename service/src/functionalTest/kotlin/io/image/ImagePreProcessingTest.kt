@@ -61,7 +61,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             storeAssetMultipart(client, image, request)!!.apply {
@@ -108,7 +107,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val storedAssetInfo =
@@ -160,7 +158,6 @@ class ImagePreProcessingTest {
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
-                type = "image/png",
                 alt = "an image",
             )
         val storedAssetInfo =
@@ -210,7 +207,6 @@ class ImagePreProcessingTest {
         val bufferedImage = byteArrayToImage(image)
         val request =
             StoreAssetRequest(
-                type = "image/png",
                 alt = "an image",
             )
         val storedAssetInfo =
@@ -265,7 +261,6 @@ class ImagePreProcessingTest {
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
             val request =
                 StoreAssetRequest(
-                    type = "image/png",
                     alt = "an image",
                 )
             val storedAssetInfo =

@@ -97,7 +97,6 @@ class VariantGeneratorTest {
                         path = PATH,
                         request =
                             StoreAssetRequest(
-                                type = "image/png",
                                 alt = "an image",
                             ),
                         attributes =

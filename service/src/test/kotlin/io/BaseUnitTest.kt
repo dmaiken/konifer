@@ -25,7 +25,6 @@ abstract class BaseUnitTest {
                 path = path,
                 request =
                     StoreAssetRequest(
-                        type = format.mimeType,
                         alt = "",
                     ),
                 attributes =
