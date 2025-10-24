@@ -4,6 +4,8 @@
 package direkt.jooq.routines
 
 
+import direkt.jooq.Public
+
 import org.jooq.Field
 import org.jooq.Parameter
 import org.jooq.impl.AbstractRoutine
@@ -12,8 +14,6 @@ import org.jooq.impl.DefaultDataType
 import org.jooq.impl.Internal
 import org.jooq.postgres.extensions.bindings.LtreeBinding
 import org.jooq.postgres.extensions.types.Ltree
-
-import direkt.jooq.Public
 
 
 @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")

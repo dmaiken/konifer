@@ -5,10 +5,6 @@
 package direkt.jooq.routines.references
 
 
-import org.jooq.Configuration
-import org.jooq.Field
-import org.jooq.postgres.extensions.types.Ltree
-
 import direkt.jooq.routines.Index1
 import direkt.jooq.routines.Index2
 import direkt.jooq.routines.Lca1
@@ -82,6 +78,10 @@ import direkt.jooq.routines._LtreeUnion
 import direkt.jooq.routines._LtxtqExec
 import direkt.jooq.routines._LtxtqExtractExec
 import direkt.jooq.routines._LtxtqRexec
+
+import org.jooq.Configuration
+import org.jooq.Field
+import org.jooq.postgres.extensions.types.Ltree
 
 
 

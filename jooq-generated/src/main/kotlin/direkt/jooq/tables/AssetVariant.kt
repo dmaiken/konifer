@@ -4,6 +4,15 @@
 package direkt.jooq.tables
 
 
+import direkt.jooq.Public
+import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
+import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
+import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_KEY
+import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
+import direkt.jooq.keys.ASSET_VARIANT_PKEY
+import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
+import direkt.jooq.tables.AssetTree.AssetTreePath
+import direkt.jooq.tables.records.AssetVariantRecord
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -27,15 +36,6 @@ import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
-import direkt.jooq.Public
-import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
-import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
-import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_KEY
-import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
-import direkt.jooq.keys.ASSET_VARIANT_PKEY
-import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
-import direkt.jooq.tables.AssetTree.AssetTreePath
-import direkt.jooq.tables.records.AssetVariantRecord
 import java.time.LocalDateTime
 import java.util.UUID
 

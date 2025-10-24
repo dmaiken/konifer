@@ -5,10 +5,16 @@
 package direkt.jooq.tables.references
 
 
+import direkt.jooq.tables.AssetLabel
 import direkt.jooq.tables.AssetTree
 import direkt.jooq.tables.AssetVariant
 
 
+
+/**
+ * The table <code>public.asset_label</code>.
+ */
+val ASSET_LABEL: AssetLabel = AssetLabel.ASSET_LABEL
 
 /**
  * The table <code>public.asset_tree</code>.

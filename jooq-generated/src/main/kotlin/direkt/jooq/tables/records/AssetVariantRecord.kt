@@ -4,10 +4,10 @@
 package direkt.jooq.tables.records
 
 
+import direkt.jooq.tables.AssetVariant
 import org.jooq.JSONB
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
-import direkt.jooq.tables.AssetVariant
 import java.time.LocalDateTime
 import java.util.UUID
 

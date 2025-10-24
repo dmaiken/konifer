@@ -4,13 +4,13 @@
 package direkt.jooq.routines
 
 
+import direkt.jooq.Public
+
 import org.jooq.Parameter
 import org.jooq.impl.AbstractRoutine
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultDataType
 import org.jooq.impl.Internal
-
-import direkt.jooq.Public
 
 
 /**

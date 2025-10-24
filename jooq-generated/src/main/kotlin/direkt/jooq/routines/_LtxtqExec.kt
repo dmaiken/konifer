@@ -5,6 +5,7 @@ package direkt.jooq.routines
 
 
 import direkt.jooq.Public
+
 import org.jooq.Field
 import org.jooq.Parameter
 import org.jooq.impl.AbstractRoutine

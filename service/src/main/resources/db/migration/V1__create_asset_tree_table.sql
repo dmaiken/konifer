@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS asset_tree
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS asset_path_idx ON asset_tree USING gist (path);
+CREATE INDEX IF NOT EXISTS asset_tree_path_idx ON asset_tree USING gist (path);
 
 CREATE TABLE IF NOT EXISTS asset_variant
 (

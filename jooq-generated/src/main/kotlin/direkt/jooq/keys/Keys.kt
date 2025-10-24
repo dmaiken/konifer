@@ -5,16 +5,18 @@
 package direkt.jooq.keys
 
 
+import direkt.jooq.tables.AssetLabel
+import direkt.jooq.tables.AssetTree
+import direkt.jooq.tables.AssetVariant
+import direkt.jooq.tables.records.AssetLabelRecord
+import direkt.jooq.tables.records.AssetTreeRecord
+import direkt.jooq.tables.records.AssetVariantRecord
+
 import org.jooq.ForeignKey
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.QOM.ForeignKeyRule
-
-import direkt.jooq.tables.AssetTree
-import direkt.jooq.tables.AssetVariant
-import direkt.jooq.tables.records.AssetTreeRecord
-import direkt.jooq.tables.records.AssetVariantRecord
 
 
 
@@ -22,6 +24,7 @@ import direkt.jooq.tables.records.AssetVariantRecord
 // UNIQUE and PRIMARY KEY definitions
 // -------------------------------------------------------------------------
 
+val ASSET_LABEL_PKEY: UniqueKey<AssetLabelRecord> = Internal.createUniqueKey(AssetLabel.ASSET_LABEL, DSL.name("asset_label_pkey"), arrayOf(AssetLabel.ASSET_LABEL.ID), true)
 val ASSET_TREE_PKEY: UniqueKey<AssetTreeRecord> = Internal.createUniqueKey(AssetTree.ASSET_TREE, DSL.name("asset_tree_pkey"), arrayOf(AssetTree.ASSET_TREE.ID), true)
 val ASSET_VARIANT_PKEY: UniqueKey<AssetVariantRecord> = Internal.createUniqueKey(AssetVariant.ASSET_VARIANT, DSL.name("asset_variant_pkey"), arrayOf(AssetVariant.ASSET_VARIANT.ID), true)
 
@@ -29,4 +32,5 @@ val ASSET_VARIANT_PKEY: UniqueKey<AssetVariantRecord> = Internal.createUniqueKey
 // FOREIGN KEY definitions
 // -------------------------------------------------------------------------
 
+val ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID: ForeignKey<AssetLabelRecord, AssetTreeRecord> = Internal.createForeignKey(AssetLabel.ASSET_LABEL, DSL.name("fk_asset_label_asset_id_asset_tree_id"), arrayOf(AssetLabel.ASSET_LABEL.ASSET_ID), direkt.jooq.keys.ASSET_TREE_PKEY, arrayOf(AssetTree.ASSET_TREE.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)
 val ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID: ForeignKey<AssetVariantRecord, AssetTreeRecord> = Internal.createForeignKey(AssetVariant.ASSET_VARIANT, DSL.name("fk_asset_variant_asset_id_asset_tree_id"), arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID), direkt.jooq.keys.ASSET_TREE_PKEY, arrayOf(AssetTree.ASSET_TREE.ID), true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION)

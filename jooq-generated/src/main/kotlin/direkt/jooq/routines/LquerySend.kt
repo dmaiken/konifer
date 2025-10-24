@@ -4,6 +4,8 @@
 package direkt.jooq.routines
 
 
+import direkt.jooq.Public
+
 import org.jooq.Field
 import org.jooq.Parameter
 import org.jooq.impl.AbstractRoutine
@@ -11,8 +13,6 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DefaultDataType
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
-
-import direkt.jooq.Public
 
 
 /**

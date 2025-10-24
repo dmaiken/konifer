@@ -5,9 +5,11 @@ package direkt.jooq.tables
 
 
 import direkt.jooq.Public
-import direkt.jooq.indexes.ASSET_PATH_IDX
+import direkt.jooq.indexes.ASSET_TREE_PATH_IDX
+import direkt.jooq.keys.ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.keys.ASSET_TREE_PKEY
 import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
+import direkt.jooq.tables.AssetLabel.AssetLabelPath
 import direkt.jooq.tables.AssetVariant.AssetVariantPath
 import direkt.jooq.tables.records.AssetTreeRecord
 import org.jooq.Condition
@@ -133,8 +135,24 @@ open class AssetTree(
         override fun `as`(alias: Table<*>): AssetTreePath = AssetTreePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(ASSET_PATH_IDX)
+    override fun getIndexes(): List<Index> = listOf(ASSET_TREE_PATH_IDX)
     override fun getPrimaryKey(): UniqueKey<AssetTreeRecord> = ASSET_TREE_PKEY
+
+    private lateinit var _assetLabel: AssetLabelPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.asset_label</code>
+     * table
+     */
+    fun assetLabel(): AssetLabelPath {
+        if (!this::_assetLabel.isInitialized)
+            _assetLabel = AssetLabelPath(this, null, ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID.inverseKey)
+
+        return _assetLabel;
+    }
+
+    val assetLabel: AssetLabelPath
+        get(): AssetLabelPath = assetLabel()
 
     private lateinit var _assetVariant: AssetVariantPath
 
