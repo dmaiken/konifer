@@ -1220,7 +1220,6 @@ abstract class AssetRepositoryTest {
 
     private fun createAssetDto(treePath: String): StoreAssetDto {
         return StoreAssetDto(
-            mimeType = "image/png",
             path = treePath,
             request =
                 StoreAssetRequest(

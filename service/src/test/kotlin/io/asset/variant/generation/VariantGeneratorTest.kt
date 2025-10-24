@@ -93,7 +93,6 @@ class VariantGeneratorTest {
             asset =
                 assetRepository.store(
                     StoreAssetDto(
-                        mimeType = "image/png",
                         path = PATH,
                         request =
                             StoreAssetRequest(

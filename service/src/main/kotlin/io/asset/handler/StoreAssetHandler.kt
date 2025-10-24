@@ -84,7 +84,6 @@ class StoreAssetHandler(
                 assetRepository.store(
                     StoreAssetDto(
                         request = request,
-                        mimeType = format.mimeType,
                         path = context.path,
                         attributes = preProcessed.attributes,
                         persistResult = persistResult.await(),

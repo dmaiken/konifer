@@ -21,7 +21,6 @@ abstract class BaseUnitTest {
     ): AssetAndVariants =
         assetRepository.store(
             StoreAssetDto(
-                mimeType = ImageFormat.PNG.mimeType,
                 path = path,
                 request =
                     StoreAssetRequest(
