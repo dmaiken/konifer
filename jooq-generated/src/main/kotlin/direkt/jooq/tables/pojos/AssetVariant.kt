@@ -4,10 +4,11 @@
 package direkt.jooq.tables.pojos
 
 
-import org.jooq.JSONB
 import java.io.Serializable
 import java.time.LocalDateTime
 import java.util.UUID
+
+import org.jooq.JSONB
 
 
 /**

@@ -1,6 +1,7 @@
 package io.asset.model
 
 import direkt.jooq.tables.records.AssetLabelRecord
+import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import io.asset.variant.AssetVariant
@@ -14,9 +15,10 @@ data class AssetAndVariants(
             asset: AssetTreeRecord,
             variant: AssetVariantRecord,
             labels: Map<String, String>,
+            tags: Set<String>,
         ): AssetAndVariants {
             return AssetAndVariants(
-                asset = Asset.from(asset, labels),
+                asset = Asset.from(asset, labels, tags),
                 variants = listOfNotNull(AssetVariant.from(variant)),
             )
         }
@@ -25,9 +27,15 @@ data class AssetAndVariants(
             asset: AssetTreeRecord,
             variant: List<AssetVariantRecord>,
             labels: List<AssetLabelRecord>,
+            tags: List<AssetTagRecord>,
         ): AssetAndVariants {
             return AssetAndVariants(
-                asset = Asset.from(asset, labels.associate { it.labelKey!! to it.labelValue!! }),
+                asset =
+                    Asset.from(
+                        record = asset,
+                        labels = labels.associate { it.labelKey!! to it.labelValue!! },
+                        tags = tags.mapNotNull { it.tagValue }.toSet(),
+                    ),
                 variants = variant.mapNotNull { AssetVariant.from(it) },
             )
         }
@@ -38,6 +46,8 @@ data class AssetAndVariants(
             `class` = AssetClass.IMAGE,
             alt = asset.alt,
             entryId = asset.entryId,
+            labels = asset.labels,
+            tags = asset.tags,
             variants =
                 variants.map { variant ->
                     AssetVariantResponse(

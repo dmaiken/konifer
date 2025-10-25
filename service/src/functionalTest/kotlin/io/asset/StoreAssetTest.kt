@@ -336,7 +336,6 @@ class StoreAssetTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient()
-            // Come up with a better way to not rely on the internet
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -344,6 +343,103 @@ class StoreAssetTest {
                 )
             storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with no upload or url source`() =
+        testInMemory {
+            val client = createJsonClient()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetUrl(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with alt exceeding length limit`() =
+        testInMemory {
+            val client = createJsonClient()
+            val request =
+                StoreAssetRequest(
+                    alt = "a".repeat(126),
+                )
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with tags exceeding length limit`() =
+        testInMemory {
+            val client = createJsonClient()
+            val request =
+                StoreAssetRequest(
+                    tags = setOf("tag1", "a".repeat(257)),
+                )
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with label key exceeding length limit`() =
+        testInMemory {
+            val client = createJsonClient()
+            val request =
+                StoreAssetRequest(
+                    labels =
+                        mapOf(
+                            "a" to "b",
+                            "a".repeat(129) to "c",
+                        ),
+                )
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with label value exceeding length limit`() =
+        testInMemory {
+            val client = createJsonClient()
+            val request =
+                StoreAssetRequest(
+                    labels =
+                        mapOf(
+                            "a" to "b",
+                            "d" to "c".repeat(257),
+                        ),
+                )
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `cannot store asset with too many labels`() =
+        testInMemory {
+            val client = createJsonClient()
+            val labels =
+                buildMap {
+                    repeat(51) { idx ->
+                        put(idx.toString(), idx.toString())
+                    }
+                }
+            val request =
+                StoreAssetRequest(
+                    labels = labels,
+                )
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 }

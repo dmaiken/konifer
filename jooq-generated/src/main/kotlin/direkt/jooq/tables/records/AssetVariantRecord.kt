@@ -5,11 +5,13 @@ package direkt.jooq.tables.records
 
 
 import direkt.jooq.tables.AssetVariant
+
+import java.time.LocalDateTime
+import java.util.UUID
+
 import org.jooq.JSONB
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
-import java.time.LocalDateTime
-import java.util.UUID
 
 
 /**

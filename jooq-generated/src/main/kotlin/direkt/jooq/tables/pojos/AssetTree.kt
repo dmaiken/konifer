@@ -4,10 +4,11 @@
 package direkt.jooq.tables.pojos
 
 
-import org.jooq.postgres.extensions.types.Ltree
 import java.io.Serializable
 import java.time.LocalDateTime
 import java.util.UUID
+
+import org.jooq.postgres.extensions.types.Ltree
 
 
 /**

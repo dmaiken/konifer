@@ -10,21 +10,24 @@ data class Asset(
     val alt: String?,
     val path: String,
     val entryId: Long,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
     val labels: Map<String, String>,
+    val tags: Set<String>,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     companion object {
         fun from(
             record: AssetTreeRecord,
             labels: Map<String, String>,
+            tags: Set<String>,
         ): Asset =
             Asset(
                 id = checkNotNull(record.id),
                 alt = record.alt,
                 entryId = checkNotNull(record.entryId),
                 path = checkNotNull(record.path).toPath(),
-                createdAt = checkNotNull(record.createdAt),
                 labels = labels,
+                tags = tags,
+                createdAt = checkNotNull(record.createdAt),
             )
     }
 }

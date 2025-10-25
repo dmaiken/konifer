@@ -46,7 +46,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
             "-d",
             postgres.databaseName,
             "-c",
-            "TRUNCATE TABLE asset_tree, asset_variant, asset_label;",
+            "TRUNCATE TABLE asset_tree, asset_variant, asset_label, asset_tag;",
         )
     }
 

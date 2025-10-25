@@ -11,6 +11,13 @@ import direkt.jooq.keys.ASSET_LABEL_PKEY
 import direkt.jooq.keys.ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.tables.AssetTree.AssetTreePath
 import direkt.jooq.tables.records.AssetLabelRecord
+
+import java.time.LocalDateTime
+import java.util.UUID
+
+import kotlin.collections.Collection
+import kotlin.collections.List
+
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -33,8 +40,6 @@ import org.jooq.impl.DSL
 import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
-import java.time.LocalDateTime
-import java.util.UUID
 
 
 /**

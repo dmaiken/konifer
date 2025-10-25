@@ -9,6 +9,8 @@ data class AssetResponse(
     val `class`: AssetClass,
     val alt: String?,
     val entryId: Long,
+    val labels: Map<String, String>,
+    val tags: Set<String>,
     val variants: List<AssetVariantResponse>,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime,

@@ -15,7 +15,9 @@ import io.image.model.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotEndWith
@@ -43,6 +45,8 @@ abstract class AssetRepositoryTest {
                 assetAndVariants.asset.apply {
                     path shouldBe "/users/123"
                     entryId shouldBe 0
+                    labels shouldContainExactly dto.request.labels
+                    tags shouldContainExactly dto.request.tags
                 }
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
@@ -1224,6 +1228,16 @@ abstract class AssetRepositoryTest {
             request =
                 StoreAssetRequest(
                     alt = "an image",
+                    labels =
+                        mapOf(
+                            "phone" to "iphone",
+                            "customer" to "vip",
+                        ),
+                    tags =
+                        setOf(
+                            "scary",
+                            "spooky",
+                        ),
                 ),
             attributes =
                 Attributes(

@@ -7,11 +7,20 @@ package direkt.jooq.tables
 import direkt.jooq.Public
 import direkt.jooq.indexes.ASSET_TREE_PATH_IDX
 import direkt.jooq.keys.ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID
+import direkt.jooq.keys.ASSET_TAG__FK_ASSET_TAG_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.keys.ASSET_TREE_PKEY
 import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.tables.AssetLabel.AssetLabelPath
+import direkt.jooq.tables.AssetTag.AssetTagPath
 import direkt.jooq.tables.AssetVariant.AssetVariantPath
 import direkt.jooq.tables.records.AssetTreeRecord
+
+import java.time.LocalDateTime
+import java.util.UUID
+
+import kotlin.collections.Collection
+import kotlin.collections.List
+
 import org.jooq.Condition
 import org.jooq.Field
 import org.jooq.ForeignKey
@@ -37,8 +46,6 @@ import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.postgres.extensions.bindings.LtreeBinding
 import org.jooq.postgres.extensions.types.Ltree
-import java.time.LocalDateTime
-import java.util.UUID
 
 
 /**
@@ -153,6 +160,22 @@ open class AssetTree(
 
     val assetLabel: AssetLabelPath
         get(): AssetLabelPath = assetLabel()
+
+    private lateinit var _assetTag: AssetTagPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.asset_tag</code>
+     * table
+     */
+    fun assetTag(): AssetTagPath {
+        if (!this::_assetTag.isInitialized)
+            _assetTag = AssetTagPath(this, null, ASSET_TAG__FK_ASSET_TAG_ASSET_ID_ASSET_TREE_ID.inverseKey)
+
+        return _assetTag;
+    }
+
+    val assetTag: AssetTagPath
+        get(): AssetTagPath = assetTag()
 
     private lateinit var _assetVariant: AssetVariantPath
 

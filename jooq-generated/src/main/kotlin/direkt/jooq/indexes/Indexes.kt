@@ -6,6 +6,7 @@ package direkt.jooq.indexes
 
 
 import direkt.jooq.tables.AssetLabel
+import direkt.jooq.tables.AssetTag
 import direkt.jooq.tables.AssetTree
 import direkt.jooq.tables.AssetVariant
 
@@ -21,6 +22,8 @@ import org.jooq.impl.Internal
 
 val ASSET_LABEL_ASSET_ID_IDX: Index = Internal.createIndex(DSL.name("asset_label_asset_id_idx"), AssetLabel.ASSET_LABEL, arrayOf(AssetLabel.ASSET_LABEL.ASSET_ID), false)
 val ASSET_LABEL_KEY_VALUE_UQ: Index = Internal.createIndex(DSL.name("asset_label_key_value_uq"), AssetLabel.ASSET_LABEL, arrayOf(AssetLabel.ASSET_LABEL.ASSET_ID, AssetLabel.ASSET_LABEL.LABEL_KEY, AssetLabel.ASSET_LABEL.LABEL_VALUE), true)
+val ASSET_TAG_ASSET_ID_IDX: Index = Internal.createIndex(DSL.name("asset_tag_asset_id_idx"), AssetTag.ASSET_TAG, arrayOf(AssetTag.ASSET_TAG.ASSET_ID), false)
+val ASSET_TAG_KEY_VALUE_UQ: Index = Internal.createIndex(DSL.name("asset_tag_key_value_uq"), AssetTag.ASSET_TAG, arrayOf(AssetTag.ASSET_TAG.ASSET_ID, AssetTag.ASSET_TAG.TAG_VALUE), true)
 val ASSET_TREE_PATH_IDX: Index = Internal.createIndex(DSL.name("asset_tree_path_idx"), AssetTree.ASSET_TREE, arrayOf(AssetTree.ASSET_TREE.PATH), false)
 val ASSET_VARIANT_ASSET_ID_IDX: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_idx"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID), false)
 val ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_original_variant_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.ORIGINAL_VARIANT), true)

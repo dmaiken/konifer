@@ -3,7 +3,9 @@ package io.asset
 import io.asset.model.AssetClass
 import io.asset.model.StoreAssetRequest
 import io.config.testInMemory
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
@@ -17,9 +19,17 @@ class AssetLifecycleTest {
         testInMemory {
             val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                    "type" to "vegetable",
+                )
+            val tags = setOf("smart", "cool")
             val request =
                 StoreAssetRequest(
                     alt = "an image",
+                    labels = labels,
+                    tags = tags,
                 )
             val storeAssetResponse = storeAssetMultipart(client, image, request)
             storeAssetResponse!!.createdAt shouldNotBe null
@@ -29,6 +39,8 @@ class AssetLifecycleTest {
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
+            storeAssetResponse.labels shouldContainExactly labels
+            storeAssetResponse.tags shouldContainExactly tags
             fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 

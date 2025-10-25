@@ -33,7 +33,8 @@ class InMemoryAssetRepository : AssetRepository {
                         entryId = entryId,
                         path = path,
                         createdAt = LocalDateTime.now(),
-                        labels = emptyMap(),
+                        labels = asset.request.labels,
+                        tags = asset.request.tags,
                     ),
                 variants =
                     listOf(

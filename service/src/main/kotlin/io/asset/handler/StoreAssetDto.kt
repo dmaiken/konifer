@@ -11,5 +11,4 @@ class StoreAssetDto(
     val attributes: Attributes,
     val persistResult: PersistResult,
     val lqips: LQIPs,
-    val labels: Map<String, String> = emptyMap(),
 )

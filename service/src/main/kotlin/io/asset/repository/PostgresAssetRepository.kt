@@ -2,8 +2,10 @@ package io.asset.repository
 
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.tables.records.AssetLabelRecord
+import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import direkt.jooq.tables.references.ASSET_LABEL
+import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
 import io.asset.handler.StoreAssetDto
@@ -58,7 +60,7 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
-            if (asset.labels.isNotEmpty()) {
+            if (asset.request.labels.isNotEmpty()) {
                 val step =
                     trx.dsl().insertInto(
                         ASSET_LABEL,
@@ -68,8 +70,22 @@ class PostgresAssetRepository(
                         ASSET_LABEL.LABEL_VALUE,
                         ASSET_LABEL.CREATED_AT,
                     )
-                asset.labels.map { (key, value) ->
+                asset.request.labels.map { (key, value) ->
                     step.values(UUID.randomUUID(), assetId, key, value, now)
+                }
+                step.awaitLast()
+            }
+            if (asset.request.tags.isNotEmpty()) {
+                val step =
+                    trx.dsl().insertInto(
+                        ASSET_TAG,
+                        ASSET_TAG.ID,
+                        ASSET_TAG.ASSET_ID,
+                        ASSET_TAG.TAG_VALUE,
+                        ASSET_TAG.CREATED_AT,
+                    )
+                asset.request.tags.map { value ->
+                    step.values(UUID.randomUUID(), assetId, value, now)
                 }
                 step.awaitLast()
             }
@@ -90,7 +106,7 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
-            AssetAndVariants.from(persistedAsset, persistedVariant, asset.labels)
+            AssetAndVariants.from(persistedAsset, persistedVariant, asset.request.labels, asset.request.tags)
         }
     }
 
@@ -141,7 +157,7 @@ class PostgresAssetRepository(
                     throw e
                 }
 
-            AssetAndVariants.from(asset.asset, listOf(persistedVariant), asset.labels)
+            AssetAndVariants.from(asset.asset, listOf(persistedVariant), asset.labels, asset.tags)
         }
     }
 
@@ -152,7 +168,7 @@ class PostgresAssetRepository(
     ): AssetAndVariants? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
         return fetch(dslContext, treePath, entryId, transformation)?.let {
-            AssetAndVariants.from(it.asset, it.variants, it.labels)
+            AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags)
         }
     }
 
@@ -162,7 +178,7 @@ class PostgresAssetRepository(
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
         return fetchAllAtPath(dslContext, treePath, transformation)
-            .map { AssetAndVariants.from(it.asset, it.variants, it.labels) }
+            .map { AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags) }
     }
 
     override suspend fun deleteAssetByPath(
@@ -280,10 +296,12 @@ class PostgresAssetRepository(
             } ?: arrayOf(ASSET_TREE.CREATED_AT.desc())
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
+        val tagsField = multisetTags(context)
         return context.select(
             *ASSET_TREE.fields(),
             variantsField,
             labelsField,
+            tagsField,
         )
             .from(ASSET_TREE)
             .where(ASSET_TREE.PATH.eq(treePath))
@@ -295,8 +313,9 @@ class PostgresAssetRepository(
                 val assetTreeRecord = record.into(ASSET_TREE)
                 val variants = record.getValue(variantsField)
                 val labels = record.getValue(labelsField)
+                val tags = record.getValue(tagsField)
 
-                AssetRecordsDto(assetTreeRecord, variants, labels)
+                AssetRecordsDto(assetTreeRecord, variants, labels, tags)
             }
     }
 
@@ -307,10 +326,12 @@ class PostgresAssetRepository(
     ): List<AssetRecordsDto> {
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
+        val tagsField = multisetTags(context)
         return context.select(
             *ASSET_TREE.fields(),
             variantsField,
             labelsField,
+            tagsField,
         )
             .from(ASSET_TREE)
             .where(ASSET_TREE.PATH.eq(treePath))
@@ -320,8 +341,9 @@ class PostgresAssetRepository(
                 val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
                 val variants = record.getValue(variantsField)
                 val labels = record.getValue(labelsField)
+                val tags = record.getValue(tagsField)
 
-                AssetRecordsDto(assetTreeRecord, variants, labels)
+                AssetRecordsDto(assetTreeRecord, variants, labels, tags)
             }
             .toList()
     }
@@ -371,4 +393,13 @@ class PostgresAssetRepository(
         ).convertFrom { records ->
             records.map { r -> r.into(AssetLabelRecord::class.java) }
         }.`as`("labels")
+
+    private fun multisetTags(context: DSLContext) =
+        multiset(
+            context.select(*ASSET_TAG.fields())
+                .from(ASSET_TAG)
+                .where(ASSET_TAG.ASSET_ID.eq(ASSET_TREE.ID)),
+        ).convertFrom { records ->
+            records.map { r -> r.into(AssetTagRecord::class.java) }
+        }.`as`("tags")
 }

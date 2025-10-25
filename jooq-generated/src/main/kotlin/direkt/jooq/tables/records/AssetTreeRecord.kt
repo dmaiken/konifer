@@ -5,11 +5,13 @@ package direkt.jooq.tables.records
 
 
 import direkt.jooq.tables.AssetTree
+
+import java.time.LocalDateTime
+import java.util.UUID
+
 import org.jooq.Record1
 import org.jooq.impl.UpdatableRecordImpl
 import org.jooq.postgres.extensions.types.Ltree
-import java.time.LocalDateTime
-import java.util.UUID
 
 
 /**
