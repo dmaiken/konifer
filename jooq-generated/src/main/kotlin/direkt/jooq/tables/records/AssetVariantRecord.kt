@@ -80,4 +80,23 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
+
+    /**
+     * Create a detached, initialised AssetVariantRecord
+     */
+    constructor(value: direkt.jooq.tables.pojos.AssetVariant?): this() {
+        if (value != null) {
+            this.id = value.id
+            this.assetId = value.assetId
+            this.objectStoreBucket = value.objectStoreBucket
+            this.objectStoreKey = value.objectStoreKey
+            this.transformation = value.transformation
+            this.transformationKey = value.transformationKey
+            this.attributes = value.attributes
+            this.lqip = value.lqip
+            this.originalVariant = value.originalVariant
+            this.createdAt = value.createdAt
+            resetTouchedOnNotNull()
+        }
+    }
 }

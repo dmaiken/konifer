@@ -17,7 +17,6 @@ import name.nkonev.r2dbc.migrate.core.R2dbcMigrateProperties
 import name.nkonev.r2dbc.migrate.reader.ReflectionsClasspathResourceReader
 import org.jooq.DSLContext
 import org.jooq.SQLDialect
-import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.tools.LoggerListener
@@ -52,19 +51,14 @@ fun migrateSchema(connectionFactory: ConnectionFactory) {
 }
 
 fun configureJOOQ(connectionFactory: ConnectionFactory): DSLContext {
-    val settings =
-        Settings()
-            .withExecuteLogging(true) // enables jOOQ logging
-            .withRenderFormatted(true) // optional: pretty SQL
-
     val config =
         DefaultConfiguration().apply {
             setSQLDialect(SQLDialect.POSTGRES)
             setConnectionFactory(connectionFactory)
             setExecuteListener(LoggerListener())
             settings()
-                .withExecuteLogging(true) // enables jOOQ logging
-                .withRenderFormatted(true) // optional: pretty SQL
+                .withExecuteLogging(true)
+                .withRenderFormatted(true)
         }
 
     return DSL.using(config)

@@ -1,9 +1,7 @@
 package io.asset.model
 
-import direkt.jooq.tables.AssetTree.Companion.ASSET_TREE
-import io.asset.repository.getNonNull
+import direkt.jooq.tables.records.AssetTreeRecord
 import io.asset.repository.toPath
-import org.jooq.Record
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -13,15 +11,20 @@ data class Asset(
     val path: String,
     val entryId: Long,
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    val labels: Map<String, String>,
 ) {
     companion object {
-        fun from(record: Record): Asset =
+        fun from(
+            record: AssetTreeRecord,
+            labels: Map<String, String>,
+        ): Asset =
             Asset(
-                id = record.getNonNull(ASSET_TREE.ID),
-                alt = record.getNonNull(ASSET_TREE.ALT),
-                entryId = record.getNonNull(ASSET_TREE.ENTRY_ID),
-                path = record.getNonNull(ASSET_TREE.PATH).toPath(),
-                createdAt = record.getNonNull(ASSET_TREE.CREATED_AT),
+                id = checkNotNull(record.id),
+                alt = record.alt,
+                entryId = checkNotNull(record.entryId),
+                path = checkNotNull(record.path).toPath(),
+                createdAt = checkNotNull(record.createdAt),
+                labels = labels,
             )
     }
 }

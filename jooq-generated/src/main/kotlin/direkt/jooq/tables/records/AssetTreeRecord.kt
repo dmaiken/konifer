@@ -55,4 +55,18 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
         this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
+
+    /**
+     * Create a detached, initialised AssetTreeRecord
+     */
+    constructor(value: direkt.jooq.tables.pojos.AssetTree?): this() {
+        if (value != null) {
+            this.id = value.id
+            this.entryId = value.entryId
+            this.path = value.path
+            this.alt = value.alt
+            this.createdAt = value.createdAt
+            resetTouchedOnNotNull()
+        }
+    }
 }

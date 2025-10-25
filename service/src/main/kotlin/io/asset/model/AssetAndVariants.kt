@@ -1,48 +1,34 @@
 package io.asset.model
 
+import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import io.asset.variant.AssetVariant
-import org.jooq.Record
 
 data class AssetAndVariants(
     val asset: Asset,
     val variants: List<AssetVariant>,
 ) {
     companion object Factory {
-        fun from(records: List<Record>): AssetAndVariants? {
-            if (records.isEmpty()) {
-                return null
-            }
-            val assetsToVariants = mutableMapOf<Asset, MutableList<AssetVariant>>()
-            records.forEach { record ->
-                if (assetsToVariants.size > 1) {
-                    throw IllegalArgumentException("Multiple assets in record set")
-                }
-                val asset = Asset.from(record)
-                val variants = assetsToVariants.computeIfAbsent(asset) { mutableListOf() }
-                AssetVariant.from(record)?.let {
-                    variants.add(it)
-                }
-            }
-            val results =
-                assetsToVariants.map { (asset, variants) ->
-                    AssetAndVariants(
-                        asset = asset,
-                        variants = variants,
-                    )
-                }
-
-            return results.first()
+        fun from(
+            asset: AssetTreeRecord,
+            variant: AssetVariantRecord,
+            labels: Map<String, String>,
+        ): AssetAndVariants {
+            return AssetAndVariants(
+                asset = Asset.from(asset, labels),
+                variants = listOfNotNull(AssetVariant.from(variant)),
+            )
         }
 
         fun from(
             asset: AssetTreeRecord,
-            variant: AssetVariantRecord,
+            variant: List<AssetVariantRecord>,
+            labels: List<AssetLabelRecord>,
         ): AssetAndVariants {
             return AssetAndVariants(
-                asset = Asset.from(asset),
-                variants = listOfNotNull(AssetVariant.from(variant)),
+                asset = Asset.from(asset, labels.associate { it.labelKey!! to it.labelValue!! }),
+                variants = variant.mapNotNull { AssetVariant.from(it) },
             )
         }
     }

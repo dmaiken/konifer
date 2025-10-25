@@ -54,4 +54,18 @@ open class AssetLabelRecord() : UpdatableRecordImpl<AssetLabelRecord>(AssetLabel
         this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
+
+    /**
+     * Create a detached, initialised AssetLabelRecord
+     */
+    constructor(value: direkt.jooq.tables.pojos.AssetLabel?): this() {
+        if (value != null) {
+            this.id = value.id
+            this.assetId = value.assetId
+            this.labelKey = value.labelKey
+            this.labelValue = value.labelValue
+            this.createdAt = value.createdAt
+            resetTouchedOnNotNull()
+        }
+    }
 }

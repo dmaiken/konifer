@@ -1,7 +1,9 @@
 package io.asset.repository
 
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
-import direkt.jooq.tables.records.AssetTreeRecord
+import direkt.jooq.tables.records.AssetLabelRecord
+import direkt.jooq.tables.records.AssetVariantRecord
+import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
 import io.asset.handler.StoreAssetDto
@@ -17,14 +19,15 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.serialization.json.Json
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
-import org.jooq.Record
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL.jsonbGetAttributeAsText
 import org.jooq.impl.DSL.max
+import org.jooq.impl.DSL.multiset
 import org.jooq.impl.DSL.noCondition
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
@@ -55,6 +58,22 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
+            if (asset.labels.isNotEmpty()) {
+                val step =
+                    trx.dsl().insertInto(
+                        ASSET_LABEL,
+                        ASSET_LABEL.ID,
+                        ASSET_LABEL.ASSET_ID,
+                        ASSET_LABEL.LABEL_KEY,
+                        ASSET_LABEL.LABEL_VALUE,
+                        ASSET_LABEL.CREATED_AT,
+                    )
+                asset.labels.map { (key, value) ->
+                    step.values(UUID.randomUUID(), assetId, key, value, now)
+                }
+                step.awaitLast()
+            }
+
             val lqip = Json.encodeToString(asset.lqips)
             val persistedVariant =
                 trx.dsl().insertInto(ASSET_VARIANT)
@@ -71,7 +90,7 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
-            AssetAndVariants.from(persistedAsset, persistedVariant)
+            AssetAndVariants.from(persistedAsset, persistedVariant, asset.labels)
         }
     }
 
@@ -79,12 +98,12 @@ class PostgresAssetRepository(
         val treePath = PathAdapter.toTreePathFromUriPath(variant.path)
         return dslContext.transactionCoroutine { trx ->
             val asset =
-                fetchWithVariant(
+                fetch(
                     trx.dsl(),
                     treePath,
                     variant.entryId,
                     Transformation.ORIGINAL_VARIANT,
-                )?.into(AssetTreeRecord::class.java)
+                )
             if (asset == null) {
                 throw IllegalArgumentException(
                     "Asset with path: $treePath and entry id: ${variant.entryId} not found in database",
@@ -101,7 +120,7 @@ class PostgresAssetRepository(
                 try {
                     trx.dsl().insertInto(ASSET_VARIANT)
                         .set(ASSET_VARIANT.ID, UUID.randomUUID())
-                        .set(ASSET_VARIANT.ASSET_ID, asset.id)
+                        .set(ASSET_VARIANT.ASSET_ID, asset.asset.id)
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.persistResult.key)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
@@ -122,7 +141,7 @@ class PostgresAssetRepository(
                     throw e
                 }
 
-            AssetAndVariants.from(asset, persistedVariant)
+            AssetAndVariants.from(asset.asset, listOf(persistedVariant), asset.labels)
         }
     }
 
@@ -132,13 +151,8 @@ class PostgresAssetRepository(
         transformation: Transformation?,
     ): AssetAndVariants? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return if (transformation != null) {
-            fetchWithVariant(dslContext, treePath, entryId, transformation)?.let { record ->
-                AssetAndVariants.from(listOf(record))
-            }
-        } else {
-            val result = fetchWithAllVariants(dslContext, treePath, entryId)
-            AssetAndVariants.from(result)
+        return fetch(dslContext, treePath, entryId, transformation)?.let {
+            AssetAndVariants.from(it.asset, it.variants, it.labels)
         }
     }
 
@@ -147,15 +161,8 @@ class PostgresAssetRepository(
         transformation: Transformation?,
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return if (transformation != null) {
-            fetchAllWithVariant(dslContext, treePath, transformation)
-                .groupBy { it.get(ASSET_TREE.ID) }
-                .values.mapNotNull { AssetAndVariants.from(it) }
-        } else {
-            fetchAllWithAllVariants(dslContext, treePath)
-                .groupBy { it.get(ASSET_TREE.ID) }
-                .values.mapNotNull { AssetAndVariants.from(it) }
-        }
+        return fetchAllAtPath(dslContext, treePath, transformation)
+            .map { AssetAndVariants.from(it.asset, it.variants, it.labels) }
     }
 
     override suspend fun deleteAssetByPath(
@@ -172,7 +179,7 @@ class PostgresAssetRepository(
                         trx.dsl().select(ASSET_TREE.ENTRY_ID)
                             .from(ASSET_TREE)
                             .where(ASSET_TREE.PATH.eq(treePath))
-                            .orderBy(ASSET_TREE.ENTRY_ID.desc())
+                            .orderBy(ASSET_TREE.CREATED_AT.desc())
                             .limit(1),
                     )
                 val variantObjectStoreInformation =
@@ -257,44 +264,65 @@ class PostgresAssetRepository(
             ?.inc() ?: 0L
     }
 
-    private suspend fun fetchWithVariant(
+    private suspend fun fetch(
         context: DSLContext,
         treePath: Ltree,
         entryId: Long?,
-        transformation: Transformation,
-    ): Record? {
+        transformation: Transformation?,
+    ): AssetRecordsDto? {
         val entryIdCondition =
             entryId?.let {
                 ASSET_TREE.ENTRY_ID.eq(entryId)
             } ?: noCondition()
-        val orderConditions =
+        val assetOrderConditions =
             entryId?.let {
-                arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_VARIANT.CREATED_AT.desc())
-            } ?: arrayOf(ASSET_VARIANT.CREATED_AT.desc())
-
-        return context.select()
+                arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_TREE.CREATED_AT.desc())
+            } ?: arrayOf(ASSET_TREE.CREATED_AT.desc())
+        val variantsField = multisetVariantField(context, transformation)
+        val labelsField = multisetLabels(context)
+        return context.select(
+            *ASSET_TREE.fields(),
+            variantsField,
+            labelsField,
+        )
             .from(ASSET_TREE)
-            .leftJoin(ASSET_VARIANT)
-            .on(calculateJoinVariantConditions(transformation))
             .where(ASSET_TREE.PATH.eq(treePath))
             .and(entryIdCondition)
-            .orderBy(*orderConditions)
+            .orderBy(*assetOrderConditions)
             .limit(1)
             .awaitFirstOrNull()
+            ?.let { record ->
+                val assetTreeRecord = record.into(ASSET_TREE)
+                val variants = record.getValue(variantsField)
+                val labels = record.getValue(labelsField)
+
+                AssetRecordsDto(assetTreeRecord, variants, labels)
+            }
     }
 
-    private suspend fun fetchAllWithVariant(
+    private suspend fun fetchAllAtPath(
         context: DSLContext,
         treePath: Ltree,
-        transformation: Transformation,
-    ): List<Record> {
-        return context.select()
+        transformation: Transformation?,
+    ): List<AssetRecordsDto> {
+        val variantsField = multisetVariantField(context, transformation)
+        val labelsField = multisetLabels(context)
+        return context.select(
+            *ASSET_TREE.fields(),
+            variantsField,
+            labelsField,
+        )
             .from(ASSET_TREE)
-            .leftJoin(ASSET_VARIANT)
-            .on(calculateJoinVariantConditions(transformation))
             .where(ASSET_TREE.PATH.eq(treePath))
-            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
+            .orderBy(ASSET_TREE.CREATED_AT.desc())
             .asFlow()
+            .map { record ->
+                val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
+                val variants = record.getValue(variantsField)
+                val labels = record.getValue(labelsField)
+
+                AssetRecordsDto(assetTreeRecord, variants, labels)
+            }
             .toList()
     }
 
@@ -318,45 +346,29 @@ class PostgresAssetRepository(
         }
     }
 
-    private suspend fun fetchWithAllVariants(
+    private fun multisetVariantField(
         context: DSLContext,
-        treePath: Ltree,
-        entryId: Long?,
-    ): List<Record> {
-        val entryIdCondition =
-            entryId?.let {
-                ASSET_TREE.ENTRY_ID.eq(entryId)
-            } ?: ASSET_TREE.ENTRY_ID.eq(
-                context.select(ASSET_TREE.ENTRY_ID)
-                    .from(ASSET_TREE)
-                    .where(ASSET_TREE.PATH.eq(treePath))
-                    .orderBy(ASSET_TREE.ENTRY_ID.desc())
-                    .limit(1),
+        transformation: Transformation?,
+    ) = multiset(
+        context.select(*ASSET_VARIANT.fields())
+            .from(ASSET_VARIANT)
+            .where(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
+            .and(
+                transformation?.let {
+                    calculateJoinVariantConditions(it)
+                } ?: noCondition(),
             )
+            .orderBy(ASSET_VARIANT.CREATED_AT.desc()),
+    ).convertFrom { records ->
+        records.map { r -> r.into(AssetVariantRecord::class.java) }
+    }.`as`("variants")
 
-        return context.select()
-            .from(ASSET_TREE)
-            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
-            .where(
-                ASSET_TREE.PATH.eq(treePath),
-            ).and(entryIdCondition)
-            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
-            .asFlow()
-            .toList()
-    }
-
-    private suspend fun fetchAllWithAllVariants(
-        context: DSLContext,
-        treePath: Ltree,
-    ): List<Record> {
-        return context.select()
-            .from(ASSET_TREE)
-            .join(ASSET_VARIANT).on(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
-            .where(
-                ASSET_TREE.PATH.eq(treePath),
-            )
-            .orderBy(ASSET_VARIANT.CREATED_AT.desc())
-            .asFlow()
-            .toList()
-    }
+    private fun multisetLabels(context: DSLContext) =
+        multiset(
+            context.select(*ASSET_LABEL.fields())
+                .from(ASSET_LABEL)
+                .where(ASSET_LABEL.ASSET_ID.eq(ASSET_TREE.ID)),
+        ).convertFrom { records ->
+            records.map { r -> r.into(AssetLabelRecord::class.java) }
+        }.`as`("labels")
 }

@@ -1,12 +1,12 @@
 package io.asset.variant
 
 import direkt.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
+import direkt.jooq.tables.records.AssetVariantRecord
 import io.asset.repository.getNonNull
 import io.image.model.Attributes
 import io.image.model.LQIPs
 import io.image.model.Transformation
 import kotlinx.serialization.json.Json
-import org.jooq.Record
 import java.time.LocalDateTime
 
 data class AssetVariant(
@@ -20,7 +20,7 @@ data class AssetVariant(
     val createdAt: LocalDateTime,
 ) {
     companion object Factory {
-        fun from(record: Record): AssetVariant? {
+        fun from(record: AssetVariantRecord): AssetVariant? {
             if (record.get(ASSET_VARIANT.ID) == null) {
                 return null
             }

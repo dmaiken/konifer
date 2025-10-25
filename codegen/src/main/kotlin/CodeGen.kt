@@ -1,5 +1,4 @@
 import io.r2dbc.spi.ConnectionFactories
-import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE
 import io.r2dbc.spi.ConnectionFactoryOptions.DRIVER
 import io.r2dbc.spi.ConnectionFactoryOptions.HOST
@@ -11,15 +10,14 @@ import io.r2dbc.spi.ConnectionFactoryOptions.builder
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrate
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrateProperties
 import name.nkonev.r2dbc.migrate.reader.ReflectionsClasspathResourceReader
-import org.testcontainers.containers.PostgreSQLContainer
-import java.io.File
 import org.jooq.codegen.GenerationTool
 import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Database
 import org.jooq.meta.jaxb.Generate
 import org.jooq.meta.jaxb.Generator
-import org.jooq.meta.jaxb.Target
 import org.jooq.meta.jaxb.Jdbc
+import org.jooq.meta.jaxb.Target
+import org.testcontainers.containers.PostgreSQLContainer
 
 fun main() {
     // 1. Start Postgres container
@@ -73,8 +71,10 @@ fun main() {
                 directory = "../jooq-generated/src/main/kotlin"
             }
             generate = Generate().apply {
+                withPojos(true)
                 withKotlinNotNullInterfaceAttributes(true)
                 withKotlinNotNullPojoAttributes(true)
+                withPojosAsKotlinDataClasses(true)
             }
         }
     }
