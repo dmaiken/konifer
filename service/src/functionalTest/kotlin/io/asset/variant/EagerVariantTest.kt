@@ -2,7 +2,6 @@ package io.asset.variant
 
 import io.asset.model.StoreAssetRequest
 import io.config.testInMemory
-import io.kotest.common.runBlocking
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
@@ -12,6 +11,7 @@ import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
 import io.util.fetchAssetInfo
 import io.util.storeAssetMultipart
+import kotlinx.coroutines.runBlocking
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
