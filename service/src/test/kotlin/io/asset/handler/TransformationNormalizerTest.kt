@@ -451,7 +451,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
     @Nested
     inner class NormalizeRotateFlipTests {
         @ParameterizedTest
-        @MethodSource("io.asset.handler.RequestedTransformationNormalizerTest#rotateFlipSource")
+        @MethodSource("io.asset.handler.TransformationNormalizerTest#rotateFlipSource")
         fun `can normalize rotation and flip transformation attributes`(
             suppliedRotate: Rotate,
             suppliedFlip: Flip,
