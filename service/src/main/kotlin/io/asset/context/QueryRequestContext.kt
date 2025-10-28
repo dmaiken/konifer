@@ -8,4 +8,5 @@ data class QueryRequestContext(
     val pathConfiguration: PathConfiguration,
     val modifiers: QueryModifiers,
     val transformation: Transformation?,
+    val labels: Map<String, String>,
 )

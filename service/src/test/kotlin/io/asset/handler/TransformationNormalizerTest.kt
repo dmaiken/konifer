@@ -24,7 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
-class RequestedTransformationNormalizerTest : BaseUnitTest() {
+class TransformationNormalizerTest : BaseUnitTest() {
     companion object {
         @JvmStatic
         fun rotateFlipSource() =
@@ -52,8 +52,8 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             )
     }
 
-    private val requestedTransformationNormalizer =
-        RequestedTransformationNormalizer(
+    private val transformationNormalizer =
+        TransformationNormalizer(
             assetRepository = assetRepository,
         )
 
@@ -72,7 +72,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         canUpscale = false,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -94,7 +94,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
             runTest {
                 val asset = storeAsset()
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = RequestedImageTransformation.ORIGINAL_VARIANT,
@@ -117,7 +117,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 shouldThrow<IllegalArgumentException> {
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = "/bad/path",
                         entryId = null,
                         requested = requested,
@@ -140,7 +140,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -167,7 +167,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -193,7 +193,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -221,7 +221,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         filter = Filter.GREYSCALE,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -248,7 +248,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -277,7 +277,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = fit,
                     )
                 shouldThrow<IllegalArgumentException> {
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -297,7 +297,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -321,7 +321,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -344,7 +344,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -382,7 +382,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         originalVariantAttributes = asset.getOriginalVariant().attributes,
                         requested = listOf(requested1, requested2),
                     )
@@ -423,7 +423,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                         fit = Fit.FIT,
                     )
                 val normalized =
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         originalVariantAttributes = asset.getOriginalVariant().attributes,
                         requested = listOf(requested1, requested2),
                     )
@@ -470,7 +470,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                 )
             val normalized =
                 shouldNotThrowAny {
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requested = requested,
@@ -498,7 +498,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -517,7 +517,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -540,7 +540,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -561,7 +561,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -582,7 +582,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -607,7 +607,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -629,7 +629,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -651,7 +651,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -673,7 +673,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -695,7 +695,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     shouldNotThrowAny {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,
@@ -722,7 +722,7 @@ class RequestedTransformationNormalizerTest : BaseUnitTest() {
                     )
                 val exception =
                     shouldThrow<IllegalArgumentException> {
-                        requestedTransformationNormalizer.normalize(
+                        transformationNormalizer.normalize(
                             treePath = asset.asset.path,
                             entryId = asset.asset.entryId,
                             requested = requested,

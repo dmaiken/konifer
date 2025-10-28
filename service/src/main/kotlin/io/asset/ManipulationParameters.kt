@@ -22,7 +22,7 @@ object ManipulationParameters {
      * All parameters minus [VARIANT_PROFILE]. New manipulation parameters must go in here for proper variant
      * request identification.
      */
-    val ALL_PARAMETERS =
+    val ALL_TRANSFORMATION_PARAMETERS =
         setOf(
             HEIGHT,
             WIDTH,
@@ -37,4 +37,6 @@ object ManipulationParameters {
             PAD,
             BACKGROUND,
         )
+
+    val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + setOf(VARIANT_PROFILE)
 }

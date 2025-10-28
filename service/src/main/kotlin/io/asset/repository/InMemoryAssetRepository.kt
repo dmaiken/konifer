@@ -98,11 +98,15 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        labels: Map<String, String>,
     ): AssetAndVariants? {
         val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
 
         val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-        val assetAndVariants = assets.firstOrNull { it.asset.entryId == resolvedEntryId } ?: return null
+        val assetAndVariants =
+            assets.firstOrNull { asset ->
+                asset.asset.entryId == resolvedEntryId && labels.all { asset.asset.labels[it.key] == it.value }
+            } ?: return null
         val variants =
             if (transformation == null) {
                 assetAndVariants.variants
@@ -124,26 +128,29 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        labels: Map<String, String>,
     ): List<AssetAndVariants> {
-        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.toList()?.sortedBy { it.asset.entryId }?.reversed()?.map {
-                assetAndVariants ->
-            val variants =
-                if (transformation == null) {
-                    assetAndVariants.variants
-                } else if (transformation.originalVariant) {
-                    listOf(assetAndVariants.variants.first { it.isOriginalVariant })
-                } else {
-                    assetAndVariants.variants.firstOrNull { variant ->
-                        transformation == variant.transformation
-                    }?.let { matched ->
-                        listOf(matched)
-                    } ?: emptyList()
-                }
-            AssetAndVariants(
-                asset = assetAndVariants.asset,
-                variants = variants,
-            )
-        } ?: emptyList()
+        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.toList()?.sortedBy { it.asset.entryId }
+            ?.filter { labels.all { entry -> it.asset.labels[entry.key] == entry.value } }
+            ?.reversed()
+            ?.map { assetAndVariants ->
+                val variants =
+                    if (transformation == null) {
+                        assetAndVariants.variants
+                    } else if (transformation.originalVariant) {
+                        listOf(assetAndVariants.variants.first { it.isOriginalVariant })
+                    } else {
+                        assetAndVariants.variants.firstOrNull { variant ->
+                            transformation == variant.transformation
+                        }?.let { matched ->
+                            listOf(matched)
+                        } ?: emptyList()
+                    }
+                AssetAndVariants(
+                    asset = assetAndVariants.asset,
+                    variants = variants,
+                )
+            } ?: emptyList()
     }
 
     override suspend fun deleteAssetByPath(

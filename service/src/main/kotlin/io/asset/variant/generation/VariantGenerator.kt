@@ -1,8 +1,8 @@
 package io.asset.variant.generation
 
 import io.asset.AssetStreamContainer
-import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.handler.StoreAssetVariantDto
+import io.asset.handler.TransformationNormalizer
 import io.asset.model.Asset
 import io.asset.model.AssetAndVariants
 import io.asset.repository.AssetRepository
@@ -28,7 +28,7 @@ class VariantGenerator(
     private val objectStore: ObjectStore,
     private val imageProcessor: VipsImageProcessor,
     private val scheduler: PriorityChannelScheduler<ImageProcessingJob<*>>,
-    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
+    private val transformationNormalizer: TransformationNormalizer,
     numberOfWorkers: Int,
 ) {
     private val exceptionHandler =
@@ -107,7 +107,7 @@ class VariantGenerator(
             pathConfiguration = job.pathConfiguration,
             transformations =
                 job.requestedTransformations.let {
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         requested = it,
                         originalVariantAttributes = original.getOriginalVariant().attributes,
                     )

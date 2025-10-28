@@ -24,11 +24,13 @@ interface AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        labels: Map<String, String> = emptyMap(),
     ): AssetAndVariants?
 
     suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        labels: Map<String, String> = emptyMap(),
     ): List<AssetAndVariants>
 
     suspend fun deleteAssetByPath(

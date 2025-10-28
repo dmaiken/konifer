@@ -4,7 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
 import io.asset.AssetStreamContainer
-import io.asset.handler.RequestedTransformationNormalizer
+import io.asset.handler.TransformationNormalizer
 import io.asset.repository.InMemoryAssetRepository
 import io.aws.S3Properties
 import io.createPreProcessingProperties
@@ -38,9 +38,9 @@ import java.util.Base64
 import javax.imageio.ImageIO
 
 class VipsImageProcessorTest {
-    private val requestedTransformationNormalizer = RequestedTransformationNormalizer(InMemoryAssetRepository())
+    private val transformationNormalizer = TransformationNormalizer(InMemoryAssetRepository())
 
-    private val vipsImageProcessor = VipsImageProcessor(requestedTransformationNormalizer)
+    private val vipsImageProcessor = VipsImageProcessor(transformationNormalizer)
 
     @Nested
     inner class PreProcessTests {

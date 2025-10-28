@@ -1,6 +1,7 @@
 package io.asset.context
 
-import io.asset.ManipulationParameters.ALL_PARAMETERS
+import io.asset.ManipulationParameters.ALL_RESERVED_PARAMETERS
+import io.asset.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
 import io.asset.ManipulationParameters.BACKGROUND
 import io.asset.ManipulationParameters.BLUR
 import io.asset.ManipulationParameters.FILTER
@@ -14,7 +15,7 @@ import io.asset.ManipulationParameters.QUALITY
 import io.asset.ManipulationParameters.ROTATE
 import io.asset.ManipulationParameters.VARIANT_PROFILE
 import io.asset.ManipulationParameters.WIDTH
-import io.asset.handler.RequestedTransformationNormalizer
+import io.asset.handler.TransformationNormalizer
 import io.asset.variant.VariantProfileRepository
 import io.image.model.Filter
 import io.image.model.Fit
@@ -32,7 +33,7 @@ import io.properties.validateAndCreate
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantProfileRepository: VariantProfileRepository,
-    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
+    private val transformationNormalizer: TransformationNormalizer,
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -69,7 +70,7 @@ class RequestContextFactory(
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
         val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
-        val requestedImageAttributes = extractRequestedImageAttributes(queryModifiers, queryParameters)
+        val requestedImageAttributes = extractRequestedImageTransformation(queryModifiers, queryParameters)
         if (
             queryModifiers.returnFormat == ReturnFormat.METADATA &&
             requestedImageAttributes != null &&
@@ -84,12 +85,13 @@ class RequestContextFactory(
             modifiers = queryModifiers,
             transformation =
                 requestedImageAttributes?.let {
-                    requestedTransformationNormalizer.normalize(
+                    transformationNormalizer.normalize(
                         treePath = segments.first(),
                         entryId = queryModifiers.entryId,
                         requested = it,
                     )
                 },
+            labels = extractLabels(queryParameters),
         )
     }
 
@@ -243,7 +245,7 @@ class RequestContextFactory(
         return queryModifiers
     }
 
-    private fun extractRequestedImageAttributes(
+    private fun extractRequestedImageTransformation(
         queryModifiers: QueryModifiers,
         parameters: Parameters,
     ): RequestedImageTransformation? {
@@ -252,12 +254,12 @@ class RequestContextFactory(
                 variantProfileRepository.fetch(profileName)
             }
         return if (queryModifiers.returnFormat == ReturnFormat.METADATA && variantProfile == null &&
-            ALL_PARAMETERS.none {
+            ALL_TRANSFORMATION_PARAMETERS.none {
                 parameters.contains(it)
             }
         ) {
             null
-        } else if (variantProfile == null && ALL_PARAMETERS.none { parameters.contains(it) }) {
+        } else if (variantProfile == null && ALL_TRANSFORMATION_PARAMETERS.none { parameters.contains(it) }) {
             RequestedImageTransformation.ORIGINAL_VARIANT
         } else {
             validateAndCreate {
@@ -277,5 +279,18 @@ class RequestContextFactory(
                 )
             }
         }
+    }
+
+    /**
+     * Extract any labels supplied to filter against. Check query parameters for:
+     * 1. Namespaced labels - labels starting with "label:"
+     * 2. Check for any query parameter not already reserved as a currently used param (e.g. bg, h, w, etc)
+     */
+    private fun extractLabels(parameters: Parameters): Map<String, String> {
+        return parameters.entries()
+            .filter { it.value.isNotEmpty() }
+            .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
+            .map { Pair(it.key.substringAfter("label:"), it.value) }
+            .associate { it.first to it.second.first() }
     }
 }

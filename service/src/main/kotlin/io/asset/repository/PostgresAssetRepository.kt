@@ -27,10 +27,12 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.exception.IntegrityConstraintViolationException
+import org.jooq.impl.DSL.exists
 import org.jooq.impl.DSL.jsonbGetAttributeAsText
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.multiset
 import org.jooq.impl.DSL.noCondition
+import org.jooq.impl.DSL.selectOne
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import java.time.LocalDateTime
@@ -165,9 +167,10 @@ class PostgresAssetRepository(
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        labels: Map<String, String>,
     ): AssetAndVariants? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetch(dslContext, treePath, entryId, transformation)?.let {
+        return fetch(dslContext, treePath, entryId, transformation, labels)?.let {
             AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags)
         }
     }
@@ -175,9 +178,10 @@ class PostgresAssetRepository(
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        labels: Map<String, String>,
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetchAllAtPath(dslContext, treePath, transformation)
+        return fetchAllAtPath(dslContext, treePath, transformation, labels)
             .map { AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags) }
     }
 
@@ -285,6 +289,7 @@ class PostgresAssetRepository(
         treePath: Ltree,
         entryId: Long?,
         transformation: Transformation?,
+        labels: Map<String, String> = emptyMap(),
     ): AssetRecordsDto? {
         val entryIdCondition =
             entryId?.let {
@@ -294,6 +299,7 @@ class PostgresAssetRepository(
             entryId?.let {
                 arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_TREE.CREATED_AT.desc())
             } ?: arrayOf(ASSET_TREE.CREATED_AT.desc())
+        val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
@@ -304,7 +310,7 @@ class PostgresAssetRepository(
             tagsField,
         )
             .from(ASSET_TREE)
-            .where(ASSET_TREE.PATH.eq(treePath))
+            .where(whereCondition)
             .and(entryIdCondition)
             .orderBy(*assetOrderConditions)
             .limit(1)
@@ -323,10 +329,12 @@ class PostgresAssetRepository(
         context: DSLContext,
         treePath: Ltree,
         transformation: Transformation?,
+        labels: Map<String, String>,
     ): List<AssetRecordsDto> {
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
+        val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
         return context.select(
             *ASSET_TREE.fields(),
             variantsField,
@@ -334,7 +342,7 @@ class PostgresAssetRepository(
             tagsField,
         )
             .from(ASSET_TREE)
-            .where(ASSET_TREE.PATH.eq(treePath))
+            .where(whereCondition)
             .orderBy(ASSET_TREE.CREATED_AT.desc())
             .asFlow()
             .map { record ->
@@ -402,4 +410,27 @@ class PostgresAssetRepository(
         ).convertFrom { records ->
             records.map { r -> r.into(AssetTagRecord::class.java) }
         }.`as`("tags")
+
+    private fun appendLabelConditions(
+        whereCondition: Condition,
+        labels: Map<String, String>,
+    ): Condition {
+        var condition = whereCondition
+        labels.forEach { label ->
+            condition =
+                condition.and(
+                    exists(
+                        selectOne()
+                            .from(ASSET_LABEL)
+                            .where(ASSET_LABEL.ASSET_ID.eq(ASSET_TREE.ID))
+                            .and(
+                                ASSET_LABEL.LABEL_KEY.eq(label.key)
+                                    .and(ASSET_LABEL.LABEL_VALUE.eq(label.value)),
+                            ),
+                    ),
+                )
+        }
+
+        return condition
+    }
 }

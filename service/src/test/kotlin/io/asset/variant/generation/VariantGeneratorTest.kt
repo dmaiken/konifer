@@ -1,7 +1,7 @@
 package io.asset.variant.generation
 
-import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.handler.StoreAssetDto
+import io.asset.handler.TransformationNormalizer
 import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.InMemoryAssetRepository
@@ -47,13 +47,13 @@ class VariantGeneratorTest {
 
     private val assetRepository = InMemoryAssetRepository()
     private val objectStore = InMemoryObjectStore()
-    private val requestedTransformationNormalizer =
-        RequestedTransformationNormalizer(
+    private val transformationNormalizer =
+        TransformationNormalizer(
             InMemoryAssetRepository(),
         )
     private val imageProcessor =
         spyk<VipsImageProcessor>(
-            VipsImageProcessor(requestedTransformationNormalizer),
+            VipsImageProcessor(transformationNormalizer),
         )
     private val channel = Channel<ImageProcessingJob<*>>()
     private val scheduler =
@@ -69,7 +69,7 @@ class VariantGeneratorTest {
             objectStore = objectStore,
             imageProcessor = imageProcessor,
             scheduler = scheduler,
-            requestedTransformationNormalizer = requestedTransformationNormalizer,
+            transformationNormalizer = transformationNormalizer,
             numberOfWorkers = 8,
         )
 

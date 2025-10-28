@@ -3,7 +3,7 @@ package io.image.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.asset.AssetStreamContainer
-import io.asset.handler.RequestedTransformationNormalizer
+import io.asset.handler.TransformationNormalizer
 import io.asset.variant.AssetVariant
 import io.image.ByteChannelOutputStream
 import io.image.lqip.ImagePreviewGenerator
@@ -29,7 +29,7 @@ import java.lang.foreign.Arena
 import kotlin.time.measureTime
 
 class VipsImageProcessor(
-    private val requestedTransformationNormalizer: RequestedTransformationNormalizer,
+    private val transformationNormalizer: TransformationNormalizer,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -74,7 +74,7 @@ class VipsImageProcessor(
                     val transformation =
                         if (preProcessingProperties.enabled) {
                             runBlocking {
-                                requestedTransformationNormalizer.normalize(
+                                transformationNormalizer.normalize(
                                     requested = requestedTransformation,
                                     originalVariantAttributes =
                                         Attributes(

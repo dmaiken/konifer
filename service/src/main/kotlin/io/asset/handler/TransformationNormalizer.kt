@@ -17,7 +17,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlin.math.roundToInt
 
-class RequestedTransformationNormalizer(
+class TransformationNormalizer(
     private val assetRepository: AssetRepository,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)

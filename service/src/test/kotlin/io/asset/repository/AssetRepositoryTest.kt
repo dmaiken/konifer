@@ -446,6 +446,99 @@ abstract class AssetRepositoryTest {
                     isOriginalVariant shouldBe true
                 }
             }
+
+        @Test
+        fun `returns no asset at path if none have requested labels`() =
+            runTest {
+                val dto =
+                    createAssetDto(
+                        "/users/123",
+                        labels =
+                            mapOf(
+                                "phone" to "iphone",
+                                "hello" to "world",
+                            ),
+                    )
+                val persistedAssetAndVariants = repository.store(dto)
+
+                val assetAndVariants =
+                    repository.fetchByPath(
+                        path = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        transformation = null,
+                        labels =
+                            mapOf(
+                                "phone" to "android",
+                            ),
+                    )
+                assetAndVariants shouldBe null
+            }
+
+        @Test
+        fun `returns asset at path matching all requested labels`() =
+            runTest {
+                val labels =
+                    mapOf(
+                        "phone" to "iphone",
+                        "hello" to "world",
+                    )
+                val dto = createAssetDto("/users/123", labels = labels)
+                val persistedAssetAndVariants = repository.store(dto)
+                repository.store(
+                    createAssetDto(
+                        "/users/123",
+                        labels =
+                            mapOf(
+                                "phone" to "iphone",
+                            ),
+                    ),
+                )
+
+                val assetAndVariants =
+                    repository.fetchByPath(
+                        path = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        transformation = null,
+                        labels = labels,
+                    )
+                assetAndVariants shouldNotBe null
+                assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants.variants shouldHaveSize 1
+                assetAndVariants.variants.first().apply {
+                    isOriginalVariant shouldBe true
+                }
+                assetAndVariants.asset.labels shouldContainExactly labels
+            }
+
+        @Test
+        fun `returns asset at path matching some requested labels`() =
+            runTest {
+                val labels =
+                    mapOf(
+                        "phone" to "iphone",
+                        "hello" to "world",
+                    )
+                val dto = createAssetDto("/users/123", labels = labels)
+                val persistedAssetAndVariants = repository.store(dto)
+
+                val assetAndVariants =
+                    repository.fetchByPath(
+                        path = persistedAssetAndVariants.asset.path,
+                        entryId = persistedAssetAndVariants.asset.entryId,
+                        transformation = null,
+                        labels =
+                            mapOf(
+                                "phone" to "iphone",
+                            ),
+                    )
+                assetAndVariants shouldNotBe null
+                assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants.variants shouldHaveSize 1
+                assetAndVariants.variants.first().apply {
+                    isOriginalVariant shouldBe true
+                }
+                assetAndVariants.asset.labels shouldContainExactly labels
+            }
     }
 
     @Nested
@@ -468,6 +561,75 @@ abstract class AssetRepositoryTest {
                 val assetAndVariant2 = repository.store(dto2)
 
                 repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+            }
+
+        @Test
+        fun `fetchAllByPath returns no assets at path if none have requested labels`() =
+            runTest {
+                val dto1 = createAssetDto("/users/123", labels = emptyMap())
+                val dto2 = createAssetDto("/users/123", labels = emptyMap())
+                repository.store(dto1)
+                repository.store(dto2)
+
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    labels =
+                        mapOf(
+                            "phone" to "iphone",
+                            "hello" to "world",
+                        ),
+                ) shouldBe emptyList()
+            }
+
+        @Test
+        fun `fetchAllByPath returns assets at path matching all requested labels`() =
+            runTest {
+                val labels =
+                    mapOf(
+                        "phone" to "iphone",
+                        "hello" to "world",
+                    )
+                val dto1 = createAssetDto("/users/123", labels = labels)
+                val dto2 =
+                    createAssetDto(
+                        "/users/123",
+                        labels =
+                            mapOf(
+                                "phone" to "iphone",
+                            ),
+                    )
+                val assetAndVariant1 = repository.store(dto1)
+                repository.store(dto2)
+
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    labels = labels,
+                ) shouldBe listOf(assetAndVariant1)
+            }
+
+        @Test
+        fun `fetchAllByPath returns assets at path matching some requested labels`() =
+            runTest {
+                val labels =
+                    mapOf(
+                        "phone" to "iphone",
+                        "hello" to "world",
+                    )
+                val dto1 = createAssetDto("/users/123", labels = labels)
+                val dto2 = createAssetDto("/users/123", labels = labels)
+                val assetAndVariant1 = repository.store(dto1)
+                val assetAndVariant2 = repository.store(dto2)
+
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    labels =
+                        mapOf(
+                            "phone" to "iphone",
+                        ),
+                ) shouldBe listOf(assetAndVariant2, assetAndVariant1)
             }
 
         @Test
@@ -1222,17 +1384,20 @@ abstract class AssetRepositoryTest {
             }
     }
 
-    private fun createAssetDto(treePath: String): StoreAssetDto {
+    private fun createAssetDto(
+        treePath: String,
+        labels: Map<String, String> =
+            mapOf(
+                "phone" to "iphone",
+                "customer" to "vip",
+            ),
+    ): StoreAssetDto {
         return StoreAssetDto(
             path = treePath,
             request =
                 StoreAssetRequest(
                     alt = "an image",
-                    labels =
-                        mapOf(
-                            "phone" to "iphone",
-                            "customer" to "vip",
-                        ),
+                    labels = labels,
                     tags =
                         setOf(
                             "scary",

@@ -4,8 +4,8 @@ import io.asset.context.RequestContextFactory
 import io.asset.handler.AssetStreamContainerFactory
 import io.asset.handler.DeleteAssetHandler
 import io.asset.handler.FetchAssetHandler
-import io.asset.handler.RequestedTransformationNormalizer
 import io.asset.handler.StoreAssetHandler
+import io.asset.handler.TransformationNormalizer
 import io.asset.repository.AssetRepository
 import io.asset.repository.InMemoryAssetRepository
 import io.asset.repository.PostgresAssetRepository
@@ -89,7 +89,7 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
             )
         }
 
-        single<RequestedTransformationNormalizer> {
-            RequestedTransformationNormalizer(get())
+        single<TransformationNormalizer> {
+            TransformationNormalizer(get())
         }
     }
