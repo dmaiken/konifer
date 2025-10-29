@@ -117,9 +117,9 @@ class DeleteAssetTest {
 
             client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
 
-            fetchAssetInfo(client, "user/123", entryId = null, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
 
             fetchAssetInfo(client, "user/123/profile", assetToNotDelete!!.entryId)
             fetchAssetInfo(client, "user/123/profile")
@@ -142,11 +142,11 @@ class DeleteAssetTest {
 
             client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
 
-            fetchAssetInfo(client, "user/123", entryId = null, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123/profile", thirdAsset!!.entryId, HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123/profile/other", fourthAsset!!.entryId, HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123/profile", thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, "user/123/profile/other", fourthAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
 
             fetchAssetInfo(client, "user")
             fetchAssetInfo(client, "user", entryId = control!!.entryId)

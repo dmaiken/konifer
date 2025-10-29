@@ -297,6 +297,7 @@ suspend fun fetchAssetInfo(
     client: HttpClient,
     path: String,
     entryId: Long? = null,
+    labels: Map<String, String> = emptyMap(),
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? {
     return if (entryId != null) {
@@ -304,7 +305,12 @@ suspend fun fetchAssetInfo(
     } else {
         "/assets/$path/-/metadata"
     }.let { requestPath ->
-        val response = client.get(requestPath)
+        val urlBuilder = URLBuilder()
+        urlBuilder.path(requestPath)
+        labels.forEach { label ->
+            urlBuilder.parameters.append(label.key, label.value)
+        }
+        val response = client.get(urlBuilder.build())
         response.status shouldBe expectedStatus
 
         if (response.status == HttpStatusCode.NotFound) {

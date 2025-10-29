@@ -36,10 +36,12 @@ class FetchAssetHandler(
         generateVariant: Boolean,
     ): Pair<AssetAndVariants, Boolean>? {
         val entryId = context.modifiers.entryId
-        logger.info("Fetching asset info by path: ${context.path} with attributes: ${context.transformation}")
+        logger.info(
+            "Fetching asset info by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
+        )
 
         val assetAndVariants =
-            assetRepository.fetchByPath(context.path, entryId, context.transformation) ?: return null
+            assetRepository.fetchByPath(context.path, entryId, context.transformation, context.labels) ?: return null
         if (!generateVariant) {
             return Pair(assetAndVariants, true)
         }

@@ -464,7 +464,7 @@ abstract class AssetRepositoryTest {
                 val assetAndVariants =
                     repository.fetchByPath(
                         path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        entryId = null,
                         transformation = null,
                         labels =
                             mapOf(
@@ -497,7 +497,7 @@ abstract class AssetRepositoryTest {
                 val assetAndVariants =
                     repository.fetchByPath(
                         path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        entryId = null,
                         transformation = null,
                         labels = labels,
                     )
@@ -524,7 +524,7 @@ abstract class AssetRepositoryTest {
                 val assetAndVariants =
                     repository.fetchByPath(
                         path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        entryId = null,
                         transformation = null,
                         labels =
                             mapOf(

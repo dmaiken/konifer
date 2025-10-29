@@ -292,5 +292,8 @@ class RequestContextFactory(
             .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
             .map { Pair(it.key.substringAfter("label:"), it.value) }
             .associate { it.first to it.second.first() }
+            .also {
+                logger.info("Extracted labels: $it")
+            }
     }
 }

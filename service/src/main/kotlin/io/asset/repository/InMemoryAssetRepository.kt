@@ -100,13 +100,7 @@ class InMemoryAssetRepository : AssetRepository {
         transformation: Transformation?,
         labels: Map<String, String>,
     ): AssetAndVariants? {
-        val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
-
-        val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-        val assetAndVariants =
-            assets.firstOrNull { asset ->
-                asset.asset.entryId == resolvedEntryId && labels.all { asset.asset.labels[it.key] == it.value }
-            } ?: return null
+        val assetAndVariants = fetch(path, entryId, labels) ?: return null
         val variants =
             if (transformation == null) {
                 assetAndVariants.variants
@@ -227,6 +221,28 @@ class InMemoryAssetRepository : AssetRepository {
 
     private fun getNextEntryId(path: String): Long {
         return store[path]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
+    }
+
+    private fun fetch(
+        path: String,
+        entryId: Long?,
+        labels: Map<String, String>,
+    ): InMemoryAssetAndVariants? {
+        val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
+
+        if (labels.isNotEmpty()) {
+            if (entryId != null) {
+                return assets.firstOrNull { asset ->
+                    (asset.asset.entryId == entryId && labels.all { asset.asset.labels[it.key] == it.value })
+                }
+            }
+            return assets.firstOrNull { asset ->
+                (labels.all { asset.asset.labels[it.key] == it.value })
+            }
+        }
+
+        val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
+        return assets.firstOrNull { asset -> asset.asset.entryId == resolvedEntryId }
     }
 }
 

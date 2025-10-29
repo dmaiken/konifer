@@ -58,10 +58,8 @@ class AssetStreamContainer(
                 }
 
                 if (counterChannel.totalBytesRead > maxBytes) {
-                    val exception = IllegalArgumentException(TOO_LARGE_MESSAGE)
-                    counterChannel.cancel(exception)
-                    // For some reason I need to throw here too - it's not enough to just cancel
-                    throw exception
+                    counterChannel.cancel()
+                    throw IllegalArgumentException(TOO_LARGE_MESSAGE)
                 }
             }
         } catch (e: IOException) {
