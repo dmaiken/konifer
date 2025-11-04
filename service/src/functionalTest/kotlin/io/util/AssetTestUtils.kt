@@ -213,10 +213,74 @@ suspend fun fetchAssetContent(
                 headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
             }
 
+            headers[HttpHeaders.ContentDisposition] shouldBe null
             bodyAsBytes()
         } else {
             headers.contains(HttpHeaders.Location) shouldBe false
             headers.contains(HttpHeaders.ContentType) shouldBe false
+
+            null
+        }
+    }
+}
+
+suspend fun fetchAssetContentDownload(
+    client: HttpClient,
+    path: String = "profile",
+    entryId: Long? = null,
+    profile: String? = null,
+    height: Int? = null,
+    width: Int? = null,
+    mimeType: String? = null,
+    fit: String? = null,
+    gravity: String? = null,
+    rotate: String? = null,
+    flip: String? = null,
+    filter: String? = null,
+    blur: Int? = null,
+    quality: Int? = null,
+    pad: Int? = null,
+    background: String? = null,
+    expectCacheHit: Boolean? = null,
+    expectedMimeType: String? = null,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
+): Pair<String, ByteArray>? {
+    val urlBuilder = URLBuilder()
+    if (entryId != null) {
+        urlBuilder.path("/assets/$path/-/download/entry/$entryId")
+    } else {
+        urlBuilder.path("/assets/$path/-/download")
+    }
+
+    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    val url = urlBuilder.build()
+    client.get(url.fullPath).apply {
+        status shouldBe expectedStatusCode
+        return if (status == HttpStatusCode.OK) {
+            headers.contains(HttpHeaders.Location) shouldBe false
+            if (expectedMimeType != null) {
+                headers[HttpHeaders.ContentType] shouldBe expectedMimeType
+            } else if (mimeType != null) {
+                (
+                    headers[HttpHeaders.ContentType] shouldBe mimeType
+                )
+            } else {
+                headers[HttpHeaders.ContentType] shouldNotBe null
+            }
+
+            if (expectCacheHit == true) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
+            }
+            if (expectCacheHit == false) {
+                headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
+            }
+            headers[HttpHeaders.ContentDisposition] shouldNotBe null
+
+            Pair(headers[HttpHeaders.ContentDisposition]!!, bodyAsBytes())
+        } else {
+            headers.contains(HttpHeaders.Location) shouldBe false
+            headers.contains(HttpHeaders.ContentType) shouldBe false
+            headers.contains(HttpHeaders.ContentDisposition) shouldBe false
 
             null
         }

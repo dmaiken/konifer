@@ -4,15 +4,11 @@ enum class ReturnFormat {
     CONTENT,
     METADATA,
     REDIRECT,
+    DOWNLOAD,
     LINK,
     ;
 
     companion object {
-        fun fromQueryParam(param: String?) =
-            param?.let {
-                valueOf(it.uppercase())
-            } ?: LINK // Default
-
         fun valueOfOrNull(value: String?): ReturnFormat? =
             value?.let {
                 try {

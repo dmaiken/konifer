@@ -8,6 +8,7 @@ import io.asset.handler.FetchAssetHandler
 import io.asset.handler.StoreAssetHandler
 import io.asset.model.StoreAssetRequest
 import io.getAppStatusCacheHeader
+import io.getContentDispositionHeader
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -90,11 +91,14 @@ fun Application.configureAssetRouting() {
                         call.respond(HttpStatusCode.OK, response.toResponse())
                     } ?: call.respond(HttpStatusCode.NotFound)
                 }
-                ReturnFormat.CONTENT -> {
-                    logger.info("Navigating to asset content with path: ${requestContext.path}")
+                ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
+                    logger.info("Navigating to asset with path (${requestContext.modifiers.returnFormat}: ${requestContext.path}")
                     fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                         logger.info("Found asset content with path: ${requestContext.path}")
                         getAppStatusCacheHeader(response.second).let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        getContentDispositionHeader(response.first, requestContext.modifiers.returnFormat)?.also {
                             call.response.headers.append(it.first, it.second)
                         }
                         call.respondBytesWriter(
