@@ -38,6 +38,25 @@ class FetchAssetDownloadTest {
         }
 
     @Test
+    fun `path is used as filename if alt is not supplied`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val request = StoreAssetRequest()
+            storeAssetMultipart(client, image, request, path = "profile")
+
+            fetchAssetContentDownload(client, path = "profile", expectedMimeType = "image/png")!!.let { (contentDisposition, imageBytes) ->
+                val rendered = byteArrayToImage(imageBytes)
+                rendered.width shouldBe bufferedImage.width
+                rendered.height shouldBe bufferedImage.height
+                Tika().detect(imageBytes) shouldBe "image/png"
+                contentDisposition shouldStartWith "attachment; filename*=UTF-8''"
+                URLDecoder.decode(contentDisposition, Charsets.UTF_8) shouldContain "profile.png"
+            }
+        }
+
+    @Test
     fun `asset not found does not contain content disposition header`() =
         testInMemory {
             fetchAssetContentDownload(
