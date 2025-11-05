@@ -11,4 +11,5 @@ class StoreAssetDto(
     val attributes: Attributes,
     val persistResult: PersistResult,
     val lqips: LQIPs,
+    val source: AssetSource,
 )

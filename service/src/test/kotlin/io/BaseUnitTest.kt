@@ -1,5 +1,6 @@
 package io
 
+import io.asset.handler.AssetSource
 import io.asset.handler.StoreAssetDto
 import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
@@ -18,13 +19,17 @@ abstract class BaseUnitTest {
         height: Int = 100,
         width: Int = 100,
         format: ImageFormat = ImageFormat.PNG,
+        source: AssetSource = AssetSource.UPLOAD,
+        url: String? = null,
+        alt: String? = "",
     ): AssetAndVariants =
         assetRepository.store(
             StoreAssetDto(
                 path = path,
                 request =
                     StoreAssetRequest(
-                        alt = "",
+                        alt = alt,
+                        url = url,
                     ),
                 attributes =
                     Attributes(
@@ -38,6 +43,7 @@ abstract class BaseUnitTest {
                         key = "key",
                     ),
                 lqips = LQIPs.NONE,
+                source = source,
             ),
         )
 }

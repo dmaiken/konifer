@@ -1,5 +1,6 @@
 package io.asset.model
 
+import io.asset.handler.AssetSource
 import io.serializers.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
@@ -11,6 +12,8 @@ data class AssetResponse(
     val entryId: Long,
     val labels: Map<String, String>,
     val tags: Set<String>,
+    val source: AssetSource,
+    val sourceUrl: String?,
     val variants: List<AssetVariantResponse>,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime,

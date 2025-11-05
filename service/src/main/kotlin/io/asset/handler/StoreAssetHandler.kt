@@ -64,6 +64,7 @@ class StoreAssetHandler(
             request = deferredRequest.await(),
             container = multiPartContainer,
             uriPath = uriPath,
+            source = AssetSource.UPLOAD,
         )
     }
 
@@ -75,6 +76,7 @@ class StoreAssetHandler(
             request = request,
             container = assetStreamContainerFactory.fromUrlSource(request.url),
             uriPath = uriPath,
+            source = AssetSource.URL,
         )
     }
 
@@ -82,6 +84,7 @@ class StoreAssetHandler(
         request: StoreAssetRequest,
         container: AssetStreamContainer,
         uriPath: String,
+        source: AssetSource,
     ): AssetAndLocation =
         coroutineScope {
             validateRequest(request)
@@ -113,6 +116,7 @@ class StoreAssetHandler(
                         attributes = preProcessed.attributes,
                         persistResult = persistResult.await(),
                         lqips = preProcessed.lqip,
+                        source = source,
                     ),
                 )
 

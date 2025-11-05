@@ -1,5 +1,6 @@
 package io.asset.repository
 
+import io.asset.handler.AssetSource
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.StoreAssetVariantDto
 import io.asset.model.StoreAssetRequest
@@ -40,13 +41,15 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can store and fetch an asset`() =
             runTest {
-                val dto = createAssetDto("/users/123")
+                val dto = createAssetDto("/users/123", source = AssetSource.URL, url = "https://localhost.com")
                 val assetAndVariants = repository.store(dto)
                 assetAndVariants.asset.apply {
                     path shouldBe "/users/123"
                     entryId shouldBe 0
                     labels shouldContainExactly dto.request.labels
                     tags shouldContainExactly dto.request.tags
+                    source shouldBe dto.source
+                    sourceUrl shouldBe dto.request.url
                 }
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
@@ -59,6 +62,24 @@ abstract class AssetRepositoryTest {
                     this.transformation.fit shouldBe Fit.FIT
                     this.isOriginalVariant shouldBe true
                     this.lqip shouldBe LQIPs.NONE
+                }
+                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
+
+                fetched shouldBe assetAndVariants
+            }
+
+        @Test
+        fun `can store and fetch an asset with null url`() =
+            runTest {
+                val dto = createAssetDto("/users/123", source = AssetSource.UPLOAD, url = null)
+                val assetAndVariants = repository.store(dto)
+                assetAndVariants.asset.apply {
+                    path shouldBe "/users/123"
+                    entryId shouldBe 0
+                    labels shouldContainExactly dto.request.labels
+                    tags shouldContainExactly dto.request.tags
+                    source shouldBe dto.source
+                    sourceUrl shouldBe null
                 }
                 val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
 
@@ -1391,6 +1412,8 @@ abstract class AssetRepositoryTest {
                 "phone" to "iphone",
                 "customer" to "vip",
             ),
+        source: AssetSource = AssetSource.UPLOAD,
+        url: String? = null,
     ): StoreAssetDto {
         return StoreAssetDto(
             path = treePath,
@@ -1403,6 +1426,7 @@ abstract class AssetRepositoryTest {
                             "scary",
                             "spooky",
                         ),
+                    url = url,
                 ),
             attributes =
                 Attributes(
@@ -1416,6 +1440,7 @@ abstract class AssetRepositoryTest {
                     bucket = "bucket",
                 ),
             lqips = LQIPs.NONE,
+            source = source,
         )
     }
 }

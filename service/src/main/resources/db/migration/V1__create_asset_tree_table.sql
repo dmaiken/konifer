@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS asset_tree
     entry_id BIGINT NOT NULL,
     path       ltree     NOT NULL,
     alt        TEXT,
+    source     TEXT      NOT NULL,
+    source_url TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 

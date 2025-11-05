@@ -1,6 +1,7 @@
 package io.asset
 
 import io.BaseTestcontainerTest.Companion.BOUNDARY
+import io.asset.handler.AssetSource
 import io.asset.model.AssetClass
 import io.asset.model.StoreAssetRequest
 import io.byteArrayToImage
@@ -240,6 +241,8 @@ class StoreAssetTest {
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
+            storeAssetResponse.source shouldBe AssetSource.URL
+            storeAssetResponse.sourceUrl shouldBe url
             fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 

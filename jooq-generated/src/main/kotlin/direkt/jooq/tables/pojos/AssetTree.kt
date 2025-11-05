@@ -20,6 +20,8 @@ data class AssetTree(
     var entryId: Long,
     var path: Ltree,
     var alt: String? = null,
+    var source: String,
+    var sourceUrl: String? = null,
     var createdAt: LocalDateTime
 ): Serializable {
 
@@ -44,6 +46,14 @@ data class AssetTree(
         }
         else if (this.alt != o.alt)
             return false
+        if (this.source != o.source)
+            return false
+        if (this.sourceUrl == null) {
+            if (o.sourceUrl != null)
+                return false
+        }
+        else if (this.sourceUrl != o.sourceUrl)
+            return false
         if (this.createdAt != o.createdAt)
             return false
         return true
@@ -56,6 +66,8 @@ data class AssetTree(
         result = prime * result + this.entryId.hashCode()
         result = prime * result + this.path.hashCode()
         result = prime * result + (if (this.alt == null) 0 else this.alt.hashCode())
+        result = prime * result + this.source.hashCode()
+        result = prime * result + (if (this.sourceUrl == null) 0 else this.sourceUrl.hashCode())
         result = prime * result + this.createdAt.hashCode()
         return result
     }
@@ -67,6 +79,8 @@ data class AssetTree(
         sb.append(", ").append(entryId)
         sb.append(", ").append(path)
         sb.append(", ").append(alt)
+        sb.append(", ").append(source)
+        sb.append(", ").append(sourceUrl)
         sb.append(", ").append(createdAt)
 
         sb.append(")")

@@ -1,5 +1,6 @@
 package io.asset.variant.generation
 
+import io.asset.handler.AssetSource
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.TransformationNormalizer
 import io.asset.model.AssetAndVariants
@@ -106,6 +107,7 @@ class VariantGeneratorTest {
                             ),
                         persistResult = objectStoreResponse,
                         lqips = LQIPs.NONE,
+                        source = AssetSource.UPLOAD,
                     ),
                 )
         }

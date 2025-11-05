@@ -48,6 +48,8 @@ data class AssetAndVariants(
             entryId = asset.entryId,
             labels = asset.labels,
             tags = asset.tags,
+            source = asset.source,
+            sourceUrl = asset.sourceUrl,
             variants =
                 variants.map { variant ->
                     AssetVariantResponse(

@@ -36,9 +36,17 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
         set(value): Unit = set(3, value)
         get(): String? = get(3) as String?
 
-    open var createdAt: LocalDateTime?
+    open var source: String?
         set(value): Unit = set(4, value)
-        get(): LocalDateTime? = get(4) as LocalDateTime?
+        get(): String? = get(4) as String?
+
+    open var sourceUrl: String?
+        set(value): Unit = set(5, value)
+        get(): String? = get(5) as String?
+
+    open var createdAt: LocalDateTime?
+        set(value): Unit = set(6, value)
+        get(): LocalDateTime? = get(6) as LocalDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -49,11 +57,13 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
     /**
      * Create a detached, initialised AssetTreeRecord
      */
-    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, source: String? = null, sourceUrl: String? = null, createdAt: LocalDateTime? = null): this() {
         this.id = id
         this.entryId = entryId
         this.path = path
         this.alt = alt
+        this.source = source
+        this.sourceUrl = sourceUrl
         this.createdAt = createdAt
         resetTouchedOnNotNull()
     }
@@ -67,6 +77,8 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
             this.entryId = value.entryId
             this.path = value.path
             this.alt = value.alt
+            this.source = value.source
+            this.sourceUrl = value.sourceUrl
             this.createdAt = value.createdAt
             resetTouchedOnNotNull()
         }

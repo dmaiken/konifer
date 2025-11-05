@@ -16,7 +16,7 @@ import io.util.storeAssetMultipart
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class FetchAssetInfoTest {
+class FetchAssetMetadataTest {
     @Test
     fun `getting all asset info with path returns all info`() =
         testInMemory {

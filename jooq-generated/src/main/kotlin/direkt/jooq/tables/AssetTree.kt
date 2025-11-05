@@ -106,6 +106,16 @@ open class AssetTree(
     val ALT: TableField<AssetTreeRecord, String?> = createField(DSL.name("alt"), SQLDataType.CLOB, this, "")
 
     /**
+     * The column <code>public.asset_tree.source</code>.
+     */
+    val SOURCE: TableField<AssetTreeRecord, String?> = createField(DSL.name("source"), SQLDataType.CLOB.nullable(false), this, "")
+
+    /**
+     * The column <code>public.asset_tree.source_url</code>.
+     */
+    val SOURCE_URL: TableField<AssetTreeRecord, String?> = createField(DSL.name("source_url"), SQLDataType.CLOB, this, "")
+
+    /**
      * The column <code>public.asset_tree.created_at</code>.
      */
     val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")

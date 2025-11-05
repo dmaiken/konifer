@@ -52,15 +52,18 @@ class PostgresAssetRepository(
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
-            val persistedAsset =
+            val insert =
                 trx.dsl().insertInto(ASSET_TREE)
                     .set(ASSET_TREE.ID, assetId)
                     .set(ASSET_TREE.PATH, treePath)
                     .set(ASSET_TREE.ALT, asset.request.alt)
                     .set(ASSET_TREE.ENTRY_ID, entryId)
+                    .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
-                    .returning()
-                    .awaitFirst()
+            asset.request.url?.let {
+                insert.set(ASSET_TREE.SOURCE_URL, it)
+            }
+            val persistedAsset = insert.returning().awaitFirst()
 
             if (asset.request.labels.isNotEmpty()) {
                 val step =

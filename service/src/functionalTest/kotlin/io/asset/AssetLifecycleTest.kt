@@ -1,5 +1,6 @@
 package io.asset
 
+import io.asset.handler.AssetSource
 import io.asset.model.AssetClass
 import io.asset.model.StoreAssetRequest
 import io.config.testInMemory
@@ -41,6 +42,8 @@ class AssetLifecycleTest {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.labels shouldContainExactly labels
             storeAssetResponse.tags shouldContainExactly tags
+            storeAssetResponse.source shouldBe AssetSource.UPLOAD
+            storeAssetResponse.sourceUrl shouldBe null
             fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 

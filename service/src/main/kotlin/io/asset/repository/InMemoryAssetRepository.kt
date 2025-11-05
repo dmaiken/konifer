@@ -35,6 +35,8 @@ class InMemoryAssetRepository : AssetRepository {
                         createdAt = LocalDateTime.now(),
                         labels = asset.request.labels,
                         tags = asset.request.tags,
+                        source = asset.source,
+                        sourceUrl = asset.request.url,
                     ),
                 variants =
                     listOf(

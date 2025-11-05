@@ -1,6 +1,7 @@
 package io.asset.model
 
 import direkt.jooq.tables.records.AssetTreeRecord
+import io.asset.handler.AssetSource
 import io.asset.repository.toPath
 import java.time.LocalDateTime
 import java.util.UUID
@@ -12,6 +13,8 @@ data class Asset(
     val entryId: Long,
     val labels: Map<String, String>,
     val tags: Set<String>,
+    val source: AssetSource,
+    val sourceUrl: String?,
     val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     companion object {
@@ -27,6 +30,8 @@ data class Asset(
                 path = checkNotNull(record.path).toPath(),
                 labels = labels,
                 tags = tags,
+                source = AssetSource.valueOf(checkNotNull(record.source)),
+                sourceUrl = record.sourceUrl,
                 createdAt = checkNotNull(record.createdAt),
             )
     }
