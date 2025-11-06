@@ -3,6 +3,7 @@ package io.asset.repository
 import io.asset.handler.AssetSource
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.StoreAssetVariantDto
+import io.asset.handler.UpdateAssetDto
 import io.asset.model.StoreAssetRequest
 import io.asset.store.PersistResult
 import io.image.model.Attributes
@@ -1402,6 +1403,55 @@ abstract class AssetRepositoryTest {
                     )
                 fetchedVariant shouldBe persistedVariant
             }
+    }
+
+    @Nested
+    inner class UpdateTests {
+        @Test
+        fun `can update attributes of asset`() = runTest {
+            val dto = createAssetDto("/users/123")
+            val assetAndVariants = repository.store(dto)
+
+            val updateDto = UpdateAssetDto(
+                path = dto.path,
+                entryId = assetAndVariants.asset.entryId,
+                request = StoreAssetRequest(
+                    alt = "updated alt",
+                    labels = mapOf(
+                        "updated" to "updated-value",
+                        "updated-phone" to "updated-iphone"
+                    ),
+                    tags = setOf("updated-tag1", "updated-tag2")
+                )
+            )
+            val updated = repository.update(updateDto)
+
+            updated.variants shouldBe assetAndVariants.variants
+            updated.asset.apply {
+                alt shouldBe updateDto.request.alt
+                labels shouldContainExactly updateDto.request.labels
+                tags shouldContainExactly updateDto.request.tags
+            }
+        }
+
+        @Test
+        fun `throws if asset does not exist`() = runTest {
+            val updateDto = UpdateAssetDto(
+                path = "/does/not/exist",
+                entryId = 10L,
+                request = StoreAssetRequest(
+                    alt = "updated alt",
+                    labels = mapOf(
+                        "updated" to "updated-value",
+                        "updated-phone" to "updated-iphone"
+                    ),
+                    tags = setOf("updated-tag1", "updated-tag2")
+                )
+            )
+            shouldThrow<IllegalStateException> {
+                repository.update(updateDto)
+            }
+        }
     }
 
     private fun createAssetDto(
