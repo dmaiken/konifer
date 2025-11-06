@@ -6,6 +6,7 @@ import io.asset.handler.AssetAndLocation
 import io.asset.handler.DeleteAssetHandler
 import io.asset.handler.FetchAssetHandler
 import io.asset.handler.StoreAssetHandler
+import io.asset.handler.UpdateAssetHandler
 import io.asset.model.StoreAssetRequest
 import io.getAppStatusCacheHeader
 import io.getContentDispositionHeader
@@ -27,6 +28,7 @@ import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -46,6 +48,7 @@ fun Application.configureAssetRouting() {
     val storeAssetHandler by inject<StoreAssetHandler>()
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetHandler by inject<DeleteAssetHandler>()
+    val updateAssetHandler by inject<UpdateAssetHandler>()
     val requestContextFactory by inject<RequestContextFactory>()
     val maxMultipartContentLength = environment.config.tryGetString("source.multipart.max-bytes")?.toLong() ?: MAX_BYTES_DEFAULT
 
@@ -133,6 +136,17 @@ fun Application.configureAssetRouting() {
 
         post("$ASSET_PATH_PREFIX/{...}") {
             storeNewAsset(call, storeAssetHandler, maxMultipartContentLength)
+        }
+
+        put("$ASSET_PATH_PREFIX/{...}") {
+            val asset = updateAssetHandler.updateAsset(
+                uriPath = call.request.path(),
+                entryId = 1, // TODO
+                request = call.receive(StoreAssetRequest::class),
+            )
+
+            call.response.headers.append(HttpHeaders.Location, "http//${call.request.origin.localAddress}${asset.locationPath}")
+            call.respond(HttpStatusCode.Created, asset.assetAndVariants.toResponse())
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {

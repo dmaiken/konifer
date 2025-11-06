@@ -2,6 +2,8 @@ package io.asset.repository
 
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.StoreAssetVariantDto
+import io.asset.handler.UpdateAssetDto
+import io.asset.model.Asset
 import io.asset.model.AssetAndVariants
 import io.asset.model.VariantBucketAndKey
 import io.image.model.Transformation
@@ -42,4 +44,6 @@ interface AssetRepository {
         path: String,
         recursive: Boolean,
     ): List<VariantBucketAndKey>
+
+    suspend fun update(asset: UpdateAssetDto): AssetAndVariants
 }

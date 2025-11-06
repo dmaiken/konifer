@@ -10,6 +10,7 @@ import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
 import io.asset.handler.StoreAssetDto
 import io.asset.handler.StoreAssetVariantDto
+import io.asset.handler.UpdateAssetDto
 import io.asset.model.AssetAndVariants
 import io.asset.model.VariantBucketAndKey
 import io.asset.variant.VariantParameterGenerator
@@ -37,6 +38,9 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.map
 
 class PostgresAssetRepository(
     private val dslContext: DSLContext,
@@ -66,36 +70,8 @@ class PostgresAssetRepository(
                 insert.set(ASSET_TREE.SOURCE_URL, it)
             }
             val persistedAsset = insert.returning().awaitFirst()
-
-            if (asset.request.labels.isNotEmpty()) {
-                val step =
-                    trx.dsl().insertInto(
-                        ASSET_LABEL,
-                        ASSET_LABEL.ID,
-                        ASSET_LABEL.ASSET_ID,
-                        ASSET_LABEL.LABEL_KEY,
-                        ASSET_LABEL.LABEL_VALUE,
-                        ASSET_LABEL.CREATED_AT,
-                    )
-                asset.request.labels.map { (key, value) ->
-                    step.values(UUID.randomUUID(), assetId, key, value, now)
-                }
-                step.awaitLast()
-            }
-            if (asset.request.tags.isNotEmpty()) {
-                val step =
-                    trx.dsl().insertInto(
-                        ASSET_TAG,
-                        ASSET_TAG.ID,
-                        ASSET_TAG.ASSET_ID,
-                        ASSET_TAG.TAG_VALUE,
-                        ASSET_TAG.CREATED_AT,
-                    )
-                asset.request.tags.map { value ->
-                    step.values(UUID.randomUUID(), assetId, value, now)
-                }
-                step.awaitLast()
-            }
+            insertLabels(trx.dsl(), assetId, asset.request.labels, now)
+            insertTags(trx.dsl(), assetId, asset.request.tags, now)
 
             val lqip = Json.encodeToString(asset.lqips)
             val persistedVariant =
@@ -286,6 +262,39 @@ class PostgresAssetRepository(
         deletedAssets
     }
 
+    override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
+        val fetched = fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+            ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
+
+        val assetId = fetched.asset.id
+        var modified = false
+        dslContext.transactionCoroutine { trx ->
+            if (fetched.asset.alt != asset.request.alt) {
+                modified = true
+                trx.dsl().update(ASSET_TREE).set(ASSET_TREE.ALT, asset.request.alt).where(ASSET_TREE.ID.eq(assetId))
+            }
+            if (fetched.asset.labels != asset.request.labels) {
+                modified = true
+                trx.dsl().delete(ASSET_LABEL)
+                    .where(ASSET_LABEL.ASSET_ID.eq(assetId))
+                insertLabels(trx.dsl(), assetId, asset.request.labels)
+            }
+            if (fetched.asset.tags != asset.request.tags) {
+                modified = true
+                trx.dsl().delete(ASSET_TAG)
+                    .where(ASSET_TAG.ASSET_ID.eq(assetId))
+                insertTags(trx.dsl(), assetId, asset.request.tags)
+            }
+        }
+
+        return if (modified) {
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+                ?: throw IllegalStateException("Asset does not exist after updating")
+        } else {
+            fetched
+        }
+    }
+
     private suspend fun getNextEntryId(
         context: DSLContext,
         treePath: Ltree,
@@ -450,5 +459,40 @@ class PostgresAssetRepository(
         }
 
         return condition
+    }
+
+    private suspend fun insertLabels(context: DSLContext, assetId: UUID, labels: Map<String, String>, dateTime: LocalDateTime = LocalDateTime.now()) {
+        if (labels.isNotEmpty()) {
+            val step =
+                context.insertInto(
+                    ASSET_LABEL,
+                    ASSET_LABEL.ID,
+                    ASSET_LABEL.ASSET_ID,
+                    ASSET_LABEL.LABEL_KEY,
+                    ASSET_LABEL.LABEL_VALUE,
+                    ASSET_LABEL.CREATED_AT,
+                )
+            labels.forEach { (key, value) ->
+                step.values(UUID.randomUUID(), assetId, key, value, dateTime)
+            }
+            step.awaitLast()
+        }
+    }
+
+    private suspend fun insertTags(context: DSLContext, assetId: UUID, tags: Set<String>, dateTime: LocalDateTime = LocalDateTime.now()) {
+        if (tags.isNotEmpty()) {
+            val step =
+                context.insertInto(
+                    ASSET_TAG,
+                    ASSET_TAG.ID,
+                    ASSET_TAG.ASSET_ID,
+                    ASSET_TAG.TAG_VALUE,
+                    ASSET_TAG.CREATED_AT,
+                )
+            tags.forEach { value ->
+                step.values(UUID.randomUUID(), assetId, value, dateTime)
+            }
+            step.awaitLast()
+        }
     }
 }
