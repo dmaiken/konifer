@@ -32,7 +32,7 @@ class AssetLifecycleTest {
                     labels = labels,
                     tags = tags,
                 )
-            val storeAssetResponse = storeAssetMultipartSource(client, image, request)
+            val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
@@ -60,7 +60,7 @@ class AssetLifecycleTest {
                 )
             val entryIds = mutableListOf<Long>()
             repeat(2) {
-                val response = storeAssetMultipartSource(client, image, request)
+                val response = storeAssetMultipartSource(client, image, request).second
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2

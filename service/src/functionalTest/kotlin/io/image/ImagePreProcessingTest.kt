@@ -63,7 +63,7 @@ class ImagePreProcessingTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -110,7 +110,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipartSource(client, image, request)!!.apply {
+                storeAssetMultipartSource(client, image, request).second!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
@@ -161,7 +161,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipartSource(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -210,7 +210,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipartSource(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -264,7 +264,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipartSource(client, image, request, path = "users/123/profile")!!.apply {
+                storeAssetMultipartSource(client, image, request, path = "users/123/profile").second!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE

@@ -9,6 +9,6 @@ class AssetUrlGenerator(private val port: Int) {
         path: String,
         entryId: Long,
     ): String {
-        return "http://$host:$port/assets$path/-/metadata/entry/$entryId"
+        return "http://$host:$port/assets$path/-/entry/$entryId"
     }
 }

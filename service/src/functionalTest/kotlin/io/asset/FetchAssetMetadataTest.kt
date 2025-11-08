@@ -36,7 +36,7 @@ class FetchAssetMetadataTest {
                 )
             val entryIds = mutableListOf<Long>()
             repeat(2) {
-                storeAssetMultipartSource(client, image, request, path = "profile")?.apply {
+                storeAssetMultipartSource(client, image, request, path = "profile").second?.apply {
                     entryIds.add(entryId)
                 }
             }

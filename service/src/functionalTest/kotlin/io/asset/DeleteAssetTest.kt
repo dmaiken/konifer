@@ -52,8 +52,8 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile")
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset?.entryId
@@ -73,8 +73,8 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile")
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             deleteAsset(client, path = "profile", entryId = firstAsset!!.entryId)
 
@@ -112,9 +112,9 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123")
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123")
-            val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
 
             client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
 
@@ -135,11 +135,11 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val control = storeAssetMultipartSource(client, image, request, path = "user")
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123")
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123")
-            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile")
-            val fourthAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile/other")
+            val control = storeAssetMultipartSource(client, image, request, path = "user").second
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
+            val fourthAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile/other").second
 
             client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
 

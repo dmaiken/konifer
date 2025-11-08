@@ -8,11 +8,13 @@ import io.image.model.Fit
 import io.image.model.ImageFormat
 import io.image.model.ImageProperties
 import io.image.model.Transformation
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.Parameters
 import io.ktor.http.ParametersBuilder
 import io.mockk.every
@@ -43,6 +45,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -51,6 +59,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -59,6 +73,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.REDIRECT,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -67,6 +87,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.CONTENT,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -75,6 +101,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -83,6 +115,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -91,6 +128,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -99,6 +141,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -107,6 +154,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                limit = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -115,6 +166,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -123,6 +178,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                orderBy = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -131,6 +190,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
                 arguments(
@@ -139,6 +199,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
                 arguments(
@@ -147,6 +208,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
                 arguments(
@@ -155,6 +217,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
+                        specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
                 arguments(
@@ -163,6 +226,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
                     ),
                 ),
             )
@@ -210,6 +279,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     QueryModifiers(
                         returnFormat = ReturnFormat.METADATA,
                         entryId = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -217,6 +290,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     QueryModifiers(
                         returnFormat = ReturnFormat.CONTENT,
                         entryId = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -224,6 +301,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     QueryModifiers(
                         returnFormat = ReturnFormat.REDIRECT,
                         entryId = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -231,6 +312,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     QueryModifiers(
                         returnFormat = ReturnFormat.LINK,
                         entryId = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                            ),
                     ),
                 ),
                 arguments(
@@ -317,12 +402,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.asset.context.RequestContextFactoryTest#queryModifierSource")
         fun `can fetch GET request context with query modifiers`(
             path: String,
-            queryModifiers: QueryModifiers,
+            expectedQueryModifiers: QueryModifiers,
         ) = runTest {
             val context = requestContextFactory.fromGetRequest(path, Parameters.Empty)
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe queryModifiers
+            context.modifiers shouldBe expectedQueryModifiers
             context.labels shouldBe emptyMap()
         }
 
@@ -330,12 +415,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.asset.context.RequestContextFactoryTest#getEntryIdSource")
         fun `can fetch GET request context with entryId`(
             path: String,
-            queryModifiers: QueryModifiers,
+            expectedQueryModifiers: QueryModifiers,
         ) = runTest {
             val context = requestContextFactory.fromGetRequest(path, Parameters.Empty)
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe queryModifiers
+            context.modifiers shouldBe expectedQueryModifiers
             context.labels shouldBe emptyMap()
         }
 
@@ -774,6 +859,65 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     requestContextFactory.fromStoreRequest(path, "image/png")
                 }
             exception.message shouldBe "Content type: image/png not permitted"
+        }
+    }
+
+    @Nested
+    inner class UpdateRequestContextTests {
+        @Test
+        fun `can create update request context`() {
+            val path = "/assets/profile/123/-/entry/1"
+
+            val context =
+                shouldNotThrowAny {
+                    requestContextFactory.fromUpdateRequest(path)
+                }
+            context.path shouldBe "/profile/123/"
+            context.entryId shouldBe 1L
+        }
+
+        @Test
+        fun `cannot specify return format`() {
+            val path = "/assets/profile/123/-/metadata/entry/1"
+
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromUpdateRequest(path)
+                }
+            exception.message shouldBe "Return format cannot be supplied on update request"
+        }
+
+        @Test
+        fun `cannot specify orderBy`() {
+            val path = "/assets/profile/123/-/created/entry/1"
+
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromUpdateRequest(path)
+                }
+            exception.message shouldContain "Invalid query modifiers"
+        }
+
+        @Test
+        fun `cannot specify limit`() {
+            val path = "/assets/profile/123/-/entry/1/3"
+
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromUpdateRequest(path)
+                }
+            exception.message shouldContain "Invalid query modifiers"
+        }
+
+        @Test
+        fun `update request context requires an entryId`() {
+            val path = "/assets/profile/123"
+
+            val exception =
+                shouldThrow<InvalidPathException> {
+                    requestContextFactory.fromUpdateRequest(path)
+                }
+            exception.message shouldBe "Entry id must be specified on an update request"
         }
     }
 }

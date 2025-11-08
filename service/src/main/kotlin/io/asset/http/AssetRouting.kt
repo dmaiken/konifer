@@ -142,16 +142,14 @@ fun Application.configureAssetRouting() {
         }
 
         put("$ASSET_PATH_PREFIX/{...}") {
+            val context = requestContextFactory.fromUpdateRequest(call.request.path())
+            logger.info("Received request to update asset at path: ${context.path} and entryId: ${context.entryId}")
             val asset =
                 updateAssetHandler.updateAsset(
-                    uriPath = call.request.path(),
-                    // TODO
-                    entryId = 1,
+                    context = context,
                     request = call.receive(StoreAssetRequest::class),
                 )
-
-            call.response.headers.append(HttpHeaders.Location, "http//${call.request.origin.localAddress}${asset.locationPath}")
-            call.respond(HttpStatusCode.Created, asset.assetAndVariants.toResponse())
+            call.respond(HttpStatusCode.OK, asset.assetAndVariants.toResponse())
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {

@@ -40,7 +40,7 @@ class FetchAssetRedirectTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             client.get("/assets/profile/-/redirect").apply {
                 status shouldBe HttpStatusCode.TemporaryRedirect

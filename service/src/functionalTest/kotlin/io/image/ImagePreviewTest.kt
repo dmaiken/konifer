@@ -169,7 +169,7 @@ class ImagePreviewTest {
         request: StoreAssetRequest,
         lqips: Set<LQIPImplementation>,
     ) {
-        storeAssetMultipartSource(client, image, request, path = PATH)!!.apply {
+        storeAssetMultipartSource(client, image, request, path = PATH).second!!.apply {
             variants.apply {
                 size shouldBe 1
                 if (lqips.contains(LQIPImplementation.BLURHASH)) {

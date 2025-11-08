@@ -104,6 +104,27 @@ class RequestContextFactory(
         )
     }
 
+    fun fromUpdateRequest(path: String): UpdateRequestContext {
+        val segments = extractPathSegments(path)
+        val modifiers = extractQueryModifiers(segments.getOrNull(1))
+        if (modifiers.entryId == null) {
+            throw InvalidPathException("Entry id must be specified on an update request")
+        }
+        if (modifiers.specifiedModifiers.limit) {
+            throw InvalidPathException("Limit cannot be supplied on update request")
+        }
+        if (modifiers.specifiedModifiers.returnFormat) {
+            throw InvalidPathException("Return format cannot be supplied on update request")
+        }
+        if (modifiers.specifiedModifiers.orderBy) {
+            throw InvalidPathException("Order cannot be supplied on update request")
+        }
+        return UpdateRequestContext(
+            path = segments.first(),
+            entryId = modifiers.entryId,
+        )
+    }
+
     private fun extractPathSegments(path: String): List<String> {
         val route = extractRoute(path)
         val segments = route.removeSuffix("/").split("$PATH_NAMESPACE_SEPARATOR/")
@@ -175,12 +196,22 @@ class RequestContextFactory(
                             QueryModifiers(
                                 returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
                                 entryId = queryModifierSegments[2].toNonNegativeLong(),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        returnFormat = true,
+                                    ),
                             )
                         } else {
                             QueryModifiers(
                                 returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
                                 orderBy = OrderBy.valueOf(queryModifierSegments[1]),
                                 limit = queryModifierSegments[2].toPositiveInt(),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        returnFormat = true,
+                                        orderBy = true,
+                                        limit = true,
+                                    ),
                             )
                         }
                     }
@@ -189,6 +220,11 @@ class RequestContextFactory(
                             QueryModifiers(
                                 orderBy = OrderBy.valueOf(queryModifierSegments[0]),
                                 limit = queryModifierSegments[1].toPositiveInt(),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        orderBy = true,
+                                        limit = true,
+                                    ),
                             )
                         } else if (ReturnFormat.valueOfOrNull(queryModifierSegments[0]) != null) {
                             val secondInt = queryModifierSegments[1].toIntOrNull()
@@ -196,11 +232,21 @@ class RequestContextFactory(
                                 QueryModifiers(
                                     returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
                                     limit = queryModifierSegments[1].toPositiveInt(),
+                                    specifiedModifiers =
+                                        SpecifiedInRequest(
+                                            returnFormat = true,
+                                            limit = true,
+                                        ),
                                 )
                             } else {
                                 QueryModifiers(
                                     returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
                                     orderBy = OrderBy.valueOf(queryModifierSegments[1]),
+                                    specifiedModifiers =
+                                        SpecifiedInRequest(
+                                            returnFormat = true,
+                                            orderBy = true,
+                                        ),
                                 )
                             }
                         } else if (queryModifierSegments[0] == ENTRY_ID_MODIFIER) {
@@ -215,14 +261,26 @@ class RequestContextFactory(
                         if (queryModifierSegments[0].toIntOrNull() != null) {
                             QueryModifiers(
                                 limit = queryModifierSegments[0].toPositiveInt(),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        limit = true,
+                                    ),
                             )
                         } else if (ReturnFormat.valueOfOrNull(queryModifierSegments[0]) != null) {
                             QueryModifiers(
                                 returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        returnFormat = true,
+                                    ),
                             )
                         } else if (OrderBy.valueOfOrNull(queryModifierSegments[0]) != null) {
                             QueryModifiers(
                                 orderBy = OrderBy.valueOf(queryModifierSegments[0]),
+                                specifiedModifiers =
+                                    SpecifiedInRequest(
+                                        orderBy = true,
+                                    ),
                             )
                         } else {
                             throw IllegalArgumentException("Invalid query modifiers: $queryModifierSegments")

@@ -38,7 +38,7 @@ class FetchAssetWithLabelsTest {
                     tags = tags,
                 )
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile")!!
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
             fetchAssetMetadata(client, "profile", labels = labels)!!.apply {
@@ -75,7 +75,7 @@ class FetchAssetWithLabelsTest {
                     tags = tags,
                 )
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile")!!
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
             fetchAssetMetadata(client, "profile", entryId = response.entryId, labels = labels)!!.apply {
@@ -115,7 +115,7 @@ class FetchAssetWithLabelsTest {
                     tags = tags,
                 )
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile")!!
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
             fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
@@ -152,7 +152,7 @@ class FetchAssetWithLabelsTest {
                     tags = tags,
                 )
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile")!!
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
             fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
@@ -189,7 +189,7 @@ class FetchAssetWithLabelsTest {
                     tags = tags,
                 )
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile")!!
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
             storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
             fetchAssetMetadata(client, "profile", labels = mapOf("phone" to "iphone"))!!.apply {

@@ -64,7 +64,6 @@ class AssetStreamContainer(
 
                 if (counterChannel.totalBytesRead > maxBytes) {
                     isTooLarge = true
-                    counterChannel.cancel()
                     throw IllegalArgumentException(TOO_LARGE_MESSAGE)
                 }
             }
@@ -75,8 +74,11 @@ class AssetStreamContainer(
                 throw IllegalArgumentException(TOO_LARGE_MESSAGE)
             }
             throw e
-        } catch (e: Exception) {
-            throw e
+        } finally {
+            if (isTooLarge && !counterChannel.isClosedForRead) {
+                // Cancel the underlying channel to stop the client from sending more data
+                counterChannel.cancel()
+            }
         }
     }
 }

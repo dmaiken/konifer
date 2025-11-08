@@ -18,6 +18,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsChannel
@@ -40,36 +41,42 @@ suspend fun storeAssetMultipartSource(
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? =
-    client
-        .post("/assets/$path") {
-            contentType(ContentType.MultiPart.FormData)
-            setBody(
-                MultiPartFormDataContent(
-                    formData {
-                        append(
-                            "metadata",
-                            Json.encodeToString<StoreAssetRequest>(request),
-                            Headers.build {
-                                append(HttpHeaders.ContentType, "application/json")
-                            },
-                        )
-                        append(
-                            "file",
-                            asset,
-                            Headers.build {
-                                append(HttpHeaders.ContentType, "image/png")
-                                append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
-                            },
-                        )
-                    },
-                    BOUNDARY,
-                    ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-                ),
-            )
-        }.let { response ->
-            response.status shouldBe expectedStatus
+): Pair<Headers, AssetResponse?> {
+    return client.post("/assets/$path") {
+        contentType(ContentType.MultiPart.FormData)
+        setBody(
+            MultiPartFormDataContent(
+                formData {
+                    append(
+                        "metadata",
+                        Json.encodeToString<StoreAssetRequest>(request),
+                        Headers.build {
+                            append(HttpHeaders.ContentType, "application/json")
+                        },
+                    )
+                    append(
+                        "file",
+                        asset,
+                        Headers.build {
+                            append(HttpHeaders.ContentType, "image/png")
+                            append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
+                        },
+                    )
+                },
+                BOUNDARY,
+                ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+            ),
+        )
+    }.let { response ->
+        response.status shouldBe expectedStatus
+        val body =
             if (response.status == HttpStatusCode.Created) {
+                // validate location header
+                response.headers[HttpHeaders.Location] shouldNotBe null
+                val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+                client.get(locationUrl.fullPath).apply {
+                    status shouldBe HttpStatusCode.OK
+                }
                 response.body<AssetResponse>().apply {
                     entryId shouldNotBe null
                     createdAt shouldNotBe null
@@ -78,7 +85,10 @@ suspend fun storeAssetMultipartSource(
             } else {
                 null
             }
-        }
+
+        Pair(response.headers, body)
+    }
+}
 
 suspend fun storeAssetUrlSource(
     client: HttpClient,
@@ -98,7 +108,6 @@ suspend fun storeAssetUrlSource(
             val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
             client.get(locationUrl.fullPath).apply {
                 status shouldBe HttpStatusCode.OK
-                body<AssetResponse>() shouldBe responseBody
             }
             responseBody.apply {
                 entryId shouldNotBe null
@@ -422,6 +431,28 @@ suspend fun deleteAsset(
     } else {
         client.delete("/assets/$path").status shouldBe expectedStatusCode
     }
+}
+
+suspend fun updateAsset(
+    client: HttpClient,
+    location: String,
+    body: StoreAssetRequest,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
+): Pair<Headers, AssetResponse?> {
+    val response =
+        client.put(Url(location).fullPath) {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }
+    response.status shouldBe expectedStatusCode
+    response.headers[HttpHeaders.Location] shouldBe null
+    val body =
+        if (response.status == HttpStatusCode.OK) {
+            response.body<AssetResponse>()
+        } else {
+            null
+        }
+    return Pair(response.headers, body)
 }
 
 private fun attachVariantModifiers(

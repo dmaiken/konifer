@@ -49,7 +49,7 @@ class EagerVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1
@@ -112,7 +112,7 @@ class EagerVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1

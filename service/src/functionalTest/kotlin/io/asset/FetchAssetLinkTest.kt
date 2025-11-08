@@ -42,7 +42,7 @@ class FetchAssetLinkTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             client.get("/assets/profile/-/link").apply {
                 status shouldBe HttpStatusCode.OK
@@ -89,7 +89,7 @@ class FetchAssetLinkTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             fetchAssetLink(client, path = "profile")!!.apply {
                 lqip.blurhash shouldNotBe null
@@ -130,7 +130,7 @@ class FetchAssetLinkTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile")
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             var count = 0
             repeat(2) {
