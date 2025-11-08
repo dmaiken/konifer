@@ -9,7 +9,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
 import io.util.fetchAssetContentDownload
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import java.net.URLDecoder
@@ -25,7 +25,7 @@ class FetchAssetDownloadTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetContentDownload(client, path = "profile", expectedMimeType = "image/png")!!.let { (contentDisposition, imageBytes) ->
                 val rendered = byteArrayToImage(imageBytes)
@@ -44,7 +44,7 @@ class FetchAssetDownloadTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request = StoreAssetRequest()
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetContentDownload(client, path = "profile", expectedMimeType = "image/png")!!.let { (contentDisposition, imageBytes) ->
                 val rendered = byteArrayToImage(imageBytes)

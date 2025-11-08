@@ -1,5 +1,7 @@
-package io.asset
+package io.asset.http
 
+import io.asset.AssetStreamContainer
+import io.asset.MAX_BYTES_DEFAULT
 import io.asset.context.RequestContextFactory
 import io.asset.context.ReturnFormat
 import io.asset.handler.AssetAndLocation
@@ -40,7 +42,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
-private val logger = KtorSimpleLogger("io.asset")
+private val logger = KtorSimpleLogger("io.asset.http")
 
 const val ASSET_PATH_PREFIX = "/assets"
 
@@ -50,6 +52,7 @@ fun Application.configureAssetRouting() {
     val deleteAssetHandler by inject<DeleteAssetHandler>()
     val updateAssetHandler by inject<UpdateAssetHandler>()
     val requestContextFactory by inject<RequestContextFactory>()
+    val assetUrlGenerator by inject<AssetUrlGenerator>()
     val maxMultipartContentLength = environment.config.tryGetString("source.multipart.max-bytes")?.toLong() ?: MAX_BYTES_DEFAULT
 
     routing {
@@ -131,19 +134,21 @@ fun Application.configureAssetRouting() {
         }
 
         post(ASSET_PATH_PREFIX) {
-            storeNewAsset(call, storeAssetHandler, maxMultipartContentLength)
+            storeNewAsset(assetUrlGenerator, call, storeAssetHandler, maxMultipartContentLength)
         }
 
         post("$ASSET_PATH_PREFIX/{...}") {
-            storeNewAsset(call, storeAssetHandler, maxMultipartContentLength)
+            storeNewAsset(assetUrlGenerator, call, storeAssetHandler, maxMultipartContentLength)
         }
 
         put("$ASSET_PATH_PREFIX/{...}") {
-            val asset = updateAssetHandler.updateAsset(
-                uriPath = call.request.path(),
-                entryId = 1, // TODO
-                request = call.receive(StoreAssetRequest::class),
-            )
+            val asset =
+                updateAssetHandler.updateAsset(
+                    uriPath = call.request.path(),
+                    // TODO
+                    entryId = 1,
+                    request = call.receive(StoreAssetRequest::class),
+                )
 
             call.response.headers.append(HttpHeaders.Location, "http//${call.request.origin.localAddress}${asset.locationPath}")
             call.respond(HttpStatusCode.Created, asset.assetAndVariants.toResponse())
@@ -164,6 +169,7 @@ fun Application.configureAssetRouting() {
 }
 
 suspend fun storeNewAsset(
+    assetUrlGenerator: AssetUrlGenerator,
     call: RoutingCall,
     storeAssetHandler: StoreAssetHandler,
     maxMultipartContentLength: Long,
@@ -223,6 +229,14 @@ suspend fun storeNewAsset(
 
     logger.info("Created asset under path: ${asset.locationPath}")
 
-    call.response.headers.append(HttpHeaders.Location, "http//${call.request.origin.localAddress}${asset.locationPath}")
+    call.response.headers.append(
+        name = HttpHeaders.Location,
+        value =
+            assetUrlGenerator.generateEntryMetadataUrl(
+                host = call.request.origin.localAddress,
+                path = asset.locationPath,
+                entryId = asset.assetAndVariants.asset.entryId,
+            ),
+    )
     call.respond(HttpStatusCode.Created, asset.assetAndVariants.toResponse())
 }

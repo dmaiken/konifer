@@ -10,8 +10,8 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
-import io.util.fetchAssetInfo
-import io.util.storeAssetMultipart
+import io.util.fetchAssetMetadata
+import io.util.storeAssetMultipartSource
 import org.junit.jupiter.api.Test
 
 class AssetLifecycleTest {
@@ -32,7 +32,7 @@ class AssetLifecycleTest {
                     labels = labels,
                     tags = tags,
                 )
-            val storeAssetResponse = storeAssetMultipart(client, image, request)
+            val storeAssetResponse = storeAssetMultipartSource(client, image, request)
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
@@ -46,7 +46,7 @@ class AssetLifecycleTest {
             storeAssetResponse.tags shouldContainExactly tags
             storeAssetResponse.source shouldBe AssetSource.UPLOAD
             storeAssetResponse.sourceUrl shouldBe null
-            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @Test
@@ -60,11 +60,11 @@ class AssetLifecycleTest {
                 )
             val entryIds = mutableListOf<Long>()
             repeat(2) {
-                val response = storeAssetMultipart(client, image, request)
+                val response = storeAssetMultipartSource(client, image, request)
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2
-            fetchAssetInfo(client, path = "profile")!!.apply {
+            fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe entryIds[1]
             }
         }

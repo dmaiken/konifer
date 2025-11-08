@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.matchers.shouldBeApproximately
 import io.util.createJsonClient
 import io.util.fetchAssetViaRedirect
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
@@ -63,7 +63,7 @@ class ImagePreProcessingTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -110,7 +110,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipart(client, image, request)!!.apply {
+                storeAssetMultipartSource(client, image, request)!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
@@ -161,7 +161,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -210,7 +210,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request)!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -264,7 +264,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipart(client, image, request, path = "users/123/profile")!!.apply {
+                storeAssetMultipartSource(client, image, request, path = "users/123/profile")!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE

@@ -34,7 +34,7 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 
-suspend fun storeAssetMultipart(
+suspend fun storeAssetMultipartSource(
     client: HttpClient,
     asset: ByteArray,
     request: StoreAssetRequest,
@@ -80,28 +80,36 @@ suspend fun storeAssetMultipart(
             }
         }
 
-suspend fun storeAssetUrl(
+suspend fun storeAssetUrlSource(
     client: HttpClient,
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? =
-    client
-        .post("/assets/$path") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.let { response ->
-            response.status shouldBe expectedStatus
-            if (response.status == HttpStatusCode.Created) {
-                response.body<AssetResponse>().apply {
-                    entryId shouldNotBe null
-                    createdAt shouldNotBe null
-                    variants shouldHaveSize 1 // original variant
-                }
-            } else {
-                null
+): AssetResponse? {
+    return client.post("/assets/$path") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.let { response ->
+        response.status shouldBe expectedStatus
+        if (response.status == HttpStatusCode.Created) {
+            val responseBody = response.body<AssetResponse>()
+            // validate location header
+            response.headers[HttpHeaders.Location] shouldNotBe null
+            val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+            client.get(locationUrl.fullPath).apply {
+                status shouldBe HttpStatusCode.OK
+                body<AssetResponse>() shouldBe responseBody
             }
+            responseBody.apply {
+                entryId shouldNotBe null
+                createdAt shouldNotBe null
+                variants shouldHaveSize 1 // original variant
+            }
+        } else {
+            null
         }
+    }
+}
 
 suspend fun fetchAssetViaRedirect(
     client: HttpClient,
@@ -357,7 +365,7 @@ suspend fun assertAssetDoesNotExist(
     }
 }
 
-suspend fun fetchAssetInfo(
+suspend fun fetchAssetMetadata(
     client: HttpClient,
     path: String,
     entryId: Long? = null,

@@ -263,8 +263,9 @@ class PostgresAssetRepository(
     }
 
     override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
-        val fetched = fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
-            ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
+        val fetched =
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+                ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
 
         val assetId = fetched.asset.id
         var modified = false
@@ -466,7 +467,12 @@ class PostgresAssetRepository(
         return condition
     }
 
-    private suspend fun insertLabels(context: DSLContext, assetId: UUID, labels: Map<String, String>, dateTime: LocalDateTime = LocalDateTime.now()) {
+    private suspend fun insertLabels(
+        context: DSLContext,
+        assetId: UUID,
+        labels: Map<String, String>,
+        dateTime: LocalDateTime = LocalDateTime.now(),
+    ) {
         if (labels.isNotEmpty()) {
             val step =
                 context.insertInto(
@@ -484,7 +490,12 @@ class PostgresAssetRepository(
         }
     }
 
-    private suspend fun insertTags(context: DSLContext, assetId: UUID, tags: Set<String>, dateTime: LocalDateTime = LocalDateTime.now()) {
+    private suspend fun insertTags(
+        context: DSLContext,
+        assetId: UUID,
+        tags: Set<String>,
+        dateTime: LocalDateTime = LocalDateTime.now(),
+    ) {
         if (tags.isNotEmpty()) {
             val step =
                 context.insertInto(

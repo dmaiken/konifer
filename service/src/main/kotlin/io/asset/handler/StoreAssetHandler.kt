@@ -29,7 +29,6 @@ class StoreAssetHandler(
     private val requestContextFactory: RequestContextFactory,
     private val assetStreamContainerFactory: AssetStreamContainerFactory,
 ) {
-
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     suspend fun storeNewAssetFromUpload(

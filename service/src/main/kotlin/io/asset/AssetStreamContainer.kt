@@ -1,10 +1,10 @@
 package io.asset
 
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.CountedByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readAvailable
-import kotlinx.io.IOException
 
 /**
  * 100MB
@@ -21,7 +21,8 @@ class AssetStreamContainer(
 
     private var headerOffset = 0
     private var headerBytes = ByteArray(0)
-    private val counterChannel = CountedByteReadChannel(channel)
+    private val counterChannel = CountedByteReadChannel(delegate = channel)
+    private var isTooLarge = false
 
     /**
      * Reads [n] bytes from the backing channel. If [bufferBytes] is true, then the read bytes are also read into an
@@ -34,6 +35,10 @@ class AssetStreamContainer(
     ): ByteArray {
         val result = ByteArray(n)
         var offset = 0
+
+        if (isTooLarge) {
+            throw IllegalArgumentException(TOO_LARGE_MESSAGE)
+        }
 
         try {
             // Read from header first
@@ -58,15 +63,19 @@ class AssetStreamContainer(
                 }
 
                 if (counterChannel.totalBytesRead > maxBytes) {
+                    isTooLarge = true
                     counterChannel.cancel()
                     throw IllegalArgumentException(TOO_LARGE_MESSAGE)
                 }
             }
-        } catch (e: IOException) {
-            if (e.message == TOO_LARGE_MESSAGE) {
-                throw IllegalArgumentException(TOO_LARGE_MESSAGE, e)
+        } catch (e: CancellationException) {
+            // This catches exceptions thrown by Ktor when it tries to read from a cancelled channel.
+            // If the size check failed, we re-throw the specific exception that Ktor will map to 400.
+            if (isTooLarge) {
+                throw IllegalArgumentException(TOO_LARGE_MESSAGE)
             }
-
+            throw e
+        } catch (e: Exception) {
             throw e
         }
     }

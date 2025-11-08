@@ -217,22 +217,27 @@ class InMemoryAssetRepository : AssetRepository {
     }
 
     override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
-        val fetched = fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
-            ?: throw IllegalStateException("Asset does not exist")
+        val fetched =
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+                ?: throw IllegalStateException("Asset does not exist")
 
-        val updated = fetched.copy(
-            asset = fetched.asset.copy(
-                alt = asset.request.alt,
-                labels = asset.request.labels,
-                tags = asset.request.tags,
+        val updated =
+            fetched.copy(
+                asset =
+                    fetched.asset.copy(
+                        alt = asset.request.alt,
+                        labels = asset.request.labels,
+                        tags = asset.request.tags,
+                    ),
             )
-        )
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         store[path]?.removeIf { it.asset.entryId == asset.entryId }
-        store[path]?.add(InMemoryAssetAndVariants(
-            asset = updated.asset,
-            variants = updated.variants.toMutableList()
-        ))
+        store[path]?.add(
+            InMemoryAssetAndVariants(
+                asset = updated.asset,
+                variants = updated.variants.toMutableList(),
+            ),
+        )
 
         return updated
     }

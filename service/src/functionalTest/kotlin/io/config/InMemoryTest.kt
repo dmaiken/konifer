@@ -8,6 +8,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.module
 
 fun testInMemory(
     configuration: String? = null,
@@ -19,6 +20,9 @@ fun testInMemory(
                 val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
                 call.respondBytes(image, ContentType.Application.OctetStream)
             }
+        }
+        application {
+            module()
         }
         environment {
             val inMemoryConfig =

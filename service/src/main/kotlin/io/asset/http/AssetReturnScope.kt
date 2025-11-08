@@ -1,4 +1,4 @@
-package io.asset
+package io.asset.http
 
 enum class AssetReturnScope {
     SINGLE,

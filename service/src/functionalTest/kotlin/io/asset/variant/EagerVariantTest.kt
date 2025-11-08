@@ -9,8 +9,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.util.createJsonClient
-import io.util.fetchAssetInfo
-import io.util.storeAssetMultipart
+import io.util.fetchAssetMetadata
+import io.util.storeAssetMultipartSource
 import kotlinx.coroutines.runBlocking
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
@@ -49,18 +49,18 @@ class EagerVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123")
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1
 
             await().untilCallTo {
                 runBlocking {
-                    fetchAssetInfo(client, "users/123")!!.variants.size
+                    fetchAssetMetadata(client, "users/123")!!.variants.size
                 }
             } matches { count -> count == 3 }
 
-            val variants = fetchAssetInfo(client, "users/123")!!.variants
+            val variants = fetchAssetMetadata(client, "users/123")!!.variants
             variants.forExactly(1) {
                 it.imageAttributes.height shouldBe 15
                 it.imageAttributes.width shouldNotBe 15
@@ -112,18 +112,18 @@ class EagerVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storeResponse = storeAssetMultipart(client, image, request, path = "users/123")
+            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123")
 
             // eager variants should not be in this list
             storeResponse!!.variants shouldHaveSize 1
 
             await().untilCallTo {
                 runBlocking {
-                    fetchAssetInfo(client, "users/123")!!.variants.size
+                    fetchAssetMetadata(client, "users/123")!!.variants.size
                 }
             } matches { count -> count == 3 }
 
-            val variants = fetchAssetInfo(client, "users/123")!!.variants
+            val variants = fetchAssetMetadata(client, "users/123")!!.variants
             variants.forAll {
                 it.bucket shouldBe "correct-bucket"
             }

@@ -21,9 +21,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.util.createJsonClient
 import io.util.fetchAssetContent
-import io.util.fetchAssetInfo
-import io.util.storeAssetMultipart
-import io.util.storeAssetUrl
+import io.util.fetchAssetMetadata
+import io.util.storeAssetMultipartSource
+import io.util.storeAssetUrlSource
 import kotlinx.serialization.json.Json
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
@@ -92,7 +92,7 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test
@@ -113,7 +113,7 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
         }
 
     @Test
@@ -134,7 +134,7 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile")
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
             fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
@@ -170,9 +170,9 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile")
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
-            fetchAssetInfo(client, path = "users/123/profile")!!.let { metadata ->
+            fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {
                     it.bucket shouldBe "correct-bucket"
                 }
@@ -202,7 +202,7 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile")
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
             fetchAssetContent(
                 client,
@@ -234,7 +234,7 @@ class StoreAssetTest {
                     alt = "an image",
                     url = url,
                 )
-            val storeAssetResponse = storeAssetUrl(client, request)
+            val storeAssetResponse = storeAssetUrlSource(client, request)
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
@@ -246,7 +246,7 @@ class StoreAssetTest {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.source shouldBe AssetSource.URL
             storeAssetResponse.sourceUrl shouldBe url
-            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @ParameterizedTest
@@ -277,8 +277,8 @@ class StoreAssetTest {
                     alt = "an image",
                     url = badUrl,
                 )
-            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -301,8 +301,8 @@ class StoreAssetTest {
                     url = url,
                 )
 
-            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -326,8 +326,8 @@ class StoreAssetTest {
                     url = url,
                 )
 
-            storeAssetUrl(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -347,9 +347,9 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -360,9 +360,9 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetUrl(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -374,9 +374,9 @@ class StoreAssetTest {
                     alt = "a".repeat(126),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -388,9 +388,9 @@ class StoreAssetTest {
                     tags = setOf("tag1", "a".repeat(257)),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -406,9 +406,9 @@ class StoreAssetTest {
                         ),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -424,9 +424,9 @@ class StoreAssetTest {
                         ),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -444,8 +444,8 @@ class StoreAssetTest {
                     labels = labels,
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            storeAssetMultipart(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 }

@@ -31,7 +31,7 @@ fun Application.configureStatusPages() =
             logger.info("Returning ${HttpStatusCode.Forbidden} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.Forbidden, cause.message ?: "")
         }
-        exception<AssetNotFoundException> { call , cause ->
+        exception<AssetNotFoundException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.NotFound} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.NotFound, cause.message)
         }

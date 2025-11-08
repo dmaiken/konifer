@@ -10,9 +10,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
 import io.util.createJsonClient
-import io.util.fetchAssetInfo
+import io.util.fetchAssetMetadata
 import io.util.fetchAssetViaRedirect
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.junit.jupiter.api.Test
 
 class ImagePreviewTest {
@@ -152,7 +152,7 @@ class ImagePreviewTest {
                 expectCacheHit = false,
             )
 
-            fetchAssetInfo(client, PATH)!!.apply {
+            fetchAssetMetadata(client, PATH)!!.apply {
                 variants shouldHaveSize 2
                 variants.forAll {
                     it.lqip.blurhash shouldNotBe null
@@ -169,7 +169,7 @@ class ImagePreviewTest {
         request: StoreAssetRequest,
         lqips: Set<LQIPImplementation>,
     ) {
-        storeAssetMultipart(client, image, request, path = PATH)!!.apply {
+        storeAssetMultipartSource(client, image, request, path = PATH)!!.apply {
             variants.apply {
                 size shouldBe 1
                 if (lqips.contains(LQIPImplementation.BLURHASH)) {
@@ -184,7 +184,7 @@ class ImagePreviewTest {
                 }
             }
         }
-        fetchAssetInfo(client, PATH)!!.apply {
+        fetchAssetMetadata(client, PATH)!!.apply {
             variants.apply {
                 size shouldBe 1
                 if (lqips.contains(LQIPImplementation.BLURHASH)) {
