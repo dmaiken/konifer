@@ -1,16 +1,16 @@
-package io.aws
+package io.s3
 
 import io.ktor.server.config.ApplicationConfig
 import io.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
 import io.properties.ValidatedProperties
 import io.properties.validateAndCreate
 
-class S3Properties private constructor(
+class S3PathProperties private constructor(
     val bucket: String,
 ) : ValidatedProperties {
     companion object Factory {
         private const val DEFAULT_BUCKET = "assets"
-        val DEFAULT = S3Properties(DEFAULT_BUCKET)
+        val DEFAULT = S3PathProperties(DEFAULT_BUCKET)
 
         /**
          * Reflects rules outlined here: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
@@ -23,15 +23,15 @@ class S3Properties private constructor(
 
         fun create(
             applicationConfig: ApplicationConfig?,
-            parent: S3Properties?,
-        ): S3Properties =
+            parent: S3PathProperties?,
+        ): S3PathProperties =
             create(
                 bucket = applicationConfig?.propertyOrNull(BUCKET)?.getString() ?: parent?.bucket,
             )
 
-        fun create(bucket: String?): S3Properties =
+        fun create(bucket: String?): S3PathProperties =
             validateAndCreate {
-                S3Properties(bucket ?: DEFAULT_BUCKET)
+                S3PathProperties(bucket ?: DEFAULT_BUCKET)
             }
     }
 

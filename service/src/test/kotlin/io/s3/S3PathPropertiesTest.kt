@@ -1,4 +1,4 @@
-package io.aws
+package io.s3
 
 import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-class S3PropertiesTest {
+class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties`() {
         val properties =
-            S3Properties.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
 
@@ -21,7 +21,7 @@ class S3PropertiesTest {
 
     @Test
     fun `can create S3Properties with defaults`() {
-        val properties = S3Properties.create(null)
+        val properties = S3PathProperties.create(null)
 
         properties.bucket shouldBe "assets"
     }
@@ -29,11 +29,11 @@ class S3PropertiesTest {
     @Test
     fun `can create S3Properties with parent`() {
         val parent =
-            S3Properties.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
         val properties =
-            S3Properties.create(
+            S3PathProperties.create(
                 applicationConfig = null,
                 parent = parent,
             )
@@ -50,7 +50,7 @@ class S3PropertiesTest {
                 """.trimIndent(),
             )
         val properties =
-            S3Properties.create(
+            S3PathProperties.create(
                 applicationConfig = HoconApplicationConfig(config),
                 parent = null,
             )
@@ -61,7 +61,7 @@ class S3PropertiesTest {
     @Test
     fun `can create S3Properties with application config and parent`() {
         val parent =
-            S3Properties.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
         val config =
@@ -71,7 +71,7 @@ class S3PropertiesTest {
                 """.trimIndent(),
             )
         val properties =
-            S3Properties.create(
+            S3PathProperties.create(
                 applicationConfig = HoconApplicationConfig(config),
                 parent = parent,
             )
@@ -106,7 +106,7 @@ class S3PropertiesTest {
     fun `bucket name conform to S3 standards`(bucket: String) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                S3Properties.create(
+                S3PathProperties.create(
                     bucket = bucket,
                 )
             }

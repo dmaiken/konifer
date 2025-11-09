@@ -7,7 +7,6 @@ import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.InMemoryAssetRepository
 import io.asset.store.InMemoryObjectStore
-import io.aws.S3Properties
 import io.createRequestedImageTransformation
 import io.image.DimensionCalculator
 import io.image.model.Attributes
@@ -28,6 +27,7 @@ import io.ktor.utils.io.writeFully
 import io.mockk.coEvery
 import io.mockk.spyk
 import io.path.configuration.PathConfiguration
+import io.s3.S3PathProperties
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -179,7 +179,7 @@ class VariantGeneratorTest {
                                 allowedContentTypes = null,
                                 imageProperties = ImageProperties.DEFAULT,
                                 eagerVariants = emptyList(),
-                                s3Properties = S3Properties.create("different-bucket"),
+                                s3PathProperties = S3PathProperties.create("different-bucket"),
                             ),
                     )
                 channel.send(variantGenerationJob)
@@ -373,7 +373,7 @@ class VariantGeneratorTest {
                                 allowedContentTypes = null,
                                 imageProperties = ImageProperties.DEFAULT,
                                 eagerVariants = emptyList(),
-                                s3Properties = S3Properties.create("different-bucket"),
+                                s3PathProperties = S3PathProperties.create("different-bucket"),
                             ),
                     )
                 channel.send(variantGenerationJob)

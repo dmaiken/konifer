@@ -3,7 +3,6 @@ package io.asset.context
 import io.BaseUnitTest
 import io.asset.handler.TransformationNormalizer
 import io.asset.variant.VariantProfileRepository
-import io.aws.S3Properties
 import io.createRequestedImageTransformation
 import io.image.model.Fit
 import io.image.model.ImageFormat
@@ -16,12 +15,12 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 import io.ktor.http.ParametersBuilder
-import io.ktor.http.parameters
 import io.mockk.every
 import io.mockk.mockk
 import io.path.DeleteMode
 import io.path.configuration.PathConfiguration
 import io.path.configuration.PathConfigurationRepository
+import io.s3.S3PathProperties
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -729,7 +728,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     allowedContentTypes = listOf("image/png"),
                     imageProperties = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3Properties = S3Properties.DEFAULT,
+                    s3PathProperties = S3PathProperties.DEFAULT,
                 )
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -757,7 +756,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     allowedContentTypes = listOf("image/jpeg"),
                     imageProperties = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3Properties = S3Properties.DEFAULT,
+                    s3PathProperties = S3PathProperties.DEFAULT,
                 )
 
             val exception =

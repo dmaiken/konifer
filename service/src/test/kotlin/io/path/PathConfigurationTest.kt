@@ -1,11 +1,11 @@
 package io.path
 
-import io.aws.S3Properties
 import io.image.model.ImageProperties
 import io.image.model.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.path.configuration.PathConfiguration
+import io.s3.S3PathProperties
 import org.junit.jupiter.api.Test
 
 class PathConfigurationTest {
@@ -21,7 +21,7 @@ class PathConfigurationTest {
                             lqip = setOf(),
                         ),
                     eagerVariants = emptyList(),
-                    s3Properties = S3Properties.DEFAULT,
+                    s3PathProperties = S3PathProperties.DEFAULT,
                 )
             }
 

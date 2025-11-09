@@ -1,6 +1,5 @@
 package io.path.configuration
 
-import io.aws.S3Properties
 import io.image.model.ImageFormat
 import io.image.model.ImageProperties
 import io.ktor.server.config.ApplicationConfig
@@ -11,13 +10,14 @@ import io.properties.ConfigurationProperties.PathConfigurationProperties.IMAGE
 import io.properties.ConfigurationProperties.PathConfigurationProperties.S3
 import io.properties.ValidatedProperties
 import io.properties.validateAndCreate
+import io.s3.S3PathProperties
 import io.tryGetConfig
 
 class PathConfiguration private constructor(
     val allowedContentTypes: List<String>?,
     val imageProperties: ImageProperties,
     val eagerVariants: List<String>,
-    val s3Properties: S3Properties,
+    val s3PathProperties: S3PathProperties,
 ) : ValidatedProperties {
     companion object {
         val DEFAULT =
@@ -25,7 +25,7 @@ class PathConfiguration private constructor(
                 allowedContentTypes = null,
                 imageProperties = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
-                s3Properties = S3Properties.DEFAULT,
+                s3PathProperties = S3PathProperties.DEFAULT,
             )
 
         fun create(
@@ -47,10 +47,10 @@ class PathConfiguration private constructor(
                 eagerVariants =
                     applicationConfig.tryGetStringList(EAGER_VARIANTS)
                         ?: parent?.eagerVariants ?: emptyList(),
-                s3Properties =
-                    S3Properties.create(
+                s3PathProperties =
+                    S3PathProperties.create(
                         applicationConfig.tryGetConfig(S3),
-                        parent?.s3Properties,
+                        parent?.s3PathProperties,
                     ),
             )
         }
@@ -59,14 +59,14 @@ class PathConfiguration private constructor(
             allowedContentTypes: List<String>?,
             imageProperties: ImageProperties,
             eagerVariants: List<String>,
-            s3Properties: S3Properties,
+            s3PathProperties: S3PathProperties,
         ): PathConfiguration =
             validateAndCreate {
                 PathConfiguration(
                     allowedContentTypes = allowedContentTypes,
                     imageProperties = imageProperties,
                     eagerVariants = eagerVariants,
-                    s3Properties = s3Properties,
+                    s3PathProperties = s3PathProperties,
                 )
             }
     }

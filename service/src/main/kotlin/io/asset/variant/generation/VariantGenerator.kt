@@ -158,7 +158,7 @@ class VariantGenerator(
                 val processedAssetChannel = ByteChannel(true)
                 val persistResult =
                     async {
-                        objectStore.persist(pathConfiguration.s3Properties.bucket, processedAssetChannel)
+                        objectStore.persist(pathConfiguration.s3PathProperties.bucket, processedAssetChannel)
                     }
                 val newVariant =
                     imageProcessor.generateVariant(

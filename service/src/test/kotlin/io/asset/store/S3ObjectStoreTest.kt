@@ -5,9 +5,9 @@ import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
-import io.aws.AWSProperties
-import io.aws.S3Service
 import io.createImageBuckets
+import io.s3.S3ClientProperties
+import io.s3.S3Service
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -22,7 +22,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @JvmStatic
         @Container
         private val localstack =
-            LocalStackContainer(DockerImageName.parse("localstack/localstack:4.6.0"))
+            LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
                 .withEnv("LOCALSTACK_DISABLE_CHECKSUM_VALIDATION", "1") // Localstack does not like performing a checksum
                 .withServices(LocalStackContainer.Service.S3)
 
@@ -67,10 +67,12 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         }
         return S3Service(
             s3Client = s3Client,
-            awsProperties =
-                AWSProperties(
-                    host = "localhost.localstack.cloud:${localstack.firstMappedPort}",
+            s3ClientProperties =
+                S3ClientProperties(
+                    endpointUrl = "localhost.localstack.cloud:${localstack.firstMappedPort}",
                     region = localstack.region,
+                    accessKey = null,
+                    secretKey = null,
                 ),
         )
     }

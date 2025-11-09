@@ -1,7 +1,6 @@
 package io.image.lqip
 
 import com.vanniktech.blurhash.BlurHash
-import io.aws.S3Properties
 import io.image.lqip.ImagePreviewGenerator.MAX_HEIGHT
 import io.image.lqip.ImagePreviewGenerator.MAX_WIDTH
 import io.image.model.ImageProperties
@@ -16,6 +15,7 @@ import io.ktor.utils.io.copyTo
 import io.lqip.image.ThumbHash
 import io.matchers.shouldHaveSamePixelContentAs
 import io.path.configuration.PathConfiguration
+import io.s3.S3PathProperties
 import io.toBufferedImage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -180,6 +180,6 @@ class ImagePreviewGeneratorTest {
                     lqip = previews,
                 ),
             eagerVariants = emptyList(),
-            s3Properties = S3Properties.DEFAULT,
+            s3PathProperties = S3PathProperties.DEFAULT,
         )
 }

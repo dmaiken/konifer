@@ -1,4 +1,4 @@
-package io.aws
+package io.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.Delete
@@ -28,7 +28,7 @@ import java.util.UUID
 
 class S3Service(
     private val s3Client: S3Client,
-    private val awsProperties: AWSProperties,
+    private val s3ClientProperties: S3ClientProperties,
 ) : ObjectStore {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -143,7 +143,7 @@ class S3Service(
     }
 
     override fun generateObjectUrl(variant: AssetVariant): String {
-        return "https://${awsProperties.host}/${variant.objectStoreBucket}" +
+        return "https://${s3ClientProperties.endpointUrl}/${variant.objectStoreBucket}" +
             "/${variant.objectStoreKey}"
     }
 }

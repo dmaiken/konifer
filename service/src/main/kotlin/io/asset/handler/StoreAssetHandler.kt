@@ -93,7 +93,7 @@ class StoreAssetHandler(
             val processedAssetChannel = ByteChannel(true)
             val persistResult =
                 async {
-                    objectStore.persist(context.pathConfiguration.s3Properties.bucket, processedAssetChannel)
+                    objectStore.persist(context.pathConfiguration.s3PathProperties.bucket, processedAssetChannel)
                 }
             val preProcessedDeferred = CompletableDeferred<PreProcessedImage>()
             variantJobScheduler.scheduleSynchronousJob(
