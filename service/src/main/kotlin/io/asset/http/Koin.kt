@@ -30,9 +30,11 @@ fun Application.httpModule(): Module =
     module {
         val port: Int =
             runBlocking(Dispatchers.IO) {
-                engine.resolvedConnectors().first { connector ->
-                    connector.type == ConnectorType.HTTP
-                }.port
+                engine
+                    .resolvedConnectors()
+                    .first { connector ->
+                        connector.type == ConnectorType.HTTP
+                    }.port
             }
         logger.info("Port is: $port")
         single<AssetUrlGenerator> {

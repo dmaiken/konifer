@@ -272,21 +272,27 @@ class PostgresAssetRepository(
         dslContext.transactionCoroutine { trx ->
             if (fetched.asset.alt != asset.request.alt) {
                 modified = true
-                trx.dsl().update(ASSET_TREE)
+                trx
+                    .dsl()
+                    .update(ASSET_TREE)
                     .set(ASSET_TREE.ALT, asset.request.alt)
                     .where(ASSET_TREE.ID.eq(assetId))
                     .awaitFirst()
             }
             if (fetched.asset.labels != asset.request.labels) {
                 modified = true
-                trx.dsl().delete(ASSET_LABEL)
+                trx
+                    .dsl()
+                    .delete(ASSET_LABEL)
                     .where(ASSET_LABEL.ASSET_ID.eq(assetId))
                     .awaitFirst()
                 insertLabels(trx.dsl(), assetId, asset.request.labels)
             }
             if (fetched.asset.tags != asset.request.tags) {
                 modified = true
-                trx.dsl().delete(ASSET_TAG)
+                trx
+                    .dsl()
+                    .delete(ASSET_TAG)
                     .where(ASSET_TAG.ASSET_ID.eq(assetId))
                     .awaitFirst()
                 insertTags(trx.dsl(), assetId, asset.request.tags)

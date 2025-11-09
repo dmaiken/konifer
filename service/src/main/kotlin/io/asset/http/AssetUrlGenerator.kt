@@ -1,6 +1,8 @@
 package io.asset.http
 
-class AssetUrlGenerator(private val port: Int) {
+class AssetUrlGenerator(
+    private val port: Int,
+) {
     /**
      * Generate a URL for an asset with an entry modifier. This URL is an absolute reference to the asset metadata.
      */
@@ -8,7 +10,5 @@ class AssetUrlGenerator(private val port: Int) {
         host: String,
         path: String,
         entryId: Long,
-    ): String {
-        return "http://$host:$port/assets$path/-/entry/$entryId"
-    }
+    ): String = "http://$host:$port/assets$path/-/entry/$entryId"
 }

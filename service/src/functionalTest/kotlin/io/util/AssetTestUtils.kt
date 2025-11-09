@@ -41,43 +41,76 @@ suspend fun storeAssetMultipartSource(
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): Pair<Headers, AssetResponse?> {
-    return client.post("/assets/$path") {
-        contentType(ContentType.MultiPart.FormData)
-        setBody(
-            MultiPartFormDataContent(
-                formData {
-                    append(
-                        "metadata",
-                        Json.encodeToString<StoreAssetRequest>(request),
-                        Headers.build {
-                            append(HttpHeaders.ContentType, "application/json")
-                        },
-                    )
-                    append(
-                        "file",
-                        asset,
-                        Headers.build {
-                            append(HttpHeaders.ContentType, "image/png")
-                            append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
-                        },
-                    )
-                },
-                BOUNDARY,
-                ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-            ),
-        )
-    }.let { response ->
-        response.status shouldBe expectedStatus
-        val body =
+): Pair<Headers, AssetResponse?> =
+    client
+        .post("/assets/$path") {
+            contentType(ContentType.MultiPart.FormData)
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append(
+                            "metadata",
+                            Json.encodeToString<StoreAssetRequest>(request),
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "application/json")
+                            },
+                        )
+                        append(
+                            "file",
+                            asset,
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "image/png")
+                                append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
+                            },
+                        )
+                    },
+                    BOUNDARY,
+                    ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+                ),
+            )
+        }.let { response ->
+            response.status shouldBe expectedStatus
+            val body =
+                if (response.status == HttpStatusCode.Created) {
+                    // validate location header
+                    response.headers[HttpHeaders.Location] shouldNotBe null
+                    val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+                    client.get(locationUrl.fullPath).apply {
+                        status shouldBe HttpStatusCode.OK
+                    }
+                    response.body<AssetResponse>().apply {
+                        entryId shouldNotBe null
+                        createdAt shouldNotBe null
+                        variants shouldHaveSize 1 // original variant
+                    }
+                } else {
+                    null
+                }
+
+            Pair(response.headers, body)
+        }
+
+suspend fun storeAssetUrlSource(
+    client: HttpClient,
+    request: StoreAssetRequest,
+    path: String = "profile",
+    expectedStatus: HttpStatusCode = HttpStatusCode.Created,
+): AssetResponse? =
+    client
+        .post("/assets/$path") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.let { response ->
+            response.status shouldBe expectedStatus
             if (response.status == HttpStatusCode.Created) {
+                val responseBody = response.body<AssetResponse>()
                 // validate location header
                 response.headers[HttpHeaders.Location] shouldNotBe null
                 val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
                 client.get(locationUrl.fullPath).apply {
                     status shouldBe HttpStatusCode.OK
                 }
-                response.body<AssetResponse>().apply {
+                responseBody.apply {
                     entryId shouldNotBe null
                     createdAt shouldNotBe null
                     variants shouldHaveSize 1 // original variant
@@ -85,40 +118,7 @@ suspend fun storeAssetMultipartSource(
             } else {
                 null
             }
-
-        Pair(response.headers, body)
-    }
-}
-
-suspend fun storeAssetUrlSource(
-    client: HttpClient,
-    request: StoreAssetRequest,
-    path: String = "profile",
-    expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? {
-    return client.post("/assets/$path") {
-        contentType(ContentType.Application.Json)
-        setBody(request)
-    }.let { response ->
-        response.status shouldBe expectedStatus
-        if (response.status == HttpStatusCode.Created) {
-            val responseBody = response.body<AssetResponse>()
-            // validate location header
-            response.headers[HttpHeaders.Location] shouldNotBe null
-            val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
-            client.get(locationUrl.fullPath).apply {
-                status shouldBe HttpStatusCode.OK
-            }
-            responseBody.apply {
-                entryId shouldNotBe null
-                createdAt shouldNotBe null
-                variants shouldHaveSize 1 // original variant
-            }
-        } else {
-            null
         }
-    }
-}
 
 suspend fun fetchAssetViaRedirect(
     client: HttpClient,

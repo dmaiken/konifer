@@ -3,7 +3,6 @@ package io
 import io.asset.assetModule
 import io.asset.http.httpClientModule
 import io.asset.http.httpModule
-import io.aws.awsModule
 import io.database.dbModule
 import io.image.imageModule
 import io.inmemory.inMemoryObjectStoreModule
