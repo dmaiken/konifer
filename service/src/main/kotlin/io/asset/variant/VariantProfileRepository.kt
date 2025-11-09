@@ -32,7 +32,5 @@ class VariantProfileRepository(
             }
         }
 
-    private fun isUrlSafe(input: String): Boolean {
-        return input.all { it.isLetterOrDigit() || it in "-._~" }
-    }
+    private fun isUrlSafe(input: String): Boolean = input.all { it.isLetterOrDigit() || it in "-._~" }
 }

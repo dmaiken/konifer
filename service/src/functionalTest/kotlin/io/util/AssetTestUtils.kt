@@ -40,68 +40,68 @@ suspend fun storeAssetMultipart(
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? {
-    return client.post("/assets/$path") {
-        contentType(ContentType.MultiPart.FormData)
-        setBody(
-            MultiPartFormDataContent(
-                formData {
-                    append(
-                        "metadata",
-                        Json.encodeToString<StoreAssetRequest>(request),
-                        Headers.build {
-                            append(HttpHeaders.ContentType, "application/json")
-                        },
-                    )
-                    append(
-                        "file",
-                        asset,
-                        Headers.build {
-                            append(HttpHeaders.ContentType, "image/png")
-                            append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
-                        },
-                    )
-                },
-                BOUNDARY,
-                ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-            ),
-        )
-    }.let { response ->
-        response.status shouldBe expectedStatus
-        if (response.status == HttpStatusCode.Created) {
-            response.body<AssetResponse>().apply {
-                entryId shouldNotBe null
-                createdAt shouldNotBe null
-                variants shouldHaveSize 1 // original variant
+): AssetResponse? =
+    client
+        .post("/assets/$path") {
+            contentType(ContentType.MultiPart.FormData)
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append(
+                            "metadata",
+                            Json.encodeToString<StoreAssetRequest>(request),
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "application/json")
+                            },
+                        )
+                        append(
+                            "file",
+                            asset,
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "image/png")
+                                append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
+                            },
+                        )
+                    },
+                    BOUNDARY,
+                    ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+                ),
+            )
+        }.let { response ->
+            response.status shouldBe expectedStatus
+            if (response.status == HttpStatusCode.Created) {
+                response.body<AssetResponse>().apply {
+                    entryId shouldNotBe null
+                    createdAt shouldNotBe null
+                    variants shouldHaveSize 1 // original variant
+                }
+            } else {
+                null
             }
-        } else {
-            null
         }
-    }
-}
 
 suspend fun storeAssetUrl(
     client: HttpClient,
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? {
-    return client.post("/assets/$path") {
-        contentType(ContentType.Application.Json)
-        setBody(request)
-    }.let { response ->
-        response.status shouldBe expectedStatus
-        if (response.status == HttpStatusCode.Created) {
-            response.body<AssetResponse>().apply {
-                entryId shouldNotBe null
-                createdAt shouldNotBe null
-                variants shouldHaveSize 1 // original variant
+): AssetResponse? =
+    client
+        .post("/assets/$path") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.let { response ->
+            response.status shouldBe expectedStatus
+            if (response.status == HttpStatusCode.Created) {
+                response.body<AssetResponse>().apply {
+                    entryId shouldNotBe null
+                    createdAt shouldNotBe null
+                    variants shouldHaveSize 1 // original variant
+                }
+            } else {
+                null
             }
-        } else {
-            null
         }
-    }
-}
 
 suspend fun fetchAssetViaRedirect(
     client: HttpClient,
@@ -363,8 +363,8 @@ suspend fun fetchAssetInfo(
     entryId: Long? = null,
     labels: Map<String, String> = emptyMap(),
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
-): AssetResponse? {
-    return if (entryId != null) {
+): AssetResponse? =
+    if (entryId != null) {
         "/assets/$path/-/metadata/entry/$entryId"
     } else {
         "/assets/$path/-/metadata"
@@ -385,7 +385,6 @@ suspend fun fetchAssetInfo(
             }
         }
     }
-}
 
 suspend fun fetchAssetsInfo(
     client: HttpClient,

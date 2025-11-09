@@ -53,15 +53,14 @@ class ImageProperties private constructor(
                         parent?.preProcessing,
                     ),
                 lqip =
-                    applicationConfig?.tryGetStringList(LQIP)
+                    applicationConfig
+                        ?.tryGetStringList(LQIP)
                         ?.map { LQIPImplementation.valueOf(it.uppercase()) }
                         ?.toSet() ?: parent?.previews ?: setOf(),
             )
     }
 
-    override fun toString(): String {
-        return "${this.javaClass.simpleName}(preProcessing: $preProcessing)"
-    }
+    override fun toString(): String = "${this.javaClass.simpleName}(preProcessing: $preProcessing)"
 }
 
 class PreProcessingProperties private constructor(
@@ -82,9 +81,15 @@ class PreProcessingProperties private constructor(
 ) : ValidatedProperties {
     // I think we can be smarter about this
     val enabled: Boolean =
-        maxWidth != null || maxHeight != null || format != null ||
-            fit != Fit.default || rotate != Rotate.default || flip != Flip.default ||
-            filter != Filter.default || (blur != null && blur > 0) || quality != null ||
+        maxWidth != null ||
+            maxHeight != null ||
+            format != null ||
+            fit != Fit.default ||
+            rotate != Rotate.default ||
+            flip != Flip.default ||
+            filter != Filter.default ||
+            (blur != null && blur > 0) ||
+            quality != null ||
             (pad != null && pad > 0)
 
     override fun validate() {
@@ -144,7 +149,20 @@ class PreProcessingProperties private constructor(
             background: String?,
         ) = validateAndCreate {
             PreProcessingProperties(
-                maxWidth, maxHeight, width, height, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background,
+                maxWidth,
+                maxHeight,
+                width,
+                height,
+                format,
+                fit,
+                gravity,
+                rotate,
+                flip,
+                filter,
+                blur,
+                quality,
+                pad,
+                background,
             )
         }
 
@@ -153,55 +171,68 @@ class PreProcessingProperties private constructor(
             parent: PreProcessingProperties?,
         ) = create(
             maxWidth =
-                applicationConfig?.tryGetString(MAX_WIDTH)
+                applicationConfig
+                    ?.tryGetString(MAX_WIDTH)
                     ?.toInt() ?: parent?.maxWidth,
             maxHeight =
-                applicationConfig?.tryGetString(MAX_HEIGHT)
+                applicationConfig
+                    ?.tryGetString(MAX_HEIGHT)
                     ?.toInt() ?: parent?.maxHeight,
             width =
-                applicationConfig?.tryGetString(WIDTH)
+                applicationConfig
+                    ?.tryGetString(WIDTH)
                     ?.toInt() ?: parent?.width,
             height =
-                applicationConfig?.tryGetString(HEIGHT)
+                applicationConfig
+                    ?.tryGetString(HEIGHT)
                     ?.toInt() ?: parent?.height,
             format =
-                applicationConfig?.tryGetString(IMAGE_FORMAT)
+                applicationConfig
+                    ?.tryGetString(IMAGE_FORMAT)
                     ?.let {
                         ImageFormat.fromFormat(it)
                     } ?: parent?.format,
             fit =
-                applicationConfig?.tryGetString(FIT)
+                applicationConfig
+                    ?.tryGetString(FIT)
                     ?.let {
                         Fit.fromString(it)
                     } ?: parent?.fit ?: Fit.default,
             gravity =
-                applicationConfig?.tryGetString(GRAVITY)
+                applicationConfig
+                    ?.tryGetString(GRAVITY)
                     ?.let {
                         Gravity.fromString(it)
                     } ?: parent?.gravity ?: Gravity.default,
             rotate =
-                applicationConfig?.tryGetString(ROTATE)
+                applicationConfig
+                    ?.tryGetString(ROTATE)
                     ?.let {
                         Rotate.fromString(it)
                     } ?: parent?.rotate ?: Rotate.default,
             flip =
-                applicationConfig?.tryGetString(FLIP)
+                applicationConfig
+                    ?.tryGetString(FLIP)
                     ?.let {
                         Flip.fromString(it)
                     } ?: parent?.flip ?: Flip.default,
             filter =
-                applicationConfig?.tryGetString(FILTER)
+                applicationConfig
+                    ?.tryGetString(FILTER)
                     ?.let {
                         Filter.fromString(it)
                     } ?: parent?.filter ?: Filter.default,
             blur =
-                applicationConfig?.tryGetString(BLUR)
+                applicationConfig
+                    ?.tryGetString(BLUR)
                     ?.toInt() ?: parent?.blur,
             quality =
-                applicationConfig?.tryGetString(QUALITY)
+                applicationConfig
+                    ?.tryGetString(QUALITY)
                     ?.toInt() ?: parent?.quality,
             pad =
-                applicationConfig?.tryGetString(PAD)
+                applicationConfig
+                    ?.tryGetString(PAD)
                     ?.toInt() ?: parent?.pad,
             background =
                 applicationConfig?.tryGetString(BACKGROUND)
@@ -228,9 +259,8 @@ class PreProcessingProperties private constructor(
             background = background,
         )
 
-    override fun toString(): String {
-        return "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
+    override fun toString(): String =
+        "${this.javaClass.simpleName}(maxWidth=$maxWidth, maxHeight=$maxHeight, imageFormat=$format " +
             "width=$width, height=$height, format=$format, fit=$fit, gravity=$gravity, rotate=$rotate, " +
             "flip=$flip, filter=$filter, blur=$blur, quality=$quality, pad=$pad, background=$background)"
-    }
 }

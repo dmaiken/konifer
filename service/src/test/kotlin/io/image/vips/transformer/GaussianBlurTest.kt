@@ -35,7 +35,8 @@ class GaussianBlurTest {
                 transformed.processed.writeToStream(actualStream, ".jpeg")
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .gaussblur(amount / 2.0)
                     .writeToStream(expectedStream, ".jpeg")
 
@@ -59,7 +60,8 @@ class GaussianBlurTest {
                 transformed.processed.writeToStream(actualStream, ".jpeg")
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
@@ -72,11 +74,12 @@ class GaussianBlurTest {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                GaussianBlur.transform(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation = blurTransformation(amount),
-                ).requiresLqipRegeneration shouldBe false
+                GaussianBlur
+                    .transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        transformation = blurTransformation(amount),
+                    ).requiresLqipRegeneration shouldBe false
             }
         }
     }

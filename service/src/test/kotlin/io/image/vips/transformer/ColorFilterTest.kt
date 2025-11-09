@@ -62,7 +62,8 @@ class ColorFilterTest {
                 transformed.processed.writeToStream(actualStream, ".jpeg")
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .colourspace(VipsInterpretation.INTERPRETATION_GREY16)
                     .writeToStream(expectedStream, ".jpeg")
 
@@ -86,7 +87,8 @@ class ColorFilterTest {
                 transformed.processed.writeToStream(actualStream, ".jpeg")
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, listOf(128.0))
                     .colourspace(VipsInterpretation.INTERPRETATION_B_W)
                     .writeToStream(expectedStream, ".jpeg")
@@ -112,7 +114,8 @@ class ColorFilterTest {
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
                 val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix))
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                     .recomb(matrixImage)
                     .colourspace(VipsInterpretation.INTERPRETATION_sRGB)

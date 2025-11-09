@@ -52,7 +52,8 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
 
     override fun createRepository(): AssetRepository {
         val options =
-            ConnectionFactoryOptions.builder()
+            ConnectionFactoryOptions
+                .builder()
                 .option(DRIVER, "postgresql")
                 .option(HOST, postgres.host)
                 .option(PORT, postgres.getMappedPort(5432))

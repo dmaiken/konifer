@@ -20,29 +20,33 @@ fun s3Client(properties: S3ClientProperties): S3Client =
             credentialsProvider =
                 StaticCredentialsProvider(
                     Credentials(
-                        properties.accessKey, properties.secretKey,
+                        properties.accessKey,
+                        properties.secretKey,
                     ),
                 )
         }
         properties.endpointUrl?.also {
             endpointUrl = Url.parse(it)
         }
-        region = properties.region
+        properties.region?.also {
+            region = it
+        }
     }
 
 fun createImageBuckets(
     s3Client: S3Client,
     vararg buckets: String,
 ) = runBlocking {
-    buckets.map {
-        launch {
-            s3Client.createBucket(
-                CreateBucketRequest {
-                    bucket = it
-                },
-            )
-        }
-    }.joinAll()
+    buckets
+        .map {
+            launch {
+                s3Client.createBucket(
+                    CreateBucketRequest {
+                        bucket = it
+                    },
+                )
+            }
+        }.joinAll()
 }
 
 data class LocalstackProperties(

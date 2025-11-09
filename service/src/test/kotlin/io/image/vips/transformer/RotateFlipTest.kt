@@ -68,7 +68,8 @@ class RotateFlipTest {
                     else -> throw IllegalStateException()
                 }.toDouble()
             val expected =
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .rotate(angle)
                     .let {
                         if (horizontalFlip) {

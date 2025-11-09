@@ -9,7 +9,5 @@ interface MimeTypeDetector {
 class TikaMimeTypeDetector : MimeTypeDetector {
     private val tika = Tika()
 
-    override fun detect(byteArray: ByteArray): String {
-        return tika.detect(byteArray)
-    }
+    override fun detect(byteArray: ByteArray): String = tika.detect(byteArray)
 }

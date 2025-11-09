@@ -7,7 +7,7 @@ import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import java.util.UUID
 
-class InMemoryObjectStore() : ObjectStore {
+class InMemoryObjectStore : ObjectStore {
     companion object {
         const val DEFAULT_PORT = 8080
     }
@@ -65,10 +65,9 @@ class InMemoryObjectStore() : ObjectStore {
         keys.forEach { delete(bucket, it) }
     }
 
-    override fun generateObjectUrl(variant: AssetVariant): String {
-        return "http://localhost:$DEFAULT_PORT/objectStore/${variant.objectStoreBucket}" +
+    override fun generateObjectUrl(variant: AssetVariant): String =
+        "http://localhost:$DEFAULT_PORT/objectStore/${variant.objectStoreBucket}" +
             "/${variant.objectStoreKey}"
-    }
 
     fun clearObjectStore() {
         store.clear()

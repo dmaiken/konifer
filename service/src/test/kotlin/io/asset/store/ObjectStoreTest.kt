@@ -49,6 +49,32 @@ abstract class ObjectStoreTest {
         }
 
     @Test
+    fun `can persist and fetch an object without supplying content length`() =
+        runTest {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readAllBytes()
+            val channel = ByteChannel(autoFlush = true)
+            val resultDeferred =
+                async {
+                    store.persist(BUCKET_1, channel)
+                }
+            channel.writeFully(image)
+            channel.close()
+
+            val result = resultDeferred.await()
+            result.bucket shouldBe BUCKET_1
+
+            val stream = ByteChannel(autoFlush = true)
+            val fetched =
+                async {
+                    stream.toByteArray()
+                }
+            val fetchResult = store.fetch(result.bucket, result.key, stream)
+            fetchResult.found shouldBe true
+            fetchResult.contentLength shouldBe image.size.toLong()
+            fetched.await() shouldBe image
+        }
+
+    @Test
     fun `can fetch if the object does not exist`() =
         runTest {
             val stream = ByteChannel(autoFlush = true)

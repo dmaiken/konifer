@@ -40,8 +40,8 @@ object DimensionCalculator {
         width: Int?,
         height: Int?,
         fit: Fit,
-    ): Pair<Int, Int> {
-        return when (fit) {
+    ): Pair<Int, Int> =
+        when (fit) {
             Fit.FIT -> {
                 when {
                     width != null && height == null -> {
@@ -74,5 +74,4 @@ object DimensionCalculator {
                     },
                 )
         }
-    }
 }

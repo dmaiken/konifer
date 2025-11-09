@@ -109,11 +109,12 @@ class InMemoryAssetRepository : AssetRepository {
             } else if (transformation.originalVariant) {
                 listOf(assetAndVariants.variants.first { it.isOriginalVariant })
             } else {
-                assetAndVariants.variants.firstOrNull { variant ->
-                    transformation == variant.transformation
-                }?.let { matched ->
-                    listOf(matched)
-                } ?: emptyList()
+                assetAndVariants.variants
+                    .firstOrNull { variant ->
+                        transformation == variant.transformation
+                    }?.let { matched ->
+                        listOf(matched)
+                    } ?: emptyList()
             }
         return AssetAndVariants(
             asset = assetAndVariants.asset,
@@ -125,8 +126,10 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         transformation: Transformation?,
         labels: Map<String, String>,
-    ): List<AssetAndVariants> {
-        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]?.toList()?.sortedBy { it.asset.entryId }
+    ): List<AssetAndVariants> =
+        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
+            ?.toList()
+            ?.sortedBy { it.asset.entryId }
             ?.filter { labels.all { entry -> it.asset.labels[entry.key] == entry.value } }
             ?.reversed()
             ?.map { assetAndVariants ->
@@ -136,18 +139,18 @@ class InMemoryAssetRepository : AssetRepository {
                     } else if (transformation.originalVariant) {
                         listOf(assetAndVariants.variants.first { it.isOriginalVariant })
                     } else {
-                        assetAndVariants.variants.firstOrNull { variant ->
-                            transformation == variant.transformation
-                        }?.let { matched ->
-                            listOf(matched)
-                        } ?: emptyList()
+                        assetAndVariants.variants
+                            .firstOrNull { variant ->
+                                transformation == variant.transformation
+                            }?.let { matched ->
+                                listOf(matched)
+                            } ?: emptyList()
                     }
                 AssetAndVariants(
                     asset = assetAndVariants.asset,
                     variants = variants,
                 )
             } ?: emptyList()
-    }
 
     override suspend fun deleteAssetByPath(
         path: String,
@@ -212,18 +215,20 @@ class InMemoryAssetRepository : AssetRepository {
         return objectStoreInformation
     }
 
-    private fun mapToBucketAndKey(assetAndVariants: InMemoryAssetAndVariants): List<VariantBucketAndKey> {
-        return assetAndVariants.variants.map { variant ->
+    private fun mapToBucketAndKey(assetAndVariants: InMemoryAssetAndVariants): List<VariantBucketAndKey> =
+        assetAndVariants.variants.map { variant ->
             VariantBucketAndKey(
                 bucket = variant.objectStoreBucket,
                 key = variant.objectStoreKey,
             )
         }
-    }
 
-    private fun getNextEntryId(path: String): Long {
-        return store[path]?.maxByOrNull { it.asset.entryId }?.asset?.entryId?.inc() ?: 0
-    }
+    private fun getNextEntryId(path: String): Long =
+        store[path]
+            ?.maxByOrNull { it.asset.entryId }
+            ?.asset
+            ?.entryId
+            ?.inc() ?: 0
 
     private fun fetch(
         path: String,

@@ -310,7 +310,8 @@ class ResizeTest {
                 }
             Vips.run { arena ->
                 val expected =
-                    VImage.newFromBytes(arena, image)
+                    VImage
+                        .newFromBytes(arena, image)
                         .thumbnailImage(
                             width,
                             VipsOption.Int(VIPS_OPTION_HEIGHT, height),
@@ -485,16 +486,17 @@ class ResizeTest {
             val container = AssetStreamContainer(imageChannel)
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 50,
-                            height = 50,
-                            fit = fit,
-                        ),
-                ).requiresLqipRegeneration shouldBe true
+                Resize
+                    .transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 50,
+                                height = 50,
+                                fit = fit,
+                            ),
+                    ).requiresLqipRegeneration shouldBe true
             }
         }
 
@@ -509,16 +511,17 @@ class ResizeTest {
             val container = AssetStreamContainer(imageChannel)
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 2000,
-                            height = 2000,
-                            fit = fit,
-                        ),
-                ).requiresLqipRegeneration shouldBe true
+                Resize
+                    .transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 2000,
+                                height = 2000,
+                                fit = fit,
+                            ),
+                    ).requiresLqipRegeneration shouldBe true
             }
         }
 
@@ -533,17 +536,18 @@ class ResizeTest {
             val container = AssetStreamContainer(imageChannel)
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 2000,
-                            height = 2000,
-                            fit = fit,
-                            upscale = false,
-                        ),
-                ).requiresLqipRegeneration shouldBe false
+                Resize
+                    .transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 2000,
+                                height = 2000,
+                                fit = fit,
+                                upscale = false,
+                            ),
+                    ).requiresLqipRegeneration shouldBe false
             }
         }
 
@@ -557,16 +561,17 @@ class ResizeTest {
             val container = AssetStreamContainer(imageChannel)
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 2000,
-                            height = 2000,
-                            fit = Fit.FIT,
-                        ),
-                ).requiresLqipRegeneration shouldBe false
+                Resize
+                    .transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 2000,
+                                height = 2000,
+                                fit = Fit.FIT,
+                            ),
+                    ).requiresLqipRegeneration shouldBe false
             }
         }
 
@@ -580,16 +585,17 @@ class ResizeTest {
             val container = AssetStreamContainer(imageChannel)
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 50,
-                            height = 50,
-                            fit = Fit.FIT,
-                        ),
-                ).requiresLqipRegeneration shouldBe false
+                Resize
+                    .transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 50,
+                                height = 50,
+                                fit = Fit.FIT,
+                            ),
+                    ).requiresLqipRegeneration shouldBe false
             }
         }
     }

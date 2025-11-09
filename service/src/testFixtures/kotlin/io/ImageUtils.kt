@@ -79,13 +79,13 @@ object PHash {
 
             // Load & normalize
             val img =
-                VImage.newFromBytes(arena, bytes)
+                VImage
+                    .newFromBytes(arena, bytes)
                     .thumbnailImage(
                         size,
                         VipsOption.Int("height", size),
                         VipsOption.Enum("size", VipsSize.SIZE_FORCE),
-                    )
-                    .colourspace(VipsInterpretation.INTERPRETATION_B_W)
+                    ).colourspace(VipsInterpretation.INTERPRETATION_B_W)
                     .cast(VipsBandFormat.FORMAT_FLOAT)
 
             // Extract pixels into double matrix

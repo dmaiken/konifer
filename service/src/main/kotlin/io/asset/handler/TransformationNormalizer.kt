@@ -39,11 +39,13 @@ class TransformationNormalizer(
 
             val originalVariantDeferred =
                 async(start = CoroutineStart.LAZY) {
-                    assetRepository.fetchByPath(
-                        path = treePath,
-                        entryId = entryId,
-                        transformation = Transformation.ORIGINAL_VARIANT,
-                    )?.getOriginalVariant()?.attributes ?: throw IllegalArgumentException(
+                    assetRepository
+                        .fetchByPath(
+                            path = treePath,
+                            entryId = entryId,
+                            transformation = Transformation.ORIGINAL_VARIANT,
+                        )?.getOriginalVariant()
+                        ?.attributes ?: throw IllegalArgumentException(
                         "Original variant not found with path: $treePath, entryId: ${entryId ?: "Not Specified"}",
                     )
                 }
@@ -124,8 +126,8 @@ class TransformationNormalizer(
     private suspend fun normalizeDimensions(
         requested: RequestedImageTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
-    ): Pair<Int, Int> {
-        return when (requested.fit) {
+    ): Pair<Int, Int> =
+        when (requested.fit) {
             Fit.FIT -> {
                 if ((requested.width == null && requested.height != null) || (requested.width != null && requested.height == null)) {
                     val originalVariant = originalAttributesDeferred.await()
@@ -150,7 +152,6 @@ class TransformationNormalizer(
                 Pair(requireNotNull(requested.width), requireNotNull(requested.height))
             }
         }
-    }
 
     private suspend fun normalizeFormat(
         requested: RequestedImageTransformation,

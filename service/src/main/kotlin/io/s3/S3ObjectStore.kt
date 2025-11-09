@@ -26,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-class S3Service(
+class S3ObjectStore(
     private val s3Client: S3Client,
     private val s3ClientProperties: S3ClientProperties,
 ) : ObjectStore {
@@ -44,7 +44,6 @@ class S3Service(
                     PutObjectRequest {
                         this.bucket = bucket
                         this.key = key
-                        // Content type is needed in order for the SDK to calculate a valid checksum
                         body = ByteStream.fromInputStream(asset.toInputStream(), contentLength)
                     },
             )
@@ -87,8 +86,8 @@ class S3Service(
     override suspend fun exists(
         bucket: String,
         key: String,
-    ): Boolean {
-        return try {
+    ): Boolean =
+        try {
             s3Client.headObject(
                 HeadObjectRequest {
                     this.bucket = bucket
@@ -100,7 +99,6 @@ class S3Service(
             logger.info("Object with key $key in bucket $bucket does not exist", e)
             false
         }
-    }
 
     override suspend fun delete(
         bucket: String,
@@ -143,7 +141,16 @@ class S3Service(
     }
 
     override fun generateObjectUrl(variant: AssetVariant): String {
-        return "https://${s3ClientProperties.endpointUrl}/${variant.objectStoreBucket}" +
-            "/${variant.objectStoreKey}"
+        return if (s3ClientProperties.usePathStyleUrl) {
+            s3ClientProperties.endpointUrl?.let { endpointUrl ->
+                // Not using AWS S3
+                "https://$endpointUrl/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+            } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+        } else {
+            return s3ClientProperties.endpointUrl?.let { endpointUrl ->
+                // Not using AWS S3
+                "https://${variant.objectStoreBucket}.$endpointUrl/${variant.objectStoreKey}"
+            } ?: "https://${variant.objectStoreBucket}.s3.${s3ClientProperties.region}.amazonaws.com/${variant.objectStoreKey}"
+        }
     }
 }

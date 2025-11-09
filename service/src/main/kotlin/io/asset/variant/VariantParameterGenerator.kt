@@ -48,7 +48,5 @@ object VariantParameterGenerator {
             ),
         )
 
-    private fun generateTransformationKey(attributes: String): Long {
-        return xx3.hashBytes(attributes.toByteArray(Charsets.UTF_8))
-    }
+    private fun generateTransformationKey(attributes: String): Long = xx3.hashBytes(attributes.toByteArray(Charsets.UTF_8))
 }

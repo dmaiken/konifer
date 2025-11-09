@@ -803,8 +803,7 @@ abstract class AssetRepositoryTest {
                 fetched.forAll {
                     it.variants shouldHaveSize 2
                     it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
-                    it.variants.find {
-                            variant ->
+                    it.variants.find { variant ->
                         variant.transformation.height == 10 && variant.transformation.width == 10
                     } shouldNotBe null
                 }
@@ -1414,8 +1413,8 @@ abstract class AssetRepositoryTest {
             ),
         source: AssetSource = AssetSource.UPLOAD,
         url: String? = null,
-    ): StoreAssetDto {
-        return StoreAssetDto(
+    ): StoreAssetDto =
+        StoreAssetDto(
             path = treePath,
             request =
                 StoreAssetRequest(
@@ -1442,5 +1441,4 @@ abstract class AssetRepositoryTest {
             lqips = LQIPs.NONE,
             source = source,
         )
-    }
 }

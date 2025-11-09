@@ -41,34 +41,35 @@ class StoreAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            client.post("/assets") {
-                contentType(ContentType.MultiPart.FormData)
-                setBody(
-                    MultiPartFormDataContent(
-                        formData {
-                            append(
-                                "metadata",
-                                Json.encodeToString<StoreAssetRequest>(request),
-                                Headers.build {
-                                    append(HttpHeaders.ContentType, "application/json")
-                                },
-                            )
-                            append(
-                                "file",
-                                image,
-                                Headers.build {
-                                    append(HttpHeaders.ContentType, "image/png")
-                                    append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
-                                },
-                            )
-                        },
-                        BOUNDARY,
-                        ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-                    ),
-                )
-            }.apply {
-                status shouldBe HttpStatusCode.BadRequest
-            }
+            client
+                .post("/assets") {
+                    contentType(ContentType.MultiPart.FormData)
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append(
+                                    "metadata",
+                                    Json.encodeToString<StoreAssetRequest>(request),
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, "application/json")
+                                    },
+                                )
+                                append(
+                                    "file",
+                                    image,
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, "image/png")
+                                        append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
+                                    },
+                                )
+                            },
+                            BOUNDARY,
+                            ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+                        ),
+                    )
+                }.apply {
+                    status shouldBe HttpStatusCode.BadRequest
+                }
         }
 
     @Test
@@ -237,7 +238,9 @@ class StoreAssetTest {
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
-            storeAssetResponse.variants.first().imageAttributes.mimeType shouldBe "image/jpeg"
+            storeAssetResponse.variants
+                .first()
+                .imageAttributes.mimeType shouldBe "image/jpeg"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0

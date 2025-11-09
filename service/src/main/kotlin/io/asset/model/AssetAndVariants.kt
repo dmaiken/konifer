@@ -16,20 +16,19 @@ data class AssetAndVariants(
             variant: AssetVariantRecord,
             labels: Map<String, String>,
             tags: Set<String>,
-        ): AssetAndVariants {
-            return AssetAndVariants(
+        ): AssetAndVariants =
+            AssetAndVariants(
                 asset = Asset.from(asset, labels, tags),
                 variants = listOfNotNull(AssetVariant.from(variant)),
             )
-        }
 
         fun from(
             asset: AssetTreeRecord,
             variant: List<AssetVariantRecord>,
             labels: List<AssetLabelRecord>,
             tags: List<AssetTagRecord>,
-        ): AssetAndVariants {
-            return AssetAndVariants(
+        ): AssetAndVariants =
+            AssetAndVariants(
                 asset =
                     Asset.from(
                         record = asset,
@@ -38,7 +37,6 @@ data class AssetAndVariants(
                     ),
                 variants = variant.mapNotNull { AssetVariant.from(it) },
             )
-        }
     }
 
     fun toResponse(): AssetResponse =

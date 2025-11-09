@@ -253,7 +253,8 @@ class RequestContextFactory(
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
             }
-        return if (queryModifiers.returnFormat == ReturnFormat.METADATA && variantProfile == null &&
+        return if (queryModifiers.returnFormat == ReturnFormat.METADATA &&
+            variantProfile == null &&
             ALL_TRANSFORMATION_PARAMETERS.none {
                 parameters.contains(it)
             }
@@ -286,8 +287,9 @@ class RequestContextFactory(
      * 1. Namespaced labels - labels starting with "label:"
      * 2. Check for any query parameter not already reserved as a currently used param (e.g. bg, h, w, etc)
      */
-    private fun extractLabels(parameters: Parameters): Map<String, String> {
-        return parameters.entries()
+    private fun extractLabels(parameters: Parameters): Map<String, String> =
+        parameters
+            .entries()
             .filter { it.value.isNotEmpty() }
             .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
             .map { Pair(it.key.substringAfter("label:"), it.value) }
@@ -295,5 +297,4 @@ class RequestContextFactory(
             .also {
                 logger.info("Extracted labels: $it")
             }
-    }
 }

@@ -26,7 +26,11 @@ fun Application.connectToPostgres(): ConnectionFactory {
     val user = environment.config.property("postgres.user").getString()
     val password = environment.config.property("postgres.password").getString()
     val host = environment.config.property("postgres.host").getString()
-    val port = environment.config.property("postgres.port").getString().toInt()
+    val port =
+        environment.config
+            .property("postgres.port")
+            .getString()
+            .toInt()
     val options =
         builder()
             .option(DATABASE, "direkt")

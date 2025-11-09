@@ -53,7 +53,9 @@ class PostgresAssetRepository(
             val entryId = getNextEntryId(trx.dsl(), treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
             val insert =
-                trx.dsl().insertInto(ASSET_TREE)
+                trx
+                    .dsl()
+                    .insertInto(ASSET_TREE)
                     .set(ASSET_TREE.ID, assetId)
                     .set(ASSET_TREE.PATH, treePath)
                     .set(ASSET_TREE.ALT, asset.request.alt)
@@ -97,7 +99,9 @@ class PostgresAssetRepository(
 
             val lqip = Json.encodeToString(asset.lqips)
             val persistedVariant =
-                trx.dsl().insertInto(ASSET_VARIANT)
+                trx
+                    .dsl()
+                    .insertInto(ASSET_VARIANT)
                     .set(ASSET_VARIANT.ID, UUID.randomUUID())
                     .set(ASSET_VARIANT.ASSET_ID, assetId)
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
@@ -139,7 +143,9 @@ class PostgresAssetRepository(
 
             val persistedVariant =
                 try {
-                    trx.dsl().insertInto(ASSET_VARIANT)
+                    trx
+                        .dsl()
+                        .insertInto(ASSET_VARIANT)
                         .set(ASSET_VARIANT.ID, UUID.randomUUID())
                         .set(ASSET_VARIANT.ASSET_ID, asset.asset.id)
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
@@ -199,17 +205,21 @@ class PostgresAssetRepository(
                     entryId?.let {
                         ASSET_TREE.ENTRY_ID.eq(entryId)
                     } ?: ASSET_TREE.ENTRY_ID.eq(
-                        trx.dsl().select(ASSET_TREE.ENTRY_ID)
+                        trx
+                            .dsl()
+                            .select(ASSET_TREE.ENTRY_ID)
                             .from(ASSET_TREE)
                             .where(ASSET_TREE.PATH.eq(treePath))
                             .orderBy(ASSET_TREE.CREATED_AT.desc())
                             .limit(1),
                     )
                 val variantObjectStoreInformation =
-                    trx.dsl()
+                    trx
+                        .dsl()
                         .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
                         .from(ASSET_TREE)
-                        .join(ASSET_VARIANT).on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                        .join(ASSET_VARIANT)
+                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .where(ASSET_TREE.PATH.eq(treePath))
                         .and(entryIdCondition)
                         .asFlow()
@@ -220,7 +230,8 @@ class PostgresAssetRepository(
                             )
                         }.toList()
 
-                trx.dsl()
+                trx
+                    .dsl()
                     .deleteFrom(ASSET_TREE)
                     .where(ASSET_TREE.PATH.eq(treePath))
                     .and(entryIdCondition)
@@ -239,35 +250,36 @@ class PostgresAssetRepository(
         val deletedAssets =
             dslContext.transactionCoroutine { trx ->
                 val objectStoreInformation =
-                    trx.dsl()
+                    trx
+                        .dsl()
                         .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
                         .from(ASSET_TREE)
-                        .join(ASSET_VARIANT).on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                        .join(ASSET_VARIANT)
+                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .let {
                             if (recursive) {
                                 it.where(ASSET_TREE.PATH.contains(treePath))
                             } else {
                                 it.where(ASSET_TREE.PATH.eq(treePath))
                             }
-                        }
-                        .asFlow()
+                        }.asFlow()
                         .map {
                             VariantBucketAndKey(
                                 bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
                                 key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
                             )
-                        }
-                        .toList()
+                        }.toList()
 
-                trx.dsl().deleteFrom(ASSET_TREE)
+                trx
+                    .dsl()
+                    .deleteFrom(ASSET_TREE)
                     .let {
                         if (recursive) {
                             it.where(ASSET_TREE.PATH.contains(treePath))
                         } else {
                             it.where(ASSET_TREE.PATH.eq(treePath))
                         }
-                    }
-                    .awaitFirstOrNull()
+                    }.awaitFirstOrNull()
                 objectStoreInformation
             }
 
@@ -279,7 +291,8 @@ class PostgresAssetRepository(
         treePath: Ltree,
     ): Long {
         val maxField = max(ASSET_TREE.ENTRY_ID).`as`("max_entry")
-        return context.select(maxField)
+        return context
+            .select(maxField)
             .from(ASSET_TREE)
             .where(ASSET_TREE.PATH.eq(treePath))
             .awaitFirstOrNull()
@@ -306,13 +319,13 @@ class PostgresAssetRepository(
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
-        return context.select(
-            *ASSET_TREE.fields(),
-            variantsField,
-            labelsField,
-            tagsField,
-        )
-            .from(ASSET_TREE)
+        return context
+            .select(
+                *ASSET_TREE.fields(),
+                variantsField,
+                labelsField,
+                tagsField,
+            ).from(ASSET_TREE)
             .where(whereCondition)
             .and(entryIdCondition)
             .orderBy(*assetOrderConditions)
@@ -338,13 +351,13 @@ class PostgresAssetRepository(
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
         val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
-        return context.select(
-            *ASSET_TREE.fields(),
-            variantsField,
-            labelsField,
-            tagsField,
-        )
-            .from(ASSET_TREE)
+        return context
+            .select(
+                *ASSET_TREE.fields(),
+                variantsField,
+                labelsField,
+                tagsField,
+            ).from(ASSET_TREE)
             .where(whereCondition)
             .orderBy(ASSET_TREE.CREATED_AT.desc())
             .asFlow()
@@ -355,8 +368,7 @@ class PostgresAssetRepository(
                 val tags = record.getValue(tagsField)
 
                 AssetRecordsDto(assetTreeRecord, variants, labels, tags)
-            }
-            .toList()
+            }.toList()
     }
 
     private fun calculateJoinVariantConditions(transformation: Transformation): Condition {
@@ -383,22 +395,23 @@ class PostgresAssetRepository(
         context: DSLContext,
         transformation: Transformation?,
     ) = multiset(
-        context.select(*ASSET_VARIANT.fields())
+        context
+            .select(*ASSET_VARIANT.fields())
             .from(ASSET_VARIANT)
             .where(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
             .and(
                 transformation?.let {
                     calculateJoinVariantConditions(it)
                 } ?: noCondition(),
-            )
-            .orderBy(ASSET_VARIANT.CREATED_AT.desc()),
+            ).orderBy(ASSET_VARIANT.CREATED_AT.desc()),
     ).convertFrom { records ->
         records.map { r -> r.into(AssetVariantRecord::class.java) }
     }.`as`("variants")
 
     private fun multisetLabels(context: DSLContext) =
         multiset(
-            context.select(*ASSET_LABEL.fields())
+            context
+                .select(*ASSET_LABEL.fields())
                 .from(ASSET_LABEL)
                 .where(ASSET_LABEL.ASSET_ID.eq(ASSET_TREE.ID)),
         ).convertFrom { records ->
@@ -407,7 +420,8 @@ class PostgresAssetRepository(
 
     private fun multisetTags(context: DSLContext) =
         multiset(
-            context.select(*ASSET_TAG.fields())
+            context
+                .select(*ASSET_TAG.fields())
                 .from(ASSET_TAG)
                 .where(ASSET_TAG.ASSET_ID.eq(ASSET_TREE.ID)),
         ).convertFrom { records ->
@@ -427,7 +441,8 @@ class PostgresAssetRepository(
                             .from(ASSET_LABEL)
                             .where(ASSET_LABEL.ASSET_ID.eq(ASSET_TREE.ID))
                             .and(
-                                ASSET_LABEL.LABEL_KEY.eq(label.key)
+                                ASSET_LABEL.LABEL_KEY
+                                    .eq(label.key)
                                     .and(ASSET_LABEL.LABEL_VALUE.eq(label.value)),
                             ),
                     ),

@@ -39,9 +39,10 @@ class RotateTest {
         rotation: Rotate,
     ) {
         val parameters =
-            ParametersBuilder().apply {
-                set(ROTATE, argument)
-            }.build()
+            ParametersBuilder()
+                .apply {
+                    set(ROTATE, argument)
+                }.build()
 
         Rotate.fromQueryParameters(parameters, ROTATE) shouldBe rotation
     }
@@ -50,9 +51,10 @@ class RotateTest {
     @ValueSource(strings = ["-90", "91", "-180", "-270", "1"])
     fun `fromParameters invalid rotation angle is rejected`(invalid: String) {
         val parameters =
-            ParametersBuilder().apply {
-                set(ROTATE, invalid)
-            }.build()
+            ParametersBuilder()
+                .apply {
+                    set(ROTATE, invalid)
+                }.build()
 
         val exception =
             shouldThrow<IllegalArgumentException> {

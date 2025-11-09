@@ -91,9 +91,7 @@ class VipsPipeline(
     }
 }
 
-fun vipsPipeline(initializer: VipsPipelineBuilder.() -> Unit): VipsPipelineBuilder {
-    return VipsPipelineBuilder().apply(initializer)
-}
+fun vipsPipeline(initializer: VipsPipelineBuilder.() -> Unit): VipsPipelineBuilder = VipsPipelineBuilder().apply(initializer)
 
 data class VipsTransformationResult(
     val processed: VImage,

@@ -82,7 +82,6 @@ class PathConfiguration private constructor(
         }
     }
 
-    override fun toString(): String {
-        return "${this.javaClass.simpleName}(allowedContentTypes=$allowedContentTypes, imageProperties=$imageProperties)"
-    }
+    override fun toString(): String =
+        "${this.javaClass.simpleName}(allowedContentTypes=$allowedContentTypes, imageProperties=$imageProperties)"
 }

@@ -245,11 +245,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun transformationSource(): List<Arguments> =
             listOf(
                 arguments(
-                    ParametersBuilder(3).apply {
-                        append("w", "10")
-                        append("h", "20")
-                        append("mimeType", "image/png")
-                    }.build(),
+                    ParametersBuilder(3)
+                        .apply {
+                            append("w", "10")
+                            append("h", "20")
+                            append("mimeType", "image/png")
+                        }.build(),
                     Transformation(
                         width = 10,
                         height = 20,
@@ -258,10 +259,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    ParametersBuilder(2).apply {
-                        append("w", "10")
-                        append("h", "20")
-                    }.build(),
+                    ParametersBuilder(2)
+                        .apply {
+                            append("w", "10")
+                            append("h", "20")
+                        }.build(),
                     Transformation(
                         width = 10,
                         height = 20,
@@ -270,9 +272,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    ParametersBuilder(1).apply {
-                        append("w", "10")
-                    }.build(),
+                    ParametersBuilder(1)
+                        .apply {
+                            append("w", "10")
+                        }.build(),
                     Transformation(
                         width = 10,
                         height = 10,
@@ -281,9 +284,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    ParametersBuilder(1).apply {
-                        append("mimeType", "image/jpeg")
-                    }.build(),
+                    ParametersBuilder(1)
+                        .apply {
+                            append("mimeType", "image/jpeg")
+                        }.build(),
                     Transformation(
                         width = 100,
                         height = 100,
@@ -352,9 +356,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context =
                     requestContextFactory.fromGetRequest(
                         "/assets/user/",
-                        ParametersBuilder(1).apply {
-                            append("profile", profileName)
-                        }.build(),
+                        ParametersBuilder(1)
+                            .apply {
+                                append("profile", profileName)
+                            }.build(),
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
@@ -383,12 +388,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context =
                     requestContextFactory.fromGetRequest(
                         "/assets/user/",
-                        ParametersBuilder(4).apply {
-                            append("profile", profileName)
-                            append("h", "100")
-                            append("w", "500")
-                            append("mimeType", "image/jpeg")
-                        }.build(),
+                        ParametersBuilder(4)
+                            .apply {
+                                append("profile", profileName)
+                                append("h", "100")
+                                append("w", "500")
+                                append("mimeType", "image/jpeg")
+                            }.build(),
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
@@ -482,11 +488,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `cannot create GET context if requesting metadata with image attributes`() =
             runTest {
                 val parameters =
-                    ParametersBuilder(3).apply {
-                        append("w", "10")
-                        append("h", "20")
-                        append("mimeType", "image/png")
-                    }.build()
+                    ParametersBuilder(3)
+                        .apply {
+                            append("w", "10")
+                            append("h", "20")
+                            append("mimeType", "image/png")
+                        }.build()
 
                 val exception =
                     shouldThrow<InvalidPathException> {
@@ -535,14 +542,15 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context =
                     requestContextFactory.fromGetRequest(
                         path,
-                        ParametersBuilder(6).apply {
-                            append("h", "100")
-                            append("w", "500")
-                            append("mimeType", "image/jpeg")
-                            append("phone", "iphone")
-                            append("case", "soft")
-                            append("label:h", "hello")
-                        }.build(),
+                        ParametersBuilder(6)
+                            .apply {
+                                append("h", "100")
+                                append("w", "500")
+                                append("mimeType", "image/jpeg")
+                                append("phone", "iphone")
+                                append("case", "soft")
+                                append("label:h", "hello")
+                            }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100
@@ -569,14 +577,15 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context =
                     requestContextFactory.fromGetRequest(
                         path,
-                        ParametersBuilder(6).apply {
-                            append("h", "100")
-                            append("w", "500")
-                            append("mimeType", "image/jpeg")
-                            append("phone", "iphone")
-                            append("case", "soft")
-                            append("case", "hello")
-                        }.build(),
+                        ParametersBuilder(6)
+                            .apply {
+                                append("h", "100")
+                                append("w", "500")
+                                append("mimeType", "image/jpeg")
+                                append("phone", "iphone")
+                                append("case", "soft")
+                                append("case", "hello")
+                            }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100
@@ -600,14 +609,15 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context =
                     requestContextFactory.fromGetRequest(
                         path,
-                        ParametersBuilder(6).apply {
-                            append("h", "100")
-                            append("w", "500")
-                            append("mimeType", "image/jpeg")
-                            append("phone", "iphone")
-                            append("case", "soft")
-                            append("label:case", "hello")
-                        }.build(),
+                        ParametersBuilder(6)
+                            .apply {
+                                append("h", "100")
+                                append("w", "500")
+                                append("mimeType", "image/jpeg")
+                                append("phone", "iphone")
+                                append("case", "soft")
+                                append("label:case", "hello")
+                            }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100

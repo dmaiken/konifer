@@ -3,9 +3,10 @@ package io.config
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
-class PostgresTestContainer : PostgreSQLContainer<PostgresTestContainer>(
-    DockerImageName.parse("postgres:17.4"),
-)
+class PostgresTestContainer :
+    PostgreSQLContainer<PostgresTestContainer>(
+        DockerImageName.parse("postgres:17.4"),
+    )
 
 class PostgresTestContainerManager {
     private var started = false

@@ -19,7 +19,8 @@ class DeleteAssetTest {
     fun `deleting asset that does not exist returns no content`() =
         testInMemory {
             val client = createJsonClient()
-            client.delete("/assets/${UUID.randomUUID()}")
+            client
+                .delete("/assets/${UUID.randomUUID()}")
                 .apply {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText() shouldBe ""

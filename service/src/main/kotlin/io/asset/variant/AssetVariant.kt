@@ -29,13 +29,15 @@ data class AssetVariant(
                 objectStoreKey = record.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
                 isOriginalVariant = record.getNonNull(ASSET_VARIANT.ORIGINAL_VARIANT),
                 attributes =
-                    Json.decodeFromString<ImageVariantAttributes>(
-                        record.getNonNull(ASSET_VARIANT.ATTRIBUTES).data(),
-                    ).toAttributes(),
+                    Json
+                        .decodeFromString<ImageVariantAttributes>(
+                            record.getNonNull(ASSET_VARIANT.ATTRIBUTES).data(),
+                        ).toAttributes(),
                 transformation =
-                    Json.decodeFromString<ImageVariantTransformation>(
-                        record.getNonNull(ASSET_VARIANT.TRANSFORMATION).data(),
-                    ).toTransformation(),
+                    Json
+                        .decodeFromString<ImageVariantTransformation>(
+                            record.getNonNull(ASSET_VARIANT.TRANSFORMATION).data(),
+                        ).toTransformation(),
                 transformationKey = record.getNonNull(ASSET_VARIANT.TRANSFORMATION_KEY),
                 lqip = Json.decodeFromString(record.getNonNull(ASSET_VARIANT.LQIP).data()),
                 createdAt = record.getNonNull(ASSET_VARIANT.CREATED_AT),

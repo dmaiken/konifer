@@ -80,9 +80,10 @@ class FetchAssetHandler(
         bucket: String,
         storeKey: String,
         stream: ByteWriteChannel,
-    ): Long {
-        return objectStore.fetch(bucket, storeKey, stream)
-            .takeIf { it.found }?.contentLength
+    ): Long =
+        objectStore
+            .fetch(bucket, storeKey, stream)
+            .takeIf { it.found }
+            ?.contentLength
             ?: throw IllegalStateException("Asset not found in object store: $bucket/$storeKey")
-    }
 }

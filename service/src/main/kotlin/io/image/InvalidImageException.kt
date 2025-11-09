@@ -1,3 +1,5 @@
 package io.image
 
-class InvalidImageException(message: String) : RuntimeException(message)
+class InvalidImageException(
+    message: String,
+) : RuntimeException(message)

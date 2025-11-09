@@ -5,16 +5,27 @@ import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
+import io.asset.variant.AssetVariant
 import io.createImageBuckets
+import io.image.model.Attributes
+import io.image.model.ImageFormat
+import io.image.model.LQIPs
+import io.image.model.Transformation
+import io.kotest.matchers.shouldBe
+import io.properties.validateAndCreate
 import io.s3.S3ClientProperties
-import io.s3.S3Service
+import io.s3.S3ObjectStore
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import java.time.LocalDateTime
+import java.util.UUID
 
 @Testcontainers
 class S3ObjectStoreTest : ObjectStoreTest() {
@@ -39,13 +50,16 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         }
     }
 
+    lateinit var s3Client: S3Client
+
     override fun createObjectStore(): ObjectStore {
-        val s3Client =
+        s3Client =
             S3Client {
                 credentialsProvider =
                     StaticCredentialsProvider(
                         Credentials(
-                            localstack.accessKey, localstack.secretKey,
+                            localstack.accessKey,
+                            localstack.secretKey,
                         ),
                     )
                 endpointUrl = Url.parse(localstack.endpoint.toString())
@@ -65,15 +79,124 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 },
             )
         }
-        return S3Service(
+        return S3ObjectStore(
             s3Client = s3Client,
             s3ClientProperties =
-                S3ClientProperties(
-                    endpointUrl = "localhost.localstack.cloud:${localstack.firstMappedPort}",
-                    region = localstack.region,
-                    accessKey = null,
-                    secretKey = null,
-                ),
+                validateAndCreate {
+                    S3ClientProperties(
+                        endpointUrl = "localhost.localstack.cloud:${localstack.firstMappedPort}",
+                        region = localstack.region,
+                        accessKey = null,
+                        secretKey = null,
+                        usePathStyleUrl = false,
+                    )
+                },
         )
+    }
+
+    @Nested
+    inner class GenerateS3ObjectUrlTests {
+        @Test
+        fun `generates a path-style AWS URL if specified`() {
+            val store =
+                S3ObjectStore(
+                    s3Client = s3Client,
+                    s3ClientProperties =
+                        validateAndCreate {
+                            S3ClientProperties(
+                                endpointUrl = null,
+                                region = "us-east-1",
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = true,
+                            )
+                        },
+                )
+            val variant = createVariant()
+
+            store.generateObjectUrl(variant) shouldBe
+                "https://s3.us-east-1.amazonaws.com/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+        }
+
+        @Test
+        fun `generates a non-AWS path-style URL if specified`() {
+            val store =
+                S3ObjectStore(
+                    s3Client = s3Client,
+                    s3ClientProperties =
+                        validateAndCreate {
+                            S3ClientProperties(
+                                endpointUrl = "minio.local",
+                                region = null,
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = true,
+                            )
+                        },
+                )
+            val variant = createVariant()
+
+            store.generateObjectUrl(variant) shouldBe "https://minio.local/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+        }
+
+        @Test
+        fun `generates a virtual-style AWS URL if specified`() {
+            val store =
+                S3ObjectStore(
+                    s3Client = s3Client,
+                    s3ClientProperties =
+                        validateAndCreate {
+                            S3ClientProperties(
+                                endpointUrl = null,
+                                region = "us-east-1",
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = false,
+                            )
+                        },
+                )
+            val variant = createVariant()
+
+            store.generateObjectUrl(variant) shouldBe
+                "https://${variant.objectStoreBucket}.s3.us-east-1.amazonaws.com/${variant.objectStoreKey}"
+        }
+
+        @Test
+        fun `generates a non-AWS virtual-style URL if specified`() {
+            val store =
+                S3ObjectStore(
+                    s3Client = s3Client,
+                    s3ClientProperties =
+                        validateAndCreate {
+                            S3ClientProperties(
+                                endpointUrl = "minio.local",
+                                region = null,
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = false,
+                            )
+                        },
+                )
+            val variant = createVariant()
+
+            store.generateObjectUrl(variant) shouldBe "https://${variant.objectStoreBucket}.minio.local/${variant.objectStoreKey}"
+        }
+
+        private fun createVariant(): AssetVariant =
+            AssetVariant(
+                objectStoreBucket = "assets",
+                objectStoreKey = UUID.randomUUID().toString(),
+                isOriginalVariant = true,
+                attributes =
+                    Attributes(
+                        width = 100,
+                        height = 100,
+                        format = ImageFormat.PNG,
+                    ),
+                transformation = Transformation.ORIGINAL_VARIANT,
+                transformationKey = 1234L,
+                lqip = LQIPs.NONE,
+                createdAt = LocalDateTime.now(),
+            )
     }
 }

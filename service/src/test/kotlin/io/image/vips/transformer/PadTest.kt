@@ -42,15 +42,15 @@ class PadTest {
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
                 val image = VImage.newFromBytes(arena, imageBytes)
-                image.embed(
-                    padding,
-                    padding,
-                    (padding * 2) + image.width,
-                    (padding * 2) + image.height,
-                    VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                    VipsOption.ArrayDouble(VIPS_BACKGROUND, background.map { it.toDouble() }),
-                )
-                    .writeToStream(expectedStream, ".jpeg")
+                image
+                    .embed(
+                        padding,
+                        padding,
+                        (padding * 2) + image.width,
+                        (padding * 2) + image.height,
+                        VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                        VipsOption.ArrayDouble(VIPS_BACKGROUND, background.map { it.toDouble() }),
+                    ).writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
                 actualImage.width shouldBe image.width + (padding * 2)
@@ -66,9 +66,11 @@ class PadTest {
 
             val actualStream = ByteArrayOutputStream()
             val expectedBytes =
-                javaClass.getResourceAsStream(
-                    "/images/expected/transform_pad_${padding}_bg_255_0_0_100.png",
-                )!!.readAllBytes()
+                javaClass
+                    .getResourceAsStream(
+                        "/images/expected/transform_pad_${padding}_bg_255_0_0_100.png",
+                    )!!
+                    .readAllBytes()
             Vips.run { arena ->
                 val transformed =
                     Pad.transform(
@@ -137,15 +139,15 @@ class PadTest {
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
 
                 val image = VImage.newFromBytes(arena, imageBytes)
-                image.embed(
-                    padding,
-                    padding,
-                    (padding * 2) + image.width,
-                    (padding * 2) + image.height,
-                    VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                    VipsOption.ArrayDouble(VIPS_BACKGROUND, background.take(3).map { it.toDouble() }),
-                )
-                    .writeToStream(expectedStream, ".jpeg")
+                image
+                    .embed(
+                        padding,
+                        padding,
+                        (padding * 2) + image.width,
+                        (padding * 2) + image.height,
+                        VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                        VipsOption.ArrayDouble(VIPS_BACKGROUND, background.take(3).map { it.toDouble() }),
+                    ).writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
                 actualImage.width shouldBe image.width + (padding * 2)
@@ -228,11 +230,12 @@ class PadTest {
         fun `lqips are required to be regenerated if padding is greater than 0`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
             Vips.run { arena ->
-                Pad.transform(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, imageBytes),
-                    transformation = padTransformation(10, listOf(200, 45, 0)),
-                ).requiresLqipRegeneration shouldBe true
+                Pad
+                    .transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, imageBytes),
+                        transformation = padTransformation(10, listOf(200, 45, 0)),
+                    ).requiresLqipRegeneration shouldBe true
             }
         }
 
@@ -240,11 +243,12 @@ class PadTest {
         fun `lqips are required to be regenerated if background is not empty`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
             Vips.run { arena ->
-                Pad.transform(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, imageBytes),
-                    transformation = padTransformation(10, listOf(200, 45, 0)),
-                ).requiresLqipRegeneration shouldBe true
+                Pad
+                    .transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, imageBytes),
+                        transformation = padTransformation(10, listOf(200, 45, 0)),
+                    ).requiresLqipRegeneration shouldBe true
             }
         }
     }

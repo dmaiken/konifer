@@ -59,26 +59,24 @@ class StoreAssetHandler(
         deferredRequest: CompletableDeferred<StoreAssetRequest>,
         multiPartContainer: AssetStreamContainer,
         uriPath: String,
-    ): AssetAndLocation {
-        return storeAsset(
+    ): AssetAndLocation =
+        storeAsset(
             request = deferredRequest.await(),
             container = multiPartContainer,
             uriPath = uriPath,
             source = AssetSource.UPLOAD,
         )
-    }
 
     suspend fun storeNewAssetFromUrl(
         request: StoreAssetRequest,
         uriPath: String,
-    ): AssetAndLocation {
-        return storeAsset(
+    ): AssetAndLocation =
+        storeAsset(
             request = request,
             container = assetStreamContainerFactory.fromUrlSource(request.url),
             uriPath = uriPath,
             source = AssetSource.URL,
         )
-    }
 
     private suspend fun storeAsset(
         request: StoreAssetRequest,
@@ -150,9 +148,7 @@ class StoreAssetHandler(
         return ImageFormat.fromMimeType(mimeType)
     }
 
-    private fun validate(mimeType: String): Boolean {
-        return mimeType.startsWith("image/")
-    }
+    private fun validate(mimeType: String): Boolean = mimeType.startsWith("image/")
 
     private fun validateRequest(request: StoreAssetRequest) {
         if (request.alt != null && request.alt.length > MAX_ALT_LENGTH) {

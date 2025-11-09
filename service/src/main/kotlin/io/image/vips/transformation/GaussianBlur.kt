@@ -22,10 +22,9 @@ object GaussianBlur : VipsTransformer {
         arena: Arena,
         source: VImage,
         transformation: Transformation,
-    ): VipsTransformationResult {
-        return VipsTransformationResult(
+    ): VipsTransformationResult =
+        VipsTransformationResult(
             processed = source.gaussblur(transformation.blur / 2.0),
             requiresLqipRegeneration = false,
         )
-    }
 }

@@ -8,9 +8,8 @@ data class PathTrieNode(
     fun getOrCreateChild(
         segment: String,
         childPathConfiguration: PathConfiguration,
-    ): PathTrieNode {
-        return children.getOrPut(segment) {
+    ): PathTrieNode =
+        children.getOrPut(segment) {
             PathTrieNode(segment, childPathConfiguration)
         }
-    }
 }

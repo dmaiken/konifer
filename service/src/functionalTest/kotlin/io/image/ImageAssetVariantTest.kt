@@ -309,7 +309,8 @@ class ImageAssetVariantTest {
             val result = fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = true)!!
             Vips.run { arena ->
                 val expected =
-                    VImage.newFromBytes(arena, image)
+                    VImage
+                        .newFromBytes(arena, image)
                         .rotate(90.0)
                         .flip(VipsDirection.DIRECTION_HORIZONTAL)
                 val expectedStream = ByteArrayOutputStream()
@@ -340,7 +341,8 @@ class ImageAssetVariantTest {
             val result = fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = true)!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .colourspace(VipsInterpretation.INTERPRETATION_GREY16)
                     .writeToStream(expectedStream, ".png")
 
@@ -384,13 +386,13 @@ class ImageAssetVariantTest {
                 )!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .smartcrop(
                         200,
                         200,
                         VipsOption.Enum(VIPS_OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
-                    )
-                    .writeToStream(expectedStream, ".png")
+                    ).writeToStream(expectedStream, ".png")
 
                 val actualImage = ImageIO.read(ByteArrayInputStream(result))
                 val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
@@ -424,7 +426,8 @@ class ImageAssetVariantTest {
                     )!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
-                    VImage.newFromBytes(arena, image)
+                    VImage
+                        .newFromBytes(arena, image)
                         .gaussblur(50 / 2.0)
                         .writeToStream(expectedStream, ".png")
 
@@ -542,7 +545,8 @@ class ImageAssetVariantTest {
                     )!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
-                    VImage.newFromBytes(arena, image)
+                    VImage
+                        .newFromBytes(arena, image)
                         .writeToStream(
                             expectedStream,
                             ".${variantFormat.extension}",
@@ -579,7 +583,8 @@ class ImageAssetVariantTest {
                 )!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
-                VImage.newFromBytes(arena, image)
+                VImage
+                    .newFromBytes(arena, image)
                     .writeToStream(
                         expectedStream,
                         ".${variantFormat.extension}",
@@ -618,7 +623,8 @@ class ImageAssetVariantTest {
                     )!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
-                    VImage.newFromBytes(arena, image)
+                    VImage
+                        .newFromBytes(arena, image)
                         .writeToStream(expectedStream, ".png")
 
                     val lowerQualityImage = ImageIO.read(ByteArrayInputStream(lowerQualityResult))

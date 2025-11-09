@@ -53,16 +53,14 @@ enum class ImageFormat(
     ;
 
     companion object {
-        fun fromFormat(string: String): ImageFormat {
-            return entries.firstOrNull {
+        fun fromFormat(string: String): ImageFormat =
+            entries.firstOrNull {
                 it.value.contains(string.lowercase())
             } ?: throw IllegalArgumentException("Unsupported image format: $string")
-        }
 
-        fun fromMimeType(string: String): ImageFormat {
-            return entries.firstOrNull {
+        fun fromMimeType(string: String): ImageFormat =
+            entries.firstOrNull {
                 it.mimeType.equals(string, ignoreCase = true)
             } ?: throw IllegalArgumentException("Unsupported image mime type: $string")
-        }
     }
 }

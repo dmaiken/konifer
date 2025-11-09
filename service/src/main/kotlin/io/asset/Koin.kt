@@ -61,27 +61,40 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
 
         single(named("synchronousChannel")) {
             val queueSize =
-                environment.config.propertyOrNull("variant-generation.queue-size")?.getString()?.toInt()
+                environment.config
+                    .propertyOrNull("variant-generation.queue-size")
+                    ?.getString()
+                    ?.toInt()
                     ?: 1000
             Channel<VariantGenerationJob>(capacity = queueSize)
         }
 
         single(named("backgroundChannel")) {
             val queueSize =
-                environment.config.propertyOrNull("variant-generation.queue-size")?.getString()?.toInt()
+                environment.config
+                    .propertyOrNull("variant-generation.queue-size")
+                    ?.getString()
+                    ?.toInt()
                     ?: 1000
             Channel<VariantGenerationJob>(capacity = queueSize)
         }
 
         single<VariantGenerator>(createdAtStart = true) {
             val numberOfWorkers =
-                environment.config.propertyOrNull("variant-generation.workers")?.getString()?.toInt()
+                environment.config
+                    .propertyOrNull("variant-generation.workers")
+                    ?.getString()
+                    ?.toInt()
                     ?: Runtime.getRuntime().availableProcessors()
             VariantGenerator(get(), get(), get(), get(), get(), numberOfWorkers)
         }
 
         single<PriorityChannelScheduler<ImageProcessingJob<*>>> {
-            val synchronousWeight = environment.config.propertyOrNull("variant-generation.synchronous-priority")?.getString()?.toInt() ?: 80
+            val synchronousWeight =
+                environment.config
+                    .propertyOrNull("variant-generation.synchronous-priority")
+                    ?.getString()
+                    ?.toInt() ?: 80
             PriorityChannelScheduler(
                 get(named("synchronousChannel")),
                 get(named("backgroundChannel")),

@@ -19,8 +19,8 @@ object ExifOrientations {
     fun normalizeOrientation(
         rotate: Rotate = Rotate.default,
         flip: Flip = Flip.default,
-    ): Pair<Rotate, Boolean> {
-        return if (rotate == Rotate.ZERO && flip == Flip.NONE) {
+    ): Pair<Rotate, Boolean> =
+        if (rotate == Rotate.ZERO && flip == Flip.NONE) {
             ONE
         } else if ((rotate == Rotate.ONE_HUNDRED_EIGHTY && flip == Flip.H) || (rotate == Rotate.ZERO && flip == Flip.V)) {
             TWO
@@ -39,5 +39,4 @@ object ExifOrientations {
         } else {
             throw IllegalArgumentException("Rotation not supported: $rotate, Flip: $flip")
         }
-    }
 }

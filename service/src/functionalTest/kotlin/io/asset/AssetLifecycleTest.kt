@@ -36,7 +36,9 @@ class AssetLifecycleTest {
             storeAssetResponse!!.createdAt shouldNotBe null
             storeAssetResponse.variants.first().bucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
-            storeAssetResponse.variants.first().imageAttributes.mimeType shouldBe "image/png"
+            storeAssetResponse.variants
+                .first()
+                .imageAttributes.mimeType shouldBe "image/png"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0

@@ -23,14 +23,20 @@ class PathConfigurationRepository(
     }
 
     fun fetch(path: String): PathConfiguration {
-        val segments = path.trim('/').lowercase().split('/').filter { it.isNotBlank() }
+        val segments =
+            path
+                .trim('/')
+                .lowercase()
+                .split('/')
+                .filter { it.isNotBlank() }
 
         return matchRecursive(root, segments).node.config
     }
 
     private fun initializeTrieWithDefault(applicationConfig: ApplicationConfig): PathTrieNode {
         val defaultConfig =
-            applicationConfig.configList(ConfigurationProperties.PATH_CONFIGURATION)
+            applicationConfig
+                .configList(ConfigurationProperties.PATH_CONFIGURATION)
                 .firstOrNull { it.tryGetString(PATH) == DEFAULT_PATH }
         return PathTrieNode(
             segment = GREEDY_WILDCARD_SEGMENT,
@@ -39,7 +45,8 @@ class PathConfigurationRepository(
     }
 
     private fun constructPathConfigurationTrie(applicationConfig: ApplicationConfig) {
-        applicationConfig.configList(ConfigurationProperties.PATH_CONFIGURATION)
+        applicationConfig
+            .configList(ConfigurationProperties.PATH_CONFIGURATION)
             .filter { it.tryGetString(PATH) != DEFAULT_PATH } // skip the default that we already populated
             .forEach { pathConfig ->
                 insertPath(
@@ -56,7 +63,12 @@ class PathConfigurationRepository(
         path: String,
         applicationConfig: ApplicationConfig,
     ) {
-        val segments = path.trim('/').lowercase().split("/").filter { it.isNotBlank() }
+        val segments =
+            path
+                .trim('/')
+                .lowercase()
+                .split("/")
+                .filter { it.isNotBlank() }
         var current = root
         segments.forEach { segment ->
             current = current.getOrCreateChild(segment, current.config)

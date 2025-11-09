@@ -10,7 +10,8 @@ object PathAdapter {
 
     fun toTreePathFromUriPath(uriPath: String): Ltree {
         val trimmedPath =
-            uriPath.removePrefix(URI_PATH_DELIMITER)
+            uriPath
+                .removePrefix(URI_PATH_DELIMITER)
                 .removeSuffix(URI_PATH_DELIMITER)
         if (!trimmedPath.matches(validPathRegex)) {
             throw IllegalArgumentException("Invalid path: $trimmedPath")

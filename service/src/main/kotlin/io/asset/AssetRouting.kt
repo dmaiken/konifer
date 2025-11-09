@@ -64,12 +64,14 @@ fun Application.configureAssetRouting() {
                         return@get
                     } else {
                         logger.info("Navigating to asset info of all assets with path: ${requestContext.path}")
-                        fetchAssetHandler.fetchAssetMetadataInPath(requestContext).map {
-                            it.toResponse()
-                        }.let {
-                            logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
-                            call.respond(HttpStatusCode.OK, it)
-                        }
+                        fetchAssetHandler
+                            .fetchAssetMetadataInPath(requestContext)
+                            .map {
+                                it.toResponse()
+                            }.let {
+                                logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
+                                call.respond(HttpStatusCode.OK, it)
+                            }
                     }
                 }
                 ReturnFormat.REDIRECT -> {
@@ -102,12 +104,21 @@ fun Application.configureAssetRouting() {
                             call.response.headers.append(it.first, it.second)
                         }
                         call.respondBytesWriter(
-                            contentType = ContentType.parse(response.first.variants.first().transformation.format.mimeType),
+                            contentType =
+                                ContentType.parse(
+                                    response.first.variants
+                                        .first()
+                                        .transformation.format.mimeType,
+                                ),
                             status = HttpStatusCode.OK,
                         ) {
                             fetchAssetHandler.fetchAssetContent(
-                                response.first.variants.first().objectStoreBucket,
-                                response.first.variants.first().objectStoreKey,
+                                response.first.variants
+                                    .first()
+                                    .objectStoreBucket,
+                                response.first.variants
+                                    .first()
+                                    .objectStoreKey,
                                 this,
                             )
                         }
