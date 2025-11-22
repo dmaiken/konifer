@@ -72,9 +72,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe "image/png"
-                    first().imageAttributes.width shouldBe 100
-                    first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately originalScale
+                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.width shouldBe 100
+                    first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately originalScale
                 }
             }
 
@@ -119,9 +119,9 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().bucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().imageAttributes.mimeType shouldBe "image/png"
-                        first().imageAttributes.height shouldBe 50
-                        first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately
+                        first().attributes.mimeType shouldBe "image/png"
+                        first().attributes.height shouldBe 50
+                        first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
                     }
                 }
@@ -170,9 +170,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe "image/png"
-                    first().imageAttributes.height shouldBe bufferedImage.height
-                    first().imageAttributes.width shouldBe bufferedImage.width
+                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.height shouldBe bufferedImage.height
+                    first().attributes.width shouldBe bufferedImage.width
                 }
             }
 
@@ -219,9 +219,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe expectedType
-                    first().imageAttributes.height shouldBe bufferedImage.height
-                    first().imageAttributes.width shouldBe bufferedImage.width
+                    first().attributes.mimeType shouldBe expectedType
+                    first().attributes.height shouldBe bufferedImage.height
+                    first().attributes.width shouldBe bufferedImage.width
                 }
             }
 
@@ -273,9 +273,9 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().bucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().imageAttributes.mimeType shouldBe "image/webp"
-                        first().imageAttributes.height shouldBe 50
-                        first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately
+                        first().attributes.mimeType shouldBe "image/webp"
+                        first().attributes.height shouldBe 50
+                        first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
                     }
                 }

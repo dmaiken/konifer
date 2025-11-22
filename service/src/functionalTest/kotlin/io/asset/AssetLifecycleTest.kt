@@ -38,7 +38,7 @@ class AssetLifecycleTest {
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.variants
                 .first()
-                .imageAttributes.mimeType shouldBe "image/png"
+                .attributes.mimeType shouldBe "image/png"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0

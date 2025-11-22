@@ -56,7 +56,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale
@@ -98,7 +98,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale
@@ -136,7 +136,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale
@@ -186,7 +186,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale
@@ -225,7 +225,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale
@@ -270,7 +270,7 @@ class ImageAssetVariantTest {
 
                 variants.apply {
                     size shouldBe 1
-                    first().imageAttributes.apply {
+                    first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
                         this.width.toDouble() / this.height.toDouble() shouldBe originalScale

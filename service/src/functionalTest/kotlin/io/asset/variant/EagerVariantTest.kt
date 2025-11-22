@@ -62,16 +62,16 @@ class EagerVariantTest {
 
             val variants = fetchAssetMetadata(client, "users/123")!!.variants
             variants.forExactly(1) {
-                it.imageAttributes.height shouldBe 15
-                it.imageAttributes.width shouldNotBe 15
+                it.attributes.height shouldBe 15
+                it.attributes.width shouldNotBe 15
             }
             variants.forExactly(1) {
-                it.imageAttributes.height shouldNotBe 15
-                it.imageAttributes.width shouldBe 15
+                it.attributes.height shouldNotBe 15
+                it.attributes.width shouldBe 15
             }
             variants.forAtLeast(1) {
-                it.imageAttributes.height shouldBe bufferedImage.height
-                it.imageAttributes.width shouldBe bufferedImage.width
+                it.attributes.height shouldBe bufferedImage.height
+                it.attributes.width shouldBe bufferedImage.width
             }
         }
 
