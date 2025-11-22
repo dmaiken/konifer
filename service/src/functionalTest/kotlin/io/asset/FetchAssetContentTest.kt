@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
 import io.util.fetchAssetContent
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -30,7 +30,7 @@ class FetchAssetContentTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetContent(client, path = "profile", expectedMimeType = "image/png")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)

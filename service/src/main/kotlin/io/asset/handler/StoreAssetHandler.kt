@@ -29,30 +29,6 @@ class StoreAssetHandler(
     private val requestContextFactory: RequestContextFactory,
     private val assetStreamContainerFactory: AssetStreamContainerFactory,
 ) {
-    companion object {
-        /**
-         * Looks like some assistive devices truncate alts after 125 characters
-         */
-        private const val MAX_ALT_LENGTH: Int = 125
-
-        /**
-         * Inspired from AWS limit
-         */
-        private const val MAX_LABEL_KEY_LENGTH: Int = 128
-
-        /**
-         * Inspired from AWS limit
-         */
-        private const val MAX_LABEL_VALUE_LENGTH: Int = 256
-
-        /**
-         * Inspired from AWS limit
-         */
-        private const val MAX_LABELS: Int = 50
-
-        private const val MAX_TAG_VALUE_LENGTH: Int = 256
-    }
-
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     suspend fun storeNewAssetFromUpload(
@@ -85,7 +61,7 @@ class StoreAssetHandler(
         source: AssetSource,
     ): AssetAndLocation =
         coroutineScope {
-            validateRequest(request)
+            request.validate()
             val format = deriveValidImageFormat(container.readNBytes(4096, true))
             val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
             val processedAssetChannel = ByteChannel(true)
@@ -149,19 +125,4 @@ class StoreAssetHandler(
     }
 
     private fun validate(mimeType: String): Boolean = mimeType.startsWith("image/")
-
-    private fun validateRequest(request: StoreAssetRequest) {
-        if (request.alt != null && request.alt.length > MAX_ALT_LENGTH) {
-            throw IllegalArgumentException("Alt exceeds max length of $MAX_ALT_LENGTH")
-        }
-        if (request.labels.any { it.key.length > MAX_LABEL_KEY_LENGTH || it.value.length > MAX_LABEL_VALUE_LENGTH }) {
-            throw IllegalArgumentException("Labels exceed max length of ($MAX_LABEL_KEY_LENGTH, $MAX_LABEL_VALUE_LENGTH)")
-        }
-        if (request.labels.size > MAX_LABELS) {
-            throw IllegalArgumentException("Cannot have more than $MAX_LABELS labels")
-        }
-        if (request.tags.any { it.length > MAX_TAG_VALUE_LENGTH }) {
-            throw IllegalArgumentException("Tags exceed max length of $MAX_TAG_VALUE_LENGTH")
-        }
-    }
 }

@@ -1,0 +1,31 @@
+package io.asset.handler
+
+import io.asset.context.UpdateRequestContext
+import io.asset.model.StoreAssetRequest
+import io.asset.repository.AssetRepository
+
+class UpdateAssetHandler(
+    private val assetRepository: AssetRepository,
+) {
+    suspend fun updateAsset(
+        context: UpdateRequestContext,
+        request: StoreAssetRequest,
+    ): AssetAndLocation {
+        request.validate()
+
+        val updated =
+            try {
+                assetRepository.update(
+                    UpdateAssetDto(
+                        path = context.path,
+                        entryId = context.entryId,
+                        request = request,
+                    ),
+                )
+            } catch (e: IllegalStateException) {
+                throw AssetNotFoundException(e, "Asset not found with path: ${context.path}, entryId: ${context.entryId}")
+            }
+
+        return AssetAndLocation(updated, context.path)
+    }
+}

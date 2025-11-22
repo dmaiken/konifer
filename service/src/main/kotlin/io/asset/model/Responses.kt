@@ -23,7 +23,7 @@ data class AssetResponse(
 data class AssetVariantResponse(
     val bucket: String,
     val storeKey: String,
-    val imageAttributes: ImageAttributeResponse,
+    val attributes: ImageAttributeResponse,
     val lqip: LQIPResponse,
 )
 

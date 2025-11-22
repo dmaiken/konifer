@@ -9,8 +9,8 @@ import io.ktor.http.HttpStatusCode
 import io.util.assertAssetDoesNotExist
 import io.util.createJsonClient
 import io.util.deleteAsset
-import io.util.fetchAssetInfo
-import io.util.storeAssetMultipart
+import io.util.fetchAssetMetadata
+import io.util.storeAssetMultipartSource
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -36,8 +36,8 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
-            fetchAssetInfo(client, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
+            fetchAssetMetadata(client, path = "profile")
             deleteAsset(client, path = "profile")
             assertAssetDoesNotExist(client, path = "profile")
             deleteAsset(client, path = "profile")
@@ -52,14 +52,14 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
-            val secondAsset = storeAssetMultipart(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
-            fetchAssetInfo(client, path = "profile")!!.apply {
+            fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset?.entryId
             }
             deleteAsset(client, path = "profile")
-            fetchAssetInfo(client, path = "profile")!!.apply {
+            fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe firstAsset?.entryId
             }
         }
@@ -73,15 +73,15 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipart(client, image, request, path = "profile")
-            val secondAsset = storeAssetMultipart(client, image, request, path = "profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             deleteAsset(client, path = "profile", entryId = firstAsset!!.entryId)
 
-            fetchAssetInfo(client, path = "profile")!!.apply {
+            fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset?.entryId
             }
-            fetchAssetInfo(
+            fetchAssetMetadata(
                 client,
                 path = "profile",
                 entryId = firstAsset.entryId,
@@ -112,18 +112,18 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipart(client, image, request, path = "user/123")
-            val secondAsset = storeAssetMultipart(client, image, request, path = "user/123")
-            val assetToNotDelete = storeAssetMultipart(client, image, request, path = "user/123/profile")
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
 
             client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
 
-            fetchAssetInfo(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
 
-            fetchAssetInfo(client, "user/123/profile", assetToNotDelete!!.entryId)
-            fetchAssetInfo(client, "user/123/profile")
+            fetchAssetMetadata(client, "user/123/profile", assetToNotDelete!!.entryId)
+            fetchAssetMetadata(client, "user/123/profile")
         }
 
     @Test
@@ -135,22 +135,22 @@ class DeleteAssetTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val control = storeAssetMultipart(client, image, request, path = "user")
-            val firstAsset = storeAssetMultipart(client, image, request, path = "user/123")
-            val secondAsset = storeAssetMultipart(client, image, request, path = "user/123")
-            val thirdAsset = storeAssetMultipart(client, image, request, path = "user/123/profile")
-            val fourthAsset = storeAssetMultipart(client, image, request, path = "user/123/profile/other")
+            val control = storeAssetMultipartSource(client, image, request, path = "user").second
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
+            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
+            val fourthAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile/other").second
 
             client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
 
-            fetchAssetInfo(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123/profile", thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetInfo(client, "user/123/profile/other", fourthAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123/profile", thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123/profile/other", fourthAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
 
-            fetchAssetInfo(client, "user")
-            fetchAssetInfo(client, "user", entryId = control!!.entryId)
+            fetchAssetMetadata(client, "user")
+            fetchAssetMetadata(client, "user", entryId = control!!.entryId)
         }
 
     @Test

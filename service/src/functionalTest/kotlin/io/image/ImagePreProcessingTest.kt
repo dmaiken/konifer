@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.matchers.shouldBeApproximately
 import io.util.createJsonClient
 import io.util.fetchAssetViaRedirect
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
@@ -63,7 +63,7 @@ class ImagePreProcessingTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -72,9 +72,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe "image/png"
-                    first().imageAttributes.width shouldBe 100
-                    first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately originalScale
+                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.width shouldBe 100
+                    first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately originalScale
                 }
             }
 
@@ -110,7 +110,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipart(client, image, request)!!.apply {
+                storeAssetMultipartSource(client, image, request).second!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
@@ -119,9 +119,9 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().bucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().imageAttributes.mimeType shouldBe "image/png"
-                        first().imageAttributes.height shouldBe 50
-                        first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately
+                        first().attributes.mimeType shouldBe "image/png"
+                        first().attributes.height shouldBe 50
+                        first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
                     }
                 }
@@ -161,7 +161,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -170,9 +170,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe "image/png"
-                    first().imageAttributes.height shouldBe bufferedImage.height
-                    first().imageAttributes.width shouldBe bufferedImage.width
+                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.height shouldBe bufferedImage.height
+                    first().attributes.width shouldBe bufferedImage.width
                 }
             }
 
@@ -210,7 +210,7 @@ class ImagePreProcessingTest {
                 alt = "an image",
             )
         val storedAssetInfo =
-            storeAssetMultipart(client, image, request)!!.apply {
+            storeAssetMultipartSource(client, image, request).second!!.apply {
                 createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
@@ -219,9 +219,9 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().bucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().imageAttributes.mimeType shouldBe expectedType
-                    first().imageAttributes.height shouldBe bufferedImage.height
-                    first().imageAttributes.width shouldBe bufferedImage.width
+                    first().attributes.mimeType shouldBe expectedType
+                    first().attributes.height shouldBe bufferedImage.height
+                    first().attributes.width shouldBe bufferedImage.width
                 }
             }
 
@@ -264,7 +264,7 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             val storedAssetInfo =
-                storeAssetMultipart(client, image, request, path = "users/123/profile")!!.apply {
+                storeAssetMultipartSource(client, image, request, path = "users/123/profile").second!!.apply {
                     createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
@@ -273,9 +273,9 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().bucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().imageAttributes.mimeType shouldBe "image/webp"
-                        first().imageAttributes.height shouldBe 50
-                        first().imageAttributes.width.toDouble() / first().imageAttributes.height.toDouble() shouldBeApproximately
+                        first().attributes.mimeType shouldBe "image/webp"
+                        first().attributes.height shouldBe 50
+                        first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
                     }
                 }

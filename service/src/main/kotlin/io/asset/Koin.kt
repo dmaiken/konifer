@@ -6,6 +6,7 @@ import io.asset.handler.DeleteAssetHandler
 import io.asset.handler.FetchAssetHandler
 import io.asset.handler.StoreAssetHandler
 import io.asset.handler.TransformationNormalizer
+import io.asset.handler.UpdateAssetHandler
 import io.asset.repository.AssetRepository
 import io.asset.repository.InMemoryAssetRepository
 import io.asset.repository.PostgresAssetRepository
@@ -33,6 +34,9 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
         }
         single<DeleteAssetHandler> {
             DeleteAssetHandler(get())
+        }
+        single<UpdateAssetHandler> {
+            UpdateAssetHandler(get())
         }
         single<MimeTypeDetector> {
             TikaMimeTypeDetector()

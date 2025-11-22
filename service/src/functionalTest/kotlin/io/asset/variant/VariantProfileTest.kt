@@ -9,7 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
 import io.util.fetchAssetContent
 import io.util.fetchAssetLink
-import io.util.storeAssetMultipart
+import io.util.storeAssetMultipartSource
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
@@ -32,7 +32,7 @@ class VariantProfileTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetLink(client, path = "profile", profile = "medium", expectedStatusCode = HttpStatusCode.BadRequest)
         }
@@ -57,7 +57,7 @@ class VariantProfileTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetContent(client, path = "profile", profile = "small")!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
@@ -87,7 +87,7 @@ class VariantProfileTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipart(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
 
             fetchAssetContent(client, path = "profile", profile = "small", width = 100)!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)

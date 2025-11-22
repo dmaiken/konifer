@@ -122,6 +122,15 @@ If the server starts successfully, you'll see the following output:
 2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
+## Running Locally
+Before you run this locally, you must install libvips. You may have it already, however, installing it from source
+ensures you're developing against the same version that Direkt will use within Docker. 
+
+To install:
+```shell
+chmod +x /scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps
+```
+
 ## Docker
 
 To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS):

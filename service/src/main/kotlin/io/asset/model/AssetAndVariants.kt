@@ -53,7 +53,7 @@ data class AssetAndVariants(
                     AssetVariantResponse(
                         bucket = variant.objectStoreBucket,
                         storeKey = variant.objectStoreKey,
-                        imageAttributes =
+                        attributes =
                             ImageAttributeResponse(
                                 height = variant.transformation.height,
                                 width = variant.transformation.width,

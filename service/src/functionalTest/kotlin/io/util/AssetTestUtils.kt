@@ -18,6 +18,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsChannel
@@ -34,13 +35,13 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 
-suspend fun storeAssetMultipart(
+suspend fun storeAssetMultipartSource(
     client: HttpClient,
     asset: ByteArray,
     request: StoreAssetRequest,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
-): AssetResponse? =
+): Pair<Headers, AssetResponse?> =
     client
         .post("/assets/$path") {
             contentType(ContentType.MultiPart.FormData)
@@ -69,18 +70,27 @@ suspend fun storeAssetMultipart(
             )
         }.let { response ->
             response.status shouldBe expectedStatus
-            if (response.status == HttpStatusCode.Created) {
-                response.body<AssetResponse>().apply {
-                    entryId shouldNotBe null
-                    createdAt shouldNotBe null
-                    variants shouldHaveSize 1 // original variant
+            val body =
+                if (response.status == HttpStatusCode.Created) {
+                    // validate location header
+                    response.headers[HttpHeaders.Location] shouldNotBe null
+                    val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+                    client.get(locationUrl.fullPath).apply {
+                        status shouldBe HttpStatusCode.OK
+                    }
+                    response.body<AssetResponse>().apply {
+                        entryId shouldNotBe null
+                        createdAt shouldNotBe null
+                        variants shouldHaveSize 1 // original variant
+                    }
+                } else {
+                    null
                 }
-            } else {
-                null
-            }
+
+            Pair(response.headers, body)
         }
 
-suspend fun storeAssetUrl(
+suspend fun storeAssetUrlSource(
     client: HttpClient,
     request: StoreAssetRequest,
     path: String = "profile",
@@ -93,7 +103,14 @@ suspend fun storeAssetUrl(
         }.let { response ->
             response.status shouldBe expectedStatus
             if (response.status == HttpStatusCode.Created) {
-                response.body<AssetResponse>().apply {
+                val responseBody = response.body<AssetResponse>()
+                // validate location header
+                response.headers[HttpHeaders.Location] shouldNotBe null
+                val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+                client.get(locationUrl.fullPath).apply {
+                    status shouldBe HttpStatusCode.OK
+                }
+                responseBody.apply {
                     entryId shouldNotBe null
                     createdAt shouldNotBe null
                     variants shouldHaveSize 1 // original variant
@@ -357,7 +374,7 @@ suspend fun assertAssetDoesNotExist(
     }
 }
 
-suspend fun fetchAssetInfo(
+suspend fun fetchAssetMetadata(
     client: HttpClient,
     path: String,
     entryId: Long? = null,
@@ -414,6 +431,28 @@ suspend fun deleteAsset(
     } else {
         client.delete("/assets/$path").status shouldBe expectedStatusCode
     }
+}
+
+suspend fun updateAsset(
+    client: HttpClient,
+    location: String,
+    body: StoreAssetRequest,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
+): Pair<Headers, AssetResponse?> {
+    val response =
+        client.put(Url(location).fullPath) {
+            contentType(ContentType.Application.Json)
+            setBody(body)
+        }
+    response.status shouldBe expectedStatusCode
+    response.headers[HttpHeaders.Location] shouldBe null
+    val body =
+        if (response.status == HttpStatusCode.OK) {
+            response.body<AssetResponse>()
+        } else {
+            null
+        }
+    return Pair(response.headers, body)
 }
 
 private fun attachVariantModifiers(

@@ -2,6 +2,7 @@ package io
 
 import io.asset.context.ContentTypeNotPermittedException
 import io.asset.context.InvalidPathException
+import io.asset.handler.AssetNotFoundException
 import io.image.InvalidImageException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -29,5 +30,9 @@ fun Application.configureStatusPages() =
         exception<ContentTypeNotPermittedException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.Forbidden} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.Forbidden, cause.message ?: "")
+        }
+        exception<AssetNotFoundException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.NotFound} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.NotFound, cause.message)
         }
     }

@@ -9,8 +9,8 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
-import io.util.fetchAssetInfo
-import io.util.storeAssetMultipart
+import io.util.fetchAssetMetadata
+import io.util.storeAssetMultipartSource
 import org.junit.jupiter.api.Test
 
 class FetchAssetWithLabelsTest {
@@ -37,11 +37,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipart(client, image, request, path = "profile")!!
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = labels)!!.apply {
+            fetchAssetMetadata(client, "profile", labels = labels)!!.apply {
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
                 alt shouldBe request.alt
@@ -74,11 +74,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipart(client, image, request, path = "profile")!!
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", entryId = response.entryId, labels = labels)!!.apply {
+            fetchAssetMetadata(client, "profile", entryId = response.entryId, labels = labels)!!.apply {
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
                 alt shouldBe request.alt
@@ -88,7 +88,7 @@ class FetchAssetWithLabelsTest {
             }
 
             // Verify wrong entryId with right labels returns NotFound
-            fetchAssetInfo(client, "profile", entryId = response.entryId + 1, labels = labels, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "profile", entryId = response.entryId + 1, labels = labels, expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -114,11 +114,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipart(client, image, request, path = "profile")!!
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
+            fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
                 alt shouldBe request.alt
@@ -151,11 +151,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipart(client, image, request, path = "profile")!!
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
+            fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
                 alt shouldBe request.alt
@@ -188,11 +188,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipart(client, image, request, path = "profile")!!
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = mapOf("phone" to "iphone"))!!.apply {
+            fetchAssetMetadata(client, "profile", labels = mapOf("phone" to "iphone"))!!.apply {
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
                 alt shouldBe request.alt
@@ -225,11 +225,11 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            storeAssetMultipart(client, image, request, path = "profile")
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = mapOf("phone" to "android"), expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "profile", labels = mapOf("phone" to "android"), expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -255,10 +255,10 @@ class FetchAssetWithLabelsTest {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
-            storeAssetMultipart(client, image, request, path = "profile")
-            storeAssetMultipart(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            storeAssetMultipartSource(client, image, request, path = "profile")
+            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
 
-            fetchAssetInfo(client, "profile", labels = mapOf("tablet" to "iphone"), expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "profile", labels = mapOf("tablet" to "iphone"), expectedStatus = HttpStatusCode.NotFound)
         }
 }

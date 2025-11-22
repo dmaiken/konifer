@@ -8,6 +8,8 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.module
+
 
 fun testInMemory(
     configuration: String? = null,
