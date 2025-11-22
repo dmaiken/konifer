@@ -48,9 +48,9 @@ object VipsEncoder {
         format: ImageFormat,
         quality: Int?,
     ): Array<VipsOption> =
-        if (format.vipsProperties.supportsQuality) {
-            arrayOf(VipsOption.Int(VIPS_OPTION_QUALITY, quality ?: format.vipsProperties.defaultQuality))
-        } else {
-            noOptions
-        }
+        buildList {
+            if (format.vipsProperties.supportsQuality) {
+                add(VipsOption.Int(VIPS_OPTION_QUALITY, quality ?: format.vipsProperties.defaultQuality))
+            }
+        }.toTypedArray()
 }

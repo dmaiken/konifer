@@ -60,6 +60,16 @@ enum class ImageFormat(
             supportsAlpha = true,
         ),
     ),
+    HEIF(
+        setOf("heif"),
+        "image/heif",
+        "heif",
+        VipsProperties(
+            supportsQuality = true,
+            defaultQuality = 50,
+            supportsAlpha = true,
+        ),
+    ),
     ;
 
     companion object {

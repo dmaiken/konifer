@@ -6,9 +6,7 @@ import io.database.migrateSchema
 import io.inmemory.configureInMemoryObjectStoreRouting
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
-import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.EngineMain
-import io.ktor.server.netty.Netty
 import io.ktor.util.logging.KtorSimpleLogger
 import io.path.configuration.configurePathConfigurationRouting
 

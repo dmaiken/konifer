@@ -37,7 +37,7 @@ if [ "$INSTALL_DEPS" = true ]; then
     libimagequant-dev libjpeg62 liblcms2-dev liborc-0.4-dev \
     libpango1.0-dev libpng-dev libpoppler-glib-dev librsvg2-dev \
     librsvg2-2 libtiff5-dev libwebp-dev libheif-dev libde265-dev \
-    x265 libraw-dev libjxl-dev libgif-dev
+    x265 libraw-dev libjxl-dev libgif-dev libaom-dev libheif-plugin-x265 libheif-plugin-aomenc
 fi
 
 # Download and Compile VIPS (Universal) ---
