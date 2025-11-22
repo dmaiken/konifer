@@ -1,7 +1,7 @@
 package io.image.model
 
 enum class ImageFormat(
-    val value: Set<String>,
+    val format: Set<String>,
     val mimeType: String,
     val extension: String,
     val vipsProperties: VipsProperties,
@@ -50,12 +50,22 @@ enum class ImageFormat(
             supportsAlpha = true,
         ),
     ),
+    JPEG_XL(
+        setOf("jxl"),
+        "image/jxl",
+        "jxl",
+        VipsProperties(
+            supportsQuality = true,
+            defaultQuality = 90,
+            supportsAlpha = true,
+        ),
+    ),
     ;
 
     companion object {
         fun fromFormat(string: String): ImageFormat =
             entries.firstOrNull {
-                it.value.contains(string.lowercase())
+                it.format.contains(string.lowercase())
             } ?: throw IllegalArgumentException("Unsupported image format: $string")
 
         fun fromMimeType(string: String): ImageFormat =

@@ -129,6 +129,10 @@ tasks.named<ProcessResources>("processFunctionalTestResources") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+tasks.named<ProcessResources>("processTestFixturesResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.named("check") {
     dependsOn("functionalTest")
 }
