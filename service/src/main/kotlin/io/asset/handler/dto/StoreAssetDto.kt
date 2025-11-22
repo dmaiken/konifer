@@ -1,5 +1,6 @@
 package io.asset.handler.dto
 
+import io.asset.handler.AssetSource
 import io.asset.model.StoreAssetRequest
 import io.asset.store.PersistResult
 import io.image.model.Attributes

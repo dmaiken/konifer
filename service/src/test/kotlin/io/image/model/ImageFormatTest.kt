@@ -18,6 +18,9 @@ class ImageFormatTest {
                 Arguments.arguments("png", ImageFormat.PNG),
                 Arguments.arguments("webp", ImageFormat.WEBP),
                 Arguments.arguments("avif", ImageFormat.AVIF),
+                Arguments.arguments("jxl", ImageFormat.JPEG_XL),
+                Arguments.arguments("heic", ImageFormat.HEIC),
+                Arguments.arguments("gif", ImageFormat.GIF),
             )
 
         @JvmStatic
@@ -27,6 +30,9 @@ class ImageFormatTest {
                 Arguments.arguments("image/png", ImageFormat.PNG),
                 Arguments.arguments("image/webp", ImageFormat.WEBP),
                 Arguments.arguments("image/avif", ImageFormat.AVIF),
+                Arguments.arguments("image/jxl", ImageFormat.JPEG_XL),
+                Arguments.arguments("image/heic", ImageFormat.HEIC),
+                Arguments.arguments("image/gif", ImageFormat.GIF),
             )
     }
 

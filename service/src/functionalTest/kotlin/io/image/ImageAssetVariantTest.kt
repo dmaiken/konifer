@@ -508,7 +508,7 @@ class ImageAssetVariantTest {
     @Nested
     inner class QualityTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PNG"])
+        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PNG", "GIF"])
         fun `variant can be fetched that is has quality applied`(variantFormat: ImageFormat) =
             testInMemory {
                 val quality = 40

@@ -60,14 +60,24 @@ enum class ImageFormat(
             supportsAlpha = true,
         ),
     ),
-    HEIF(
-        setOf("heif"),
-        "image/heif",
-        "heif",
+    HEIC(
+        setOf("heic"),
+        "image/heic",
+        "heic",
         VipsProperties(
             supportsQuality = true,
             defaultQuality = 50,
             supportsAlpha = true,
+        ),
+    ),
+    GIF(
+        setOf("gif"),
+        "image/gif",
+        "gif",
+        VipsProperties(
+            supportsQuality = false,
+            defaultQuality = 100,
+            supportsAlpha = false,
         ),
     ),
     ;
