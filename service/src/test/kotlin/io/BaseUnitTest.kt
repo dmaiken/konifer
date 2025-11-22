@@ -1,7 +1,7 @@
 package io
 
 import io.asset.handler.AssetSource
-import io.asset.handler.StoreAssetDto
+import io.asset.handler.dto.StoreAssetDto
 import io.asset.model.AssetAndVariants
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.InMemoryAssetRepository

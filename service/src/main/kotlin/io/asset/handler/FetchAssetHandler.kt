@@ -2,6 +2,8 @@ package io.asset.handler
 
 import io.asset.context.ContentTypeNotPermittedException
 import io.asset.context.QueryRequestContext
+import io.asset.handler.dto.AssetLinkDto
+import io.asset.handler.dto.AssetMetadataDto
 import io.asset.model.AssetAndVariants
 import io.asset.repository.AssetRepository
 import io.asset.store.ObjectStore
@@ -22,19 +24,24 @@ class FetchAssetHandler(
     suspend fun fetchAssetLinkByPath(context: QueryRequestContext): AssetLinkDto? {
         val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
         logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
-        val variant = assetAndCacheStatus.first.variants.first()
+        val variant = assetAndCacheStatus.asset.variants.first()
 
         return AssetLinkDto(
             url = objectStore.generateObjectUrl(variant),
-            cacheHit = assetAndCacheStatus.second,
+            cacheHit = assetAndCacheStatus.cacheHit,
             lqip = variant.lqip,
         )
+    }
+
+    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
+        logger.info("Fetching asset info in path: ${context.path}")
+        return assetRepository.fetchAllByPath(context.path, null)
     }
 
     suspend fun fetchAssetMetadataByPath(
         context: QueryRequestContext,
         generateVariant: Boolean,
-    ): Pair<AssetAndVariants, Boolean>? {
+    ): AssetMetadataDto? {
         val entryId = context.modifiers.entryId
         logger.info(
             "Fetching asset info by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
@@ -43,7 +50,7 @@ class FetchAssetHandler(
         val assetAndVariants =
             assetRepository.fetchByPath(context.path, entryId, context.transformation, context.labels) ?: return null
         if (!generateVariant) {
-            return Pair(assetAndVariants, true)
+            return AssetMetadataDto(assetAndVariants, true)
         }
 
         return if (assetAndVariants.variants.isEmpty()) {
@@ -64,16 +71,11 @@ class FetchAssetHandler(
                     deferredResult = deferred,
                 ),
             )
-            return Pair(deferred.await(), false)
+            AssetMetadataDto(deferred.await(), false)
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
-            Pair(assetAndVariants, true)
+            AssetMetadataDto(assetAndVariants, true)
         }
-    }
-
-    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
-        logger.info("Fetching asset info in path: ${context.path}")
-        return assetRepository.fetchAllByPath(context.path, null)
     }
 
     suspend fun fetchAssetContent(

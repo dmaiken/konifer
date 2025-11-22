@@ -1,4 +1,4 @@
-package io.asset.handler
+package io.asset.handler.dto
 
 import io.asset.store.PersistResult
 import io.image.model.Attributes

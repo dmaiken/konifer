@@ -3,6 +3,7 @@ package io.asset.handler
 import io.asset.AssetStreamContainer
 import io.asset.MimeTypeDetector
 import io.asset.context.RequestContextFactory
+import io.asset.handler.dto.StoreAssetDto
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.AssetRepository
 import io.asset.store.ObjectStore

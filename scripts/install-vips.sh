@@ -27,7 +27,7 @@ done
 
 echo "Starting VIPS setup. Version: $VIPS_VERSION"
 
-# System Dependencies (Debian/Ubuntu specific) ---
+# System Dependencies (Debian/Ubuntu specific)
 if [ "$INSTALL_DEPS" = true ]; then
   echo "Installing system dependencies..."
   # specific to the eclipse-temurin (Ubuntu/Debian) base image
@@ -40,7 +40,6 @@ if [ "$INSTALL_DEPS" = true ]; then
     x265 libraw-dev libjxl-dev libgif-dev libaom-dev libheif-plugin-x265 libheif-plugin-aomenc
 fi
 
-# Download and Compile VIPS (Universal) ---
 echo "Downloading and compiling VIPS..."
 
 mkdir -p $BUILD_DIR
@@ -60,7 +59,7 @@ ninja install
 
 echo "VIPS installed successfully."
 
-# Cleanup (Docker specific) ---
+# Cleanup (Docker specific)
 if [ "$CLEANUP" = true ]; then
   echo "Cleaning up build tools and artifacts..."
   cd /

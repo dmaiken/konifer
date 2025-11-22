@@ -63,9 +63,12 @@ fun Application.configureAssetRouting() {
                 ReturnFormat.METADATA -> {
                     if (requestContext.modifiers.limit == 1) {
                         logger.info("Navigating to asset info with path: ${requestContext.path}")
-                        fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let {
-                            logger.info("Found asset info: $it with path: ${requestContext.path}")
-                            call.respond(HttpStatusCode.OK, it.first.toResponse())
+                        fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let { response ->
+                            logger.info("Found asset info: $response with path: ${requestContext.path}")
+                            getAppStatusCacheHeader(response.cacheHit).let {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            call.respond(HttpStatusCode.OK, response.asset.toResponse())
                         } ?: call.respond(HttpStatusCode.NotFound)
                         return@get
                     } else {
@@ -103,26 +106,26 @@ fun Application.configureAssetRouting() {
                     logger.info("Navigating to asset with path (${requestContext.modifiers.returnFormat}: ${requestContext.path}")
                     fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                         logger.info("Found asset content with path: ${requestContext.path}")
-                        getAppStatusCacheHeader(response.second).let {
+                        getAppStatusCacheHeader(response.cacheHit).let {
                             call.response.headers.append(it.first, it.second)
                         }
-                        getContentDispositionHeader(response.first, requestContext.modifiers.returnFormat)?.also {
+                        getContentDispositionHeader(response.asset, requestContext.modifiers.returnFormat)?.also {
                             call.response.headers.append(it.first, it.second)
                         }
                         call.respondBytesWriter(
                             contentType =
                                 ContentType.parse(
-                                    response.first.variants
+                                    response.asset.variants
                                         .first()
                                         .transformation.format.mimeType,
                                 ),
                             status = HttpStatusCode.OK,
                         ) {
                             fetchAssetHandler.fetchAssetContent(
-                                response.first.variants
+                                response.asset.variants
                                     .first()
                                     .objectStoreBucket,
-                                response.first.variants
+                                response.asset.variants
                                     .first()
                                     .objectStoreKey,
                                 this,

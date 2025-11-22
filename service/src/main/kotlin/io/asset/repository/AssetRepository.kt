@@ -1,8 +1,8 @@
 package io.asset.repository
 
-import io.asset.handler.StoreAssetDto
-import io.asset.handler.StoreAssetVariantDto
-import io.asset.handler.UpdateAssetDto
+import io.asset.handler.dto.StoreAssetDto
+import io.asset.handler.dto.StoreAssetVariantDto
+import io.asset.handler.dto.UpdateAssetDto
 import io.asset.model.AssetAndVariants
 import io.asset.model.VariantBucketAndKey
 import io.image.model.Transformation

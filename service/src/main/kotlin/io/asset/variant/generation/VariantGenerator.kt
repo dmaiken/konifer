@@ -1,8 +1,8 @@
 package io.asset.variant.generation
 
 import io.asset.AssetStreamContainer
-import io.asset.handler.StoreAssetVariantDto
 import io.asset.handler.TransformationNormalizer
+import io.asset.handler.dto.StoreAssetVariantDto
 import io.asset.model.Asset
 import io.asset.model.AssetAndVariants
 import io.asset.repository.AssetRepository

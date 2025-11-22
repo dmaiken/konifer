@@ -1,6 +1,7 @@
 package io.asset.handler
 
 import io.asset.context.UpdateRequestContext
+import io.asset.handler.dto.UpdateAssetDto
 import io.asset.model.StoreAssetRequest
 import io.asset.repository.AssetRepository
 

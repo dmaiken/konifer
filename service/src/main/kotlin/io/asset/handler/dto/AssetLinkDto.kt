@@ -1,4 +1,4 @@
-package io.asset.handler
+package io.asset.handler.dto
 
 import io.asset.model.AssetLinkResponse
 import io.image.model.LQIPs
