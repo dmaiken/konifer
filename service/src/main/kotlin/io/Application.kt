@@ -14,12 +14,15 @@ import io.path.configuration.configurePathConfigurationRouting
 
 private val logger = KtorSimpleLogger("io.Application")
 
+/**
+ * Before you think about configuring this using embeddedServer, think again. This will break the ability to use
+ * eternalized config through ktor (-config) and you will have to mount any externalized config manually!
+ */
 fun main(args: Array<String>) {
     EngineMain.main(args)
 }
 
 fun Application.module() {
-    logger.info("Config is: ${environment.config.keys()}")
     val inMemoryObjectStoreEnabled = environment.config.tryGetString("object-store.in-memory")?.toBoolean() ?: false
     if (environment.config.tryGetString("database.in-memory")?.toBoolean() == true) {
         configureKoin(null, inMemoryObjectStoreEnabled)
