@@ -25,6 +25,7 @@ class InMemoryAssetRepository : AssetRepository {
         logger.info("Persisting asset at path: $path and entryId: $entryId")
         val key =
             VariantParameterGenerator.generateImageVariantTransformations(asset.attributes).second
+        val now = LocalDateTime.now()
         val assetAndVariants =
             AssetAndVariants(
                 asset =
@@ -33,7 +34,8 @@ class InMemoryAssetRepository : AssetRepository {
                         alt = asset.request.alt,
                         entryId = entryId,
                         path = path,
-                        createdAt = LocalDateTime.now(),
+                        createdAt = now,
+                        modifiedAt = now,
                         labels = asset.request.labels,
                         tags = asset.request.tags,
                         source = asset.source,
@@ -49,7 +51,7 @@ class InMemoryAssetRepository : AssetRepository {
                             isOriginalVariant = true,
                             lqip = asset.lqips,
                             transformationKey = key,
-                            createdAt = LocalDateTime.now(),
+                            createdAt = now,
                         ),
                     ),
             )
@@ -221,6 +223,10 @@ class InMemoryAssetRepository : AssetRepository {
             fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
                 ?: throw IllegalStateException("Asset does not exist")
 
+        val isModified =
+            asset.request.alt != fetched.asset.alt ||
+                asset.request.labels != fetched.asset.labels ||
+                asset.request.tags != asset.request.tags
         val updated =
             fetched.copy(
                 asset =
@@ -228,6 +234,7 @@ class InMemoryAssetRepository : AssetRepository {
                         alt = asset.request.alt,
                         labels = asset.request.labels,
                         tags = asset.request.tags,
+                        modifiedAt = if (isModified) LocalDateTime.now() else fetched.asset.modifiedAt,
                     ),
             )
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)

@@ -16,6 +16,7 @@ data class Asset(
     val source: AssetSource,
     val sourceUrl: String?,
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    val modifiedAt: LocalDateTime = LocalDateTime.now(),
 ) {
     companion object {
         fun from(
@@ -33,6 +34,7 @@ data class Asset(
                 source = AssetSource.valueOf(checkNotNull(record.source)),
                 sourceUrl = record.sourceUrl,
                 createdAt = checkNotNull(record.createdAt),
+                modifiedAt = checkNotNull(record.modifiedAt),
             )
     }
 }

@@ -66,6 +66,7 @@ class PostgresAssetRepository(
                     .set(ASSET_TREE.ENTRY_ID, entryId)
                     .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
+                    .set(ASSET_TREE.MODIFIED_AT, now)
             asset.request.url?.let {
                 insert.set(ASSET_TREE.SOURCE_URL, it)
             }
@@ -296,6 +297,14 @@ class PostgresAssetRepository(
                     .where(ASSET_TAG.ASSET_ID.eq(assetId))
                     .awaitFirst()
                 insertTags(trx.dsl(), assetId, asset.request.tags)
+            }
+            if (modified) {
+                trx
+                    .dsl()
+                    .update(ASSET_TREE)
+                    .set(ASSET_TREE.MODIFIED_AT, LocalDateTime.now())
+                    .where(ASSET_TREE.ID.eq(assetId))
+                    .awaitFirst()
             }
         }
 

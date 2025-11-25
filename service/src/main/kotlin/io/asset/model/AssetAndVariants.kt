@@ -67,6 +67,7 @@ data class AssetAndVariants(
                     )
                 },
             createdAt = asset.createdAt,
+            modifiedAt = asset.modifiedAt,
         )
 
     fun getOriginalVariant(): AssetVariant = variants.first { it.isOriginalVariant }

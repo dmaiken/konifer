@@ -19,6 +19,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -51,6 +52,7 @@ abstract class AssetRepositoryTest {
                     tags shouldContainExactly dto.request.tags
                     source shouldBe dto.source
                     sourceUrl shouldBe dto.request.url
+                    createdAt shouldBe modifiedAt
                 }
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
@@ -81,6 +83,7 @@ abstract class AssetRepositoryTest {
                     tags shouldContainExactly dto.request.tags
                     source shouldBe dto.source
                     sourceUrl shouldBe null
+                    createdAt shouldBe modifiedAt
                 }
                 val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
 
@@ -1435,6 +1438,7 @@ abstract class AssetRepositoryTest {
                     alt shouldBe updateDto.request.alt
                     labels shouldContainExactly updateDto.request.labels
                     tags shouldContainExactly updateDto.request.tags
+                    modifiedAt shouldBeAfter assetAndVariants.asset.modifiedAt
                 }
             }
 

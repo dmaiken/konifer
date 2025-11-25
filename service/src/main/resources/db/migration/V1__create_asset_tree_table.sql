@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS asset_tree
     alt        TEXT,
     source     TEXT      NOT NULL,
     source_url TEXT,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    modified_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS asset_tree_path_idx ON asset_tree USING gist (path);

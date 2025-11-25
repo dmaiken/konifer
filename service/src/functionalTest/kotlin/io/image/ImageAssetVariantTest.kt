@@ -1,6 +1,7 @@
 package io.image
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.VSource
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsDirection
@@ -13,6 +14,7 @@ import io.config.testInMemory
 import io.image.model.ImageFormat
 import io.image.vips.VipsOptionNames.OPTION_INTERESTING
 import io.image.vips.VipsOptionNames.OPTION_QUALITY
+import io.image.vips.transformation.ColorFilter.greyscaleMatrix3x3
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -341,9 +343,15 @@ class ImageAssetVariantTest {
             val result = fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = true)!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
-                VImage
-                    .newFromBytes(arena, image)
-                    .colourspace(VipsInterpretation.INTERPRETATION_GREY16)
+                val linear =
+                    VImage
+                        .newFromBytes(arena, image)
+                        .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
+                val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
+
+                linear
+                    .recomb(matrixImage)
+                    .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
                     .writeToStream(expectedStream, ".png")
 
                 val actualImage = ImageIO.read(ByteArrayInputStream(result))

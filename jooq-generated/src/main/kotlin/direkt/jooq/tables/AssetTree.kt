@@ -120,6 +120,11 @@ open class AssetTree(
      */
     val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
 
+    /**
+     * The column <code>public.asset_tree.modified_at</code>.
+     */
+    val MODIFIED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("modified_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+
     private constructor(alias: Name, aliased: Table<AssetTreeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

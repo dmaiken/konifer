@@ -3,6 +3,7 @@ package io.asset
 import io.asset.model.StoreAssetRequest
 import io.config.testInMemory
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -49,6 +50,8 @@ class UpdateAssetTest {
             updateResponse.labels shouldContainExactly updateRequest.labels
             updateResponse.tags shouldContainExactly updateRequest.tags
             updateResponse.alt shouldBe updateRequest.alt
+            updateResponse.createdAt shouldBe storeAssetResponse.createdAt
+            updateResponse.modifiedAt shouldBeAfter storeAssetResponse.modifiedAt
 
             fetchAssetMetadata(client, path = "profile") shouldBe updateResponse
         }

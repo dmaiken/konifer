@@ -17,6 +17,8 @@ data class AssetResponse(
     val variants: List<AssetVariantResponse>,
     @Serializable(with = LocalDateTimeSerializer::class)
     val createdAt: LocalDateTime,
+    @Serializable(with = LocalDateTimeSerializer::class)
+    val modifiedAt: LocalDateTime,
 )
 
 @Serializable

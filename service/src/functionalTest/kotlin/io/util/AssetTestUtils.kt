@@ -82,6 +82,7 @@ suspend fun storeAssetMultipartSource(
                         entryId shouldNotBe null
                         createdAt shouldNotBe null
                         variants shouldHaveSize 1 // original variant
+                        modifiedAt shouldBe createdAt
                     }
                 } else {
                     null
