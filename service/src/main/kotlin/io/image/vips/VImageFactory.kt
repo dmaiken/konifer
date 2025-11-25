@@ -24,7 +24,7 @@ object VImageFactory {
     fun newFromContainer(
         arena: Arena,
         container: AssetStreamContainer,
-        vararg options: VipsOption,
+        options: Array<VipsOption> = emptyArray(),
     ): VImage {
         val source = newSourceFromContainer(arena, container)
 

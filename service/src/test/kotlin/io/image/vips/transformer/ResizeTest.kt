@@ -3,6 +3,7 @@ package io.image.vips.transformer
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.enums.VipsAccess
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.PHash
@@ -12,10 +13,10 @@ import io.image.model.Gravity
 import io.image.model.ImageFormat
 import io.image.model.Transformation
 import io.image.vips.VImageFactory
-import io.image.vips.VipsOption.VIPS_OPTION_CROP
-import io.image.vips.VipsOption.VIPS_OPTION_HEIGHT
-import io.image.vips.VipsOption.VIPS_OPTION_INTERESTING
-import io.image.vips.VipsOption.VIPS_OPTION_SIZE
+import io.image.vips.VipsOptionNames.OPTION_CROP
+import io.image.vips.VipsOptionNames.OPTION_HEIGHT
+import io.image.vips.VipsOptionNames.OPTION_INTERESTING
+import io.image.vips.VipsOptionNames.OPTION_SIZE
 import io.image.vips.aspectRatio
 import io.image.vips.transformation.Resize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
@@ -32,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.imageio.ImageIO
 
 class ResizeTest {
@@ -219,6 +221,43 @@ class ResizeTest {
                 processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
             }
         }
+
+        @Test
+        fun `can resize multi page gif`() {
+            val width = 200
+            val image =
+                javaClass.getResourceAsStream("/images/kermit.gif")!!.use {
+                    it.readBytes()
+                }
+            val imageChannel = ByteReadChannel(image)
+            val container = AssetStreamContainer(imageChannel)
+            val decoderOptions =
+                arrayOf<VipsOption>(
+                    VipsOption.Int("n", -1),
+                    VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
+                )
+            val output = ByteArrayOutputStream()
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
+                val processedImage =
+                    Resize.transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = width,
+                                height = source.height,
+                                fit = Fit.FIT,
+                            ),
+                    )
+
+                processedImage.processed.width shouldBeWithinOneOf width
+                processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                processedImage.processed.writeToStream(output, ".gif")
+            }
+            val outputBytes = output.toByteArray()
+            PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
+        }
     }
 
     @Nested
@@ -314,9 +353,9 @@ class ResizeTest {
                         .newFromBytes(arena, image)
                         .thumbnailImage(
                             width,
-                            VipsOption.Int(VIPS_OPTION_HEIGHT, height),
-                            VipsOption.Enum(VIPS_OPTION_CROP, interesting),
-                            VipsOption.Enum(VIPS_OPTION_SIZE, VipsSize.SIZE_BOTH),
+                            VipsOption.Int(OPTION_HEIGHT, height),
+                            VipsOption.Enum(OPTION_CROP, interesting),
+                            VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_BOTH),
                         )
                 val transformed =
                     Resize.transform(
@@ -418,6 +457,45 @@ class ResizeTest {
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
         }
+
+        @Test
+        fun `can resize multi page gif with stretch mode`() {
+            val height = 200
+            val width = 200
+            val image =
+                javaClass.getResourceAsStream("/images/kermit.gif")!!.use {
+                    it.readBytes()
+                }
+            val imageChannel = ByteReadChannel(image)
+            val container = AssetStreamContainer(imageChannel)
+            val decoderOptions =
+                arrayOf<VipsOption>(
+                    VipsOption.Int("n", -1),
+                    VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
+                )
+            val output = ByteArrayOutputStream()
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
+                val processedImage =
+                    Resize.transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = width,
+                                height = height,
+                                fit = Fit.STRETCH,
+                            ),
+                    )
+
+//                processedImage.processed.height shouldBe height
+//                processedImage.processed.width shouldBe width
+                processedImage.processed.writeToStream(output, ".gif")
+            }
+            val outputBytes = output.toByteArray()
+            File("kermit-stretch.gif").writeBytes(outputBytes)
+            PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING
+        }
     }
 
     @Nested
@@ -444,7 +522,7 @@ class ResizeTest {
                     VImage.newFromBytes(arena, image).smartcrop(
                         width,
                         height,
-                        VipsOption.Enum(VIPS_OPTION_INTERESTING, interesting),
+                        VipsOption.Enum(OPTION_INTERESTING, interesting),
                     )
                 val transformed =
                     Resize.transform(

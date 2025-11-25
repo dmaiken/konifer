@@ -5,12 +5,10 @@ import app.photofox.vipsffm.VipsOption
 import io.image.ByteChannelOutputStream
 import io.image.model.ImageFormat
 import io.image.model.Transformation
-import io.image.vips.VipsOption.VIPS_OPTION_QUALITY
+import io.image.vips.VipsOptionNames.OPTION_QUALITY
 import io.ktor.utils.io.ByteChannel
 
 object VipsEncoder {
-    private val noOptions = emptyArray<VipsOption>()
-
     fun writeToStream(
         source: VImage,
         transformation: Transformation,
@@ -50,7 +48,7 @@ object VipsEncoder {
     ): Array<VipsOption> =
         buildList {
             if (format.vipsProperties.supportsQuality) {
-                add(VipsOption.Int(VIPS_OPTION_QUALITY, quality ?: format.vipsProperties.defaultQuality))
+                add(VipsOption.Int(OPTION_QUALITY, quality ?: format.vipsProperties.defaultQuality))
             }
         }.toTypedArray()
 }

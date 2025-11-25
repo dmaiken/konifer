@@ -7,8 +7,8 @@ import app.photofox.vipsffm.enums.VipsExtend
 import io.PHash
 import io.image.model.ImageFormat
 import io.image.model.Transformation
-import io.image.vips.VipsOption.VIPS_BACKGROUND
-import io.image.vips.VipsOption.VIPS_EXTEND
+import io.image.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.image.vips.VipsOptionNames.OPTION_EXTEND
 import io.image.vips.transformation.Pad
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.comparables.shouldBeLessThan
@@ -48,8 +48,8 @@ class PadTest {
                         padding,
                         (padding * 2) + image.width,
                         (padding * 2) + image.height,
-                        VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                        VipsOption.ArrayDouble(VIPS_BACKGROUND, background.map { it.toDouble() }),
+                        VipsOption.Enum(OPTION_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                        VipsOption.ArrayDouble(OPTION_BACKGROUND, background.map { it.toDouble() }),
                     ).writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
@@ -110,8 +110,8 @@ class PadTest {
                         padding,
                         (padding * 2) + expectedImage.width,
                         (padding * 2) + expectedImage.height,
-                        VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                        VipsOption.ArrayDouble(VIPS_BACKGROUND, background.map { it.toDouble() }),
+                        VipsOption.Enum(OPTION_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                        VipsOption.ArrayDouble(OPTION_BACKGROUND, background.map { it.toDouble() }),
                     ).writeToStream(expectedStream, ".png")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
@@ -145,8 +145,8 @@ class PadTest {
                         padding,
                         (padding * 2) + image.width,
                         (padding * 2) + image.height,
-                        VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                        VipsOption.ArrayDouble(VIPS_BACKGROUND, background.take(3).map { it.toDouble() }),
+                        VipsOption.Enum(OPTION_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                        VipsOption.ArrayDouble(OPTION_BACKGROUND, background.take(3).map { it.toDouble() }),
                     ).writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))

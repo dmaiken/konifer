@@ -17,19 +17,25 @@ private val logger = KtorSimpleLogger("io.Application")
  * eternalized config through ktor (-config) and you will have to mount any externalized config manually!
  */
 fun main(args: Array<String>) {
+    logger.info("Starting Direkt Netty")
     EngineMain.main(args)
 }
 
 fun Application.module() {
+    logger.info("Starting main application module")
     val inMemoryObjectStoreEnabled = environment.config.tryGetString("object-store.in-memory")?.toBoolean() ?: false
     if (environment.config.tryGetString("database.in-memory")?.toBoolean() == true) {
+        logger.info("Using database in-memory")
         configureKoin(null, inMemoryObjectStoreEnabled)
     } else {
+        logger.info("Using postgres")
         val connectionFactory = connectToPostgres()
         migrateSchema(connectionFactory)
         configureKoin(connectionFactory, inMemoryObjectStoreEnabled)
     }
+    logger.info("Configuring content negotiation")
     configureContentNegotiation()
+    logger.info("Configuring routing")
     configureRouting(inMemoryObjectStoreEnabled)
     configureStatusPages()
 }

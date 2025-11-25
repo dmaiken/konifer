@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsDirection
 import io.image.model.Rotate
 import io.image.model.Transformation
+import io.image.vips.VipsOptionNames.OPTION_ORIENTATION
 import io.image.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -41,7 +42,7 @@ object RotateFlip : VipsTransformer {
             }
 
         val processed =
-            source.rotate(angle).set("orientation", 1).let {
+            source.rotate(angle).set(OPTION_ORIENTATION, 1).let {
                 if (transformation.horizontalFlip) {
                     it.flip(VipsDirection.DIRECTION_HORIZONTAL)
                 } else {

@@ -2,14 +2,19 @@ package io.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.enums.VipsAccess
+import io.PHash
 import io.image.model.ImageFormat
 import io.image.model.Transformation
 import io.image.vips.transformation.GaussianBlur
+import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -41,6 +46,77 @@ class GaussianBlurTest {
                     .writeToStream(expectedStream, ".jpeg")
 
                 actualImage shouldHaveSamePixelContentAs ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+            }
+        }
+
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class)
+        fun `gaussian blur works on all formats`(format: ImageFormat) {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+
+            val actualStream = ByteArrayOutputStream()
+            val expectedStream = ByteArrayOutputStream()
+            Vips.run { arena ->
+                val transformed =
+                    GaussianBlur.transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        transformation = blurTransformation(10),
+                    )
+                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+
+                VImage
+                    .newFromBytes(arena, image)
+                    .gaussblur(10 / 2.0)
+                    .writeToStream(expectedStream, ".${format.extension}")
+
+                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                    HAMMING_DISTANCE_IDENTICAL
+            }
+        }
+
+        @Test
+        fun `gaussian blur works on multi-page gif`() {
+            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readAllBytes()
+
+            val actualStream = ByteArrayOutputStream()
+            val expectedStream = ByteArrayOutputStream()
+            Vips.run { arena ->
+                val original =
+                    VImage.newFromBytes(
+                        arena,
+                        image,
+                        VipsOption.Int("n", -1),
+                        VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
+                    )
+                val transformed =
+                    GaussianBlur.transform(
+                        arena = arena,
+                        source =
+                            VImage.newFromBytes(
+                                arena,
+                                image,
+                                VipsOption.Int("n", -1),
+                                VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
+                            ),
+                        transformation = blurTransformation(10),
+                    )
+                transformed.processed.writeToStream(actualStream, ".gif")
+
+                VImage
+                    .newFromBytes(
+                        arena,
+                        image,
+                        VipsOption.Int("n", -1),
+                        VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
+                    ).gaussblur(10 / 2.0)
+                    .writeToStream(expectedStream, ".gif")
+
+                transformed.processed.getInt("n-pages") shouldBe original.getInt("n-pages")
+                transformed.processed.getInt("page-height") shouldBe original.getInt("page-height")
+
+                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                    HAMMING_DISTANCE_IDENTICAL
             }
         }
 

@@ -2,9 +2,12 @@ package io.image.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.enums.VipsAccess
 import io.asset.AssetStreamContainer
 import io.asset.handler.TransformationNormalizer
 import io.asset.variant.AssetVariant
+import io.image.AttributesFactory
 import io.image.ByteChannelOutputStream
 import io.image.lqip.ImagePreviewGenerator
 import io.image.model.Attributes
@@ -16,6 +19,8 @@ import io.image.model.PreProcessedImage
 import io.image.model.PreProcessingProperties
 import io.image.model.ProcessedImage
 import io.image.model.Transformation
+import io.image.vips.VipsOptionNames.OPTION_ACCESS
+import io.image.vips.VipsOptionNames.OPTION_N
 import io.image.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.image.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.image.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -46,6 +51,7 @@ class VipsImageProcessor(
                 fit = Fit.FIT,
                 gravity = Gravity.CENTER,
             )
+        private val NO_OPTIONS = emptyArray<VipsOption>()
     }
 
     /**
@@ -68,7 +74,12 @@ class VipsImageProcessor(
             val resizedPreviewChannel = ByteChannel(autoFlush = true)
             try {
                 Vips.run { arena ->
-                    val sourceImage = VImageFactory.newFromContainer(arena, container)
+                    val decoderOptions =
+                        createDecoderOptions(
+                            sourceFormat = sourceFormat,
+                            destinationFormat = requestedTransformation.format ?: sourceFormat,
+                        )
+                    val sourceImage = VImageFactory.newFromContainer(arena, container, decoderOptions)
                     // Need a better way to do this, but that requires not using
                     // Vips to get the image attributes
                     val transformation =
@@ -109,10 +120,9 @@ class VipsImageProcessor(
                     VipsEncoder.writeToStream(preProcessed.processed, format, transformation?.quality, outputChannel)
 
                     attributes =
-                        Attributes(
-                            width = preProcessed.processed.width,
-                            height = preProcessed.processed.height,
-                            format = format,
+                        AttributesFactory.createAttributes(
+                            image = preProcessed.processed,
+                            destinationFormat = format,
                         )
                 }
                 PreProcessedImage(
@@ -142,7 +152,12 @@ class VipsImageProcessor(
             var regenerateLqip = false
             try {
                 Vips.run { arena ->
-                    val image = VImageFactory.newFromContainer(arena, source)
+                    val decoderOptions =
+                        createDecoderOptions(
+                            sourceFormat = originalVariant.attributes.format,
+                            destinationFormat = transformation.format,
+                        )
+                    val image = VImageFactory.newFromContainer(arena, source, decoderOptions)
                     val variantResult = variantGenerationPipeline.run(arena, image, transformation)
                     try {
                         if (variantResult.requiresLqipRegeneration && pathConfiguration.imageProperties.previews.isNotEmpty()) {
@@ -159,10 +174,9 @@ class VipsImageProcessor(
                     VipsEncoder.writeToStream(variantResult.processed, transformation, outputChannel)
 
                     attributes =
-                        Attributes(
-                            width = variantResult.processed.width,
-                            height = variantResult.processed.height,
-                            format = transformation.format,
+                        AttributesFactory.createAttributes(
+                            image = variantResult.processed,
+                            destinationFormat = transformation.format,
                         )
                 }
 
@@ -218,5 +232,28 @@ class VipsImageProcessor(
         ByteChannelOutputStream(channel).use {
             previewResult.processed.writeToStream(it, ".${ImageFormat.PNG.extension}")
         }
+    }
+
+    private fun createDecoderOptions(
+        sourceFormat: ImageFormat,
+        destinationFormat: ImageFormat,
+    ): Array<VipsOption> {
+        if (sourceFormat == ImageFormat.GIF && sourceFormat == destinationFormat) {
+            return arrayOf(
+                // Read all frames
+                VipsOption.Int(OPTION_N, -1),
+                // Sequential decoding
+                VipsOption.Enum(OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+            )
+        }
+        if (sourceFormat == ImageFormat.GIF) {
+            return arrayOf(
+                // Read only first frame
+                VipsOption.Int(OPTION_N, 1),
+                // Sequential decoding
+                VipsOption.Enum(OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+            )
+        }
+        return NO_OPTIONS
     }
 }

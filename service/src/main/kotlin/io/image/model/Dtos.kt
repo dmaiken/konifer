@@ -116,12 +116,6 @@ data class RequestedImageTransformation(
     }
 }
 
-data class Attributes(
-    val width: Int,
-    val height: Int,
-    val format: ImageFormat,
-)
-
 data class Transformation(
     val originalVariant: Boolean = false,
     val width: Int,

@@ -8,10 +8,10 @@ import io.image.DimensionCalculator.calculateDimensions
 import io.image.model.Fit
 import io.image.model.Gravity
 import io.image.model.Transformation
-import io.image.vips.VipsOption.VIPS_OPTION_CROP
-import io.image.vips.VipsOption.VIPS_OPTION_HEIGHT
-import io.image.vips.VipsOption.VIPS_OPTION_INTERESTING
-import io.image.vips.VipsOption.VIPS_OPTION_SIZE
+import io.image.vips.VipsOptionNames.OPTION_CROP
+import io.image.vips.VipsOptionNames.OPTION_HEIGHT
+import io.image.vips.VipsOptionNames.OPTION_INTERESTING
+import io.image.vips.VipsOptionNames.OPTION_SIZE
 import io.image.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
@@ -53,16 +53,16 @@ object Resize : VipsTransformer {
                 Fit.FIT ->
                     source.thumbnailImage(
                         resizeWidth,
-                        VipsOption.Int(VIPS_OPTION_HEIGHT, resizeHeight),
-                        VipsOption.Boolean(VIPS_OPTION_CROP, false),
-                        VipsOption.Enum(VIPS_OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
+                        VipsOption.Int(OPTION_HEIGHT, resizeHeight),
+                        VipsOption.Boolean(OPTION_CROP, false),
+                        VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
                 Fit.FILL -> {
                     source.thumbnailImage(
                         resizeWidth,
-                        VipsOption.Int(VIPS_OPTION_HEIGHT, resizeHeight),
-                        VipsOption.Enum(VIPS_OPTION_CROP, toVipsInterestingOption(transformation.gravity)),
-                        VipsOption.Enum(VIPS_OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
+                        VipsOption.Int(OPTION_HEIGHT, resizeHeight),
+                        VipsOption.Enum(OPTION_CROP, toVipsInterestingOption(transformation.gravity)),
+                        VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
                 }
                 Fit.STRETCH -> {
@@ -73,9 +73,9 @@ object Resize : VipsTransformer {
                     } else {
                         source.thumbnailImage(
                             resizeWidth,
-                            VipsOption.Int(VIPS_OPTION_HEIGHT, resizeHeight),
-                            VipsOption.Boolean(VIPS_OPTION_CROP, false),
-                            VipsOption.Enum(VIPS_OPTION_SIZE, VipsSize.SIZE_FORCE),
+                            VipsOption.Int(OPTION_HEIGHT, resizeHeight),
+                            VipsOption.Boolean(OPTION_CROP, false),
+                            VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_FORCE),
                         )
                     }
                 }
@@ -83,7 +83,7 @@ object Resize : VipsTransformer {
                     source.smartcrop(
                         resizeWidth,
                         resizeHeight,
-                        VipsOption.Enum(VIPS_OPTION_INTERESTING, toVipsInterestingOption(transformation.gravity)),
+                        VipsOption.Enum(OPTION_INTERESTING, toVipsInterestingOption(transformation.gravity)),
                     )
                 }
             }

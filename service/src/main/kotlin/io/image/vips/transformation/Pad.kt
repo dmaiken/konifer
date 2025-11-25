@@ -4,8 +4,8 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
 import io.image.model.Transformation
-import io.image.vips.VipsOption.VIPS_BACKGROUND
-import io.image.vips.VipsOption.VIPS_EXTEND
+import io.image.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.image.vips.VipsOptionNames.OPTION_EXTEND
 import io.image.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
@@ -46,8 +46,8 @@ object Pad : VipsTransformer {
                 pad,
                 (pad * 2) + preprocessedSource.width,
                 (pad * 2) + preprocessedSource.height,
-                VipsOption.Enum(VIPS_EXTEND, VipsExtend.EXTEND_BACKGROUND),
-                VipsOption.ArrayDouble(VIPS_BACKGROUND, preprocessedBackground),
+                VipsOption.Enum(OPTION_EXTEND, VipsExtend.EXTEND_BACKGROUND),
+                VipsOption.ArrayDouble(OPTION_BACKGROUND, preprocessedBackground),
             )
 
         return VipsTransformationResult(processed, requiresLqipRegeneration = true)

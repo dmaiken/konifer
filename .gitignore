@@ -35,3 +35,6 @@ out/
 ### VS Code ###
 .vscode/
 /docs/Gemfile.lock
+
+
+/direkt.conf

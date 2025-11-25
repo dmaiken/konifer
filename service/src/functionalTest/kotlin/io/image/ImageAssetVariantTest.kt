@@ -11,8 +11,8 @@ import io.asset.model.StoreAssetRequest
 import io.byteArrayToImage
 import io.config.testInMemory
 import io.image.model.ImageFormat
-import io.image.vips.VipsOption.VIPS_OPTION_INTERESTING
-import io.image.vips.VipsOption.VIPS_OPTION_QUALITY
+import io.image.vips.VipsOptionNames.OPTION_INTERESTING
+import io.image.vips.VipsOptionNames.OPTION_QUALITY
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -391,7 +391,7 @@ class ImageAssetVariantTest {
                     .smartcrop(
                         200,
                         200,
-                        VipsOption.Enum(VIPS_OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
+                        VipsOption.Enum(OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
                     ).writeToStream(expectedStream, ".png")
 
                 val actualImage = ImageIO.read(ByteArrayInputStream(result))
@@ -550,7 +550,7 @@ class ImageAssetVariantTest {
                         .writeToStream(
                             expectedStream,
                             ".${variantFormat.extension}",
-                            VipsOption.Int(VIPS_OPTION_QUALITY, quality),
+                            VipsOption.Int(OPTION_QUALITY, quality),
                         )
 
                     // Cannot use BufferedImage since AVIF is not supported
@@ -588,7 +588,7 @@ class ImageAssetVariantTest {
                     .writeToStream(
                         expectedStream,
                         ".${variantFormat.extension}",
-                        VipsOption.Int(VIPS_OPTION_QUALITY, quality),
+                        VipsOption.Int(OPTION_QUALITY, quality),
                     )
 
                 result shouldBeSameSizeAs expectedStream.toByteArray()
