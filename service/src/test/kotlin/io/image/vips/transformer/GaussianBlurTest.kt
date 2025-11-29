@@ -52,7 +52,7 @@ class GaussianBlurTest {
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
         fun `gaussian blur works on all formats`(format: ImageFormat) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
             val actualStream = ByteArrayOutputStream()
             val expectedStream = ByteArrayOutputStream()
@@ -63,12 +63,12 @@ class GaussianBlurTest {
                         source = VImage.newFromBytes(arena, image),
                         transformation = blurTransformation(10),
                     )
-                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+                transformed.processed.writeToStream(actualStream, format.extension)
 
                 VImage
                     .newFromBytes(arena, image)
                     .gaussblur(10 / 2.0)
-                    .writeToStream(expectedStream, ".${format.extension}")
+                    .writeToStream(expectedStream, format.extension)
 
                 PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
                     HAMMING_DISTANCE_IDENTICAL

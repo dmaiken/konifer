@@ -15,7 +15,7 @@ class AttributesFactoryTest {
     @ParameterizedTest
     @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["GIF"])
     fun `non-gif images have correct attributes`(format: ImageFormat) {
-        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readBytes()
+        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readBytes()
 
         Vips.run { arena ->
             val vImage = VImage.newFromBytes(arena, image)

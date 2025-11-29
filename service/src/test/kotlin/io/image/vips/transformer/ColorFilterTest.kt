@@ -9,6 +9,7 @@ import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.PHash
+import io.asset.AssetStreamContainer
 import io.image.model.Filter
 import io.image.model.ImageFormat
 import io.image.model.Transformation
@@ -20,7 +21,9 @@ import io.image.vips.transformation.ColorFilter.sepiaMatrix3x3
 import io.image.vips.transformation.ColorFilter.sepiaMatrix4x4
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
+import io.ktor.utils.io.ByteReadChannel
 import io.matchers.shouldHaveSamePixelContentAs
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -29,6 +32,7 @@ import org.junit.jupiter.params.provider.EnumSource.Mode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlin.use
 
 class ColorFilterTest {
     @Nested
@@ -57,32 +61,37 @@ class ColorFilterTest {
 
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
-        fun `when filter is greyscale then image is converted to greyscale`(format: ImageFormat) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+        fun `when filter is greyscale then image is converted to greyscale`(format: ImageFormat) =
+            runTest {
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
-            val actualStream = ByteArrayOutputStream()
-            val expectedStream = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val transformed =
-                    ColorFilter.transform(
-                        arena = arena,
-                        source = VImage.newFromBytes(arena, image),
-                        transformation = colorFilterTransformation(Filter.GREYSCALE),
-                    )
-                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+                val imageChannel = ByteReadChannel(image)
+                AssetStreamContainer(imageChannel).use { container ->
+                    container.toTemporaryFile()
+                    val actualStream = ByteArrayOutputStream()
+                    val expectedStream = ByteArrayOutputStream()
+                    Vips.run { arena ->
+                        val transformed =
+                            ColorFilter.transform(
+                                arena = arena,
+                                source = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath),
+                                transformation = colorFilterTransformation(Filter.GREYSCALE),
+                            )
+                        transformed.processed.writeToStream(actualStream, format.extension)
 
-                val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
-                VImage
-                    .newFromBytes(arena, image)
-                    .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
-                    .recomb(matrixImage)
-                    .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, ".${format.extension}")
+                        val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
+                        VImage
+                            .newFromFile(arena, container.getTemporaryFile().absolutePath)
+                            .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
+                            .recomb(matrixImage)
+                            .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
+                            .writeToStream(expectedStream, format.extension)
 
-                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
-                    HAMMING_DISTANCE_IDENTICAL
+                        PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                            HAMMING_DISTANCE_IDENTICAL
+                    }
+                }
             }
-        }
 
         @Test
         fun `when filter is greyscale then multi-page gif is converted to greyscale`() {
@@ -141,65 +150,75 @@ class ColorFilterTest {
 
         @ParameterizedTest
         @EnumSource(ImageFormat::class, mode = Mode.EXCLUDE, names = ["PNG"])
-        fun `when filter is black white then image is converted to black and white for alpha-supporting formats`(format: ImageFormat) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+        fun `when filter is black white then image is converted to black and white for alpha-supporting formats`(format: ImageFormat) =
+            runTest {
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
-            val actualStream = ByteArrayOutputStream()
-            val expectedStream = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val transformed =
-                    ColorFilter.transform(
-                        arena = arena,
-                        source = VImage.newFromBytes(arena, image),
-                        transformation = colorFilterTransformation(Filter.BLACK_WHITE),
-                    )
-                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+                val imageChannel = ByteReadChannel(image)
+                AssetStreamContainer(imageChannel).use { container ->
+                    container.toTemporaryFile()
+                    val actualStream = ByteArrayOutputStream()
+                    val expectedStream = ByteArrayOutputStream()
+                    Vips.run { arena ->
+                        val transformed =
+                            ColorFilter.transform(
+                                arena = arena,
+                                source = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath),
+                                transformation = colorFilterTransformation(Filter.BLACK_WHITE),
+                            )
+                        transformed.processed.writeToStream(actualStream, format.extension)
 
-                val expectedSource = VImage.newFromBytes(arena, image)
-                val bands = expectedSource.getInt("bands")
-                val alpha = expectedSource.extractBand(bands - 1, VipsOption.Int("n", 1))
-                val rgb = expectedSource.extractBand(0, VipsOption.Int("n", bands - 1))
+                        val expectedSource = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath)
+                        val bands = expectedSource.getInt("bands")
+                        val alpha = expectedSource.extractBand(bands - 1, VipsOption.Int("n", 1))
+                        val rgb = expectedSource.extractBand(0, VipsOption.Int("n", bands - 1))
 
-                val faxedRgb =
-                    rgb
-                        .colourspace(VipsInterpretation.INTERPRETATION_B_W)
-                        .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
-                        .cast(VipsBandFormat.FORMAT_UCHAR)
-                VImage.bandjoin(arena, listOf(faxedRgb, alpha)).writeToStream(expectedStream, ".${format.extension}")
+                        val faxedRgb =
+                            rgb
+                                .colourspace(VipsInterpretation.INTERPRETATION_B_W)
+                                .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
+                                .cast(VipsBandFormat.FORMAT_UCHAR)
+                        VImage.bandjoin(arena, listOf(faxedRgb, alpha)).writeToStream(expectedStream, format.extension)
 
-                // Not sure why these are not showing as identical images - perhaps the colorspace is
-                // so limited that a PHASH is not accurate?
-                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
-                    HAMMING_DISTANCE_CEILING
+                        // Not sure why these are not showing as identical images - perhaps the colorspace is
+                        // so limited that a PHASH is not accurate?
+                        PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                            HAMMING_DISTANCE_CEILING
+                    }
+                }
             }
-        }
 
         @ParameterizedTest
         @EnumSource(ImageFormat::class, mode = Mode.INCLUDE, names = ["PNG"])
-        fun `when filter is black white then image is converted to black and white for alpha unsupported formats`(format: ImageFormat) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+        fun `when filter is black white then image is converted to black and white for alpha unsupported formats`(format: ImageFormat) =
+            runTest {
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
-            val actualStream = ByteArrayOutputStream()
-            val expectedStream = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val transformed =
-                    ColorFilter.transform(
-                        arena = arena,
-                        source = VImage.newFromBytes(arena, image),
-                        transformation = colorFilterTransformation(Filter.BLACK_WHITE),
-                    )
-                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+                val imageChannel = ByteReadChannel(image)
+                AssetStreamContainer(imageChannel).use { container ->
+                    container.toTemporaryFile()
+                    val actualStream = ByteArrayOutputStream()
+                    val expectedStream = ByteArrayOutputStream()
+                    Vips.run { arena ->
+                        val transformed =
+                            ColorFilter.transform(
+                                arena = arena,
+                                source = VImage.newFromBytes(arena, image),
+                                transformation = colorFilterTransformation(Filter.BLACK_WHITE),
+                            )
+                        transformed.processed.writeToStream(actualStream, format.extension)
 
-                VImage
-                    .newFromBytes(arena, image)
-                    .colourspace(VipsInterpretation.INTERPRETATION_B_W)
-                    .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
-                    .writeToStream(expectedStream, ".${format.extension}")
+                        VImage
+                            .newFromBytes(arena, image)
+                            .colourspace(VipsInterpretation.INTERPRETATION_B_W)
+                            .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
+                            .writeToStream(expectedStream, format.extension)
 
-                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
-                    HAMMING_DISTANCE_IDENTICAL
+                        PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                            HAMMING_DISTANCE_IDENTICAL
+                    }
+                }
             }
-        }
 
         @Test
         fun `when filter is black white then multi-page gif is converted to black and white`() {
@@ -256,32 +275,37 @@ class ColorFilterTest {
 
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
-        fun `when filter is sepia then image is converted to sepia`(format: ImageFormat) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.readAllBytes()
+        fun `when filter is sepia then image is converted to sepia`(format: ImageFormat) =
+            runTest {
+                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
-            val actualStream = ByteArrayOutputStream()
-            val expectedStream = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val transformed =
-                    ColorFilter.transform(
-                        arena = arena,
-                        source = VImage.newFromBytes(arena, image),
-                        transformation = colorFilterTransformation(Filter.SEPIA),
-                    )
-                transformed.processed.writeToStream(actualStream, ".${format.extension}")
+                val imageChannel = ByteReadChannel(image)
+                AssetStreamContainer(imageChannel).use { container ->
+                    container.toTemporaryFile()
+                    val actualStream = ByteArrayOutputStream()
+                    val expectedStream = ByteArrayOutputStream()
+                    Vips.run { arena ->
+                        val transformed =
+                            ColorFilter.transform(
+                                arena = arena,
+                                source = VImage.newFromBytes(arena, image),
+                                transformation = colorFilterTransformation(Filter.SEPIA),
+                            )
+                        transformed.processed.writeToStream(actualStream, format.extension)
 
-                val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix3x3))
-                VImage
-                    .newFromBytes(arena, image)
-                    .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
-                    .recomb(matrixImage)
-                    .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, ".${format.extension}")
+                        val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix3x3))
+                        VImage
+                            .newFromBytes(arena, image)
+                            .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
+                            .recomb(matrixImage)
+                            .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
+                            .writeToStream(expectedStream, format.extension)
 
-                PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
-                    HAMMING_DISTANCE_IDENTICAL
+                        PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
+                            HAMMING_DISTANCE_IDENTICAL
+                    }
+                }
             }
-        }
 
         @Test
         fun `when filter is sepia then multi-page gif is converted to sepia`() {

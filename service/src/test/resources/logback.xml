@@ -9,6 +9,8 @@
 
     <logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
     <logger name="org.jooq" level="DEBUG" />
+    <logger name="io.asset" level="DEBUG" />
+    <logger name="io.image" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

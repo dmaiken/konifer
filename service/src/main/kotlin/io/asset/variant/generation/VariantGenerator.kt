@@ -121,7 +121,8 @@ class VariantGenerator(
         return imageProcessor.preprocess(
             container = job.sourceContainer,
             sourceFormat = job.sourceFormat,
-            pathConfiguration = job.pathConfiguration,
+            transformation = job.transformation,
+            lqipImplementations = job.pathConfiguration.imageProperties.previews,
             outputChannel = job.outputChannel,
         )
     }
@@ -149,7 +150,7 @@ class VariantGenerator(
 
             var asset: Asset? = null
             val variants = mutableListOf<AssetVariant>()
-            transformations.map { request ->
+            transformations.map { transformation ->
                 val originalVariantChannel = ByteChannel(true)
                 val fetchOriginalVariantJob =
                     launch {
@@ -158,15 +159,19 @@ class VariantGenerator(
                 val processedAssetChannel = ByteChannel(true)
                 val persistResult =
                     async {
-                        objectStore.persist(pathConfiguration.s3PathProperties.bucket, processedAssetChannel)
+                        objectStore.persist(
+                            bucket = pathConfiguration.s3PathProperties.bucket,
+                            asset = processedAssetChannel,
+                            format = transformation.format,
+                        )
                     }
                 val newVariant =
                     imageProcessor.generateVariant(
                         source = AssetStreamContainer(originalVariantChannel),
-                        transformation = request,
+                        transformation = transformation,
                         originalVariant = originalVariant,
                         outputChannel = processedAssetChannel,
-                        pathConfiguration = pathConfiguration,
+                        lqipImplementations = pathConfiguration.imageProperties.previews,
                     )
                 fetchOriginalVariantJob.join()
 

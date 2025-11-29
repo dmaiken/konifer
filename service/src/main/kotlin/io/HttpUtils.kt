@@ -43,6 +43,6 @@ fun getContentDispositionHeader(
 
     return Pair(
         HttpHeaders.ContentDisposition,
-        "attachment; filename*=UTF-8''$correctedEncodedFileName.${asset.getOriginalVariant().attributes.format.extension}",
+        "attachment; filename*=UTF-8''$correctedEncodedFileName${asset.getOriginalVariant().attributes.format.extension}",
     )
 }

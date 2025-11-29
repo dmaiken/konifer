@@ -14,13 +14,14 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel)
-            val streamed = container.readNBytes(image.size, false)
+            AssetStreamContainer(imageChannel).use { container ->
+                val streamed = container.readNBytes(image.size, false)
 
-            Tika().detect(image) shouldBe "image/png"
-            Tika().detect(streamed) shouldBe "image/png"
+                Tika().detect(image) shouldBe "image/png"
+                Tika().detect(streamed) shouldBe "image/png"
 
-            streamed shouldBe image
+                streamed shouldBe image
+            }
         }
 
     @Test
@@ -29,11 +30,12 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel)
-            val header = container.readNBytes(1024, true)
+            AssetStreamContainer(imageChannel).use { container ->
+                val header = container.readNBytes(1024, true)
 
-            header shouldBe container.readNBytes(1024, false)
-            header + container.readNBytes(image.size, false) shouldBe image
+                header shouldBe container.readNBytes(1024, false)
+                header + container.readNBytes(image.size, false) shouldBe image
+            }
         }
 
     @Test
@@ -44,10 +46,11 @@ class AssetStreamContainerTest {
             image.copyInto(expected, endIndex = expected.size)
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel)
-            val streamed = container.readNBytes(2048, false)
+            AssetStreamContainer(imageChannel).use { container ->
+                val streamed = container.readNBytes(2048, false)
 
-            streamed shouldBe expected
+                streamed shouldBe expected
+            }
         }
 
     @Test
@@ -56,10 +59,11 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel)
-            val streamed = container.readNBytes(image.size + 1000, true)
+            AssetStreamContainer(imageChannel).use { container ->
+                val streamed = container.readNBytes(image.size + 1000, true)
 
-            streamed shouldBe image
+                streamed shouldBe image
+            }
         }
 
     @Test
@@ -68,17 +72,32 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel)
-            val header = container.readNBytes(1024, true)
-            val header2 = container.readNBytes(1024, true)
-            val header3 = container.readNBytes(1024, true)
+            AssetStreamContainer(imageChannel).use { container ->
+                val header = container.readNBytes(1024, true)
+                val header2 = container.readNBytes(1024, true)
+                val header3 = container.readNBytes(1024, true)
 
-            header shouldBe header2 shouldBe header3
+                header shouldBe header2 shouldBe header3
 
-            container.readNBytes(2048, true)
+                container.readNBytes(2048, true)
 
-            val streamed = container.readNBytes(image.size, false)
-            streamed shouldBe image
+                val streamed = container.readNBytes(image.size, false)
+                streamed shouldBe image
+            }
+        }
+
+    @Test
+    fun `content is not double buffered if second call specifies no buffering of result`() =
+        runTest {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val imageChannel = ByteReadChannel(image)
+
+            AssetStreamContainer(imageChannel).use { container ->
+                val header = container.readNBytes(1024, true)
+                val header2 = container.readNBytes(1024, false)
+
+                header shouldBe header2
+            }
         }
 
     @Test
@@ -87,11 +106,12 @@ class AssetStreamContainerTest {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val imageChannel = ByteReadChannel(image)
 
-            val container = AssetStreamContainer(imageChannel, maxBytes = 8092)
-            container.readNBytes(8092, false)
+            AssetStreamContainer(imageChannel, maxBytes = 8092).use { container ->
+                container.readNBytes(8092, false)
 
-            shouldThrow<IllegalArgumentException> {
-                container.readNBytes(1, false)
+                shouldThrow<IllegalArgumentException> {
+                    container.readNBytes(1, false)
+                }
             }
         }
 }

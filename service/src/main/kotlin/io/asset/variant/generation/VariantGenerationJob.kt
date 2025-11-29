@@ -35,6 +35,7 @@ data class PreProcessJob(
     val sourceFormat: ImageFormat,
     val sourceContainer: AssetStreamContainer,
     val pathConfiguration: PathConfiguration,
+    val transformation: Transformation,
     val outputChannel: ByteChannel,
     override val deferredResult: CompletableDeferred<PreProcessedImage>,
 ) : ImageProcessingJob<PreProcessedImage>

@@ -189,7 +189,7 @@ class StoreAssetTest {
                 path = "/**"
                 image {
                   preprocessing {
-                    image-format = ${format.extension}
+                    image-format = ${format.format.first()}
                   }
                 }
               }

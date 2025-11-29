@@ -27,7 +27,7 @@ import org.koin.dsl.module
 fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
         single<StoreAssetHandler> {
-            StoreAssetHandler(get(), get(), get(), get(), get(), get(), get())
+            StoreAssetHandler(get(), get(), get(), get(), get(), get(), get(), get())
         }
         single<FetchAssetHandler> {
             FetchAssetHandler(get(), get(), get())

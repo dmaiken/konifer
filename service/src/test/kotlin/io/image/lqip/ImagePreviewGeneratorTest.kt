@@ -3,8 +3,6 @@ package io.image.lqip
 import com.vanniktech.blurhash.BlurHash
 import io.image.lqip.ImagePreviewGenerator.MAX_HEIGHT
 import io.image.lqip.ImagePreviewGenerator.MAX_WIDTH
-import io.image.model.ImageProperties
-import io.image.model.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -14,8 +12,6 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
 import io.lqip.image.ThumbHash
 import io.matchers.shouldHaveSamePixelContentAs
-import io.path.configuration.PathConfiguration
-import io.s3.S3PathProperties
 import io.toBufferedImage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -35,9 +31,8 @@ class ImagePreviewGeneratorTest {
                 ByteReadChannel(image).copyTo(imageChannel)
                 imageChannel.close()
             }
-            val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.BLURHASH))
 
-            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, setOf(LQIPImplementation.BLURHASH))
 
             previews.blurhash shouldNotBe null
             previews.thumbhash shouldBe null
@@ -61,9 +56,8 @@ class ImagePreviewGeneratorTest {
                 ByteReadChannel(image).copyTo(imageChannel)
                 imageChannel.close()
             }
-            val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH))
 
-            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, setOf(LQIPImplementation.THUMBHASH))
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldNotBe null
@@ -94,9 +88,12 @@ class ImagePreviewGeneratorTest {
                 ByteReadChannel(image).copyTo(imageChannel)
                 imageChannel.close()
             }
-            val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH, LQIPImplementation.BLURHASH))
 
-            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews =
+                ImagePreviewGenerator.generatePreviews(
+                    imageChannel,
+                    setOf(LQIPImplementation.THUMBHASH, LQIPImplementation.BLURHASH),
+                )
 
             previews.blurhash shouldNotBe null
             previews.thumbhash shouldNotBe null
@@ -128,9 +125,7 @@ class ImagePreviewGeneratorTest {
     @Test
     fun `If no image channel then no previews are generated`() =
         runTest {
-            val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.THUMBHASH))
-
-            val previews = ImagePreviewGenerator.generatePreviews(null, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(null, setOf(LQIPImplementation.THUMBHASH))
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldBe null
@@ -145,9 +140,7 @@ class ImagePreviewGeneratorTest {
                 ByteReadChannel(image).copyTo(imageChannel)
                 imageChannel.close()
             }
-            val pathConfiguration = generatePathConfiguration(setOf())
-
-            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
+            val previews = ImagePreviewGenerator.generatePreviews(imageChannel, emptySet())
 
             previews.blurhash shouldBe null
             previews.thumbhash shouldBe null
@@ -162,24 +155,10 @@ class ImagePreviewGeneratorTest {
                 ByteReadChannel(image).copyTo(imageChannel)
                 imageChannel.close()
             }
-            val pathConfiguration = generatePathConfiguration(setOf(LQIPImplementation.BLURHASH))
-
             val exception =
                 shouldThrow<IllegalArgumentException> {
-                    ImagePreviewGenerator.generatePreviews(imageChannel, pathConfiguration)
+                    ImagePreviewGenerator.generatePreviews(imageChannel, setOf(LQIPImplementation.BLURHASH))
                 }
             exception.message shouldBe "Image must be smaller than ${MAX_WIDTH}x$MAX_HEIGHT to generate previews"
         }
-
-    private fun generatePathConfiguration(previews: Set<LQIPImplementation>): PathConfiguration =
-        PathConfiguration.create(
-            allowedContentTypes = null,
-            imageProperties =
-                ImageProperties.create(
-                    preProcessing = PreProcessingProperties.DEFAULT,
-                    lqip = previews,
-                ),
-            eagerVariants = emptyList(),
-            s3PathProperties = S3PathProperties.DEFAULT,
-        )
 }

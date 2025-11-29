@@ -557,7 +557,7 @@ class ImageAssetVariantTest {
                         .newFromBytes(arena, image)
                         .writeToStream(
                             expectedStream,
-                            ".${variantFormat.extension}",
+                            variantFormat.extension,
                             VipsOption.Int(OPTION_QUALITY, quality),
                         )
 
@@ -595,7 +595,7 @@ class ImageAssetVariantTest {
                     .newFromBytes(arena, image)
                     .writeToStream(
                         expectedStream,
-                        ".${variantFormat.extension}",
+                        variantFormat.extension,
                         VipsOption.Int(OPTION_QUALITY, quality),
                     )
 

@@ -1,6 +1,7 @@
 package io.asset.store
 
 import io.asset.variant.AssetVariant
+import io.image.model.ImageFormat
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
@@ -17,9 +18,10 @@ class InMemoryObjectStore : ObjectStore {
     override suspend fun persist(
         bucket: String,
         asset: ByteChannel,
+        format: ImageFormat,
         contentLength: Long?,
     ): PersistResult {
-        val key = UUID.randomUUID().toString()
+        val key = "${UUID.randomUUID()}${format.extension}"
         store.computeIfAbsent(bucket) { mutableMapOf() }
         store[bucket]?.put(key, asset.toByteArray())
 

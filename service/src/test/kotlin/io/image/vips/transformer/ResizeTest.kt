@@ -44,24 +44,25 @@ class ResizeTest {
                 it.readBytes()
             }
         val imageChannel = ByteReadChannel(image)
-        val container = AssetStreamContainer(imageChannel)
-        Vips.run { arena ->
-            val source = VImageFactory.newFromContainer(arena, container)
+        AssetStreamContainer(imageChannel).use { container ->
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container)
 
-            val processedImage =
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = 10000,
-                            height = 3000,
-                            upscale = false,
-                        ),
-                )
+                val processedImage =
+                    Resize.transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = 10000,
+                                height = 3000,
+                                upscale = false,
+                            ),
+                    )
 
-            processedImage.processed.width shouldBe source.width
-            processedImage.processed.height shouldBe source.height
+                processedImage.processed.width shouldBe source.width
+                processedImage.processed.height shouldBe source.height
+            }
         }
     }
 
@@ -73,23 +74,24 @@ class ResizeTest {
                 it.readBytes()
             }
         val imageChannel = ByteReadChannel(image)
-        val container = AssetStreamContainer(imageChannel)
-        Vips.run { arena ->
-            val source = VImageFactory.newFromContainer(arena, container)
-            val processedImage =
-                Resize.transform(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width,
-                            height = source.height,
-                            fit = fit,
-                        ),
-                )
+        AssetStreamContainer(imageChannel).use { container ->
+            Vips.run { arena ->
+                val source = VImageFactory.newFromContainer(arena, container)
+                val processedImage =
+                    Resize.transform(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width,
+                                height = source.height,
+                                fit = fit,
+                            ),
+                    )
 
-            processedImage.processed.width shouldBe source.width
-            processedImage.processed.height shouldBe source.height
+                processedImage.processed.width shouldBe source.width
+                processedImage.processed.height shouldBe source.height
+            }
         }
     }
 
@@ -101,32 +103,33 @@ class ResizeTest {
             val height = 50
             val width = 50
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.FIT,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.FIT,
+                                ),
+                        )
 
-                (processedImage.processed.height == height || processedImage.processed.width == width) shouldBe true
-                processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                    (processedImage.processed.height == height || processedImage.processed.width == width) shouldBe true
+                    processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -136,32 +139,33 @@ class ResizeTest {
             val height = 2000
             val width = 2000
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.FIT,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.FIT,
+                                ),
+                        )
 
-                (processedImage.processed.height == height || processedImage.processed.width == width) shouldBe true
-                processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                    (processedImage.processed.height == height || processedImage.processed.width == width) shouldBe true
+                    processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -174,23 +178,24 @@ class ResizeTest {
                         it.readBytes()
                     }
                 val imageChannel = ByteReadChannel(image)
-                val container = AssetStreamContainer(imageChannel)
-                Vips.run { arena ->
-                    val source = VImageFactory.newFromContainer(arena, container)
-                    val processedImage =
-                        Resize.transform(
-                            arena = arena,
-                            source = source,
-                            transformation =
-                                resizeTransformation(
-                                    width = source.width,
-                                    height = height,
-                                    fit = Fit.FIT,
-                                ),
-                        )
+                AssetStreamContainer(imageChannel).use { container ->
+                    Vips.run { arena ->
+                        val source = VImageFactory.newFromContainer(arena, container)
+                        val processedImage =
+                            Resize.transform(
+                                arena = arena,
+                                source = source,
+                                transformation =
+                                    resizeTransformation(
+                                        width = source.width,
+                                        height = height,
+                                        fit = Fit.FIT,
+                                    ),
+                            )
 
-                    processedImage.processed.height shouldBe height
-                    processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                        processedImage.processed.height shouldBe height
+                        processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                    }
                 }
             }
 
@@ -202,23 +207,24 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = source.height,
-                                fit = Fit.FIT,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = source.height,
+                                    fit = Fit.FIT,
+                                ),
+                        )
 
-                processedImage.processed.width shouldBeWithinOneOf width
-                processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                    processedImage.processed.width shouldBeWithinOneOf width
+                    processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                }
             }
         }
 
@@ -230,33 +236,34 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            val decoderOptions =
-                arrayOf<VipsOption>(
-                    VipsOption.Int("n", -1),
-                    VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
-                )
-            val output = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = source.height,
-                                fit = Fit.FIT,
-                            ),
+            AssetStreamContainer(imageChannel).use { container ->
+                val decoderOptions =
+                    arrayOf<VipsOption>(
+                        VipsOption.Int("n", -1),
+                        VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     )
+                val output = ByteArrayOutputStream()
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = source.height,
+                                    fit = Fit.FIT,
+                                ),
+                        )
 
-                processedImage.processed.width shouldBeWithinOneOf width
-                processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
-                processedImage.processed.writeToStream(output, ".gif")
+                    processedImage.processed.width shouldBeWithinOneOf width
+                    processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
+                    processedImage.processed.writeToStream(output, ".gif")
+                }
+                val outputBytes = output.toByteArray()
+                PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
             }
-            val outputBytes = output.toByteArray()
-            PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
         }
     }
 
@@ -268,32 +275,33 @@ class ResizeTest {
             val height = 50
             val width = 50
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.FILL,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.FILL,
+                                ),
+                        )
 
-                processedImage.processed.height shouldBe height
-                processedImage.processed.width shouldBe width
+                    processedImage.processed.height shouldBe height
+                    processedImage.processed.width shouldBe width
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -303,32 +311,33 @@ class ResizeTest {
             val height = 2000
             val width = 2000
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.FILL,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.FILL,
+                                ),
+                        )
 
-                processedImage.processed.height shouldBe height
-                processedImage.processed.width shouldBe width
+                    processedImage.processed.height shouldBe height
+                    processedImage.processed.width shouldBe width
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -394,32 +403,33 @@ class ResizeTest {
             val height = 50
             val width = 50
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.STRETCH,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.STRETCH,
+                                ),
+                        )
 
-                processedImage.processed.height shouldBe height
-                processedImage.processed.width shouldBe width
+                    processedImage.processed.height shouldBe height
+                    processedImage.processed.width shouldBe width
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -429,32 +439,33 @@ class ResizeTest {
             val height = 2000
             val width = 2000
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.STRETCH,
-                            ),
-                    )
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.STRETCH,
+                                ),
+                        )
 
-                processedImage.processed.height shouldBe height
-                processedImage.processed.width shouldBe width
+                    processedImage.processed.height shouldBe height
+                    processedImage.processed.width shouldBe width
 
-                val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, ".${format.extension}")
+                    val processedStream = ByteArrayOutputStream()
+                    processedImage.processed.writeToStream(processedStream, format.extension)
 
-                PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                    PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
+                }
             }
         }
 
@@ -467,34 +478,32 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            val decoderOptions =
-                arrayOf<VipsOption>(
-                    VipsOption.Int("n", -1),
-                    VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
-                )
-            val output = ByteArrayOutputStream()
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
-                val processedImage =
-                    Resize.transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = width,
-                                height = height,
-                                fit = Fit.STRETCH,
-                            ),
+            AssetStreamContainer(imageChannel).use { container ->
+                val decoderOptions =
+                    arrayOf<VipsOption>(
+                        VipsOption.Int("n", -1),
+                        VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     )
-
-//                processedImage.processed.height shouldBe height
-//                processedImage.processed.width shouldBe width
-                processedImage.processed.writeToStream(output, ".gif")
+                val output = ByteArrayOutputStream()
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container, decoderOptions)
+                    val processedImage =
+                        Resize.transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = width,
+                                    height = height,
+                                    fit = Fit.STRETCH,
+                                ),
+                        )
+                    processedImage.processed.writeToStream(output, ".gif")
+                }
+                val outputBytes = output.toByteArray()
+                File("kermit-stretch.gif").writeBytes(outputBytes)
+                PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
-            val outputBytes = output.toByteArray()
-            File("kermit-stretch.gif").writeBytes(outputBytes)
-            PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING
         }
     }
 
@@ -561,20 +570,21 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize
-                    .transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = 50,
-                                height = 50,
-                                fit = fit,
-                            ),
-                    ).requiresLqipRegeneration shouldBe true
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize
+                        .transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = 50,
+                                    height = 50,
+                                    fit = fit,
+                                ),
+                        ).requiresLqipRegeneration shouldBe true
+                }
             }
         }
 
@@ -586,20 +596,21 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize
-                    .transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = 2000,
-                                height = 2000,
-                                fit = fit,
-                            ),
-                    ).requiresLqipRegeneration shouldBe true
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize
+                        .transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = 2000,
+                                    height = 2000,
+                                    fit = fit,
+                                ),
+                        ).requiresLqipRegeneration shouldBe true
+                }
             }
         }
 
@@ -611,21 +622,22 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize
-                    .transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = 2000,
-                                height = 2000,
-                                fit = fit,
-                                upscale = false,
-                            ),
-                    ).requiresLqipRegeneration shouldBe false
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize
+                        .transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = 2000,
+                                    height = 2000,
+                                    fit = fit,
+                                    upscale = false,
+                                ),
+                        ).requiresLqipRegeneration shouldBe false
+                }
             }
         }
 
@@ -636,20 +648,21 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize
-                    .transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = 2000,
-                                height = 2000,
-                                fit = Fit.FIT,
-                            ),
-                    ).requiresLqipRegeneration shouldBe false
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize
+                        .transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = 2000,
+                                    height = 2000,
+                                    fit = Fit.FIT,
+                                ),
+                        ).requiresLqipRegeneration shouldBe false
+                }
             }
         }
 
@@ -660,20 +673,21 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize
-                    .transform(
-                        arena = arena,
-                        source = source,
-                        transformation =
-                            resizeTransformation(
-                                width = 50,
-                                height = 50,
-                                fit = Fit.FIT,
-                            ),
-                    ).requiresLqipRegeneration shouldBe false
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize
+                        .transform(
+                            arena = arena,
+                            source = source,
+                            transformation =
+                                resizeTransformation(
+                                    width = 50,
+                                    height = 50,
+                                    fit = Fit.FIT,
+                                ),
+                        ).requiresLqipRegeneration shouldBe false
+                }
             }
         }
     }
@@ -687,18 +701,19 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width,
-                            height = source.height,
-                        ),
-                ) shouldBe false
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize.requiresTransformation(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width,
+                                height = source.height,
+                            ),
+                    ) shouldBe false
+                }
             }
         }
 
@@ -709,18 +724,19 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width + 1,
-                            height = source.height,
-                        ),
-                ) shouldBe true
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize.requiresTransformation(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width + 1,
+                                height = source.height,
+                            ),
+                    ) shouldBe true
+                }
             }
         }
 
@@ -731,18 +747,19 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            val container = AssetStreamContainer(imageChannel)
-            Vips.run { arena ->
-                val source = VImageFactory.newFromContainer(arena, container)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width,
-                            height = source.height + 1,
-                        ),
-                ) shouldBe true
+            AssetStreamContainer(imageChannel).use { container ->
+                Vips.run { arena ->
+                    val source = VImageFactory.newFromContainer(arena, container)
+                    Resize.requiresTransformation(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width,
+                                height = source.height + 1,
+                            ),
+                    ) shouldBe true
+                }
             }
         }
     }

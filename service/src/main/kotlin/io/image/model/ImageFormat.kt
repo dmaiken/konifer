@@ -7,78 +7,85 @@ enum class ImageFormat(
     val vipsProperties: VipsProperties,
 ) {
     JPEG(
-        setOf("jpeg", "jpg"),
-        "image/jpeg",
-        "jpeg",
-        VipsProperties(
-            supportsQuality = true,
-            // Sharp's default quality setting
-            defaultQuality = 80,
-            supportsAlpha = false,
-        ),
+        format = setOf("jpeg", "jpg"),
+        mimeType = "image/jpeg",
+        extension = ".jpeg",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = true,
+                // Sharp's default quality setting
+                defaultQuality = 80,
+                supportsAlpha = false,
+            ),
     ),
     PNG(
-        setOf("png"),
-        "image/png",
-        "png",
-        VipsProperties(
-            supportsQuality = false,
-            // Not used since PNG does not support lossy compression
-            defaultQuality = 100,
-            supportsAlpha = true,
-        ),
+        format = setOf("png"),
+        mimeType = "image/png",
+        extension = ".png",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = false,
+                // Not used since PNG does not support lossy compression
+                defaultQuality = 100,
+                supportsAlpha = true,
+            ),
     ),
     WEBP(
-        setOf("webp"),
-        "image/webp",
-        "webp",
-        VipsProperties(
-            supportsQuality = true,
-            // Sharp's default quality setting
-            defaultQuality = 80,
-            supportsAlpha = true,
-        ),
+        format = setOf("webp"),
+        mimeType = "image/webp",
+        extension = ".webp",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = true,
+                // Sharp's default quality setting
+                defaultQuality = 80,
+                supportsAlpha = true,
+            ),
     ),
     AVIF(
-        setOf("avif"),
-        "image/avif",
-        "avif",
-        VipsProperties(
-            supportsQuality = true,
-            // Sharp's default quality setting
-            defaultQuality = 50,
-            supportsAlpha = true,
-        ),
+        format = setOf("avif"),
+        mimeType = "image/avif",
+        extension = ".avif",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = true,
+                // Sharp's default quality setting
+                defaultQuality = 50,
+                supportsAlpha = true,
+            ),
     ),
     JPEG_XL(
-        setOf("jxl"),
-        "image/jxl",
-        "jxl",
-        VipsProperties(
-            supportsQuality = true,
-            defaultQuality = 90,
-            supportsAlpha = true,
-        ),
+        format = setOf("jxl"),
+        mimeType = "image/jxl",
+        extension = ".jxl",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = true,
+                defaultQuality = 90,
+                supportsAlpha = true,
+            ),
     ),
     HEIC(
-        setOf("heic"),
-        "image/heic",
-        "heic",
-        VipsProperties(
-            supportsQuality = true,
-            defaultQuality = 50,
-            supportsAlpha = true,
-        ),
+        format = setOf("heic"),
+        mimeType = "image/heic",
+        extension = ".heic",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = true,
+                defaultQuality = 50,
+                supportsAlpha = true,
+            ),
     ),
     GIF(
-        setOf("gif"),
-        "image/gif",
-        "gif",
-        VipsProperties(
-            supportsQuality = false,
-            defaultQuality = 100,
-            supportsAlpha = false,
-        ),
+        format = setOf("gif"),
+        mimeType = "image/gif",
+        extension = ".gif",
+        vipsProperties =
+            VipsProperties(
+                supportsQuality = false,
+                defaultQuality = 100,
+                supportsAlpha = false,
+            ),
     ),
     ;
 

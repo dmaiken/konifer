@@ -36,7 +36,7 @@ object VipsEncoder {
         ByteChannelOutputStream(outputChannel).use { stream ->
             source.writeToStream(
                 stream,
-                ".${format.extension}",
+                format.extension,
                 *options,
             )
         }

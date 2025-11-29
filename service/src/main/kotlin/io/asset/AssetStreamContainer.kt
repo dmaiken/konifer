@@ -1,10 +1,18 @@
 package io.asset
 
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.CountedByteReadChannel
-import io.ktor.utils.io.cancel
+import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 /**
  * 100MB
@@ -14,24 +22,58 @@ const val MAX_BYTES_DEFAULT = (1024 * 1024 * 100).toLong()
 class AssetStreamContainer(
     channel: ByteReadChannel,
     private val maxBytes: Long = MAX_BYTES_DEFAULT,
-) {
+) : AutoCloseable {
     companion object {
         private const val TOO_LARGE_MESSAGE = "Asset exceeds the maximum allowed size"
     }
 
-    private var headerOffset = 0
-    private var headerBytes = ByteArray(0)
+    private var bufferOffset = 0
+    private var buffer = ByteArrayOutputStream()
     private val counterChannel = CountedByteReadChannel(delegate = channel)
     private var isTooLarge = false
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+    private val tempFile =
+        lazy {
+            Files.createTempFile("asset-upload-", ".tmp").toFile()
+        }
 
     /**
-     * Reads [n] bytes from the backing channel. If [bufferBytes] is true, then the read bytes are also read into an
+     * Is the backing channel dumped to a file. If so, then the channel will be closed for reading.
+     */
+    var isDumpedToFile = false
+
+    fun getTemporaryFile(): File = tempFile.value
+
+    suspend fun toTemporaryFile() {
+        try {
+            FileChannel
+                .open(
+                    tempFile.value.toPath(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                ).use { fileChannel ->
+                    var bytesWritten = fileChannel.write(ByteBuffer.wrap(buffer.toByteArray())).toLong()
+                    bytesWritten += counterChannel.copyTo(fileChannel)
+
+                    logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile.value.absolutePath}" }
+                    isDumpedToFile = true
+                }
+        } catch (e: Exception) {
+            // If an error occurs during streaming, ensure the incomplete file is deleted.
+            tempFile.value.delete()
+            throw e
+        }
+    }
+
+    /**
+     * Reads [n] bytes from the backing channel. If [peek] is true, then the read bytes are also read into an
      * internal buffer for reuse. Calling this method after buffering the previously read bytes will result in the
      * buffered bytes being returned again.
      */
     suspend fun readNBytes(
         n: Int,
-        bufferBytes: Boolean,
+        peek: Boolean,
     ): ByteArray {
         val result = ByteArray(n)
         var offset = 0
@@ -41,12 +83,12 @@ class AssetStreamContainer(
         }
 
         try {
-            // Read from header first
-            if (headerOffset < headerBytes.size) {
-                val headerRemaining = headerBytes.size - headerOffset
-                val toCopy = minOf(n, headerRemaining)
-                headerBytes.copyInto(result, destinationOffset = 0, startIndex = headerOffset, endIndex = headerOffset + toCopy)
-                headerOffset += toCopy
+            // Read from buffer first
+            if (bufferOffset < buffer.size()) {
+                val bufferRemaining = buffer.size() - bufferOffset
+                val toCopy = minOf(n, bufferRemaining)
+                buffer.toByteArray().copyInto(result, destinationOffset = 0, startIndex = bufferOffset, endIndex = bufferOffset + toCopy)
+                bufferOffset += toCopy
                 offset += toCopy
             }
 
@@ -58,8 +100,8 @@ class AssetStreamContainer(
             }
 
             return result.copyOf(offset).also {
-                if (bufferBytes) {
-                    headerBytes += it
+                if (peek) {
+                    buffer.writeBytes(it)
                 }
 
                 if (counterChannel.totalBytesRead > maxBytes) {
@@ -75,10 +117,23 @@ class AssetStreamContainer(
             }
             throw e
         } finally {
-            if (isTooLarge && !counterChannel.isClosedForRead) {
+            if (isTooLarge) {
                 // Cancel the underlying channel to stop the client from sending more data
-                counterChannel.cancel()
+                close()
             }
+        }
+    }
+
+    /**
+     * If a temporary file is created, delete it. If the delegate channel is still open, then cancel is.
+     */
+    override fun close() {
+        if (tempFile.isInitialized()) {
+            logger.info("Deleting temporary file: ${tempFile.value.absolutePath}")
+            tempFile.value.delete()
+        }
+        if (!counterChannel.isClosedForRead) {
+            counterChannel.cancel(null)
         }
     }
 }

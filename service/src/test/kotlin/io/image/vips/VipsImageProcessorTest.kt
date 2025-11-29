@@ -4,13 +4,10 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
 import io.asset.AssetStreamContainer
-import io.asset.handler.TransformationNormalizer
-import io.asset.repository.InMemoryAssetRepository
-import io.createPreProcessingProperties
 import io.image.lqip.LQIPImplementation
+import io.image.model.Fit
 import io.image.model.ImageFormat
-import io.image.model.ImageProperties
-import io.image.model.PreProcessingProperties
+import io.image.model.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -18,11 +15,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.writeFully
 import io.lqip.image.ThumbHash
-import io.matchers.shouldBeApproximately
-import io.matchers.shouldBeWithinOneOf
 import io.matchers.shouldHaveSamePixelContentAs
-import io.path.configuration.PathConfiguration
-import io.s3.S3PathProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -38,9 +31,7 @@ import java.util.Base64
 import javax.imageio.ImageIO
 
 class VipsImageProcessorTest {
-    private val transformationNormalizer = TransformationNormalizer(InMemoryAssetRepository())
-
-    private val vipsImageProcessor = VipsImageProcessor(transformationNormalizer)
+    private val vipsImageProcessor = VipsImageProcessor()
 
     @Nested
     inner class PreProcessTests {
@@ -57,31 +48,39 @@ class VipsImageProcessorTest {
                     imageChannel.close()
                 }
                 val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
-                val pathConfig =
-                    PathConfiguration.create(
-                        allowedContentTypes = null,
-                        imageProperties =
-                            ImageProperties.create(
-                                preProcessing = PreProcessingProperties.DEFAULT,
-                                lqip = setOf(),
-                            ),
-                        eagerVariants = emptyList(),
-                        s3PathProperties = S3PathProperties.DEFAULT,
-                    )
 
-                val container = AssetStreamContainer(imageChannel)
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
+                AssetStreamContainer(imageChannel).use { container ->
+                    container.toTemporaryFile()
+                    val outputChannel = ByteChannel(true)
+                    val outputBytesDeferred =
+                        async {
+                            outputChannel.toInputStream().readAllBytes()
+                        }
+                    var transformation = Transformation.ORIGINAL_VARIANT
+                    Vips.run { arena ->
+                        val sourceImage = VImage.newFromBytes(arena, image)
+                        transformation =
+                            Transformation(
+                                width = sourceImage.width,
+                                height = sourceImage.height,
+                                format = ImageFormat.PNG,
+                            )
                     }
-                val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.PNG, pathConfig, outputChannel)
-                val outputBytes = outputBytesDeferred.await()
-                processedImage.attributes.format shouldBe ImageFormat.PNG
-                processedImage.attributes.height shouldBe bufferedImage.height
-                processedImage.attributes.width shouldBe bufferedImage.width
+                    val processedImage =
+                        vipsImageProcessor.preprocess(
+                            container = container,
+                            sourceFormat = ImageFormat.PNG,
+                            lqipImplementations = emptySet(),
+                            transformation = transformation,
+                            outputChannel = outputChannel,
+                        )
+                    val outputBytes = outputBytesDeferred.await()
+                    processedImage.attributes.format shouldBe ImageFormat.PNG
+                    processedImage.attributes.height shouldBe bufferedImage.height
+                    processedImage.attributes.width shouldBe bufferedImage.width
 
-                ImageIO.read(ByteArrayInputStream(outputBytes)) shouldHaveSamePixelContentAs bufferedImage
+                    ImageIO.read(ByteArrayInputStream(outputBytes)) shouldHaveSamePixelContentAs bufferedImage
+                }
             }
 
         @ParameterizedTest
@@ -112,114 +111,9 @@ class VipsImageProcessorTest {
                 testImageFormatConversion(ImageFormat.AVIF, format)
             }
 
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `image is resized by maxHeight if enabled when preprocessing`(format: ImageFormat) =
-            runTest {
-                val maxHeight = 200
-                val image =
-                    javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
-                        it.readBytes()
-                    }
-                val imageChannel = ByteChannel(true)
-                launch {
-                    imageChannel.writeFully(image)
-                    imageChannel.close()
-                }
-                val pathConfig =
-                    PathConfiguration.create(
-                        allowedContentTypes = null,
-                        imageProperties =
-                            ImageProperties.create(
-                                preProcessing =
-                                    createPreProcessingProperties(
-                                        maxHeight = maxHeight,
-                                    ),
-                                lqip = setOf(),
-                            ),
-                        eagerVariants = emptyList(),
-                        s3PathProperties = S3PathProperties.DEFAULT,
-                    )
-
-                val container = AssetStreamContainer(imageChannel)
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
-                val processedImage = vipsImageProcessor.preprocess(container, format, pathConfig, outputChannel)
-                val outputBytes = outputBytesDeferred.await()
-
-                processedImage.attributes.format shouldBe format
-                Tika().detect(outputBytes) shouldBe format.mimeType
-                Vips.run { arena ->
-                    val sourceVImage = VImage.newFromBytes(arena, image)
-                    val processedVImage = VImage.newFromBytes(arena, outputBytes)
-
-                    processedVImage.height shouldBe maxHeight
-                    processedVImage.aspectRatio() shouldBeApproximately sourceVImage.aspectRatio()
-
-                    processedImage.attributes.height shouldBe processedVImage.height
-                    processedImage.attributes.width shouldBe processedVImage.width
-                }
-            }
-
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `image is resized by maxWidth if enabled when preprocessing`(format: ImageFormat) =
-            runTest {
-                val maxWidth = 200
-                val image =
-                    javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${format.extension}")!!.use {
-                        it.readBytes()
-                    }
-                val imageChannel = ByteChannel(true)
-                launch {
-                    imageChannel.writeFully(image)
-                    imageChannel.close()
-                }
-                val pathConfig =
-                    PathConfiguration.create(
-                        allowedContentTypes = null,
-                        imageProperties =
-                            ImageProperties.create(
-                                preProcessing =
-                                    createPreProcessingProperties(
-                                        maxWidth = maxWidth,
-                                    ),
-                                lqip = setOf(),
-                            ),
-                        eagerVariants = emptyList(),
-                        s3PathProperties = S3PathProperties.DEFAULT,
-                    )
-
-                val container = AssetStreamContainer(imageChannel)
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
-                val processedImage = vipsImageProcessor.preprocess(container, format, pathConfig, outputChannel)
-                val outputBytes = outputBytesDeferred.await()
-
-                processedImage.attributes.format shouldBe format
-                Tika().detect(outputBytes) shouldBe format.mimeType
-                Vips.run { arena ->
-                    val sourceVImage = VImage.newFromBytes(arena, image)
-                    val processedVImage = VImage.newFromBytes(arena, outputBytes)
-
-                    processedVImage.width shouldBeWithinOneOf maxWidth
-                    processedVImage.aspectRatio() shouldBeApproximately sourceVImage.aspectRatio()
-
-                    processedImage.attributes.height shouldBeWithinOneOf processedVImage.height
-                    processedImage.attributes.width shouldBeWithinOneOf processedVImage.width
-                }
-            }
-
         @Test
         fun `image lqips are not generated if not enabled when preprocessing`() =
             runTest {
-                val maxWidth = 200
                 val image =
                     javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.use {
                         it.readBytes()
@@ -229,34 +123,27 @@ class VipsImageProcessorTest {
                     imageChannel.writeFully(image)
                     imageChannel.close()
                 }
-                val pathConfig =
-                    PathConfiguration.create(
-                        allowedContentTypes = null,
-                        imageProperties =
-                            ImageProperties.create(
-                                preProcessing =
-                                    createPreProcessingProperties(
-                                        maxWidth = maxWidth,
-                                    ),
-                                lqip = setOf(),
-                            ),
-                        eagerVariants = emptyList(),
-                        s3PathProperties = S3PathProperties.DEFAULT,
-                    )
+                AssetStreamContainer(imageChannel).use { container ->
+                    val outputChannel = ByteChannel(true)
+                    val outputBytesDeferred =
+                        async {
+                            outputChannel.toInputStream().readAllBytes()
+                        }
+                    val processedImage =
+                        vipsImageProcessor.preprocess(
+                            container = container,
+                            sourceFormat = Transformation.ORIGINAL_VARIANT.format,
+                            lqipImplementations = emptySet(),
+                            transformation = Transformation.ORIGINAL_VARIANT,
+                            outputChannel = outputChannel,
+                        )
+                    val outputBytes = outputBytesDeferred.await()
 
-                val container = AssetStreamContainer(imageChannel)
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
-                val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
-                val outputBytes = outputBytesDeferred.await()
-
-                processedImage.attributes.format shouldBe ImageFormat.JPEG
-                Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
-                processedImage.lqip.blurhash shouldBe null
-                processedImage.lqip.thumbhash shouldBe null
+                    processedImage.attributes.format shouldBe Transformation.ORIGINAL_VARIANT.format
+                    Tika().detect(outputBytes) shouldBe Transformation.ORIGINAL_VARIANT.format.mimeType
+                    processedImage.lqip.blurhash shouldBe null
+                    processedImage.lqip.thumbhash shouldBe null
+                }
             }
 
         @ParameterizedTest
@@ -272,39 +159,38 @@ class VipsImageProcessorTest {
                     imageChannel.writeFully(image)
                     imageChannel.close()
                 }
-                val pathConfig =
-                    PathConfiguration.create(
-                        allowedContentTypes = null,
-                        imageProperties =
-                            ImageProperties.create(
-                                preProcessing =
-                                    createPreProcessingProperties(
-                                        maxWidth = if (preprocessingEnabled) 100 else null,
-                                        maxHeight = if (preprocessingEnabled) 100 else null,
-                                    ),
-                                lqip = setOf(LQIPImplementation.BLURHASH),
-                            ),
-                        eagerVariants = emptyList(),
-                        s3PathProperties = S3PathProperties.DEFAULT,
-                    )
 
-                val container = AssetStreamContainer(imageChannel)
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
-                val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
-                val outputBytes = outputBytesDeferred.await()
-
-                processedImage.attributes.format shouldBe ImageFormat.JPEG
-                Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
-                processedImage.lqip.blurhash shouldNotBe null
-                processedImage.lqip.thumbhash shouldBe null
-                Vips.run { arena ->
-                    val processedVImage = VImage.newFromBytes(arena, outputBytes)
-                    shouldNotThrowAny {
-                        BlurHash.decode(processedImage.lqip.blurhash!!, processedVImage.width, processedVImage.height)
+                AssetStreamContainer(imageChannel).use { container ->
+                    val outputChannel = ByteChannel(true)
+                    val outputBytesDeferred =
+                        async {
+                            outputChannel.toInputStream().readAllBytes()
+                        }
+                    val processedImage =
+                        vipsImageProcessor.preprocess(
+                            container = container,
+                            sourceFormat = ImageFormat.JPEG,
+                            lqipImplementations = setOf(LQIPImplementation.BLURHASH),
+                            transformation =
+                                if (preprocessingEnabled) {
+                                    Transformation(
+                                        width = 200,
+                                        height = 200,
+                                        format = ImageFormat.JPEG,
+                                    )
+                                } else {
+                                    Transformation.ORIGINAL_VARIANT
+                                },
+                            outputChannel = outputChannel,
+                        )
+                    val outputBytes = outputBytesDeferred.await()
+                    processedImage.lqip.blurhash shouldNotBe null
+                    processedImage.lqip.thumbhash shouldBe null
+                    Vips.run { arena ->
+                        val processedVImage = VImage.newFromBytes(arena, outputBytes)
+                        shouldNotThrowAny {
+                            BlurHash.decode(processedImage.lqip.blurhash!!, processedVImage.width, processedVImage.height)
+                        }
                     }
                 }
             }
@@ -323,38 +209,50 @@ class VipsImageProcessorTest {
                 imageChannel.writeFully(image)
                 imageChannel.close()
             }
-            val pathConfig =
-                PathConfiguration.create(
-                    allowedContentTypes = null,
-                    imageProperties =
-                        ImageProperties.create(
-                            preProcessing =
-                                createPreProcessingProperties(
-                                    maxWidth = if (preprocessingEnabled) 100 else null,
-                                    maxHeight = if (preprocessingEnabled) 100 else null,
-                                ),
-                            lqip = setOf(LQIPImplementation.THUMBHASH),
-                        ),
-                    eagerVariants = emptyList(),
-                    s3PathProperties = S3PathProperties.DEFAULT,
-                )
 
-            val container = AssetStreamContainer(imageChannel)
-            val outputChannel = ByteChannel(true)
-            val outputBytesDeferred =
-                async {
-                    outputChannel.toInputStream().readAllBytes()
+            AssetStreamContainer(imageChannel).use { container ->
+                val outputChannel = ByteChannel(true)
+                val outputBytesDeferred =
+                    async {
+                        outputChannel.toInputStream().readAllBytes()
+                    }
+                val processedImage =
+                    vipsImageProcessor.preprocess(
+                        container = container,
+                        sourceFormat = ImageFormat.JPEG,
+                        lqipImplementations = setOf(LQIPImplementation.THUMBHASH),
+                        transformation =
+                            if (preprocessingEnabled) {
+                                Transformation(
+                                    width = 200,
+                                    height = 200,
+                                    format = ImageFormat.JPEG,
+                                )
+                            } else {
+                                var transformation = Transformation.ORIGINAL_VARIANT
+                                Vips.run { arena ->
+                                    val sourceImage = VImage.newFromBytes(arena, image)
+                                    transformation =
+                                        Transformation(
+                                            width = sourceImage.width,
+                                            height = sourceImage.height,
+                                            format = ImageFormat.JPEG,
+                                        )
+                                }
+                                transformation
+                            },
+                        outputChannel = outputChannel,
+                    )
+                val outputBytes = outputBytesDeferred.await()
+
+                processedImage.attributes.format shouldBe ImageFormat.JPEG
+                Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
+                processedImage.lqip.blurhash shouldBe null
+                processedImage.lqip.thumbhash shouldNotBe null
+
+                shouldNotThrowAny {
+                    ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(processedImage.lqip.thumbhash))
                 }
-            val processedImage = vipsImageProcessor.preprocess(container, ImageFormat.JPEG, pathConfig, outputChannel)
-            val outputBytes = outputBytesDeferred.await()
-
-            processedImage.attributes.format shouldBe ImageFormat.JPEG
-            Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
-            processedImage.lqip.blurhash shouldBe null
-            processedImage.lqip.thumbhash shouldNotBe null
-
-            shouldNotThrowAny {
-                ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(processedImage.lqip.thumbhash))
             }
         }
 
@@ -371,7 +269,7 @@ class VipsImageProcessorTest {
             lqips: Set<LQIPImplementation> = setOf(),
         ) = coroutineScope {
             val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.${from.extension}")!!.use {
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${from.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteChannel(true)
@@ -379,50 +277,47 @@ class VipsImageProcessorTest {
                 imageChannel.writeFully(image)
                 imageChannel.close()
             }
-            val pathConfig =
-                PathConfiguration.create(
-                    allowedContentTypes = null,
-                    imageProperties =
-                        ImageProperties.create(
-                            preProcessing =
-                                createPreProcessingProperties(
-                                    format = to,
-                                ),
-                            lqip = lqips,
-                        ),
-                    eagerVariants = emptyList(),
-                    s3PathProperties = S3PathProperties.DEFAULT,
-                )
 
-            val container = AssetStreamContainer(imageChannel)
-            val outputChannel = ByteChannel(true)
-            val outputBytesDeferred =
-                async {
-                    outputChannel.toInputStream().readAllBytes()
-                }
-            val processedImage = vipsImageProcessor.preprocess(container, from, pathConfig, outputChannel)
-            val outputBytes = outputBytesDeferred.await()
+            AssetStreamContainer(imageChannel).use { container ->
+                container.toTemporaryFile()
+                val outputChannel = ByteChannel(true)
+                val outputBytesDeferred =
+                    async {
+                        outputChannel.toInputStream().readAllBytes()
+                    }
+                val processedImage =
+                    vipsImageProcessor.preprocess(
+                        container = container,
+                        sourceFormat = from,
+                        lqipImplementations = lqips,
+                        transformation =
+                            Transformation(
+                                width = 100,
+                                height = 100,
+                                fit = Fit.FILL,
+                                format = to,
+                            ),
+                        outputChannel = outputChannel,
+                    )
+                val outputBytes = outputBytesDeferred.await()
 
-            processedImage.attributes.format shouldBe to
-            Tika().detect(outputBytes) shouldBe to.mimeType
-            if (lqips.contains(LQIPImplementation.THUMBHASH)) {
-                shouldNotThrowAny {
-                    ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(processedImage.lqip.thumbhash))
-                }
-            }
-            Vips.run { arena ->
-                val sourceVImage = VImage.newFromBytes(arena, image)
-                val processedVImage = VImage.newFromBytes(arena, outputBytes)
-
-                sourceVImage.height shouldBe processedVImage.height
-                sourceVImage.width shouldBe processedVImage.width
-
-                processedImage.attributes.height shouldBe processedVImage.height
-                processedImage.attributes.width shouldBe processedVImage.width
-
-                if (lqips.contains(LQIPImplementation.BLURHASH)) {
+                processedImage.attributes.format shouldBe to
+                Tika().detect(outputBytes) shouldBe to.mimeType
+                if (lqips.contains(LQIPImplementation.THUMBHASH)) {
                     shouldNotThrowAny {
-                        BlurHash.decode(processedImage.lqip.blurhash!!, processedVImage.width, processedVImage.height)
+                        ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(processedImage.lqip.thumbhash))
+                    }
+                }
+                Vips.run { arena ->
+                    val processedVImage = VImage.newFromBytes(arena, outputBytes)
+
+                    processedImage.attributes.height shouldBe processedVImage.height
+                    processedImage.attributes.width shouldBe processedVImage.width
+
+                    if (lqips.contains(LQIPImplementation.BLURHASH)) {
+                        shouldNotThrowAny {
+                            BlurHash.decode(processedImage.lqip.blurhash!!, processedVImage.width, processedVImage.height)
+                        }
                     }
                 }
             }

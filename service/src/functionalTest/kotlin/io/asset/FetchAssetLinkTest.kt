@@ -9,6 +9,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -54,6 +55,7 @@ class FetchAssetLinkTest {
 
                     url shouldContain "http://"
                     url shouldContain storedAssetInfo!!.variants.first().storeKey
+                    url shouldEndWith ".png"
                     val location =
                         shouldNotThrowAny {
                             Url(url).fullPath

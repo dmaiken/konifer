@@ -17,6 +17,7 @@ import io.asset.store.FetchResult
 import io.asset.store.ObjectStore
 import io.asset.store.PersistResult
 import io.asset.variant.AssetVariant
+import io.image.model.ImageFormat
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -35,10 +36,11 @@ class S3ObjectStore(
     override suspend fun persist(
         bucket: String,
         asset: ByteChannel,
+        format: ImageFormat,
         contentLength: Long?,
     ): PersistResult =
         withContext(Dispatchers.IO) {
-            val key = UUID.randomUUID().toString()
+            val key = "${UUID.randomUUID()}${format.extension}"
             s3Client.putObject(
                 input =
                     PutObjectRequest {

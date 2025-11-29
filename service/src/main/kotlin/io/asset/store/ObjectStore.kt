@@ -1,6 +1,7 @@
 package io.asset.store
 
 import io.asset.variant.AssetVariant
+import io.image.model.ImageFormat
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 
@@ -8,6 +9,7 @@ interface ObjectStore {
     suspend fun persist(
         bucket: String,
         asset: ByteChannel,
+        format: ImageFormat,
         contentLength: Long? = null,
     ): PersistResult
 

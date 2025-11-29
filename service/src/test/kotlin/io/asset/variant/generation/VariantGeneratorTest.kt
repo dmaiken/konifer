@@ -48,13 +48,9 @@ class VariantGeneratorTest {
 
     private val assetRepository = InMemoryAssetRepository()
     private val objectStore = InMemoryObjectStore()
-    private val transformationNormalizer =
-        TransformationNormalizer(
-            InMemoryAssetRepository(),
-        )
     private val imageProcessor =
         spyk<VipsImageProcessor>(
-            VipsImageProcessor(transformationNormalizer),
+            VipsImageProcessor(),
         )
     private val channel = Channel<ImageProcessingJob<*>>()
     private val scheduler =
@@ -64,13 +60,17 @@ class VariantGeneratorTest {
             highPriorityWeight = 80,
         )
 
+    // This is needed despite what Intellij thinks - it consumes from the scheduler
     private val variantGenerator =
         VariantGenerator(
             assetRepository = assetRepository,
             objectStore = objectStore,
             imageProcessor = imageProcessor,
             scheduler = scheduler,
-            transformationNormalizer = transformationNormalizer,
+            transformationNormalizer =
+                TransformationNormalizer(
+                    InMemoryAssetRepository(),
+                ),
             numberOfWorkers = 8,
         )
 
@@ -85,7 +85,7 @@ class VariantGeneratorTest {
             val channel = ByteChannel(autoFlush = true)
             val resultDeferred =
                 async {
-                    objectStore.persist(BUCKET, channel, image.size.toLong())
+                    objectStore.persist(BUCKET, channel, ImageFormat.PNG, image.size.toLong())
                 }
             channel.writeFully(image)
             channel.close()
@@ -299,7 +299,7 @@ class VariantGeneratorTest {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), PathConfiguration.DEFAULT, any(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 
@@ -498,7 +498,7 @@ class VariantGeneratorTest {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), PathConfiguration.DEFAULT, any(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 

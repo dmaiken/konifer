@@ -4,11 +4,13 @@ import io.asset.handler.AssetSource
 import io.asset.model.AssetClass
 import io.asset.model.StoreAssetRequest
 import io.config.testInMemory
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldEndWith
 import io.util.createJsonClient
 import io.util.fetchAssetMetadata
 import io.util.storeAssetMultipartSource
@@ -46,6 +48,9 @@ class AssetLifecycleTest {
             storeAssetResponse.tags shouldContainExactly tags
             storeAssetResponse.source shouldBe AssetSource.UPLOAD
             storeAssetResponse.sourceUrl shouldBe null
+            storeAssetResponse.variants.forAll {
+                it.storeKey shouldEndWith ".png"
+            }
             fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
         }
 

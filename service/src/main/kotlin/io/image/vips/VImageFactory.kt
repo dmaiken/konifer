@@ -15,6 +15,8 @@ import java.lang.foreign.MemorySegment
 import kotlin.math.min
 
 object VImageFactory {
+    private const val MAX_INT_AS_LONG = Int.MAX_VALUE.toLong()
+
     /**
      * Adapted from [VImage.newFromStream].
      *
@@ -45,11 +47,11 @@ object VImageFactory {
                     throw VipsError("invalid length to read provided: $length")
                 }
                 // bytebuffer only supports reading int max bytes at a time
-                val clippedLength = min(length, Int.MAX_VALUE.toLong()).toInt()
+                val clippedLength = min(length, MAX_INT_AS_LONG).toInt()
                 val bytes =
                     try {
                         runBlocking {
-                            container.readNBytes(clippedLength, false)
+                            container.readNBytes(clippedLength, peek = false)
                         }
                     } catch (e: IOException) {
                         throw VipsError("failed to read bytes from stream", e)

@@ -3,10 +3,10 @@ package io.image.lqip
 import com.vanniktech.blurhash.BlurHash
 import io.image.model.LQIPs
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.lqip.image.ThumbHash
-import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -22,15 +22,15 @@ object ImagePreviewGenerator {
 
     suspend fun generatePreviews(
         imageChannel: ByteChannel?,
-        pathConfiguration: PathConfiguration,
+        lqipImplementations: Set<LQIPImplementation>,
     ): LQIPs =
         withContext(Dispatchers.IO) {
             if (imageChannel == null) {
-                logger.debug("No image in channel, skipping preview generation.")
+                logger.debug { "No image in channel, skipping preview generation." }
                 return@withContext LQIPs.NONE
             }
-            if (pathConfiguration.imageProperties.previews.isEmpty()) {
-                logger.debug("No preview implementations enabled for path, skipping preview generation.")
+            if (lqipImplementations.isEmpty()) {
+                logger.debug { "No preview implementations enabled for path, skipping preview generation." }
                 return@withContext LQIPs.NONE
             }
 
@@ -41,7 +41,7 @@ object ImagePreviewGenerator {
             }
 
             val blurHash =
-                if (pathConfiguration.imageProperties.previews.contains(LQIPImplementation.BLURHASH)) {
+                if (lqipImplementations.contains(LQIPImplementation.BLURHASH)) {
                     async {
                         BlurHash.encode(
                             bufferedImage = image,
@@ -54,7 +54,7 @@ object ImagePreviewGenerator {
                 }
 
             val thumbHash =
-                if (pathConfiguration.imageProperties.previews.contains(LQIPImplementation.THUMBHASH)) {
+                if (lqipImplementations.contains(LQIPImplementation.THUMBHASH)) {
                     async {
                         Base64.getEncoder().encodeToString(ThumbHash.rgbaToThumbHash(image.width, image.height, toRgba(image)))
                     }
