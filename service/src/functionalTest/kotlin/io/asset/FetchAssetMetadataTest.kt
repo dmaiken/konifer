@@ -10,8 +10,8 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import io.util.createJsonClient
+import io.util.fetchAllAssetMetadata
 import io.util.fetchAssetMetadata
-import io.util.fetchAssetsInfo
 import io.util.storeAssetMultipartSource
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -50,7 +50,7 @@ class FetchAssetMetadataTest {
                 `class` shouldBe AssetClass.IMAGE
             }
 
-            fetchAssetsInfo(client, path = "profile", limit = 10).apply {
+            fetchAllAssetMetadata(client, path = "profile", limit = 10).apply {
                 size shouldBe 2
                 get(0).entryId shouldBe entryIds[1]
                 get(1).entryId shouldBe entryIds[0]
@@ -75,6 +75,6 @@ class FetchAssetMetadataTest {
     fun `fetching info of asset path that does not contain any assets returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            fetchAssetsInfo(client, UUID.randomUUID().toString(), limit = 10) shouldHaveSize 0
+            fetchAllAssetMetadata(client, UUID.randomUUID().toString(), limit = 10) shouldHaveSize 0
         }
 }

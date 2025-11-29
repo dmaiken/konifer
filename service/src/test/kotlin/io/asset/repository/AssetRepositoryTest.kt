@@ -616,27 +616,27 @@ abstract class AssetRepositoryTest {
     @Nested
     inner class FetchAllByPathTests {
         @Test
-        fun `fetchAllByPath returns asset at path`() =
+        fun `returns asset at path`() =
             runTest {
                 val dto = createAssetDto("/users/123")
                 val assetAndVariant = repository.store(dto)
 
-                repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariant)
+                repository.fetchAllByPath("/users/123", null, limit = 1) shouldBe listOf(assetAndVariant)
             }
 
         @Test
-        fun `fetchAllByPath returns all assets at path`() =
+        fun `returns all assets at path`() =
             runTest {
                 val dto1 = createAssetDto("/users/123")
                 val dto2 = createAssetDto("/users/123")
                 val assetAndVariant1 = repository.store(dto1)
                 val assetAndVariant2 = repository.store(dto2)
 
-                repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe listOf(assetAndVariant2, assetAndVariant1)
             }
 
         @Test
-        fun `fetchAllByPath returns all assets at path ordered correctly`() =
+        fun `returns all assets at path ordered correctly`() =
             runTest {
                 val dto1 = createAssetDto("/users/123")
                 val dto2 = createAssetDto("/users/123")
@@ -652,13 +652,14 @@ abstract class AssetRepositoryTest {
                         ),
                     )
 
-                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED) shouldBe listOf(assetAndVariant2, assetAndVariant1)
-                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.MODIFIED) shouldBe
+                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED, limit = 10) shouldBe
+                    listOf(assetAndVariant2, assetAndVariant1)
+                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.MODIFIED, limit = 10) shouldBe
                     listOf(assetAndVariant1, assetAndVariant2)
             }
 
         @Test
-        fun `fetchAllByPath returns no assets at path if none have requested labels`() =
+        fun `returns no assets at path if none have requested labels`() =
             runTest {
                 val dto1 = createAssetDto("/users/123", labels = emptyMap())
                 val dto2 = createAssetDto("/users/123", labels = emptyMap())
@@ -673,11 +674,12 @@ abstract class AssetRepositoryTest {
                             "phone" to "iphone",
                             "hello" to "world",
                         ),
+                    limit = 10,
                 ) shouldBe emptyList()
             }
 
         @Test
-        fun `fetchAllByPath returns assets at path matching all requested labels`() =
+        fun `returns assets at path matching all requested labels`() =
             runTest {
                 val labels =
                     mapOf(
@@ -700,11 +702,12 @@ abstract class AssetRepositoryTest {
                     path = "/users/123",
                     transformation = null,
                     labels = labels,
+                    limit = 10,
                 ) shouldBe listOf(assetAndVariant1)
             }
 
         @Test
-        fun `fetchAllByPath returns assets at path matching some requested labels`() =
+        fun `returns assets at path matching some requested labels`() =
             runTest {
                 val labels =
                     mapOf(
@@ -723,11 +726,12 @@ abstract class AssetRepositoryTest {
                         mapOf(
                             "phone" to "iphone",
                         ),
+                    limit = 10,
                 ) shouldBe listOf(assetAndVariant2, assetAndVariant1)
             }
 
         @Test
-        fun `fetchAllByPath returns all assets even if they do not have a requested variant`() =
+        fun `returns all assets even if they do not have a requested variant`() =
             runTest {
                 val count = 3
                 repeat(count) {
@@ -770,7 +774,7 @@ abstract class AssetRepositoryTest {
                         fit = Fit.FIT,
                     )
 
-                val fetched = repository.fetchAllByPath("/users/123", transformation)
+                val fetched = repository.fetchAllByPath("/users/123", transformation, limit = 10)
                 fetched shouldHaveSize 3
                 fetched.forAll {
                     it.variants shouldHaveSize 0
@@ -778,7 +782,7 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
-        fun `fetchAllByPath returns all assets and all variants`() =
+        fun `returns all assets and all variants`() =
             runTest {
                 val count = 3
                 repeat(count) {
@@ -822,6 +826,7 @@ abstract class AssetRepositoryTest {
                             width = 10,
                             format = ImageFormat.PNG,
                         ),
+                        limit = 10,
                     )
                 fetched shouldHaveSize 3
                 fetched.forAll {
@@ -835,7 +840,7 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
-        fun `fetchAllByPath returns all assets and the existing requested variant`() =
+        fun `returns all assets and the existing requested variant`() =
             runTest {
                 val count = 3
                 repeat(count) {
@@ -871,7 +876,7 @@ abstract class AssetRepositoryTest {
                     )
                 }
 
-                val fetched = repository.fetchAllByPath("/users/123", null)
+                val fetched = repository.fetchAllByPath("/users/123", null, limit = 10)
                 fetched shouldHaveSize 3
                 fetched.forAll {
                     it.variants shouldHaveSize 2
@@ -883,9 +888,22 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
-        fun `fetchAllByPath returns empty list if no assets in path`() =
+        fun `returns empty list if no assets in path`() =
             runTest {
-                repository.fetchAllByPath("/users/123", null) shouldBe emptyList()
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
+            }
+
+        @Test
+        fun `limit is respected`() =
+            runTest {
+                repeat(10) {
+                    repository.store(createAssetDto("/users/123"))
+                }
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    limit = 5,
+                ) shouldHaveSize 5
             }
     }
 
@@ -921,7 +939,7 @@ abstract class AssetRepositoryTest {
 
                 repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED) shouldBe
                     assetAndVariants
-                repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariants)
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe listOf(assetAndVariants)
             }
 
         @Test
@@ -936,7 +954,7 @@ abstract class AssetRepositoryTest {
 
                 repository.fetchByPath(assetAndVariant1.asset.path, assetAndVariant1.asset.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(assetAndVariant2.asset.path, assetAndVariant2.asset.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchAllByPath("/users/123", null) shouldBe emptyList()
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
             }
 
         @Test
@@ -954,8 +972,8 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(assetAndVariants1.asset.path, assetAndVariants1.asset.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(assetAndVariants2.asset.path, assetAndVariants2.asset.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(assetAndVariants3.asset.path, assetAndVariants3.asset.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchAllByPath("/users/123", null) shouldBe emptyList()
-                repository.fetchAllByPath("/users/123/profile", null) shouldBe emptyList()
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
+                repository.fetchAllByPath("/users/123/profile", null, limit = 10) shouldBe emptyList()
             }
 
         @ParameterizedTest

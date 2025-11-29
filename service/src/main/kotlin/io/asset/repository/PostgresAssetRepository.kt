@@ -170,9 +170,10 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        limit: Int,
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetchAllAtPath(dslContext, treePath, transformation, orderBy, labels)
+        return fetchAllAtPath(dslContext, treePath, transformation, orderBy, labels, limit)
             .map { AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags) }
     }
 
@@ -380,6 +381,7 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        limit: Int,
     ): List<AssetRecordsDto> {
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
@@ -396,6 +398,7 @@ class PostgresAssetRepository(
             ).from(ASSET_TREE)
             .where(whereCondition)
             .orderBy(*orderByConditions)
+            .limit(limit)
             .asFlow()
             .map { record ->
                 val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields

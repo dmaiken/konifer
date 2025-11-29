@@ -35,6 +35,7 @@ interface AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
+        limit: Int,
     ): List<AssetAndVariants>
 
     suspend fun deleteAssetByPath(

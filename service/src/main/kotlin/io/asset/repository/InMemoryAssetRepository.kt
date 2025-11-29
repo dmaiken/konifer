@@ -133,6 +133,7 @@ class InMemoryAssetRepository : AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        limit: Int,
     ): List<AssetAndVariants> =
         store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.toList()
@@ -162,7 +163,7 @@ class InMemoryAssetRepository : AssetRepository {
                 }.let {
                     it.thenByDescending { comparator -> comparator.asset.entryId }
                 },
-            ) ?: emptyList()
+            )?.take(limit) ?: emptyList()
 
     override suspend fun deleteAssetByPath(
         path: String,

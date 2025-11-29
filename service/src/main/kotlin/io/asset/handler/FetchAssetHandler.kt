@@ -39,6 +39,7 @@ class FetchAssetHandler(
             path = context.path,
             transformation = null,
             orderBy = context.modifiers.orderBy,
+            limit = context.modifiers.limit,
         )
     }
 

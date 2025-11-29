@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpHeaders
 import io.util.createJsonClient
+import io.util.fetchAllAssetMetadata
 import io.util.fetchAssetMetadata
-import io.util.fetchAssetsInfo
 import io.util.storeAssetMultipartSource
 import io.util.updateAsset
 import org.junit.jupiter.api.Test
@@ -55,7 +55,7 @@ class FetchAssetOrderByTest {
                 entryId shouldBe response3.entryId
             }
 
-            fetchAssetsInfo(client, path = "profile", orderBy = OrderBy.CREATED, limit = 10).apply {
+            fetchAllAssetMetadata(client, path = "profile", orderBy = OrderBy.CREATED, limit = 10).apply {
                 size shouldBe 3
                 get(0).entryId shouldBe response3.entryId
                 get(1).entryId shouldBe response2.second!!.entryId
@@ -105,7 +105,7 @@ class FetchAssetOrderByTest {
                 entryId shouldBe updated.entryId
             }
 
-            fetchAssetsInfo(client, path = "profile", orderBy = OrderBy.MODIFIED, limit = 10).apply {
+            fetchAllAssetMetadata(client, path = "profile", orderBy = OrderBy.MODIFIED, limit = 10).apply {
                 size shouldBe 3
                 get(0).entryId shouldBe updated.entryId
                 get(1).entryId shouldBe response3.entryId

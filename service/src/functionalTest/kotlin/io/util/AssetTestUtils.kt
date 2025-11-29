@@ -412,7 +412,7 @@ suspend fun fetchAssetMetadata(
         }
     }
 
-suspend fun fetchAssetsInfo(
+suspend fun fetchAllAssetMetadata(
     client: HttpClient,
     path: String,
     orderBy: OrderBy = OrderBy.CREATED,
