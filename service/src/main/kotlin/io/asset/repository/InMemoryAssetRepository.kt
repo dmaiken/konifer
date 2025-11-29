@@ -1,5 +1,6 @@
 package io.asset.repository
 
+import io.asset.context.OrderBy
 import io.asset.handler.dto.StoreAssetDto
 import io.asset.handler.dto.StoreAssetVariantDto
 import io.asset.handler.dto.UpdateAssetDto
@@ -13,6 +14,7 @@ import io.image.model.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.text.get
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -103,9 +105,10 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): AssetAndVariants? {
-        val assetAndVariants = fetch(path, entryId, labels) ?: return null
+        val assetAndVariants = fetch(path, entryId, orderBy, labels) ?: return null
         val variants =
             if (transformation == null) {
                 assetAndVariants.variants
@@ -128,13 +131,12 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): List<AssetAndVariants> =
         store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.toList()
-            ?.sortedBy { it.asset.entryId }
             ?.filter { labels.all { entry -> it.asset.labels[entry.key] == entry.value } }
-            ?.reversed()
             ?.map { assetAndVariants ->
                 val variants =
                     if (transformation == null) {
@@ -153,7 +155,14 @@ class InMemoryAssetRepository : AssetRepository {
                     asset = assetAndVariants.asset,
                     variants = variants,
                 )
-            } ?: emptyList()
+            }?.sortedWith(
+                when (orderBy) {
+                    OrderBy.CREATED -> compareByDescending<AssetAndVariants> { it.asset.createdAt }
+                    OrderBy.MODIFIED -> compareByDescending<AssetAndVariants> { it.asset.modifiedAt }
+                }.let {
+                    it.thenByDescending { comparator -> comparator.asset.entryId }
+                },
+            ) ?: emptyList()
 
     override suspend fun deleteAssetByPath(
         path: String,
@@ -220,7 +229,7 @@ class InMemoryAssetRepository : AssetRepository {
 
     override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
         val fetched =
-            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
                 ?: throw IllegalStateException("Asset does not exist")
 
         val isModified =
@@ -267,23 +276,30 @@ class InMemoryAssetRepository : AssetRepository {
     private fun fetch(
         path: String,
         entryId: Long?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): InMemoryAssetAndVariants? {
         val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
 
-        if (labels.isNotEmpty()) {
-            if (entryId != null) {
-                return assets.firstOrNull { asset ->
-                    (asset.asset.entryId == entryId && labels.all { asset.asset.labels[it.key] == it.value })
+        return assets
+            .filter { asset ->
+                if (entryId != null) {
+                    asset.asset.entryId == entryId
+                } else {
+                    true
+                }
+            }.filter { asset ->
+                if (labels.isNotEmpty()) {
+                    labels.all { asset.asset.labels[it.key] == it.value }
+                } else {
+                    true
+                }
+            }.maxByOrNull { asset ->
+                when (orderBy) {
+                    OrderBy.CREATED -> asset.asset.createdAt
+                    OrderBy.MODIFIED -> asset.asset.modifiedAt
                 }
             }
-            return assets.firstOrNull { asset ->
-                (labels.all { asset.asset.labels[it.key] == it.value })
-            }
-        }
-
-        val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-        return assets.firstOrNull { asset -> asset.asset.entryId == resolvedEntryId }
     }
 }
 

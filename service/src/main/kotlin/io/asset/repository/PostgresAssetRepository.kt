@@ -8,6 +8,7 @@ import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
+import io.asset.context.OrderBy
 import io.asset.handler.dto.StoreAssetDto
 import io.asset.handler.dto.StoreAssetVariantDto
 import io.asset.handler.dto.UpdateAssetDto
@@ -27,6 +28,7 @@ import kotlinx.serialization.json.Json
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
+import org.jooq.SortField
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL.exists
 import org.jooq.impl.DSL.jsonbGetAttributeAsText
@@ -105,6 +107,7 @@ class PostgresAssetRepository(
                     treePath,
                     variant.entryId,
                     Transformation.ORIGINAL_VARIANT,
+                    OrderBy.CREATED,
                 )
             if (asset == null) {
                 throw IllegalArgumentException(
@@ -153,10 +156,11 @@ class PostgresAssetRepository(
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): AssetAndVariants? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetch(dslContext, treePath, entryId, transformation, labels)?.let {
+        return fetch(dslContext, treePath, entryId, transformation, orderBy, labels)?.let {
             AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags)
         }
     }
@@ -164,10 +168,11 @@ class PostgresAssetRepository(
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): List<AssetAndVariants> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetchAllAtPath(dslContext, treePath, transformation, labels)
+        return fetchAllAtPath(dslContext, treePath, transformation, orderBy, labels)
             .map { AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags) }
     }
 
@@ -265,7 +270,7 @@ class PostgresAssetRepository(
 
     override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
         val fetched =
-            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
                 ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
 
         val assetId = fetched.asset.id
@@ -309,7 +314,7 @@ class PostgresAssetRepository(
         }
 
         return if (modified) {
-            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT)
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
                 ?: throw IllegalStateException("Asset does not exist after updating")
         } else {
             fetched
@@ -335,16 +340,14 @@ class PostgresAssetRepository(
         treePath: Ltree,
         entryId: Long?,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String> = emptyMap(),
     ): AssetRecordsDto? {
         val entryIdCondition =
             entryId?.let {
                 ASSET_TREE.ENTRY_ID.eq(entryId)
             } ?: noCondition()
-        val assetOrderConditions =
-            entryId?.let {
-                arrayOf(ASSET_TREE.ENTRY_ID.desc(), ASSET_TREE.CREATED_AT.desc())
-            } ?: arrayOf(ASSET_TREE.CREATED_AT.desc())
+        val assetOrderConditions = orderByConditions(orderBy)
         val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
@@ -375,12 +378,15 @@ class PostgresAssetRepository(
         context: DSLContext,
         treePath: Ltree,
         transformation: Transformation?,
+        orderBy: OrderBy,
         labels: Map<String, String>,
     ): List<AssetRecordsDto> {
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
         val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
+        val orderByConditions = orderByConditions(orderBy)
+
         return context
             .select(
                 *ASSET_TREE.fields(),
@@ -389,7 +395,7 @@ class PostgresAssetRepository(
                 tagsField,
             ).from(ASSET_TREE)
             .where(whereCondition)
-            .orderBy(ASSET_TREE.CREATED_AT.desc())
+            .orderBy(*orderByConditions)
             .asFlow()
             .map { record ->
                 val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
@@ -525,5 +531,15 @@ class PostgresAssetRepository(
             }
             step.awaitLast()
         }
+    }
+
+    fun orderByConditions(orderBy: OrderBy): Array<out SortField<out Comparable<*>?>> {
+        val orderByModifierCondition =
+            when (orderBy) {
+                OrderBy.CREATED -> ASSET_TREE.CREATED_AT.desc()
+                OrderBy.MODIFIED -> ASSET_TREE.MODIFIED_AT.desc()
+            }
+
+        return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
 }

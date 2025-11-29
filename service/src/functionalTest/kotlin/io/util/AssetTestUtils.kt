@@ -2,6 +2,7 @@ package io.util
 
 import io.APP_CACHE_STATUS
 import io.BaseTestcontainerTest.Companion.BOUNDARY
+import io.asset.context.OrderBy
 import io.asset.context.ReturnFormat
 import io.asset.model.AssetLinkResponse
 import io.asset.model.AssetResponse
@@ -379,13 +380,20 @@ suspend fun fetchAssetMetadata(
     client: HttpClient,
     path: String,
     entryId: Long? = null,
+    orderBy: OrderBy? = null, // CREATED by default
     labels: Map<String, String> = emptyMap(),
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? =
     if (entryId != null) {
         "/assets/$path/-/metadata/entry/$entryId"
     } else {
-        "/assets/$path/-/metadata"
+        "/assets/$path/-/metadata".let {
+            if (orderBy != null) {
+                "$it/${orderBy.name.lowercase()}"
+            } else {
+                it
+            }
+        }
     }.let { requestPath ->
         val urlBuilder = URLBuilder()
         urlBuilder.path(requestPath)
@@ -407,10 +415,11 @@ suspend fun fetchAssetMetadata(
 suspend fun fetchAssetsInfo(
     client: HttpClient,
     path: String,
+    orderBy: OrderBy = OrderBy.CREATED,
     limit: Int = 1,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
-    val requestPath = "/assets/$path/-/metadata/$limit"
+    val requestPath = "/assets/$path/-/metadata/${orderBy.name.lowercase()}/$limit"
     val response = client.get(requestPath)
     response.status shouldBe expectedStatus
 

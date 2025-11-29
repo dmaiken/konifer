@@ -54,6 +54,20 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
+                    "/assets/profile/-/metadata/modified/10",
+                    QueryModifiers(
+                        returnFormat = ReturnFormat.METADATA,
+                        orderBy = OrderBy.MODIFIED,
+                        limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
+                    ),
+                ),
+                arguments(
                     "/assets/profile/-/link/created/10",
                     QueryModifiers(
                         returnFormat = ReturnFormat.LINK,

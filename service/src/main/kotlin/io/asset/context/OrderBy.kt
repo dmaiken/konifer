@@ -2,6 +2,7 @@ package io.asset.context
 
 enum class OrderBy {
     CREATED,
+    MODIFIED,
     ;
 
     companion object {

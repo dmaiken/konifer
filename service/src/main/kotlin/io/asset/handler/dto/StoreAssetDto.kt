@@ -6,7 +6,7 @@ import io.asset.store.PersistResult
 import io.image.model.Attributes
 import io.image.model.LQIPs
 
-class StoreAssetDto(
+data class StoreAssetDto(
     val path: String,
     val request: StoreAssetRequest,
     val attributes: Attributes,

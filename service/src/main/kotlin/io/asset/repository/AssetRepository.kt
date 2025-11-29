@@ -1,5 +1,6 @@
 package io.asset.repository
 
+import io.asset.context.OrderBy
 import io.asset.handler.dto.StoreAssetDto
 import io.asset.handler.dto.StoreAssetVariantDto
 import io.asset.handler.dto.UpdateAssetDto
@@ -25,12 +26,14 @@ interface AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
+        orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
     ): AssetAndVariants?
 
     suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
+        orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
     ): List<AssetAndVariants>
 

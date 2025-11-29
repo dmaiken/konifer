@@ -35,7 +35,11 @@ class FetchAssetHandler(
 
     suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
         logger.info("Fetching asset info in path: ${context.path}")
-        return assetRepository.fetchAllByPath(context.path, null)
+        return assetRepository.fetchAllByPath(
+            path = context.path,
+            transformation = null,
+            orderBy = context.modifiers.orderBy,
+        )
     }
 
     suspend fun fetchAssetMetadataByPath(
@@ -48,7 +52,13 @@ class FetchAssetHandler(
         )
 
         val assetAndVariants =
-            assetRepository.fetchByPath(context.path, entryId, context.transformation, context.labels) ?: return null
+            assetRepository.fetchByPath(
+                path = context.path,
+                entryId,
+                transformation = context.transformation,
+                orderBy = context.modifiers.orderBy,
+                labels = context.labels,
+            ) ?: return null
         if (!generateVariant) {
             return AssetMetadataDto(assetAndVariants, true)
         }

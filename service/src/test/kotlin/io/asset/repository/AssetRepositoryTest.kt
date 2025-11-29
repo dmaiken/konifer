@@ -1,7 +1,7 @@
 package io.asset.repository
 
+import io.asset.context.OrderBy
 import io.asset.handler.AssetSource
-import io.asset.handler.dto.StoreAssetDto
 import io.asset.handler.dto.StoreAssetVariantDto
 import io.asset.handler.dto.UpdateAssetDto
 import io.asset.model.StoreAssetRequest
@@ -24,6 +24,7 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotEndWith
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -66,7 +67,7 @@ abstract class AssetRepositoryTest {
                     this.isOriginalVariant shouldBe true
                     this.lqip shouldBe LQIPs.NONE
                 }
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
+                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
 
                 fetched shouldBe assetAndVariants
             }
@@ -85,7 +86,7 @@ abstract class AssetRepositoryTest {
                     sourceUrl shouldBe null
                     createdAt shouldBe modifiedAt
                 }
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
+                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
 
                 fetched shouldBe assetAndVariants
             }
@@ -96,10 +97,11 @@ abstract class AssetRepositoryTest {
                 val dto = createAssetDto("/users/123/")
                 val assetAndVariants = repository.store(dto)
                 assetAndVariants.asset.path shouldNotEndWith "/"
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
+                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
 
                 fetched shouldBe assetAndVariants
-                fetched shouldBe repository.fetchByPath(assetAndVariants.asset.path + "/", assetAndVariants.asset.entryId, null)
+                fetched shouldBe
+                    repository.fetchByPath(assetAndVariants.asset.path + "/", assetAndVariants.asset.entryId, null, OrderBy.CREATED)
             }
 
         @Test
@@ -196,6 +198,7 @@ abstract class AssetRepositoryTest {
                         persistedAssetAndVariants.asset.path,
                         persistedAssetAndVariants.asset.entryId,
                         null,
+                        OrderBy.CREATED,
                     )
                 assetAndVariants shouldNotBe null
                 assetAndVariants?.asset shouldBe persistedAssetAndVariants.asset
@@ -292,7 +295,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `fetching asset that does not exist returns null`() =
             runTest {
-                repository.fetchByPath("/doesNotExist", null, null) shouldBe null
+                repository.fetchByPath("/doesNotExist", null, null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
@@ -300,7 +303,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val dto = createAssetDto("/users/123")
                 val assetAndVariants = repository.store(dto)
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId + 1, null) shouldBe null
+                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId + 1, null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
@@ -308,7 +311,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val dto = createAssetDto("/users/123")
                 val assetAndVariants = repository.store(dto)
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null)
+                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
 
                 fetched shouldBe assetAndVariants
             }
@@ -318,7 +321,13 @@ abstract class AssetRepositoryTest {
             runTest {
                 val dto = createAssetDto("/users/123")
                 val assetAndVariants = repository.store(dto)
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path + "/", assetAndVariants.asset.entryId, null)
+                val fetched =
+                    repository.fetchByPath(
+                        assetAndVariants.asset.path + "/",
+                        assetAndVariants.asset.entryId,
+                        null,
+                        OrderBy.CREATED,
+                    )
 
                 fetched shouldBe assetAndVariants
             }
@@ -331,7 +340,7 @@ abstract class AssetRepositoryTest {
                 repository.store(dto1)
                 val asset2 = repository.store(dto2)
 
-                repository.fetchByPath("/users/123", entryId = null, transformation = null) shouldBe asset2
+                repository.fetchByPath("/users/123", entryId = null, transformation = null, OrderBy.CREATED) shouldBe asset2
             }
 
         @Test
@@ -342,8 +351,8 @@ abstract class AssetRepositoryTest {
                 val assetAndVariant1 = repository.store(dto1)
                 val assetAndVariant2 = repository.store(dto2)
 
-                repository.fetchByPath("/users/123", entryId = 0, transformation = null) shouldBe assetAndVariant1
-                repository.fetchByPath("/users/123", entryId = 1, transformation = null) shouldBe assetAndVariant2
+                repository.fetchByPath("/users/123", entryId = 0, transformation = null, OrderBy.CREATED) shouldBe assetAndVariant1
+                repository.fetchByPath("/users/123", entryId = 1, transformation = null, OrderBy.CREATED) shouldBe assetAndVariant2
             }
 
         @Test
@@ -351,7 +360,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val dto = createAssetDto("/users/123")
                 repository.store(dto)
-                repository.fetchByPath("/users/123", entryId = 1, transformation = null) shouldBe null
+                repository.fetchByPath("/users/123", entryId = 1, transformation = null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
@@ -463,6 +472,7 @@ abstract class AssetRepositoryTest {
                         path = persistedAssetAndVariants.asset.path,
                         entryId = persistedAssetAndVariants.asset.entryId,
                         transformation = originalVariantTransformation,
+                        orderBy = OrderBy.CREATED,
                     )
                 assetAndVariants shouldNotBe null
                 assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
@@ -564,6 +574,43 @@ abstract class AssetRepositoryTest {
                 }
                 assetAndVariants.asset.labels shouldContainExactly labels
             }
+
+        @Test
+        fun `returns assets ordered by modifiedAt if specified`() =
+            runTest {
+                // Test labels in case ordering doesn't work with joins for some reason
+                val labels =
+                    mapOf(
+                        "phone" to "iphone",
+                    )
+                val dto1 = createAssetDto("/users/123", labels = labels)
+                var persisted1 = repository.store(dto1)
+                val dto2 = createAssetDto("/users/123", labels = labels)
+                val persisted2 = repository.store(dto2)
+                persisted1 =
+                    repository.update(
+                        UpdateAssetDto(
+                            path = dto1.path,
+                            entryId = persisted1.asset.entryId,
+                            request =
+                                StoreAssetRequest(
+                                    alt = "I'm updated!!",
+                                ),
+                        ),
+                    )
+                repository.fetchByPath(
+                    path = persisted1.asset.path,
+                    entryId = null,
+                    transformation = null,
+                    orderBy = OrderBy.MODIFIED,
+                ) shouldBe persisted1
+                repository.fetchByPath(
+                    path = persisted1.asset.path,
+                    entryId = null,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe persisted2
+            }
     }
 
     @Nested
@@ -586,6 +633,28 @@ abstract class AssetRepositoryTest {
                 val assetAndVariant2 = repository.store(dto2)
 
                 repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+            }
+
+        @Test
+        fun `fetchAllByPath returns all assets at path ordered correctly`() =
+            runTest {
+                val dto1 = createAssetDto("/users/123")
+                val dto2 = createAssetDto("/users/123")
+                var assetAndVariant1 = repository.store(dto1)
+                val assetAndVariant2 = repository.store(dto2)
+                delay(1000)
+                assetAndVariant1 =
+                    repository.update(
+                        UpdateAssetDto(
+                            path = assetAndVariant1.asset.path,
+                            entryId = assetAndVariant1.asset.entryId,
+                            request = StoreAssetRequest(alt = "I'm updated!!"),
+                        ),
+                    )
+
+                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.MODIFIED) shouldBe
+                    listOf(assetAndVariant1, assetAndVariant2)
             }
 
         @Test
@@ -829,8 +898,8 @@ abstract class AssetRepositoryTest {
                 val assetAndVariants = repository.store(dto)
                 repository.deleteAssetByPath("/users/123")
 
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null) shouldBe null
-                repository.fetchByPath("/users/123", entryId = null, transformation = null) shouldBe null
+                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath("/users/123", entryId = null, transformation = null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
@@ -850,7 +919,8 @@ abstract class AssetRepositoryTest {
                     repository.deleteAssetByPath("/users/123", entryId = 1)
                 }
 
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null) shouldBe assetAndVariants
+                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED) shouldBe
+                    assetAndVariants
                 repository.fetchAllByPath("/users/123", null) shouldBe listOf(assetAndVariants)
             }
 
@@ -864,8 +934,8 @@ abstract class AssetRepositoryTest {
 
                 repository.deleteAssetsByPath("/users/123", recursive = false)
 
-                repository.fetchByPath(assetAndVariant1.asset.path, assetAndVariant1.asset.entryId, null) shouldBe null
-                repository.fetchByPath(assetAndVariant2.asset.path, assetAndVariant2.asset.entryId, null) shouldBe null
+                repository.fetchByPath(assetAndVariant1.asset.path, assetAndVariant1.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(assetAndVariant2.asset.path, assetAndVariant2.asset.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null) shouldBe emptyList()
             }
 
@@ -881,9 +951,9 @@ abstract class AssetRepositoryTest {
 
                 repository.deleteAssetsByPath("/users/123", recursive = true)
 
-                repository.fetchByPath(assetAndVariants1.asset.path, assetAndVariants1.asset.entryId, null) shouldBe null
-                repository.fetchByPath(assetAndVariants2.asset.path, assetAndVariants2.asset.entryId, null) shouldBe null
-                repository.fetchByPath(assetAndVariants3.asset.path, assetAndVariants3.asset.entryId, null) shouldBe null
+                repository.fetchByPath(assetAndVariants1.asset.path, assetAndVariants1.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(assetAndVariants2.asset.path, assetAndVariants2.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(assetAndVariants3.asset.path, assetAndVariants3.asset.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null) shouldBe emptyList()
                 repository.fetchAllByPath("/users/123/profile", null) shouldBe emptyList()
             }
@@ -1465,42 +1535,4 @@ abstract class AssetRepositoryTest {
                 }
             }
     }
-
-    private fun createAssetDto(
-        treePath: String,
-        labels: Map<String, String> =
-            mapOf(
-                "phone" to "iphone",
-                "customer" to "vip",
-            ),
-        source: AssetSource = AssetSource.UPLOAD,
-        url: String? = null,
-    ): StoreAssetDto =
-        StoreAssetDto(
-            path = treePath,
-            request =
-                StoreAssetRequest(
-                    alt = "an image",
-                    labels = labels,
-                    tags =
-                        setOf(
-                            "scary",
-                            "spooky",
-                        ),
-                    url = url,
-                ),
-            attributes =
-                Attributes(
-                    width = 100,
-                    height = 100,
-                    format = ImageFormat.PNG,
-                ),
-            persistResult =
-                PersistResult(
-                    key = UUID.randomUUID().toString(),
-                    bucket = "bucket",
-                ),
-            lqips = LQIPs.NONE,
-            source = source,
-        )
 }
