@@ -8,12 +8,12 @@ import io.asset.model.AssetAndVariants
 import io.asset.repository.AssetRepository
 import io.asset.store.ObjectStore
 import io.asset.variant.AssetVariant
+import io.image.lqip.LQIPImplementation
 import io.image.model.PreProcessedImage
 import io.image.model.Transformation
 import io.image.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
-import io.path.configuration.PathConfiguration
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,7 +90,8 @@ class VariantGenerator(
         return generateVariants(
             treePath = job.treePath,
             entryId = job.entryId,
-            pathConfiguration = job.pathConfiguration,
+            lqipImplementations = job.lqipImplementations,
+            bucket = job.bucket,
             transformations = job.transformations,
             original = original,
         )
@@ -104,7 +105,8 @@ class VariantGenerator(
         return generateVariants(
             treePath = job.treePath,
             entryId = job.entryId,
-            pathConfiguration = job.pathConfiguration,
+            lqipImplementations = job.lqipImplementations,
+            bucket = job.bucket,
             transformations =
                 job.requestedTransformations.let {
                     transformationNormalizer.normalize(
@@ -122,7 +124,7 @@ class VariantGenerator(
             container = job.sourceContainer,
             sourceFormat = job.sourceFormat,
             transformation = job.transformation,
-            lqipImplementations = job.pathConfiguration.imageProperties.previews,
+            lqipImplementations = job.lqipImplementations,
             outputChannel = job.outputChannel,
         )
     }
@@ -130,7 +132,8 @@ class VariantGenerator(
     private suspend fun generateVariants(
         treePath: String,
         entryId: Long?,
-        pathConfiguration: PathConfiguration,
+        lqipImplementations: Set<LQIPImplementation>,
+        bucket: String,
         transformations: List<Transformation>,
         original: AssetAndVariants,
     ): AssetAndVariants =
@@ -160,7 +163,7 @@ class VariantGenerator(
                 val persistResult =
                     async {
                         objectStore.persist(
-                            bucket = pathConfiguration.s3PathProperties.bucket,
+                            bucket = bucket,
                             asset = processedAssetChannel,
                             format = transformation.format,
                         )
@@ -171,7 +174,7 @@ class VariantGenerator(
                         transformation = transformation,
                         originalVariant = originalVariant,
                         outputChannel = processedAssetChannel,
-                        lqipImplementations = pathConfiguration.imageProperties.previews,
+                        lqipImplementations = lqipImplementations,
                     )
                 fetchOriginalVariantJob.join()
 

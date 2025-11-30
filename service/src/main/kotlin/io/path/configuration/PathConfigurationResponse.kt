@@ -1,6 +1,6 @@
 package io.path.configuration
 
-import io.serializers.LocalDateTimeSerializer
+import io.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 

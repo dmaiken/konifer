@@ -16,6 +16,7 @@ enum class ImageFormat(
                 // Sharp's default quality setting
                 defaultQuality = 80,
                 supportsAlpha = false,
+                supportsPaging = false,
             ),
     ),
     PNG(
@@ -28,6 +29,7 @@ enum class ImageFormat(
                 // Not used since PNG does not support lossy compression
                 defaultQuality = 100,
                 supportsAlpha = true,
+                supportsPaging = false,
             ),
     ),
     WEBP(
@@ -40,6 +42,7 @@ enum class ImageFormat(
                 // Sharp's default quality setting
                 defaultQuality = 80,
                 supportsAlpha = true,
+                supportsPaging = true,
             ),
     ),
     AVIF(
@@ -52,6 +55,7 @@ enum class ImageFormat(
                 // Sharp's default quality setting
                 defaultQuality = 50,
                 supportsAlpha = true,
+                supportsPaging = false,
             ),
     ),
     JPEG_XL(
@@ -63,6 +67,7 @@ enum class ImageFormat(
                 supportsQuality = true,
                 defaultQuality = 90,
                 supportsAlpha = true,
+                supportsPaging = false,
             ),
     ),
     HEIC(
@@ -74,6 +79,7 @@ enum class ImageFormat(
                 supportsQuality = true,
                 defaultQuality = 50,
                 supportsAlpha = true,
+                supportsPaging = false,
             ),
     ),
     GIF(
@@ -85,6 +91,7 @@ enum class ImageFormat(
                 supportsQuality = false,
                 defaultQuality = 100,
                 supportsAlpha = false,
+                supportsPaging = true,
             ),
     ),
     ;

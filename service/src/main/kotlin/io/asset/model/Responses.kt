@@ -1,7 +1,7 @@
 package io.asset.model
 
 import io.asset.handler.AssetSource
-import io.serializers.LocalDateTimeSerializer
+import io.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
@@ -34,6 +34,8 @@ data class ImageAttributeResponse(
     val height: Int,
     val width: Int,
     val mimeType: String,
+    val pageCount: Int?,
+    val loop: Int?,
 )
 
 @Serializable

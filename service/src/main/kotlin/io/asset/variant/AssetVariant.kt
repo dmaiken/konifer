@@ -6,7 +6,7 @@ import io.asset.repository.getNonNull
 import io.image.model.Attributes
 import io.image.model.LQIPs
 import io.image.model.Transformation
-import kotlinx.serialization.json.Json
+import io.serialization.format
 import java.time.LocalDateTime
 
 data class AssetVariant(
@@ -29,17 +29,17 @@ data class AssetVariant(
                 objectStoreKey = record.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
                 isOriginalVariant = record.getNonNull(ASSET_VARIANT.ORIGINAL_VARIANT),
                 attributes =
-                    Json
+                    format
                         .decodeFromString<ImageVariantAttributes>(
                             record.getNonNull(ASSET_VARIANT.ATTRIBUTES).data(),
                         ).toAttributes(),
                 transformation =
-                    Json
+                    format
                         .decodeFromString<ImageVariantTransformation>(
                             record.getNonNull(ASSET_VARIANT.TRANSFORMATION).data(),
                         ).toTransformation(),
                 transformationKey = record.getNonNull(ASSET_VARIANT.TRANSFORMATION_KEY),
-                lqip = Json.decodeFromString(record.getNonNull(ASSET_VARIANT.LQIP).data()),
+                lqip = format.decodeFromString(record.getNonNull(ASSET_VARIANT.LQIP).data()),
                 createdAt = record.getNonNull(ASSET_VARIANT.CREATED_AT),
             )
         }

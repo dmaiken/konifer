@@ -20,6 +20,8 @@ import io.image.model.Attributes
 import io.image.model.ImageFormat
 import io.image.model.PreProcessedImage
 import io.image.model.Transformation
+import io.image.vips.createDecoderOptions
+import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
@@ -94,7 +96,7 @@ class StoreAssetHandler(
                 variantJobScheduler.scheduleSynchronousJob(
                     PreProcessJob(
                         treePath = context.path,
-                        pathConfiguration = context.pathConfiguration,
+                        lqipImplementations = context.pathConfiguration.imageProperties.previews,
                         deferredResult = preProcessedDeferred,
                         sourceFormat = format,
                         sourceContainer = container,
@@ -130,7 +132,8 @@ class StoreAssetHandler(
                                 treePath = response.assetAndVariants.asset.path,
                                 entryId = response.assetAndVariants.asset.entryId,
                                 requestedTransformations = variants,
-                                pathConfiguration = context.pathConfiguration,
+                                lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                                bucket = context.pathConfiguration.s3PathProperties.bucket,
                             ),
                         )
                     }
@@ -159,9 +162,17 @@ class StoreAssetHandler(
         Vips.run { arena ->
             // Even if this image is paged, just need to load one frame to get height/width
             // So don't specify "n" as an option
-            val image = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath)
+            val image =
+                VImage.newFromFile(
+                    arena,
+                    container.getTemporaryFile().absolutePath,
+                    *createDecoderOptions(
+                        sourceFormat = sourceFormat,
+                        destinationFormat = context.pathConfiguration.imageProperties.preProcessing.format ?: sourceFormat,
+                    ),
+                )
 
-            dimensions = Pair(image.width, image.height)
+            dimensions = Pair(image.width, image.pageSafeHeight())
         }
         val requestedTransformation = context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
         return transformationNormalizer.normalize(

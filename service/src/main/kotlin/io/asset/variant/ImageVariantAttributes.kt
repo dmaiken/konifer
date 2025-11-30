@@ -9,6 +9,8 @@ data class ImageVariantAttributes(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
+    val pageCount: Int? = null,
+    val loop: Int? = null,
 ) {
     companion object Factory {
         fun from(attributes: Attributes) =
@@ -27,5 +29,7 @@ data class ImageVariantAttributes(
             width = this.width,
             height = this.height,
             format = this.format,
+            pageCount = this.pageCount,
+            loop = this.loop,
         )
 }

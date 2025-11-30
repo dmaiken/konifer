@@ -2,6 +2,7 @@ package io.image
 
 import app.photofox.vipsffm.VImage
 import io.image.model.Fit
+import io.image.vips.pageSafeHeight
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
@@ -14,7 +15,7 @@ object DimensionCalculator {
     ): Pair<Int, Int> =
         calculateDimensions(
             sourceWidth = image.width,
-            sourceHeight = image.height,
+            sourceHeight = image.pageSafeHeight(),
             width = width,
             height = height,
             fit = fit,

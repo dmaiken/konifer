@@ -77,7 +77,8 @@ class FetchAssetHandler(
                 VariantGenerationJob(
                     treePath = assetAndVariants.asset.path,
                     entryId = assetAndVariants.asset.entryId,
-                    pathConfiguration = context.pathConfiguration,
+                    lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                    bucket = context.pathConfiguration.s3PathProperties.bucket,
                     transformations = listOf(checkNotNull(context.transformation)),
                     deferredResult = deferred,
                 ),

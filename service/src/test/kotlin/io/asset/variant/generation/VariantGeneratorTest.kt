@@ -12,7 +12,6 @@ import io.image.DimensionCalculator
 import io.image.model.Attributes
 import io.image.model.Fit
 import io.image.model.ImageFormat
-import io.image.model.ImageProperties
 import io.image.model.LQIPs
 import io.image.model.Transformation
 import io.image.vips.VipsImageProcessor
@@ -26,8 +25,6 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
 import io.mockk.coEvery
 import io.mockk.spyk
-import io.path.configuration.PathConfiguration
-import io.s3.S3PathProperties
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -130,7 +127,8 @@ class VariantGeneratorTest {
                                 ),
                             ),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -174,13 +172,8 @@ class VariantGeneratorTest {
                                 ),
                             ),
                         deferredResult = result,
-                        pathConfiguration =
-                            PathConfiguration.create(
-                                allowedContentTypes = null,
-                                imageProperties = ImageProperties.DEFAULT,
-                                eagerVariants = emptyList(),
-                                s3PathProperties = S3PathProperties.create("different-bucket"),
-                            ),
+                        lqipImplementations = emptySet(),
+                        bucket = "different-bucket",
                     )
                 channel.send(variantGenerationJob)
 
@@ -215,7 +208,8 @@ class VariantGeneratorTest {
                                 ),
                             ),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -251,7 +245,8 @@ class VariantGeneratorTest {
                                     height = 400,
                                 ),
                             ),
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                         deferredResult = result,
                     ),
                 )
@@ -271,7 +266,8 @@ class VariantGeneratorTest {
                         entryId = asset.asset.entryId,
                         requestedTransformations = emptyList(),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -295,7 +291,8 @@ class VariantGeneratorTest {
                                 ),
                             ),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
 
                 coEvery {
@@ -337,7 +334,8 @@ class VariantGeneratorTest {
                         entryId = asset.asset.entryId,
                         transformations = listOf(transformation),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -368,13 +366,8 @@ class VariantGeneratorTest {
                         entryId = asset.asset.entryId,
                         transformations = listOf(transformation),
                         deferredResult = result,
-                        pathConfiguration =
-                            PathConfiguration.create(
-                                allowedContentTypes = null,
-                                imageProperties = ImageProperties.DEFAULT,
-                                eagerVariants = emptyList(),
-                                s3PathProperties = S3PathProperties.create("different-bucket"),
-                            ),
+                        lqipImplementations = emptySet(),
+                        bucket = "different-bucket",
                     )
                 channel.send(variantGenerationJob)
 
@@ -412,7 +405,8 @@ class VariantGeneratorTest {
                         entryId = asset.asset.entryId,
                         transformations = listOf(transformation1, transformation2),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -448,7 +442,8 @@ class VariantGeneratorTest {
                                     fit = Fit.FIT,
                                 ),
                             ),
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                         deferredResult = result,
                     ),
                 )
@@ -468,7 +463,8 @@ class VariantGeneratorTest {
                         entryId = asset.asset.entryId,
                         transformations = emptyList(),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
                 channel.send(variantGenerationJob)
 
@@ -494,7 +490,8 @@ class VariantGeneratorTest {
                                 ),
                             ),
                         deferredResult = result,
-                        pathConfiguration = PathConfiguration.DEFAULT,
+                        lqipImplementations = emptySet(),
+                        bucket = BUCKET,
                     )
 
                 coEvery {

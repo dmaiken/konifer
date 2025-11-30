@@ -2,8 +2,6 @@ package io.image.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import app.photofox.vipsffm.VipsOption
-import app.photofox.vipsffm.enums.VipsAccess
 import io.asset.AssetStreamContainer
 import io.asset.variant.AssetVariant
 import io.image.AttributesFactory
@@ -18,8 +16,6 @@ import io.image.model.LQIPs
 import io.image.model.PreProcessedImage
 import io.image.model.ProcessedImage
 import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_ACCESS
-import io.image.vips.VipsOptionNames.OPTION_N
 import io.image.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.image.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.image.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -28,6 +24,8 @@ import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.foreign.Arena
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
 import kotlin.time.measureTime
 
 class VipsImageProcessor {
@@ -46,7 +44,6 @@ class VipsImageProcessor {
                 fit = Fit.FIT,
                 gravity = Gravity.CENTER,
             )
-        private val NO_OPTIONS = emptyArray<VipsOption>()
     }
 
     /**
@@ -92,11 +89,24 @@ class VipsImageProcessor {
                     } finally {
                         resizedPreviewChannel.close()
                     }
-                    VipsEncoder.writeToStream(preProcessed.processed, transformation.format, transformation.quality, outputChannel)
+                    if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
+                        VipsEncoder.writeToStream(preProcessed.processed, transformation.format, transformation.quality, outputChannel)
+                    } else {
+                        // Encoding is where all the work is done - don't bother if the image was not transformed
+                        logger.info("No applied transformations for image, not encoding image with vips")
+                        FileChannel
+                            .open(
+                                container.getTemporaryFile().toPath(),
+                                StandardOpenOption.READ,
+                            ).use {
+                                copyFileToByteChannel(it, outputChannel)
+                            }
+                    }
 
                     attributes =
                         AttributesFactory.createAttributes(
                             image = preProcessed.processed,
+                            sourceFormat = sourceFormat,
                             destinationFormat = transformation.format,
                         )
                 }
@@ -151,6 +161,7 @@ class VipsImageProcessor {
                     attributes =
                         AttributesFactory.createAttributes(
                             image = variantResult.processed,
+                            sourceFormat = originalVariant.attributes.format,
                             destinationFormat = transformation.format,
                         )
                 }
@@ -194,28 +205,5 @@ class VipsImageProcessor {
         ByteChannelOutputStream(channel).use {
             previewResult.processed.writeToStream(it, ImageFormat.PNG.extension)
         }
-    }
-
-    private fun createDecoderOptions(
-        sourceFormat: ImageFormat,
-        destinationFormat: ImageFormat,
-    ): Array<VipsOption> {
-        if (sourceFormat == ImageFormat.GIF && sourceFormat == destinationFormat) {
-            return arrayOf(
-                // Read all frames
-                VipsOption.Int(OPTION_N, -1),
-                // Sequential decoding
-                VipsOption.Enum(OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-            )
-        }
-        if (sourceFormat == ImageFormat.GIF) {
-            return arrayOf(
-                // Read only first frame
-                VipsOption.Int(OPTION_N, 1),
-                // Sequential decoding
-                VipsOption.Enum(OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-            )
-        }
-        return NO_OPTIONS
     }
 }

@@ -46,7 +46,8 @@ class VipsPipeline(
             if (failed) {
                 break
             }
-            if (transformer.requiresTransformation(
+            if (!transformation.originalVariant &&
+                transformer.requiresTransformation(
                     arena = arena,
                     source = processed.processed,
                     transformation = transformation,

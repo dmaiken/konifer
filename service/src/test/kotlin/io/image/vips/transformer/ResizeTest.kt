@@ -33,7 +33,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.imageio.ImageIO
 
 class ResizeTest {
@@ -501,7 +500,6 @@ class ResizeTest {
                     processedImage.processed.writeToStream(output, ".gif")
                 }
                 val outputBytes = output.toByteArray()
-                File("kermit-stretch.gif").writeBytes(outputBytes)
                 PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
         }

@@ -17,6 +17,7 @@ import io.asset.model.VariantBucketAndKey
 import io.asset.variant.VariantParameterGenerator
 import io.image.model.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
+import io.serialization.format
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -24,7 +25,6 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitLast
-import kotlinx.serialization.json.Json
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
@@ -76,7 +76,7 @@ class PostgresAssetRepository(
             insertLabels(trx.dsl(), assetId, asset.request.labels, now)
             insertTags(trx.dsl(), assetId, asset.request.tags, now)
 
-            val lqip = Json.encodeToString(asset.lqips)
+            val lqip = format.encodeToString(asset.lqips)
             val persistedVariant =
                 trx
                     .dsl()
@@ -119,7 +119,7 @@ class PostgresAssetRepository(
                     variant.transformation,
                 )
             val attributes = VariantParameterGenerator.generateImageVariantAttributes(variant.attributes)
-            val lqip = Json.encodeToString(variant.lqips)
+            val lqip = format.encodeToString(variant.lqips)
 
             val persistedVariant =
                 try {

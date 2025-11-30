@@ -12,6 +12,7 @@ import io.image.vips.VipsOptionNames.OPTION_CROP
 import io.image.vips.VipsOptionNames.OPTION_HEIGHT
 import io.image.vips.VipsOptionNames.OPTION_INTERESTING
 import io.image.vips.VipsOptionNames.OPTION_SIZE
+import io.image.vips.pageSafeHeight
 import io.image.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
@@ -44,7 +45,7 @@ object Resize : VipsTransformer {
                 transformation.fit,
             )
         logger.info(
-            "Scaling image with dimensions (${source.width}, ${source.height}) to ($resizeWidth, $resizeHeight) " +
+            "Scaling image with dimensions (${source.width}, ${source.pageSafeHeight()}) to ($resizeWidth, $resizeHeight) " +
                 "using crop: ${transformation.fit}",
         )
         val regenerateLqip = requiresLqipRegeneration(source, resizeWidth, resizeHeight, transformation)
