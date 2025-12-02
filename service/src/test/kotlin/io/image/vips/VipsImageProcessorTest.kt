@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
 import java.util.Base64
 import javax.imageio.ImageIO
@@ -83,33 +84,13 @@ class VipsImageProcessorTest {
                 }
             }
 
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `png image is converted to supported image format`(format: ImageFormat) =
-            runTest {
-                testImageFormatConversion(ImageFormat.PNG, format)
-            }
-
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `jpeg image is converted to supported image format`(format: ImageFormat) =
-            runTest {
-                testImageFormatConversion(ImageFormat.JPEG, format)
-            }
-
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `webp image is converted to supported image format`(format: ImageFormat) =
-            runTest {
-                testImageFormatConversion(ImageFormat.WEBP, format)
-            }
-
-        @ParameterizedTest
-        @EnumSource(ImageFormat::class)
-        fun `avif image is converted to supported image format`(format: ImageFormat) =
-            runTest {
-                testImageFormatConversion(ImageFormat.AVIF, format)
-            }
+        @CartesianTest
+        fun `formats can be converted to supported image formats`(
+            @CartesianTest.Enum(ImageFormat::class) source: ImageFormat,
+            @CartesianTest.Enum(ImageFormat::class) destination: ImageFormat,
+        ) = runTest {
+            testImageFormatConversion(source, destination)
+        }
 
         @Test
         fun `image lqips are not generated if not enabled when preprocessing`() =
@@ -132,7 +113,7 @@ class VipsImageProcessorTest {
                     val processedImage =
                         vipsImageProcessor.preprocess(
                             container = container,
-                            sourceFormat = Transformation.ORIGINAL_VARIANT.format,
+                            sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = emptySet(),
                             transformation = Transformation.ORIGINAL_VARIANT,
                             outputChannel = outputChannel,

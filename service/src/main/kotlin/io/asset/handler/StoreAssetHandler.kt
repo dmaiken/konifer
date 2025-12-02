@@ -25,8 +25,10 @@ import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 class StoreAssetHandler(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -156,33 +158,35 @@ class StoreAssetHandler(
         context: StoreRequestContext,
         container: AssetStreamContainer,
         sourceFormat: ImageFormat,
-    ): Transformation {
-        var dimensions: Pair<Int, Int>? = null
+    ): Transformation =
+        withContext(Dispatchers.IO) {
+            var dimensions: Pair<Int, Int>? = null
 
-        Vips.run { arena ->
-            // Even if this image is paged, just need to load one frame to get height/width
-            // So don't specify "n" as an option
-            val image =
-                VImage.newFromFile(
-                    arena,
-                    container.getTemporaryFile().absolutePath,
-                    *createDecoderOptions(
-                        sourceFormat = sourceFormat,
-                        destinationFormat = context.pathConfiguration.imageProperties.preProcessing.format ?: sourceFormat,
+            Vips.run { arena ->
+                // Even if this image is paged, just need to load one frame to get height/width
+                // So don't specify "n" as an option
+                val image =
+                    VImage.newFromFile(
+                        arena,
+                        container.getTemporaryFile().absolutePath,
+                        *createDecoderOptions(
+                            sourceFormat = sourceFormat,
+                            destinationFormat = context.pathConfiguration.imageProperties.preProcessing.format ?: sourceFormat,
+                        ),
+                    )
+
+                dimensions = Pair(image.width, image.pageSafeHeight())
+            }
+            val requestedTransformation = context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
+
+            transformationNormalizer.normalize(
+                requested = requestedTransformation,
+                originalVariantAttributes =
+                    Attributes(
+                        width = requireNotNull(dimensions).first,
+                        height = dimensions.second,
+                        format = sourceFormat,
                     ),
-                )
-
-            dimensions = Pair(image.width, image.pageSafeHeight())
+            )
         }
-        val requestedTransformation = context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
-        return transformationNormalizer.normalize(
-            requested = requestedTransformation,
-            originalVariantAttributes =
-                Attributes(
-                    width = requireNotNull(dimensions).first,
-                    height = dimensions.second,
-                    format = sourceFormat,
-                ),
-        )
-    }
 }

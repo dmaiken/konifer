@@ -7,6 +7,8 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.CountedByteReadChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
@@ -34,7 +36,9 @@ class AssetStreamContainer(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val tempFile =
         lazy {
-            Files.createTempFile("asset-upload-", ".tmp").toFile()
+            Files.createTempFile("asset-upload-", ".tmp").toFile().apply {
+                deleteOnExit()
+            }
         }
 
     /**
@@ -44,27 +48,31 @@ class AssetStreamContainer(
 
     fun getTemporaryFile(): File = tempFile.value
 
-    suspend fun toTemporaryFile() {
-        try {
-            FileChannel
-                .open(
-                    tempFile.value.toPath(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                ).use { fileChannel ->
-                    var bytesWritten = fileChannel.write(ByteBuffer.wrap(buffer.toByteArray())).toLong()
-                    bytesWritten += counterChannel.copyTo(fileChannel)
+    suspend fun toTemporaryFile() =
+        withContext(Dispatchers.IO) {
+            try {
+                FileChannel
+                    .open(
+                        tempFile.value.toPath(),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING,
+                    ).use { fileChannel ->
+                        var bytesWritten = fileChannel.write(ByteBuffer.wrap(buffer.toByteArray())).toLong()
+                        bytesWritten += counterChannel.copyTo(fileChannel)
+                        if (bytesWritten > maxBytes) {
+                            throw IllegalArgumentException(TOO_LARGE_MESSAGE)
+                        }
 
-                    logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile.value.absolutePath}" }
-                    isDumpedToFile = true
-                }
-        } catch (e: Exception) {
-            // If an error occurs during streaming, ensure the incomplete file is deleted.
-            tempFile.value.delete()
-            throw e
+                        logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile.value.absolutePath}" }
+                        isDumpedToFile = true
+                    }
+            } catch (e: Exception) {
+                // If an error occurs during streaming, ensure the incomplete file is deleted.
+                tempFile.value.delete()
+                throw e
+            }
         }
-    }
 
     /**
      * Reads [n] bytes from the backing channel. If [peek] is true, then the read bytes are also read into an

@@ -128,7 +128,7 @@ ensures you're developing against the same version that Direkt will use within D
 
 To install:
 ```shell
-chmod +x /scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps
+chmod +x /scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps                                                                                                                                                                                                                                                                                                                      luci
 ```
 
 ## Docker
