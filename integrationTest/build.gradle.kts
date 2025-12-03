@@ -2,7 +2,7 @@ plugins {
     id("java")
 }
 
-group = "io"
+group = "io.direkt"
 version = "0.0.1"
 
 repositories {

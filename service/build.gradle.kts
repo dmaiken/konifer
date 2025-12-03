@@ -7,7 +7,7 @@ plugins {
 }
 
 version = "0.0.1"
-group = "io"
+group = "io.direkt"
 
 application {
     mainClass = "io.ApplicationKt"

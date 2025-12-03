@@ -1,0 +1,42 @@
+package io.direkt.asset
+
+import io.byteArrayToImage
+import io.direkt.asset.model.StoreAssetRequest
+import io.direkt.config.testInMemory
+import io.direkt.util.createJsonClient
+import io.direkt.util.fetchAssetContent
+import io.direkt.util.storeAssetMultipartSource
+import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
+import org.apache.tika.Tika
+import org.junit.jupiter.api.Test
+import java.util.UUID
+
+class FetchAssetContentTest {
+    @Test
+    fun `fetching asset content that does not exist returns not found`() =
+        testInMemory {
+            val client = createJsonClient()
+            fetchAssetContent(client, path = UUID.randomUUID().toString(), expectedStatusCode = HttpStatusCode.NotFound)
+        }
+
+    @Test
+    fun `can fetch asset and render`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetMultipartSource(client, image, request, path = "profile")
+
+            fetchAssetContent(client, path = "profile", expectedMimeType = "image/png")!!.let { imageBytes ->
+                val rendered = byteArrayToImage(imageBytes)
+                rendered.width shouldBe bufferedImage.width
+                rendered.height shouldBe bufferedImage.height
+                Tika().detect(imageBytes) shouldBe "image/png"
+            }
+        }
+}

@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-group = "io"
+group = "io.direkt"
 version = "0.0.1"
 
 application {
