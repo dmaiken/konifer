@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 enum class ImageFormat(
     val format: Set<String>,

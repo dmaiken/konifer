@@ -7,17 +7,14 @@ import io.direkt.asset.handler.dto.AssetMetadataDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.asset.store.ObjectStore
-import io.direkt.asset.variant.generation.ImageProcessingJob
-import io.direkt.asset.variant.generation.PriorityChannelScheduler
-import io.direkt.asset.variant.generation.VariantGenerationJob
+import io.direkt.domain.ports.VariantGenerator
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
-import kotlinx.coroutines.CompletableDeferred
 
 class FetchAssetHandler(
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectStore,
-    private val variantJobScheduler: PriorityChannelScheduler<ImageProcessingJob<*>>,
+    private val variantGenerator: VariantGenerator,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -72,17 +69,14 @@ class FetchAssetHandler(
                 }
             }
 
-            val deferred = CompletableDeferred<AssetAndVariants>()
-            variantJobScheduler.scheduleSynchronousJob(
-                VariantGenerationJob(
-                    treePath = assetAndVariants.asset.path,
+            val deferred =
+                variantGenerator.generateOnDemandVariant(
+                    path = assetAndVariants.asset.path,
                     entryId = assetAndVariants.asset.entryId,
                     lqipImplementations = context.pathConfiguration.imageProperties.previews,
                     bucket = context.pathConfiguration.s3PathProperties.bucket,
-                    transformations = listOf(checkNotNull(context.transformation)),
-                    deferredResult = deferred,
-                ),
-            )
+                    transformation = checkNotNull(context.transformation),
+                )
             AssetMetadataDto(deferred.await(), false)
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")

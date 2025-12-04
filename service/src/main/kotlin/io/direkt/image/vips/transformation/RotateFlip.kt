@@ -2,10 +2,10 @@ package io.image.vips.transformation
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsDirection
-import io.image.model.Rotate
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_ORIENTATION
-import io.image.vips.pipeline.VipsTransformationResult
+import io.direkt.image.model.Rotate
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsOptionNames.OPTION_ORIENTATION
+import io.direkt.image.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 object RotateFlip : VipsTransformer {

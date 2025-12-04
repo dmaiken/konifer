@@ -1,21 +1,21 @@
 package io.direkt.asset.variant
 
-import io.image.model.RequestedImageTransformation
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.VariantProfilePropertyKeys.NAME
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
-import io.properties.ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES
-import io.properties.ConfigurationProperties.PathConfigurationProperties.VariantProfilePropertyKeys.NAME
 
 class VariantProfileRepository(
     applicationConfig: ApplicationConfig,
 ) {
     private val profiles = populateProfiles(applicationConfig)
 
-    fun fetch(profileName: String): RequestedImageTransformation =
+    fun fetch(profileName: String): RequestedTransformation =
         profiles[profileName.lowercase()]
             ?: throw IllegalArgumentException("Variant profile: '$profileName' not found")
 
-    private fun populateProfiles(applicationConfig: ApplicationConfig): Map<String, RequestedImageTransformation> =
+    private fun populateProfiles(applicationConfig: ApplicationConfig): Map<String, RequestedTransformation> =
         buildMap {
             applicationConfig.configList(VARIANT_PROFILES).forEach { profileConfig ->
                 val profileName =
@@ -28,7 +28,7 @@ class VariantProfileRepository(
                     throw IllegalArgumentException("Profile name: '$profileName' already exists")
                 }
 
-                put(profileName, RequestedImageTransformation.create(profileConfig))
+                put(profileName, RequestedTransformation.create(profileConfig))
             }
         }
 

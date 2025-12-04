@@ -1,8 +1,8 @@
 package io.direkt.asset.repository
 
-import io.image.model.Fit
-import io.image.model.ImageFormat
-import io.image.model.Transformation
+import io.direkt.image.model.Fit
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
 import org.junit.jupiter.api.Named.named
 
 object AssetRepositoryTestDataProviders {

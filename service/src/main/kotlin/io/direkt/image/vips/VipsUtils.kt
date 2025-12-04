@@ -1,8 +1,8 @@
-package io.image.vips
+package io.direkt.image.vips
 
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.image.model.ImageFormat
+import io.direkt.image.model.ImageFormat
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.jvm.nio.toByteReadChannel

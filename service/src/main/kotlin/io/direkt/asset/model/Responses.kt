@@ -1,7 +1,7 @@
 package io.direkt.asset.model
 
 import io.direkt.asset.handler.AssetSource
-import io.serialization.LocalDateTimeSerializer
+import io.direkt.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 

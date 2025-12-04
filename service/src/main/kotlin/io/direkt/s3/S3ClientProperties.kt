@@ -1,6 +1,6 @@
 package io.direkt.s3
 
-import io.properties.ValidatedProperties
+import io.direkt.properties.ValidatedProperties
 
 data class S3ClientProperties(
     val endpointUrl: String?,

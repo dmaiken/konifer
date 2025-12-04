@@ -3,11 +3,11 @@ package io.direkt.image
 import io.byteArrayToImage
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.image.lqip.LQIPImplementation
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.fetchAssetViaRedirect
 import io.direkt.util.storeAssetMultipartSource
-import io.image.lqip.LQIPImplementation
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

@@ -1,6 +1,6 @@
 package io.image
 
-import io.image.model.ImageFormat
+import io.direkt.image.model.ImageFormat
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 

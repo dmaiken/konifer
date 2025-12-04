@@ -1,8 +1,8 @@
 package io.direkt.asset.handler
 
 import io.direkt.asset.repository.AssetRepository
+import io.direkt.path.DeleteMode
 import io.ktor.util.logging.KtorSimpleLogger
-import io.path.DeleteMode
 
 class DeleteAssetHandler(
     private val assetRepository: AssetRepository,

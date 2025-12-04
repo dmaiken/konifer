@@ -1,11 +1,11 @@
-package io.image.model
+package io.direkt.image.model
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
+import io.direkt.image.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.image.AttributesFactory
-import io.image.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest

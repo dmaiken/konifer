@@ -1,11 +1,13 @@
-package io.direkt.domain
+package io.direkt.domain.aggregate
 
 import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.model.StoreAssetRequest
 import java.time.LocalDateTime
 import java.util.UUID
 
-@JvmInline value class AssetId(val value: UUID)
+@JvmInline value class AssetId(
+    val value: UUID,
+)
 
 sealed interface Asset {
     val id: AssetId
@@ -18,6 +20,8 @@ sealed interface Asset {
     val sourceUrl: String?
     val createdAt: LocalDateTime
     val modifiedAt: LocalDateTime
+    val isReady: Boolean
+    val variants: List<Variant>
 
     class New private constructor(
         override val id: AssetId,
@@ -29,8 +33,10 @@ sealed interface Asset {
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime
-    ): Asset {
+        override val modifiedAt: LocalDateTime,
+        override val isReady: Boolean,
+        override val variants: List<Variant>,
+    ) : Asset {
         companion object {
             /**
              * Looks like some assistive devices truncate alts after 125 characters
@@ -54,7 +60,10 @@ sealed interface Asset {
 
             private const val MAX_TAG_VALUE_LENGTH: Int = 256
 
-            fun fromHttpRequest(path: String, request: StoreAssetRequest): New {
+            fun fromHttpRequest(
+                path: String,
+                request: StoreAssetRequest,
+            ): New {
                 val now = LocalDateTime.now()
                 return New(
                     id = AssetId(UUID.randomUUID()),
@@ -63,18 +72,30 @@ sealed interface Asset {
                     alt = request.alt,
                     labels = request.labels,
                     tags = request.tags,
-                    source = request.url?.let {
-                        AssetSource.URL
-                    } ?: AssetSource.UPLOAD,
+                    source =
+                        request.url?.let {
+                            AssetSource.URL
+                        } ?: AssetSource.UPLOAD,
                     sourceUrl = request.url,
                     createdAt = now,
                     modifiedAt = now,
+                    isReady = false,
+                    variants = emptyList(),
                 )
             }
         }
 
         init {
             validate()
+        }
+
+        fun markPending(originalVariant: Variant): Asset {
+            check(originalVariant is Variant.New) { "Variant must be in a new state" }
+
+            return Pending.fromNew(
+                new = this,
+                originalVariant = originalVariant,
+            )
         }
 
         private fun validate() {
@@ -93,7 +114,7 @@ sealed interface Asset {
         }
     }
 
-    class Pending(
+    class Pending private constructor(
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
@@ -103,8 +124,34 @@ sealed interface Asset {
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime
-    ): Asset {
+        override val modifiedAt: LocalDateTime,
+        override val isReady: Boolean,
+        override val variants: List<Variant>,
+    ) : Asset {
+        companion object {
+            fun fromNew(
+                new: New,
+                originalVariant: Variant,
+            ): Pending =
+                Pending(
+                    id = new.id,
+                    path = new.path,
+                    entryId = new.entryId,
+                    alt = new.alt,
+                    labels = new.labels,
+                    tags = new.tags,
+                    source = new.source,
+                    sourceUrl = new.sourceUrl,
+                    createdAt = new.createdAt,
+                    modifiedAt = new.modifiedAt,
+                    isReady = false,
+                    variants = listOf(originalVariant),
+                )
+        }
 
+        init {
+            checkNotNull(entryId)
+            check(variants.size == 1)
+        }
     }
 }

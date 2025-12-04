@@ -1,4 +1,4 @@
-package io.direkt.asset.variant.generation
+package io.direkt.infrastructure.variant
 
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.channels.Channel
@@ -6,7 +6,7 @@ import kotlinx.coroutines.selects.select
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 
-class PriorityChannelScheduler<T>(
+class PriorityChannelConsumer<T>(
     private val highPriorityChannel: Channel<T>,
     private val backgroundChannel: Channel<T>,
     private val highPriorityWeight: Int,
@@ -17,15 +17,7 @@ class PriorityChannelScheduler<T>(
         require(highPriorityWeight in 1..100) {
             "High priority weight must be between 0 and 100"
         }
-        logger.info("Initiated Variant generation scheduler with synchronous priority of: $highPriorityWeight")
-    }
-
-    suspend fun scheduleSynchronousJob(job: T) {
-        highPriorityChannel.send(job)
-    }
-
-    suspend fun scheduleBackgroundJob(job: T) {
-        backgroundChannel.send(job)
+        logger.info("Initiated Variant generation consumer with synchronous priority of: $highPriorityWeight")
     }
 
     suspend fun nextJob(): T {

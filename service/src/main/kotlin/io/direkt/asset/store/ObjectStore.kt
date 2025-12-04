@@ -1,16 +1,15 @@
 package io.direkt.asset.store
 
 import io.direkt.asset.variant.AssetVariant
-import io.image.model.ImageFormat
-import io.ktor.utils.io.ByteChannel
+import io.direkt.image.model.ImageFormat
 import io.ktor.utils.io.ByteWriteChannel
+import java.io.File
 
 interface ObjectStore {
     suspend fun persist(
         bucket: String,
-        asset: ByteChannel,
+        asset: File,
         format: ImageFormat,
-        contentLength: Long? = null,
     ): PersistResult
 
     suspend fun fetch(

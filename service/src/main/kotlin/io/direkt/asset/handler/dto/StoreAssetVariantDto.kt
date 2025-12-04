@@ -1,9 +1,9 @@
 package io.direkt.asset.handler.dto
 
 import io.direkt.asset.store.PersistResult
-import io.image.model.Attributes
-import io.image.model.LQIPs
-import io.image.model.Transformation
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.LQIPs
+import io.direkt.image.model.Transformation
 
 data class StoreAssetVariantDto(
     val path: String,

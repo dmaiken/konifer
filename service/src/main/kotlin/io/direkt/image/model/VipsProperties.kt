@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 data class VipsProperties(
     val supportsQuality: Boolean,

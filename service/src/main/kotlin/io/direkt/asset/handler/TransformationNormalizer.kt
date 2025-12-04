@@ -3,12 +3,12 @@ package io.direkt.asset.handler
 import io.direkt.asset.handler.ColorConverter.transparent
 import io.direkt.asset.handler.ColorConverter.white
 import io.direkt.asset.repository.AssetRepository
-import io.image.model.Attributes
-import io.image.model.ExifOrientations.normalizeOrientation
-import io.image.model.Fit
-import io.image.model.ImageFormat
-import io.image.model.RequestedImageTransformation
-import io.image.model.Transformation
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.ExifOrientations.normalizeOrientation
+import io.direkt.image.model.Fit
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -23,13 +23,13 @@ class TransformationNormalizer(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     /**
-     * Transform the supplied [RequestedImageTransformation] into a normalized [Transformation] where every transformation
+     * Transform the supplied [RequestedTransformation] into a normalized [Transformation] where every transformation
      * attribute is specified, if needed, by deriving missing values using the original variant.
      */
     suspend fun normalize(
         treePath: String,
         entryId: Long?,
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
     ): Transformation =
         coroutineScope {
             if (requested.originalVariant) {
@@ -57,7 +57,7 @@ class TransformationNormalizer(
         }
 
     suspend fun normalize(
-        requested: List<RequestedImageTransformation>,
+        requested: List<RequestedTransformation>,
         originalVariantAttributes: Attributes,
     ): List<Transformation> =
         coroutineScope {
@@ -77,7 +77,7 @@ class TransformationNormalizer(
         }
 
     suspend fun normalize(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         originalVariantAttributes: Attributes,
     ): Transformation =
         coroutineScope {
@@ -91,7 +91,7 @@ class TransformationNormalizer(
         }
 
     private suspend fun doNormalize(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): Transformation {
         if (requested.originalVariant) {
@@ -124,7 +124,7 @@ class TransformationNormalizer(
     }
 
     private suspend fun normalizeDimensions(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): Pair<Int, Int> =
         when (requested.fit) {
@@ -154,12 +154,12 @@ class TransformationNormalizer(
         }
 
     private suspend fun normalizeFormat(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): ImageFormat = requested.format ?: originalAttributesDeferred.await().format
 
     private fun normalizeQuality(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         normalizedFormat: ImageFormat,
     ): Int {
         if (!normalizedFormat.vipsProperties.supportsQuality) {
@@ -173,7 +173,7 @@ class TransformationNormalizer(
      * Normalizes to a list of elements representing rgba or empty if no background at all.
      */
     private fun normalizeBackground(
-        requested: RequestedImageTransformation,
+        requested: RequestedTransformation,
         normalizedFormat: ImageFormat,
     ): List<Int> {
         if (requested.pad == null || requested.pad == 0) {

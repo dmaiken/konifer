@@ -1,4 +1,4 @@
-package io.inmemory
+package io.direkt.inmemory
 
 import io.direkt.asset.store.InMemoryObjectStore
 import io.direkt.asset.store.ObjectStore

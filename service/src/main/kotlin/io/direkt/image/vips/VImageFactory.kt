@@ -1,4 +1,4 @@
-package io.image.vips
+package io.direkt.image.vips
 
 import app.photofox.vipsffm.VCustomSource
 import app.photofox.vipsffm.VCustomSource.ReadCallback

@@ -4,16 +4,16 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
-import io.image.DimensionCalculator.calculateDimensions
-import io.image.model.Fit
-import io.image.model.Gravity
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_CROP
-import io.image.vips.VipsOptionNames.OPTION_HEIGHT
-import io.image.vips.VipsOptionNames.OPTION_INTERESTING
-import io.image.vips.VipsOptionNames.OPTION_SIZE
+import io.direkt.image.DimensionCalculator.calculateDimensions
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Gravity
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsOptionNames.OPTION_CROP
+import io.direkt.image.vips.VipsOptionNames.OPTION_HEIGHT
+import io.direkt.image.vips.VipsOptionNames.OPTION_INTERESTING
+import io.direkt.image.vips.VipsOptionNames.OPTION_SIZE
+import io.direkt.image.vips.pipeline.VipsTransformationResult
 import io.image.vips.pageSafeHeight
-import io.image.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
 

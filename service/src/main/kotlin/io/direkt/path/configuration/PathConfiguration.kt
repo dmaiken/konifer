@@ -1,17 +1,17 @@
-package io.path.configuration
+package io.direkt.path.configuration
 
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.ImageProperties
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.EAGER_VARIANTS
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.IMAGE
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.S3
+import io.direkt.properties.ValidatedProperties
+import io.direkt.properties.validateAndCreate
 import io.direkt.s3.S3PathProperties
 import io.direkt.tryGetConfig
-import io.image.model.ImageFormat
-import io.image.model.ImageProperties
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES
-import io.properties.ConfigurationProperties.PathConfigurationProperties.EAGER_VARIANTS
-import io.properties.ConfigurationProperties.PathConfigurationProperties.IMAGE
-import io.properties.ConfigurationProperties.PathConfigurationProperties.S3
-import io.properties.ValidatedProperties
-import io.properties.validateAndCreate
 
 class PathConfiguration private constructor(
     val allowedContentTypes: List<String>?,

@@ -1,6 +1,5 @@
 package io.direkt
 
-import io.WildcardRegexAdapter
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource

@@ -1,8 +1,8 @@
 package io.image.vips.transformation
 
 import app.photofox.vipsffm.VImage
-import io.image.model.Transformation
-import io.image.vips.pipeline.VipsTransformationResult
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 interface VipsTransformer {

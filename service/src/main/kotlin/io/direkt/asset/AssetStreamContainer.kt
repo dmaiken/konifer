@@ -1,5 +1,6 @@
 package io.direkt.asset
 
+import io.direkt.asset.TemporaryFileFactory.createUploadTempFile
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteReadChannel
@@ -13,7 +14,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 /**
@@ -34,26 +34,22 @@ class AssetStreamContainer(
     private val counterChannel = CountedByteReadChannel(delegate = channel)
     private var isTooLarge = false
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-    private val tempFile =
-        lazy {
-            Files.createTempFile("asset-upload-", ".tmp").toFile().apply {
-                deleteOnExit()
-            }
-        }
+    private var tempFile: File? = null
 
     /**
      * Is the backing channel dumped to a file. If so, then the channel will be closed for reading.
      */
     var isDumpedToFile = false
 
-    fun getTemporaryFile(): File = tempFile.value
+    fun getTemporaryFile(): File = tempFile ?: throw IllegalStateException("Temporary file is not initialized!")
 
-    suspend fun toTemporaryFile() =
+    suspend fun toTemporaryFile(extension: String) =
         withContext(Dispatchers.IO) {
+            tempFile = createUploadTempFile(extension)
             try {
                 FileChannel
                     .open(
-                        tempFile.value.toPath(),
+                        tempFile?.toPath(),
                         StandardOpenOption.CREATE,
                         StandardOpenOption.WRITE,
                         StandardOpenOption.TRUNCATE_EXISTING,
@@ -64,12 +60,12 @@ class AssetStreamContainer(
                             throw IllegalArgumentException(TOO_LARGE_MESSAGE)
                         }
 
-                        logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile.value.absolutePath}" }
+                        logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile?.absolutePath}" }
                         isDumpedToFile = true
                     }
             } catch (e: Exception) {
                 // If an error occurs during streaming, ensure the incomplete file is deleted.
-                tempFile.value.delete()
+                tempFile?.delete()
                 throw e
             }
         }
@@ -136,9 +132,9 @@ class AssetStreamContainer(
      * If a temporary file is created, delete it. If the delegate channel is still open, then cancel is.
      */
     override fun close() {
-        if (tempFile.isInitialized()) {
-            logger.info("Deleting temporary file: ${tempFile.value.absolutePath}")
-            tempFile.value.delete()
+        if (tempFile != null) {
+            logger.info("Deleting temporary file: ${tempFile?.absolutePath}")
+            tempFile?.delete()
         }
         if (!counterChannel.isClosedForRead) {
             counterChannel.cancel(null)

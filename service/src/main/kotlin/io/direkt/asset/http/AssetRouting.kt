@@ -7,11 +7,12 @@ import io.direkt.asset.context.ReturnFormat
 import io.direkt.asset.handler.AssetAndLocation
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler
-import io.direkt.asset.handler.StoreAssetHandler
 import io.direkt.asset.handler.UpdateAssetHandler
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.getAppStatusCacheHeader
 import io.direkt.getContentDispositionHeader
+import io.direkt.path.DeleteMode
+import io.direkt.workflows.StoreNewAssetWorkflow
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -35,7 +36,6 @@ import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
-import io.path.DeleteMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -47,7 +47,7 @@ private val logger = KtorSimpleLogger("io.direkt.asset.http")
 const val ASSET_PATH_PREFIX = "/assets"
 
 fun Application.configureAssetRouting() {
-    val storeAssetHandler by inject<StoreAssetHandler>()
+    val storeNewAssetWorkflow by inject<StoreNewAssetWorkflow>()
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetHandler by inject<DeleteAssetHandler>()
     val updateAssetHandler by inject<UpdateAssetHandler>()
@@ -137,11 +137,11 @@ fun Application.configureAssetRouting() {
         }
 
         post(ASSET_PATH_PREFIX) {
-            storeNewAsset(assetUrlGenerator, call, storeAssetHandler, maxMultipartContentLength)
+            storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
         }
 
         post("$ASSET_PATH_PREFIX/{...}") {
-            storeNewAsset(assetUrlGenerator, call, storeAssetHandler, maxMultipartContentLength)
+            storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
         }
 
         put("$ASSET_PATH_PREFIX/{...}") {
@@ -172,7 +172,7 @@ fun Application.configureAssetRouting() {
 suspend fun storeNewAsset(
     assetUrlGenerator: AssetUrlGenerator,
     call: RoutingCall,
-    storeAssetHandler: StoreAssetHandler,
+    storeNewAssetWorkflow: StoreNewAssetWorkflow,
     maxMultipartContentLength: Long,
 ) = coroutineScope {
     val deferredAsset = CompletableDeferred<AssetAndLocation>()
@@ -183,7 +183,7 @@ suspend fun storeNewAsset(
             val assetContentChannel = ByteChannel(true)
             val deferredResponse =
                 async {
-                    storeAssetHandler.storeNewAssetFromUpload(
+                    storeNewAssetWorkflow.handleFromUpload(
                         deferredRequest = assetData,
                         multiPartContainer = AssetStreamContainer(assetContentChannel, maxMultipartContentLength),
                         uriPath = call.request.path(),
@@ -217,9 +217,10 @@ suspend fun storeNewAsset(
             deferredAsset.complete(deferredResponse.await())
         }
         ContentType.Application.Json -> {
+            logger.info("Received json request to store a new asset")
             val payload = call.receive(StoreAssetRequest::class)
             deferredAsset.complete(
-                storeAssetHandler.storeNewAssetFromUrl(
+                storeNewAssetWorkflow.handleFromUrl(
                     request = payload,
                     uriPath = call.request.path(),
                 ),

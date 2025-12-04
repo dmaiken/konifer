@@ -3,10 +3,10 @@ package io.direkt.asset.variant
 import direkt.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
 import direkt.jooq.tables.records.AssetVariantRecord
 import io.direkt.asset.repository.getNonNull
-import io.image.model.Attributes
-import io.image.model.LQIPs
-import io.image.model.Transformation
-import io.serialization.format
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.LQIPs
+import io.direkt.image.model.Transformation
+import io.direkt.serialization.format
 import java.time.LocalDateTime
 
 data class AssetVariant(

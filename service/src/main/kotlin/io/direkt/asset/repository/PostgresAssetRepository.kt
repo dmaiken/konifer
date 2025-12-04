@@ -15,9 +15,9 @@ import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.VariantBucketAndKey
 import io.direkt.asset.variant.VariantParameterGenerator
-import io.image.model.Transformation
+import io.direkt.image.model.Transformation
+import io.direkt.serialization.format
 import io.ktor.util.logging.KtorSimpleLogger
-import io.serialization.format
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList

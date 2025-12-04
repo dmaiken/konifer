@@ -1,4 +1,4 @@
-package io.serialization
+package io.direkt.serialization
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

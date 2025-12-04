@@ -1,11 +1,9 @@
 package io.direkt.s3
 
-import io.direkt.s3.S3ClientProperties
-import io.direkt.s3.S3Provider
+import io.direkt.properties.validateAndCreate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.properties.validateAndCreate
 import org.junit.jupiter.api.Test
 
 class S3ClientPropertiesTest {

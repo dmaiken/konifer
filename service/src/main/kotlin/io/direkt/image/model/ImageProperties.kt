@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.direkt.asset.ManipulationParameters.BACKGROUND
 import io.direkt.asset.ManipulationParameters.BLUR
@@ -11,18 +11,18 @@ import io.direkt.asset.ManipulationParameters.PAD
 import io.direkt.asset.ManipulationParameters.QUALITY
 import io.direkt.asset.ManipulationParameters.ROTATE
 import io.direkt.asset.ManipulationParameters.WIDTH
+import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
+import io.direkt.properties.ValidatedProperties
+import io.direkt.properties.validateAndCreate
 import io.direkt.tryGetConfig
-import io.image.lqip.LQIPImplementation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT
-import io.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
-import io.properties.ValidatedProperties
-import io.properties.validateAndCreate
 
 class ImageProperties private constructor(
     val preProcessing: PreProcessingProperties,
@@ -85,7 +85,7 @@ class PreProcessingProperties private constructor(
             maxHeight != null ||
             format != null ||
             fit != Fit.default ||
-            rotate != Rotate.default ||
+            rotate != Rotate.Factory.default ||
             flip != Flip.default ||
             filter != Filter.default ||
             (blur != null && blur > 0) ||
@@ -123,7 +123,7 @@ class PreProcessingProperties private constructor(
                 format = null,
                 fit = Fit.default,
                 gravity = Gravity.default,
-                rotate = Rotate.default,
+                rotate = Rotate.Factory.default,
                 flip = Flip.default,
                 filter = Filter.default,
                 blur = null,
@@ -208,8 +208,8 @@ class PreProcessingProperties private constructor(
                 applicationConfig
                     ?.tryGetString(ROTATE)
                     ?.let {
-                        Rotate.fromString(it)
-                    } ?: parent?.rotate ?: Rotate.default,
+                        Rotate.Factory.fromString(it)
+                    } ?: parent?.rotate ?: Rotate.Factory.default,
             flip =
                 applicationConfig
                     ?.tryGetString(FLIP)
@@ -242,8 +242,8 @@ class PreProcessingProperties private constructor(
 
     val requestedImageTransformation by lazy { toRequestedImageTransformation() }
 
-    private fun toRequestedImageTransformation(): RequestedImageTransformation =
-        RequestedImageTransformation(
+    private fun toRequestedImageTransformation(): RequestedTransformation =
+        RequestedTransformation(
             width = width ?: maxWidth,
             height = height ?: maxHeight,
             format = format,

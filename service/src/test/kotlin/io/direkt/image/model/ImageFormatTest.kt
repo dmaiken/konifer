@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

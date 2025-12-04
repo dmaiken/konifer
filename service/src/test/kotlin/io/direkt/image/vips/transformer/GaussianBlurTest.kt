@@ -1,12 +1,12 @@
-package io.image.vips.transformer
+package io.direkt.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.PHash
-import io.image.model.ImageFormat
-import io.image.model.Transformation
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
 import io.image.vips.transformation.GaussianBlur
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe

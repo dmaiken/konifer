@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.ktor.http.Parameters
 
@@ -14,12 +14,12 @@ enum class Filter {
 
         fun fromString(string: String?): Filter =
             string?.let {
-                Filter.valueOf(it.uppercase())
+                valueOf(it.uppercase())
             } ?: Filter.default
 
         fun fromQueryParameters(
             parameters: Parameters,
             parameterName: String,
-        ): Filter? = parameters[parameterName]?.let { Filter.valueOf(it.uppercase()) }
+        ): Filter? = parameters[parameterName]?.let { valueOf(it.uppercase()) }
     }
 }

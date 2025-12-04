@@ -1,10 +1,10 @@
-package io.path.configuration
+package io.direkt.path.configuration
 
+import io.direkt.properties.ConfigurationProperties
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.PATH
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
-import io.properties.ConfigurationProperties
-import io.properties.ConfigurationProperties.PathConfigurationProperties.PATH
 
 class PathConfigurationRepository(
     applicationConfig: ApplicationConfig,

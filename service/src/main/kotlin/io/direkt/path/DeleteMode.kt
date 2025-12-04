@@ -1,4 +1,4 @@
-package io.path
+package io.direkt.path
 
 enum class DeleteMode {
     SINGLE,

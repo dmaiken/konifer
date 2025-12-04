@@ -1,4 +1,4 @@
-package io.path.configuration
+package io.direkt.path.configuration
 
 data class PathTrieNode(
     val segment: String,

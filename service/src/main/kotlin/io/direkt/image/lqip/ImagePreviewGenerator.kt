@@ -1,12 +1,12 @@
-package io.image.lqip
+package io.direkt.image.lqip
 
 import com.vanniktech.blurhash.BlurHash
-import io.image.model.LQIPs
+import io.direkt.image.model.LQIPs
+import io.direkt.lqip.image.ThumbHash
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.lqip.image.ThumbHash
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext

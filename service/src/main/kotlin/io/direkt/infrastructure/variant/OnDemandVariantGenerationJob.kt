@@ -1,43 +1,40 @@
-package io.direkt.asset.variant.generation
+package io.direkt.infrastructure.variant
 
-import io.direkt.asset.AssetStreamContainer
 import io.direkt.asset.model.AssetAndVariants
-import io.image.lqip.LQIPImplementation
-import io.image.model.ImageFormat
-import io.image.model.PreProcessedImage
-import io.image.model.RequestedImageTransformation
-import io.image.model.Transformation
-import io.ktor.utils.io.ByteChannel
+import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.PreProcessedImage
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Transformation
 import kotlinx.coroutines.CompletableDeferred
+import java.io.File
 
 sealed interface ImageProcessingJob<T> {
     val deferredResult: CompletableDeferred<T>?
 }
 
-data class VariantGenerationJob(
-    val treePath: String,
-    val entryId: Long?,
+data class OnDemandVariantGenerationJob(
+    val path: String,
+    val entryId: Long,
     val lqipImplementations: Set<LQIPImplementation>,
     val bucket: String,
-    val transformations: List<Transformation>,
+    val transformation: Transformation,
     override val deferredResult: CompletableDeferred<AssetAndVariants>,
 ) : ImageProcessingJob<AssetAndVariants>
 
 data class EagerVariantGenerationJob(
-    val treePath: String,
-    val entryId: Long?,
+    val path: String,
+    val entryId: Long,
     val lqipImplementations: Set<LQIPImplementation>,
     val bucket: String,
-    val requestedTransformations: List<RequestedImageTransformation>,
+    val requestedTransformations: List<RequestedTransformation>,
     override val deferredResult: CompletableDeferred<AssetAndVariants>? = null,
 ) : ImageProcessingJob<AssetAndVariants>
 
 data class PreProcessJob(
-    val treePath: String,
     val sourceFormat: ImageFormat,
-    val sourceContainer: AssetStreamContainer,
     val lqipImplementations: Set<LQIPImplementation>,
     val transformation: Transformation,
-    val outputChannel: ByteChannel,
+    val source: File,
     override val deferredResult: CompletableDeferred<PreProcessedImage>,
 ) : ImageProcessingJob<PreProcessedImage>

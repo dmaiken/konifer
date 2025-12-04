@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.direkt.asset.ManipulationParameters.BACKGROUND
 import io.direkt.asset.ManipulationParameters.BLUR
@@ -13,23 +13,26 @@ import io.direkt.asset.ManipulationParameters.QUALITY
 import io.direkt.asset.ManipulationParameters.ROTATE
 import io.direkt.asset.ManipulationParameters.WIDTH
 import io.direkt.asset.model.LQIPResponse
+import io.direkt.properties.ValidatedProperties
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
-import io.properties.ValidatedProperties
 import kotlinx.serialization.Serializable
+import java.io.File
 
 data class ProcessedImage(
+    val result: File,
     val attributes: Attributes,
     val transformation: Transformation,
     val lqip: LQIPs,
 )
 
 data class PreProcessedImage(
+    val result: File,
     val attributes: Attributes,
     val lqip: LQIPs,
 )
 
-data class RequestedImageTransformation(
+data class RequestedTransformation(
     val originalVariant: Boolean = false,
     val width: Int?,
     val height: Int?,
@@ -47,33 +50,33 @@ data class RequestedImageTransformation(
 ) : ValidatedProperties {
     companion object Factory {
         val ORIGINAL_VARIANT =
-            RequestedImageTransformation(
+            RequestedTransformation(
                 originalVariant = true,
                 width = null,
                 height = null,
                 format = null,
-                fit = Fit.default,
-                gravity = Gravity.default,
-                rotate = Rotate.default,
-                flip = Flip.default,
-                filter = Filter.default,
+                fit = Fit.Factory.default,
+                gravity = Gravity.Factory.default,
+                rotate = Rotate.Factory.default,
+                flip = Flip.Factory.default,
+                filter = Filter.Factory.default,
                 blur = null,
                 quality = null,
                 pad = null,
                 background = null,
             )
 
-        fun create(applicationConfig: ApplicationConfig): RequestedImageTransformation =
-            RequestedImageTransformation(
+        fun create(applicationConfig: ApplicationConfig): RequestedTransformation =
+            RequestedTransformation(
                 originalVariant = false,
                 width = applicationConfig.tryGetString(WIDTH)?.toInt(),
                 height = applicationConfig.tryGetString(HEIGHT)?.toInt(),
-                format = applicationConfig.tryGetString(MIME_TYPE)?.let { ImageFormat.fromMimeType(it) },
-                fit = Fit.fromString(applicationConfig.tryGetString(FIT)),
-                gravity = Gravity.fromString(applicationConfig.tryGetString(GRAVITY)),
-                rotate = Rotate.fromString(applicationConfig.tryGetString(ROTATE)),
-                flip = Flip.fromString(applicationConfig.tryGetString(FLIP)),
-                filter = Filter.fromString(applicationConfig.tryGetString(FILTER)),
+                format = applicationConfig.tryGetString(MIME_TYPE)?.let { ImageFormat.Companion.fromMimeType(it) },
+                fit = Fit.Factory.fromString(applicationConfig.tryGetString(FIT)),
+                gravity = Gravity.Factory.fromString(applicationConfig.tryGetString(GRAVITY)),
+                rotate = Rotate.Factory.fromString(applicationConfig.tryGetString(ROTATE)),
+                flip = Flip.Factory.fromString(applicationConfig.tryGetString(FLIP)),
+                filter = Filter.Factory.fromString(applicationConfig.tryGetString(FILTER)),
                 blur = applicationConfig.tryGetString(BLUR)?.toInt(),
                 quality = applicationConfig.tryGetString(QUALITY)?.toInt(),
                 pad = applicationConfig.tryGetString(PAD)?.toInt(),
@@ -120,16 +123,16 @@ data class Transformation(
     val originalVariant: Boolean = false,
     val width: Int,
     val height: Int,
-    val fit: Fit = Fit.default,
-    val gravity: Gravity = Gravity.default,
+    val fit: Fit = Fit.Factory.default,
+    val gravity: Gravity = Gravity.Factory.default,
     val canUpscale: Boolean = true,
     val format: ImageFormat,
     /**
      * Ignored if [rotate] is [Rotate.AUTO]
      */
-    val rotate: Rotate = Rotate.default,
+    val rotate: Rotate = Rotate.Factory.default,
     val horizontalFlip: Boolean = false,
-    val filter: Filter = Filter.default,
+    val filter: Filter = Filter.Factory.default,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
     val pad: Int = 0,

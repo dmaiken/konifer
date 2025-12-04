@@ -10,13 +10,12 @@ import io.direkt.asset.model.VariantBucketAndKey
 import io.direkt.asset.variant.AssetVariant
 import io.direkt.asset.variant.ImageVariantTransformation
 import io.direkt.asset.variant.VariantParameterGenerator
-import io.image.model.Transformation
+import io.direkt.image.model.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
 import java.time.LocalDateTime
 import java.util.Collections
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.text.get
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)

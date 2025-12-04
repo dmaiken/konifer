@@ -6,12 +6,12 @@ import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.model.AssetClass
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.image.model.ImageFormat
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetContent
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.direkt.util.storeAssetUrlSource
-import io.image.model.ImageFormat
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

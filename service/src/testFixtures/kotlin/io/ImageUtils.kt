@@ -6,14 +6,14 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsSize
-import io.image.model.Filter
-import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.Gravity
-import io.image.model.ImageFormat
-import io.image.model.PreProcessingProperties
-import io.image.model.RequestedImageTransformation
-import io.image.model.Rotate
+import io.direkt.image.model.Filter
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Flip
+import io.direkt.image.model.Gravity
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.PreProcessingProperties
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Rotate
 import org.apache.commons.math3.transform.DctNormalization
 import org.apache.commons.math3.transform.FastCosineTransformer
 import org.apache.commons.math3.transform.TransformType
@@ -172,8 +172,8 @@ fun createRequestedImageTransformation(
     quality: Int? = null,
     pad: Int? = null,
     background: String? = null,
-): RequestedImageTransformation =
-    RequestedImageTransformation(
+): RequestedTransformation =
+    RequestedTransformation(
         width = width,
         height = height,
         canUpscale = canUpscale,

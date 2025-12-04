@@ -1,4 +1,4 @@
-package io.properties
+package io.direkt.properties
 
 object ConfigurationProperties {
     const val PATH_CONFIGURATION = "path-configuration"

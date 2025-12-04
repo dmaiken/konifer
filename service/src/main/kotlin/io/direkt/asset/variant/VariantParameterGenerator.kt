@@ -1,7 +1,7 @@
 package io.direkt.asset.variant
 
-import io.image.model.Attributes
-import io.image.model.Transformation
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction

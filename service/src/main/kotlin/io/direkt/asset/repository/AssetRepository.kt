@@ -6,7 +6,7 @@ import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.VariantBucketAndKey
-import io.image.model.Transformation
+import io.direkt.image.model.Transformation
 
 interface AssetRepository {
     suspend fun store(asset: StoreAssetDto): AssetAndVariants

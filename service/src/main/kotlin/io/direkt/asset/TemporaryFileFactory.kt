@@ -6,21 +6,24 @@ import java.io.File
 import java.nio.file.Files
 
 object TemporaryFileFactory {
-    const val TEMP_SUFFIX = ".tmp"
     const val UPLOAD_PREFIX = "asset-upload-"
     const val PRE_PROCESSED_PREFIX = "asset-pre-processed-"
+    const val ORIGINAL_VARIANT_PREFIX = "original-variant-"
 
-    suspend fun createUploadTempFile(): File =
+    suspend fun createUploadTempFile(extension: String): File =
         withContext(Dispatchers.IO) {
-            Files.createTempFile(UPLOAD_PREFIX, TEMP_SUFFIX).toFile().apply {
+            Files.createTempFile(UPLOAD_PREFIX, extension).toFile().apply {
                 deleteOnExit()
             }
         }
 
-    suspend fun createPreProcessedTempFile(): File =
-        withContext(Dispatchers.IO) {
-            Files.createTempFile(PRE_PROCESSED_PREFIX, TEMP_SUFFIX).toFile().apply {
-                deleteOnExit()
-            }
+    fun createPreProcessedTempFile(extension: String): File =
+        Files.createTempFile(PRE_PROCESSED_PREFIX, extension).toFile().apply {
+            deleteOnExit()
+        }
+
+    fun createOriginalVariantTempFile(extension: String): File =
+        Files.createTempFile(ORIGINAL_VARIANT_PREFIX, extension).toFile().apply {
+            deleteOnExit()
         }
 }

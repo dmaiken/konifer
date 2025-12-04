@@ -1,6 +1,6 @@
-package io.image.vips.pipeline
+package io.direkt.image.vips.pipeline
 
-import io.image.vips.pipeline.VipsPipelines.preProcessingPipeline
+import io.direkt.image.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.image.vips.transformation.ColorFilter
 import io.image.vips.transformation.GaussianBlur
 import io.image.vips.transformation.Pad

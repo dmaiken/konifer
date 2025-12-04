@@ -1,14 +1,14 @@
 package io.direkt
 
-import io.database.connectToPostgres
-import io.database.migrateSchema
 import io.direkt.asset.http.configureAssetRouting
-import io.inmemory.configureInMemoryObjectStoreRouting
+import io.direkt.database.connectToPostgres
+import io.direkt.database.migrateSchema
+import io.direkt.infrastructure.koin.configureKoin
+import io.direkt.inmemory.configureInMemoryObjectStoreRouting
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
-import io.path.configuration.configurePathConfigurationRouting
 
 private val logger = KtorSimpleLogger("io.Application")
 
@@ -42,7 +42,6 @@ fun Application.module() {
 
 fun Application.configureRouting(inMemoryObjectStore: Boolean) {
     configureAssetRouting()
-    configurePathConfigurationRouting()
 
     if (inMemoryObjectStore) {
         logger.info("Configuring in-memory object store APIs. These should only be enabled during testing!!")

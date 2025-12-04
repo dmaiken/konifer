@@ -1,4 +1,4 @@
-package io.serialization
+package io.direkt.serialization
 
 import kotlinx.serialization.json.Json
 

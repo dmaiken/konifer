@@ -1,4 +1,4 @@
-package io.properties
+package io.direkt.properties
 
 interface ValidatedProperties {
     /**

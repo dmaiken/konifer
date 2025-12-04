@@ -1,8 +1,9 @@
-package io.image.lqip
+package io.direkt.image.lqip
 
 import com.vanniktech.blurhash.BlurHash
-import io.image.lqip.ImagePreviewGenerator.MAX_HEIGHT
-import io.image.lqip.ImagePreviewGenerator.MAX_WIDTH
+import io.direkt.image.lqip.ImagePreviewGenerator.MAX_HEIGHT
+import io.direkt.image.lqip.ImagePreviewGenerator.MAX_WIDTH
+import io.direkt.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -10,7 +11,6 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
-import io.lqip.image.ThumbHash
 import io.matchers.shouldHaveSamePixelContentAs
 import io.toBufferedImage
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package io.lqip.image;
+package io.direkt.lqip.image;
 
 /**
  * Copied directly from: <a href="https://github.com/evanw/thumbhash">Github</a>

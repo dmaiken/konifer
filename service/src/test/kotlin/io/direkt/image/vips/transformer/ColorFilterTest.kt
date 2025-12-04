@@ -1,4 +1,4 @@
-package io.image.vips.transformer
+package io.direkt.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VSource
@@ -10,9 +10,9 @@ import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.PHash
 import io.direkt.asset.AssetStreamContainer
-import io.image.model.Filter
-import io.image.model.ImageFormat
-import io.image.model.Transformation
+import io.direkt.image.model.Filter
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
 import io.image.vips.transformation.ColorFilter
 import io.image.vips.transformation.ColorFilter.blackWhiteThreshold
 import io.image.vips.transformation.ColorFilter.greyscaleMatrix3x3
@@ -67,7 +67,7 @@ class ColorFilterTest {
 
                 val imageChannel = ByteReadChannel(image)
                 AssetStreamContainer(imageChannel).use { container ->
-                    container.toTemporaryFile()
+                    container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
                     Vips.run { arena ->
@@ -156,7 +156,7 @@ class ColorFilterTest {
 
                 val imageChannel = ByteReadChannel(image)
                 AssetStreamContainer(imageChannel).use { container ->
-                    container.toTemporaryFile()
+                    container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
                     Vips.run { arena ->
@@ -196,7 +196,7 @@ class ColorFilterTest {
 
                 val imageChannel = ByteReadChannel(image)
                 AssetStreamContainer(imageChannel).use { container ->
-                    container.toTemporaryFile()
+                    container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
                     Vips.run { arena ->
@@ -281,7 +281,7 @@ class ColorFilterTest {
 
                 val imageChannel = ByteReadChannel(image)
                 AssetStreamContainer(imageChannel).use { container ->
-                    container.toTemporaryFile()
+                    container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
                     Vips.run { arena ->

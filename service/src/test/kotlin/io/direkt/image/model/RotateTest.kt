@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.direkt.asset.ManipulationParameters.ROTATE
 import io.kotest.assertions.throwables.shouldThrow

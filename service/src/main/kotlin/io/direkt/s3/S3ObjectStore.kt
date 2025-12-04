@@ -11,20 +11,19 @@ import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.ObjectIdentifier
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
-import aws.smithy.kotlin.runtime.content.fromInputStream
+import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
 import io.direkt.asset.store.FetchResult
 import io.direkt.asset.store.ObjectStore
 import io.direkt.asset.store.PersistResult
 import io.direkt.asset.variant.AssetVariant
-import io.image.model.ImageFormat
+import io.direkt.image.model.ImageFormat
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.jvm.javaio.toOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.UUID
 
 class S3ObjectStore(
@@ -35,9 +34,8 @@ class S3ObjectStore(
 
     override suspend fun persist(
         bucket: String,
-        asset: ByteChannel,
+        asset: File,
         format: ImageFormat,
-        contentLength: Long?,
     ): PersistResult =
         withContext(Dispatchers.IO) {
             val key = "${UUID.randomUUID()}${format.extension}"
@@ -46,7 +44,7 @@ class S3ObjectStore(
                     PutObjectRequest {
                         this.bucket = bucket
                         this.key = key
-                        body = ByteStream.fromInputStream(asset.toInputStream(), contentLength)
+                        body = ByteStream.fromFile(asset)
                     },
             )
 

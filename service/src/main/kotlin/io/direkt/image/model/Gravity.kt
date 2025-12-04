@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 import io.ktor.http.Parameters
 import java.util.Locale.getDefault
@@ -17,7 +17,7 @@ enum class Gravity {
 
         fun fromString(string: String?): Gravity =
             string?.let {
-                Gravity.valueOf(string.uppercase(getDefault()))
+                valueOf(string.uppercase(getDefault()))
             } ?: default
 
         fun fromQueryParameters(
@@ -25,7 +25,7 @@ enum class Gravity {
             parameterName: String,
         ): Gravity? =
             parameters[parameterName]?.let {
-                Gravity.valueOf(it.uppercase())
+                valueOf(it.uppercase())
             }
     }
 }

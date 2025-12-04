@@ -1,4 +1,4 @@
-package io
+package io.direkt
 
 class WildcardRegexAdapter {
     fun toRegex(pathPattern: String): Regex {

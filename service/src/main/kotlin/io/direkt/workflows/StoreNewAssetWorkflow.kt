@@ -1,4 +1,4 @@
-package io.direkt.asset.handler
+package io.direkt.workflows
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
@@ -6,35 +6,34 @@ import io.direkt.asset.AssetStreamContainer
 import io.direkt.asset.MimeTypeDetector
 import io.direkt.asset.context.RequestContextFactory
 import io.direkt.asset.context.StoreRequestContext
+import io.direkt.asset.handler.AssetAndLocation
+import io.direkt.asset.handler.AssetSource
+import io.direkt.asset.handler.AssetStreamContainerFactory
+import io.direkt.asset.handler.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.asset.store.ObjectStore
 import io.direkt.asset.variant.VariantProfileRepository
-import io.direkt.asset.variant.generation.EagerVariantGenerationJob
-import io.direkt.asset.variant.generation.ImageProcessingJob
-import io.direkt.asset.variant.generation.PreProcessJob
-import io.direkt.asset.variant.generation.PriorityChannelScheduler
-import io.image.InvalidImageException
-import io.image.model.Attributes
-import io.image.model.ImageFormat
-import io.image.model.PreProcessedImage
-import io.image.model.Transformation
-import io.image.vips.createDecoderOptions
+import io.direkt.domain.aggregate.Asset
+import io.direkt.domain.ports.VariantGenerator
+import io.direkt.image.InvalidImageException
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.createDecoderOptions
 import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
-class StoreAssetHandler(
+class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectStore,
-    private val variantJobScheduler: PriorityChannelScheduler<ImageProcessingJob<*>>,
+    private val variantGenerator: VariantGenerator,
     private val variantProfileRepository: VariantProfileRepository,
     private val requestContextFactory: RequestContextFactory,
     private val assetStreamContainerFactory: AssetStreamContainerFactory,
@@ -42,30 +41,30 @@ class StoreAssetHandler(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun storeNewAssetFromUpload(
+    suspend fun handleFromUpload(
         deferredRequest: CompletableDeferred<StoreAssetRequest>,
         multiPartContainer: AssetStreamContainer,
         uriPath: String,
     ): AssetAndLocation =
-        storeAsset(
+        handle(
             request = deferredRequest.await(),
             container = multiPartContainer,
             uriPath = uriPath,
             source = AssetSource.UPLOAD,
         )
 
-    suspend fun storeNewAssetFromUrl(
+    suspend fun handleFromUrl(
         request: StoreAssetRequest,
         uriPath: String,
     ): AssetAndLocation =
-        storeAsset(
+        handle(
             request = request,
             container = assetStreamContainerFactory.fromUrlSource(request.url),
             uriPath = uriPath,
             source = AssetSource.URL,
         )
 
-    private suspend fun storeAsset(
+    private suspend fun handle(
         request: StoreAssetRequest,
         container: AssetStreamContainer,
         uriPath: String,
@@ -73,48 +72,44 @@ class StoreAssetHandler(
     ): AssetAndLocation =
         coroutineScope {
             container.use { container ->
-                request.validate()
                 val format = deriveValidImageFormat(container.readNBytes(4096, true))
+                val newAsset =
+                    Asset.New.fromHttpRequest(
+                        path = uriPath,
+                        request = request,
+                    )
                 val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
 
-                val processedAssetChannel = ByteChannel(true)
-                container.toTemporaryFile()
+                container.toTemporaryFile(format.extension)
                 val transformation =
                     normalizePreProcessing(
                         context = context,
                         container = container,
                         sourceFormat = format,
                     )
+
+                val preProcessed =
+                    variantGenerator
+                        .preProcessOriginalVariant(
+                            sourceFormat = format,
+                            lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                            transformation = transformation,
+                            source = container.getTemporaryFile(),
+                        ).await()
+
                 val persistResult =
-                    async {
-                        objectStore.persist(
-                            bucket = context.pathConfiguration.s3PathProperties.bucket,
-                            asset = processedAssetChannel,
-                            format = transformation.format,
-                        )
-                    }
-
-                val preProcessedDeferred = CompletableDeferred<PreProcessedImage>()
-                variantJobScheduler.scheduleSynchronousJob(
-                    PreProcessJob(
-                        treePath = context.path,
-                        lqipImplementations = context.pathConfiguration.imageProperties.previews,
-                        deferredResult = preProcessedDeferred,
-                        sourceFormat = format,
-                        sourceContainer = container,
-                        transformation = transformation,
-                        outputChannel = processedAssetChannel,
-                    ),
-                )
-                val preProcessed = preProcessedDeferred.await()
-
+                    objectStore.persist(
+                        bucket = context.pathConfiguration.s3PathProperties.bucket,
+                        asset = preProcessed.result,
+                        format = transformation.format,
+                    )
                 val assetAndVariants =
                     assetRepository.store(
                         StoreAssetDto(
                             request = request,
                             path = context.path,
                             attributes = preProcessed.attributes,
-                            persistResult = persistResult.await(),
+                            persistResult = persistResult,
                             lqips = preProcessed.lqip,
                             source = source,
                         ),
@@ -124,19 +119,17 @@ class StoreAssetHandler(
                     assetAndVariants = assetAndVariants,
                     locationPath = context.path,
                 ).also { response ->
-                    val variants =
+                    val eagerVariantTransformations =
                         context.pathConfiguration.eagerVariants.map {
                             variantProfileRepository.fetch(it)
                         }
-                    if (variants.isNotEmpty()) {
-                        variantJobScheduler.scheduleBackgroundJob(
-                            EagerVariantGenerationJob(
-                                treePath = response.assetAndVariants.asset.path,
-                                entryId = response.assetAndVariants.asset.entryId,
-                                requestedTransformations = variants,
-                                lqipImplementations = context.pathConfiguration.imageProperties.previews,
-                                bucket = context.pathConfiguration.s3PathProperties.bucket,
-                            ),
+                    if (eagerVariantTransformations.isNotEmpty()) {
+                        variantGenerator.initiateEagerVariants(
+                            path = response.assetAndVariants.asset.path,
+                            entryId = response.assetAndVariants.asset.entryId,
+                            requestedTransformations = eagerVariantTransformations,
+                            lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                            bucket = context.pathConfiguration.s3PathProperties.bucket,
                         )
                     }
                 }
@@ -171,13 +164,16 @@ class StoreAssetHandler(
                         container.getTemporaryFile().absolutePath,
                         *createDecoderOptions(
                             sourceFormat = sourceFormat,
-                            destinationFormat = context.pathConfiguration.imageProperties.preProcessing.format ?: sourceFormat,
+                            destinationFormat =
+                                context.pathConfiguration.imageProperties.preProcessing.format
+                                    ?: sourceFormat,
                         ),
                     )
 
                 dimensions = Pair(image.width, image.pageSafeHeight())
             }
-            val requestedTransformation = context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
+            val requestedTransformation =
+                context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
 
             transformationNormalizer.normalize(
                 requested = requestedTransformation,

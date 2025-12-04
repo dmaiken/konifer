@@ -17,18 +17,18 @@ import io.direkt.asset.ManipulationParameters.VARIANT_PROFILE
 import io.direkt.asset.ManipulationParameters.WIDTH
 import io.direkt.asset.handler.TransformationNormalizer
 import io.direkt.asset.variant.VariantProfileRepository
-import io.image.model.Filter
-import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.Gravity
-import io.image.model.ImageFormat
-import io.image.model.RequestedImageTransformation
-import io.image.model.Rotate
+import io.direkt.image.model.Filter
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Flip
+import io.direkt.image.model.Gravity
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Rotate
+import io.direkt.path.DeleteMode
+import io.direkt.path.configuration.PathConfigurationRepository
+import io.direkt.properties.validateAndCreate
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
-import io.path.DeleteMode
-import io.path.configuration.PathConfigurationRepository
-import io.properties.validateAndCreate
 
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
@@ -306,7 +306,7 @@ class RequestContextFactory(
     private fun extractRequestedImageTransformation(
         queryModifiers: QueryModifiers,
         parameters: Parameters,
-    ): RequestedImageTransformation? {
+    ): RequestedTransformation? {
         val variantProfile =
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
@@ -319,10 +319,10 @@ class RequestContextFactory(
         ) {
             null
         } else if (variantProfile == null && ALL_TRANSFORMATION_PARAMETERS.none { parameters.contains(it) }) {
-            RequestedImageTransformation.ORIGINAL_VARIANT
+            RequestedTransformation.ORIGINAL_VARIANT
         } else {
             validateAndCreate {
-                RequestedImageTransformation(
+                RequestedTransformation(
                     width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
                     height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
                     format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,

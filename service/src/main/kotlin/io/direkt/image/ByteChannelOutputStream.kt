@@ -1,4 +1,4 @@
-package io.image
+package io.direkt.image
 
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeByte

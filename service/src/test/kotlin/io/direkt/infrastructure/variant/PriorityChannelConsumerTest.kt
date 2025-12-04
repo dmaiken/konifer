@@ -1,4 +1,4 @@
-package io.direkt.asset.variant.generation
+package io.direkt.infrastructure.variant
 
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -11,28 +11,28 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.concurrent.atomic.AtomicInteger
 
-class PriorityChannelSchedulerTest {
+class PriorityChannelConsumerTest {
     @Test
     fun `processes jobs from high priority channel when nothing in background channel`() =
         runTest {
             val jobs = 300
             val high = Channel<Int>()
             val low = Channel<Int>()
-            val scheduler = PriorityChannelScheduler(high, low, 80)
+            val consumer = PriorityChannelConsumer(high, low, 80)
 
             val counter = AtomicInteger(0)
             val handle =
                 launch {
                     var count = 0
                     while (count < jobs) {
-                        val task = scheduler.nextJob()
+                        val task = consumer.nextJob()
                         counter.addAndGet(task)
                         count++
                     }
                 }
 
             repeat(jobs) {
-                scheduler.scheduleSynchronousJob(1)
+                high.send(1)
             }
             handle.join()
             counter.get() shouldBe jobs
@@ -44,21 +44,21 @@ class PriorityChannelSchedulerTest {
             val jobs = 300
             val high = Channel<Int>()
             val low = Channel<Int>()
-            val scheduler = PriorityChannelScheduler(high, low, 80)
+            val consumer = PriorityChannelConsumer(high, low, 80)
 
             val counter = AtomicInteger(0)
             val handle =
                 launch {
                     var count = 0
                     while (count < jobs) {
-                        val task = scheduler.nextJob()
+                        val task = consumer.nextJob()
                         counter.addAndGet(task)
                         count++
                     }
                 }
 
             repeat(jobs) {
-                scheduler.scheduleBackgroundJob(1)
+                low.send(1)
             }
             handle.join()
             counter.get() shouldBe jobs
@@ -71,11 +71,11 @@ class PriorityChannelSchedulerTest {
             val jobs = 20000
             val high = Channel<Int>(capacity = jobs * 4)
             val low = Channel<Int>(capacity = jobs * 4)
-            val scheduler = PriorityChannelScheduler(high, low, highPriority)
+            val consumer = PriorityChannelConsumer(high, low, highPriority)
 
             repeat(jobs * 4) {
-                scheduler.scheduleSynchronousJob(1)
-                scheduler.scheduleBackgroundJob(-1)
+                high.send(1)
+                low.send(-1)
             }
 
             val highPulled = AtomicInteger(0)
@@ -85,7 +85,7 @@ class PriorityChannelSchedulerTest {
                 launch {
                     var count = 0
                     while (count < jobs) {
-                        val job = scheduler.nextJob()
+                        val job = consumer.nextJob()
                         if (job < 0) {
                             lowPulled.incrementAndGet()
                         } else {
@@ -112,11 +112,11 @@ class PriorityChannelSchedulerTest {
             val jobs = 20000
             val high = Channel<Int>(capacity = jobs)
             val low = Channel<Int>(capacity = jobs)
-            val scheduler = PriorityChannelScheduler(high, low, highPriority)
+            val consumer = PriorityChannelConsumer(high, low, highPriority)
 
             repeat(jobs) {
-                scheduler.scheduleSynchronousJob(1)
-                scheduler.scheduleBackgroundJob(-1)
+                high.send(1)
+                low.send(-1)
             }
 
             val highPulled = AtomicInteger(0)
@@ -126,7 +126,7 @@ class PriorityChannelSchedulerTest {
             launch {
                 var count = 0
                 while (count < jobs * 2) {
-                    val job = scheduler.nextJob()
+                    val job = consumer.nextJob()
                     if (job < 0) {
                         lowPulled.incrementAndGet()
                     } else {

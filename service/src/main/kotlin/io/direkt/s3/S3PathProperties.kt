@@ -1,9 +1,9 @@
 package io.direkt.s3
 
+import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
+import io.direkt.properties.ValidatedProperties
+import io.direkt.properties.validateAndCreate
 import io.ktor.server.config.ApplicationConfig
-import io.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
-import io.properties.ValidatedProperties
-import io.properties.validateAndCreate
 
 class S3PathProperties private constructor(
     val bucket: String,

@@ -2,12 +2,12 @@ package io.direkt.asset.variant
 
 import io.createRequestedImageTransformation
 import io.direkt.config.testInMemory
-import io.image.model.Filter
-import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.ImageFormat
-import io.image.model.RequestedImageTransformation
-import io.image.model.Rotate
+import io.direkt.image.model.Filter
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Flip
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -376,7 +376,7 @@ class VariantProfileRepositoryTest {
     @MethodSource("validProfilesSource")
     fun `can populate variant profiles`(
         config: String,
-        expectedProfiles: Map<String, RequestedImageTransformation>,
+        expectedProfiles: Map<String, RequestedTransformation>,
     ) = testInMemory(config) {
         application {
             val repository = VariantProfileRepository(environment.config)

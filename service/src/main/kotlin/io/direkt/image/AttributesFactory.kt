@@ -1,10 +1,10 @@
 package io.image
 
 import app.photofox.vipsffm.VImage
-import io.image.model.Attributes
-import io.image.model.ImageFormat
-import io.image.vips.VipsOptionNames.OPTION_LOOP
-import io.image.vips.VipsOptionNames.OPTION_N_PAGES
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.vips.VipsOptionNames.OPTION_LOOP
+import io.direkt.image.vips.VipsOptionNames.OPTION_N_PAGES
 import io.image.vips.pageSafeHeight
 
 object AttributesFactory {

@@ -1,6 +1,6 @@
 package io.image
 
-import io.image.vips.VipsImageProcessor
+import io.direkt.image.vips.VipsImageProcessor
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

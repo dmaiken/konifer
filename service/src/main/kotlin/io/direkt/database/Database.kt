@@ -1,4 +1,4 @@
-package io.database
+package io.direkt.database
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.log

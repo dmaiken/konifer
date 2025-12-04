@@ -2,13 +2,13 @@ package io.direkt.asset.handler
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.image.model.Filter
-import io.image.model.Fit
-import io.image.model.Flip
-import io.image.model.ImageFormat
-import io.image.model.RequestedImageTransformation
-import io.image.model.Rotate
-import io.image.model.Transformation
+import io.direkt.image.model.Filter
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Flip
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.RequestedTransformation
+import io.direkt.image.model.Rotate
+import io.direkt.image.model.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
@@ -97,7 +97,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     transformationNormalizer.normalize(
                         treePath = asset.asset.path,
                         entryId = asset.asset.entryId,
-                        requested = RequestedImageTransformation.ORIGINAL_VARIANT,
+                        requested = RequestedTransformation.ORIGINAL_VARIANT,
                     )
 
                 normalized shouldBe Transformation.ORIGINAL_VARIANT

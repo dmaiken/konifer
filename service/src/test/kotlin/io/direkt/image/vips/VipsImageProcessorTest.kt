@@ -1,22 +1,22 @@
-package io.image.vips
+package io.direkt.image.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
 import io.direkt.asset.AssetStreamContainer
-import io.image.lqip.LQIPImplementation
-import io.image.model.Fit
-import io.image.model.ImageFormat
-import io.image.model.Transformation
+import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.image.model.Fit
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
+import io.direkt.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
+import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
-import io.lqip.image.ThumbHash
 import io.matchers.shouldHaveSamePixelContentAs
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -51,12 +51,7 @@ class VipsImageProcessorTest {
                 val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
 
                 AssetStreamContainer(imageChannel).use { container ->
-                    container.toTemporaryFile()
-                    val outputChannel = ByteChannel(true)
-                    val outputBytesDeferred =
-                        async {
-                            outputChannel.toInputStream().readAllBytes()
-                        }
+                    container.toTemporaryFile(".png")
                     var transformation = Transformation.ORIGINAL_VARIANT
                     Vips.run { arena ->
                         val sourceImage = VImage.newFromBytes(arena, image)
@@ -69,13 +64,15 @@ class VipsImageProcessorTest {
                     }
                     val processedImage =
                         vipsImageProcessor.preprocess(
-                            container = container,
+                            source = container.getTemporaryFile(),
                             sourceFormat = ImageFormat.PNG,
                             lqipImplementations = emptySet(),
                             transformation = transformation,
-                            outputChannel = outputChannel,
                         )
-                    val outputBytes = outputBytesDeferred.await()
+                    val outputBytes =
+                        processedImage.result.readChannel().toByteArray().also {
+                            processedImage.result.delete()
+                        }
                     processedImage.attributes.format shouldBe ImageFormat.PNG
                     processedImage.attributes.height shouldBe bufferedImage.height
                     processedImage.attributes.width shouldBe bufferedImage.width
@@ -105,20 +102,18 @@ class VipsImageProcessorTest {
                     imageChannel.close()
                 }
                 AssetStreamContainer(imageChannel).use { container ->
-                    val outputChannel = ByteChannel(true)
-                    val outputBytesDeferred =
-                        async {
-                            outputChannel.toInputStream().readAllBytes()
-                        }
+                    container.toTemporaryFile(".jpeg")
                     val processedImage =
                         vipsImageProcessor.preprocess(
-                            container = container,
+                            source = container.getTemporaryFile(),
                             sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = emptySet(),
                             transformation = Transformation.ORIGINAL_VARIANT,
-                            outputChannel = outputChannel,
                         )
-                    val outputBytes = outputBytesDeferred.await()
+                    val outputBytes =
+                        processedImage.result.readChannel().toByteArray().also {
+                            processedImage.result.delete()
+                        }
 
                     processedImage.attributes.format shouldBe Transformation.ORIGINAL_VARIANT.format
                     Tika().detect(outputBytes) shouldBe Transformation.ORIGINAL_VARIANT.format.mimeType
@@ -142,14 +137,10 @@ class VipsImageProcessorTest {
                 }
 
                 AssetStreamContainer(imageChannel).use { container ->
-                    val outputChannel = ByteChannel(true)
-                    val outputBytesDeferred =
-                        async {
-                            outputChannel.toInputStream().readAllBytes()
-                        }
+                    container.toTemporaryFile(".jpeg")
                     val processedImage =
                         vipsImageProcessor.preprocess(
-                            container = container,
+                            source = container.getTemporaryFile(),
                             sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = setOf(LQIPImplementation.BLURHASH),
                             transformation =
@@ -162,9 +153,11 @@ class VipsImageProcessorTest {
                                 } else {
                                     Transformation.ORIGINAL_VARIANT
                                 },
-                            outputChannel = outputChannel,
                         )
-                    val outputBytes = outputBytesDeferred.await()
+                    val outputBytes =
+                        processedImage.result.readChannel().toByteArray().also {
+                            processedImage.result.delete()
+                        }
                     processedImage.lqip.blurhash shouldNotBe null
                     processedImage.lqip.thumbhash shouldBe null
                     Vips.run { arena ->
@@ -192,14 +185,10 @@ class VipsImageProcessorTest {
             }
 
             AssetStreamContainer(imageChannel).use { container ->
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
+                container.toTemporaryFile(".jpeg")
                 val processedImage =
                     vipsImageProcessor.preprocess(
-                        container = container,
+                        source = container.getTemporaryFile(),
                         sourceFormat = ImageFormat.JPEG,
                         lqipImplementations = setOf(LQIPImplementation.THUMBHASH),
                         transformation =
@@ -222,9 +211,11 @@ class VipsImageProcessorTest {
                                 }
                                 transformation
                             },
-                        outputChannel = outputChannel,
                     )
-                val outputBytes = outputBytesDeferred.await()
+                val outputBytes =
+                    processedImage.result.readChannel().toByteArray().also {
+                        processedImage.result.delete()
+                    }
 
                 processedImage.attributes.format shouldBe ImageFormat.JPEG
                 Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
@@ -260,15 +251,10 @@ class VipsImageProcessorTest {
             }
 
             AssetStreamContainer(imageChannel).use { container ->
-                container.toTemporaryFile()
-                val outputChannel = ByteChannel(true)
-                val outputBytesDeferred =
-                    async {
-                        outputChannel.toInputStream().readAllBytes()
-                    }
+                container.toTemporaryFile(from.extension)
                 val processedImage =
                     vipsImageProcessor.preprocess(
-                        container = container,
+                        source = container.getTemporaryFile(),
                         sourceFormat = from,
                         lqipImplementations = lqips,
                         transformation =
@@ -278,9 +264,11 @@ class VipsImageProcessorTest {
                                 fit = Fit.FILL,
                                 format = to,
                             ),
-                        outputChannel = outputChannel,
                     )
-                val outputBytes = outputBytesDeferred.await()
+                val outputBytes =
+                    processedImage.result.readChannel().toByteArray().also {
+                        processedImage.result.delete()
+                    }
 
                 processedImage.attributes.format shouldBe to
                 Tika().detect(outputBytes) shouldBe to.mimeType

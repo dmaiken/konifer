@@ -1,11 +1,12 @@
 package io.direkt.asset.store
 
 import io.direkt.asset.variant.AssetVariant
-import io.image.model.ImageFormat
-import io.ktor.utils.io.ByteChannel
+import io.direkt.image.model.ImageFormat
+import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
+import java.io.File
 import java.util.UUID
 
 class InMemoryObjectStore : ObjectStore {
@@ -17,13 +18,13 @@ class InMemoryObjectStore : ObjectStore {
 
     override suspend fun persist(
         bucket: String,
-        asset: ByteChannel,
+        asset: File,
         format: ImageFormat,
-        contentLength: Long?,
     ): PersistResult {
         val key = "${UUID.randomUUID()}${format.extension}"
         store.computeIfAbsent(bucket) { mutableMapOf() }
-        store[bucket]?.put(key, asset.toByteArray())
+
+        store[bucket]?.put(key, asset.readChannel().toByteArray())
 
         return PersistResult(
             key = key,

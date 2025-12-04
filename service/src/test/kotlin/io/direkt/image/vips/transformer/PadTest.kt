@@ -1,14 +1,14 @@
-package io.image.vips.transformer
+package io.direkt.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
 import io.PHash
-import io.image.model.ImageFormat
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_BACKGROUND
-import io.image.vips.VipsOptionNames.OPTION_EXTEND
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.direkt.image.vips.VipsOptionNames.OPTION_EXTEND
 import io.image.vips.transformation.Pad
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.comparables.shouldBeLessThan

@@ -1,4 +1,4 @@
-package io.image
+package io.direkt.image
 
 class InvalidImageException(
     message: String,

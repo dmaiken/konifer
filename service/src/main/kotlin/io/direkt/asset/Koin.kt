@@ -4,30 +4,24 @@ import io.direkt.asset.context.RequestContextFactory
 import io.direkt.asset.handler.AssetStreamContainerFactory
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler
-import io.direkt.asset.handler.StoreAssetHandler
 import io.direkt.asset.handler.TransformationNormalizer
 import io.direkt.asset.handler.UpdateAssetHandler
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.asset.repository.InMemoryAssetRepository
 import io.direkt.asset.repository.PostgresAssetRepository
 import io.direkt.asset.variant.VariantProfileRepository
-import io.direkt.asset.variant.generation.ImageProcessingJob
-import io.direkt.asset.variant.generation.PriorityChannelScheduler
-import io.direkt.asset.variant.generation.VariantGenerationJob
-import io.direkt.asset.variant.generation.VariantGenerator
+import io.direkt.workflows.StoreNewAssetWorkflow
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList
 import io.r2dbc.spi.ConnectionFactory
-import kotlinx.coroutines.channels.Channel
 import org.koin.core.module.Module
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
     module {
-        single<StoreAssetHandler> {
-            StoreAssetHandler(get(), get(), get(), get(), get(), get(), get(), get())
+        single<StoreNewAssetWorkflow> {
+            StoreNewAssetWorkflow(get(), get(), get(), get(), get(), get(), get(), get())
         }
         single<FetchAssetHandler> {
             FetchAssetHandler(get(), get(), get())
@@ -61,49 +55,6 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
 
         single<VariantProfileRepository> {
             VariantProfileRepository(environment.config)
-        }
-
-        single(named("synchronousChannel")) {
-            val queueSize =
-                environment.config
-                    .propertyOrNull("variant-generation.queue-size")
-                    ?.getString()
-                    ?.toInt()
-                    ?: 1000
-            Channel<VariantGenerationJob>(capacity = queueSize)
-        }
-
-        single(named("backgroundChannel")) {
-            val queueSize =
-                environment.config
-                    .propertyOrNull("variant-generation.queue-size")
-                    ?.getString()
-                    ?.toInt()
-                    ?: 1000
-            Channel<VariantGenerationJob>(capacity = queueSize)
-        }
-
-        single<VariantGenerator>(createdAtStart = true) {
-            val numberOfWorkers =
-                environment.config
-                    .propertyOrNull("variant-generation.workers")
-                    ?.getString()
-                    ?.toInt()
-                    ?: Runtime.getRuntime().availableProcessors()
-            VariantGenerator(get(), get(), get(), get(), get(), numberOfWorkers)
-        }
-
-        single<PriorityChannelScheduler<ImageProcessingJob<*>>> {
-            val synchronousWeight =
-                environment.config
-                    .propertyOrNull("variant-generation.synchronous-priority")
-                    ?.getString()
-                    ?.toInt() ?: 80
-            PriorityChannelScheduler(
-                get(named("synchronousChannel")),
-                get(named("backgroundChannel")),
-                synchronousWeight,
-            )
         }
 
         single<TransformationNormalizer> {

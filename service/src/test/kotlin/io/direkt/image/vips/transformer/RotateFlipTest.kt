@@ -1,11 +1,11 @@
-package io.image.vips.transformer
+package io.direkt.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsDirection
-import io.image.model.ImageFormat
-import io.image.model.Rotate
-import io.image.model.Transformation
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Rotate
+import io.direkt.image.model.Transformation
 import io.image.vips.transformation.RotateFlip
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs

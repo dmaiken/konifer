@@ -1,4 +1,4 @@
-package io.direkt.asset.variant.generation
+package io.direkt.infrastructure.variant
 
 import io.createRequestedImageTransformation
 import io.direkt.asset.handler.AssetSource
@@ -8,25 +8,23 @@ import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.InMemoryAssetRepository
 import io.direkt.asset.store.InMemoryObjectStore
-import io.image.DimensionCalculator
-import io.image.model.Attributes
-import io.image.model.Fit
-import io.image.model.ImageFormat
-import io.image.model.LQIPs
-import io.image.model.Transformation
-import io.image.vips.VipsImageProcessor
+import io.direkt.getResourceAsFile
+import io.direkt.image.DimensionCalculator
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.Fit
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.LQIPs
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsImageProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.writeFully
 import io.mockk.coEvery
 import io.mockk.spyk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -37,7 +35,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
-class VariantGeneratorTest {
+class CoroutineVariantGeneratorTest {
     companion object {
         private const val PATH = "root.profile.123"
         private const val BUCKET = "assets"
@@ -50,20 +48,20 @@ class VariantGeneratorTest {
             VipsImageProcessor(),
         )
     private val channel = Channel<ImageProcessingJob<*>>()
-    private val scheduler =
-        PriorityChannelScheduler(
+    private val consumer =
+        PriorityChannelConsumer(
             highPriorityChannel = channel,
             backgroundChannel = Channel(),
             highPriorityWeight = 80,
         )
 
     // This is needed despite what Intellij thinks - it consumes from the scheduler
-    private val variantGenerator =
-        VariantGenerator(
+    private val coroutineVariantGenerator =
+        CoroutineVariantGenerator(
             assetRepository = assetRepository,
             objectStore = objectStore,
             imageProcessor = imageProcessor,
-            scheduler = scheduler,
+            consumer = consumer,
             transformationNormalizer =
                 TransformationNormalizer(
                     InMemoryAssetRepository(),
@@ -77,16 +75,9 @@ class VariantGeneratorTest {
     @BeforeEach
     fun beforeEach(): Unit =
         runBlocking {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readAllBytes()
-            bufferedImage = ImageIO.read(ByteArrayInputStream(image))
-            val channel = ByteChannel(autoFlush = true)
-            val resultDeferred =
-                async {
-                    objectStore.persist(BUCKET, channel, ImageFormat.PNG, image.size.toLong())
-                }
-            channel.writeFully(image)
-            channel.close()
-            val objectStoreResponse = resultDeferred.await()
+            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
+            bufferedImage = ImageIO.read(ByteArrayInputStream(image.readBytes()))
+            val objectStoreResponse = objectStore.persist(BUCKET, image, ImageFormat.PNG)
 
             asset =
                 assetRepository.store(
@@ -117,7 +108,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        treePath = asset.asset.path,
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requestedTransformations =
                             listOf(
@@ -162,7 +153,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        treePath = asset.asset.path,
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requestedTransformations =
                             listOf(
@@ -193,7 +184,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        treePath = asset.asset.path,
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requestedTransformations =
                             listOf(
@@ -237,7 +228,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 channel.send(
                     EagerVariantGenerationJob(
-                        treePath = "does.not.exist",
+                        path = "does.not.exist",
                         entryId = asset.asset.entryId,
                         requestedTransformations =
                             listOf(
@@ -262,7 +253,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        treePath = asset.asset.path,
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requestedTransformations = emptyList(),
                         deferredResult = result,
@@ -282,7 +273,7 @@ class VariantGeneratorTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        treePath = asset.asset.path,
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
                         requestedTransformations =
                             listOf(
@@ -296,7 +287,7 @@ class VariantGeneratorTest {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 
@@ -328,16 +319,16 @@ class VariantGeneratorTest {
                         format = ImageFormat.PNG,
                     )
                 val result = CompletableDeferred<AssetAndVariants>()
-                val variantGenerationJob =
-                    VariantGenerationJob(
-                        treePath = asset.asset.path,
+                val onDemandVariantGenerationJob =
+                    OnDemandVariantGenerationJob(
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
-                        transformations = listOf(transformation),
+                        transformation = transformation,
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                         bucket = BUCKET,
                     )
-                channel.send(variantGenerationJob)
+                channel.send(onDemandVariantGenerationJob)
 
                 result.await().apply {
                     variants shouldHaveSize 1
@@ -360,16 +351,16 @@ class VariantGeneratorTest {
                         format = ImageFormat.PNG,
                     )
                 val result = CompletableDeferred<AssetAndVariants>()
-                val variantGenerationJob =
-                    VariantGenerationJob(
-                        treePath = asset.asset.path,
+                val onDemandVariantGenerationJob =
+                    OnDemandVariantGenerationJob(
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
-                        transformations = listOf(transformation),
+                        transformation = transformation,
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                         bucket = "different-bucket",
                     )
-                channel.send(variantGenerationJob)
+                channel.send(onDemandVariantGenerationJob)
 
                 result.await().apply {
                     variants shouldHaveSize 1
@@ -382,65 +373,19 @@ class VariantGeneratorTest {
             }
 
         @Test
-        fun `can generate multiple variants for same image through single channel request`() =
-            runTest {
-                val transformation1 =
-                    Transformation(
-                        width = 150,
-                        height = 100,
-                        fit = Fit.FILL,
-                        format = ImageFormat.PNG,
-                    )
-                val transformation2 =
-                    Transformation(
-                        width = 50,
-                        height = 50,
-                        fit = Fit.FILL,
-                        format = ImageFormat.WEBP,
-                    )
-                val result = CompletableDeferred<AssetAndVariants>()
-                val variantGenerationJob =
-                    VariantGenerationJob(
-                        treePath = asset.asset.path,
-                        entryId = asset.asset.entryId,
-                        transformations = listOf(transformation1, transformation2),
-                        deferredResult = result,
-                        lqipImplementations = emptySet(),
-                        bucket = BUCKET,
-                    )
-                channel.send(variantGenerationJob)
-
-                result.await().apply {
-                    variants shouldHaveSize 2
-                    variants.forExactly(1) {
-                        it.isOriginalVariant shouldBe false
-                        it.transformation shouldBe transformation1
-                        it.objectStoreBucket shouldBe BUCKET
-                    }
-                    variants.forExactly(1) {
-                        it.isOriginalVariant shouldBe false
-                        it.transformation shouldBe transformation2
-                        it.objectStoreBucket shouldBe BUCKET
-                    }
-                }
-            }
-
-        @Test
         fun `if original asset does not exist then exception is thrown`() =
             runTest {
                 val result = CompletableDeferred<AssetAndVariants>()
                 channel.send(
-                    VariantGenerationJob(
-                        treePath = "does.not.exist",
+                    OnDemandVariantGenerationJob(
+                        path = "does.not.exist",
                         entryId = asset.asset.entryId,
-                        transformations =
-                            listOf(
-                                Transformation(
-                                    height = 50,
-                                    width = 50,
-                                    format = ImageFormat.PNG,
-                                    fit = Fit.FIT,
-                                ),
+                        transformation =
+                            Transformation(
+                                height = 50,
+                                width = 50,
+                                format = ImageFormat.PNG,
+                                fit = Fit.FIT,
                             ),
                         lqipImplementations = emptySet(),
                         bucket = BUCKET,
@@ -454,40 +399,18 @@ class VariantGeneratorTest {
             }
 
         @Test
-        fun `if no variants are in request then nothing is processed`() =
-            runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
-                val variantGenerationJob =
-                    VariantGenerationJob(
-                        treePath = asset.asset.path,
-                        entryId = asset.asset.entryId,
-                        transformations = emptyList(),
-                        deferredResult = result,
-                        lqipImplementations = emptySet(),
-                        bucket = BUCKET,
-                    )
-                channel.send(variantGenerationJob)
-
-                shouldThrow<IllegalArgumentException> {
-                    result.await()
-                }
-            }
-
-        @Test
         fun `if variant fails to generate then channel is still live`() =
             runTest {
                 val result = CompletableDeferred<AssetAndVariants>()
-                val variantGenerationJob =
-                    VariantGenerationJob(
-                        treePath = asset.asset.path,
+                val onDemandVariantGenerationJob =
+                    OnDemandVariantGenerationJob(
+                        path = asset.asset.path,
                         entryId = asset.asset.entryId,
-                        transformations =
-                            listOf(
-                                Transformation(
-                                    height = 100,
-                                    width = 100,
-                                    format = ImageFormat.PNG,
-                                ),
+                        transformation =
+                            Transformation(
+                                height = 100,
+                                width = 100,
+                                format = ImageFormat.PNG,
                             ),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
@@ -495,18 +418,18 @@ class VariantGeneratorTest {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 
-                channel.send(variantGenerationJob)
+                channel.send(onDemandVariantGenerationJob)
 
                 shouldThrow<RuntimeException> {
                     result.await()
                 }
 
                 val newResult = CompletableDeferred<AssetAndVariants>()
-                channel.send(variantGenerationJob.copy(deferredResult = newResult))
+                channel.send(onDemandVariantGenerationJob.copy(deferredResult = newResult))
 
                 shouldNotThrowAny {
                     newResult.await()

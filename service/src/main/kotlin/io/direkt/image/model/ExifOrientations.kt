@@ -1,4 +1,4 @@
-package io.image.model
+package io.direkt.image.model
 
 /**
  * EXIF orientation mappings
@@ -17,8 +17,8 @@ object ExifOrientations {
      * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
      */
     fun normalizeOrientation(
-        rotate: Rotate = Rotate.default,
-        flip: Flip = Flip.default,
+        rotate: Rotate = Rotate.Factory.default,
+        flip: Flip = Flip.Factory.default,
     ): Pair<Rotate, Boolean> =
         if (rotate == Rotate.ZERO && flip == Flip.NONE) {
             ONE

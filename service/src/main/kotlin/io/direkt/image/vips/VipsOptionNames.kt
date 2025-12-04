@@ -1,4 +1,4 @@
-package io.image.vips
+package io.direkt.image.vips
 
 object VipsOptionNames {
     const val OPTION_HEIGHT = "height"

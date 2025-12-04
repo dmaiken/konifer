@@ -1,4 +1,4 @@
-package io.image.vips.transformer
+package io.direkt.image.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
@@ -8,15 +8,15 @@ import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.PHash
 import io.direkt.asset.AssetStreamContainer
-import io.image.model.Fit
-import io.image.model.Gravity
-import io.image.model.ImageFormat
-import io.image.model.Transformation
-import io.image.vips.VImageFactory
-import io.image.vips.VipsOptionNames.OPTION_CROP
-import io.image.vips.VipsOptionNames.OPTION_HEIGHT
-import io.image.vips.VipsOptionNames.OPTION_INTERESTING
-import io.image.vips.VipsOptionNames.OPTION_SIZE
+import io.direkt.image.model.Fit
+import io.direkt.image.model.Gravity
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VImageFactory
+import io.direkt.image.vips.VipsOptionNames.OPTION_CROP
+import io.direkt.image.vips.VipsOptionNames.OPTION_HEIGHT
+import io.direkt.image.vips.VipsOptionNames.OPTION_INTERESTING
+import io.direkt.image.vips.VipsOptionNames.OPTION_SIZE
 import io.image.vips.aspectRatio
 import io.image.vips.transformation.Resize
 import io.kotest.matchers.comparables.shouldBeGreaterThan

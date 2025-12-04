@@ -1,4 +1,4 @@
-package io.database
+package io.direkt.database
 
 import io.r2dbc.spi.ConnectionFactory
 import org.jooq.DSLContext

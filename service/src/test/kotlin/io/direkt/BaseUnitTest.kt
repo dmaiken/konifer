@@ -6,9 +6,9 @@ import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.InMemoryAssetRepository
 import io.direkt.asset.store.PersistResult
-import io.image.model.Attributes
-import io.image.model.ImageFormat
-import io.image.model.LQIPs
+import io.direkt.image.model.Attributes
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.model.LQIPs
 import io.mockk.spyk
 
 abstract class BaseUnitTest {

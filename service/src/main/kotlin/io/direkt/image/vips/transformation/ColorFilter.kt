@@ -6,11 +6,11 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
-import io.image.model.Filter
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_BANDS
-import io.image.vips.VipsOptionNames.OPTION_N
-import io.image.vips.pipeline.VipsTransformationResult
+import io.direkt.image.model.Filter
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsOptionNames.OPTION_BANDS
+import io.direkt.image.vips.VipsOptionNames.OPTION_N
+import io.direkt.image.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 object ColorFilter : VipsTransformer {

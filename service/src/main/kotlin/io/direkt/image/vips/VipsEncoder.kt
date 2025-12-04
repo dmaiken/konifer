@@ -1,45 +1,27 @@
-package io.image.vips
+package io.direkt.image.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
-import io.image.ByteChannelOutputStream
-import io.image.model.ImageFormat
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_QUALITY
-import io.ktor.utils.io.ByteChannel
+import io.direkt.asset.TemporaryFileFactory.createPreProcessedTempFile
+import io.direkt.image.model.ImageFormat
+import io.direkt.image.vips.VipsOptionNames.OPTION_QUALITY
+import java.io.File
 
 object VipsEncoder {
-    fun writeToStream(
-        source: VImage,
-        transformation: Transformation,
-        outputChannel: ByteChannel,
-    ) {
-        writeToStream(
-            source = source,
-            format = transformation.format,
-            quality = transformation.quality,
-            outputChannel = outputChannel,
-        )
-    }
-
-    fun writeToStream(
+    fun writeToFile(
         source: VImage,
         format: ImageFormat,
         quality: Int?,
-        outputChannel: ByteChannel,
-    ) {
+    ): File {
+        val processed = createPreProcessedTempFile(extension = format.extension)
         val options =
             constructEncoderOptions(
                 format = format,
                 quality = quality,
             )
-        ByteChannelOutputStream(outputChannel).use { stream ->
-            source.writeToStream(
-                stream,
-                format.extension,
-                *options,
-            )
-        }
+        source.writeToFile(processed.absolutePath, *options)
+
+        return processed
     }
 
     private fun constructEncoderOptions(

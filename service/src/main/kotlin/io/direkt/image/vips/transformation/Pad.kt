@@ -3,10 +3,10 @@ package io.image.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
-import io.image.model.Transformation
-import io.image.vips.VipsOptionNames.OPTION_BACKGROUND
-import io.image.vips.VipsOptionNames.OPTION_EXTEND
-import io.image.vips.pipeline.VipsTransformationResult
+import io.direkt.image.model.Transformation
+import io.direkt.image.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.direkt.image.vips.VipsOptionNames.OPTION_EXTEND
+import io.direkt.image.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
 
