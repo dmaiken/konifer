@@ -3,9 +3,9 @@ package io.direkt.infrastructure.datastore.inmemory
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
-import io.direkt.asset.model.Asset
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.AssetVariant
+import io.direkt.domain.asset.Asset
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.VariantBucketAndKey
@@ -20,60 +20,43 @@ import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-    private val store = ConcurrentHashMap<String, MutableList<InMemoryAssetAndVariants>>()
+    private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<UUID, Asset>()
 
-    override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
+    override suspend fun storeNew(asset: Asset): Asset.PendingPersisted {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         val entryId = getNextEntryId(path)
         logger.info("Persisting asset at path: $path and entryId: $entryId")
+        val originalVariant = asset.variants.first()
         val key =
-            VariantParameterGenerator.generateImageVariantTransformations(asset.attributes).second
-        val now = LocalDateTime.now()
-        val assetAndVariants =
-            AssetAndVariants(
-                asset =
-                    Asset(
-                        id = UUID.randomUUID(),
-                        alt = asset.request.alt,
-                        entryId = entryId,
-                        path = path,
-                        createdAt = now,
-                        modifiedAt = now,
-                        labels = asset.request.labels,
-                        tags = asset.request.tags,
-                        source = asset.source,
-                        sourceUrl = asset.request.url,
-                    ),
-                variants =
-                    listOf(
-                        AssetVariant(
-                            objectStoreBucket = asset.persistResult.bucket,
-                            objectStoreKey = asset.persistResult.key,
-                            attributes = asset.attributes,
-                            transformation = ImageVariantTransformation.originalTransformation(asset.attributes).toTransformation(),
-                            isOriginalVariant = true,
-                            lqip = asset.lqips,
-                            transformationKey = key,
-                            createdAt = now,
-                        ),
-                    ),
-            )
-        return assetAndVariants.also {
-            store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(
-                InMemoryAssetAndVariants(
-                    asset = it.asset,
-                    variants = it.variants.toMutableList(),
-                ),
-            )
-            idReference[it.asset.id] = it.asset
+            VariantParameterGenerator.generateImageVariantTransformations(originalVariant.attributes).second
+        return Asset.PendingPersisted(
+            id = asset.id,
+            path = asset.path,
+            entryId = entryId,
+            alt = asset.alt,
+            labels = asset.labels,
+            tags = asset.tags,
+            source = asset.source,
+            sourceUrl = asset.sourceUrl,
+            createdAt = asset.createdAt,
+            modifiedAt = asset.modifiedAt,
+            isReady = false,
+            variants = asset.variants,
+        ).also {
+            store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(it)
+            idReference[it.id.value] = it
         }
+    }
+
+    override suspend fun markReady(asset: Asset) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(variant.path)
         return store[path]?.let { assets ->
-            val asset = assets.first { it.asset.entryId == variant.entryId }
+            val asset = assets.first { it.entryId == variant.entryId }
             val key =
                 VariantParameterGenerator.generateImageVariantTransformations(variant.transformation).second
             if (asset.variants.any { it.transformationKey == key }) {

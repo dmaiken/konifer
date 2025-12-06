@@ -24,6 +24,7 @@ import io.ktor.utils.io.jvm.javaio.toOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.LocalDateTime
 import java.util.UUID
 
 class S3ObjectRepository(
@@ -34,11 +35,10 @@ class S3ObjectRepository(
 
     override suspend fun persist(
         bucket: String,
+        key: String,
         asset: File,
-        format: ImageFormat,
-    ): PersistResult =
+    ): LocalDateTime =
         withContext(Dispatchers.IO) {
-            val key = "${UUID.randomUUID()}${format.extension}"
             s3Client.putObject(
                 input =
                     PutObjectRequest {
@@ -48,10 +48,7 @@ class S3ObjectRepository(
                     },
             )
 
-            PersistResult(
-                key = key,
-                bucket = bucket,
-            )
+            LocalDateTime.now()
         }
 
     override suspend fun fetch(

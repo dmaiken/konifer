@@ -89,8 +89,8 @@ sealed interface Asset {
             validate()
         }
 
-        fun markPending(originalVariant: Variant): Asset {
-            check(originalVariant is Variant.New) { "Variant must be in a new state" }
+        fun markPending(originalVariant: Variant): Pending {
+            check(originalVariant is Variant.Pending) { "Variant must be in a pending state" }
 
             return Pending.fromNew(
                 new = this,
@@ -99,6 +99,8 @@ sealed interface Asset {
         }
 
         private fun validate() {
+            check(entryId == null)
+            check(variants.isEmpty())
             if (alt != null && alt.length > MAX_ALT_LENGTH) {
                 throw IllegalArgumentException("Alt exceeds max length of $MAX_ALT_LENGTH")
             }
@@ -136,7 +138,7 @@ sealed interface Asset {
                 Pending(
                     id = new.id,
                     path = new.path,
-                    entryId = new.entryId,
+                    entryId = null,
                     alt = new.alt,
                     labels = new.labels,
                     tags = new.tags,
@@ -150,8 +152,76 @@ sealed interface Asset {
         }
 
         init {
+            check(entryId == null)
+            check(variants.size == 1)
+        }
+    }
+
+    class PendingPersisted(
+        override val id: AssetId,
+        override val path: String,
+        override val entryId: Long?,
+        override val alt: String?,
+        override val labels: Map<String, String>,
+        override val tags: Set<String>,
+        override val source: AssetSource,
+        override val sourceUrl: String?,
+        override val createdAt: LocalDateTime,
+        override val modifiedAt: LocalDateTime,
+        override val isReady: Boolean,
+        override val variants: List<Variant>,
+    ) : Asset {
+
+        init {
             checkNotNull(entryId)
             check(variants.size == 1)
+            check(variants[0] is Variant.Pending)
+        }
+
+        fun markReady(uploadedAt: LocalDateTime): Ready =
+            Ready.fromPendingPersisted(
+                persisted = this,
+                originalVariant = (variants.first() as Variant.Pending).markUploaded(uploadedAt),
+            )
+    }
+
+    class Ready private constructor(
+        override val id: AssetId,
+        override val path: String,
+        override val entryId: Long?,
+        override val alt: String?,
+        override val labels: Map<String, String>,
+        override val tags: Set<String>,
+        override val source: AssetSource,
+        override val sourceUrl: String?,
+        override val createdAt: LocalDateTime,
+        override val modifiedAt: LocalDateTime,
+        override val isReady: Boolean,
+        override val variants: List<Variant>,
+    ) : Asset {
+
+        init {
+            checkNotNull(entryId)
+            check(variants.isNotEmpty())
+            check(isReady)
+            check(variants.all { it is Variant.Uploaded })
+        }
+
+        companion object {
+            fun fromPendingPersisted(persisted: PendingPersisted, originalVariant: Variant): Ready = Ready(
+                id = persisted.id,
+                path = persisted.path,
+                entryId = persisted.entryId,
+                alt = persisted.alt,
+                labels = persisted.labels,
+                tags = persisted.tags,
+                source = persisted.source,
+                sourceUrl = persisted.sourceUrl,
+                createdAt = persisted.createdAt,
+                modifiedAt = persisted.modifiedAt,
+                isReady = true,
+                variants = listOf(originalVariant),
+            )
         }
     }
 }

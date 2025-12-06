@@ -1,7 +1,5 @@
 package io.direkt.domain.variant
 
-import io.direkt.domain.variant.Attributes
-import io.direkt.domain.variant.Transformation
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -17,11 +15,11 @@ sealed interface Variant {
     val attributes: Attributes
     val transformation: Transformation
     val transformationKey: Long
-    val lqip: LQIPs
+    val lqips: LQIPs
     val createdAt: LocalDateTime
     val uploadedAt: LocalDateTime?
 
-    class New private constructor(
+    class Pending(
         override val id: VariantId,
         override val objectStoreBucket: String,
         override val objectStoreKey: String,
@@ -29,18 +27,22 @@ sealed interface Variant {
         override val attributes: Attributes,
         override val transformation: Transformation,
         override val transformationKey: Long,
-        override val lqip: LQIPs,
+        override val lqips: LQIPs,
         override val createdAt: LocalDateTime,
         override val uploadedAt: LocalDateTime?,
     ) : Variant {
+        init {
+            check(uploadedAt == null)
+        }
+
         companion object {
             fun originalVariant(
                 attributes: Attributes,
                 objectStoreBucket: String,
                 objectStoreKey: String,
                 lqip: LQIPs,
-            ): New =
-                New(
+            ): Pending =
+                Pending(
                     id = VariantId(UUID.randomUUID()),
                     objectStoreBucket = objectStoreBucket,
                     objectStoreKey = objectStoreKey,
@@ -48,10 +50,47 @@ sealed interface Variant {
                     attributes = attributes,
                     transformation = Transformation.ORIGINAL_VARIANT,
                     transformationKey = 1234L,
-                    lqip = lqip,
+                    lqips = lqip,
                     createdAt = LocalDateTime.now(),
                     uploadedAt = null,
                 )
+        }
+
+        fun markUploaded(uploadedAt: LocalDateTime): Uploaded = Uploaded.fromPending(
+            pending = this,
+            uploadedAt = uploadedAt,
+        )
+    }
+
+    class Uploaded private constructor(
+        override val id: VariantId,
+        override val objectStoreBucket: String,
+        override val objectStoreKey: String,
+        override val isOriginalVariant: Boolean,
+        override val attributes: Attributes,
+        override val transformation: Transformation,
+        override val transformationKey: Long,
+        override val lqips: LQIPs,
+        override val createdAt: LocalDateTime,
+        override val uploadedAt: LocalDateTime?,
+    ) : Variant {
+        init {
+            checkNotNull(uploadedAt)
+        }
+
+        companion object {
+            fun fromPending(pending: Pending, uploadedAt: LocalDateTime): Uploaded = Uploaded(
+                id = pending.id,
+                objectStoreBucket = pending.objectStoreBucket,
+                objectStoreKey = pending.objectStoreKey,
+                isOriginalVariant = pending.isOriginalVariant,
+                attributes = pending.attributes,
+                transformation = pending.transformation,
+                transformationKey = pending.transformationKey,
+                lqips = pending.lqips,
+                createdAt = pending.createdAt,
+                uploadedAt = uploadedAt,
+            )
         }
     }
 }

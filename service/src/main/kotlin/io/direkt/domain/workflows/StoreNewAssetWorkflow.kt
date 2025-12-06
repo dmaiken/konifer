@@ -3,7 +3,6 @@ package io.direkt.domain.workflows
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.direkt.asset.AssetDataContainer
-import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.AssetSource
@@ -17,6 +16,7 @@ import io.direkt.domain.ports.VariantGenerator
 import io.direkt.domain.ports.VariantProfileRepository
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.vips.createDecoderOptions
 import io.direkt.service.context.RequestContextFactory
@@ -28,6 +28,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
+import java.util.UUID
 
 class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -50,7 +52,6 @@ class StoreNewAssetWorkflow(
             request = deferredRequest.await(),
             container = multiPartContainer,
             uriPath = uriPath,
-            source = AssetSource.UPLOAD,
         )
 
     suspend fun handleFromUrl(
@@ -61,14 +62,12 @@ class StoreNewAssetWorkflow(
             request = request,
             container = assetStreamContainerFactory.fromUrlSource(request.url),
             uriPath = uriPath,
-            source = AssetSource.URL,
         )
 
     private suspend fun handle(
         request: StoreAssetRequest,
         container: AssetDataContainer,
         uriPath: String,
-        source: AssetSource,
     ): AssetAndLocation =
         coroutineScope {
             container.use { container ->
@@ -97,26 +96,28 @@ class StoreNewAssetWorkflow(
                             source = container.getTemporaryFile(),
                         ).await()
 
-                val persistResult =
+                val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
+                val pendingAsset = newAsset.markPending(
+                    originalVariant = Variant.Pending.originalVariant(
+                        attributes = preProcessed.attributes,
+                        objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
+                        objectStoreKey = objectStoreKey,
+                        lqip = preProcessed.lqip,
+                    )
+                )
+
+                val pendingPersisted = assetRepository.storeNew(pendingAsset)
+                val originalVariant = pendingPersisted.variants.first()
+                val uploadedAt =
                     objectStore.persist(
-                        bucket = context.pathConfiguration.s3PathProperties.bucket,
+                        bucket = originalVariant.objectStoreBucket,
+                        key = objectStoreKey,
                         asset = preProcessed.result,
-                        format = transformation.format,
                     )
-                val assetAndVariants =
-                    assetRepository.store(
-                        StoreAssetDto(
-                            request = request,
-                            path = context.path,
-                            attributes = preProcessed.attributes,
-                            persistResult = persistResult,
-                            lqips = preProcessed.lqip,
-                            source = source,
-                        ),
-                    )
+                val ready = pendingPersisted.markReady(uploadedAt)
 
                 AssetAndLocation(
-                    assetAndVariants = assetAndVariants,
+                    asset = ready,
                     locationPath = context.path,
                 ).also { response ->
                     val eagerVariantTransformations =
@@ -125,8 +126,8 @@ class StoreNewAssetWorkflow(
                         }
                     if (eagerVariantTransformations.isNotEmpty()) {
                         variantGenerator.initiateEagerVariants(
-                            path = response.assetAndVariants.asset.path,
-                            entryId = response.assetAndVariants.asset.entryId,
+                            path = response.asset.path,
+                            entryId = checkNotNull(response.asset.entryId),
                             requestedTransformations = eagerVariantTransformations,
                             lqipImplementations = context.pathConfiguration.imageProperties.previews,
                             bucket = context.pathConfiguration.s3PathProperties.bucket,

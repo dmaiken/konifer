@@ -25,7 +25,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotEndWith
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,9 +44,12 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can store and fetch an asset`() =
             runTest {
+                val pending = createPendingAsset(
+                    url = "https://localhost.com"
+                )
                 val dto = createAssetDto("/users/123", source = AssetSource.URL, url = "https://localhost.com")
-                val assetAndVariants = repository.store(dto)
-                assetAndVariants.asset.apply {
+                val pendingPersisted = repository.storeNew(pending)
+                pendingPersisted.apply {
                     path shouldBe "/users/123"
                     entryId shouldBe 0
                     labels shouldContainExactly dto.request.labels
@@ -56,8 +58,8 @@ abstract class AssetRepositoryTest {
                     sourceUrl shouldBe dto.request.url
                     createdAt shouldBe modifiedAt
                 }
-                assetAndVariants.variants shouldHaveSize 1
-                assetAndVariants.variants.first().apply {
+                pendingPersisted.variants shouldHaveSize 1
+                pendingPersisted.variants.first().apply {
                     attributes.height shouldBe dto.attributes.height
                     attributes.width shouldBe dto.attributes.width
                     this.attributes.format shouldBe dto.attributes.format
@@ -66,76 +68,76 @@ abstract class AssetRepositoryTest {
                     this.transformation.format shouldBe dto.attributes.format
                     this.transformation.fit shouldBe Fit.FIT
                     this.isOriginalVariant shouldBe true
-                    this.lqip shouldBe LQIPs.NONE
+                    this.lqips shouldBe LQIPs.NONE
                 }
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(pendingPersisted.path, pendingPersisted.entryId, null, OrderBy.CREATED)
 
-                fetched shouldBe assetAndVariants
+                fetched shouldBe pendingPersisted
             }
 
         @Test
         fun `can store and fetch an asset with null url`() =
             runTest {
-                val dto = createAssetDto("/users/123", source = AssetSource.UPLOAD, url = null)
-                val assetAndVariants = repository.store(dto)
-                assetAndVariants.asset.apply {
-                    path shouldBe "/users/123"
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                persisted.apply {
+                    path shouldBe pending.path
                     entryId shouldBe 0
-                    labels shouldContainExactly dto.request.labels
-                    tags shouldContainExactly dto.request.tags
-                    source shouldBe dto.source
+                    labels shouldContainExactly pending.labels
+                    tags shouldContainExactly pending.tags
+                    source shouldBe pending.source
                     sourceUrl shouldBe null
                     createdAt shouldBe modifiedAt
                 }
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
 
-                fetched shouldBe assetAndVariants
+                fetched shouldBe persisted
             }
 
         @Test
         fun `can store and fetch an asset with trailing slash`() =
             runTest {
-                val dto = createAssetDto("/users/123/")
-                val assetAndVariants = repository.store(dto)
-                assetAndVariants.asset.path shouldNotEndWith "/"
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                persisted.path shouldNotEndWith "/"
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
 
-                fetched shouldBe assetAndVariants
+                fetched shouldBe persisted
                 fetched shouldBe
-                    repository.fetchByPath(assetAndVariants.asset.path + "/", assetAndVariants.asset.entryId, null, OrderBy.CREATED)
+                    repository.fetchByPath(persisted.path + "/", persisted.entryId, null, OrderBy.CREATED)
             }
 
         @Test
         fun `storing an asset on an existent tree path appends the asset and increments entryId`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
 
-                assetAndVariant1.asset.entryId shouldBe 0
-                assetAndVariant2.asset.entryId shouldBe 1
+                persisted1.entryId shouldBe 0
+                persisted2.entryId shouldBe 1
             }
 
         @Test
         fun `entryId is always the next highest value`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val assetAndVariants1 = repository.store(dto1)
-                val assetAndVariants2 = repository.store(dto2)
-                assetAndVariants1.asset.entryId shouldBe 0
-                assetAndVariants2.asset.entryId shouldBe 1
-                repository.deleteAssetByPath("/users/123")
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
+                persisted1.entryId shouldBe 0
+                persisted2.entryId shouldBe 1
+                repository.deleteAssetByPath(persisted1.path)
 
-                val dto3 = createAssetDto("/users/123")
-                val assetAndVariants3 = repository.store(dto3)
-                assetAndVariants3.asset.entryId shouldBe 1
+                val pending3 = createPendingAsset()
+                val persisted3 = repository.storeNew(pending3)
+                persisted3.entryId shouldBe 1
 
-                repository.deleteAssetByPath("/users/123", entryId = 0)
-                val dto4 = createAssetDto("/users/123")
-                val assetAndVariants4 = repository.store(dto4)
-                assetAndVariants4.asset.entryId shouldBe 2
+                repository.deleteAssetByPath(persisted1.path, entryId = persisted1.entryId!!)
+                val pending4 = createPendingAsset()
+                val persisted4 = repository.storeNew(pending4)
+                persisted4.entryId shouldBe 2
             }
     }
 
@@ -144,8 +146,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can store and fetch a variant`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val persistedAssetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
                 val persistResult =
                     PersistResult(
@@ -169,15 +171,15 @@ abstract class AssetRepositoryTest {
                 val newVariant =
                     repository.storeVariant(
                         StoreAssetVariantDto(
-                            path = persistedAssetAndVariants.asset.path,
-                            entryId = persistedAssetAndVariants.asset.entryId,
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
                             persistResult = persistResult,
                             attributes = attributes,
                             transformation = variantTransformation,
                             lqips = LQIPs.NONE,
                         ),
                     )
-                newVariant.asset shouldBe persistedAssetAndVariants.asset
+                newVariant.asset shouldBe persisted
                 newVariant.variants shouldHaveSize 1
                 newVariant.variants.first().apply {
                     this.attributes.height shouldBe attributes.height
@@ -196,13 +198,13 @@ abstract class AssetRepositoryTest {
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        persistedAssetAndVariants.asset.path,
-                        persistedAssetAndVariants.asset.entryId,
+                        persisted.path,
+                        persisted.entryId,
                         null,
                         OrderBy.CREATED,
                     )
                 assetAndVariants shouldNotBe null
-                assetAndVariants?.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants?.asset shouldBe persisted
                 assetAndVariants?.variants?.size shouldBe 2
             }
 
@@ -243,8 +245,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `cannot store a duplicate variant`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val persistedAssetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
                 val persistResult =
                     PersistResult(
@@ -260,8 +262,8 @@ abstract class AssetRepositoryTest {
 
                 val variantDto =
                     StoreAssetVariantDto(
-                        path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult = persistResult,
                         attributes = attributes,
                         transformation =
@@ -274,7 +276,7 @@ abstract class AssetRepositoryTest {
                     )
                 val newVariant = repository.storeVariant(variantDto)
 
-                newVariant.asset shouldBe persistedAssetAndVariants.asset
+                newVariant.asset shouldBe persisted
                 newVariant.variants shouldHaveSize 1
                 newVariant.variants.first { !it.isOriginalVariant }.apply {
                     attributes.height shouldBe attributes.height
@@ -302,73 +304,73 @@ abstract class AssetRepositoryTest {
         @Test
         fun `fetching asset with entryId that does not exist returns null`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId + 1, null, OrderBy.CREATED) shouldBe null
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                repository.fetchByPath(persisted.path, persisted.entryId!! + 1, null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
         fun `returns an existing asset`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
-                val fetched = repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
 
-                fetched shouldBe assetAndVariants
+                fetched shouldBe persisted
             }
 
         @Test
         fun `returns asset with path that has trailing slash`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val fetched =
                     repository.fetchByPath(
-                        assetAndVariants.asset.path + "/",
-                        assetAndVariants.asset.entryId,
+                        persisted.path + "/",
+                        persisted.entryId,
                         null,
                         OrderBy.CREATED,
                     )
 
-                fetched shouldBe assetAndVariants
+                fetched shouldBe persisted
             }
 
         @Test
         fun `returns last created asset if multiple exist`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                repository.store(dto1)
-                val asset2 = repository.store(dto2)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                repository.storeNew(pending1)
+                val asset2 = repository.storeNew(pending2)
 
-                repository.fetchByPath("/users/123", entryId = null, transformation = null, OrderBy.CREATED) shouldBe asset2
+                repository.fetchByPath(pending1.path, entryId = null, transformation = null, OrderBy.CREATED) shouldBe asset2
             }
 
         @Test
         fun `returns an existing asset by entryId`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
 
-                repository.fetchByPath("/users/123", entryId = 0, transformation = null, OrderBy.CREATED) shouldBe assetAndVariant1
-                repository.fetchByPath("/users/123", entryId = 1, transformation = null, OrderBy.CREATED) shouldBe assetAndVariant2
+                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, OrderBy.CREATED) shouldBe persisted1
+                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, OrderBy.CREATED) shouldBe persisted2
             }
 
         @Test
         fun `returns null if there is no asset in path at specific entryId`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                repository.store(dto)
-                repository.fetchByPath("/users/123", entryId = 1, transformation = null, OrderBy.CREATED) shouldBe null
+                val pending = createPendingAsset()
+                repository.storeNew(pending)
+                repository.fetchByPath(pending.path, entryId = 1, transformation = null, OrderBy.CREATED) shouldBe null
             }
 
         @Test
         fun `returns existing variant based on transformation`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -377,8 +379,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -397,8 +399,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -408,8 +410,8 @@ abstract class AssetRepositoryTest {
         @MethodSource("io.direkt.infrastructure.datastore.AssetRepositoryTestDataProviders#variantTransformationSource")
         fun `fit is respected when fetching a variant`(transformation: Transformation) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val persistedAssetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
                 val persistResult =
                     PersistResult(
@@ -433,21 +435,21 @@ abstract class AssetRepositoryTest {
                 val newVariant =
                     repository.storeVariant(
                         StoreAssetVariantDto(
-                            path = persistedAssetAndVariants.asset.path,
-                            entryId = persistedAssetAndVariants.asset.entryId,
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
                             persistResult = persistResult,
                             attributes = attributes,
                             transformation = variantTransformation,
                             lqips = LQIPs.NONE,
                         ),
                     )
-                newVariant.asset shouldBe persistedAssetAndVariants.asset
+                newVariant.asset shouldBe persisted
                 newVariant.variants shouldHaveSize 1
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 assetAndVariants shouldNotBe null
@@ -457,26 +459,26 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can fetch original variant with matching transformation`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val persistedAssetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
                 val originalVariantTransformation =
                     Transformation(
-                        height = dto.attributes.height,
-                        width = dto.attributes.width,
-                        format = dto.attributes.format,
+                        height = pending.variants.first().attributes.height,
+                        width = pending.variants.first().attributes.width,
+                        format = pending.variants.first().attributes.format,
                         fit = Fit.FIT,
                     )
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        path = persistedAssetAndVariants.asset.path,
-                        entryId = persistedAssetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = originalVariantTransformation,
                         orderBy = OrderBy.CREATED,
                     )
                 assetAndVariants shouldNotBe null
-                assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants!!.asset shouldBe persisted
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
                     isOriginalVariant shouldBe true
@@ -486,20 +488,19 @@ abstract class AssetRepositoryTest {
         @Test
         fun `returns no asset at path if none have requested labels`() =
             runTest {
-                val dto =
-                    createAssetDto(
-                        "/users/123",
+                val pending =
+                    createPendingAsset(
                         labels =
                             mapOf(
                                 "phone" to "iphone",
                                 "hello" to "world",
                             ),
                     )
-                val persistedAssetAndVariants = repository.store(dto)
+                val persisted = repository.storeNew(pending)
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        path = persistedAssetAndVariants.asset.path,
+                        path = persisted.path,
                         entryId = null,
                         transformation = null,
                         labels =
@@ -518,11 +519,10 @@ abstract class AssetRepositoryTest {
                         "phone" to "iphone",
                         "hello" to "world",
                     )
-                val dto = createAssetDto("/users/123", labels = labels)
-                val persistedAssetAndVariants = repository.store(dto)
-                repository.store(
-                    createAssetDto(
-                        "/users/123",
+                val pending = createPendingAsset(labels = labels)
+                val persisted = repository.storeNew(pending)
+                repository.storeNew(
+                    createPendingAsset(
                         labels =
                             mapOf(
                                 "phone" to "iphone",
@@ -532,13 +532,13 @@ abstract class AssetRepositoryTest {
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        path = persistedAssetAndVariants.asset.path,
+                        path = persisted.path,
                         entryId = null,
                         transformation = null,
                         labels = labels,
                     )
                 assetAndVariants shouldNotBe null
-                assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants!!.asset shouldBe persisted
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
                     isOriginalVariant shouldBe true
@@ -554,12 +554,12 @@ abstract class AssetRepositoryTest {
                         "phone" to "iphone",
                         "hello" to "world",
                     )
-                val dto = createAssetDto("/users/123", labels = labels)
-                val persistedAssetAndVariants = repository.store(dto)
+                val pending = createPendingAsset(labels = labels)
+                val persisted = repository.storeNew(pending)
 
                 val assetAndVariants =
                     repository.fetchByPath(
-                        path = persistedAssetAndVariants.asset.path,
+                        path = persisted.path,
                         entryId = null,
                         transformation = null,
                         labels =
@@ -568,7 +568,7 @@ abstract class AssetRepositoryTest {
                             ),
                     )
                 assetAndVariants shouldNotBe null
-                assetAndVariants!!.asset shouldBe persistedAssetAndVariants.asset
+                assetAndVariants!!.asset shouldBe persisted
                 assetAndVariants.variants shouldHaveSize 1
                 assetAndVariants.variants.first().apply {
                     isOriginalVariant shouldBe true
@@ -584,15 +584,15 @@ abstract class AssetRepositoryTest {
                     mapOf(
                         "phone" to "iphone",
                     )
-                val dto1 = createAssetDto("/users/123", labels = labels)
-                var persisted1 = repository.store(dto1)
-                val dto2 = createAssetDto("/users/123", labels = labels)
-                val persisted2 = repository.store(dto2)
-                persisted1 =
+                val pending1 = createPendingAsset(labels = labels)
+                val persisted1 = repository.storeNew(pending1)
+                val pending2 = createPendingAsset(labels = labels)
+                val persisted2 = repository.storeNew(pending2)
+                val updated1 =
                     repository.update(
                         UpdateAssetDto(
-                            path = dto1.path,
-                            entryId = persisted1.asset.entryId,
+                            path = pending1.path,
+                            entryId = persisted1.entryId!!,
                             request =
                                 StoreAssetRequest(
                                     alt = "I'm updated!!",
@@ -600,13 +600,13 @@ abstract class AssetRepositoryTest {
                         ),
                     )
                 repository.fetchByPath(
-                    path = persisted1.asset.path,
+                    path = updated1.asset.path,
                     entryId = null,
                     transformation = null,
                     orderBy = OrderBy.MODIFIED,
-                ) shouldBe persisted1
+                ) shouldBe updated1
                 repository.fetchByPath(
-                    path = persisted1.asset.path,
+                    path = persisted1.path,
                     entryId = null,
                     transformation = null,
                     orderBy = OrderBy.CREATED,
@@ -619,56 +619,55 @@ abstract class AssetRepositoryTest {
         @Test
         fun `returns asset at path`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariant = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
-                repository.fetchAllByPath("/users/123", null, limit = 1) shouldBe listOf(assetAndVariant)
+                repository.fetchAllByPath("/users/123", null, limit = 1) shouldBe listOf(persisted)
             }
 
         @Test
         fun `returns all assets at path`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
 
-                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe listOf(assetAndVariant2, assetAndVariant1)
+                repository.fetchAllByPath(pending1.path, null, limit = 10) shouldBe listOf(persisted2, persisted1)
             }
 
         @Test
         fun `returns all assets at path ordered correctly`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                var assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
-                delay(1000)
-                assetAndVariant1 =
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
+                val updated1 =
                     repository.update(
                         UpdateAssetDto(
-                            path = assetAndVariant1.asset.path,
-                            entryId = assetAndVariant1.asset.entryId,
+                            path = persisted1.path,
+                            entryId = persisted1.entryId!!,
                             request = StoreAssetRequest(alt = "I'm updated!!"),
                         ),
                     )
 
                 repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED, limit = 10) shouldBe
-                    listOf(assetAndVariant2, assetAndVariant1)
+                    listOf(persisted2, persisted1)
                 repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.MODIFIED, limit = 10) shouldBe
-                    listOf(assetAndVariant1, assetAndVariant2)
+                    listOf(persisted1, persisted2)
             }
 
         @Test
         fun `returns no assets at path if none have requested labels`() =
             runTest {
-                val dto1 = createAssetDto("/users/123", labels = emptyMap())
-                val dto2 = createAssetDto("/users/123", labels = emptyMap())
-                repository.store(dto1)
-                repository.store(dto2)
+                val pending1 = createPendingAsset(labels = emptyMap())
+                val pending2 = createPendingAsset(labels = emptyMap())
+                repository.storeNew(pending1)
+                repository.storeNew(pending2)
 
                 repository.fetchAllByPath(
-                    path = "/users/123",
+                    path = pending1.path,
                     transformation = null,
                     labels =
                         mapOf(
@@ -687,24 +686,23 @@ abstract class AssetRepositoryTest {
                         "phone" to "iphone",
                         "hello" to "world",
                     )
-                val dto1 = createAssetDto("/users/123", labels = labels)
-                val dto2 =
-                    createAssetDto(
-                        "/users/123",
+                val pending1 = createPendingAsset(labels = labels)
+                val pending2 =
+                    createPendingAsset(
                         labels =
                             mapOf(
                                 "phone" to "iphone",
                             ),
                     )
-                val assetAndVariant1 = repository.store(dto1)
-                repository.store(dto2)
+                val persisted1 = repository.storeNew(pending1)
+                repository.storeNew(pending2)
 
                 repository.fetchAllByPath(
                     path = "/users/123",
                     transformation = null,
                     labels = labels,
                     limit = 10,
-                ) shouldBe listOf(assetAndVariant1)
+                ) shouldBe listOf(persisted1)
             }
 
         @Test
@@ -715,10 +713,10 @@ abstract class AssetRepositoryTest {
                         "phone" to "iphone",
                         "hello" to "world",
                     )
-                val dto1 = createAssetDto("/users/123", labels = labels)
-                val dto2 = createAssetDto("/users/123", labels = labels)
-                val assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
+                val dto1 = createPendingAsset(labels = labels)
+                val dto2 = createPendingAsset(labels = labels)
+                val assetAndVariant1 = repository.storeNew(dto1)
+                val assetAndVariant2 = repository.storeNew(dto2)
 
                 repository.fetchAllByPath(
                     path = "/users/123",
@@ -736,8 +734,8 @@ abstract class AssetRepositoryTest {
             runTest {
                 val count = 3
                 repeat(count) {
-                    val dto = createAssetDto("/users/123")
-                    val persistedAssetAndVariants = repository.store(dto)
+                    val pending = createPendingAsset()
+                    val persisted = repository.storeNew(pending)
 
                     val persistResult =
                         PersistResult(
@@ -753,8 +751,8 @@ abstract class AssetRepositoryTest {
 
                     repository.storeVariant(
                         StoreAssetVariantDto(
-                            path = persistedAssetAndVariants.asset.path,
-                            entryId = persistedAssetAndVariants.asset.entryId,
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
                             persistResult = persistResult,
                             attributes = attributes,
                             transformation =
@@ -787,8 +785,8 @@ abstract class AssetRepositoryTest {
             runTest {
                 val count = 3
                 repeat(count) {
-                    val dto = createAssetDto("/users/123")
-                    val persistedAssetAndVariants = repository.store(dto)
+                    val pending = createPendingAsset()
+                    val persisted = repository.storeNew(pending)
 
                     val persistResult =
                         PersistResult(
@@ -804,8 +802,8 @@ abstract class AssetRepositoryTest {
 
                     repository.storeVariant(
                         StoreAssetVariantDto(
-                            path = persistedAssetAndVariants.asset.path,
-                            entryId = persistedAssetAndVariants.asset.entryId,
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
                             persistResult = persistResult,
                             attributes = attributes,
                             transformation =
@@ -845,8 +843,8 @@ abstract class AssetRepositoryTest {
             runTest {
                 val count = 3
                 repeat(count) {
-                    val dto = createAssetDto("/users/123")
-                    val persistedAssetAndVariants = repository.store(dto)
+                    val pending = createPendingAsset()
+                    val persisted = repository.storeNew(pending)
 
                     val persistResult =
                         PersistResult(
@@ -862,8 +860,8 @@ abstract class AssetRepositoryTest {
 
                     repository.storeVariant(
                         StoreAssetVariantDto(
-                            path = persistedAssetAndVariants.asset.path,
-                            entryId = persistedAssetAndVariants.asset.entryId,
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
                             persistResult = persistResult,
                             attributes = attributes,
                             transformation =
@@ -898,7 +896,7 @@ abstract class AssetRepositoryTest {
         fun `limit is respected`() =
             runTest {
                 repeat(10) {
-                    repository.store(createAssetDto("/users/123"))
+                    repository.storeNew(createPendingAsset())
                 }
                 repository.fetchAllByPath(
                     path = "/users/123",
@@ -913,11 +911,11 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deleteAssetByPath deletes the asset`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 repository.deleteAssetByPath("/users/123")
 
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath("/users/123", entryId = null, transformation = null, OrderBy.CREATED) shouldBe null
             }
 
@@ -932,47 +930,47 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deleteAssetByPath returns does nothing if asset does not exist at specific entryId`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 shouldNotThrowAny {
                     repository.deleteAssetByPath("/users/123", entryId = 1)
                 }
 
-                repository.fetchByPath(assetAndVariants.asset.path, assetAndVariants.asset.entryId, null, OrderBy.CREATED) shouldBe
-                    assetAndVariants
-                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe listOf(assetAndVariants)
+                repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED) shouldBe
+                    persisted
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe listOf(persisted)
             }
 
         @Test
         fun `deleteAssetsByPath deletes all assets at path`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val assetAndVariant1 = repository.store(dto1)
-                val assetAndVariant2 = repository.store(dto2)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
 
                 repository.deleteAssetsByPath("/users/123", recursive = false)
 
-                repository.fetchByPath(assetAndVariant1.asset.path, assetAndVariant1.asset.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(assetAndVariant2.asset.path, assetAndVariant2.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted1.path, persisted1.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted2.path, persisted2.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
             }
 
         @Test
         fun `deleteAssetsByPath deletes all assets at path and under if recursive delete`() =
             runTest {
-                val dto1 = createAssetDto("/users/123")
-                val dto2 = createAssetDto("/users/123")
-                val dto3 = createAssetDto("/users/123/profile")
-                val assetAndVariants1 = repository.store(dto1)
-                val assetAndVariants2 = repository.store(dto2)
-                val assetAndVariants3 = repository.store(dto3)
+                val pending1 = createPendingAsset()
+                val pending2 = createPendingAsset()
+                val pending3 = createPendingAsset(path = "/users/123/profile")
+                val persisted1 = repository.storeNew(pending1)
+                val persisted2 = repository.storeNew(pending2)
+                val persisted3 = repository.storeNew(pending3)
 
                 repository.deleteAssetsByPath("/users/123", recursive = true)
 
-                repository.fetchByPath(assetAndVariants1.asset.path, assetAndVariants1.asset.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(assetAndVariants2.asset.path, assetAndVariants2.asset.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(assetAndVariants3.asset.path, assetAndVariants3.asset.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted1.path, persisted1.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted2.path, persisted2.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted3.path, persisted3.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
                 repository.fetchAllByPath("/users/123/profile", null, limit = 10) shouldBe emptyList()
             }
@@ -997,8 +995,8 @@ abstract class AssetRepositoryTest {
         @EnumSource(value = Fit::class)
         fun `can fetch variant by height and width transformation`(fit: Fit) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1008,8 +1006,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1028,8 +1026,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1048,8 +1046,8 @@ abstract class AssetRepositoryTest {
         @EnumSource(value = ImageFormat::class)
         fun `can fetch variant by format transformation`(format: ImageFormat) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1058,8 +1056,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1078,8 +1076,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1098,8 +1096,8 @@ abstract class AssetRepositoryTest {
         @EnumSource(value = Rotate::class)
         fun `can fetch variant by rotation transformation`(rotate: Rotate) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1109,8 +1107,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1129,8 +1127,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1149,8 +1147,8 @@ abstract class AssetRepositoryTest {
         @ValueSource(booleans = [true, false])
         fun `can fetch variant by horizontal flip transformation`(horizontalFlip: Boolean) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1160,8 +1158,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1180,8 +1178,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1200,8 +1198,8 @@ abstract class AssetRepositoryTest {
         @EnumSource(value = Filter::class)
         fun `can fetch variant by filter transformation`(filter: Filter) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1211,8 +1209,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1231,8 +1229,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1251,8 +1249,8 @@ abstract class AssetRepositoryTest {
         @EnumSource(value = Gravity::class)
         fun `can fetch variant by gravity transformation`(gravity: Gravity) =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1262,8 +1260,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1282,8 +1280,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1301,8 +1299,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can fetch variant by quality transformation`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1312,8 +1310,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1332,8 +1330,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1351,8 +1349,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can fetch variant by pad transformation`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1362,8 +1360,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1382,8 +1380,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1401,8 +1399,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can fetch variant by background transformation`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1412,8 +1410,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1432,8 +1430,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1451,8 +1449,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can fetch variant by all transformations at once`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
                 val transformation =
                     Transformation(
                         height = 10,
@@ -1469,8 +1467,8 @@ abstract class AssetRepositoryTest {
                     )
                 val variant =
                     StoreAssetVariantDto(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId!!,
                         persistResult =
                             PersistResult(
                                 key = UUID.randomUUID().toString(),
@@ -1489,8 +1487,8 @@ abstract class AssetRepositoryTest {
 
                 val fetchedVariant =
                     repository.fetchByPath(
-                        path = assetAndVariants.asset.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = persisted.path,
+                        entryId = persisted.entryId,
                         transformation = transformation,
                     )
                 fetchedVariant shouldBe persistedVariant
@@ -1502,13 +1500,13 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can update attributes of asset`() =
             runTest {
-                val dto = createAssetDto("/users/123")
-                val assetAndVariants = repository.store(dto)
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
 
                 val updateDto =
                     UpdateAssetDto(
-                        path = dto.path,
-                        entryId = assetAndVariants.asset.entryId,
+                        path = pending.path,
+                        entryId = persisted.entryId!!,
                         request =
                             StoreAssetRequest(
                                 alt = "updated alt",
@@ -1522,12 +1520,12 @@ abstract class AssetRepositoryTest {
                     )
                 val updated = repository.update(updateDto)
 
-                updated.variants shouldBe assetAndVariants.variants
+                updated.variants shouldBe persisted.variants
                 updated.asset.apply {
                     alt shouldBe updateDto.request.alt
                     labels shouldContainExactly updateDto.request.labels
                     tags shouldContainExactly updateDto.request.tags
-                    modifiedAt shouldBeAfter assetAndVariants.asset.modifiedAt
+                    modifiedAt shouldBeAfter persisted.modifiedAt
                 }
             }
 

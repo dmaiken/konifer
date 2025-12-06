@@ -23,7 +23,7 @@ abstract class BaseUnitTest {
         url: String? = null,
         alt: String? = "",
     ): AssetAndVariants =
-        assetRepository.store(
+        assetRepository.storeNew(
             StoreAssetDto(
                 path = path,
                 request =

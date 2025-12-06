@@ -12,6 +12,7 @@ import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 abstract class ObjectRepositoryTest {
@@ -28,17 +29,17 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `can persist and fetch an object`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
-            result.bucket shouldBe BUCKET_1
-            result.key shouldEndWith ImageFormat.PNG.extension
+            val result = store.persist(BUCKET_1, key, image)
+            result.toLocalDate() shouldBe LocalDate.now()
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
                 async {
                     stream.toByteArray()
                 }
-            val fetchResult = store.fetch(result.bucket, result.key, stream)
+            val fetchResult = store.fetch(BUCKET_1, key, stream)
             fetchResult.found shouldBe true
             fetchResult.contentLength shouldBe image.readBytes().size.toLong()
             fetched.await() shouldBe image.readBytes()
@@ -47,16 +48,16 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `can persist and fetch an object without supplying content length`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
-            result.bucket shouldBe BUCKET_1
+            store.persist(BUCKET_1, key, image)
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
                 async {
                     stream.toByteArray()
                 }
-            val fetchResult = store.fetch(result.bucket, result.key, stream)
+            val fetchResult = store.fetch(BUCKET_1, key, stream)
             fetchResult.found shouldBe true
             fetchResult.contentLength shouldBe image.readBytes().size.toLong()
             fetched.await() shouldBe image.readBytes()
@@ -76,17 +77,17 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `can delete an object`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
-
-            store.delete(result.bucket, result.key)
+            store.persist(BUCKET_1, key, image)
+            store.delete(BUCKET_1, key)
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
                 async {
                     stream.toByteArray()
                 }
-            val fetchResult = store.fetch(result.bucket, result.key, stream)
+            val fetchResult = store.fetch(BUCKET_1, key, stream)
             fetchResult.found shouldBe false
             fetchResult.contentLength shouldBe 0
             fetched.await() shouldHaveSize 0
@@ -103,24 +104,26 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `deleteAll deletes supplied objects in bucket`() =
         runTest {
+            val key1 = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image1 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result1 = store.persist(BUCKET_1, image1, ImageFormat.PNG)
+            store.persist(BUCKET_1, key1, image1)
 
+            val key2 = "${UUID.randomUUID()}${ImageFormat.JPEG.extension}"
             val image2 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.jpeg")
-            val result2 = store.persist(BUCKET_1, image2, ImageFormat.JPEG)
+            store.persist(BUCKET_1, key2, image2)
 
+            val key3 = "${UUID.randomUUID()}${ImageFormat.HEIC.extension}"
             val image3 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.heic")
-            val result3 = store.persist(BUCKET_1, image3, ImageFormat.HEIC)
+            store.persist(BUCKET_1, key3, image3)
 
-            result1.bucket shouldBe result2.bucket shouldBe result3.bucket
-            store.deleteAll(result1.bucket, listOf(result1.key, result2.key, result3.key))
+            store.deleteAll(BUCKET_1, listOf(key1, key2, key3))
 
             var stream = ByteChannel(autoFlush = true)
             val fetched1 =
                 async {
                     stream.toByteArray()
                 }
-            store.fetch(result1.bucket, result1.key, stream).apply {
+            store.fetch(BUCKET_1, key1, stream).apply {
                 found shouldBe false
                 contentLength shouldBe 0
                 fetched1.await() shouldHaveSize 0
@@ -130,7 +133,7 @@ abstract class ObjectRepositoryTest {
                 async {
                     stream.toByteArray()
                 }
-            store.fetch(result2.bucket, result2.key, stream).apply {
+            store.fetch(BUCKET_1, key2, stream).apply {
                 found shouldBe false
                 contentLength shouldBe 0
                 fetched2.await() shouldHaveSize 0
@@ -140,7 +143,7 @@ abstract class ObjectRepositoryTest {
                 async {
                     stream.toByteArray()
                 }
-            store.fetch(result3.bucket, result3.key, stream).apply {
+            store.fetch(BUCKET_1, key3, stream).apply {
                 found shouldBe false
                 contentLength shouldBe 0
                 fetched3.await() shouldHaveSize 0
@@ -150,17 +153,18 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `deleteAll does nothing if wrong bucket is supplied`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
+            store.persist(BUCKET_1, key, image)
 
-            store.deleteAll(BUCKET_2, listOf(result.key))
+            store.deleteAll(BUCKET_2, listOf(key))
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
                 async {
                     stream.toByteArray()
                 }
-            store.fetch(result.bucket, result.key, stream).apply {
+            store.fetch(BUCKET_1, key, stream).apply {
                 found shouldBe true
                 contentLength shouldBe image.readBytes().size.toLong()
                 fetched.await() shouldBe image.readBytes()
@@ -170,17 +174,18 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `can deleteAll if keys do not exist in bucket`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
+            store.persist(BUCKET_1, key, image)
 
-            store.deleteAll(result.bucket, listOf(UUID.randomUUID().toString()))
+            store.deleteAll(BUCKET_1, listOf(UUID.randomUUID().toString()))
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
                 async {
                     stream.toByteArray()
                 }
-            store.fetch(result.bucket, result.key, stream).apply {
+            store.fetch(BUCKET_1, key, stream).apply {
                 found shouldBe true
                 contentLength shouldBe image.readBytes().size.toLong()
                 fetched.await() shouldBe image.readBytes()
@@ -190,10 +195,11 @@ abstract class ObjectRepositoryTest {
     @Test
     fun `exists returns true if the object exists in the object store`() =
         runTest {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, image, ImageFormat.PNG)
+            store.persist(BUCKET_1, key, image)
 
-            store.exists(result.bucket, result.key) shouldBe true
+            store.exists(BUCKET_1, key) shouldBe true
         }
 
     @Test

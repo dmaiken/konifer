@@ -4,12 +4,15 @@ import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.Asset
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 
 interface AssetRepository {
-    suspend fun store(asset: StoreAssetDto): AssetAndVariants
+    suspend fun storeNew(asset: Asset): Asset.PendingPersisted
+
+    suspend fun markReady(asset: Asset)
 
     suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants
 

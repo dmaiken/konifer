@@ -163,7 +163,7 @@ fun Application.configureAssetRouting() {
                     context = context,
                     request = call.receive(StoreAssetRequest::class),
                 )
-            call.respond(HttpStatusCode.OK, asset.assetAndVariants.toResponse())
+            call.respond(HttpStatusCode.OK, asset.asset.toResponse())
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {
@@ -248,8 +248,8 @@ suspend fun storeNewAsset(
             assetUrlGenerator.generateEntryMetadataUrl(
                 host = call.request.origin.localAddress,
                 path = asset.locationPath,
-                entryId = asset.assetAndVariants.asset.entryId,
+                entryId = asset.asset.asset.entryId,
             ),
     )
-    call.respond(HttpStatusCode.Created, asset.assetAndVariants.toResponse())
+    call.respond(HttpStatusCode.Created, asset.asset.toResponse())
 }

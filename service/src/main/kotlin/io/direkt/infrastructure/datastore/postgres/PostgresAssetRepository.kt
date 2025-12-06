@@ -3,18 +3,23 @@ package io.direkt.infrastructure.datastore.postgres
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
+import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
-import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetId
+import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
+import io.direkt.domain.variant.VariantId
 import io.direkt.infrastructure.http.serialization.format
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
@@ -41,12 +46,18 @@ class PostgresAssetRepository(
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override suspend fun store(asset: StoreAssetDto): AssetAndVariants {
-        val assetId = UUID.randomUUID()
+    override suspend fun storeNew(asset: Asset): Asset.PendingPersisted {
+        if (asset !is Asset.Pending) {
+            throw IllegalStateException("Asset must be Pending")
+        }
         val now = LocalDateTime.now()
         val treePath = PathAdapter.toTreePathFromUriPath(asset.path)
-        val (transformations, transformationKey) = VariantParameterGenerator.generateImageVariantTransformations(asset.attributes)
-        val attributes = VariantParameterGenerator.generateImageVariantAttributes(asset.attributes)
+        val originalVariant = asset.variants.first()
+        val (transformations, transformationKey) = VariantParameterGenerator.generateImageVariantTransformations(
+            attributes = originalVariant.attributes
+        )
+        val attributes = VariantParameterGenerator.generateImageVariantAttributes(originalVariant.attributes)
+        val assetId = asset.id.value
         return dslContext.transactionCoroutine { trx ->
             val entryId = getNextEntryId(trx.dsl(), treePath)
             logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
@@ -56,27 +67,27 @@ class PostgresAssetRepository(
                     .insertInto(ASSET_TREE)
                     .set(ASSET_TREE.ID, assetId)
                     .set(ASSET_TREE.PATH, treePath)
-                    .set(ASSET_TREE.ALT, asset.request.alt)
+                    .set(ASSET_TREE.ALT, asset.alt)
                     .set(ASSET_TREE.ENTRY_ID, entryId)
                     .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
                     .set(ASSET_TREE.MODIFIED_AT, now)
-            asset.request.url?.let {
+            asset.sourceUrl?.let {
                 insert.set(ASSET_TREE.SOURCE_URL, it)
             }
             val persistedAsset = insert.returning().awaitFirst()
-            insertLabels(trx.dsl(), assetId, asset.request.labels, now)
-            insertTags(trx.dsl(), assetId, asset.request.tags, now)
+            insertLabels(trx.dsl(), assetId, asset.labels, now)
+            insertTags(trx.dsl(), assetId, asset.tags, now)
 
-            val lqip = format.encodeToString(asset.lqips)
+            val lqip = format.encodeToString(asset.variants.first().lqips)
             val persistedVariant =
                 trx
                     .dsl()
                     .insertInto(ASSET_VARIANT)
                     .set(ASSET_VARIANT.ID, UUID.randomUUID())
                     .set(ASSET_VARIANT.ASSET_ID, assetId)
-                    .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, asset.persistResult.bucket)
-                    .set(ASSET_VARIANT.OBJECT_STORE_KEY, asset.persistResult.key)
+                    .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, originalVariant.objectStoreBucket)
+                    .set(ASSET_VARIANT.OBJECT_STORE_KEY, originalVariant.objectStoreKey)
                     .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                     .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
                     .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationKey)
@@ -86,8 +97,12 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
-            AssetAndVariants.from(persistedAsset, persistedVariant, asset.request.labels, asset.request.tags)
+            toPendingPersisted(persistedAsset, persistedVariant, asset.labels, asset.tags)
         }
+    }
+
+    override suspend fun markReady(asset: Asset) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
@@ -537,7 +552,7 @@ class PostgresAssetRepository(
         }
     }
 
-    fun orderByConditions(orderBy: OrderBy): Array<out SortField<out Comparable<*>?>> {
+    private fun orderByConditions(orderBy: OrderBy): Array<out SortField<out Comparable<*>?>> {
         val orderByModifierCondition =
             when (orderBy) {
                 OrderBy.CREATED -> ASSET_TREE.CREATED_AT.desc()
@@ -546,4 +561,42 @@ class PostgresAssetRepository(
 
         return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
+
+    private fun toPendingPersisted(
+        asset: AssetTreeRecord,
+        variant: AssetVariantRecord,
+        labels: Map<String, String>,
+        tags: Set<String>,
+    ): Asset.PendingPersisted = Asset.PendingPersisted(
+        id = AssetId(checkNotNull(asset.id)),
+        path = checkNotNull(asset.path).toPath(),
+        entryId = checkNotNull(asset.entryId),
+        alt = asset.alt,
+        labels = labels,
+        tags = tags,
+        source = AssetSource.valueOf(checkNotNull(asset.source)),
+        sourceUrl = asset.sourceUrl,
+        createdAt = checkNotNull(asset.createdAt),
+        modifiedAt = checkNotNull(asset.modifiedAt),
+        isReady = false,
+        variants = listOf(
+            Variant.Pending(
+                id = VariantId(checkNotNull(variant.id)),
+                objectStoreBucket = checkNotNull(variant.objectStoreBucket),
+                objectStoreKey = checkNotNull(variant.objectStoreKey),
+                isOriginalVariant = true,
+                attributes = format
+                    .decodeFromString<ImageVariantAttributes>(
+                        checkNotNull(variant.attributes).data(),
+                    ).toAttributes(),
+                transformation = format.decodeFromString<ImageVariantTransformation>(
+                    checkNotNull(variant.transformation).data(),
+                    ).toTransformation(),
+                transformationKey = checkNotNull(variant.transformationKey),
+                lqips = format.decodeFromString(checkNotNull(variant.lqip).data()),
+                createdAt = checkNotNull(variant.createdAt),
+                uploadedAt = null,
+            )
+        )
+    )
 }

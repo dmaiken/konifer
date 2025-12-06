@@ -4,13 +4,14 @@ import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.image.ImageFormat
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File
+import java.time.LocalDateTime
 
 interface ObjectRepository {
     suspend fun persist(
         bucket: String,
+        key: String,
         asset: File,
-        format: ImageFormat,
-    ): PersistResult
+    ): LocalDateTime
 
     suspend fun fetch(
         bucket: String,

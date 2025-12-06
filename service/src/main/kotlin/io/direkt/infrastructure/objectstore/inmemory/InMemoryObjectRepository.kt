@@ -10,6 +10,7 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import java.io.File
+import java.time.LocalDateTime
 import java.util.UUID
 
 class InMemoryObjectRepository : ObjectRepository {
@@ -21,18 +22,14 @@ class InMemoryObjectRepository : ObjectRepository {
 
     override suspend fun persist(
         bucket: String,
+        key: String,
         asset: File,
-        format: ImageFormat,
-    ): PersistResult {
-        val key = "${UUID.randomUUID()}${format.extension}"
+    ): LocalDateTime {
         store.computeIfAbsent(bucket) { mutableMapOf() }
 
         store[bucket]?.put(key, asset.readChannel().toByteArray())
 
-        return PersistResult(
-            key = key,
-            bucket = bucket,
-        )
+        return LocalDateTime.now()
     }
 
     override suspend fun fetch(

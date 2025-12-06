@@ -80,7 +80,7 @@ class CoroutineVariantGeneratorTest {
             val objectStoreResponse = objectStore.persist(BUCKET, image, ImageFormat.PNG)
 
             asset =
-                assetRepository.store(
+                assetRepository.storeNew(
                     StoreAssetDto(
                         path = PATH,
                         request =
