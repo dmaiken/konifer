@@ -1,10 +1,10 @@
 package io.direkt
 
-import io.direkt.asset.http.configureAssetRouting
+import io.direkt.infrastructure.http.configureAssetRouting
 import io.direkt.database.connectToPostgres
 import io.direkt.database.migrateSchema
-import io.direkt.infrastructure.koin.configureKoin
-import io.direkt.inmemory.configureInMemoryObjectStoreRouting
+import io.direkt.infrastructure.configureKoin
+import io.direkt.infrastructure.inmemory.configureInMemoryObjectStoreRouting
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain

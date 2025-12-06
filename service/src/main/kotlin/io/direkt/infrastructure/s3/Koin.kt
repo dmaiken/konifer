@@ -1,7 +1,7 @@
-package io.direkt.s3
+package io.direkt.infrastructure.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
-import io.direkt.asset.store.ObjectStore
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.properties.validateAndCreate
 import io.direkt.s3Client
 import io.ktor.server.application.Application
@@ -24,7 +24,7 @@ fun Application.s3Module(): Module =
         single<S3Client> {
             s3Client(s3ClientProperties)
         }
-        single<ObjectStore> {
-            S3ObjectStore(get(), s3ClientProperties)
+        single<ObjectRepository> {
+            S3ObjectRepository(get(), s3ClientProperties)
         }
     }

@@ -1,4 +1,4 @@
-package io.direkt.asset.store
+package io.direkt.infrastructure.`object`
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
@@ -7,13 +7,14 @@ import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
 import io.direkt.asset.variant.AssetVariant
 import io.direkt.createImageBuckets
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.image.model.Attributes
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.LQIPs
 import io.direkt.image.model.Transformation
 import io.direkt.properties.validateAndCreate
-import io.direkt.s3.S3ClientProperties
-import io.direkt.s3.S3ObjectStore
+import io.direkt.infrastructure.s3.S3ClientProperties
+import io.direkt.infrastructure.s3.S3ObjectRepository
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
@@ -28,7 +29,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Testcontainers
-class S3ObjectStoreTest : ObjectStoreTest() {
+class S3ObjectRepositoryTest : ObjectRepositoryTest() {
     companion object {
         @JvmStatic
         @Container
@@ -52,7 +53,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
 
     lateinit var s3Client: S3Client
 
-    override fun createObjectStore(): ObjectStore {
+    override fun createObjectStore(): ObjectRepository {
         s3Client =
             S3Client {
                 credentialsProvider =
@@ -79,7 +80,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 },
             )
         }
-        return S3ObjectStore(
+        return S3ObjectRepository(
             s3Client = s3Client,
             s3ClientProperties =
                 validateAndCreate {
@@ -99,7 +100,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `generates a path-style AWS URL if specified`() {
             val store =
-                S3ObjectStore(
+                S3ObjectRepository(
                     s3Client = s3Client,
                     s3ClientProperties =
                         validateAndCreate {
@@ -121,7 +122,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `generates a non-AWS path-style URL if specified`() {
             val store =
-                S3ObjectStore(
+                S3ObjectRepository(
                     s3Client = s3Client,
                     s3ClientProperties =
                         validateAndCreate {
@@ -142,7 +143,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `generates a virtual-style AWS URL if specified`() {
             val store =
-                S3ObjectStore(
+                S3ObjectRepository(
                     s3Client = s3Client,
                     s3ClientProperties =
                         validateAndCreate {
@@ -164,7 +165,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `generates a non-AWS virtual-style URL if specified`() {
             val store =
-                S3ObjectStore(
+                S3ObjectRepository(
                     s3Client = s3Client,
                     s3ClientProperties =
                         validateAndCreate {

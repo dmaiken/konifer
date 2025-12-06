@@ -1,4 +1,4 @@
-package io.direkt.asset.http
+package io.direkt.infrastructure.http
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java

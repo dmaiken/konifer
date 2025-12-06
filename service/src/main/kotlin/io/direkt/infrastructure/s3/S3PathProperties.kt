@@ -1,4 +1,4 @@
-package io.direkt.s3
+package io.direkt.infrastructure.s3
 
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
 import io.direkt.properties.ValidatedProperties

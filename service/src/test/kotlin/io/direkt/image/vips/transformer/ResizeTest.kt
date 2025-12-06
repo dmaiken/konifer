@@ -18,7 +18,7 @@ import io.direkt.image.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.image.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.image.vips.VipsOptionNames.OPTION_SIZE
 import io.image.vips.aspectRatio
-import io.image.vips.transformation.Resize
+import io.direkt.image.vips.transformation.Resize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

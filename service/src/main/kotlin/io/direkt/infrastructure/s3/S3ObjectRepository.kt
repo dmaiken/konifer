@@ -1,4 +1,4 @@
-package io.direkt.s3
+package io.direkt.infrastructure.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.Delete
@@ -13,9 +13,9 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
-import io.direkt.asset.store.FetchResult
-import io.direkt.asset.store.ObjectStore
-import io.direkt.asset.store.PersistResult
+import io.direkt.domain.ports.FetchResult
+import io.direkt.domain.ports.ObjectRepository
+import io.direkt.domain.ports.PersistResult
 import io.direkt.asset.variant.AssetVariant
 import io.direkt.image.model.ImageFormat
 import io.ktor.util.logging.KtorSimpleLogger
@@ -26,10 +26,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
-class S3ObjectStore(
+class S3ObjectRepository(
     private val s3Client: S3Client,
     private val s3ClientProperties: S3ClientProperties,
-) : ObjectStore {
+) : ObjectRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun persist(

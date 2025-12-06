@@ -1,11 +1,11 @@
 package io.direkt.image.vips.pipeline
 
 import io.direkt.image.vips.pipeline.VipsPipelines.preProcessingPipeline
-import io.image.vips.transformation.ColorFilter
-import io.image.vips.transformation.GaussianBlur
-import io.image.vips.transformation.Pad
-import io.image.vips.transformation.Resize
-import io.image.vips.transformation.RotateFlip
+import io.direkt.image.vips.transformation.ColorFilter
+import io.direkt.image.vips.transformation.GaussianBlur
+import io.direkt.image.vips.transformation.Pad
+import io.direkt.image.vips.transformation.Resize
+import io.direkt.image.vips.transformation.RotateFlip
 
 object VipsPipelines {
     val lqipVariantPipeline =

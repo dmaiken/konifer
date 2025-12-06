@@ -6,7 +6,7 @@ import app.photofox.vipsffm.enums.VipsDirection
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.Rotate
 import io.direkt.image.model.Transformation
-import io.image.vips.transformation.RotateFlip
+import io.direkt.image.vips.transformation.RotateFlip
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs
 import kotlinx.coroutines.test.runTest

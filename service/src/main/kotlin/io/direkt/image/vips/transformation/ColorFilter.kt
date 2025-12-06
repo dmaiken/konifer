@@ -1,4 +1,4 @@
-package io.image.vips.transformation
+package io.direkt.image.vips.transformation
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VSource

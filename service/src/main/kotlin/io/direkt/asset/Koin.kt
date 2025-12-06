@@ -4,7 +4,7 @@ import io.direkt.asset.context.RequestContextFactory
 import io.direkt.asset.handler.AssetStreamContainerFactory
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.handler.UpdateAssetHandler
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.asset.repository.InMemoryAssetRepository

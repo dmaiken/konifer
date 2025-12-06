@@ -8,7 +8,7 @@ import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.S3
 import io.direkt.properties.ValidatedProperties
 import io.direkt.properties.validateAndCreate
-import io.direkt.s3.S3PathProperties
+import io.direkt.infrastructure.s3.S3PathProperties
 import io.direkt.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList

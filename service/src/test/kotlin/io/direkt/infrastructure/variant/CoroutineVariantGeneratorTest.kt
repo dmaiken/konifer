@@ -2,12 +2,12 @@ package io.direkt.infrastructure.variant
 
 import io.createRequestedImageTransformation
 import io.direkt.asset.handler.AssetSource
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.InMemoryAssetRepository
-import io.direkt.asset.store.InMemoryObjectStore
+import io.direkt.infrastructure.inmemory.InMemoryObjectRepository
 import io.direkt.getResourceAsFile
 import io.direkt.image.DimensionCalculator
 import io.direkt.image.model.Attributes
@@ -42,7 +42,7 @@ class CoroutineVariantGeneratorTest {
     }
 
     private val assetRepository = InMemoryAssetRepository()
-    private val objectStore = InMemoryObjectStore()
+    private val objectStore = InMemoryObjectRepository()
     private val imageProcessor =
         spyk<VipsImageProcessor>(
             VipsImageProcessor(),

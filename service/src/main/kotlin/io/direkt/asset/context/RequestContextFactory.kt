@@ -15,7 +15,7 @@ import io.direkt.asset.ManipulationParameters.QUALITY
 import io.direkt.asset.ManipulationParameters.ROTATE
 import io.direkt.asset.ManipulationParameters.VARIANT_PROFILE
 import io.direkt.asset.ManipulationParameters.WIDTH
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.variant.VariantProfileRepository
 import io.direkt.image.model.Filter
 import io.direkt.image.model.Fit

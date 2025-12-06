@@ -1,4 +1,4 @@
-package io.direkt.asset.handler
+package io.direkt.service
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
@@ -19,7 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -30,25 +30,25 @@ class TransformationNormalizerTest : BaseUnitTest() {
         fun rotateFlipSource() =
             listOf(
                 // 1
-                arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false),
+                Arguments.arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false),
                 // 2
-                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true),
-                arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true),
+                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true),
+                Arguments.arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true),
                 // 3
-                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false),
+                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false),
                 // 4
-                arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true),
-                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true),
+                Arguments.arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true),
+                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true),
                 // 5
-                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true),
-                arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true),
+                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true),
+                Arguments.arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true),
                 // 6
-                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false),
+                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false),
                 // 7
-                arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true),
-                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true),
+                Arguments.arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true),
+                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true),
                 // 8
-                arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false),
+                Arguments.arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false),
             )
     }
 
@@ -152,7 +152,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe requested.format
 
                 coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
 
@@ -179,7 +183,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe requested.format
 
                 coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
 
@@ -205,7 +213,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe ImageFormat.PNG
 
                 coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
 
@@ -230,7 +242,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.filter shouldBe Filter.GREYSCALE
 
                 coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
     }
@@ -258,7 +274,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe ImageFormat.PNG
                 coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
     }
@@ -356,7 +376,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe ImageFormat.PNG
 
                 coVerify {
-                    assetRepository.fetchByPath(asset.asset.path, asset.asset.entryId, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath(
+                        asset.asset.path,
+                        asset.asset.entryId,
+                        Transformation.ORIGINAL_VARIANT
+                    )
                 }
             }
     }
@@ -451,7 +475,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
     @Nested
     inner class NormalizeRotateFlipTests {
         @ParameterizedTest
-        @MethodSource("io.direkt.asset.handler.TransformationNormalizerTest#rotateFlipSource")
+        @MethodSource("io.direkt.service.TransformationNormalizerTest#rotateFlipSource")
         fun `can normalize rotation and flip transformation attributes`(
             suppliedRotate: Rotate,
             suppliedFlip: Flip,

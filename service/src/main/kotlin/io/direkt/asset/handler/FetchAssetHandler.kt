@@ -6,14 +6,14 @@ import io.direkt.asset.handler.dto.AssetLinkDto
 import io.direkt.asset.handler.dto.AssetMetadataDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.repository.AssetRepository
-import io.direkt.asset.store.ObjectStore
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.VariantGenerator
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 
 class FetchAssetHandler(
     private val assetRepository: AssetRepository,
-    private val objectStore: ObjectStore,
+    private val objectStore: ObjectRepository,
     private val variantGenerator: VariantGenerator,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)

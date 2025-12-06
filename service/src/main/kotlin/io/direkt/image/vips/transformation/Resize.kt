@@ -1,4 +1,4 @@
-package io.image.vips.transformation
+package io.direkt.image.vips.transformation
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
@@ -46,7 +46,7 @@ object Resize : VipsTransformer {
             )
         logger.info(
             "Scaling image with dimensions (${source.width}, ${source.pageSafeHeight()}) to ($resizeWidth, $resizeHeight) " +
-                "using crop: ${transformation.fit}",
+                "using fit: ${transformation.fit}",
         )
         val regenerateLqip = requiresLqipRegeneration(source, resizeWidth, resizeHeight, transformation)
         val scaled =

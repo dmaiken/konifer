@@ -9,7 +9,7 @@ import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.Transformation
 import io.direkt.image.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.direkt.image.vips.VipsOptionNames.OPTION_EXTEND
-import io.image.vips.transformation.Pad
+import io.direkt.image.vips.transformation.Pad
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

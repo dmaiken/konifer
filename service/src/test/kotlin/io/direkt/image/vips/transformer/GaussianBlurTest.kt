@@ -7,7 +7,7 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.PHash
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.Transformation
-import io.image.vips.transformation.GaussianBlur
+import io.direkt.image.vips.transformation.GaussianBlur
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs

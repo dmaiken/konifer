@@ -1,10 +1,9 @@
-package io.direkt.asset.handler
+package io.direkt.service
 
-import io.direkt.asset.handler.ColorConverter.transparent
-import io.direkt.asset.handler.ColorConverter.white
+import io.direkt.asset.handler.ColorConverter
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.image.model.Attributes
-import io.direkt.image.model.ExifOrientations.normalizeOrientation
+import io.direkt.image.model.ExifOrientations
 import io.direkt.image.model.Fit
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.RequestedTransformation
@@ -23,7 +22,7 @@ class TransformationNormalizer(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     /**
-     * Transform the supplied [RequestedTransformation] into a normalized [Transformation] where every transformation
+     * Transform the supplied [io.direkt.image.model.RequestedTransformation] into a normalized [io.direkt.image.model.Transformation] where every transformation
      * attribute is specified, if needed, by deriving missing values using the original variant.
      */
     suspend fun normalize(
@@ -98,7 +97,7 @@ class TransformationNormalizer(
             return Transformation.ORIGINAL_VARIANT
         }
         val (width, height) = normalizeDimensions(requested, originalAttributesDeferred)
-        val (rotate, horizontalFlip) = normalizeOrientation(requested.rotate, requested.flip)
+        val (rotate, horizontalFlip) = ExifOrientations.normalizeOrientation(requested.rotate, requested.flip)
         val format = normalizeFormat(requested, originalAttributesDeferred)
         return Transformation(
             width = width,
@@ -181,7 +180,7 @@ class TransformationNormalizer(
             return emptyList()
         }
         if (requested.background == null) {
-            return if (normalizedFormat.vipsProperties.supportsAlpha) transparent else white
+            return if (normalizedFormat.vipsProperties.supportsAlpha) ColorConverter.transparent else ColorConverter.white
         }
 
         return ColorConverter.toRgba(requested.background)

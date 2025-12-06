@@ -9,11 +9,11 @@ import io.direkt.asset.context.StoreRequestContext
 import io.direkt.asset.handler.AssetAndLocation
 import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.handler.AssetStreamContainerFactory
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.AssetRepository
-import io.direkt.asset.store.ObjectStore
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.asset.variant.VariantProfileRepository
 import io.direkt.domain.aggregate.Asset
 import io.direkt.domain.ports.VariantGenerator
@@ -32,7 +32,7 @@ import kotlinx.coroutines.withContext
 class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
-    private val objectStore: ObjectStore,
+    private val objectStore: ObjectRepository,
     private val variantGenerator: VariantGenerator,
     private val variantProfileRepository: VariantProfileRepository,
     private val requestContextFactory: RequestContextFactory,

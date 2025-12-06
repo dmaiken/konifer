@@ -1,4 +1,4 @@
-package io.direkt.asset.http
+package io.direkt.infrastructure.http
 
 import io.direkt.asset.AssetStreamContainer
 import io.direkt.asset.MAX_BYTES_DEFAULT

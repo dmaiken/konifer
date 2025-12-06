@@ -1,7 +1,6 @@
-package io.direkt.inmemory
+package io.direkt.infrastructure.inmemory
 
-import io.direkt.asset.store.InMemoryObjectStore
-import io.direkt.asset.store.ObjectStore
+import io.direkt.domain.ports.ObjectRepository
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -13,7 +12,7 @@ import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 
 fun Application.configureInMemoryObjectStoreRouting() {
-    val objectStore by inject<ObjectStore>()
+    val objectStore by inject<ObjectRepository>()
 
     routing {
         get("objectStore/{bucket}/{key}") {
@@ -33,8 +32,8 @@ fun Application.configureInMemoryObjectStoreRouting() {
         }
 
         delete("objectStore") {
-            if (objectStore is InMemoryObjectStore) {
-                (objectStore as InMemoryObjectStore).clearObjectStore()
+            if (objectStore is InMemoryObjectRepository) {
+                (objectStore as InMemoryObjectRepository).clearObjectStore()
             }
             call.respond(HttpStatusCode.NoContent)
         }

@@ -1,12 +1,12 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.asset.TemporaryFileFactory.createOriginalVariantTempFile
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.model.Asset
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.repository.AssetRepository
-import io.direkt.asset.store.ObjectStore
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.asset.variant.AssetVariant
 import io.direkt.image.lqip.LQIPImplementation
 import io.direkt.image.model.PreProcessedImage
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 class CoroutineVariantGenerator(
     private val assetRepository: AssetRepository,
-    private val objectStore: ObjectStore,
+    private val objectStore: ObjectRepository,
     private val imageProcessor: VipsImageProcessor,
     private val consumer: PriorityChannelConsumer<ImageProcessingJob<*>>,
     private val transformationNormalizer: TransformationNormalizer,

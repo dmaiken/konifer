@@ -1,11 +1,11 @@
-package io.direkt.asset.store
+package io.direkt.domain.ports
 
 import io.direkt.asset.variant.AssetVariant
 import io.direkt.image.model.ImageFormat
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File
 
-interface ObjectStore {
+interface ObjectRepository {
     suspend fun persist(
         bucket: String,
         asset: File,

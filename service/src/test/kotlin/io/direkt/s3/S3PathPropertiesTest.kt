@@ -1,7 +1,7 @@
 package io.direkt.s3
 
 import com.typesafe.config.ConfigFactory
-import io.direkt.s3.S3PathProperties
+import io.direkt.infrastructure.s3.S3PathProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.server.config.HoconApplicationConfig

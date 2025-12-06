@@ -2,7 +2,7 @@ package io.direkt.asset.context
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.direkt.asset.handler.TransformationNormalizer
+import io.direkt.service.TransformationNormalizer
 import io.direkt.asset.variant.VariantProfileRepository
 import io.direkt.image.model.Fit
 import io.direkt.image.model.ImageFormat
@@ -11,7 +11,7 @@ import io.direkt.image.model.Transformation
 import io.direkt.path.DeleteMode
 import io.direkt.path.configuration.PathConfiguration
 import io.direkt.path.configuration.PathConfigurationRepository
-import io.direkt.s3.S3PathProperties
+import io.direkt.infrastructure.s3.S3PathProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeOneOf

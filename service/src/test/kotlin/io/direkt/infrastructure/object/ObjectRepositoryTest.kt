@@ -1,5 +1,6 @@
-package io.direkt.asset.store
+package io.direkt.infrastructure.`object`
 
+import io.direkt.domain.ports.ObjectRepository
 import io.direkt.getResourceAsFile
 import io.direkt.image.model.ImageFormat
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -13,8 +14,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-abstract class ObjectStoreTest {
-    abstract fun createObjectStore(): ObjectStore
+abstract class ObjectRepositoryTest {
+    abstract fun createObjectStore(): ObjectRepository
 
     protected val store = createObjectStore()
 

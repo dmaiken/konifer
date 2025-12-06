@@ -1,4 +1,4 @@
-package io.direkt.asset.http
+package io.direkt.infrastructure.http
 
 class AssetUrlGenerator(
     private val port: Int,

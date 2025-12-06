@@ -1,6 +1,9 @@
-package io.direkt.asset.store
+package io.direkt.infrastructure.inmemory
 
 import io.direkt.asset.variant.AssetVariant
+import io.direkt.domain.ports.FetchResult
+import io.direkt.domain.ports.ObjectRepository
+import io.direkt.domain.ports.PersistResult
 import io.direkt.image.model.ImageFormat
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -9,7 +12,7 @@ import io.ktor.utils.io.writeFully
 import java.io.File
 import java.util.UUID
 
-class InMemoryObjectStore : ObjectStore {
+class InMemoryObjectRepository : ObjectRepository {
     companion object {
         const val DEFAULT_PORT = 8080
     }
@@ -44,7 +47,7 @@ class InMemoryObjectStore : ObjectStore {
                     found = true,
                     contentLength = it.size.toLong(),
                 )
-            } ?: FetchResult.notFound()
+            } ?: FetchResult.Companion.notFound()
         } finally {
             stream.flushAndClose()
         }

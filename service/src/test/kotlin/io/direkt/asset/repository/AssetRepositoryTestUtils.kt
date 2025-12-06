@@ -3,7 +3,7 @@ package io.direkt.asset.repository
 import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.asset.store.PersistResult
+import io.direkt.domain.ports.PersistResult
 import io.direkt.image.model.Attributes
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.LQIPs

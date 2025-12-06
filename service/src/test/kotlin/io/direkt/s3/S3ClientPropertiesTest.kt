@@ -1,5 +1,7 @@
 package io.direkt.s3
 
+import io.direkt.infrastructure.s3.S3ClientProperties
+import io.direkt.infrastructure.s3.S3Provider
 import io.direkt.properties.validateAndCreate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

@@ -18,7 +18,7 @@ import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetLink
 import io.direkt.util.fetchAssetViaRedirect
 import io.direkt.util.storeAssetMultipartSource
-import io.image.vips.transformation.ColorFilter.greyscaleMatrix3x3
+import io.direkt.image.vips.transformation.ColorFilter.greyscaleMatrix3x3
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
