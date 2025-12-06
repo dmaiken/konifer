@@ -1,7 +1,7 @@
 package io.direkt.asset.handler
 
-import io.direkt.asset.context.ContentTypeNotPermittedException
-import io.direkt.asset.context.QueryRequestContext
+import io.direkt.service.context.ContentTypeNotPermittedException
+import io.direkt.service.context.QueryRequestContext
 import io.direkt.asset.handler.dto.AssetLinkDto
 import io.direkt.asset.handler.dto.AssetMetadataDto
 import io.direkt.asset.model.AssetAndVariants

@@ -1,7 +1,7 @@
 package io.direkt
 
-import io.direkt.asset.context.ContentTypeNotPermittedException
-import io.direkt.asset.context.InvalidPathException
+import io.direkt.service.context.ContentTypeNotPermittedException
+import io.direkt.service.context.InvalidPathException
 import io.direkt.asset.handler.AssetNotFoundException
 import io.direkt.image.InvalidImageException
 import io.ktor.http.HttpStatusCode

@@ -43,6 +43,6 @@ fun createAssetDto(
                 key = UUID.randomUUID().toString(),
                 bucket = "bucket",
             ),
-        lqips = LQIPs.Factory.NONE,
+        lqips = LQIPs.NONE,
         source = source,
     )

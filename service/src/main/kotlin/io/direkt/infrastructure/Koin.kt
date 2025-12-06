@@ -3,7 +3,7 @@ package io.direkt.infrastructure
 import io.direkt.asset.assetModule
 import io.direkt.infrastructure.http.httpClientModule
 import io.direkt.infrastructure.http.httpModule
-import io.direkt.database.dbModule
+import io.direkt.infrastructure.database.dbModule
 import io.direkt.infrastructure.variant.variantModule
 import io.direkt.infrastructure.inmemory.inMemoryObjectStoreModule
 import io.direkt.path.pathModule

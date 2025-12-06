@@ -9,13 +9,13 @@ import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.InMemoryAssetRepository
 import io.direkt.infrastructure.inmemory.InMemoryObjectRepository
 import io.direkt.getResourceAsFile
-import io.direkt.image.DimensionCalculator
+import io.direkt.infrastructure.vips.DimensionCalculator
 import io.direkt.image.model.Attributes
 import io.direkt.image.model.Fit
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.LQIPs
 import io.direkt.image.model.Transformation
-import io.direkt.image.vips.VipsImageProcessor
+import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forExactly

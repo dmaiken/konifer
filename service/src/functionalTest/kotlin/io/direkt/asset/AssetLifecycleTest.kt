@@ -9,9 +9,9 @@ import io.direkt.asset.model.AssetClass
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
 import io.direkt.image.model.ImageFormat
-import io.direkt.image.vips.VipsOptionNames.OPTION_ACCESS
-import io.direkt.image.vips.VipsOptionNames.OPTION_N
-import io.direkt.image.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_N
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource

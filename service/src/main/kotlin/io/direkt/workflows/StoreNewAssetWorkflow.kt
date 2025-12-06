@@ -4,8 +4,8 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.direkt.asset.AssetStreamContainer
 import io.direkt.asset.MimeTypeDetector
-import io.direkt.asset.context.RequestContextFactory
-import io.direkt.asset.context.StoreRequestContext
+import io.direkt.service.context.RequestContextFactory
+import io.direkt.service.context.StoreRequestContext
 import io.direkt.asset.handler.AssetAndLocation
 import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.handler.AssetStreamContainerFactory
@@ -21,7 +21,7 @@ import io.direkt.image.InvalidImageException
 import io.direkt.image.model.Attributes
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.Transformation
-import io.direkt.image.vips.createDecoderOptions
+import io.direkt.infrastructure.vips.createDecoderOptions
 import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred

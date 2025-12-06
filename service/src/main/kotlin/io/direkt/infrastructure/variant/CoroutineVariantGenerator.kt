@@ -8,10 +8,10 @@ import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.repository.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.asset.variant.AssetVariant
-import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.image.model.LQIPImplementation
 import io.direkt.image.model.PreProcessedImage
 import io.direkt.image.model.Transformation
-import io.direkt.image.vips.VipsImageProcessor
+import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel

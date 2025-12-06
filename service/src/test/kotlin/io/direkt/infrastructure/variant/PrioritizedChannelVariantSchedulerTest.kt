@@ -1,7 +1,7 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.domain.ports.VariantGenerator
-import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.image.model.LQIPImplementation
 import io.direkt.image.model.ImageFormat
 import io.direkt.image.model.RequestedTransformation
 import io.direkt.image.model.Transformation

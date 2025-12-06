@@ -47,7 +47,7 @@ class InMemoryObjectRepository : ObjectRepository {
                     found = true,
                     contentLength = it.size.toLong(),
                 )
-            } ?: FetchResult.Companion.notFound()
+            } ?: FetchResult.NOT_FOUND
         } finally {
             stream.flushAndClose()
         }

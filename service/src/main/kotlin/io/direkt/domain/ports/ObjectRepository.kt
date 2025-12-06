@@ -48,8 +48,8 @@ data class FetchResult(
     val found: Boolean,
     val contentLength: Long,
 ) {
-    companion object {
-        fun notFound() = FetchResult(false, 0)
+    companion object Factory {
+        val NOT_FOUND = FetchResult(false, 0)
 
         fun found(contentLength: Long) = FetchResult(true, contentLength)
     }

@@ -1,6 +1,6 @@
 package io.direkt.asset
 
-import io.direkt.asset.context.OrderBy
+import io.direkt.service.context.OrderBy
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
 import io.direkt.util.createJsonClient

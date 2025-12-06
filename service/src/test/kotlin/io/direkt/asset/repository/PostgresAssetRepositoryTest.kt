@@ -1,7 +1,7 @@
 package io.direkt.asset.repository
 
-import io.direkt.database.configureJOOQ
-import io.direkt.database.migrateSchema
+import io.direkt.infrastructure.database.configureJOOQ
+import io.direkt.infrastructure.database.migrateSchema
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactoryOptions
 import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE

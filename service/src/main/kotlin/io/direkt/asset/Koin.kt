@@ -1,6 +1,6 @@
 package io.direkt.asset
 
-import io.direkt.asset.context.RequestContextFactory
+import io.direkt.service.context.RequestContextFactory
 import io.direkt.asset.handler.AssetStreamContainerFactory
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler

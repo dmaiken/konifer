@@ -71,13 +71,13 @@ class S3ObjectRepository(
                     it.body?.let { body ->
                         body.writeToOutputStream(stream.toOutputStream())
                         FetchResult.found(requireNotNull(it.contentLength))
-                    } ?: FetchResult.notFound().also {
+                    } ?: FetchResult.NOT_FOUND.also {
                         stream.flushAndClose()
                     }
                 }
             } catch (e: NoSuchKey) {
                 logger.info("Object with key $key in bucket $bucket does not exist", e)
-                FetchResult.notFound().also {
+                FetchResult.NOT_FOUND.also {
                     stream.flushAndClose()
                 }
             }

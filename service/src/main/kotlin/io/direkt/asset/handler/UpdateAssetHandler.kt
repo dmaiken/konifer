@@ -1,6 +1,6 @@
 package io.direkt.asset.handler
 
-import io.direkt.asset.context.UpdateRequestContext
+import io.direkt.service.context.UpdateRequestContext
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.asset.repository.AssetRepository

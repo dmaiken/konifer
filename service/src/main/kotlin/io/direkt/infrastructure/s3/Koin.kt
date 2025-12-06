@@ -3,7 +3,6 @@ package io.direkt.infrastructure.s3
 import aws.sdk.kotlin.services.s3.S3Client
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.properties.validateAndCreate
-import io.direkt.s3Client
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import org.koin.core.module.Module

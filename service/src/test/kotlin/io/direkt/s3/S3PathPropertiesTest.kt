@@ -13,7 +13,7 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties`() {
         val properties =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
 
@@ -22,7 +22,7 @@ class S3PathPropertiesTest {
 
     @Test
     fun `can create S3Properties with defaults`() {
-        val properties = S3PathProperties.Factory.create(null)
+        val properties = S3PathProperties.create(null)
 
         properties.bucket shouldBe "assets"
     }
@@ -30,11 +30,11 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties with parent`() {
         val parent =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
         val properties =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 applicationConfig = null,
                 parent = parent,
             )
@@ -51,7 +51,7 @@ class S3PathPropertiesTest {
                 """.trimIndent(),
             )
         val properties =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 applicationConfig = HoconApplicationConfig(config),
                 parent = null,
             )
@@ -62,7 +62,7 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties with application config and parent`() {
         val parent =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 bucket = "test-bucket",
             )
         val config =
@@ -72,7 +72,7 @@ class S3PathPropertiesTest {
                 """.trimIndent(),
             )
         val properties =
-            S3PathProperties.Factory.create(
+            S3PathProperties.create(
                 applicationConfig = HoconApplicationConfig(config),
                 parent = parent,
             )
@@ -107,7 +107,7 @@ class S3PathPropertiesTest {
     fun `bucket name conform to S3 standards`(bucket: String) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                S3PathProperties.Factory.create(
+                S3PathProperties.create(
                     bucket = bucket,
                 )
             }

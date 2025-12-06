@@ -1,9 +1,9 @@
 package io.direkt.util
 
-import io.direkt.APP_CACHE_STATUS
+import io.direkt.infrastructure.http.APP_CACHE_STATUS
 import io.direkt.BaseTestcontainerTest.Companion.BOUNDARY
-import io.direkt.asset.context.OrderBy
-import io.direkt.asset.context.ReturnFormat
+import io.direkt.service.context.OrderBy
+import io.direkt.service.context.ReturnFormat
 import io.direkt.asset.model.AssetLinkResponse
 import io.direkt.asset.model.AssetResponse
 import io.direkt.asset.model.StoreAssetRequest

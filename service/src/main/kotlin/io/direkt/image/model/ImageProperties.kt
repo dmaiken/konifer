@@ -11,7 +11,7 @@ import io.direkt.asset.ManipulationParameters.PAD
 import io.direkt.asset.ManipulationParameters.QUALITY
 import io.direkt.asset.ManipulationParameters.ROTATE
 import io.direkt.asset.ManipulationParameters.WIDTH
-import io.direkt.image.lqip.LQIPImplementation
+import io.direkt.image.model.LQIPImplementation
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
@@ -85,7 +85,7 @@ class PreProcessingProperties private constructor(
             maxHeight != null ||
             format != null ||
             fit != Fit.default ||
-            rotate != Rotate.Factory.default ||
+            rotate != Rotate.default ||
             flip != Flip.default ||
             filter != Filter.default ||
             (blur != null && blur > 0) ||
@@ -123,7 +123,7 @@ class PreProcessingProperties private constructor(
                 format = null,
                 fit = Fit.default,
                 gravity = Gravity.default,
-                rotate = Rotate.Factory.default,
+                rotate = Rotate.default,
                 flip = Flip.default,
                 filter = Filter.default,
                 blur = null,
@@ -208,8 +208,8 @@ class PreProcessingProperties private constructor(
                 applicationConfig
                     ?.tryGetString(ROTATE)
                     ?.let {
-                        Rotate.Factory.fromString(it)
-                    } ?: parent?.rotate ?: Rotate.Factory.default,
+                        Rotate.fromString(it)
+                    } ?: parent?.rotate ?: Rotate.default,
             flip =
                 applicationConfig
                     ?.tryGetString(FLIP)

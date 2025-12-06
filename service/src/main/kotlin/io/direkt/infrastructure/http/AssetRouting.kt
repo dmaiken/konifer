@@ -2,15 +2,13 @@ package io.direkt.infrastructure.http
 
 import io.direkt.asset.AssetStreamContainer
 import io.direkt.asset.MAX_BYTES_DEFAULT
-import io.direkt.asset.context.RequestContextFactory
-import io.direkt.asset.context.ReturnFormat
+import io.direkt.service.context.RequestContextFactory
+import io.direkt.service.context.ReturnFormat
 import io.direkt.asset.handler.AssetAndLocation
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler
 import io.direkt.asset.handler.UpdateAssetHandler
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.getAppStatusCacheHeader
-import io.direkt.getContentDispositionHeader
 import io.direkt.path.DeleteMode
 import io.direkt.workflows.StoreNewAssetWorkflow
 import io.ktor.http.ContentType

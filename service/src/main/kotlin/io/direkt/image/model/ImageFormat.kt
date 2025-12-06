@@ -1,5 +1,7 @@
 package io.direkt.image.model
 
+import io.direkt.infrastructure.vips.VipsProperties
+
 enum class ImageFormat(
     val format: Set<String>,
     val mimeType: String,
@@ -96,7 +98,7 @@ enum class ImageFormat(
     ),
     ;
 
-    companion object {
+    companion object Factory {
         fun fromFormat(string: String): ImageFormat =
             entries.firstOrNull {
                 it.format.contains(string.lowercase())

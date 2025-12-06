@@ -6,7 +6,6 @@ import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
 import io.direkt.asset.variant.AssetVariant
-import io.direkt.createImageBuckets
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.image.model.Attributes
 import io.direkt.image.model.ImageFormat
@@ -15,6 +14,7 @@ import io.direkt.image.model.Transformation
 import io.direkt.properties.validateAndCreate
 import io.direkt.infrastructure.s3.S3ClientProperties
 import io.direkt.infrastructure.s3.S3ObjectRepository
+import io.direkt.s3.createImageBuckets
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll

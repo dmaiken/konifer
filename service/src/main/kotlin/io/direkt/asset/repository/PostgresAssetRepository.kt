@@ -8,7 +8,7 @@ import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
-import io.direkt.asset.context.OrderBy
+import io.direkt.service.context.OrderBy
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
