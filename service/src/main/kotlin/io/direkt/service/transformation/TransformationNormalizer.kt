@@ -1,13 +1,12 @@
 package io.direkt.service.transformation
 
-import io.direkt.service.transformation.ColorConverter
-import io.direkt.domain.image.Attributes
 import io.direkt.domain.image.ExifOrientations
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.RequestedTransformation
-import io.direkt.domain.image.Transformation
 import io.direkt.domain.ports.AssetRepository
+import io.direkt.domain.variant.Attributes
+import io.direkt.domain.variant.Transformation
+import io.direkt.service.context.RequestedTransformation
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -22,7 +21,7 @@ class TransformationNormalizer(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     /**
-     * Transform the supplied [io.direkt.domain.image.RequestedTransformation] into a normalized [io.direkt.domain.image.Transformation] where every transformation
+     * Transform the supplied [RequestedTransformation] into a normalized [Transformation] where every transformation
      * attribute is specified, if needed, by deriving missing values using the original variant.
      */
     suspend fun normalize(
@@ -33,7 +32,7 @@ class TransformationNormalizer(
         coroutineScope {
             if (requested.originalVariant) {
                 logger.debug { "Requested original variant for path: $treePath, entryId: ${entryId ?: "Not specified"}" }
-                return@coroutineScope Transformation.Factory.ORIGINAL_VARIANT
+                return@coroutineScope Transformation.ORIGINAL_VARIANT
             }
 
             val originalVariantDeferred =
@@ -42,7 +41,7 @@ class TransformationNormalizer(
                         .fetchByPath(
                             path = treePath,
                             entryId = entryId,
-                            transformation = Transformation.Factory.ORIGINAL_VARIANT,
+                            transformation = Transformation.ORIGINAL_VARIANT,
                         )?.getOriginalVariant()
                         ?.attributes ?: throw IllegalArgumentException(
                         "Original variant not found with path: $treePath, entryId: ${entryId ?: "Not Specified"}",
@@ -94,7 +93,7 @@ class TransformationNormalizer(
         originalAttributesDeferred: Deferred<Attributes>,
     ): Transformation {
         if (requested.originalVariant) {
-            return Transformation.Factory.ORIGINAL_VARIANT
+            return Transformation.ORIGINAL_VARIANT
         }
         val (width, height) = normalizeDimensions(requested, originalAttributesDeferred)
         val (rotate, horizontalFlip) = ExifOrientations.normalizeOrientation(requested.rotate, requested.flip)

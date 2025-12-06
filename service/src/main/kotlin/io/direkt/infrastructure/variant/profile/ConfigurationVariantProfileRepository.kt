@@ -1,8 +1,8 @@
 package io.direkt.infrastructure.variant.profile
 
-import io.direkt.domain.image.RequestedTransformation
 import io.direkt.domain.ports.VariantProfileRepository
-import io.direkt.properties.ConfigurationProperties
+import io.direkt.infrastructure.properties.ConfigurationProperties
+import io.direkt.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
@@ -28,7 +28,7 @@ class ConfigurationVariantProfileRepository(
                     throw IllegalArgumentException("Profile name: '$profileName' already exists")
                 }
 
-                put(profileName, RequestedTransformation.Factory.create(profileConfig))
+                put(profileName, RequestedTransformation.create(profileConfig))
             }
         }
 

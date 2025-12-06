@@ -1,17 +1,17 @@
 package io.direkt.infrastructure.variant
 
-import io.direkt.asset.TemporaryFileFactory.createOriginalVariantTempFile
-import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.model.Asset
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.domain.ports.AssetRepository
-import io.direkt.domain.ports.ObjectRepository
 import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.ports.AssetRepository
+import io.direkt.domain.ports.ObjectRepository
+import io.direkt.domain.variant.Transformation
+import io.direkt.infrastructure.TemporaryFileFactory.createOriginalVariantTempFile
 import io.direkt.infrastructure.vips.VipsImageProcessor
+import io.direkt.service.transformation.TransformationNormalizer
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel

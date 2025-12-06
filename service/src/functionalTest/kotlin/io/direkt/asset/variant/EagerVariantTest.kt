@@ -1,7 +1,7 @@
 package io.direkt.asset.variant
 
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource

@@ -2,7 +2,7 @@ package io.direkt.asset.model
 
 import direkt.jooq.tables.records.AssetTreeRecord
 import io.direkt.domain.asset.AssetSource
-import io.direkt.infrastructure.database.postgres.toPath
+import io.direkt.infrastructure.datastore.postgres.toPath
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -18,7 +18,7 @@ data class Asset(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val modifiedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    companion object {
+    companion object Factory {
         fun from(
             record: AssetTreeRecord,
             labels: Map<String, String>,

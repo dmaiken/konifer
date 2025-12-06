@@ -3,7 +3,7 @@ package io.direkt.infrastructure.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsDirection
 import io.direkt.domain.image.Rotate
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
 import io.direkt.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena

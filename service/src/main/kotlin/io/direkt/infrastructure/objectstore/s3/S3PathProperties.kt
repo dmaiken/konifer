@@ -1,8 +1,8 @@
 package io.direkt.infrastructure.objectstore.s3
 
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
-import io.direkt.properties.ValidatedProperties
-import io.direkt.properties.validateAndCreate
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
+import io.direkt.infrastructure.properties.ValidatedProperties
+import io.direkt.infrastructure.properties.validateAndCreate
 import io.ktor.server.config.ApplicationConfig
 
 class S3PathProperties private constructor(

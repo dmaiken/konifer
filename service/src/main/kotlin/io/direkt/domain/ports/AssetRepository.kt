@@ -4,8 +4,8 @@ import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.asset.model.VariantBucketAndKey
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 
 interface AssetRepository {

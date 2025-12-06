@@ -2,8 +2,8 @@ package io.direkt.infrastructure.path
 
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.ports.PathConfigurationRepository
-import io.direkt.properties.ConfigurationProperties
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.PATH
+import io.direkt.infrastructure.properties.ConfigurationProperties
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.PATH
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger

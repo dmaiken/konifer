@@ -6,9 +6,9 @@ import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.RequestedTransformation
 import io.direkt.domain.image.Rotate
 import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
+import io.direkt.service.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

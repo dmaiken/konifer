@@ -1,11 +1,11 @@
 package io.direkt.domain.workflows
 
+import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.AssetNotFoundException
-import io.direkt.service.context.UpdateRequestContext
-import io.direkt.asset.handler.dto.UpdateAssetDto
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.domain.ports.AssetRepository
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.service.context.UpdateRequestContext
 
 class UpdateAssetHandler(
     private val assetRepository: AssetRepository,
@@ -28,7 +28,7 @@ class UpdateAssetHandler(
             } catch (e: IllegalStateException) {
                 throw AssetNotFoundException(
                     e,
-                    "Asset not found with path: ${context.path}, entryId: ${context.entryId}"
+                    "Asset not found with path: ${context.path}, entryId: ${context.entryId}",
                 )
             }
 

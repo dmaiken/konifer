@@ -1,15 +1,15 @@
 package io.direkt.asset.variant
 
-import io.direkt.domain.image.Attributes
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
-import io.direkt.domain.image.Transformation
-import io.direkt.infrastructure.database.postgres.ImageVariantAttributes
-import io.direkt.infrastructure.database.postgres.ImageVariantTransformation
-import io.direkt.infrastructure.database.postgres.VariantParameterGenerator
+import io.direkt.domain.variant.Attributes
+import io.direkt.domain.variant.Transformation
+import io.direkt.infrastructure.datastore.postgres.ImageVariantAttributes
+import io.direkt.infrastructure.datastore.postgres.ImageVariantTransformation
+import io.direkt.infrastructure.datastore.postgres.VariantParameterGenerator
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction

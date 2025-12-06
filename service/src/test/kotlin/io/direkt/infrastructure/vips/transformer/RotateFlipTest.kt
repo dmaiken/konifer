@@ -5,7 +5,7 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsDirection
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.transformation.RotateFlip
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs

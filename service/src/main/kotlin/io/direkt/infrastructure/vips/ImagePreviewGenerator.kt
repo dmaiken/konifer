@@ -2,7 +2,7 @@ package io.direkt.infrastructure.vips
 
 import com.vanniktech.blurhash.BlurHash
 import io.direkt.domain.image.LQIPImplementation
-import io.direkt.domain.image.LQIPs
+import io.direkt.domain.variant.LQIPs
 import io.direkt.lqip.image.ThumbHash
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -28,11 +28,11 @@ object ImagePreviewGenerator {
         withContext(Dispatchers.IO) {
             if (imageChannel == null) {
                 logger.debug { "No image in channel, skipping preview generation." }
-                return@withContext LQIPs.Factory.NONE
+                return@withContext LQIPs.NONE
             }
             if (lqipImplementations.isEmpty()) {
                 logger.debug { "No preview implementations enabled for path, skipping preview generation." }
-                return@withContext LQIPs.Factory.NONE
+                return@withContext LQIPs.NONE
             }
 
             val image = ImageIO.read(imageChannel.toInputStream())
@@ -57,7 +57,8 @@ object ImagePreviewGenerator {
             val thumbHash =
                 if (lqipImplementations.contains(LQIPImplementation.THUMBHASH)) {
                     async {
-                        Base64.getEncoder()
+                        Base64
+                            .getEncoder()
                             .encodeToString(ThumbHash.rgbaToThumbHash(image.width, image.height, toRgba(image)))
                     }
                 } else {

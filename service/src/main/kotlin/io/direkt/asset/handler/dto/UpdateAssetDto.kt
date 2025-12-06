@@ -1,6 +1,6 @@
 package io.direkt.asset.handler.dto
 
-import io.direkt.asset.model.StoreAssetRequest
+import io.direkt.infrastructure.StoreAssetRequest
 
 data class UpdateAssetDto(
     val path: String,

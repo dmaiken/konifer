@@ -11,14 +11,14 @@ import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.VImageFactory
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_SIZE
-import io.image.vips.aspectRatio
 import io.direkt.infrastructure.vips.transformation.Resize
+import io.image.vips.aspectRatio
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

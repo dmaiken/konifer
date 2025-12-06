@@ -2,16 +2,16 @@ package io.direkt.service.context
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.direkt.service.transformation.TransformationNormalizer
-import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
+import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
-import io.direkt.domain.image.Transformation
-import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.path.PathConfiguration
-import io.direkt.infrastructure.path.TriePathConfigurationRepository
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
+import io.direkt.infrastructure.path.TriePathConfigurationRepository
+import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
+import io.direkt.service.transformation.TransformationNormalizer
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeOneOf
@@ -747,9 +747,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10")
 
                 context.modifiers shouldBe
-                        DeleteModifiers(
-                            entryId = 10,
-                        )
+                    DeleteModifiers(
+                        entryId = 10,
+                    )
             }
 
         @ParameterizedTest

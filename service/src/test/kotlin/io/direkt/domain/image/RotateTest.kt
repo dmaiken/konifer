@@ -1,7 +1,7 @@
 package io.direkt.domain.image
 
-import io.direkt.service.context.ManipulationParameters.ROTATE
 import io.direkt.domain.image.Rotate
+import io.direkt.service.context.ManipulationParameters.ROTATE
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ParametersBuilder

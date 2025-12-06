@@ -4,10 +4,10 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
-import io.direkt.infrastructure.vips.DimensionCalculator.calculateDimensions
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
+import io.direkt.infrastructure.vips.DimensionCalculator.calculateDimensions
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING

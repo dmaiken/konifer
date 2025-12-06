@@ -12,8 +12,8 @@ import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.PreProcessingProperties
-import io.direkt.domain.image.RequestedTransformation
 import io.direkt.domain.image.Rotate
+import io.direkt.service.context.RequestedTransformation
 import org.apache.commons.math3.transform.DctNormalization
 import org.apache.commons.math3.transform.FastCosineTransformer
 import org.apache.commons.math3.transform.TransformType

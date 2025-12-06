@@ -1,5 +1,13 @@
 package io.direkt.domain.image
 
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT
+import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
+import io.direkt.infrastructure.properties.ValidatedProperties
+import io.direkt.infrastructure.properties.validateAndCreate
+import io.direkt.infrastructure.tryGetConfig
 import io.direkt.service.context.ManipulationParameters.BACKGROUND
 import io.direkt.service.context.ManipulationParameters.BLUR
 import io.direkt.service.context.ManipulationParameters.FILTER
@@ -11,14 +19,7 @@ import io.direkt.service.context.ManipulationParameters.PAD
 import io.direkt.service.context.ManipulationParameters.QUALITY
 import io.direkt.service.context.ManipulationParameters.ROTATE
 import io.direkt.service.context.ManipulationParameters.WIDTH
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.LQIP
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PREPROCESSING
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT
-import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
-import io.direkt.properties.ValidatedProperties
-import io.direkt.properties.validateAndCreate
-import io.direkt.infrastructure.tryGetConfig
+import io.direkt.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList
@@ -29,7 +30,7 @@ class ImageProperties private constructor(
 ) : ValidatedProperties {
     override fun validate() {}
 
-    companion object {
+    companion object Factory {
         val DEFAULT =
             ImageProperties(
                 preProcessing = PreProcessingProperties.DEFAULT,

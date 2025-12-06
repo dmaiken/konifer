@@ -6,13 +6,13 @@ import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
 import io.direkt.asset.model.AssetVariant
-import io.direkt.domain.image.Attributes
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.LQIPs
-import io.direkt.domain.image.Transformation
 import io.direkt.domain.ports.ObjectRepository
+import io.direkt.domain.variant.Attributes
+import io.direkt.domain.variant.LQIPs
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.objectstore.ObjectRepositoryTest
-import io.direkt.properties.validateAndCreate
+import io.direkt.infrastructure.properties.validateAndCreate
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
@@ -61,7 +61,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                             localstack.secretKey,
                         ),
                     )
-                endpointUrl = Url.Companion.parse(localstack.endpoint.toString())
+                endpointUrl = Url.parse(localstack.endpoint.toString())
                 region = localstack.region
             }
         createImageBuckets(s3Client, BUCKET_1, BUCKET_2, BUCKET_3)
@@ -192,9 +192,9 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                         height = 100,
                         format = ImageFormat.PNG,
                     ),
-                transformation = Transformation.Factory.ORIGINAL_VARIANT,
+                transformation = Transformation.ORIGINAL_VARIANT,
                 transformationKey = 1234L,
-                lqip = LQIPs.Factory.NONE,
+                lqip = LQIPs.NONE,
                 createdAt = LocalDateTime.now(),
             )
     }

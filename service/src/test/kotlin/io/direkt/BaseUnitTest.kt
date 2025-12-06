@@ -1,14 +1,14 @@
 package io.direkt
 
-import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.infrastructure.database.inmemory.InMemoryAssetRepository
-import io.direkt.domain.ports.PersistResult
-import io.direkt.domain.image.Attributes
+import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.LQIPs
+import io.direkt.domain.ports.PersistResult
+import io.direkt.domain.variant.Attributes
+import io.direkt.domain.variant.LQIPs
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.mockk.spyk
 
 abstract class BaseUnitTest {

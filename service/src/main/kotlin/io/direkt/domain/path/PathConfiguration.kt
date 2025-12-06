@@ -3,9 +3,9 @@ package io.direkt.domain.path
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
-import io.direkt.properties.ConfigurationProperties
-import io.direkt.properties.ValidatedProperties
-import io.direkt.properties.validateAndCreate
+import io.direkt.infrastructure.properties.ConfigurationProperties
+import io.direkt.infrastructure.properties.ValidatedProperties
+import io.direkt.infrastructure.properties.validateAndCreate
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
@@ -20,9 +20,9 @@ class PathConfiguration private constructor(
         val DEFAULT =
             PathConfiguration(
                 allowedContentTypes = null,
-                imageProperties = ImageProperties.Companion.DEFAULT,
+                imageProperties = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
-                s3PathProperties = S3PathProperties.Factory.DEFAULT,
+                s3PathProperties = S3PathProperties.DEFAULT,
             )
 
         fun create(
@@ -37,7 +37,7 @@ class PathConfiguration private constructor(
                     applicationConfig.tryGetStringList(ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES)
                         ?: parent?.allowedContentTypes,
                 imageProperties =
-                    ImageProperties.Companion.create(
+                    ImageProperties.create(
                         applicationConfig.tryGetConfig(ConfigurationProperties.PathConfigurationProperties.IMAGE),
                         parent?.imageProperties,
                     ),
@@ -45,7 +45,7 @@ class PathConfiguration private constructor(
                     applicationConfig.tryGetStringList(ConfigurationProperties.PathConfigurationProperties.EAGER_VARIANTS)
                         ?: parent?.eagerVariants ?: emptyList(),
                 s3PathProperties =
-                    S3PathProperties.Factory.create(
+                    S3PathProperties.create(
                         applicationConfig.tryGetConfig(ConfigurationProperties.PathConfigurationProperties.S3),
                         parent?.s3PathProperties,
                     ),

@@ -12,7 +12,7 @@ import io.PHash
 import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.transformation.ColorFilter
 import io.direkt.infrastructure.vips.transformation.ColorFilter.blackWhiteThreshold
 import io.direkt.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3

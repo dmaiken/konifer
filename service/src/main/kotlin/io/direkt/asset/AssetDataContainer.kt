@@ -1,6 +1,6 @@
 package io.direkt.asset
 
-import io.direkt.asset.TemporaryFileFactory.createUploadTempFile
+import io.direkt.infrastructure.TemporaryFileFactory.createUploadTempFile
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteReadChannel

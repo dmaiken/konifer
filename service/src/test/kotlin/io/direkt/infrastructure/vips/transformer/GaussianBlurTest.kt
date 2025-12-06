@@ -6,7 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.PHash
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.transformation.GaussianBlur
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe

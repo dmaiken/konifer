@@ -1,7 +1,7 @@
 package io.direkt.service.context
 
-import io.direkt.domain.image.Transformation
 import io.direkt.domain.path.PathConfiguration
+import io.direkt.domain.variant.Transformation
 
 data class QueryRequestContext(
     val path: String,

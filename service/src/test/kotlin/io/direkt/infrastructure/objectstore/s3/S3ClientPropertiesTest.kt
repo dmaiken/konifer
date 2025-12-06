@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.objectstore.s3
 
-import io.direkt.properties.validateAndCreate
+import io.direkt.infrastructure.properties.validateAndCreate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

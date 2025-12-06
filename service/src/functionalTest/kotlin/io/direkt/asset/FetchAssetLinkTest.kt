@@ -1,10 +1,10 @@
 package io.direkt.asset
 
 import io.byteArrayToImage
-import io.direkt.infrastructure.http.APP_CACHE_STATUS
-import io.direkt.asset.model.AssetLinkResponse
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.http.APP_CACHE_STATUS
+import io.direkt.infrastructure.http.AssetLinkResponse
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetLink
 import io.direkt.util.storeAssetMultipartSource

@@ -158,6 +158,7 @@ class ImagePreviewGeneratorTest {
                 shouldThrow<IllegalArgumentException> {
                     ImagePreviewGenerator.generatePreviews(imageChannel, setOf(LQIPImplementation.BLURHASH))
                 }
-            exception.message shouldBe "Image must be smaller than ${ImagePreviewGenerator.MAX_WIDTH}x${ImagePreviewGenerator.MAX_HEIGHT} to generate previews"
+            exception.message shouldBe
+                "Image must be smaller than ${ImagePreviewGenerator.MAX_WIDTH}x${ImagePreviewGenerator.MAX_HEIGHT} to generate previews"
         }
 }

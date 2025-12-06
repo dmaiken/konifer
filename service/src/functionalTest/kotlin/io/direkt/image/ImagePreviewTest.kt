@@ -1,9 +1,9 @@
 package io.direkt.image
 
 import io.byteArrayToImage
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
 import io.direkt.domain.image.LQIPImplementation
+import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.fetchAssetViaRedirect

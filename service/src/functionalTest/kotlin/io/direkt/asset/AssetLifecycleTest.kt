@@ -4,11 +4,11 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.direkt.domain.asset.AssetSource
-import io.direkt.asset.model.AssetClass
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.domain.asset.AssetClass
+import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.ImageFormat
+import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_N
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT

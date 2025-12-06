@@ -1,11 +1,11 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
-import io.direkt.domain.image.RequestedTransformation
-import io.direkt.domain.image.Transformation
+import io.direkt.domain.variant.Transformation
+import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
 

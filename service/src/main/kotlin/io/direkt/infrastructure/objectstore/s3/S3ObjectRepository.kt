@@ -13,11 +13,11 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
+import io.direkt.asset.model.AssetVariant
+import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.FetchResult
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.PersistResult
-import io.direkt.asset.model.AssetVariant
-import io.direkt.domain.image.ImageFormat
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
