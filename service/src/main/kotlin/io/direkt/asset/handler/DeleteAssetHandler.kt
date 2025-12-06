@@ -1,6 +1,6 @@
 package io.direkt.asset.handler
 
-import io.direkt.asset.repository.AssetRepository
+import io.direkt.domain.ports.AssetRepository
 import io.direkt.path.DeleteMode
 import io.ktor.util.logging.KtorSimpleLogger
 

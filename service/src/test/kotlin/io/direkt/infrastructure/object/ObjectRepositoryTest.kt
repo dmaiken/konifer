@@ -2,7 +2,7 @@ package io.direkt.infrastructure.`object`
 
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.getResourceAsFile
-import io.direkt.image.model.ImageFormat
+import io.direkt.domain.image.ImageFormat
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

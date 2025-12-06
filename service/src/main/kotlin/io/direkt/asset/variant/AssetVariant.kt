@@ -2,10 +2,10 @@ package io.direkt.asset.variant
 
 import direkt.jooq.tables.AssetVariant.Companion.ASSET_VARIANT
 import direkt.jooq.tables.records.AssetVariantRecord
-import io.direkt.asset.repository.getNonNull
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.LQIPs
-import io.direkt.image.model.Transformation
+import io.direkt.infrastructure.postgres.getNonNull
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.LQIPs
+import io.direkt.domain.image.Transformation
 import io.direkt.serialization.format
 import java.time.LocalDateTime
 

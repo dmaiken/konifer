@@ -6,7 +6,7 @@ import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.model.AssetClass
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
-import io.direkt.image.model.ImageFormat
+import io.direkt.domain.image.ImageFormat
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetContent
 import io.direkt.util.fetchAssetMetadata

@@ -1,15 +1,16 @@
 package io.direkt.asset
 
 import io.direkt.service.context.RequestContextFactory
-import io.direkt.asset.handler.AssetStreamContainerFactory
+import io.direkt.infrastructure.asset.AssetStreamContainerFactory
 import io.direkt.asset.handler.DeleteAssetHandler
 import io.direkt.asset.handler.FetchAssetHandler
-import io.direkt.service.TransformationNormalizer
+import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.asset.handler.UpdateAssetHandler
-import io.direkt.asset.repository.AssetRepository
-import io.direkt.asset.repository.InMemoryAssetRepository
-import io.direkt.asset.repository.PostgresAssetRepository
+import io.direkt.domain.ports.AssetRepository
+import io.direkt.infrastructure.inmemory.InMemoryAssetRepository
+import io.direkt.infrastructure.postgres.PostgresAssetRepository
 import io.direkt.asset.variant.VariantProfileRepository
+import io.direkt.domain.ports.AssetContainerFactory
 import io.direkt.workflows.StoreNewAssetWorkflow
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
@@ -36,7 +37,7 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
             TikaMimeTypeDetector()
         }
 
-        single<AssetStreamContainerFactory> {
+        single<AssetContainerFactory> {
             val allowedDomains = environment.config.tryGetStringList("source.url.allowed-domains")?.toSet() ?: emptySet()
             val maxContentLength = environment.config.tryGetString("source.url.max-bytes")?.toLong() ?: MAX_BYTES_DEFAULT
 

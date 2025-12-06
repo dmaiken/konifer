@@ -1,6 +1,6 @@
 package io.direkt.service.context
 
-import io.direkt.path.configuration.PathConfiguration
+import io.direkt.domain.path.PathConfiguration
 
 data class StoreRequestContext(
     val path: String,

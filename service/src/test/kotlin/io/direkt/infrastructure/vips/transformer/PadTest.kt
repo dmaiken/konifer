@@ -5,8 +5,8 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
 import io.PHash
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
 import io.direkt.infrastructure.vips.transformation.Pad

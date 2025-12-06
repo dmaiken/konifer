@@ -2,7 +2,7 @@ package io.direkt.asset.model
 
 import direkt.jooq.tables.records.AssetTreeRecord
 import io.direkt.asset.handler.AssetSource
-import io.direkt.asset.repository.toPath
+import io.direkt.infrastructure.postgres.toPath
 import java.time.LocalDateTime
 import java.util.UUID
 

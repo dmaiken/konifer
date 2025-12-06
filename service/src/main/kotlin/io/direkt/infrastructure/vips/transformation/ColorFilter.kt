@@ -6,8 +6,8 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
-import io.direkt.image.model.Filter
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Filter
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_N
 import io.direkt.infrastructure.vips.pipeline.VipsTransformationResult

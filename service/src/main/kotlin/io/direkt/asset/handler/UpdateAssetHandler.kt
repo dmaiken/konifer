@@ -3,7 +3,7 @@ package io.direkt.asset.handler
 import io.direkt.service.context.UpdateRequestContext
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.asset.repository.AssetRepository
+import io.direkt.domain.ports.AssetRepository
 
 class UpdateAssetHandler(
     private val assetRepository: AssetRepository,

@@ -1,10 +1,10 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.domain.ports.VariantGenerator
-import io.direkt.image.model.LQIPImplementation
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.RequestedTransformation
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.LQIPImplementation
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.RequestedTransformation
+import io.direkt.domain.image.Transformation
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.channels.Channel

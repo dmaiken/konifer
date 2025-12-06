@@ -1,7 +1,7 @@
 package io.direkt.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
-import io.direkt.image.model.Fit
+import io.direkt.domain.image.Fit
 import io.image.vips.pageSafeHeight
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt

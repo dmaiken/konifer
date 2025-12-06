@@ -8,19 +8,19 @@ import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.StoreRequestContext
 import io.direkt.asset.handler.AssetAndLocation
 import io.direkt.asset.handler.AssetSource
-import io.direkt.asset.handler.AssetStreamContainerFactory
-import io.direkt.service.TransformationNormalizer
+import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.asset.repository.AssetRepository
+import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.asset.variant.VariantProfileRepository
 import io.direkt.domain.aggregate.Asset
 import io.direkt.domain.ports.VariantGenerator
-import io.direkt.image.InvalidImageException
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.InvalidImageException
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Transformation
+import io.direkt.domain.ports.AssetContainerFactory
 import io.direkt.infrastructure.vips.createDecoderOptions
 import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
@@ -36,7 +36,7 @@ class StoreNewAssetWorkflow(
     private val variantGenerator: VariantGenerator,
     private val variantProfileRepository: VariantProfileRepository,
     private val requestContextFactory: RequestContextFactory,
-    private val assetStreamContainerFactory: AssetStreamContainerFactory,
+    private val assetStreamContainerFactory: AssetContainerFactory,
     private val transformationNormalizer: TransformationNormalizer,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)

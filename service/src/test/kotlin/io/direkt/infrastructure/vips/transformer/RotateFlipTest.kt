@@ -3,9 +3,9 @@ package io.direkt.infrastructure.vips.transformer
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsDirection
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Rotate
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Rotate
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.transformation.RotateFlip
 import io.kotest.matchers.shouldBe
 import io.matchers.shouldHaveSamePixelContentAs

@@ -2,26 +2,16 @@ package io.direkt.service.context
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.direkt.service.TransformationNormalizer
+import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.asset.variant.VariantProfileRepository
-import io.direkt.image.model.Fit
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.ImageProperties
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.ImageProperties
+import io.direkt.domain.image.Transformation
 import io.direkt.path.DeleteMode
-import io.direkt.path.configuration.PathConfiguration
-import io.direkt.path.configuration.PathConfigurationRepository
+import io.direkt.domain.path.PathConfiguration
+import io.direkt.infrastructure.path.TriePathConfigurationRepository
 import io.direkt.infrastructure.s3.S3PathProperties
-import io.direkt.service.context.ContentTypeNotPermittedException
-import io.direkt.service.context.DeleteModifiers
-import io.direkt.service.context.InvalidDeleteModifiersException
-import io.direkt.service.context.InvalidPathException
-import io.direkt.service.context.InvalidQueryModifiersException
-import io.direkt.service.context.OrderBy
-import io.direkt.service.context.QueryModifiers
-import io.direkt.service.context.RequestContextFactory
-import io.direkt.service.context.ReturnFormat
-import io.direkt.service.context.SpecifiedInRequest
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeOneOf
@@ -407,7 +397,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             )
     }
 
-    private val pathConfigurationRepository = mockk<PathConfigurationRepository>()
+    private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
     private val variantProfileRepository = mockk<VariantProfileRepository>()
     private val transformationNormalizer = TransformationNormalizer(assetRepository)
     private val requestContextFactory =
@@ -423,7 +413,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
     @Nested
     inner class GetRequestContextTests {
         @ParameterizedTest
-        @MethodSource("io.direkt.asset.context.RequestContextFactoryTest#queryModifierSource")
+        @MethodSource("io.direkt.service.context.RequestContextFactoryTest#queryModifierSource")
         fun `can fetch GET request context with query modifiers`(
             path: String,
             expectedQueryModifiers: QueryModifiers,
@@ -436,7 +426,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         }
 
         @ParameterizedTest
-        @MethodSource("io.direkt.asset.context.RequestContextFactoryTest#getEntryIdSource")
+        @MethodSource("io.direkt.service.context.RequestContextFactoryTest#getEntryIdSource")
         fun `can fetch GET request context with entryId`(
             path: String,
             expectedQueryModifiers: QueryModifiers,
@@ -576,7 +566,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             }
 
         @ParameterizedTest
-        @MethodSource("io.direkt.asset.context.RequestContextFactoryTest#transformationSource")
+        @MethodSource("io.direkt.service.context.RequestContextFactoryTest#transformationSource")
         fun `can parse requested image attributes in GET request context`(
             parameters: Parameters,
             transformation: Transformation,
@@ -741,7 +731,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
     @Nested
     inner class DeleteRequestContextTests {
         @ParameterizedTest
-        @MethodSource("io.direkt.asset.context.RequestContextFactoryTest#deleteModifierSource")
+        @MethodSource("io.direkt.service.context.RequestContextFactoryTest#deleteModifierSource")
         fun `can fetch DELETE request context with query modifiers`(
             path: String,
             deleteModifiers: DeleteModifiers,

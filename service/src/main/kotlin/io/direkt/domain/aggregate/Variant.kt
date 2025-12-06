@@ -1,8 +1,8 @@
 package io.direkt.domain.aggregate
 
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.LQIPs
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.LQIPs
+import io.direkt.domain.image.Transformation
 import java.time.LocalDateTime
 import java.util.UUID
 

@@ -4,7 +4,7 @@ import io.direkt.asset.variant.AssetVariant
 import io.direkt.domain.ports.FetchResult
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.PersistResult
-import io.direkt.image.model.ImageFormat
+import io.direkt.domain.image.ImageFormat
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray

@@ -1,11 +1,11 @@
 package io.direkt.domain.ports
 
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.image.model.LQIPImplementation
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.PreProcessedImage
-import io.direkt.image.model.RequestedTransformation
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.LQIPImplementation
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.PreProcessedImage
+import io.direkt.domain.image.RequestedTransformation
+import io.direkt.domain.image.Transformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
 

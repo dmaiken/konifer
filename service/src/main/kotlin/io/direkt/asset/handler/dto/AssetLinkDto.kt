@@ -1,7 +1,7 @@
 package io.direkt.asset.handler.dto
 
 import io.direkt.asset.model.AssetLinkResponse
-import io.direkt.image.model.LQIPs
+import io.direkt.domain.image.LQIPs
 
 data class AssetLinkDto(
     val url: String,

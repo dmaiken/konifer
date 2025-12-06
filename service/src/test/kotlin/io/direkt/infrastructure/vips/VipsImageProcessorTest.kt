@@ -4,11 +4,10 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
 import io.direkt.asset.AssetStreamContainer
-import io.direkt.image.model.LQIPImplementation
-import io.direkt.image.model.Fit
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Transformation
-import io.direkt.infrastructure.vips.VipsImageProcessor
+import io.direkt.domain.image.LQIPImplementation
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Transformation
 import io.direkt.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe

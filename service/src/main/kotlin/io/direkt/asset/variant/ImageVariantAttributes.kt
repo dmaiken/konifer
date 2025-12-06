@@ -1,7 +1,7 @@
 package io.direkt.asset.variant
 
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.ImageFormat
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.ImageFormat
 import kotlinx.serialization.Serializable
 
 @Serializable

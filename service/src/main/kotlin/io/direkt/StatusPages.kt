@@ -3,7 +3,7 @@ package io.direkt
 import io.direkt.service.context.ContentTypeNotPermittedException
 import io.direkt.service.context.InvalidPathException
 import io.direkt.asset.handler.AssetNotFoundException
-import io.direkt.image.InvalidImageException
+import io.direkt.domain.image.InvalidImageException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

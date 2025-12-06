@@ -10,9 +10,9 @@ import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.PHash
 import io.direkt.asset.AssetStreamContainer
-import io.direkt.image.model.Filter
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Filter
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.transformation.ColorFilter
 import io.direkt.infrastructure.vips.transformation.ColorFilter.blackWhiteThreshold
 import io.direkt.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3

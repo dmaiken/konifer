@@ -1,6 +1,6 @@
 package io.direkt.asset.variant
 
-import io.direkt.image.model.RequestedTransformation
+import io.direkt.domain.image.RequestedTransformation
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.VariantProfilePropertyKeys.NAME
 import io.ktor.server.config.ApplicationConfig

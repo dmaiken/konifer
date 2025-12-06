@@ -8,10 +8,10 @@ import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.PHash
 import io.direkt.asset.AssetStreamContainer
-import io.direkt.image.model.Fit
-import io.direkt.image.model.Gravity
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.Gravity
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.VImageFactory
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT

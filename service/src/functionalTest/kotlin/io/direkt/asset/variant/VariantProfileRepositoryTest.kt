@@ -2,12 +2,12 @@ package io.direkt.asset.variant
 
 import io.createRequestedImageTransformation
 import io.direkt.config.testInMemory
-import io.direkt.image.model.Filter
-import io.direkt.image.model.Fit
-import io.direkt.image.model.Flip
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.RequestedTransformation
-import io.direkt.image.model.Rotate
+import io.direkt.domain.image.Filter
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.Flip
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.RequestedTransformation
+import io.direkt.domain.image.Rotate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

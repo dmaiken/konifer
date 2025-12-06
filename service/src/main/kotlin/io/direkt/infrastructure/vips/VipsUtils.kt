@@ -2,7 +2,7 @@ package io.direkt.infrastructure.vips
 
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.direkt.image.model.ImageFormat
+import io.direkt.domain.image.ImageFormat
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.jvm.nio.toByteReadChannel

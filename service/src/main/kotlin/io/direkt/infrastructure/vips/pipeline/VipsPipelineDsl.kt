@@ -1,7 +1,7 @@
 package io.direkt.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.transformation.VipsTransformer
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena

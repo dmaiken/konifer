@@ -5,7 +5,7 @@ import io.direkt.service.context.QueryRequestContext
 import io.direkt.asset.handler.dto.AssetLinkDto
 import io.direkt.asset.handler.dto.AssetMetadataDto
 import io.direkt.asset.model.AssetAndVariants
-import io.direkt.asset.repository.AssetRepository
+import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.VariantGenerator
 import io.ktor.util.logging.KtorSimpleLogger

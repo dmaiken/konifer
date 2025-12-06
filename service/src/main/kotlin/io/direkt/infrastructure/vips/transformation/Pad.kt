@@ -3,7 +3,7 @@ package io.direkt.infrastructure.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
 import io.direkt.infrastructure.vips.pipeline.VipsTransformationResult

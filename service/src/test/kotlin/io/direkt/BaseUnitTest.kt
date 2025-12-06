@@ -4,11 +4,11 @@ import io.direkt.asset.handler.AssetSource
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.asset.repository.InMemoryAssetRepository
+import io.direkt.infrastructure.inmemory.InMemoryAssetRepository
 import io.direkt.domain.ports.PersistResult
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.LQIPs
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.LQIPs
 import io.mockk.spyk
 
 abstract class BaseUnitTest {

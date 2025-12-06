@@ -1,12 +1,12 @@
 package io.direkt.asset.variant
 
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.Filter
-import io.direkt.image.model.Fit
-import io.direkt.image.model.Gravity
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.Rotate
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.Filter
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.Gravity
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.Rotate
+import io.direkt.domain.image.Transformation
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction

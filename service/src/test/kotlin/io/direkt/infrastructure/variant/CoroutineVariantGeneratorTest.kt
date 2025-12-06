@@ -2,19 +2,19 @@ package io.direkt.infrastructure.variant
 
 import io.createRequestedImageTransformation
 import io.direkt.asset.handler.AssetSource
-import io.direkt.service.TransformationNormalizer
+import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.asset.repository.InMemoryAssetRepository
+import io.direkt.infrastructure.inmemory.InMemoryAssetRepository
 import io.direkt.infrastructure.inmemory.InMemoryObjectRepository
 import io.direkt.getResourceAsFile
 import io.direkt.infrastructure.vips.DimensionCalculator
-import io.direkt.image.model.Attributes
-import io.direkt.image.model.Fit
-import io.direkt.image.model.ImageFormat
-import io.direkt.image.model.LQIPs
-import io.direkt.image.model.Transformation
+import io.direkt.domain.image.Attributes
+import io.direkt.domain.image.Fit
+import io.direkt.domain.image.ImageFormat
+import io.direkt.domain.image.LQIPs
+import io.direkt.domain.image.Transformation
 import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

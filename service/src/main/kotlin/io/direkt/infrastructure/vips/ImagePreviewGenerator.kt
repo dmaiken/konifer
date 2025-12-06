@@ -1,8 +1,8 @@
 package io.direkt.infrastructure.vips
 
 import com.vanniktech.blurhash.BlurHash
-import io.direkt.image.model.LQIPImplementation
-import io.direkt.image.model.LQIPs
+import io.direkt.domain.image.LQIPImplementation
+import io.direkt.domain.image.LQIPs
 import io.direkt.lqip.image.ThumbHash
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
