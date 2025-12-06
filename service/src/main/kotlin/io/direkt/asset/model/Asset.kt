@@ -1,8 +1,8 @@
 package io.direkt.asset.model
 
 import direkt.jooq.tables.records.AssetTreeRecord
-import io.direkt.asset.handler.AssetSource
-import io.direkt.infrastructure.postgres.toPath
+import io.direkt.domain.asset.AssetSource
+import io.direkt.infrastructure.database.postgres.toPath
 import java.time.LocalDateTime
 import java.util.UUID
 

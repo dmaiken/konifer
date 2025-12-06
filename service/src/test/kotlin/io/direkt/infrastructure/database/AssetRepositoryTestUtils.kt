@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.database
 
-import io.direkt.asset.handler.AssetSource
+import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.domain.ports.PersistResult

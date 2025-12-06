@@ -3,7 +3,7 @@ package io.direkt.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
@@ -50,7 +50,7 @@ class VipsImageProcessorTest {
                 }
                 val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
 
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(".png")
                     var transformation = Transformation.ORIGINAL_VARIANT
                     Vips.run { arena ->
@@ -101,7 +101,7 @@ class VipsImageProcessorTest {
                     imageChannel.writeFully(image)
                     imageChannel.close()
                 }
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(".jpeg")
                     val processedImage =
                         vipsImageProcessor.preprocess(
@@ -136,7 +136,7 @@ class VipsImageProcessorTest {
                     imageChannel.close()
                 }
 
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(".jpeg")
                     val processedImage =
                         vipsImageProcessor.preprocess(
@@ -184,7 +184,7 @@ class VipsImageProcessorTest {
                 imageChannel.close()
             }
 
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 container.toTemporaryFile(".jpeg")
                 val processedImage =
                     vipsImageProcessor.preprocess(
@@ -250,7 +250,7 @@ class VipsImageProcessorTest {
                 imageChannel.close()
             }
 
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 container.toTemporaryFile(from.extension)
                 val processedImage =
                     vipsImageProcessor.preprocess(

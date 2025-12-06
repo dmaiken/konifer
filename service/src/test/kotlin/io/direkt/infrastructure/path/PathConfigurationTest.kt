@@ -3,7 +3,7 @@ package io.direkt.infrastructure.path
 import io.direkt.domain.image.ImageProperties
 import io.direkt.domain.image.PreProcessingProperties
 import io.direkt.domain.path.PathConfiguration
-import io.direkt.infrastructure.s3.S3PathProperties
+import io.direkt.infrastructure.objectstore.s3.S3PathProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

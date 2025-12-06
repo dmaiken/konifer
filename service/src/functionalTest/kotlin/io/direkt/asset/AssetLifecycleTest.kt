@@ -4,7 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.direkt.asset.handler.AssetSource
+import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.model.AssetClass
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory

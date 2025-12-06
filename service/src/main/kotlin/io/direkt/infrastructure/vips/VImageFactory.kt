@@ -7,7 +7,7 @@ import app.photofox.vipsffm.VImage.newFromSource
 import app.photofox.vipsffm.VSource
 import app.photofox.vipsffm.VipsError
 import app.photofox.vipsffm.VipsOption
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.lang.foreign.Arena
@@ -25,7 +25,7 @@ object VImageFactory {
     @JvmStatic
     fun newFromContainer(
         arena: Arena,
-        container: AssetStreamContainer,
+        container: AssetDataContainer,
         options: Array<VipsOption> = emptyArray(),
     ): VImage {
         val source = newSourceFromContainer(arena, container)
@@ -39,7 +39,7 @@ object VImageFactory {
     @JvmStatic
     private fun newSourceFromContainer(
         arena: Arena,
-        container: AssetStreamContainer,
+        container: AssetDataContainer,
     ): VSource {
         val readCallback =
             ReadCallback { dataPointer: MemorySegment, length: Long ->

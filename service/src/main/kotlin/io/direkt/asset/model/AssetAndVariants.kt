@@ -4,7 +4,7 @@ import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
-import io.direkt.asset.variant.AssetVariant
+import io.direkt.asset.model.AssetVariant
 
 data class AssetAndVariants(
     val asset: Asset,

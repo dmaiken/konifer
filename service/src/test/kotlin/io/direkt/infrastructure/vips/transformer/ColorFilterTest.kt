@@ -9,7 +9,7 @@ import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.PHash
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Transformation
@@ -66,7 +66,7 @@ class ColorFilterTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
                 val imageChannel = ByteReadChannel(image)
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
@@ -155,7 +155,7 @@ class ColorFilterTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
                 val imageChannel = ByteReadChannel(image)
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
@@ -195,7 +195,7 @@ class ColorFilterTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
                 val imageChannel = ByteReadChannel(image)
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()
@@ -280,7 +280,7 @@ class ColorFilterTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 
                 val imageChannel = ByteReadChannel(image)
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(format.extension)
                     val actualStream = ByteArrayOutputStream()
                     val expectedStream = ByteArrayOutputStream()

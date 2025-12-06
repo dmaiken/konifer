@@ -8,6 +8,7 @@ import io.direkt.domain.image.Flip
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.RequestedTransformation
 import io.direkt.domain.image.Rotate
+import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -379,7 +380,7 @@ class VariantProfileRepositoryTest {
         expectedProfiles: Map<String, RequestedTransformation>,
     ) = testInMemory(config) {
         application {
-            val repository = VariantProfileRepository(environment.config)
+            val repository = ConfigurationVariantProfileRepository(environment.config)
 
             expectedProfiles.forEach { (name, profile) ->
                 repository.fetch(name) shouldBe profile
@@ -401,7 +402,7 @@ class VariantProfileRepositoryTest {
             application {
                 val exception =
                     shouldThrow<IllegalArgumentException> {
-                        VariantProfileRepository(environment.config)
+                        ConfigurationVariantProfileRepository(environment.config)
                     }
                 exception.message shouldBe "All variant profiles must have a name"
             }
@@ -420,7 +421,7 @@ class VariantProfileRepositoryTest {
             """.trimIndent(),
         ) {
             application {
-                val repository = VariantProfileRepository(environment.config)
+                val repository = ConfigurationVariantProfileRepository(environment.config)
                 val exception =
                     shouldThrow<IllegalArgumentException> {
                         repository.fetch("medium")
@@ -440,7 +441,7 @@ class VariantProfileRepositoryTest {
         testInMemory(config) {
             application {
                 shouldNotThrowAny {
-                    VariantProfileRepository(environment.config)
+                    ConfigurationVariantProfileRepository(environment.config)
                 }
             }
         }
@@ -454,7 +455,7 @@ class VariantProfileRepositoryTest {
         application {
             val exception =
                 shouldThrow<IllegalArgumentException> {
-                    VariantProfileRepository(environment.config)
+                    ConfigurationVariantProfileRepository(environment.config)
                 }
             exception.message shouldBe "Profile name: '$profileName' is not valid"
         }
@@ -479,7 +480,7 @@ class VariantProfileRepositoryTest {
             application {
                 val exception =
                     shouldThrow<IllegalArgumentException> {
-                        VariantProfileRepository(environment.config)
+                        ConfigurationVariantProfileRepository(environment.config)
                     }
                 exception.message shouldBe "Profile name: 'small' already exists"
             }
@@ -491,7 +492,7 @@ class VariantProfileRepositoryTest {
         testInMemory(config) {
             application {
                 shouldThrow<IllegalArgumentException> {
-                    VariantProfileRepository(environment.config)
+                    ConfigurationVariantProfileRepository(environment.config)
                 }
             }
         }

@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.asset
 
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.ports.AssetContainerFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -16,7 +16,7 @@ class AssetStreamContainerFactory(
         private const val CONTENT_LENGTH_HEADER = "Content-Length"
     }
 
-    override suspend fun fromUrlSource(urlSource: String?): AssetStreamContainer {
+    override suspend fun fromUrlSource(urlSource: String?): AssetDataContainer {
         if (urlSource == null) {
             throw IllegalArgumentException("URL source must be supplied")
         }
@@ -36,6 +36,6 @@ class AssetStreamContainerFactory(
             throw IllegalArgumentException("Asset from URL source is too large")
         }
 
-        return AssetStreamContainer(response.bodyAsChannel())
+        return AssetDataContainer(response.bodyAsChannel())
     }
 }

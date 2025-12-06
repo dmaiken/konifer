@@ -1,16 +1,16 @@
 package io.direkt.infrastructure.http
 
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import io.direkt.asset.MAX_BYTES_DEFAULT
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.ReturnFormat
-import io.direkt.asset.handler.AssetAndLocation
-import io.direkt.asset.handler.DeleteAssetHandler
-import io.direkt.asset.handler.FetchAssetHandler
-import io.direkt.asset.handler.UpdateAssetHandler
+import io.direkt.domain.asset.AssetAndLocation
+import io.direkt.domain.workflows.DeleteAssetHandler
+import io.direkt.domain.workflows.FetchAssetHandler
+import io.direkt.domain.workflows.UpdateAssetHandler
 import io.direkt.asset.model.StoreAssetRequest
-import io.direkt.path.DeleteMode
-import io.direkt.workflows.StoreNewAssetWorkflow
+import io.direkt.domain.asset.DeleteMode
+import io.direkt.domain.workflows.StoreNewAssetWorkflow
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -40,7 +40,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
-private val logger = KtorSimpleLogger("io.direkt.asset.http")
+private val logger = KtorSimpleLogger("io.direkt.infrastructure.http.AssetRouting")
 
 const val ASSET_PATH_PREFIX = "/assets"
 
@@ -183,7 +183,7 @@ suspend fun storeNewAsset(
                 async {
                     storeNewAssetWorkflow.handleFromUpload(
                         deferredRequest = assetData,
-                        multiPartContainer = AssetStreamContainer(assetContentChannel, maxMultipartContentLength),
+                        multiPartContainer = AssetDataContainer(assetContentChannel, maxMultipartContentLength),
                         uriPath = call.request.path(),
                     )
                 }

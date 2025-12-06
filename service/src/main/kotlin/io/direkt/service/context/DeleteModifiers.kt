@@ -1,6 +1,6 @@
 package io.direkt.service.context
 
-import io.direkt.path.DeleteMode
+import io.direkt.domain.asset.DeleteMode
 
 data class DeleteModifiers(
     val mode: DeleteMode = DeleteMode.SINGLE,

@@ -1,6 +1,6 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.variant.AssetVariant
+import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.image.ImageFormat
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File

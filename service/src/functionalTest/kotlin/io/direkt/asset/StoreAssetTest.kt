@@ -2,7 +2,7 @@ package io.direkt.asset
 
 import io.byteArrayToImage
 import io.direkt.BaseTestcontainerTest.Companion.BOUNDARY
-import io.direkt.asset.handler.AssetSource
+import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.model.AssetClass
 import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory

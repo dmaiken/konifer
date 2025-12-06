@@ -7,7 +7,7 @@ import app.photofox.vipsffm.enums.VipsAccess
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.PHash
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
@@ -43,7 +43,7 @@ class ResizeTest {
                 it.readBytes()
             }
         val imageChannel = ByteReadChannel(image)
-        AssetStreamContainer(imageChannel).use { container ->
+        AssetDataContainer(imageChannel).use { container ->
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
 
@@ -73,7 +73,7 @@ class ResizeTest {
                 it.readBytes()
             }
         val imageChannel = ByteReadChannel(image)
-        AssetStreamContainer(imageChannel).use { container ->
+        AssetDataContainer(imageChannel).use { container ->
             Vips.run { arena ->
                 val source = VImageFactory.newFromContainer(arena, container)
                 val processedImage =
@@ -106,7 +106,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -142,7 +142,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -177,7 +177,7 @@ class ResizeTest {
                         it.readBytes()
                     }
                 val imageChannel = ByteReadChannel(image)
-                AssetStreamContainer(imageChannel).use { container ->
+                AssetDataContainer(imageChannel).use { container ->
                     Vips.run { arena ->
                         val source = VImageFactory.newFromContainer(arena, container)
                         val processedImage =
@@ -206,7 +206,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -235,7 +235,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 val decoderOptions =
                     arrayOf<VipsOption>(
                         VipsOption.Int("n", -1),
@@ -278,7 +278,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -314,7 +314,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -406,7 +406,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -442,7 +442,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     val processedImage =
@@ -477,7 +477,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 val decoderOptions =
                     arrayOf<VipsOption>(
                         VipsOption.Int("n", -1),
@@ -568,7 +568,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize
@@ -594,7 +594,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize
@@ -620,7 +620,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize
@@ -646,7 +646,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize
@@ -671,7 +671,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize
@@ -699,7 +699,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize.requiresTransformation(
@@ -722,7 +722,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize.requiresTransformation(
@@ -745,7 +745,7 @@ class ResizeTest {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
-            AssetStreamContainer(imageChannel).use { container ->
+            AssetDataContainer(imageChannel).use { container ->
                 Vips.run { arena ->
                     val source = VImageFactory.newFromContainer(arena, container)
                     Resize.requiresTransformation(

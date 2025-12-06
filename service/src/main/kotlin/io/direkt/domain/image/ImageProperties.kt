@@ -18,7 +18,7 @@ import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.
 import io.direkt.properties.ConfigurationProperties.PathConfigurationProperties.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH
 import io.direkt.properties.ValidatedProperties
 import io.direkt.properties.validateAndCreate
-import io.direkt.tryGetConfig
+import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList

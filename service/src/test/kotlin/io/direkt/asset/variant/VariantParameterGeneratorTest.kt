@@ -7,6 +7,9 @@ import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import io.direkt.domain.image.Transformation
+import io.direkt.infrastructure.database.postgres.ImageVariantAttributes
+import io.direkt.infrastructure.database.postgres.ImageVariantTransformation
+import io.direkt.infrastructure.database.postgres.VariantParameterGenerator
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import net.openhft.hashing.LongHashFunction

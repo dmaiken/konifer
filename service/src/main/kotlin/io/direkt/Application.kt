@@ -1,16 +1,18 @@
 package io.direkt
 
-import io.direkt.infrastructure.http.configureAssetRouting
-import io.direkt.infrastructure.postgres.connectToPostgres
-import io.direkt.infrastructure.postgres.migrateSchema
 import io.direkt.infrastructure.configureKoin
-import io.direkt.infrastructure.inmemory.configureInMemoryObjectStoreRouting
+import io.direkt.infrastructure.http.configureAssetRouting
+import io.direkt.infrastructure.http.configureStatusPages
+import io.direkt.infrastructure.http.serialization.configureContentNegotiation
+import io.direkt.infrastructure.database.postgres.connectToPostgres
+import io.direkt.infrastructure.database.postgres.migrateSchema
+import io.direkt.infrastructure.objectstore.inmemory.configureInMemoryObjectStoreRouting
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
 
-private val logger = KtorSimpleLogger("io.Application")
+private val logger = KtorSimpleLogger("io.direkt.Application")
 
 /**
  * Before you think about configuring this using embeddedServer, think again. This will break the ability to use

@@ -1,6 +1,6 @@
 package io.direkt.domain.aggregate
 
-import io.direkt.asset.handler.AssetSource
+import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.model.StoreAssetRequest
 import java.time.LocalDateTime
 import java.util.UUID

@@ -16,7 +16,7 @@ import io.direkt.service.context.ManipulationParameters.ROTATE
 import io.direkt.service.context.ManipulationParameters.VARIANT_PROFILE
 import io.direkt.service.context.ManipulationParameters.WIDTH
 import io.direkt.service.transformation.TransformationNormalizer
-import io.direkt.asset.variant.VariantProfileRepository
+import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.direkt.domain.ports.PathConfigurationRepository
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
@@ -25,7 +25,8 @@ import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.RequestedTransformation
 import io.direkt.domain.image.Rotate
-import io.direkt.path.DeleteMode
+import io.direkt.domain.ports.VariantProfileRepository
+import io.direkt.domain.asset.DeleteMode
 import io.direkt.properties.validateAndCreate
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger

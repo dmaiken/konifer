@@ -1,7 +1,7 @@
 package io.direkt.infrastructure.database
 
 import io.direkt.service.context.OrderBy
-import io.direkt.asset.handler.AssetSource
+import io.direkt.domain.asset.AssetSource
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.StoreAssetRequest

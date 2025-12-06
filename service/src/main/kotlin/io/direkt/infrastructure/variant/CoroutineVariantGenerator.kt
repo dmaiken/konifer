@@ -7,7 +7,7 @@ import io.direkt.asset.model.Asset
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
-import io.direkt.asset.variant.AssetVariant
+import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.image.Transformation

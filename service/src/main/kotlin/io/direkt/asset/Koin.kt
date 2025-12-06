@@ -2,16 +2,19 @@ package io.direkt.asset
 
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.infrastructure.asset.AssetStreamContainerFactory
-import io.direkt.asset.handler.DeleteAssetHandler
-import io.direkt.asset.handler.FetchAssetHandler
+import io.direkt.domain.workflows.DeleteAssetHandler
+import io.direkt.domain.workflows.FetchAssetHandler
 import io.direkt.service.transformation.TransformationNormalizer
-import io.direkt.asset.handler.UpdateAssetHandler
+import io.direkt.domain.workflows.UpdateAssetHandler
 import io.direkt.domain.ports.AssetRepository
-import io.direkt.infrastructure.inmemory.InMemoryAssetRepository
-import io.direkt.infrastructure.postgres.PostgresAssetRepository
-import io.direkt.asset.variant.VariantProfileRepository
+import io.direkt.infrastructure.database.inmemory.InMemoryAssetRepository
+import io.direkt.infrastructure.database.postgres.PostgresAssetRepository
+import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.direkt.domain.ports.AssetContainerFactory
-import io.direkt.workflows.StoreNewAssetWorkflow
+import io.direkt.domain.ports.MimeTypeDetector
+import io.direkt.domain.ports.VariantProfileRepository
+import io.direkt.domain.workflows.StoreNewAssetWorkflow
+import io.direkt.infrastructure.tika.TikaMimeTypeDetector
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList
@@ -55,7 +58,7 @@ fun Application.assetModule(connectionFactory: ConnectionFactory?): Module =
         }
 
         single<VariantProfileRepository> {
-            VariantProfileRepository(environment.config)
+            ConfigurationVariantProfileRepository(environment.config)
         }
 
         single<TransformationNormalizer> {

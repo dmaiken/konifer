@@ -3,15 +3,15 @@ package io.direkt.service.context
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
 import io.direkt.service.transformation.TransformationNormalizer
-import io.direkt.asset.variant.VariantProfileRepository
+import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
 import io.direkt.domain.image.Transformation
-import io.direkt.path.DeleteMode
+import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.infrastructure.path.TriePathConfigurationRepository
-import io.direkt.infrastructure.s3.S3PathProperties
+import io.direkt.infrastructure.objectstore.s3.S3PathProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeOneOf
@@ -398,7 +398,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
     }
 
     private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
-    private val variantProfileRepository = mockk<VariantProfileRepository>()
+    private val variantProfileRepository = mockk<ConfigurationVariantProfileRepository>()
     private val transformationNormalizer = TransformationNormalizer(assetRepository)
     private val requestContextFactory =
         RequestContextFactory(pathConfigurationRepository, variantProfileRepository, transformationNormalizer)

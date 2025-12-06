@@ -1,8 +1,8 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.AssetStreamContainer
+import io.direkt.asset.AssetDataContainer
 
 interface AssetContainerFactory {
 
-    suspend fun fromUrlSource(urlSource: String?): AssetStreamContainer
+    suspend fun fromUrlSource(urlSource: String?): AssetDataContainer
 }
