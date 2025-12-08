@@ -39,14 +39,17 @@ fun createPendingAsset(
         tags = tags,
         url = url,
     )
-).markPending(
-    originalVariant = Variant.Pending.originalVariant(
-        attributes = attributes,
-        objectStoreBucket = objectStoreBucket,
-        objectStoreKey = objectStoreKey,
-        lqip = lqips
+).let {
+    it.markPending(
+        originalVariant = Variant.Pending.originalVariant(
+            attributes = attributes,
+            objectStoreBucket = objectStoreBucket,
+            objectStoreKey = objectStoreKey,
+            lqip = lqips,
+            assetId = it.id,
+        )
     )
-)
+}
 
 fun createAssetDto(
     treePath: String,

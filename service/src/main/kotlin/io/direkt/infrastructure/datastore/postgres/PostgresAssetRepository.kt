@@ -13,6 +13,7 @@ import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetId
 import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.ports.AssetRepository
@@ -105,22 +106,8 @@ class PostgresAssetRepository(
         TODO("Not yet implemented")
     }
 
-    override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
-        val treePath = PathAdapter.toTreePathFromUriPath(variant.path)
+    override suspend fun storeVariant(variant: Variant): Variant {
         return dslContext.transactionCoroutine { trx ->
-            val asset =
-                fetch(
-                    trx.dsl(),
-                    treePath,
-                    variant.entryId,
-                    Transformation.ORIGINAL_VARIANT,
-                    OrderBy.CREATED,
-                )
-            if (asset == null) {
-                throw IllegalArgumentException(
-                    "Asset with path: $treePath and entry id: ${variant.entryId} not found in database",
-                )
-            }
             val (transformations, transformationsKey) =
                 VariantParameterGenerator.generateImageVariantTransformations(
                     variant.transformation,
@@ -134,9 +121,9 @@ class PostgresAssetRepository(
                         .dsl()
                         .insertInto(ASSET_VARIANT)
                         .set(ASSET_VARIANT.ID, UUID.randomUUID())
-                        .set(ASSET_VARIANT.ASSET_ID, asset.asset.id)
-                        .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.persistResult.bucket)
-                        .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.persistResult.key)
+                        .set(ASSET_VARIANT.ASSET_ID, variant.assetId.value)
+                        .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.objectStoreBucket)
+                        .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.objectStoreKey)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                         .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
                         .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationsKey)
@@ -147,15 +134,12 @@ class PostgresAssetRepository(
                         .awaitFirst()
                 } catch (e: IntegrityConstraintViolationException) {
                     if (e.message?.contains(ASSET_VARIANT_TRANSFORMATION_UQ.name) == true) {
-                        throw IllegalArgumentException(
-                            "Variant already exists for asset with entry_id: ${variant.entryId} at " +
-                                "path: $treePath and attributes: ${variant.attributes}",
-                        )
+                        throw IllegalArgumentException("Variant already exists for assetId: ${variant.assetId}")
                     }
                     throw e
                 }
 
-            AssetAndVariants.from(asset.asset, listOf(persistedVariant), asset.labels, asset.tags)
+            persistedVariant.toVariant()
         }
     }
 
@@ -165,10 +149,10 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
-    ): AssetAndVariants? {
+    ): AssetData? {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
         return fetch(dslContext, treePath, entryId, transformation, orderBy, labels)?.let {
-            AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags)
+            it.asset.toAssetData(it.variants, it.labels, it.tags)
         }
     }
 
@@ -178,10 +162,10 @@ class PostgresAssetRepository(
         orderBy: OrderBy,
         labels: Map<String, String>,
         limit: Int,
-    ): List<AssetAndVariants> {
+    ): List<AssetData> {
         val treePath = PathAdapter.toTreePathFromUriPath(path)
         return fetchAllAtPath(dslContext, treePath, transformation, orderBy, labels, limit)
-            .map { AssetAndVariants.from(it.asset, it.variants, it.labels, it.tags) }
+            .map { it.asset.toAssetData(it.variants, it.labels, it.tags) }
     }
 
     override suspend fun deleteAssetByPath(
@@ -276,56 +260,57 @@ class PostgresAssetRepository(
         deletedAssets
     }
 
-    override suspend fun update(asset: UpdateAssetDto): AssetAndVariants {
+    override suspend fun update(asset: Asset): Asset {
         val fetched =
             fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
                 ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
 
-        val assetId = fetched.asset.id
+        val assetId = fetched.id
         var modified = false
         dslContext.transactionCoroutine { trx ->
-            if (fetched.asset.alt != asset.request.alt) {
+            if (fetched.alt != asset.alt) {
                 modified = true
                 trx
                     .dsl()
                     .update(ASSET_TREE)
-                    .set(ASSET_TREE.ALT, asset.request.alt)
-                    .where(ASSET_TREE.ID.eq(assetId))
+                    .set(ASSET_TREE.ALT, asset.alt)
+                    .where(ASSET_TREE.ID.eq(assetId.value))
                     .awaitFirst()
             }
-            if (fetched.asset.labels != asset.request.labels) {
+            if (fetched.labels != asset.labels) {
                 modified = true
                 trx
                     .dsl()
                     .delete(ASSET_LABEL)
-                    .where(ASSET_LABEL.ASSET_ID.eq(assetId))
+                    .where(ASSET_LABEL.ASSET_ID.eq(assetId.value))
                     .awaitFirst()
-                insertLabels(trx.dsl(), assetId, asset.request.labels)
+                insertLabels(trx.dsl(), assetId.value, asset.labels)
             }
-            if (fetched.asset.tags != asset.request.tags) {
+            if (fetched.tags != asset.tags) {
                 modified = true
                 trx
                     .dsl()
                     .delete(ASSET_TAG)
-                    .where(ASSET_TAG.ASSET_ID.eq(assetId))
+                    .where(ASSET_TAG.ASSET_ID.eq(assetId.value))
                     .awaitFirst()
-                insertTags(trx.dsl(), assetId, asset.request.tags)
+                insertTags(trx.dsl(), assetId.value, asset.tags)
             }
             if (modified) {
                 trx
                     .dsl()
                     .update(ASSET_TREE)
                     .set(ASSET_TREE.MODIFIED_AT, LocalDateTime.now())
-                    .where(ASSET_TREE.ID.eq(assetId))
+                    .where(ASSET_TREE.ID.eq(assetId.value))
                     .awaitFirst()
             }
         }
 
         return if (modified) {
             fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
+                ?.let { Asset.Ready.from(it) }
                 ?: throw IllegalStateException("Asset does not exist after updating")
         } else {
-            fetched
+            asset
         }
     }
 
@@ -512,7 +497,8 @@ class PostgresAssetRepository(
         assetId: UUID,
         labels: Map<String, String>,
         dateTime: LocalDateTime = LocalDateTime.now(),
-    ) {
+    ): List<AssetLabelRecord> {
+        val updated = mutableListOf<AssetLabelRecord>()
         if (labels.isNotEmpty()) {
             val step =
                 context.insertInto(
@@ -526,8 +512,9 @@ class PostgresAssetRepository(
             labels.forEach { (key, value) ->
                 step.values(UUID.randomUUID(), assetId, key, value, dateTime)
             }
-            step.awaitLast()
+            step.returning().asFlow().toList(updated)
         }
+        return updated
     }
 
     private suspend fun insertTags(
@@ -536,6 +523,7 @@ class PostgresAssetRepository(
         tags: Set<String>,
         dateTime: LocalDateTime = LocalDateTime.now(),
     ) {
+        val updated = mutableListOf<AssetTagRecord>()
         if (tags.isNotEmpty()) {
             val step =
                 context.insertInto(
@@ -548,7 +536,7 @@ class PostgresAssetRepository(
             tags.forEach { value ->
                 step.values(UUID.randomUUID(), assetId, value, dateTime)
             }
-            step.awaitLast()
+            step.returning().asFlow().toList(updated)
         }
     }
 
@@ -579,9 +567,10 @@ class PostgresAssetRepository(
         createdAt = checkNotNull(asset.createdAt),
         modifiedAt = checkNotNull(asset.modifiedAt),
         isReady = false,
-        variants = listOf(
+        variants = mutableListOf(
             Variant.Pending(
                 id = VariantId(checkNotNull(variant.id)),
+                assetId = AssetId(checkNotNull(asset.id)),
                 objectStoreBucket = checkNotNull(variant.objectStoreBucket),
                 objectStoreKey = checkNotNull(variant.objectStoreKey),
                 isOriginalVariant = true,
@@ -592,7 +581,6 @@ class PostgresAssetRepository(
                 transformation = format.decodeFromString<ImageVariantTransformation>(
                     checkNotNull(variant.transformation).data(),
                     ).toTransformation(),
-                transformationKey = checkNotNull(variant.transformationKey),
                 lqips = format.decodeFromString(checkNotNull(variant.lqip).data()),
                 createdAt = checkNotNull(variant.createdAt),
                 uploadedAt = null,

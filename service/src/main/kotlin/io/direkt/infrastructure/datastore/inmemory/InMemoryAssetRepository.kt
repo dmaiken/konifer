@@ -6,9 +6,12 @@ import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
+import io.direkt.domain.variant.VariantData
 import io.direkt.infrastructure.datastore.postgres.ImageVariantTransformation
 import io.direkt.infrastructure.datastore.postgres.VariantParameterGenerator
 import io.direkt.service.context.OrderBy
@@ -53,7 +56,7 @@ class InMemoryAssetRepository : AssetRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants {
+    override suspend fun storeVariant(variant: Variant): Variant {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(variant.path)
         return store[path]?.let { assets ->
             val asset = assets.first { it.entryId == variant.entryId }
@@ -79,10 +82,7 @@ class InMemoryAssetRepository : AssetRepository {
             asset.variants.add(variant)
             asset.variants.sortByDescending { it.createdAt }
 
-            AssetAndVariants(
-                asset = asset.asset,
-                variants = listOf(variant),
-            )
+            variant
         } ?: throw IllegalArgumentException("Asset with path: $path and entry id: ${variant.entryId} not found in database")
     }
 
@@ -92,7 +92,7 @@ class InMemoryAssetRepository : AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
-    ): AssetAndVariants? {
+    ): AssetData? {
         val assetAndVariants = fetch(path, entryId, orderBy, labels) ?: return null
         val variants =
             if (transformation == null) {
@@ -107,8 +107,8 @@ class InMemoryAssetRepository : AssetRepository {
                         listOf(matched)
                     } ?: emptyList()
             }
-        return AssetAndVariants(
-            asset = assetAndVariants.asset,
+        return AssetData(
+            asset = assetAndVariants,
             variants = variants,
         )
     }
@@ -122,7 +122,7 @@ class InMemoryAssetRepository : AssetRepository {
     ): List<AssetAndVariants> =
         store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.toList()
-            ?.filter { labels.all { entry -> it.asset.labels[entry.key] == entry.value } }
+            ?.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
             ?.map { assetAndVariants ->
                 val variants =
                     if (transformation == null) {
@@ -138,7 +138,7 @@ class InMemoryAssetRepository : AssetRepository {
                             } ?: emptyList()
                     }
                 AssetAndVariants(
-                    asset = assetAndVariants.asset,
+                    asset = assetAndVariants,
                     variants = variants,
                 )
             }?.sortedWith(
@@ -159,17 +159,17 @@ class InMemoryAssetRepository : AssetRepository {
 
         val asset =
             store[inMemoryPath]?.let { assets ->
-                val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
-                assets.firstOrNull { it.asset.entryId == resolvedEntryId }
+                val resolvedEntryId = entryId ?: assets.maxByOrNull { it.createdAt }?.entryId
+                assets.firstOrNull { it.entryId == resolvedEntryId }
             }
 
         asset?.let {
-            idReference.remove(it.asset.id)
+            idReference.remove(it.id)
         }
         store[inMemoryPath]?.let { assets ->
-            val resolvedEntryId = entryId ?: assets.maxByOrNull { it.asset.createdAt }?.asset?.entryId
+            val resolvedEntryId = entryId ?: assets.maxByOrNull { it.createdAt }?.entryId
             resolvedEntryId?.let {
-                assets.removeIf { it.asset.entryId == resolvedEntryId }
+                assets.removeIf { it.entryId == resolvedEntryId }
             }
         }
         return asset?.variants?.map {
@@ -193,7 +193,7 @@ class InMemoryAssetRepository : AssetRepository {
                 assetAndVariants?.forEach {
                     objectStoreInformation.addAll(mapToBucketAndKey(it))
                 }
-                assetAndVariants?.map { it.asset.id }?.forEach {
+                assetAndVariants?.map { it.id }?.forEach {
                     idReference.remove(it)
                 }
                 store.remove(path)
@@ -204,7 +204,7 @@ class InMemoryAssetRepository : AssetRepository {
             assetAndVariants?.forEach {
                 objectStoreInformation.addAll(mapToBucketAndKey(it))
             }
-            assetAndVariants?.map { it.asset.id }?.forEach {
+            assetAndVariants?.map { it.id }?.forEach {
                 idReference.remove(it)
             }
             store.remove(inMemoryPath)
@@ -219,24 +219,24 @@ class InMemoryAssetRepository : AssetRepository {
                 ?: throw IllegalStateException("Asset does not exist")
 
         val isModified =
-            asset.request.alt != fetched.asset.alt ||
-                asset.request.labels != fetched.asset.labels ||
+            asset.request.alt != fetched.alt ||
+                asset.request.labels != fetched.labels ||
                 asset.request.tags != asset.request.tags
         val updated =
             fetched.copy(
                 asset =
-                    fetched.asset.copy(
+                    fetched.copy(
                         alt = asset.request.alt,
                         labels = asset.request.labels,
                         tags = asset.request.tags,
-                        modifiedAt = if (isModified) LocalDateTime.now() else fetched.asset.modifiedAt,
+                        modifiedAt = if (isModified) LocalDateTime.now() else fetched.modifiedAt,
                     ),
             )
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
-        store[path]?.removeIf { it.asset.entryId == asset.entryId }
+        store[path]?.removeIf { it.entryId == asset.entryId }
         store[path]?.add(
             InMemoryAssetAndVariants(
-                asset = updated.asset,
+                asset = updated,
                 variants = updated.variants.toMutableList(),
             ),
         )
@@ -254,8 +254,7 @@ class InMemoryAssetRepository : AssetRepository {
 
     private fun getNextEntryId(path: String): Long =
         store[path]
-            ?.maxByOrNull { it.asset.entryId }
-            ?.asset
+            ?.maxByOrNull { it.entryId }
             ?.entryId
             ?.inc() ?: 0
 
@@ -264,26 +263,26 @@ class InMemoryAssetRepository : AssetRepository {
         entryId: Long?,
         orderBy: OrderBy,
         labels: Map<String, String>,
-    ): InMemoryAssetAndVariants? {
+    ): Asset? {
         val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
 
         return assets
             .filter { asset ->
                 if (entryId != null) {
-                    asset.asset.entryId == entryId
+                    asset.entryId == entryId
                 } else {
                     true
                 }
             }.filter { asset ->
                 if (labels.isNotEmpty()) {
-                    labels.all { asset.asset.labels[it.key] == it.value }
+                    labels.all { asset.labels[it.key] == it.value }
                 } else {
                     true
                 }
             }.maxByOrNull { asset ->
                 when (orderBy) {
-                    OrderBy.CREATED -> asset.asset.createdAt
-                    OrderBy.MODIFIED -> asset.asset.modifiedAt
+                    OrderBy.CREATED -> asset.createdAt
+                    OrderBy.MODIFIED -> asset.modifiedAt
                 }
             }
     }
@@ -292,4 +291,31 @@ class InMemoryAssetRepository : AssetRepository {
 private data class InMemoryAssetAndVariants(
     val asset: Asset,
     val variants: MutableList<AssetVariant>,
+)
+
+fun Asset.toAssetData(): AssetData = AssetData(
+    id = id,
+    path = path,
+    entryId = checkNotNull(entryId),
+    alt = alt,
+    labels = labels,
+    tags = tags,
+    source = source,
+    sourceUrl = sourceUrl,
+    createdAt = createdAt,
+    modifiedAt = modifiedAt,
+    variants = variants.map { it.toVariantData() },
+
+)
+
+fun Variant.toVariantData(): VariantData = VariantData(
+    id = id,
+    objectStoreBucket = objectStoreBucket,
+    objectStoreKey = objectStoreKey,
+    attributes = attributes,
+    transformation = transformation,
+    lqips = lqips,
+    createdAt = createdAt,
+    uploadedAt = uploadedAt,
+    isOriginalVariant = isOriginalVariant,
 )

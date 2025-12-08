@@ -21,7 +21,7 @@ sealed interface Asset {
     val createdAt: LocalDateTime
     val modifiedAt: LocalDateTime
     val isReady: Boolean
-    val variants: List<Variant>
+    val variants: MutableList<Variant>
 
     class New private constructor(
         override val id: AssetId,
@@ -35,7 +35,7 @@ sealed interface Asset {
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
-        override val variants: List<Variant>,
+        override val variants: MutableList<Variant>,
     ) : Asset {
         companion object {
             /**
@@ -80,7 +80,7 @@ sealed interface Asset {
                     createdAt = now,
                     modifiedAt = now,
                     isReady = false,
-                    variants = emptyList(),
+                    variants = mutableListOf(),
                 )
             }
         }
@@ -128,7 +128,7 @@ sealed interface Asset {
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
-        override val variants: List<Variant>,
+        override val variants: MutableList<Variant>,
     ) : Asset {
         companion object {
             fun fromNew(
@@ -147,7 +147,7 @@ sealed interface Asset {
                     createdAt = new.createdAt,
                     modifiedAt = new.modifiedAt,
                     isReady = false,
-                    variants = listOf(originalVariant),
+                    variants = mutableListOf(originalVariant),
                 )
         }
 
@@ -169,7 +169,7 @@ sealed interface Asset {
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
-        override val variants: List<Variant>,
+        override val variants: MutableList<Variant>,
     ) : Asset {
 
         init {
@@ -181,11 +181,11 @@ sealed interface Asset {
         fun markReady(uploadedAt: LocalDateTime): Ready =
             Ready.fromPendingPersisted(
                 persisted = this,
-                originalVariant = (variants.first() as Variant.Pending).markUploaded(uploadedAt),
+                originalVariant = (variants.first() as Variant.Pending).markReady(uploadedAt),
             )
     }
 
-    class Ready private constructor(
+    class Ready(
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
@@ -197,14 +197,14 @@ sealed interface Asset {
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
-        override val variants: List<Variant>,
+        override val variants: MutableList<Variant>,
     ) : Asset {
 
         init {
             checkNotNull(entryId)
             check(variants.isNotEmpty())
             check(isReady)
-            check(variants.all { it is Variant.Uploaded })
+            check(variants.all { it is Variant.Ready })
         }
 
         companion object {
@@ -220,7 +220,24 @@ sealed interface Asset {
                 createdAt = persisted.createdAt,
                 modifiedAt = persisted.modifiedAt,
                 isReady = true,
-                variants = listOf(originalVariant),
+                variants = mutableListOf(originalVariant),
+            )
+
+            fun from(assetData: AssetData): Ready = Ready(
+                id = assetData.id,
+                path = assetData.path,
+                entryId = assetData.entryId,
+                alt = assetData.alt,
+                labels = assetData.labels,
+                tags = assetData.tags,
+                source = assetData.source,
+                sourceUrl = assetData.sourceUrl,
+                createdAt = assetData.createdAt,
+                modifiedAt = assetData.modifiedAt,
+                isReady = true,
+                variants = assetData.variants
+                    .map { Variant.Ready.from(assetData.id, it) }
+                    .toMutableList()
             )
         }
     }

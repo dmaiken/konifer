@@ -1,11 +1,12 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.asset.handler.dto.StoreAssetVariantDto
 import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 
@@ -14,7 +15,7 @@ interface AssetRepository {
 
     suspend fun markReady(asset: Asset)
 
-    suspend fun storeVariant(variant: StoreAssetVariantDto): AssetAndVariants
+    suspend fun storeVariant(variant: Variant): Variant
 
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.
@@ -31,7 +32,7 @@ interface AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
-    ): AssetAndVariants?
+    ): AssetData?
 
     suspend fun fetchAllByPath(
         path: String,
@@ -39,7 +40,7 @@ interface AssetRepository {
         orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
         limit: Int,
-    ): List<AssetAndVariants>
+    ): List<AssetData>
 
     suspend fun deleteAssetByPath(
         path: String,
@@ -54,5 +55,5 @@ interface AssetRepository {
     /**
      * @throws IllegalStateException if asset cannot be found with the given path and entryId
      */
-    suspend fun update(asset: UpdateAssetDto): AssetAndVariants
+    suspend fun update(asset: Asset): Asset
 }

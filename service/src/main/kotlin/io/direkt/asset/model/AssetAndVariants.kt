@@ -6,8 +6,8 @@ import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import io.direkt.domain.asset.AssetClass
 import io.direkt.infrastructure.http.AssetResponse
-import io.direkt.infrastructure.http.AssetVariantResponse
-import io.direkt.infrastructure.http.ImageAttributeResponse
+import io.direkt.infrastructure.http.AttributeResponse
+import io.direkt.infrastructure.http.VariantResponse
 import io.direkt.infrastructure.http.LQIPResponse
 
 data class AssetAndVariants(
@@ -54,11 +54,11 @@ data class AssetAndVariants(
             sourceUrl = asset.sourceUrl,
             variants =
                 variants.map { variant ->
-                    AssetVariantResponse(
+                    VariantResponse(
                         bucket = variant.objectStoreBucket,
                         storeKey = variant.objectStoreKey,
                         attributes =
-                            ImageAttributeResponse(
+                            AttributeResponse(
                                 height = variant.attributes.height,
                                 width = variant.attributes.width,
                                 mimeType = variant.attributes.format.mimeType,

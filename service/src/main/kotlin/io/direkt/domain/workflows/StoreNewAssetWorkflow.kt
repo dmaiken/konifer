@@ -5,7 +5,6 @@ import app.photofox.vipsffm.Vips
 import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetAndLocation
-import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.InvalidImageException
 import io.direkt.domain.ports.AssetContainerFactory
@@ -28,7 +27,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import java.time.LocalDateTime
 import java.util.UUID
 
 class StoreNewAssetWorkflow(
@@ -99,6 +97,7 @@ class StoreNewAssetWorkflow(
                 val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
                 val pendingAsset = newAsset.markPending(
                     originalVariant = Variant.Pending.originalVariant(
+                        assetId = newAsset.id,
                         attributes = preProcessed.attributes,
                         objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
                         objectStoreKey = objectStoreKey,

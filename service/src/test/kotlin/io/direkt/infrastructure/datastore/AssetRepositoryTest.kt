@@ -181,7 +181,7 @@ abstract class AssetRepositoryTest {
                     )
                 newVariant.asset shouldBe persisted
                 newVariant.variants shouldHaveSize 1
-                newVariant.variants.first().apply {
+                newVariant.apply {
                     this.attributes.height shouldBe attributes.height
                     this.attributes.width shouldBe attributes.width
                     this.attributes.format shouldBe attributes.format
