@@ -1,10 +1,12 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
@@ -19,8 +21,8 @@ data class OnDemandVariantGenerationJob(
     val lqipImplementations: Set<LQIPImplementation>,
     val bucket: String,
     val transformation: Transformation,
-    override val deferredResult: CompletableDeferred<AssetAndVariants>,
-) : ImageProcessingJob<AssetAndVariants>
+    override val deferredResult: CompletableDeferred<Variant>,
+) : ImageProcessingJob<Variant>
 
 data class EagerVariantGenerationJob(
     val path: String,
@@ -28,8 +30,8 @@ data class EagerVariantGenerationJob(
     val lqipImplementations: Set<LQIPImplementation>,
     val bucket: String,
     val requestedTransformations: List<RequestedTransformation>,
-    override val deferredResult: CompletableDeferred<AssetAndVariants>? = null,
-) : ImageProcessingJob<AssetAndVariants>
+    override val deferredResult: CompletableDeferred<List<Variant>>? = null,
+) : ImageProcessingJob<List<Variant>>
 
 data class PreProcessJob(
     val sourceFormat: ImageFormat,

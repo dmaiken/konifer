@@ -56,6 +56,26 @@ sealed interface Variant {
                     createdAt = LocalDateTime.now(),
                     uploadedAt = null,
                 )
+
+            fun newVariant(
+                assetId: AssetId,
+                attributes: Attributes,
+                transformation: Transformation,
+                objectStoreBucket: String,
+                objectStoreKey: String,
+                lqip: LQIPs,
+            ): Pending = Pending(
+                id = VariantId(UUID.randomUUID()),
+                assetId = assetId,
+                objectStoreBucket = objectStoreBucket,
+                objectStoreKey = objectStoreKey,
+                isOriginalVariant = false,
+                attributes = attributes,
+                transformation = transformation,
+                lqips = lqip,
+                createdAt = LocalDateTime.now(),
+                uploadedAt = null,
+            )
         }
 
         fun markReady(uploadedAt: LocalDateTime): Ready = Ready.fromPending(

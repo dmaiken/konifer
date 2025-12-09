@@ -1,8 +1,8 @@
 package io.direkt.asset.handler.dto
 
-import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.AssetData
 
 data class AssetMetadataDto(
-    val asset: AssetAndVariants,
+    val asset: AssetData,
     val cacheHit: Boolean,
 )

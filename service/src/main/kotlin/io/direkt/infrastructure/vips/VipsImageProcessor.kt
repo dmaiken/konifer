@@ -12,6 +12,7 @@ import io.direkt.domain.image.ProcessedImage
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.VariantData
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -110,7 +111,7 @@ class VipsImageProcessor {
         source: File,
         lqipImplementations: Set<LQIPImplementation>,
         transformation: Transformation,
-        originalVariant: AssetVariant,
+        originalVariant: VariantData,
     ): ProcessedImage =
         withContext(Dispatchers.IO) {
             var attributes: Attributes? = null
@@ -159,7 +160,7 @@ class VipsImageProcessor {
                     if (regenerateLqip) {
                         createImagePreviews(resizedPreviewChannel, lqipImplementations)
                     } else {
-                        originalVariant.lqip
+                        originalVariant.lqips
                     },
                 transformation = transformation,
                 result = checkNotNull(result),

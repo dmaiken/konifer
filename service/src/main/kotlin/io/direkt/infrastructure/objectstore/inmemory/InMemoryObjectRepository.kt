@@ -5,6 +5,7 @@ import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.FetchResult
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.PersistResult
+import io.direkt.domain.variant.VariantData
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
@@ -68,9 +69,8 @@ class InMemoryObjectRepository : ObjectRepository {
         keys.forEach { delete(bucket, it) }
     }
 
-    override fun generateObjectUrl(variant: AssetVariant): String =
-        "http://localhost:$DEFAULT_PORT/objectStore/${variant.objectStoreBucket}" +
-            "/${variant.objectStoreKey}"
+    override fun generateObjectUrl(bucket: String, key: String): String =
+        "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
 
     fun clearObjectStore() {
         store.clear()

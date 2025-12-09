@@ -2,7 +2,7 @@ package io.direkt.domain.workflows
 
 import io.direkt.asset.handler.dto.AssetLinkDto
 import io.direkt.asset.handler.dto.AssetMetadataDto
-import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.VariantGenerator
@@ -24,13 +24,13 @@ class FetchAssetHandler(
         val variant = assetAndCacheStatus.asset.variants.first()
 
         return AssetLinkDto(
-            url = objectStore.generateObjectUrl(variant),
+            url = objectStore.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey),
             cacheHit = assetAndCacheStatus.cacheHit,
-            lqip = variant.lqip,
+            lqip = variant.lqips
         )
     }
 
-    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetAndVariants> {
+    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetData> {
         logger.info("Fetching asset info in path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
@@ -49,7 +49,7 @@ class FetchAssetHandler(
             "Fetching asset info by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
         )
 
-        val assetAndVariants =
+        val assetData =
             assetRepository.fetchByPath(
                 path = context.path,
                 entryId,
@@ -58,10 +58,10 @@ class FetchAssetHandler(
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
-            return AssetMetadataDto(assetAndVariants, true)
+            return AssetMetadataDto(assetData, true)
         }
 
-        return if (assetAndVariants.variants.isEmpty()) {
+        return if (assetData.variants.isEmpty()) {
             logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
             context.pathConfiguration.allowedContentTypes?.let {
                 if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
@@ -71,8 +71,8 @@ class FetchAssetHandler(
 
             val deferred =
                 variantGenerator.generateOnDemandVariant(
-                    path = assetAndVariants.asset.path,
-                    entryId = assetAndVariants.asset.entryId,
+                    path = assetData.path,
+                    entryId = assetData.entryId,
                     lqipImplementations = context.pathConfiguration.imageProperties.previews,
                     bucket = context.pathConfiguration.s3PathProperties.bucket,
                     transformation = checkNotNull(context.transformation),
@@ -80,7 +80,7 @@ class FetchAssetHandler(
             AssetMetadataDto(deferred.await(), false)
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
-            AssetMetadataDto(assetAndVariants, true)
+            AssetMetadataDto(assetData, true)
         }
     }
 

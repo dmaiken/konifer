@@ -1,6 +1,7 @@
 package io.direkt.domain.ports
 
 import io.direkt.asset.model.AssetVariant
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File
@@ -37,7 +38,7 @@ interface ObjectRepository {
         keys: List<String>,
     )
 
-    fun generateObjectUrl(variant: AssetVariant): String
+    fun generateObjectUrl(bucket: String, key: String): String
 }
 
 data class PersistResult(

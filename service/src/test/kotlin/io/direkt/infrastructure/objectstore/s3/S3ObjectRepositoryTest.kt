@@ -113,7 +113,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 )
             val variant = createVariant()
 
-            store.generateObjectUrl(variant) shouldBe
+            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
                 "https://s3.us-east-1.amazonaws.com/${variant.objectStoreBucket}/${variant.objectStoreKey}"
         }
 
@@ -135,7 +135,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 )
             val variant = createVariant()
 
-            store.generateObjectUrl(variant) shouldBe "https://minio.local/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe "https://minio.local/${variant.objectStoreBucket}/${variant.objectStoreKey}"
         }
 
         @Test
@@ -156,7 +156,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 )
             val variant = createVariant()
 
-            store.generateObjectUrl(variant) shouldBe
+            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
                 "https://${variant.objectStoreBucket}.s3.us-east-1.amazonaws.com/${variant.objectStoreKey}"
         }
 
@@ -178,7 +178,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 )
             val variant = createVariant()
 
-            store.generateObjectUrl(variant) shouldBe "https://${variant.objectStoreBucket}.minio.local/${variant.objectStoreKey}"
+            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe "https://${variant.objectStoreBucket}.minio.local/${variant.objectStoreKey}"
         }
 
         private fun createVariant(): AssetVariant =

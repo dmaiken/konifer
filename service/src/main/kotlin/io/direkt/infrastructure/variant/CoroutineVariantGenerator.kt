@@ -1,14 +1,12 @@
 package io.direkt.infrastructure.variant
 
-import io.direkt.asset.handler.dto.StoreAssetVariantDto
-import io.direkt.asset.model.Asset
-import io.direkt.asset.model.AssetAndVariants
-import io.direkt.asset.model.AssetVariant
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.TemporaryFileFactory.createOriginalVariantTempFile
 import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.direkt.service.transformation.TransformationNormalizer
@@ -23,6 +21,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class CoroutineVariantGenerator(
     private val assetRepository: AssetRepository,
@@ -83,7 +82,7 @@ class CoroutineVariantGenerator(
         }
     }
 
-    private suspend fun handleVariantGenerationJob(job: OnDemandVariantGenerationJob): AssetAndVariants {
+    private suspend fun handleVariantGenerationJob(job: OnDemandVariantGenerationJob): Variant {
         logger.info("Handling variant generation job: $job")
         val original =
             assetRepository.fetchByPath(job.path, job.entryId, Transformation.ORIGINAL_VARIANT)
@@ -94,11 +93,11 @@ class CoroutineVariantGenerator(
             lqipImplementations = job.lqipImplementations,
             bucket = job.bucket,
             transformations = listOf(job.transformation),
-            original = original,
-        )
+            assetData = original,
+        ).first()
     }
 
-    private suspend fun handleEagerVariantGenerationJob(job: EagerVariantGenerationJob): AssetAndVariants {
+    private suspend fun handleEagerVariantGenerationJob(job: EagerVariantGenerationJob): List<Variant> {
         logger.info("Handling eager variant generation job: $job")
         val original =
             assetRepository.fetchByPath(job.path, job.entryId, Transformation.ORIGINAL_VARIANT)
@@ -112,10 +111,10 @@ class CoroutineVariantGenerator(
                 job.requestedTransformations.let {
                     transformationNormalizer.normalize(
                         requested = it,
-                        originalVariantAttributes = original.getOriginalVariant().attributes,
+                        originalVariantAttributes = original.variants.first().attributes,
                     )
                 },
-            original = original,
+            assetData = original,
         )
     }
 
@@ -135,15 +134,15 @@ class CoroutineVariantGenerator(
         lqipImplementations: Set<LQIPImplementation>,
         bucket: String,
         transformations: List<Transformation>,
-        original: AssetAndVariants,
-    ): AssetAndVariants =
+        assetData: AssetData,
+    ): List<Variant> =
         coroutineScope {
             if (transformations.isEmpty()) {
                 logger.info("Got request to create variant for path: $treePath and entryId: $entryId but no specified variants")
                 throw IllegalArgumentException("Job must contain requested image attributes")
             }
 
-            val originalVariant = original.getOriginalVariant()
+            val originalVariant = assetData.variants.first { it.isOriginalVariant }
             val found = objectStore.exists(originalVariant.objectStoreBucket, originalVariant.objectStoreKey)
             if (!found) {
                 throw IllegalStateException(
@@ -151,8 +150,6 @@ class CoroutineVariantGenerator(
                 )
             }
 
-            var asset: Asset? = null
-            val variants = mutableListOf<AssetVariant>()
             transformations.map { transformation ->
                 val file = createOriginalVariantTempFile(extension = originalVariant.attributes.format.extension)
                 try {
@@ -167,42 +164,37 @@ class CoroutineVariantGenerator(
                         }
                     originalVariantChannel.copyAndClose(file.writeChannel())
                     fetchJob.join()
-                    val newVariant =
+                    val processedImage =
                         imageProcessor.generateVariant(
                             source = file,
                             transformation = transformation,
                             originalVariant = originalVariant,
                             lqipImplementations = lqipImplementations,
                         )
-                    val persistResult =
+                    val key = "${UUID.randomUUID()}${processedImage.attributes.format.extension}"
+                    val variant = assetRepository.storeNewVariant(
+                        variant = Variant.Pending.newVariant(
+                            assetId = assetData.id,
+                            attributes = processedImage.attributes,
+                            transformation = processedImage.transformation,
+                            objectStoreBucket = bucket,
+                            objectStoreKey = key,
+                            lqip = processedImage.lqip
+                        )
+                    )
+                    val uploadedAt =
                         objectStore.persist(
                             bucket = bucket,
-                            asset = newVariant.result,
-                            format = transformation.format,
+                            asset = processedImage.result,
+                            key = key
                         )
 
-                    val assetAndVariant =
-                        assetRepository.storeVariant(
-                            StoreAssetVariantDto(
-                                path = original.asset.path,
-                                entryId = original.asset.entryId,
-                                persistResult = persistResult,
-                                attributes = newVariant.attributes,
-                                lqips = newVariant.lqip,
-                                transformation = newVariant.transformation,
-                            ),
-                        )
-                    if (asset == null) {
-                        asset = assetAndVariant.asset
+                    variant.markReady(uploadedAt).also {
+                        assetRepository.markUploaded(it)
                     }
-                    variants.addAll(assetAndVariant.variants)
                 } finally {
                     file.delete()
                 }
             }
-            AssetAndVariants(
-                asset = requireNotNull(asset),
-                variants = variants,
-            )
         }
 }

@@ -240,5 +240,24 @@ sealed interface Asset {
                     .toMutableList()
             )
         }
+
+        fun update(
+            alt: String?,
+            labels: Map<String, String>,
+            tags: Set<String>,
+        ): Ready = Ready(
+            id = id,
+            path = path,
+            entryId = entryId,
+            alt = alt,
+            labels = labels,
+            tags = tags,
+            source = source,
+            sourceUrl = sourceUrl,
+            createdAt = createdAt,
+            modifiedAt = LocalDateTime.now(),
+            isReady = isReady,
+            variants = variants,
+        )
     }
 }

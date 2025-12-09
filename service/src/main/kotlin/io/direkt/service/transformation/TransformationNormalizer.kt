@@ -42,7 +42,8 @@ class TransformationNormalizer(
                             path = treePath,
                             entryId = entryId,
                             transformation = Transformation.ORIGINAL_VARIANT,
-                        )?.getOriginalVariant()
+                        )?.variants
+                        ?.firstOrNull { it.isOriginalVariant }
                         ?.attributes ?: throw IllegalArgumentException(
                         "Original variant not found with path: $treePath, entryId: ${entryId ?: "Not Specified"}",
                     )

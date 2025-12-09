@@ -2,11 +2,13 @@ package io.direkt.infrastructure.datastore
 
 import io.direkt.asset.handler.dto.StoreAssetDto
 import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetId
 import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.PersistResult
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
+import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
 import java.util.UUID
@@ -88,3 +90,23 @@ fun createAssetDto(
         lqips = LQIPs.NONE,
         source = source,
     )
+
+fun createPendingVariant(
+    assetId: AssetId,
+    attributes: Attributes = Attributes(
+        width = 150,
+        height = 100,
+        format = ImageFormat.PNG,
+    ),
+    objectStoreBucket: String = "bucket",
+    transformation: Transformation,
+    objectStoreKey: String = "${UUID.randomUUID()}${attributes.format.extension}",
+    lqip: LQIPs = LQIPs.NONE,
+): Variant.Pending = Variant.Pending.newVariant(
+    assetId = assetId,
+    attributes = attributes,
+    objectStoreBucket = objectStoreBucket,
+    objectStoreKey = objectStoreKey,
+    lqip = lqip,
+    transformation = transformation,
+)

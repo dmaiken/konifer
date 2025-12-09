@@ -4,7 +4,6 @@ import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
-import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetId
 import io.direkt.domain.asset.AssetSource
@@ -52,7 +51,7 @@ fun AssetVariantRecord.toVariantData(): VariantData = VariantData(
     uploadedAt = null,
 )
 
-fun AssetVariantRecord.toVariant(): Variant = Variant.Ready(
+fun AssetVariantRecord.toPendingVariant(): Variant.Pending = Variant.Pending(
     id = VariantId(checkNotNull(id)),
     assetId = AssetId(checkNotNull(assetId)),
     objectStoreBucket = checkNotNull(objectStoreBucket),

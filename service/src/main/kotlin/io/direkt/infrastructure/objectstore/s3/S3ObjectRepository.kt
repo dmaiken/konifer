@@ -137,17 +137,17 @@ class S3ObjectRepository(
         }
     }
 
-    override fun generateObjectUrl(variant: AssetVariant): String {
+    override fun generateObjectUrl(bucket: String, key: String): String {
         return if (s3ClientProperties.usePathStyleUrl) {
             s3ClientProperties.endpointUrl?.let { endpointUrl ->
                 // Not using AWS S3
-                "https://$endpointUrl/${variant.objectStoreBucket}/${variant.objectStoreKey}"
-            } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+                "https://$endpointUrl/$bucket/$key"
+            } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/$bucket/$key"
         } else {
             return s3ClientProperties.endpointUrl?.let { endpointUrl ->
                 // Not using AWS S3
-                "https://${variant.objectStoreBucket}.$endpointUrl/${variant.objectStoreKey}"
-            } ?: "https://${variant.objectStoreBucket}.s3.${s3ClientProperties.region}.amazonaws.com/${variant.objectStoreKey}"
+                "https://$bucket.$endpointUrl/$key"
+            } ?: "https://$bucket.s3.${s3ClientProperties.region}.amazonaws.com/$key"
         }
     }
 }

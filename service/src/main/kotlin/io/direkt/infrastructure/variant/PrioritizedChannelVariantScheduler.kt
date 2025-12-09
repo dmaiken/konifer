@@ -1,11 +1,13 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.ports.VariantGenerator
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -59,8 +61,8 @@ class PrioritizedChannelVariantScheduler(
         lqipImplementations: Set<LQIPImplementation>,
         bucket: String,
         transformation: Transformation,
-    ): CompletableDeferred<AssetAndVariants> {
-        val deferred = CompletableDeferred<AssetAndVariants>()
+    ): CompletableDeferred<Variant> {
+        val deferred = CompletableDeferred<Variant>()
         highPriorityChannel.send(
             OnDemandVariantGenerationJob(
                 path = path,

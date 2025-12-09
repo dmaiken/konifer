@@ -9,6 +9,7 @@ import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AttributeResponse
 import io.direkt.infrastructure.http.VariantResponse
 import io.direkt.infrastructure.http.LQIPResponse
+import io.direkt.infrastructure.http.TransformationResponse
 
 data class AssetAndVariants(
     val asset: Asset,
@@ -55,6 +56,8 @@ data class AssetAndVariants(
             variants =
                 variants.map { variant ->
                     VariantResponse(
+                        isOriginalVariant = variant.isOriginalVariant,
+                        transformation = TransformationResponse.fromTransformation(variant.transformation),
                         bucket = variant.objectStoreBucket,
                         storeKey = variant.objectStoreKey,
                         attributes =

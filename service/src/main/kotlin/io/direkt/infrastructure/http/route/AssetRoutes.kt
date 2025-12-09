@@ -9,6 +9,7 @@ import io.direkt.domain.workflows.FetchAssetHandler
 import io.direkt.domain.workflows.StoreNewAssetWorkflow
 import io.direkt.domain.workflows.UpdateAssetHandler
 import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
 import io.direkt.infrastructure.http.getAppStatusCacheHeader
 import io.direkt.infrastructure.http.getContentDispositionHeader
@@ -79,7 +80,7 @@ fun Application.configureAssetRouting() {
                             getAppStatusCacheHeader(response.cacheHit).let {
                                 call.response.headers.append(it.first, it.second)
                             }
-                            call.respond(HttpStatusCode.OK, response.asset.toResponse())
+                            call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
                         } ?: call.respond(HttpStatusCode.NotFound)
                         return@get
                     } else {
@@ -87,7 +88,7 @@ fun Application.configureAssetRouting() {
                         fetchAssetHandler
                             .fetchAssetMetadataInPath(requestContext)
                             .map {
-                                it.toResponse()
+                                AssetResponse.fromAssetData(it)
                             }.let {
                                 logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
                                 call.respond(HttpStatusCode.OK, it)
@@ -120,7 +121,11 @@ fun Application.configureAssetRouting() {
                         getAppStatusCacheHeader(response.cacheHit).let {
                             call.response.headers.append(it.first, it.second)
                         }
-                        getContentDispositionHeader(response.asset, requestContext.modifiers.returnFormat)?.also {
+                        getContentDispositionHeader(
+                            asset = response.asset,
+                            returnFormat = requestContext.modifiers.returnFormat,
+                            imageFormat = response.asset.variants.first { it.isOriginalVariant }.attributes.format
+                        )?.also {
                             call.response.headers.append(it.first, it.second)
                         }
                         call.respondBytesWriter(
@@ -128,7 +133,7 @@ fun Application.configureAssetRouting() {
                                 ContentType.parse(
                                     response.asset.variants
                                         .first()
-                                        .transformation.format.mimeType,
+                                        .attributes.format.mimeType,
                                 ),
                             status = HttpStatusCode.OK,
                         ) {
@@ -163,7 +168,7 @@ fun Application.configureAssetRouting() {
                     context = context,
                     request = call.receive(StoreAssetRequest::class),
                 )
-            call.respond(HttpStatusCode.OK, asset.asset.toResponse())
+            call.respond(HttpStatusCode.OK, AssetResponse.fromAsset(asset.asset))
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {
@@ -248,8 +253,8 @@ suspend fun storeNewAsset(
             assetUrlGenerator.generateEntryMetadataUrl(
                 host = call.request.origin.localAddress,
                 path = asset.locationPath,
-                entryId = asset.asset.asset.entryId,
+                entryId = checkNotNull(asset.asset.entryId),
             ),
     )
-    call.respond(HttpStatusCode.Created, asset.asset.toResponse())
+    call.respond(HttpStatusCode.Created, AssetResponse.fromAsset(asset.asset))
 }

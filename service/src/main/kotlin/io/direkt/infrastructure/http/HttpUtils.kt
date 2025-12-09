@@ -1,6 +1,8 @@
 package io.direkt.infrastructure.http
 
 import io.direkt.asset.model.AssetAndVariants
+import io.direkt.domain.asset.AssetData
+import io.direkt.domain.image.ImageFormat
 import io.direkt.service.context.ReturnFormat
 import io.ktor.http.HttpHeaders
 import java.net.URLEncoder
@@ -24,8 +26,9 @@ fun getAppStatusCacheHeader(cacheHit: Boolean): Pair<String, String> {
  * the path of the asset.
  */
 fun getContentDispositionHeader(
-    asset: AssetAndVariants,
+    asset: AssetData,
     returnFormat: ReturnFormat,
+    imageFormat: ImageFormat,
 ): Pair<String, String>? {
     if (returnFormat != ReturnFormat.DOWNLOAD) {
         return null
@@ -33,7 +36,7 @@ fun getContentDispositionHeader(
 
     val encodedFileName =
         URLEncoder.encode(
-            asset.asset.alt ?: asset.asset.path,
+            asset.alt ?: asset.path,
             Charsets.UTF_8,
         )
     // The URLEncoder might encode spaces as '+', which is technically incorrect
@@ -43,6 +46,6 @@ fun getContentDispositionHeader(
 
     return Pair(
         HttpHeaders.ContentDisposition,
-        "attachment; filename*=UTF-8''$correctedEncodedFileName${asset.getOriginalVariant().attributes.format.extension}",
+        "attachment; filename*=UTF-8''$correctedEncodedFileName${imageFormat.extension}",
     )
 }

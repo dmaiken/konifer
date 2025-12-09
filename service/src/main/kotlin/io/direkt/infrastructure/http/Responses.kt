@@ -1,5 +1,6 @@
 package io.direkt.infrastructure.http
 
+import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetClass
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetSource
@@ -11,6 +12,7 @@ import io.direkt.domain.image.Rotate
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantData
 import io.direkt.infrastructure.http.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.Serializable
@@ -44,6 +46,19 @@ data class AssetResponse(
             createdAt = assetData.createdAt,
             modifiedAt = assetData.modifiedAt,
         )
+
+        fun fromAsset(asset: Asset): AssetResponse = AssetResponse(
+            `class` = AssetClass.IMAGE,
+            alt = asset.alt,
+            entryId = checkNotNull(asset.entryId),
+            labels = asset.labels,
+            tags = asset.tags,
+            source = asset.source,
+            sourceUrl = asset.sourceUrl,
+            variants = asset.variants.map { VariantResponse.fromVariant(it) },
+            createdAt = asset.createdAt,
+            modifiedAt = asset.modifiedAt,
+        )
     }
 }
 
@@ -67,6 +82,19 @@ data class VariantResponse(
                 null
             } else {
                 TransformationResponse.fromTransformation(variantData.transformation)
+            }
+        )
+
+        fun fromVariant(variant: Variant): VariantResponse = VariantResponse(
+            isOriginalVariant = variant.isOriginalVariant,
+            bucket = variant.objectStoreBucket,
+            storeKey = variant.objectStoreKey,
+            attributes = AttributeResponse.fromAttributes(variant.attributes),
+            lqip = LQIPResponse.fromLqips(variant.lqips),
+            transformation = if (variant.isOriginalVariant) {
+                null
+            } else {
+                TransformationResponse.fromTransformation(variant.transformation)
             }
         )
     }

@@ -1,7 +1,5 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.handler.dto.StoreAssetVariantDto
-import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
@@ -15,7 +13,9 @@ interface AssetRepository {
 
     suspend fun markReady(asset: Asset)
 
-    suspend fun storeVariant(variant: Variant): Variant
+    suspend fun markUploaded(variant: Variant)
+
+    suspend fun storeNewVariant(variant: Variant): Variant.Pending
 
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.

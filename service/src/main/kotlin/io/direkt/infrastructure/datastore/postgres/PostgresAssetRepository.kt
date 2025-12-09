@@ -9,9 +9,6 @@ import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
-import io.direkt.asset.handler.dto.StoreAssetVariantDto
-import io.direkt.asset.handler.dto.UpdateAssetDto
-import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetId
@@ -30,7 +27,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitLast
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
@@ -106,7 +102,11 @@ class PostgresAssetRepository(
         TODO("Not yet implemented")
     }
 
-    override suspend fun storeVariant(variant: Variant): Variant {
+    override suspend fun markUploaded(variant: Variant) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun storeNewVariant(variant: Variant): Variant.Pending {
         return dslContext.transactionCoroutine { trx ->
             val (transformations, transformationsKey) =
                 VariantParameterGenerator.generateImageVariantTransformations(
@@ -139,7 +139,7 @@ class PostgresAssetRepository(
                     throw e
                 }
 
-            persistedVariant.toVariant()
+            persistedVariant.toPendingVariant()
         }
     }
 
