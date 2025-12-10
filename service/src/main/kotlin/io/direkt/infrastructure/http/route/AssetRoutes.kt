@@ -71,10 +71,10 @@ fun Application.configureAssetRouting() {
         get("$ASSET_PATH_PREFIX/{...}") {
             val requestContext = requestContextFactory.fromGetRequest(call.request.path(), call.queryParameters)
 
+            logger.info("Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}")
             when (requestContext.modifiers.returnFormat) {
                 ReturnFormat.METADATA -> {
                     if (requestContext.modifiers.limit == 1) {
-                        logger.info("Navigating to asset info with path: ${requestContext.path}")
                         fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let { response ->
                             logger.info("Found asset info: $response with path: ${requestContext.path}")
                             getAppStatusCacheHeader(response.cacheHit).let {
@@ -84,7 +84,6 @@ fun Application.configureAssetRouting() {
                         } ?: call.respond(HttpStatusCode.NotFound)
                         return@get
                     } else {
-                        logger.info("Navigating to asset info of all assets with path: ${requestContext.path}")
                         fetchAssetHandler
                             .fetchAssetMetadataInPath(requestContext)
                             .map {
@@ -96,7 +95,6 @@ fun Application.configureAssetRouting() {
                     }
                 }
                 ReturnFormat.REDIRECT -> {
-                    logger.info("Navigating to asset with path (${ReturnFormat.REDIRECT}): ${requestContext.path}")
                     fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
                         call.response.headers.append(HttpHeaders.Location, response.url)
                         getAppStatusCacheHeader(response.cacheHit).let {
@@ -106,7 +104,6 @@ fun Application.configureAssetRouting() {
                     } ?: call.respond(HttpStatusCode.NotFound)
                 }
                 ReturnFormat.LINK -> {
-                    logger.info("Navigating to asset with path (${ReturnFormat.LINK}: ${requestContext.path}")
                     fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
                         getAppStatusCacheHeader(response.cacheHit).let {
                             call.response.headers.append(it.first, it.second)
@@ -115,7 +112,6 @@ fun Application.configureAssetRouting() {
                     } ?: call.respond(HttpStatusCode.NotFound)
                 }
                 ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
-                    logger.info("Navigating to asset with path (${requestContext.modifiers.returnFormat}: ${requestContext.path}")
                     fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                         logger.info("Found asset content with path: ${requestContext.path}")
                         getAppStatusCacheHeader(response.cacheHit).let {
