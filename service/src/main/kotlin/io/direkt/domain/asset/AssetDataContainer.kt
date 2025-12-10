@@ -1,4 +1,4 @@
-package io.direkt.asset
+package io.direkt.domain.asset
 
 import io.direkt.infrastructure.TemporaryFileFactory.createUploadTempFile
 import io.ktor.util.logging.KtorSimpleLogger

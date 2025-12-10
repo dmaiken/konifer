@@ -2,9 +2,9 @@ package io.direkt.domain.workflows
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.direkt.asset.AssetDataContainer
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetAndLocation
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.InvalidImageException
 import io.direkt.domain.ports.AssetContainerFactory
@@ -115,9 +115,10 @@ class StoreNewAssetWorkflow(
                         key = objectStoreKey,
                         asset = preProcessed.result,
                     )
-                val ready = pendingPersisted.markReady(uploadedAt).also {
-                    assetRepository.markReady(it)
-                }
+                val ready =
+                    pendingPersisted.markReady(uploadedAt).also {
+                        assetRepository.markReady(it)
+                    }
 
                 AssetAndLocation(
                     asset = ready,

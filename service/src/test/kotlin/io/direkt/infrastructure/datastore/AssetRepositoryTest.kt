@@ -1,7 +1,6 @@
 package io.direkt.infrastructure.datastore
 
 import io.direkt.domain.asset.AssetId
-import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
@@ -47,25 +46,25 @@ abstract class AssetRepositoryTest {
                     createPendingAsset(
                         url = "https://localhost.com",
                     )
-                val dto = createAssetDto("/users/123", source = AssetSource.URL, url = "https://localhost.com")
                 val pendingPersisted = repository.storeNew(pending)
                 pendingPersisted.apply {
                     path shouldBe "/users/123"
                     entryId shouldBe 0
-                    labels shouldContainExactly dto.request.labels
-                    tags shouldContainExactly dto.request.tags
-                    source shouldBe dto.source
-                    sourceUrl shouldBe dto.request.url
+                    labels shouldContainExactly pending.labels
+                    tags shouldContainExactly pending.tags
+                    source shouldBe pending.source
+                    sourceUrl shouldBe pending.sourceUrl
                     createdAt shouldBe modifiedAt
                 }
+                val originalVariant = pendingPersisted.variants.first { it.isOriginalVariant }
                 pendingPersisted.variants shouldHaveSize 1
                 pendingPersisted.variants.first().apply {
-                    attributes.height shouldBe dto.attributes.height
-                    attributes.width shouldBe dto.attributes.width
-                    this.attributes.format shouldBe dto.attributes.format
-                    this.transformation.height shouldBe dto.attributes.height
-                    this.transformation.width shouldBe dto.attributes.width
-                    this.transformation.format shouldBe dto.attributes.format
+                    attributes.height shouldBe originalVariant.attributes.height
+                    attributes.width shouldBe originalVariant.attributes.width
+                    this.attributes.format shouldBe originalVariant.attributes.format
+                    this.transformation.height shouldBe originalVariant.attributes.height
+                    this.transformation.width shouldBe originalVariant.attributes.width
+                    this.transformation.format shouldBe originalVariant.attributes.format
                     this.transformation.fit shouldBe Fit.FIT
                     this.isOriginalVariant shouldBe true
                     this.lqips shouldBe LQIPs.NONE

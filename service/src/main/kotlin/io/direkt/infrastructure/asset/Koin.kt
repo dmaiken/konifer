@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.asset
 
-import io.direkt.asset.MAX_BYTES_DEFAULT
+import io.direkt.domain.asset.MAX_BYTES_DEFAULT
 import io.direkt.domain.ports.AssetContainerFactory
 import io.direkt.infrastructure.properties.ConfigurationProperties.SOURCE
 import io.direkt.infrastructure.properties.ConfigurationProperties.SourceConfigurationProperties.URL

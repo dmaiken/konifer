@@ -1,6 +1,5 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.variant.Transformation
@@ -25,7 +24,7 @@ interface AssetRepository {
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.
      * If the asset exists but has no variants that match the [transformation], then
-     * [AssetAndVariants] will contain an empty [AssetAndVariants.variants].
+     * [AssetData] will contain an empty [AssetData.variants].
      *
      * @param path the url path
      * @param entryId the entryId, can be null
@@ -47,7 +46,7 @@ interface AssetRepository {
         limit: Int,
     ): List<AssetData>
 
-    suspend fun fetchVariant()
+//    suspend fun fetchVariant()
 
     suspend fun deleteAssetByPath(
         path: String,

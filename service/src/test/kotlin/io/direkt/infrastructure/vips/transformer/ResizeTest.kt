@@ -7,7 +7,7 @@ import app.photofox.vipsffm.enums.VipsAccess
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.PHash
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat

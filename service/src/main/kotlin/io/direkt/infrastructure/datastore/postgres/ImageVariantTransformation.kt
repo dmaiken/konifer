@@ -10,8 +10,7 @@ import io.direkt.domain.variant.Transformation
 import kotlinx.serialization.Serializable
 
 /**
- * This class exists separately from [image.model.Attributes] because the ordering of these fields matters!
- * The [io.direkt.asset.model.AssetVariant.transformationKey] is calculated from this class and it must be backwards-compatible
+ * This class exists separately from [Attributes] because it will be serialized into the datastore.
  */
 @Serializable
 data class ImageVariantTransformation(

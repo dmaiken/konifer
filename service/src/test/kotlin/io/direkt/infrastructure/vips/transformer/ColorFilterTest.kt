@@ -9,7 +9,7 @@ import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.PHash
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.variant.Transformation

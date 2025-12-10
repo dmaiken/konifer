@@ -100,13 +100,15 @@ class PostgresAssetRepository(
         }
         val originalVariant = asset.variants.first { it.isOriginalVariant }
         dslContext.transactionCoroutine { trx ->
-            trx.dsl()
+            trx
+                .dsl()
                 .update(ASSET_TREE)
                 .set(ASSET_TREE.IS_READY, true)
                 .where(ASSET_TREE.ID.eq(asset.id.value))
                 .awaitFirstOrNull()
 
-            trx.dsl()
+            trx
+                .dsl()
                 .update(ASSET_VARIANT)
                 .set(ASSET_VARIANT.UPLOADED_AT, originalVariant.uploadedAt)
                 .where(ASSET_VARIANT.ASSET_ID.eq(originalVariant.assetId.value))

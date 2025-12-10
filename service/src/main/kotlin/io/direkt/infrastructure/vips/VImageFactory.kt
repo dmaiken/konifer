@@ -7,7 +7,7 @@ import app.photofox.vipsffm.VImage.newFromSource
 import app.photofox.vipsffm.VSource
 import app.photofox.vipsffm.VipsError
 import app.photofox.vipsffm.VipsOption
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.lang.foreign.Arena

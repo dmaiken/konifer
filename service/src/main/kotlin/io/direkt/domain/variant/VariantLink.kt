@@ -1,9 +1,8 @@
-package io.direkt.asset.handler.dto
+package io.direkt.domain.variant
 
-import io.direkt.domain.variant.LQIPs
 import io.direkt.infrastructure.http.AssetLinkResponse
 
-data class AssetLinkDto(
+data class VariantLink(
     val url: String,
     val cacheHit: Boolean,
     val lqip: LQIPs,

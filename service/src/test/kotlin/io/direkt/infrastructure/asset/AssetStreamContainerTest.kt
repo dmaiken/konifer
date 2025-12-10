@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.asset
 
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteReadChannel

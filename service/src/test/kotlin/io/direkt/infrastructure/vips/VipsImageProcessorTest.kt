@@ -3,7 +3,7 @@ package io.direkt.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation

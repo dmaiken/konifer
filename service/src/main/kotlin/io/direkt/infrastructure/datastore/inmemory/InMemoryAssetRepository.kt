@@ -1,6 +1,5 @@
 package io.direkt.infrastructure.datastore.inmemory
 
-import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetId
@@ -263,8 +262,3 @@ class InMemoryAssetRepository : AssetRepository {
             }
     }
 }
-
-private data class InMemoryAssetAndVariants(
-    val asset: Asset,
-    val variants: MutableList<AssetVariant>,
-)

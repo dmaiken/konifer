@@ -1,9 +1,9 @@
 package io.direkt.infrastructure.http.route
 
-import io.direkt.asset.AssetDataContainer
-import io.direkt.asset.MAX_BYTES_DEFAULT
 import io.direkt.domain.asset.AssetAndLocation
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.asset.DeleteMode
+import io.direkt.domain.asset.MAX_BYTES_DEFAULT
 import io.direkt.domain.workflows.DeleteAssetWorkflow
 import io.direkt.domain.workflows.FetchAssetHandler
 import io.direkt.domain.workflows.StoreNewAssetWorkflow

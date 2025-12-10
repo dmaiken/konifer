@@ -1,13 +1,13 @@
 package io.direkt.domain.workflows
 
-import io.direkt.asset.handler.dto.AssetLinkDto
-import io.direkt.asset.handler.dto.AssetMetadataDto
 import io.direkt.domain.asset.AssetData
+import io.direkt.domain.asset.AssetMetadata
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.ports.VariantGenerator
+import io.direkt.domain.variant.VariantLink
+import io.direkt.service.context.AssetQueryRequestContext
 import io.direkt.service.context.ContentTypeNotPermittedException
-import io.direkt.service.context.QueryRequestContext
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 
@@ -18,19 +18,19 @@ class FetchAssetHandler(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun fetchAssetLinkByPath(context: QueryRequestContext): AssetLinkDto? {
+    suspend fun fetchAssetLinkByPath(context: AssetQueryRequestContext): VariantLink? {
         val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
         logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
         val variant = assetAndCacheStatus.asset.variants.first()
 
-        return AssetLinkDto(
+        return VariantLink(
             url = objectStore.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey),
             cacheHit = assetAndCacheStatus.cacheHit,
             lqip = variant.lqips,
         )
     }
 
-    suspend fun fetchAssetMetadataInPath(context: QueryRequestContext): List<AssetData> {
+    suspend fun fetchAssetMetadataInPath(context: AssetQueryRequestContext): List<AssetData> {
         logger.info("Fetching asset info in path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
@@ -41,9 +41,9 @@ class FetchAssetHandler(
     }
 
     suspend fun fetchAssetMetadataByPath(
-        context: QueryRequestContext,
+        context: AssetQueryRequestContext,
         generateVariant: Boolean,
-    ): AssetMetadataDto? {
+    ): AssetMetadata? {
         val entryId = context.modifiers.entryId
         logger.info(
             "Fetching asset info by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
@@ -58,7 +58,7 @@ class FetchAssetHandler(
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
-            return AssetMetadataDto(assetData, true)
+            return AssetMetadata(assetData, true)
         }
 
         return if (assetData.variants.isEmpty()) {
@@ -77,7 +77,7 @@ class FetchAssetHandler(
                     bucket = context.pathConfiguration.s3PathProperties.bucket,
                     transformation = checkNotNull(context.transformation),
                 ).await()
-            AssetMetadataDto(
+            AssetMetadata(
                 asset =
                     assetRepository.fetchByPath(
                         path = context.path,
@@ -90,7 +90,7 @@ class FetchAssetHandler(
             )
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
-            AssetMetadataDto(assetData, true)
+            AssetMetadata(assetData, true)
         }
     }
 

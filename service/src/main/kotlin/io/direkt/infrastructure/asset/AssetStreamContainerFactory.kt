@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.asset
 
-import io.direkt.asset.AssetDataContainer
+import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.ports.AssetContainerFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get

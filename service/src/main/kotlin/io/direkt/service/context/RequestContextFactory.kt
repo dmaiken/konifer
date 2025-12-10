@@ -66,7 +66,7 @@ class RequestContextFactory(
     suspend fun fromGetRequest(
         path: String,
         queryParameters: Parameters,
-    ): QueryRequestContext {
+    ): AssetQueryRequestContext {
         val segments = extractPathSegments(path)
         val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
         val requestedImageAttributes = extractRequestedImageTransformation(queryModifiers, queryParameters)
@@ -78,7 +78,7 @@ class RequestContextFactory(
             throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
         }
 
-        return QueryRequestContext(
+        return AssetQueryRequestContext(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
             modifiers = queryModifiers,

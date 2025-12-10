@@ -5,12 +5,7 @@ import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import aws.smithy.kotlin.runtime.auth.awscredentials.Credentials
 import aws.smithy.kotlin.runtime.net.url.Url
-import io.direkt.asset.model.AssetVariant
-import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.ObjectRepository
-import io.direkt.domain.variant.Attributes
-import io.direkt.domain.variant.LQIPs
-import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.objectstore.ObjectRepositoryTest
 import io.direkt.infrastructure.properties.validateAndCreate
 import io.kotest.matchers.shouldBe
@@ -23,7 +18,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import java.time.LocalDateTime
 import java.util.UUID
 
 @Testcontainers
@@ -111,10 +105,11 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                             )
                         },
                 )
-            val variant = createVariant()
+            val bucket = "bucket"
+            val key = UUID.randomUUID().toString()
 
-            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
-                "https://s3.us-east-1.amazonaws.com/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+            store.generateObjectUrl(bucket, key) shouldBe
+                "https://s3.us-east-1.amazonaws.com/$bucket/$key"
         }
 
         @Test
@@ -133,10 +128,11 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                             )
                         },
                 )
-            val variant = createVariant()
+            val bucket = "bucket"
+            val key = UUID.randomUUID().toString()
 
-            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
-                "https://minio.local/${variant.objectStoreBucket}/${variant.objectStoreKey}"
+            store.generateObjectUrl(bucket, key) shouldBe
+                "https://minio.local/$bucket/$key"
         }
 
         @Test
@@ -155,10 +151,11 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                             )
                         },
                 )
-            val variant = createVariant()
+            val bucket = "bucket"
+            val key = UUID.randomUUID().toString()
 
-            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
-                "https://${variant.objectStoreBucket}.s3.us-east-1.amazonaws.com/${variant.objectStoreKey}"
+            store.generateObjectUrl(bucket, key) shouldBe
+                "https://$bucket.s3.us-east-1.amazonaws.com/$key"
         }
 
         @Test
@@ -177,27 +174,11 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                             )
                         },
                 )
-            val variant = createVariant()
+            val bucket = "bucket"
+            val key = UUID.randomUUID().toString()
 
-            store.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey) shouldBe
-                "https://${variant.objectStoreBucket}.minio.local/${variant.objectStoreKey}"
+            store.generateObjectUrl(bucket, key) shouldBe
+                "https://$bucket.minio.local/$key"
         }
-
-        private fun createVariant(): AssetVariant =
-            AssetVariant(
-                objectStoreBucket = "assets",
-                objectStoreKey = UUID.randomUUID().toString(),
-                isOriginalVariant = true,
-                attributes =
-                    Attributes(
-                        width = 100,
-                        height = 100,
-                        format = ImageFormat.PNG,
-                    ),
-                transformation = Transformation.ORIGINAL_VARIANT,
-                transformationKey = 1234L,
-                lqip = LQIPs.NONE,
-                createdAt = LocalDateTime.now(),
-            )
     }
 }
