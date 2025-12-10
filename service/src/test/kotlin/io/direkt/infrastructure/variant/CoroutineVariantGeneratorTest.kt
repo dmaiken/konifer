@@ -1,16 +1,13 @@
 package io.direkt.infrastructure.variant
 
 import io.createRequestedImageTransformation
-import io.direkt.asset.handler.dto.StoreAssetDto
-import io.direkt.asset.model.AssetAndVariants
-import io.direkt.domain.asset.AssetSource
+import io.direkt.BaseUnitTest
+import io.direkt.domain.asset.Asset
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.variant.Attributes
-import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.getResourceAsFile
-import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.direkt.infrastructure.objectstore.inmemory.InMemoryObjectRepository
 import io.direkt.infrastructure.vips.DimensionCalculator
@@ -33,15 +30,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
+import java.util.UUID
 import javax.imageio.ImageIO
 
-class CoroutineVariantGeneratorTest {
+class CoroutineVariantGeneratorTest : BaseUnitTest() {
     companion object {
-        private const val PATH = "root.profile.123"
         private const val BUCKET = "assets"
     }
 
-    private val assetRepository = InMemoryAssetRepository()
     private val objectStore = InMemoryObjectRepository()
     private val imageProcessor =
         spyk<VipsImageProcessor>(
@@ -69,35 +65,30 @@ class CoroutineVariantGeneratorTest {
             numberOfWorkers = 8,
         )
 
-    private lateinit var asset: AssetAndVariants
+    private lateinit var asset: Asset
     private lateinit var bufferedImage: BufferedImage
 
     @BeforeEach
     fun beforeEach(): Unit =
         runBlocking {
+            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             bufferedImage = ImageIO.read(ByteArrayInputStream(image.readBytes()))
-            val objectStoreResponse = objectStore.persist(BUCKET, image, ImageFormat.PNG)
+            val uploadedAt =
+                objectStore.persist(
+                    bucket = BUCKET,
+                    key = key,
+                    asset = image,
+                )
 
             asset =
-                assetRepository.storeNew(
-                    StoreAssetDto(
-                        path = PATH,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                        attributes =
-                            Attributes(
-                                width = bufferedImage.width,
-                                height = bufferedImage.height,
-                                format = ImageFormat.PNG,
-                            ),
-                        persistResult = objectStoreResponse,
-                        lqips = LQIPs.NONE,
-                        source = AssetSource.UPLOAD,
-                    ),
-                )
+                storeAsset(
+                    objectStoreBucket = BUCKET,
+                    objectStoreKey = key,
+                    format = ImageFormat.PNG,
+                    height = bufferedImage.height,
+                    width = bufferedImage.width,
+                ).markReady(uploadedAt)
         }
 
     @Nested
@@ -105,11 +96,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `can generate variant from channel`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         requestedTransformations =
                             listOf(
                                 createRequestedImageTransformation(
@@ -131,7 +122,7 @@ class CoroutineVariantGeneratorTest {
                         fit = Fit.FIT,
                     )
                 expectedHeight shouldBe 50
-                result.await().apply {
+                result.await().also { variants ->
                     variants shouldHaveSize 1
                     variants.forExactly(1) {
                         it.isOriginalVariant shouldBe false
@@ -150,11 +141,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `variant created from channel uses supplied bucket`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         requestedTransformations =
                             listOf(
                                 createRequestedImageTransformation(
@@ -168,7 +159,7 @@ class CoroutineVariantGeneratorTest {
                     )
                 channel.send(variantGenerationJob)
 
-                result.await().apply {
+                result.await().also { variants ->
                     variants shouldHaveSize 1
                     variants.forExactly(1) {
                         it.isOriginalVariant shouldBe false
@@ -181,11 +172,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `can generate multiple variants for same image through single channel request`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         requestedTransformations =
                             listOf(
                                 createRequestedImageTransformation(
@@ -204,7 +195,7 @@ class CoroutineVariantGeneratorTest {
                     )
                 channel.send(variantGenerationJob)
 
-                result.await().apply {
+                result.await().also { variants ->
                     variants shouldHaveSize 2
                     variants.forExactly(1) {
                         it.isOriginalVariant shouldBe false
@@ -225,11 +216,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `if original asset does not exist then exception is thrown`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 channel.send(
                     EagerVariantGenerationJob(
                         path = "does.not.exist",
-                        entryId = asset.asset.entryId,
+                        entryId = asset.entryId!!,
                         requestedTransformations =
                             listOf(
                                 createRequestedImageTransformation(
@@ -250,11 +241,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `if no variants are in request then nothing is processed`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         requestedTransformations = emptyList(),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
@@ -270,11 +261,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `if variant fails to generate then channel is still live`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<List<Variant>>()
                 val variantGenerationJob =
                     EagerVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         requestedTransformations =
                             listOf(
                                 createRequestedImageTransformation(
@@ -297,7 +288,7 @@ class CoroutineVariantGeneratorTest {
                     result.await()
                 }
 
-                val newResult = CompletableDeferred<AssetAndVariants>()
+                val newResult = CompletableDeferred<List<Variant>>()
                 channel.send(variantGenerationJob.copy(deferredResult = newResult))
 
                 shouldNotThrowAny {
@@ -318,11 +309,11 @@ class CoroutineVariantGeneratorTest {
                         fit = Fit.FILL,
                         format = ImageFormat.PNG,
                     )
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<Variant>()
                 val onDemandVariantGenerationJob =
                     OnDemandVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         transformation = transformation,
                         deferredResult = result,
                         lqipImplementations = emptySet(),
@@ -331,12 +322,9 @@ class CoroutineVariantGeneratorTest {
                 channel.send(onDemandVariantGenerationJob)
 
                 result.await().apply {
-                    variants shouldHaveSize 1
-                    variants.forExactly(1) {
-                        it.isOriginalVariant shouldBe false
-                        it.transformation shouldBe transformation
-                        it.objectStoreBucket shouldBe BUCKET
-                    }
+                    this.isOriginalVariant shouldBe false
+                    this.transformation shouldBe transformation
+                    this.objectStoreBucket shouldBe BUCKET
                 }
             }
 
@@ -350,11 +338,11 @@ class CoroutineVariantGeneratorTest {
                         fit = Fit.FILL,
                         format = ImageFormat.PNG,
                     )
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<Variant>()
                 val onDemandVariantGenerationJob =
                     OnDemandVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         transformation = transformation,
                         deferredResult = result,
                         lqipImplementations = emptySet(),
@@ -363,23 +351,20 @@ class CoroutineVariantGeneratorTest {
                 channel.send(onDemandVariantGenerationJob)
 
                 result.await().apply {
-                    variants shouldHaveSize 1
-                    variants.forExactly(1) {
-                        it.isOriginalVariant shouldBe false
-                        it.transformation shouldBe transformation
-                        it.objectStoreBucket shouldBe "different-bucket"
-                    }
+                    this.isOriginalVariant shouldBe false
+                    this.transformation shouldBe transformation
+                    this.objectStoreBucket shouldBe "different-bucket"
                 }
             }
 
         @Test
         fun `if original asset does not exist then exception is thrown`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<Variant>()
                 channel.send(
                     OnDemandVariantGenerationJob(
                         path = "does.not.exist",
-                        entryId = asset.asset.entryId,
+                        entryId = asset.entryId!!,
                         transformation =
                             Transformation(
                                 height = 50,
@@ -401,11 +386,11 @@ class CoroutineVariantGeneratorTest {
         @Test
         fun `if variant fails to generate then channel is still live`() =
             runTest {
-                val result = CompletableDeferred<AssetAndVariants>()
+                val result = CompletableDeferred<Variant>()
                 val onDemandVariantGenerationJob =
                     OnDemandVariantGenerationJob(
-                        path = asset.asset.path,
-                        entryId = asset.asset.entryId,
+                        path = asset.path,
+                        entryId = asset.entryId!!,
                         transformation =
                             Transformation(
                                 height = 100,
@@ -428,7 +413,7 @@ class CoroutineVariantGeneratorTest {
                     result.await()
                 }
 
-                val newResult = CompletableDeferred<AssetAndVariants>()
+                val newResult = CompletableDeferred<Variant>()
                 channel.send(onDemandVariantGenerationJob.copy(deferredResult = newResult))
 
                 shouldNotThrowAny {

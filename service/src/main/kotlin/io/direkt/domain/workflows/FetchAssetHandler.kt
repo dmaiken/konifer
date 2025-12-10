@@ -26,7 +26,7 @@ class FetchAssetHandler(
         return AssetLinkDto(
             url = objectStore.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey),
             cacheHit = assetAndCacheStatus.cacheHit,
-            lqip = variant.lqips
+            lqip = variant.lqips,
         )
     }
 
@@ -52,7 +52,7 @@ class FetchAssetHandler(
         val assetData =
             assetRepository.fetchByPath(
                 path = context.path,
-                entryId,
+                entryId = entryId,
                 transformation = context.transformation,
                 orderBy = context.modifiers.orderBy,
                 labels = context.labels,
@@ -69,15 +69,25 @@ class FetchAssetHandler(
                 }
             }
 
-            val deferred =
-                variantGenerator.generateOnDemandVariant(
+            variantGenerator
+                .generateOnDemandVariant(
                     path = assetData.path,
                     entryId = assetData.entryId,
                     lqipImplementations = context.pathConfiguration.imageProperties.previews,
                     bucket = context.pathConfiguration.s3PathProperties.bucket,
                     transformation = checkNotNull(context.transformation),
-                )
-            AssetMetadataDto(deferred.await(), false)
+                ).await()
+            AssetMetadataDto(
+                asset =
+                    assetRepository.fetchByPath(
+                        path = context.path,
+                        entryId = entryId,
+                        transformation = context.transformation,
+                        orderBy = context.modifiers.orderBy,
+                        labels = context.labels,
+                    ) ?: return null,
+                cacheHit = false,
+            )
         } else {
             logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
             AssetMetadataDto(assetData, true)

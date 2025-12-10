@@ -17,6 +17,11 @@ interface AssetRepository {
 
     suspend fun storeNewVariant(variant: Variant): Variant.Pending
 
+    suspend fun fetchForUpdate(
+        path: String,
+        entryId: Long,
+    ): Asset?
+
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.
      * If the asset exists but has no variants that match the [transformation], then
@@ -41,6 +46,8 @@ interface AssetRepository {
         labels: Map<String, String> = emptyMap(),
         limit: Int,
     ): List<AssetData>
+
+    suspend fun fetchVariant()
 
     suspend fun deleteAssetByPath(
         path: String,

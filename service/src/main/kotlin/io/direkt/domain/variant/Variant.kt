@@ -64,24 +64,26 @@ sealed interface Variant {
                 objectStoreBucket: String,
                 objectStoreKey: String,
                 lqip: LQIPs,
-            ): Pending = Pending(
-                id = VariantId(UUID.randomUUID()),
-                assetId = assetId,
-                objectStoreBucket = objectStoreBucket,
-                objectStoreKey = objectStoreKey,
-                isOriginalVariant = false,
-                attributes = attributes,
-                transformation = transformation,
-                lqips = lqip,
-                createdAt = LocalDateTime.now(),
-                uploadedAt = null,
-            )
+            ): Pending =
+                Pending(
+                    id = VariantId(UUID.randomUUID()),
+                    assetId = assetId,
+                    objectStoreBucket = objectStoreBucket,
+                    objectStoreKey = objectStoreKey,
+                    isOriginalVariant = false,
+                    attributes = attributes,
+                    transformation = transformation,
+                    lqips = lqip,
+                    createdAt = LocalDateTime.now(),
+                    uploadedAt = null,
+                )
         }
 
-        fun markReady(uploadedAt: LocalDateTime): Ready = Ready.fromPending(
-            pending = this,
-            uploadedAt = uploadedAt,
-        )
+        fun markReady(uploadedAt: LocalDateTime): Ready =
+            Ready.fromPending(
+                pending = this,
+                uploadedAt = uploadedAt,
+            )
     }
 
     class Ready(
@@ -101,31 +103,39 @@ sealed interface Variant {
         }
 
         companion object {
-            fun fromPending(pending: Pending, uploadedAt: LocalDateTime): Ready = Ready(
-                id = pending.id,
-                assetId = pending.assetId,
-                objectStoreBucket = pending.objectStoreBucket,
-                objectStoreKey = pending.objectStoreKey,
-                isOriginalVariant = pending.isOriginalVariant,
-                attributes = pending.attributes,
-                transformation = pending.transformation,
-                lqips = pending.lqips,
-                createdAt = pending.createdAt,
-                uploadedAt = uploadedAt,
-            )
+            fun fromPending(
+                pending: Pending,
+                uploadedAt: LocalDateTime,
+            ): Ready =
+                Ready(
+                    id = pending.id,
+                    assetId = pending.assetId,
+                    objectStoreBucket = pending.objectStoreBucket,
+                    objectStoreKey = pending.objectStoreKey,
+                    isOriginalVariant = pending.isOriginalVariant,
+                    attributes = pending.attributes,
+                    transformation = pending.transformation,
+                    lqips = pending.lqips,
+                    createdAt = pending.createdAt,
+                    uploadedAt = uploadedAt,
+                )
 
-            fun from(assetId: AssetId, variantData: VariantData): Ready = Ready(
-                id = variantData.id,
-                assetId = assetId,
-                objectStoreBucket = variantData.objectStoreBucket,
-                objectStoreKey = variantData.objectStoreKey,
-                isOriginalVariant = variantData.isOriginalVariant,
-                attributes = variantData.attributes,
-                transformation = variantData.transformation,
-                lqips = variantData.lqips,
-                createdAt = variantData.createdAt,
-                uploadedAt = variantData.uploadedAt,
-            )
+            fun from(
+                assetId: AssetId,
+                variantData: VariantData,
+            ): Ready =
+                Ready(
+                    id = variantData.id,
+                    assetId = assetId,
+                    objectStoreBucket = variantData.objectStoreBucket,
+                    objectStoreKey = variantData.objectStoreKey,
+                    isOriginalVariant = variantData.isOriginalVariant,
+                    attributes = variantData.attributes,
+                    transformation = variantData.transformation,
+                    lqips = variantData.lqips,
+                    createdAt = variantData.createdAt,
+                    uploadedAt = variantData.uploadedAt,
+                )
         }
     }
 }

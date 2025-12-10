@@ -1,6 +1,5 @@
 package io.direkt.infrastructure.datastore
 
-import io.direkt.asset.handler.dto.UpdateAssetDto
 import io.direkt.domain.asset.AssetId
 import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.Filter
@@ -13,7 +12,6 @@ import io.direkt.domain.ports.PersistResult
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
-import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.service.context.OrderBy
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -45,9 +43,10 @@ abstract class AssetRepositoryTest {
         @Test
         fun `can store and fetch an asset`() =
             runTest {
-                val pending = createPendingAsset(
-                    url = "https://localhost.com"
-                )
+                val pending =
+                    createPendingAsset(
+                        url = "https://localhost.com",
+                    )
                 val dto = createAssetDto("/users/123", source = AssetSource.URL, url = "https://localhost.com")
                 val pendingPersisted = repository.storeNew(pending)
                 pendingPersisted.apply {
@@ -173,8 +172,8 @@ abstract class AssetRepositoryTest {
                     repository.storeNewVariant(
                         createPendingVariant(
                             assetId = pending.id,
-                            transformation = variantTransformation
-                        )
+                            transformation = variantTransformation,
+                        ),
                     )
                 newVariant.assetId shouldBe persisted.id
                 newVariant.apply {
@@ -206,12 +205,13 @@ abstract class AssetRepositoryTest {
                     repository.storeNewVariant(
                         createPendingVariant(
                             assetId = AssetId(UUID.randomUUID()),
-                            transformation = Transformation(
-                                height = 100,
-                                width = 100,
-                                format = ImageFormat.PNG,
-                            ),
-                        )
+                            transformation =
+                                Transformation(
+                                    height = 100,
+                                    width = 100,
+                                    format = ImageFormat.PNG,
+                                ),
+                        ),
                     )
                 }
             }
@@ -228,15 +228,17 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                     )
 
-                val transformation = Transformation(
-                    height = 50,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val transformation =
+                    Transformation(
+                        height = 50,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                    )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 persistedVariant.assetId shouldBe persisted.id
@@ -315,8 +317,10 @@ abstract class AssetRepositoryTest {
                 val persisted1 = repository.storeNew(pending1)
                 val persisted2 = repository.storeNew(pending2)
 
-                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, OrderBy.CREATED) shouldBe persisted1
-                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, OrderBy.CREATED) shouldBe persisted2
+                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, OrderBy.CREATED) shouldBe
+                    persisted1
+                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, OrderBy.CREATED) shouldBe
+                    persisted2
             }
 
         @Test
@@ -338,10 +342,11 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                     )
-                val variant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val variant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(variant)
 
                 val fetchedVariant =
@@ -366,10 +371,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = variantTransformation,
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = variantTransformation,
+                    )
                 val persistedVariant =
                     repository.storeNewVariant(pendingVariant)
                 persistedVariant.assetId shouldBe persisted.id
@@ -392,9 +398,18 @@ abstract class AssetRepositoryTest {
 
                 val originalVariantTransformation =
                     Transformation(
-                        height = pending.variants.first().attributes.height,
-                        width = pending.variants.first().attributes.width,
-                        format = pending.variants.first().attributes.format,
+                        height =
+                            pending.variants
+                                .first()
+                                .attributes.height,
+                        width =
+                            pending.variants
+                                .first()
+                                .attributes.width,
+                        format =
+                            pending.variants
+                                .first()
+                                .attributes.format,
                         fit = Fit.FIT,
                     )
 
@@ -516,11 +531,12 @@ abstract class AssetRepositoryTest {
                 val persisted1 = repository.storeNew(pending1)
                 val pending2 = createPendingAsset(labels = labels)
                 val persisted2 = repository.storeNew(pending2)
-                val ready1 = persisted1.markReady(LocalDateTime.now()).update(
-                    alt = "I'm updated!!",
-                    tags = persisted1.tags,
-                    labels = persisted1.labels
-                )
+                val ready1 =
+                    persisted1.markReady(LocalDateTime.now()).update(
+                        alt = "I'm updated!!",
+                        tags = persisted1.tags,
+                        labels = persisted1.labels,
+                    )
                 val updated1 = repository.update(ready1)
                 repository.fetchByPath(
                     path = updated1.path,
@@ -566,11 +582,12 @@ abstract class AssetRepositoryTest {
                 val pending2 = createPendingAsset()
                 val persisted1 = repository.storeNew(pending1)
                 val persisted2 = repository.storeNew(pending2)
-                val ready1 = persisted1.markReady(LocalDateTime.now()).update(
-                    alt = "I'm updated!!",
-                    tags = persisted1.tags,
-                    labels = persisted1.labels
-                )
+                val ready1 =
+                    persisted1.markReady(LocalDateTime.now()).update(
+                        alt = "I'm updated!!",
+                        tags = persisted1.tags,
+                        labels = persisted1.labels,
+                    )
                 repository.update(ready1)
 
                 repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED, limit = 10) shouldBe
@@ -657,14 +674,16 @@ abstract class AssetRepositoryTest {
                 repeat(count) {
                     val pending = createPendingAsset()
                     val persisted = repository.storeNew(pending)
-                    val pendingVariant = createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = Transformation(
-                            height = 10,
-                            width = 10,
-                            format = ImageFormat.PNG,
+                    val pendingVariant =
+                        createPendingVariant(
+                            assetId = persisted.id,
+                            transformation =
+                                Transformation(
+                                    height = 10,
+                                    width = 10,
+                                    format = ImageFormat.PNG,
+                                ),
                         )
-                    )
 
                     repository.storeNewVariant(pendingVariant)
                 }
@@ -690,14 +709,16 @@ abstract class AssetRepositoryTest {
                 repeat(count) {
                     val pending = createPendingAsset()
                     val persisted = repository.storeNew(pending)
-                    val pendingVariant = createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = Transformation(
-                            height = 10,
-                            width = 10,
-                            format = ImageFormat.PNG,
+                    val pendingVariant =
+                        createPendingVariant(
+                            assetId = persisted.id,
+                            transformation =
+                                Transformation(
+                                    height = 10,
+                                    width = 10,
+                                    format = ImageFormat.PNG,
+                                ),
                         )
-                    )
                     repository.storeNewVariant(pendingVariant)
                 }
 
@@ -729,14 +750,16 @@ abstract class AssetRepositoryTest {
                 repeat(count) {
                     val pending = createPendingAsset()
                     val persisted = repository.storeNew(pending)
-                    val pendingVariant = createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = Transformation(
-                            height = 10,
-                            width = 10,
-                            format = ImageFormat.PNG,
+                    val pendingVariant =
+                        createPendingVariant(
+                            assetId = persisted.id,
+                            transformation =
+                                Transformation(
+                                    height = 10,
+                                    width = 10,
+                                    format = ImageFormat.PNG,
+                                ),
                         )
-                    )
                     repository.storeNewVariant(pendingVariant)
                 }
 
@@ -869,14 +892,16 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         fit = fit,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = Transformation(
-                        height = 10,
-                        width = 10,
-                        format = ImageFormat.PNG,
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation =
+                            Transformation(
+                                height = 10,
+                                width = 10,
+                                format = ImageFormat.PNG,
+                            ),
                     )
-                )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -909,14 +934,16 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = format,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = Transformation(
-                        height = 10,
-                        width = 10,
-                        format = format,
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation =
+                            Transformation(
+                                height = 10,
+                                width = 10,
+                                format = format,
+                            ),
                     )
-                )
 
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
@@ -951,10 +978,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         rotate = rotate,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -988,10 +1016,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         horizontalFlip = horizontalFlip,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1025,10 +1054,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         filter = filter,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1062,10 +1092,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         gravity = gravity,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1098,10 +1129,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         quality = 10,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1134,10 +1166,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         pad = 10,
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1170,10 +1203,11 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.PNG,
                         background = listOf(255, 255, 255, 255),
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1213,10 +1247,11 @@ abstract class AssetRepositoryTest {
                         pad = 10,
                         background = listOf(100, 50, 34, 100),
                     )
-                val pendingVariant = createPendingVariant(
-                    assetId = persisted.id,
-                    transformation = transformation
-                )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
 
                 val fetchedVariant =
@@ -1235,18 +1270,21 @@ abstract class AssetRepositoryTest {
         fun `can update attributes of asset`() =
             runTest {
                 val pending = createPendingAsset()
-                val ready = repository.storeNew(pending)
-                    .markReady(uploadedAt = LocalDateTime.now())
+                val ready =
+                    repository
+                        .storeNew(pending)
+                        .markReady(uploadedAt = LocalDateTime.now())
 
-                val updated = ready.update(
-                    alt = "updated alt",
-                    labels =
-                        mapOf(
-                            "updated" to "updated-value",
-                            "updated-phone" to "updated-iphone",
-                        ),
-                    tags = setOf("updated-tag1", "updated-tag2"),
-                )
+                val updated =
+                    ready.update(
+                        alt = "updated alt",
+                        labels =
+                            mapOf(
+                                "updated" to "updated-value",
+                                "updated-phone" to "updated-iphone",
+                            ),
+                        tags = setOf("updated-tag1", "updated-tag2"),
+                    )
                 val actual = repository.update(updated)
 
                 actual.variants shouldBe ready.variants

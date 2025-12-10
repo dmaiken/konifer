@@ -44,13 +44,19 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
         set(value): Unit = set(5, value)
         get(): String? = get(5) as String?
 
-    open var createdAt: LocalDateTime?
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @set:JvmName("setIsReady")
+    open var isReady: Boolean?
         set(value): Unit = set(6, value)
-        get(): LocalDateTime? = get(6) as LocalDateTime?
+        get(): Boolean? = get(6) as Boolean?
 
-    open var modifiedAt: LocalDateTime?
+    open var createdAt: LocalDateTime?
         set(value): Unit = set(7, value)
         get(): LocalDateTime? = get(7) as LocalDateTime?
+
+    open var modifiedAt: LocalDateTime?
+        set(value): Unit = set(8, value)
+        get(): LocalDateTime? = get(8) as LocalDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -61,13 +67,14 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
     /**
      * Create a detached, initialised AssetTreeRecord
      */
-    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, source: String? = null, sourceUrl: String? = null, createdAt: LocalDateTime? = null, modifiedAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, source: String? = null, sourceUrl: String? = null, isReady: Boolean? = null, createdAt: LocalDateTime? = null, modifiedAt: LocalDateTime? = null): this() {
         this.id = id
         this.entryId = entryId
         this.path = path
         this.alt = alt
         this.source = source
         this.sourceUrl = sourceUrl
+        this.isReady = isReady
         this.createdAt = createdAt
         this.modifiedAt = modifiedAt
         resetTouchedOnNotNull()
@@ -84,6 +91,7 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
             this.alt = value.alt
             this.source = value.source
             this.sourceUrl = value.sourceUrl
+            this.isReady = value.isReady
             this.createdAt = value.createdAt
             this.modifiedAt = value.modifiedAt
             resetTouchedOnNotNull()

@@ -16,42 +16,49 @@ import java.util.UUID
 fun createPendingAsset(
     path: String = "/users/123",
     alt: String = "an image",
-    labels: Map<String, String> = mapOf(
-        "phone" to "iphone",
-        "customer" to "vip",
-    ),
-    tags: Set<String> = setOf(
-        "scary",
-        "spooky",
-    ),
+    labels: Map<String, String> =
+        mapOf(
+            "phone" to "iphone",
+            "customer" to "vip",
+        ),
+    tags: Set<String> =
+        setOf(
+            "scary",
+            "spooky",
+        ),
     url: String? = null,
-    attributes: Attributes = Attributes(
-        width = 100,
-        height = 100,
-        format = ImageFormat.PNG,
-    ),
+    attributes: Attributes =
+        Attributes(
+            width = 100,
+            height = 100,
+            format = ImageFormat.PNG,
+        ),
     objectStoreBucket: String = "bucket",
     objectStoreKey: String = "${UUID.randomUUID()}${attributes.format.extension}",
-    lqips: LQIPs = LQIPs.NONE
-): Asset.Pending = Asset.New.fromHttpRequest(
-    path = path,
-    request = StoreAssetRequest(
-        alt = alt,
-        labels = labels,
-        tags = tags,
-        url = url,
-    )
-).let {
-    it.markPending(
-        originalVariant = Variant.Pending.originalVariant(
-            attributes = attributes,
-            objectStoreBucket = objectStoreBucket,
-            objectStoreKey = objectStoreKey,
-            lqip = lqips,
-            assetId = it.id,
-        )
-    )
-}
+    lqips: LQIPs = LQIPs.NONE,
+): Asset.Pending =
+    Asset.New
+        .fromHttpRequest(
+            path = path,
+            request =
+                StoreAssetRequest(
+                    alt = alt,
+                    labels = labels,
+                    tags = tags,
+                    url = url,
+                ),
+        ).let {
+            it.markPending(
+                originalVariant =
+                    Variant.Pending.originalVariant(
+                        attributes = attributes,
+                        objectStoreBucket = objectStoreBucket,
+                        objectStoreKey = objectStoreKey,
+                        lqip = lqips,
+                        assetId = it.id,
+                    ),
+            )
+        }
 
 fun createAssetDto(
     treePath: String,
@@ -93,20 +100,22 @@ fun createAssetDto(
 
 fun createPendingVariant(
     assetId: AssetId,
-    attributes: Attributes = Attributes(
-        width = 150,
-        height = 100,
-        format = ImageFormat.PNG,
-    ),
+    attributes: Attributes =
+        Attributes(
+            width = 150,
+            height = 100,
+            format = ImageFormat.PNG,
+        ),
     objectStoreBucket: String = "bucket",
     transformation: Transformation,
     objectStoreKey: String = "${UUID.randomUUID()}${attributes.format.extension}",
     lqip: LQIPs = LQIPs.NONE,
-): Variant.Pending = Variant.Pending.newVariant(
-    assetId = assetId,
-    attributes = attributes,
-    objectStoreBucket = objectStoreBucket,
-    objectStoreKey = objectStoreKey,
-    lqip = lqip,
-    transformation = transformation,
-)
+): Variant.Pending =
+    Variant.Pending.newVariant(
+        assetId = assetId,
+        attributes = attributes,
+        objectStoreBucket = objectStoreBucket,
+        objectStoreKey = objectStoreKey,
+        lqip = lqip,
+        transformation = transformation,
+    )

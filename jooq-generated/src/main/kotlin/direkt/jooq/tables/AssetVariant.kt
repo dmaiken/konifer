@@ -7,7 +7,7 @@ package direkt.jooq.tables
 import direkt.jooq.Public
 import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
 import direkt.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
-import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_KEY
+import direkt.jooq.indexes.ASSET_VARIANT_NOT_UPLOADED
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.keys.ASSET_VARIANT_PKEY
 import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
@@ -108,11 +108,6 @@ open class AssetVariant(
     val TRANSFORMATION: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("transformation"), SQLDataType.JSONB.nullable(false), this, "")
 
     /**
-     * The column <code>public.asset_variant.transformation_key</code>.
-     */
-    val TRANSFORMATION_KEY: TableField<AssetVariantRecord, Long?> = createField(DSL.name("transformation_key"), SQLDataType.BIGINT.nullable(false), this, "")
-
-    /**
      * The column <code>public.asset_variant.attributes</code>.
      */
     val ATTRIBUTES: TableField<AssetVariantRecord, JSONB?> = createField(DSL.name("attributes"), SQLDataType.JSONB.nullable(false), this, "")
@@ -131,6 +126,11 @@ open class AssetVariant(
      * The column <code>public.asset_variant.created_at</code>.
      */
     val CREATED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+
+    /**
+     * The column <code>public.asset_variant.uploaded_at</code>.
+     */
+    val UPLOADED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("uploaded_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -164,7 +164,7 @@ open class AssetVariant(
         override fun `as`(alias: Table<*>): AssetVariantPath = AssetVariantPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_TRANSFORMATION_KEY, ASSET_VARIANT_TRANSFORMATION_UQ)
+    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_NOT_UPLOADED, ASSET_VARIANT_TRANSFORMATION_UQ)
     override fun getPrimaryKey(): UniqueKey<AssetVariantRecord> = ASSET_VARIANT_PKEY
     override fun getReferences(): List<ForeignKey<AssetVariantRecord, *>> = listOf(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID)
 

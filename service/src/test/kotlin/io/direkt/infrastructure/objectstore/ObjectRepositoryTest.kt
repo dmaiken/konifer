@@ -6,7 +6,6 @@ import io.direkt.getResourceAsFile
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldEndWith
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async

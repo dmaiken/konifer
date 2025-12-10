@@ -1,11 +1,10 @@
 package io.direkt.domain.ports
 
-import io.direkt.asset.model.AssetAndVariants
-import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
@@ -32,5 +31,5 @@ interface VariantGenerator {
         lqipImplementations: Set<LQIPImplementation>,
         bucket: String,
         transformation: Transformation,
-    ): CompletableDeferred<AssetData>
+    ): CompletableDeferred<Variant>
 }

@@ -1,7 +1,5 @@
 package io.direkt.infrastructure.variant
 
-import io.direkt.asset.model.AssetAndVariants
-import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage

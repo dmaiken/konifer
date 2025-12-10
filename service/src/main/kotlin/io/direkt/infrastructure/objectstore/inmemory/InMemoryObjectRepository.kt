@@ -1,18 +1,13 @@
 package io.direkt.infrastructure.objectstore.inmemory
 
-import io.direkt.asset.model.AssetVariant
-import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.FetchResult
 import io.direkt.domain.ports.ObjectRepository
-import io.direkt.domain.ports.PersistResult
-import io.direkt.domain.variant.VariantData
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import java.io.File
 import java.time.LocalDateTime
-import java.util.UUID
 
 class InMemoryObjectRepository : ObjectRepository {
     companion object {
@@ -69,8 +64,10 @@ class InMemoryObjectRepository : ObjectRepository {
         keys.forEach { delete(bucket, it) }
     }
 
-    override fun generateObjectUrl(bucket: String, key: String): String =
-        "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
+    override fun generateObjectUrl(
+        bucket: String,
+        key: String,
+    ): String = "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
 
     fun clearObjectStore() {
         store.clear()

@@ -4,7 +4,7 @@ import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.ports.AssetRepository
 import io.ktor.util.logging.KtorSimpleLogger
 
-class DeleteAssetHandler(
+class DeleteAssetWorkflow(
     private val assetRepository: AssetRepository,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)

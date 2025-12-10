@@ -1,6 +1,5 @@
 package io.direkt.infrastructure.http
 
-import io.direkt.asset.model.AssetAndVariants
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.service.context.ReturnFormat

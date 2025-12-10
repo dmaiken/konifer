@@ -21,11 +21,11 @@ data class AssetVariant(
     var objectStoreBucket: String,
     var objectStoreKey: String,
     var transformation: JSONB,
-    var transformationKey: Long,
     var attributes: JSONB,
     var lqip: JSONB,
     var originalVariant: Boolean,
-    var createdAt: LocalDateTime
+    var createdAt: LocalDateTime,
+    var uploadedAt: LocalDateTime? = null
 ): Serializable {
 
 
@@ -47,8 +47,6 @@ data class AssetVariant(
             return false
         if (this.transformation != o.transformation)
             return false
-        if (this.transformationKey != o.transformationKey)
-            return false
         if (this.attributes != o.attributes)
             return false
         if (this.lqip != o.lqip)
@@ -56,6 +54,12 @@ data class AssetVariant(
         if (this.originalVariant != o.originalVariant)
             return false
         if (this.createdAt != o.createdAt)
+            return false
+        if (this.uploadedAt == null) {
+            if (o.uploadedAt != null)
+                return false
+        }
+        else if (this.uploadedAt != o.uploadedAt)
             return false
         return true
     }
@@ -68,11 +72,11 @@ data class AssetVariant(
         result = prime * result + this.objectStoreBucket.hashCode()
         result = prime * result + this.objectStoreKey.hashCode()
         result = prime * result + this.transformation.hashCode()
-        result = prime * result + this.transformationKey.hashCode()
         result = prime * result + this.attributes.hashCode()
         result = prime * result + this.lqip.hashCode()
         result = prime * result + this.originalVariant.hashCode()
         result = prime * result + this.createdAt.hashCode()
+        result = prime * result + (if (this.uploadedAt == null) 0 else this.uploadedAt.hashCode())
         return result
     }
 
@@ -84,11 +88,11 @@ data class AssetVariant(
         sb.append(", ").append(objectStoreBucket)
         sb.append(", ").append(objectStoreKey)
         sb.append(", ").append(transformation)
-        sb.append(", ").append(transformationKey)
         sb.append(", ").append(attributes)
         sb.append(", ").append(lqip)
         sb.append(", ").append(originalVariant)
         sb.append(", ").append(createdAt)
+        sb.append(", ").append(uploadedAt)
 
         sb.append(")")
         return sb.toString()

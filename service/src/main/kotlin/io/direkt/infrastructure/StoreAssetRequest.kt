@@ -31,7 +31,7 @@ data class StoreAssetRequest(
     val labels: Map<String, String> = emptyMap(),
     val tags: Set<String> = emptySet(),
 ) {
-    fun validate() {
+    init {
         if (alt != null && alt.length > MAX_ALT_LENGTH) {
             throw IllegalArgumentException("Alt exceeds max length of $MAX_ALT_LENGTH")
         }

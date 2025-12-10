@@ -4,10 +4,10 @@ import io.direkt.asset.AssetDataContainer
 import io.direkt.asset.MAX_BYTES_DEFAULT
 import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.DeleteMode
-import io.direkt.domain.workflows.DeleteAssetHandler
+import io.direkt.domain.workflows.DeleteAssetWorkflow
 import io.direkt.domain.workflows.FetchAssetHandler
 import io.direkt.domain.workflows.StoreNewAssetWorkflow
-import io.direkt.domain.workflows.UpdateAssetHandler
+import io.direkt.domain.workflows.UpdateAssetWorkflow
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
@@ -55,8 +55,8 @@ const val ASSET_PATH_PREFIX = "/assets"
 fun Application.configureAssetRouting() {
     val storeNewAssetWorkflow by inject<StoreNewAssetWorkflow>()
     val fetchAssetHandler by inject<FetchAssetHandler>()
-    val deleteAssetHandler by inject<DeleteAssetHandler>()
-    val updateAssetHandler by inject<UpdateAssetHandler>()
+    val deleteAssetWorkflow by inject<DeleteAssetWorkflow>()
+    val updateAssetWorkflow by inject<UpdateAssetWorkflow>()
     val requestContextFactory by inject<RequestContextFactory>()
     val assetUrlGenerator by inject<AssetUrlGenerator>()
     val maxMultipartContentLength =
@@ -124,7 +124,10 @@ fun Application.configureAssetRouting() {
                         getContentDispositionHeader(
                             asset = response.asset,
                             returnFormat = requestContext.modifiers.returnFormat,
-                            imageFormat = response.asset.variants.first { it.isOriginalVariant }.attributes.format
+                            imageFormat =
+                                response.asset.variants
+                                    .first { it.isOriginalVariant }
+                                    .attributes.format,
                         )?.also {
                             call.response.headers.append(it.first, it.second)
                         }
@@ -164,7 +167,7 @@ fun Application.configureAssetRouting() {
             val context = requestContextFactory.fromUpdateRequest(call.request.path())
             logger.info("Received request to update asset at path: ${context.path} and entryId: ${context.entryId}")
             val asset =
-                updateAssetHandler.updateAsset(
+                updateAssetWorkflow.updateAsset(
                     context = context,
                     request = call.receive(StoreAssetRequest::class),
                 )
@@ -175,9 +178,9 @@ fun Application.configureAssetRouting() {
             val requestContext = requestContextFactory.fromDeleteRequest(call.request.path())
             logger.info("Deleting asset with path: ${requestContext.path}")
             if (requestContext.modifiers.mode != DeleteMode.SINGLE) {
-                deleteAssetHandler.deleteAssets(requestContext.path, requestContext.modifiers.mode)
+                deleteAssetWorkflow.deleteAssets(requestContext.path, requestContext.modifiers.mode)
             } else {
-                deleteAssetHandler.deleteAsset(requestContext.path, requestContext.modifiers.entryId)
+                deleteAssetWorkflow.deleteAsset(requestContext.path, requestContext.modifiers.entryId)
             }
 
             call.respond(HttpStatusCode.NoContent)

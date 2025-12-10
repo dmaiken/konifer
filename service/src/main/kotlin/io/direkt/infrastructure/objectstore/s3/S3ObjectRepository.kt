@@ -13,11 +13,8 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
-import io.direkt.asset.model.AssetVariant
-import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.FetchResult
 import io.direkt.domain.ports.ObjectRepository
-import io.direkt.domain.ports.PersistResult
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
@@ -25,7 +22,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.LocalDateTime
-import java.util.UUID
 
 class S3ObjectRepository(
     private val s3Client: S3Client,
@@ -137,7 +133,10 @@ class S3ObjectRepository(
         }
     }
 
-    override fun generateObjectUrl(bucket: String, key: String): String {
+    override fun generateObjectUrl(
+        bucket: String,
+        key: String,
+    ): String {
         return if (s3ClientProperties.usePathStyleUrl) {
             s3ClientProperties.endpointUrl?.let { endpointUrl ->
                 // Not using AWS S3

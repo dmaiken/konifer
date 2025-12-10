@@ -95,15 +95,17 @@ class StoreNewAssetWorkflow(
                         ).await()
 
                 val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
-                val pendingAsset = newAsset.markPending(
-                    originalVariant = Variant.Pending.originalVariant(
-                        assetId = newAsset.id,
-                        attributes = preProcessed.attributes,
-                        objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
-                        objectStoreKey = objectStoreKey,
-                        lqip = preProcessed.lqip,
+                val pendingAsset =
+                    newAsset.markPending(
+                        originalVariant =
+                            Variant.Pending.originalVariant(
+                                assetId = newAsset.id,
+                                attributes = preProcessed.attributes,
+                                objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
+                                objectStoreKey = objectStoreKey,
+                                lqip = preProcessed.lqip,
+                            ),
                     )
-                )
 
                 val pendingPersisted = assetRepository.storeNew(pendingAsset)
                 val originalVariant = pendingPersisted.variants.first()
@@ -113,7 +115,9 @@ class StoreNewAssetWorkflow(
                         key = objectStoreKey,
                         asset = preProcessed.result,
                     )
-                val ready = pendingPersisted.markReady(uploadedAt)
+                val ready = pendingPersisted.markReady(uploadedAt).also {
+                    assetRepository.markReady(it)
+                }
 
                 AssetAndLocation(
                     asset = ready,

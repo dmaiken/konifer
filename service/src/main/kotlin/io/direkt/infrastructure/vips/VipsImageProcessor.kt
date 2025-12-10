@@ -2,7 +2,6 @@ package io.direkt.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.direkt.asset.model.AssetVariant
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat

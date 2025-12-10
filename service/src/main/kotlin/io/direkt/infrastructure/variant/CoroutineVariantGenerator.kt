@@ -172,21 +172,23 @@ class CoroutineVariantGenerator(
                             lqipImplementations = lqipImplementations,
                         )
                     val key = "${UUID.randomUUID()}${processedImage.attributes.format.extension}"
-                    val variant = assetRepository.storeNewVariant(
-                        variant = Variant.Pending.newVariant(
-                            assetId = assetData.id,
-                            attributes = processedImage.attributes,
-                            transformation = processedImage.transformation,
-                            objectStoreBucket = bucket,
-                            objectStoreKey = key,
-                            lqip = processedImage.lqip
+                    val variant =
+                        assetRepository.storeNewVariant(
+                            variant =
+                                Variant.Pending.newVariant(
+                                    assetId = assetData.id,
+                                    attributes = processedImage.attributes,
+                                    transformation = processedImage.transformation,
+                                    objectStoreBucket = bucket,
+                                    objectStoreKey = key,
+                                    lqip = processedImage.lqip,
+                                ),
                         )
-                    )
                     val uploadedAt =
                         objectStore.persist(
                             bucket = bucket,
                             asset = processedImage.result,
-                            key = key
+                            key = key,
                         )
 
                     variant.markReady(uploadedAt).also {

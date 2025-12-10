@@ -7,9 +7,9 @@ import direkt.jooq.tables.records.AssetVariantRecord
 import io.direkt.domain.asset.AssetClass
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AttributeResponse
-import io.direkt.infrastructure.http.VariantResponse
 import io.direkt.infrastructure.http.LQIPResponse
 import io.direkt.infrastructure.http.TransformationResponse
+import io.direkt.infrastructure.http.VariantResponse
 
 data class AssetAndVariants(
     val asset: Asset,

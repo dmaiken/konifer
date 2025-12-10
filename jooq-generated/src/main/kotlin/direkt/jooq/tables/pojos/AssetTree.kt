@@ -22,6 +22,9 @@ data class AssetTree(
     var alt: String? = null,
     var source: String,
     var sourceUrl: String? = null,
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @set:JvmName("setIsReady")
+    var isReady: Boolean? = null,
     var createdAt: LocalDateTime,
     var modifiedAt: LocalDateTime
 ): Serializable {
@@ -55,6 +58,12 @@ data class AssetTree(
         }
         else if (this.sourceUrl != o.sourceUrl)
             return false
+        if (this.isReady == null) {
+            if (o.isReady != null)
+                return false
+        }
+        else if (this.isReady != o.isReady)
+            return false
         if (this.createdAt != o.createdAt)
             return false
         if (this.modifiedAt != o.modifiedAt)
@@ -71,6 +80,7 @@ data class AssetTree(
         result = prime * result + (if (this.alt == null) 0 else this.alt.hashCode())
         result = prime * result + this.source.hashCode()
         result = prime * result + (if (this.sourceUrl == null) 0 else this.sourceUrl.hashCode())
+        result = prime * result + (if (this.isReady == null) 0 else this.isReady.hashCode())
         result = prime * result + this.createdAt.hashCode()
         result = prime * result + this.modifiedAt.hashCode()
         return result
@@ -85,6 +95,7 @@ data class AssetTree(
         sb.append(", ").append(alt)
         sb.append(", ").append(source)
         sb.append(", ").append(sourceUrl)
+        sb.append(", ").append(isReady)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(modifiedAt)
 

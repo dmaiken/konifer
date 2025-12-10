@@ -171,7 +171,6 @@ sealed interface Asset {
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
-
         init {
             checkNotNull(entryId)
             check(variants.size == 1)
@@ -199,7 +198,6 @@ sealed interface Asset {
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
-
         init {
             checkNotNull(entryId)
             check(variants.isNotEmpty())
@@ -208,56 +206,63 @@ sealed interface Asset {
         }
 
         companion object {
-            fun fromPendingPersisted(persisted: PendingPersisted, originalVariant: Variant): Ready = Ready(
-                id = persisted.id,
-                path = persisted.path,
-                entryId = persisted.entryId,
-                alt = persisted.alt,
-                labels = persisted.labels,
-                tags = persisted.tags,
-                source = persisted.source,
-                sourceUrl = persisted.sourceUrl,
-                createdAt = persisted.createdAt,
-                modifiedAt = persisted.modifiedAt,
-                isReady = true,
-                variants = mutableListOf(originalVariant),
-            )
+            fun fromPendingPersisted(
+                persisted: PendingPersisted,
+                originalVariant: Variant,
+            ): Ready =
+                Ready(
+                    id = persisted.id,
+                    path = persisted.path,
+                    entryId = persisted.entryId,
+                    alt = persisted.alt,
+                    labels = persisted.labels,
+                    tags = persisted.tags,
+                    source = persisted.source,
+                    sourceUrl = persisted.sourceUrl,
+                    createdAt = persisted.createdAt,
+                    modifiedAt = persisted.modifiedAt,
+                    isReady = true,
+                    variants = mutableListOf(originalVariant),
+                )
 
-            fun from(assetData: AssetData): Ready = Ready(
-                id = assetData.id,
-                path = assetData.path,
-                entryId = assetData.entryId,
-                alt = assetData.alt,
-                labels = assetData.labels,
-                tags = assetData.tags,
-                source = assetData.source,
-                sourceUrl = assetData.sourceUrl,
-                createdAt = assetData.createdAt,
-                modifiedAt = assetData.modifiedAt,
-                isReady = true,
-                variants = assetData.variants
-                    .map { Variant.Ready.from(assetData.id, it) }
-                    .toMutableList()
-            )
+            fun from(assetData: AssetData): Ready =
+                Ready(
+                    id = assetData.id,
+                    path = assetData.path,
+                    entryId = assetData.entryId,
+                    alt = assetData.alt,
+                    labels = assetData.labels,
+                    tags = assetData.tags,
+                    source = assetData.source,
+                    sourceUrl = assetData.sourceUrl,
+                    createdAt = assetData.createdAt,
+                    modifiedAt = assetData.modifiedAt,
+                    isReady = true,
+                    variants =
+                        assetData.variants
+                            .map { Variant.Ready.from(assetData.id, it) }
+                            .toMutableList(),
+                )
         }
 
         fun update(
             alt: String?,
             labels: Map<String, String>,
             tags: Set<String>,
-        ): Ready = Ready(
-            id = id,
-            path = path,
-            entryId = entryId,
-            alt = alt,
-            labels = labels,
-            tags = tags,
-            source = source,
-            sourceUrl = sourceUrl,
-            createdAt = createdAt,
-            modifiedAt = LocalDateTime.now(),
-            isReady = isReady,
-            variants = variants,
-        )
+        ): Ready =
+            Ready(
+                id = id,
+                path = path,
+                entryId = entryId,
+                alt = alt,
+                labels = labels,
+                tags = tags,
+                source = source,
+                sourceUrl = sourceUrl,
+                createdAt = createdAt,
+                modifiedAt = LocalDateTime.now(),
+                isReady = isReady,
+                variants = variants,
+            )
     }
 }

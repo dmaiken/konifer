@@ -1,29 +1,39 @@
 package io.direkt.domain.workflows
 
-import io.direkt.asset.handler.dto.UpdateAssetDto
+import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.AssetNotFoundException
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.service.context.UpdateRequestContext
+import java.lang.IllegalArgumentException
 
-class UpdateAssetHandler(
+class UpdateAssetWorkflow(
     private val assetRepository: AssetRepository,
 ) {
     suspend fun updateAsset(
         context: UpdateRequestContext,
         request: StoreAssetRequest,
     ): AssetAndLocation {
-        request.validate()
+        val asset =
+            assetRepository.fetchForUpdate(
+                path = context.path,
+                entryId = context.entryId,
+            ) ?: throw AssetNotFoundException(message = "Asset not found with path: ${context.path}, entryId: ${context.entryId}")
+
+        if (asset !is Asset.Ready) {
+            throw IllegalArgumentException("Asset must be in ready state")
+        }
 
         val updated =
             try {
                 assetRepository.update(
-                    UpdateAssetDto(
-                        path = context.path,
-                        entryId = context.entryId,
-                        request = request,
-                    ),
+                    asset =
+                        asset.update(
+                            alt = request.alt,
+                            labels = request.labels,
+                            tags = request.tags,
+                        ),
                 )
             } catch (e: IllegalStateException) {
                 throw AssetNotFoundException(

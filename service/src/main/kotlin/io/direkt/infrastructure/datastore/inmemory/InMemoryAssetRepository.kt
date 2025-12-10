@@ -12,6 +12,7 @@ import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.set
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -22,31 +23,40 @@ class InMemoryAssetRepository : AssetRepository {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         val entryId = getNextEntryId(path)
         logger.info("Persisting asset at path: $path and entryId: $entryId")
-        return Asset.PendingPersisted(
-            id = asset.id,
-            path = asset.path,
-            entryId = entryId,
-            alt = asset.alt,
-            labels = asset.labels,
-            tags = asset.tags,
-            source = asset.source,
-            sourceUrl = asset.sourceUrl,
-            createdAt = asset.createdAt,
-            modifiedAt = asset.modifiedAt,
-            isReady = false,
-            variants = asset.variants,
-        ).also {
-            store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(it)
-            idReference[it.id] = it
-        }
+        return Asset
+            .PendingPersisted(
+                id = asset.id,
+                path = asset.path,
+                entryId = entryId,
+                alt = asset.alt,
+                labels = asset.labels,
+                tags = asset.tags,
+                source = asset.source,
+                sourceUrl = asset.sourceUrl,
+                createdAt = asset.createdAt,
+                modifiedAt = asset.modifiedAt,
+                isReady = false,
+                variants = asset.variants,
+            ).also {
+                store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(it)
+                idReference[it.id] = it
+            }
     }
 
     override suspend fun markReady(asset: Asset) {
-        TODO("Not yet implemented")
+        idReference[asset.id] = asset
+        store[asset.path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
+        store[asset.path]?.add(asset)
     }
 
     override suspend fun markUploaded(variant: Variant) {
-        TODO("Not yet implemented")
+        val asset = idReference[variant.assetId] ?: return
+        store[asset.path]
+            ?.firstOrNull { it.entryId == asset.entryId }
+            ?.let { asset ->
+                asset.variants.removeIf { it.id == variant.id }
+                asset.variants.add(variant)
+            }
     }
 
     override suspend fun storeNewVariant(variant: Variant): Variant.Pending {
@@ -69,6 +79,14 @@ class InMemoryAssetRepository : AssetRepository {
             variant
         } ?: throw IllegalArgumentException("Asset with path: $path and entry id: ${asset.entryId} not found in database")
     }
+
+    override suspend fun fetchForUpdate(
+        path: String,
+        entryId: Long,
+    ): Asset? =
+        InMemoryPathAdapter.toInMemoryPathFromUriPath(path).let {
+            store[it]?.firstOrNull { asset -> asset.entryId == entryId }
+        }
 
     override suspend fun fetchByPath(
         path: String,

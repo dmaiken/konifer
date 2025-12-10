@@ -1,9 +1,9 @@
 package io.direkt.infrastructure
 
-import io.direkt.domain.workflows.DeleteAssetHandler
+import io.direkt.domain.workflows.DeleteAssetWorkflow
 import io.direkt.domain.workflows.FetchAssetHandler
 import io.direkt.domain.workflows.StoreNewAssetWorkflow
-import io.direkt.domain.workflows.UpdateAssetHandler
+import io.direkt.domain.workflows.UpdateAssetWorkflow
 import io.direkt.infrastructure.asset.assetContainerFactoryModule
 import io.direkt.infrastructure.datastore.assetRepositoryModule
 import io.direkt.infrastructure.http.httpClientModule
@@ -49,11 +49,11 @@ fun domainModule(): Module =
         single<FetchAssetHandler> {
             FetchAssetHandler(get(), get(), get())
         }
-        single<DeleteAssetHandler> {
-            DeleteAssetHandler(get())
+        single<DeleteAssetWorkflow> {
+            DeleteAssetWorkflow(get())
         }
-        single<UpdateAssetHandler> {
-            UpdateAssetHandler(get())
+        single<UpdateAssetWorkflow> {
+            UpdateAssetWorkflow(get())
         }
 
         single<RequestContextFactory> {

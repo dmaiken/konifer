@@ -3,7 +3,6 @@ package io.direkt.infrastructure.datastore.postgres
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
-import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
 import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
@@ -11,13 +10,10 @@ import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
-import io.direkt.domain.asset.AssetId
-import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
-import io.direkt.domain.variant.VariantId
 import io.direkt.infrastructure.http.serialization.format
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
@@ -50,9 +46,10 @@ class PostgresAssetRepository(
         val now = LocalDateTime.now()
         val treePath = PathAdapter.toTreePathFromUriPath(asset.path)
         val originalVariant = asset.variants.first()
-        val (transformations, transformationKey) = VariantParameterGenerator.generateImageVariantTransformations(
-            attributes = originalVariant.attributes
-        )
+        val (transformations, transformationKey) =
+            VariantParameterGenerator.generateImageVariantTransformations(
+                attributes = originalVariant.attributes,
+            )
         val attributes = VariantParameterGenerator.generateImageVariantAttributes(originalVariant.attributes)
         val assetId = asset.id.value
         return dslContext.transactionCoroutine { trx ->
@@ -87,27 +84,47 @@ class PostgresAssetRepository(
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, originalVariant.objectStoreKey)
                     .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                     .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
-                    .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationKey)
                     .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                     .set(ASSET_VARIANT.ORIGINAL_VARIANT, true)
                     .set(ASSET_VARIANT.CREATED_AT, now)
                     .returning()
                     .awaitFirst()
 
-            toPendingPersisted(persistedAsset, persistedVariant, asset.labels, asset.tags)
+            persistedAsset.toPendingPersisted(persistedVariant, asset.labels, asset.tags)
         }
     }
 
     override suspend fun markReady(asset: Asset) {
-        TODO("Not yet implemented")
+        if (asset !is Asset.PendingPersisted) {
+            throw IllegalStateException()
+        }
+        val originalVariant = asset.variants.first { it.isOriginalVariant }
+        dslContext.transactionCoroutine { trx ->
+            trx.dsl()
+                .update(ASSET_TREE)
+                .set(ASSET_TREE.IS_READY, true)
+                .where(ASSET_TREE.ID.eq(asset.id.value))
+                .awaitFirstOrNull()
+
+            trx.dsl()
+                .update(ASSET_VARIANT)
+                .set(ASSET_VARIANT.UPLOADED_AT, originalVariant.uploadedAt)
+                .where(ASSET_VARIANT.ASSET_ID.eq(originalVariant.assetId.value))
+                .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
+                .awaitFirstOrNull()
+        }
     }
 
     override suspend fun markUploaded(variant: Variant) {
-        TODO("Not yet implemented")
+        dslContext
+            .update(ASSET_VARIANT)
+            .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt)
+            .where(ASSET_VARIANT.ASSET_ID.eq(variant.assetId.value))
+            .awaitFirstOrNull()
     }
 
-    override suspend fun storeNewVariant(variant: Variant): Variant.Pending {
-        return dslContext.transactionCoroutine { trx ->
+    override suspend fun storeNewVariant(variant: Variant): Variant.Pending =
+        dslContext.transactionCoroutine { trx ->
             val (transformations, transformationsKey) =
                 VariantParameterGenerator.generateImageVariantTransformations(
                     variant.transformation,
@@ -126,7 +143,6 @@ class PostgresAssetRepository(
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.objectStoreKey)
                         .set(ASSET_VARIANT.ATTRIBUTES, JSONB.valueOf(attributes))
                         .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
-                        .set(ASSET_VARIANT.TRANSFORMATION_KEY, transformationsKey)
                         .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
                         .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
@@ -141,7 +157,32 @@ class PostgresAssetRepository(
 
             persistedVariant.toPendingVariant()
         }
-    }
+
+    override suspend fun fetchForUpdate(
+        path: String,
+        entryId: Long,
+    ): Asset? =
+        fetch(
+            context = dslContext,
+            treePath = PathAdapter.toTreePathFromUriPath(path),
+            entryId = entryId,
+            transformation = null,
+            orderBy = OrderBy.CREATED,
+        )?.let { fetched ->
+            if (fetched.asset.entryId != null) { // TODO make this use isReady
+                fetched.asset.toReadyAsset(
+                    variants = fetched.variants,
+                    labels = fetched.labels,
+                    tags = fetched.tags,
+                )
+            } else {
+                fetched.asset.toPendingPersisted(
+                    variant = fetched.variants.first(),
+                    labels = fetched.labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
+                    tags = fetched.tags.mapNotNull { it.tagValue }.toSet(),
+                )
+            }
+        }
 
     override suspend fun fetchByPath(
         path: String,
@@ -149,12 +190,17 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
-    ): AssetData? {
-        val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetch(dslContext, treePath, entryId, transformation, orderBy, labels)?.let {
+    ): AssetData? =
+        fetch(
+            context = dslContext,
+            treePath = PathAdapter.toTreePathFromUriPath(path),
+            entryId = entryId,
+            transformation = transformation,
+            orderBy = orderBy,
+            labels = labels,
+        )?.let {
             it.asset.toAssetData(it.variants, it.labels, it.tags)
         }
-    }
 
     override suspend fun fetchAllByPath(
         path: String,
@@ -549,42 +595,4 @@ class PostgresAssetRepository(
 
         return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
-
-    private fun toPendingPersisted(
-        asset: AssetTreeRecord,
-        variant: AssetVariantRecord,
-        labels: Map<String, String>,
-        tags: Set<String>,
-    ): Asset.PendingPersisted = Asset.PendingPersisted(
-        id = AssetId(checkNotNull(asset.id)),
-        path = checkNotNull(asset.path).toPath(),
-        entryId = checkNotNull(asset.entryId),
-        alt = asset.alt,
-        labels = labels,
-        tags = tags,
-        source = AssetSource.valueOf(checkNotNull(asset.source)),
-        sourceUrl = asset.sourceUrl,
-        createdAt = checkNotNull(asset.createdAt),
-        modifiedAt = checkNotNull(asset.modifiedAt),
-        isReady = false,
-        variants = mutableListOf(
-            Variant.Pending(
-                id = VariantId(checkNotNull(variant.id)),
-                assetId = AssetId(checkNotNull(asset.id)),
-                objectStoreBucket = checkNotNull(variant.objectStoreBucket),
-                objectStoreKey = checkNotNull(variant.objectStoreKey),
-                isOriginalVariant = true,
-                attributes = format
-                    .decodeFromString<ImageVariantAttributes>(
-                        checkNotNull(variant.attributes).data(),
-                    ).toAttributes(),
-                transformation = format.decodeFromString<ImageVariantTransformation>(
-                    checkNotNull(variant.transformation).data(),
-                    ).toTransformation(),
-                lqips = format.decodeFromString(checkNotNull(variant.lqip).data()),
-                createdAt = checkNotNull(variant.createdAt),
-                uploadedAt = null,
-            )
-        )
-    )
 }
