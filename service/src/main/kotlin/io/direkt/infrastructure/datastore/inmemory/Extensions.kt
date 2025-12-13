@@ -5,7 +5,7 @@ import io.direkt.domain.asset.AssetData
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantData
 
-fun Asset.toAssetData(): AssetData =
+fun Asset.toAssetData(variants: List<Variant>): AssetData =
     AssetData(
         id = id,
         path = path,
@@ -18,6 +18,7 @@ fun Asset.toAssetData(): AssetData =
         createdAt = createdAt,
         modifiedAt = modifiedAt,
         variants = variants.map { it.toVariantData() },
+        isReady = isReady,
     )
 
 fun Variant.toVariantData(): VariantData =

@@ -8,7 +8,7 @@ import kotlinx.coroutines.test.runTest
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
-class AssetStreamContainerTest {
+class AssetDataContainerTest {
     @Test
     fun `can read all content from stream`() =
         runTest {

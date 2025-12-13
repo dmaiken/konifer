@@ -25,13 +25,14 @@ fun AssetTreeRecord.toAssetData(
 ): AssetData =
     AssetData(
         id = AssetId(checkNotNull(id)),
-        path = checkNotNull(path).data(),
+        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
         entryId = checkNotNull(entryId),
         alt = checkNotNull(alt),
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
         tags = tags.mapNotNull { it.tagValue }.toSet(),
         source = AssetSource.valueOf(checkNotNull(source)),
         sourceUrl = sourceUrl,
+        isReady = isReady ?: false,
         createdAt = checkNotNull(createdAt),
         modifiedAt = checkNotNull(modifiedAt),
         variants = variants.map { it.toVariantData() },
@@ -55,7 +56,7 @@ fun AssetVariantRecord.toVariantData(): VariantData =
                 ).toTransformation(),
         lqips = format.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
-        uploadedAt = null,
+        uploadedAt = uploadedAt,
     )
 
 fun AssetTreeRecord.toPendingPersisted(
@@ -65,7 +66,7 @@ fun AssetTreeRecord.toPendingPersisted(
 ): Asset.PendingPersisted =
     Asset.PendingPersisted(
         id = AssetId(checkNotNull(id)),
-        path = checkNotNull(path).toPath(),
+        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
         entryId = checkNotNull(entryId),
         alt = alt,
         labels = labels,
@@ -85,7 +86,7 @@ fun AssetTreeRecord.toReadyAsset(
 ): Asset.Ready =
     Asset.Ready(
         id = AssetId(checkNotNull(id)),
-        path = checkNotNull(path).data(),
+        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
         entryId = checkNotNull(entryId),
         alt = checkNotNull(alt),
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },

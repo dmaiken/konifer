@@ -62,7 +62,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `can normalize requested transformation`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -92,7 +92,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if requested transformation is original variant then original variant transformation is returned`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val normalized =
                     transformationNormalizer.normalize(
                         treePath = asset.path,
@@ -125,14 +125,14 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 }
 
                 coVerify(exactly = 1) {
-                    assetRepository.fetchByPath("/bad/path", null, Transformation.ORIGINAL_VARIANT)
+                    assetRepository.fetchByPath("/bad/path", null, Transformation.ORIGINAL_VARIANT, includeOnlyReady = false)
                 }
             }
 
         @Test
         fun `fetches original variant if needed to normalize height`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -156,6 +156,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         asset.path,
                         asset.entryId,
                         Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
                     )
                 }
             }
@@ -163,7 +164,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `fetches original variant if needed to normalize width`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -187,6 +188,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         asset.path,
                         asset.entryId,
                         Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
                     )
                 }
             }
@@ -194,7 +196,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `fetches original variant only once if needed to normalize multiple attributes`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -217,6 +219,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         asset.path,
                         asset.entryId,
                         Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
                     )
                 }
             }
@@ -224,7 +227,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `can normalize filter and not fetch original variant`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         height = 100,
@@ -256,7 +259,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `fetches original variant if needed to normalize format`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -278,6 +281,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         asset.path,
                         asset.entryId,
                         Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
                     )
                 }
             }
@@ -289,7 +293,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(Fit::class, mode = EnumSource.Mode.EXCLUDE, names = ["FIT"])
         fun `height and width are required depending on the fit`(fit: Fit) =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -308,7 +312,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `only height is required when using scale fit`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -332,7 +336,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `only width is required when using scale fit`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -356,7 +360,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if height and width are null then original attributes are used for scale fit`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.PNG,
@@ -380,6 +384,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         asset.path,
                         asset.entryId,
                         Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
                     )
                 }
             }
@@ -390,7 +395,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `can normalize multiple requested transformations`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested1 =
                     createRequestedImageTransformation(
                         width = 200,
@@ -433,7 +438,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `can normalize multiple transformations for one asset that require the supplied original variant`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested1 =
                     createRequestedImageTransformation(
                         width = 200,
@@ -482,7 +487,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
             expectedRotate: Rotate,
             expectedHorizontalFlip: Boolean,
         ) = runTest {
-            val asset = storeAsset()
+            val asset = storePersistedAsset()
             val requested =
                 createRequestedImageTransformation(
                     width = 20,
@@ -515,7 +520,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if blur is not supplied then default is used`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.JPEG,
@@ -534,7 +539,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if blur is supplied blur is used`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         blur = 50,
@@ -556,7 +561,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if format does not support quality then supplied quality is ignored`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.PNG,
@@ -577,7 +582,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if format does support quality then supplied quality is not ignored`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.JPEG,
@@ -599,7 +604,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(ImageFormat::class)
         fun `if quality is not supplied then format-specific default is used`(format: ImageFormat) =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         format = format,
@@ -622,7 +627,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if background is null and format supports alpha then transparent background is used`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -644,7 +649,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if background is null and format does not support alpha then white background is used`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -666,7 +671,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `alpha background is normalized`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -688,7 +693,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `non-alpha background is normalized`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -710,7 +715,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if padding is 0 then background is empty`() =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 0,
@@ -737,7 +742,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         )
         fun `throws when normalizing invalidBackground`(badBackground: String) =
             runTest {
-                val asset = storeAsset()
+                val asset = storePersistedAsset()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 10,

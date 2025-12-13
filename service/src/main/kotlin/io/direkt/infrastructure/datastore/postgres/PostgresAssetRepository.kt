@@ -1,6 +1,7 @@
 package io.direkt.infrastructure.datastore.postgres
 
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
+import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetVariantRecord
@@ -39,14 +40,11 @@ class PostgresAssetRepository(
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override suspend fun storeNew(asset: Asset): Asset.PendingPersisted {
-        if (asset !is Asset.Pending) {
-            throw IllegalStateException("Asset must be Pending")
-        }
+    override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         val now = LocalDateTime.now()
-        val treePath = PathAdapter.toTreePathFromUriPath(asset.path)
+        val treePath = LtreePathAdapter.toTreePathFromUriPath(asset.path)
         val originalVariant = asset.variants.first()
-        val (transformations, transformationKey) =
+        val transformations =
             VariantParameterGenerator.generateImageVariantTransformations(
                 attributes = originalVariant.attributes,
             )
@@ -94,16 +92,14 @@ class PostgresAssetRepository(
         }
     }
 
-    override suspend fun markReady(asset: Asset) {
-        if (asset !is Asset.PendingPersisted) {
-            throw IllegalStateException()
-        }
+    override suspend fun markReady(asset: Asset.Ready) {
         val originalVariant = asset.variants.first { it.isOriginalVariant }
         dslContext.transactionCoroutine { trx ->
             trx
                 .dsl()
                 .update(ASSET_TREE)
                 .set(ASSET_TREE.IS_READY, true)
+                .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt)
                 .where(ASSET_TREE.ID.eq(asset.id.value))
                 .awaitFirstOrNull()
 
@@ -117,7 +113,7 @@ class PostgresAssetRepository(
         }
     }
 
-    override suspend fun markUploaded(variant: Variant) {
+    override suspend fun markUploaded(variant: Variant.Ready) {
         dslContext
             .update(ASSET_VARIANT)
             .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt)
@@ -125,9 +121,9 @@ class PostgresAssetRepository(
             .awaitFirstOrNull()
     }
 
-    override suspend fun storeNewVariant(variant: Variant): Variant.Pending =
+    override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending =
         dslContext.transactionCoroutine { trx ->
-            val (transformations, transformationsKey) =
+            val transformations =
                 VariantParameterGenerator.generateImageVariantTransformations(
                     variant.transformation,
                 )
@@ -154,6 +150,9 @@ class PostgresAssetRepository(
                     if (e.message?.contains(ASSET_VARIANT_TRANSFORMATION_UQ.name) == true) {
                         throw IllegalArgumentException("Variant already exists for assetId: ${variant.assetId}")
                     }
+                    if (e.message?.contains(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID.name) == true) {
+                        throw IllegalArgumentException("No asset exists for assetId: ${variant.assetId}")
+                    }
                     throw e
                 }
 
@@ -166,12 +165,13 @@ class PostgresAssetRepository(
     ): Asset? =
         fetch(
             context = dslContext,
-            treePath = PathAdapter.toTreePathFromUriPath(path),
+            treePath = LtreePathAdapter.toTreePathFromUriPath(path),
             entryId = entryId,
             transformation = null,
             orderBy = OrderBy.CREATED,
+            includeOnlyReady = false,
         )?.let { fetched ->
-            if (fetched.asset.entryId != null) { // TODO make this use isReady
+            if (fetched.asset.isReady == true) {
                 fetched.asset.toReadyAsset(
                     variants = fetched.variants,
                     labels = fetched.labels,
@@ -192,14 +192,16 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        includeOnlyReady: Boolean,
     ): AssetData? =
         fetch(
             context = dslContext,
-            treePath = PathAdapter.toTreePathFromUriPath(path),
+            treePath = LtreePathAdapter.toTreePathFromUriPath(path),
             entryId = entryId,
             transformation = transformation,
             orderBy = orderBy,
             labels = labels,
+            includeOnlyReady = includeOnlyReady,
         )?.let {
             it.asset.toAssetData(it.variants, it.labels, it.tags)
         }
@@ -211,16 +213,48 @@ class PostgresAssetRepository(
         labels: Map<String, String>,
         limit: Int,
     ): List<AssetData> {
-        val treePath = PathAdapter.toTreePathFromUriPath(path)
-        return fetchAllAtPath(dslContext, treePath, transformation, orderBy, labels, limit)
-            .map { it.asset.toAssetData(it.variants, it.labels, it.tags) }
+        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val variantsField = multisetVariantField(dslContext, transformation)
+        val labelsField = multisetLabels(dslContext)
+        val tagsField = multisetTags(dslContext)
+        val whereCondition =
+            includeReadyConditions(
+                whereCondition =
+                    appendLabelConditions(
+                        whereCondition = ASSET_TREE.PATH.eq(treePath),
+                        labels = labels,
+                    ),
+                onlyReady = true,
+            )
+        val orderByConditions = orderByConditions(orderBy)
+
+        return dslContext
+            .select(
+                *ASSET_TREE.fields(),
+                variantsField,
+                labelsField,
+                tagsField,
+            ).from(ASSET_TREE)
+            .where(whereCondition)
+            .orderBy(*orderByConditions)
+            .limit(limit)
+            .asFlow()
+            .map { record ->
+                val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
+                val variants = record.getValue(variantsField)
+                val labels = record.getValue(labelsField)
+                val tags = record.getValue(tagsField)
+
+                AssetRecordsDto(assetTreeRecord, variants, labels, tags)
+            }.map { it.asset.toAssetData(it.variants, it.labels, it.tags) }
+            .toList()
     }
 
     override suspend fun deleteAssetByPath(
         path: String,
         entryId: Long?,
     ): List<VariantBucketAndKey> {
-        val treePath = PathAdapter.toTreePathFromUriPath(path)
+        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val objectStoreInformation =
             dslContext.transactionCoroutine { trx ->
                 val entryIdCondition =
@@ -268,7 +302,7 @@ class PostgresAssetRepository(
         path: String,
         recursive: Boolean,
     ) = coroutineScope {
-        val treePath = PathAdapter.toTreePathFromUriPath(path)
+        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val deletedAssets =
             dslContext.transactionCoroutine { trx ->
                 val objectStoreInformation =
@@ -347,7 +381,7 @@ class PostgresAssetRepository(
                 trx
                     .dsl()
                     .update(ASSET_TREE)
-                    .set(ASSET_TREE.MODIFIED_AT, LocalDateTime.now())
+                    .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt)
                     .where(ASSET_TREE.ID.eq(assetId.value))
                     .awaitFirst()
             }
@@ -383,13 +417,22 @@ class PostgresAssetRepository(
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String> = emptyMap(),
+        includeOnlyReady: Boolean = true,
     ): AssetRecordsDto? {
         val entryIdCondition =
             entryId?.let {
                 ASSET_TREE.ENTRY_ID.eq(entryId)
             } ?: DSL.noCondition()
         val assetOrderConditions = orderByConditions(orderBy)
-        val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
+        val whereCondition =
+            includeReadyConditions(
+                whereCondition =
+                    appendLabelConditions(
+                        whereCondition = ASSET_TREE.PATH.eq(treePath),
+                        labels = labels,
+                    ),
+                onlyReady = includeOnlyReady,
+            )
         val variantsField = multisetVariantField(context, transformation)
         val labelsField = multisetLabels(context)
         val tagsField = multisetTags(context)
@@ -413,41 +456,6 @@ class PostgresAssetRepository(
 
                 AssetRecordsDto(assetTreeRecord, variants, labels, tags)
             }
-    }
-
-    private suspend fun fetchAllAtPath(
-        context: DSLContext,
-        treePath: Ltree,
-        transformation: Transformation?,
-        orderBy: OrderBy,
-        labels: Map<String, String>,
-        limit: Int,
-    ): List<AssetRecordsDto> {
-        val variantsField = multisetVariantField(context, transformation)
-        val labelsField = multisetLabels(context)
-        val tagsField = multisetTags(context)
-        val whereCondition = appendLabelConditions(ASSET_TREE.PATH.eq(treePath), labels)
-        val orderByConditions = orderByConditions(orderBy)
-
-        return context
-            .select(
-                *ASSET_TREE.fields(),
-                variantsField,
-                labelsField,
-                tagsField,
-            ).from(ASSET_TREE)
-            .where(whereCondition)
-            .orderBy(*orderByConditions)
-            .limit(limit)
-            .asFlow()
-            .map { record ->
-                val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
-                val variants = record.getValue(variantsField)
-                val labels = record.getValue(labelsField)
-                val tags = record.getValue(tagsField)
-
-                AssetRecordsDto(assetTreeRecord, variants, labels, tags)
-            }.toList()
     }
 
     private fun calculateJoinVariantConditions(transformation: Transformation): Condition {
@@ -539,6 +547,16 @@ class PostgresAssetRepository(
 
         return condition
     }
+
+    private fun includeReadyConditions(
+        whereCondition: Condition,
+        onlyReady: Boolean,
+    ): Condition =
+        if (onlyReady) {
+            whereCondition.and(ASSET_TREE.IS_READY.eq(true))
+        } else {
+            DSL.noCondition()
+        }
 
     private suspend fun insertLabels(
         context: DSLContext,

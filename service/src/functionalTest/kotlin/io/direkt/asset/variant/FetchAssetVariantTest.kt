@@ -38,12 +38,12 @@ class FetchAssetVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "/users/123")
+            storeAssetMultipartSource(client, image, request, path = "users/123")
 
             // "create" the variant by requesting it
-            fetchAssetContent(client, path = "/users/123", expectedMimeType = "image/png", height = 100, width = 100)
+            fetchAssetContent(client, path = "users/123", expectedMimeType = "image/png", height = 100, width = 100)
 
-            fetchAssetMetadata(client, path = "/users/123")!!.apply {
+            fetchAssetMetadata(client, path = "users/123")!!.apply {
                 variants shouldHaveSize 2
                 variants.forAll {
                     it.bucket shouldBe "correct-bucket"

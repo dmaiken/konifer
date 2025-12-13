@@ -1,13 +1,19 @@
 package io.direkt.infrastructure.datastore
 
 import io.direkt.domain.asset.Asset
+import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetId
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
+import io.direkt.domain.variant.VariantData
 import io.direkt.infrastructure.StoreAssetRequest
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 fun createPendingAsset(
@@ -78,3 +84,46 @@ fun createPendingVariant(
         lqip = lqip,
         transformation = transformation,
     )
+
+fun assertFetchedAgainstAggregate(
+    fetched: AssetData?,
+    asset: Asset,
+    validateTransformations: Boolean,
+) {
+    fetched shouldNotBe null
+    fetched!!.id shouldBe asset.id
+    fetched.tags shouldBe asset.tags
+    fetched.labels shouldBe asset.labels
+    fetched.alt shouldBe asset.alt
+    fetched.path shouldBe asset.path
+    fetched.entryId shouldBe asset.entryId
+    fetched.source shouldBe asset.source
+    fetched.sourceUrl shouldBe asset.sourceUrl
+    fetched.createdAt shouldBe asset.createdAt
+    fetched.modifiedAt.truncatedTo(ChronoUnit.MILLIS) shouldBe asset.modifiedAt.truncatedTo(ChronoUnit.MILLIS)
+
+    if (validateTransformations) {
+        fetched.variants shouldHaveSize asset.variants.size
+        fetched.variants.forEachIndexed { index, variant ->
+            asset.variants[index].also {
+                assertFetchedVariantAgainstAggregate(variant, it)
+            }
+        }
+    }
+}
+
+fun assertFetchedVariantAgainstAggregate(
+    fetched: VariantData?,
+    variant: Variant,
+) {
+    fetched shouldNotBe null
+    fetched!!.id shouldBe variant.id
+    fetched.createdAt shouldBe variant.createdAt
+    fetched.attributes shouldBe variant.attributes
+    fetched.transformation shouldBe variant.transformation
+    fetched.isOriginalVariant shouldBe variant.isOriginalVariant
+    fetched.uploadedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe variant.uploadedAt?.truncatedTo(ChronoUnit.MILLIS)
+    fetched.objectStoreKey shouldBe variant.objectStoreKey
+    fetched.objectStoreBucket shouldBe variant.objectStoreBucket
+    fetched.lqips shouldBe variant.lqips
+}

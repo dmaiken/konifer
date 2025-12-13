@@ -37,4 +37,41 @@ data class Transformation(
                 format = ImageFormat.PNG,
             )
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        (other as Transformation).let {
+            return width == it.width &&
+                height == it.height &&
+                fit == it.fit &&
+                gravity == it.gravity &&
+                format == it.format &&
+                rotate == it.rotate &&
+                horizontalFlip == it.horizontalFlip &&
+                filter == it.filter &&
+                blur == it.blur &&
+                quality == it.quality &&
+                pad == it.pad &&
+                background == it.background
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = originalVariant.hashCode()
+        result = 31 * result + width
+        result = 31 * result + height
+        result = 31 * result + canUpscale.hashCode()
+        result = 31 * result + horizontalFlip.hashCode()
+        result = 31 * result + blur
+        result = 31 * result + quality
+        result = 31 * result + pad
+        result = 31 * result + fit.hashCode()
+        result = 31 * result + gravity.hashCode()
+        result = 31 * result + format.hashCode()
+        result = 31 * result + rotate.hashCode()
+        result = 31 * result + filter.hashCode()
+        result = 31 * result + background.hashCode()
+        return result
+    }
 }

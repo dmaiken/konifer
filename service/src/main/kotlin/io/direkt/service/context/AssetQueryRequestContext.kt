@@ -10,11 +10,3 @@ data class AssetQueryRequestContext(
     val transformation: Transformation?,
     val labels: Map<String, String>,
 )
-
-data class VariantQueryContext(
-    val path: String,
-    val pathConfiguration: PathConfiguration,
-    val modifiers: QueryModifiers,
-    val transformation: Transformation,
-    val labels: Map<String, String>,
-)

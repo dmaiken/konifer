@@ -12,6 +12,7 @@ data class AssetData(
     val tags: Set<String>,
     val source: AssetSource,
     val sourceUrl: String?,
+    val isReady: Boolean,
     val createdAt: LocalDateTime,
     val modifiedAt: LocalDateTime,
     val variants: List<VariantData>,

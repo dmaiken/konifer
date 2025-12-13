@@ -18,7 +18,7 @@ class InMemoryAssetRepository : AssetRepository {
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
 
-    override suspend fun storeNew(asset: Asset): Asset.PendingPersisted {
+    override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         val entryId = getNextEntryId(path)
         logger.info("Persisting asset at path: $path and entryId: $entryId")
@@ -42,13 +42,13 @@ class InMemoryAssetRepository : AssetRepository {
             }
     }
 
-    override suspend fun markReady(asset: Asset) {
+    override suspend fun markReady(asset: Asset.Ready) {
         idReference[asset.id] = asset
         store[asset.path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
         store[asset.path]?.add(asset)
     }
 
-    override suspend fun markUploaded(variant: Variant) {
+    override suspend fun markUploaded(variant: Variant.Ready) {
         val asset = idReference[variant.assetId] ?: return
         store[asset.path]
             ?.firstOrNull { it.entryId == asset.entryId }
@@ -58,11 +58,8 @@ class InMemoryAssetRepository : AssetRepository {
             }
     }
 
-    override suspend fun storeNewVariant(variant: Variant): Variant.Pending {
-        if (variant !is Variant.Pending) {
-            throw IllegalArgumentException("Variant must be pending")
-        }
-        val asset = idReference[variant.assetId]!!
+    override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {
+        val asset = idReference[variant.assetId] ?: throw IllegalArgumentException("Asset not found")
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         return store[path]?.let { assets ->
             val asset = assets.first { it.entryId == asset.entryId }
@@ -93,11 +90,18 @@ class InMemoryAssetRepository : AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        includeOnlyReady: Boolean,
     ): AssetData? {
-        val asset = fetch(path, entryId, orderBy, labels) ?: return null
+        val asset = fetch(path, entryId, orderBy, labels, includeOnlyReady) ?: return null
+        logger.info(
+            "Fetched asset with variant transformations: ${asset.variants.map { it.transformation }} " +
+                "Looking for transformation: $transformation",
+        )
         val variants =
             if (transformation == null) {
                 asset.variants
+            } else if (transformation.originalVariant) {
+                asset.variants.filter { it.isOriginalVariant }
             } else {
                 asset.variants
                     .firstOrNull { variant ->
@@ -106,7 +110,7 @@ class InMemoryAssetRepository : AssetRepository {
                         listOf(matched)
                     } ?: emptyList()
             }
-        return asset.toAssetData()
+        return asset.toAssetData(variants)
     }
 
     override suspend fun fetchAllByPath(
@@ -117,7 +121,8 @@ class InMemoryAssetRepository : AssetRepository {
         limit: Int,
     ): List<AssetData> =
         store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
-            ?.toList()
+            ?.asSequence()
+            ?.filter { it.isReady }
             ?.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
             ?.map { asset ->
                 val variants =
@@ -133,7 +138,7 @@ class InMemoryAssetRepository : AssetRepository {
                                 listOf(matched)
                             } ?: emptyList()
                     }
-                asset.toAssetData()
+                asset.toAssetData(variants)
             }?.sortedWith(
                 when (orderBy) {
                     OrderBy.CREATED -> compareByDescending<AssetData> { it.createdAt }
@@ -141,7 +146,8 @@ class InMemoryAssetRepository : AssetRepository {
                 }.let {
                     it.thenByDescending { comparator -> comparator.entryId }
                 },
-            )?.take(limit) ?: emptyList()
+            )?.take(limit)
+            ?.toList() ?: emptyList()
 
     override suspend fun deleteAssetByPath(
         path: String,
@@ -210,7 +216,7 @@ class InMemoryAssetRepository : AssetRepository {
         if (asset !is Asset.Ready) {
             throw IllegalArgumentException("Asset must be in ready state")
         }
-        fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
+        fetch(asset.path, asset.entryId, OrderBy.CREATED, emptyMap(), true)
             ?: throw IllegalStateException("Asset does not exist")
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         store[path]?.removeIf { it.entryId == asset.entryId }
@@ -238,11 +244,19 @@ class InMemoryAssetRepository : AssetRepository {
         entryId: Long?,
         orderBy: OrderBy,
         labels: Map<String, String>,
+        includeOnlyReady: Boolean,
     ): Asset? {
         val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
 
         return assets
-            .filter { asset ->
+            .asSequence()
+            .filter {
+                if (includeOnlyReady) {
+                    it.isReady
+                } else {
+                    true
+                }
+            }.filter { asset ->
                 if (entryId != null) {
                     asset.entryId == entryId
                 } else {

@@ -86,19 +86,6 @@ sealed interface Asset {
         }
 
         init {
-            validate()
-        }
-
-        fun markPending(originalVariant: Variant): Pending {
-            check(originalVariant is Variant.Pending) { "Variant must be in a pending state" }
-
-            return Pending.fromNew(
-                new = this,
-                originalVariant = originalVariant,
-            )
-        }
-
-        private fun validate() {
             check(entryId == null)
             check(variants.isEmpty())
             if (alt != null && alt.length > MAX_ALT_LENGTH) {
@@ -113,6 +100,15 @@ sealed interface Asset {
             if (tags.any { it.length > MAX_TAG_VALUE_LENGTH }) {
                 throw IllegalArgumentException("Tags exceed max length of $MAX_TAG_VALUE_LENGTH")
             }
+        }
+
+        fun markPending(originalVariant: Variant): Pending {
+            check(originalVariant is Variant.Pending) { "Variant must be in a pending state" }
+
+            return Pending.fromNew(
+                new = this,
+                originalVariant = originalVariant,
+            )
         }
     }
 
@@ -175,6 +171,7 @@ sealed interface Asset {
             checkNotNull(entryId)
             check(variants.size == 1)
             check(variants[0] is Variant.Pending)
+            check(variants[0].isOriginalVariant)
         }
 
         fun markReady(uploadedAt: LocalDateTime): Ready =
@@ -202,7 +199,6 @@ sealed interface Asset {
             checkNotNull(entryId)
             check(variants.isNotEmpty())
             check(isReady)
-            check(variants.all { it is Variant.Ready })
         }
 
         companion object {
@@ -220,7 +216,7 @@ sealed interface Asset {
                     source = persisted.source,
                     sourceUrl = persisted.sourceUrl,
                     createdAt = persisted.createdAt,
-                    modifiedAt = persisted.modifiedAt,
+                    modifiedAt = LocalDateTime.now(),
                     isReady = true,
                     variants = mutableListOf(originalVariant),
                 )
@@ -240,8 +236,13 @@ sealed interface Asset {
                     isReady = true,
                     variants =
                         assetData.variants
-                            .map { Variant.Ready.from(assetData.id, it) }
-                            .toMutableList(),
+                            .map { variantData ->
+                                if (variantData.uploadedAt != null) {
+                                    Variant.Ready.from(assetData.id, variantData)
+                                } else {
+                                    Variant.Pending.from(assetData.id, variantData)
+                                }
+                            }.toMutableList(),
                 )
         }
 

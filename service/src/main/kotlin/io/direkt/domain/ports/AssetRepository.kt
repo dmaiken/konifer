@@ -8,13 +8,13 @@ import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 
 interface AssetRepository {
-    suspend fun storeNew(asset: Asset): Asset.PendingPersisted
+    suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
 
-    suspend fun markReady(asset: Asset)
+    suspend fun markReady(asset: Asset.Ready)
 
-    suspend fun markUploaded(variant: Variant)
+    suspend fun markUploaded(variant: Variant.Ready)
 
-    suspend fun storeNewVariant(variant: Variant): Variant.Pending
+    suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending
 
     suspend fun fetchForUpdate(
         path: String,
@@ -36,6 +36,7 @@ interface AssetRepository {
         transformation: Transformation?,
         orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
+        includeOnlyReady: Boolean = true,
     ): AssetData?
 
     suspend fun fetchAllByPath(
@@ -45,8 +46,6 @@ interface AssetRepository {
         labels: Map<String, String> = emptyMap(),
         limit: Int,
     ): List<AssetData>
-
-//    suspend fun fetchVariant()
 
     suspend fun deleteAssetByPath(
         path: String,

@@ -42,6 +42,7 @@ class TransformationNormalizer(
                             path = treePath,
                             entryId = entryId,
                             transformation = Transformation.ORIGINAL_VARIANT,
+                            includeOnlyReady = false,
                         )?.variants
                         ?.firstOrNull { it.isOriginalVariant }
                         ?.attributes ?: throw IllegalArgumentException(

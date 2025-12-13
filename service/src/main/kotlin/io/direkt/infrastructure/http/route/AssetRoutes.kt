@@ -71,7 +71,9 @@ fun Application.configureAssetRouting() {
         get("$ASSET_PATH_PREFIX/{...}") {
             val requestContext = requestContextFactory.fromGetRequest(call.request.path(), call.queryParameters)
 
-            logger.info("Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}")
+            logger.info(
+                "Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}",
+            )
             when (requestContext.modifiers.returnFormat) {
                 ReturnFormat.METADATA -> {
                     if (requestContext.modifiers.limit == 1) {
@@ -85,7 +87,7 @@ fun Application.configureAssetRouting() {
                         return@get
                     } else {
                         fetchAssetHandler
-                            .fetchAssetMetadataInPath(requestContext)
+                            .fetchAssetMetadataAtPath(requestContext)
                             .map {
                                 AssetResponse.fromAssetData(it)
                             }.let {
@@ -122,7 +124,7 @@ fun Application.configureAssetRouting() {
                             returnFormat = requestContext.modifiers.returnFormat,
                             imageFormat =
                                 response.asset.variants
-                                    .first { it.isOriginalVariant }
+                                    .first()
                                     .attributes.format,
                         )?.also {
                             call.response.headers.append(it.first, it.second)

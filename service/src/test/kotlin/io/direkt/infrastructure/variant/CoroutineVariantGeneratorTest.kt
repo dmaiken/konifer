@@ -82,13 +82,14 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                 )
 
             asset =
-                storeAsset(
+                storeReadyAsset(
+                    uploadedAt = uploadedAt,
                     objectStoreBucket = BUCKET,
                     objectStoreKey = key,
                     format = ImageFormat.PNG,
                     height = bufferedImage.height,
                     width = bufferedImage.width,
-                ).markReady(uploadedAt)
+                )
         }
 
     @Nested

@@ -8,12 +8,13 @@ import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.mockk.spyk
+import java.time.LocalDateTime
 import java.util.UUID
 
 abstract class BaseUnitTest {
     protected val assetRepository = spyk(InMemoryAssetRepository())
 
-    protected suspend fun storeAsset(
+    protected suspend fun storePersistedAsset(
         path: String = "/users/123",
         height: Int = 100,
         width: Int = 100,
@@ -51,4 +52,28 @@ abstract class BaseUnitTest {
                         )
                     },
         )
+
+    protected suspend fun storeReadyAsset(
+        uploadedAt: LocalDateTime,
+        path: String = "/users/123",
+        height: Int = 100,
+        width: Int = 100,
+        format: ImageFormat = ImageFormat.PNG,
+        url: String? = null,
+        alt: String? = "",
+        objectStoreBucket: String = "bucket",
+        objectStoreKey: String = "${UUID.randomUUID()}${format.extension}",
+    ): Asset.Ready =
+        storePersistedAsset(
+            path = path,
+            height = height,
+            width = width,
+            format = format,
+            url = url,
+            alt = alt,
+            objectStoreBucket = objectStoreBucket,
+            objectStoreKey = objectStoreKey,
+        ).markReady(uploadedAt).also {
+            assetRepository.markReady(it)
+        }
 }

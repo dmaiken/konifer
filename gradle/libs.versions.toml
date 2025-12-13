@@ -14,7 +14,6 @@ photofix-libvips-version = "1.9.2"
 mockk-version = "1.14.6"
 tika-version = "3.2.3"
 postgres-version = "42.7.8"
-zero-allocation-version = "0.16"
 blurhash-version = "0.3.0"
 awaitility-version = "4.3.0"
 junit-pioneer-version = "2.3.0"
@@ -47,7 +46,6 @@ r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool-version
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgresql-version" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version = "1.10.1" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
-zero-allocation-hashing = { module = "net.openhft:zero-allocation-hashing", version.ref = "zero-allocation-version" }
 
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }

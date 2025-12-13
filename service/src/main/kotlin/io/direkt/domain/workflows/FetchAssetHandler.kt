@@ -30,8 +30,8 @@ class FetchAssetHandler(
         )
     }
 
-    suspend fun fetchAssetMetadataInPath(context: AssetQueryRequestContext): List<AssetData> {
-        logger.info("Fetching asset info in path: ${context.path}")
+    suspend fun fetchAssetMetadataAtPath(context: AssetQueryRequestContext): List<AssetData> {
+        logger.info("Fetching asset info at path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
             transformation = null,
@@ -46,7 +46,7 @@ class FetchAssetHandler(
     ): AssetMetadata? {
         val entryId = context.modifiers.entryId
         logger.info(
-            "Fetching asset info by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
+            "Fetching asset metadata by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
         )
 
         val assetData =

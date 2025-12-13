@@ -2,7 +2,7 @@ package io.direkt.infrastructure.datastore.postgres
 
 import org.jooq.postgres.extensions.types.Ltree
 
-object PathAdapter {
+object LtreePathAdapter {
     private val validPathRegex = Regex("^(?!/)[a-zA-Z0-9_~!$'()*+=@/-]*$")
     private const val TREE_PATH_DELIMITER = "."
     private const val URI_PATH_DELIMITER = "/"
@@ -29,5 +29,3 @@ object PathAdapter {
 
     fun toUriPath(treePath: String): String = treePath.removePrefix(TREE_ROOT).replace(TREE_PATH_DELIMITER, URI_PATH_DELIMITER)
 }
-
-fun Ltree.toPath(): String = PathAdapter.toUriPath(this.data())

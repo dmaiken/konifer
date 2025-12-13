@@ -7,6 +7,7 @@ import io.direkt.domain.asset.AssetClass
 import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.ImageFormat
 import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.util.UnValidatedStoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetContent
 import io.direkt.util.fetchAssetMetadata
@@ -370,7 +371,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     alt = "a".repeat(126),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -384,7 +385,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     tags = setOf("tag1", "a".repeat(257)),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -398,7 +399,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels =
                         mapOf(
                             "a" to "b",
@@ -416,7 +417,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels =
                         mapOf(
                             "a" to "b",
@@ -440,7 +441,7 @@ class StoreAssetTest {
                     }
                 }
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels = labels,
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

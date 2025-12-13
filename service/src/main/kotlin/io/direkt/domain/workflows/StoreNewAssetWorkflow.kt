@@ -70,12 +70,12 @@ class StoreNewAssetWorkflow(
         coroutineScope {
             container.use { container ->
                 val format = deriveValidImageFormat(container.readNBytes(4096, true))
+                val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
                 val newAsset =
                     Asset.New.fromHttpRequest(
-                        path = uriPath,
+                        path = context.path,
                         request = request,
                     )
-                val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
 
                 container.toTemporaryFile(format.extension)
                 val transformation =
@@ -115,6 +115,7 @@ class StoreNewAssetWorkflow(
                         key = objectStoreKey,
                         asset = preProcessed.result,
                     )
+                logger.info("Asset uploaded at $uploadedAt, marking as ready")
                 val ready =
                     pendingPersisted.markReady(uploadedAt).also {
                         assetRepository.markReady(it)

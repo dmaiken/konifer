@@ -51,7 +51,13 @@ sealed interface Variant {
                     objectStoreKey = objectStoreKey,
                     isOriginalVariant = true,
                     attributes = attributes,
-                    transformation = Transformation.ORIGINAL_VARIANT,
+                    transformation =
+                        Transformation(
+                            height = attributes.height,
+                            width = attributes.width,
+                            format = attributes.format,
+                            originalVariant = true,
+                        ),
                     lqips = lqip,
                     createdAt = LocalDateTime.now(),
                     uploadedAt = null,
@@ -76,6 +82,23 @@ sealed interface Variant {
                     lqips = lqip,
                     createdAt = LocalDateTime.now(),
                     uploadedAt = null,
+                )
+
+            fun from(
+                assetId: AssetId,
+                variantData: VariantData,
+            ): Pending =
+                Pending(
+                    id = variantData.id,
+                    assetId = assetId,
+                    objectStoreBucket = variantData.objectStoreBucket,
+                    objectStoreKey = variantData.objectStoreKey,
+                    isOriginalVariant = variantData.isOriginalVariant,
+                    attributes = variantData.attributes,
+                    transformation = variantData.transformation,
+                    lqips = variantData.lqips,
+                    createdAt = variantData.createdAt,
+                    uploadedAt = variantData.uploadedAt,
                 )
         }
 

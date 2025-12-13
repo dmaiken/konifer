@@ -6,6 +6,7 @@ import io.direkt.domain.asset.AssetData
 import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
+import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
@@ -134,7 +135,7 @@ data class TransformationResponse(
     val gravity: Gravity,
     val format: ImageFormat,
     val rotate: Rotate,
-    val horizontalFlip: Boolean,
+    val flip: Flip,
     val filter: Filter,
     val blur: Int,
     val quality: Int,
@@ -150,7 +151,7 @@ data class TransformationResponse(
                 gravity = transformation.gravity,
                 format = transformation.format,
                 rotate = transformation.rotate,
-                horizontalFlip = transformation.horizontalFlip,
+                flip = if (transformation.horizontalFlip) Flip.H else Flip.NONE,
                 filter = transformation.filter,
                 blur = transformation.blur,
                 quality = transformation.quality,

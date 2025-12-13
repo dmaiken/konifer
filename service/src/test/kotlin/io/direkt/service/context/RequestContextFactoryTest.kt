@@ -572,7 +572,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             transformation: Transformation,
         ) = runTest {
             val path = "/assets/profile/-/link/created/10/"
-            storeAsset(
+            storePersistedAsset(
                 height = 100,
                 width = 100,
                 format = ImageFormat.PNG,
@@ -632,7 +632,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `can parse labels in request`() =
             runTest {
                 val path = "/assets/profile/-/link/created/10/"
-                storeAsset(
+                storePersistedAsset(
                     height = 100,
                     width = 100,
                     format = ImageFormat.PNG,
@@ -667,7 +667,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `some label is used when duplicates exist in request`() =
             runTest {
                 val path = "/assets/profile/-/link/created/10/"
-                storeAsset(
+                storePersistedAsset(
                     height = 100,
                     width = 100,
                     format = ImageFormat.PNG,
@@ -699,7 +699,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `some label is used when duplicates exist and one is namespaced in request`() =
             runTest {
                 val path = "/assets/profile/-/link/created/10/"
-                storeAsset(
+                storePersistedAsset(
                     height = 100,
                     width = 100,
                     format = ImageFormat.PNG,
