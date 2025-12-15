@@ -68,7 +68,7 @@ data class AssetResponse(
 @Serializable
 data class VariantResponse(
     val isOriginalVariant: Boolean,
-    val bucket: String,
+    val storeBucket: String,
     val storeKey: String,
     val attributes: AttributeResponse,
     val transformation: TransformationResponse?,
@@ -78,7 +78,7 @@ data class VariantResponse(
         fun fromVariantData(variantData: VariantData): VariantResponse =
             VariantResponse(
                 isOriginalVariant = variantData.isOriginalVariant,
-                bucket = variantData.objectStoreBucket,
+                storeBucket = variantData.objectStoreBucket,
                 storeKey = variantData.objectStoreKey,
                 attributes = AttributeResponse.fromAttributes(variantData.attributes),
                 lqip = LQIPResponse.fromLqips(variantData.lqips),
@@ -93,7 +93,7 @@ data class VariantResponse(
         fun fromVariant(variant: Variant): VariantResponse =
             VariantResponse(
                 isOriginalVariant = variant.isOriginalVariant,
-                bucket = variant.objectStoreBucket,
+                storeBucket = variant.objectStoreBucket,
                 storeKey = variant.objectStoreKey,
                 attributes = AttributeResponse.fromAttributes(variant.attributes),
                 lqip = LQIPResponse.fromLqips(variant.lqips),

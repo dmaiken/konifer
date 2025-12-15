@@ -6,7 +6,6 @@ import io.direkt.domain.variant.Transformation
 import java.io.File
 
 data class ProcessedImage(
-    val result: File,
     val attributes: Attributes,
     val transformation: Transformation,
     val lqip: LQIPs,

@@ -108,5 +108,10 @@ enum class ImageFormat(
             entries.firstOrNull {
                 it.mimeType.equals(string, ignoreCase = true)
             } ?: throw IllegalArgumentException("Unsupported image mime type: $string")
+
+        fun fromExtension(extension: String): ImageFormat =
+            entries.firstOrNull {
+                it.extension == extension
+            } ?: throw IllegalArgumentException("Unsupported image extension: $extension")
     }
 }

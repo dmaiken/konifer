@@ -53,8 +53,7 @@ class CoroutineVariantGenerator(
         scope.launch {
             logger.info("Starting variant generator channel listener: $index")
             while (isActive) {
-                val job = consumer.nextJob()
-                handleVariantGenerationJob(job)
+                handleVariantGenerationJob(consumer.nextJob())
             }
             logger.info("Shut down variant generator channel listener: $index")
         }
@@ -75,6 +74,9 @@ class CoroutineVariantGenerator(
                     handlePreProcessJob(job).also {
                         job.deferredResult.complete(it)
                     }
+                is GenerateVariantsJob -> handleGenerateVariantsJob(job).also {
+                    job.deferredResult.complete(it)
+                }
             }
         } catch (e: Exception) {
             logger.error("Error while generating variant generation with request: {}", job, e)
@@ -128,6 +130,22 @@ class CoroutineVariantGenerator(
         )
     }
 
+    private suspend fun handleGenerateVariantsJob(job: GenerateVariantsJob): Boolean {
+        logger.info("Handling GenerateVariantsJob job: $job")
+
+        return try {
+            imageProcessor.generateVariants(
+                source = job.source,
+                lqipImplementations = job.lqipImplementations,
+                transformationDataContainers = job.transformationDataContainers,
+            )
+            true
+        } catch (e: Exception) {
+            logger.error("Error while generating variant with request: {}", job, e)
+            false
+        }
+    }
+
     private suspend fun generateVariants(
         treePath: String,
         entryId: Long?,
@@ -170,6 +188,7 @@ class CoroutineVariantGenerator(
                             transformation = transformation,
                             originalVariant = originalVariant,
                             lqipImplementations = lqipImplementations,
+                            output = ,
                         )
                     val key = "${UUID.randomUUID()}${processedImage.attributes.format.extension}"
                     val variant =
@@ -187,7 +206,7 @@ class CoroutineVariantGenerator(
                     val uploadedAt =
                         objectStore.persist(
                             bucket = bucket,
-                            asset = processedImage.result,
+                            file = processedImage.result,
                             key = key,
                         )
 

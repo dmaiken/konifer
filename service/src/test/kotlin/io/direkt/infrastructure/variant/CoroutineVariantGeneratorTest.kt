@@ -78,7 +78,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                 objectStore.persist(
                     bucket = BUCKET,
                     key = key,
-                    asset = image,
+                    file = image,
                 )
 
             asset =
@@ -279,7 +279,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), emptySet(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 
@@ -404,7 +404,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     )
 
                 coEvery {
-                    imageProcessor.generateVariant(any(), emptySet(), any(), any())
+                    imageProcessor.generateVariant(any(), emptySet(), any(), any(), any())
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 

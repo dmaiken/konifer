@@ -8,7 +8,7 @@ interface ObjectRepository {
     suspend fun persist(
         bucket: String,
         key: String,
-        asset: File,
+        file: File,
     ): LocalDateTime
 
     suspend fun fetch(

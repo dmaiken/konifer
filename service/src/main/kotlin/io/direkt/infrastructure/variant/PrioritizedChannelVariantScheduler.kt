@@ -3,7 +3,9 @@ package io.direkt.infrastructure.variant
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
+import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.ports.VariantGenerator
+import io.direkt.domain.ports.VariantType
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
@@ -71,6 +73,26 @@ class PrioritizedChannelVariantScheduler(
                 deferredResult = deferred,
             ),
         )
+        return deferred
+    }
+
+    override suspend fun generateVariantsFromSource(
+        source: File,
+        transformationDataContainers: List<TransformationDataContainer>,
+        lqipImplementations: Set<LQIPImplementation>,
+        variantType: VariantType,
+    ): CompletableDeferred<Boolean> {
+        val deferred = CompletableDeferred<Boolean>()
+        val job = GenerateVariantsJob(
+            source = source,
+            transformationDataContainers = transformationDataContainers,
+            lqipImplementations = lqipImplementations,
+            deferredResult = deferred
+        )
+        when (variantType) {
+            VariantType.EAGER -> backgroundChannel.send(job)
+            VariantType.ON_DEMAND -> highPriorityChannel.send(job)
+        }
         return deferred
     }
 }

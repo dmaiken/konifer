@@ -46,7 +46,7 @@ class FetchAssetVariantTest {
             fetchAssetMetadata(client, path = "users/123")!!.apply {
                 variants shouldHaveSize 2
                 variants.forAll {
-                    it.bucket shouldBe "correct-bucket"
+                    it.storeBucket shouldBe "correct-bucket"
                 }
             }
         }

@@ -2,12 +2,14 @@ package io.direkt.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.image.ProcessedImage
+import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
@@ -16,12 +18,12 @@ import io.direkt.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.lang.foreign.Arena
-import kotlin.time.measureTime
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -50,33 +52,29 @@ class VipsImageProcessor {
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
         transformation: Transformation,
+        output: File,
     ): PreProcessedImage =
         withContext(Dispatchers.IO) {
             // Note: You cannot use coroutines in here unless we change up the way the arena is defined
             // FFM requires that only one thread access the native memory arena
             var attributes: Attributes? = null
-            val resizedPreviewChannel = ByteChannel(autoFlush = true)
             var processedFile: File? = null
+            val previewOutputStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 val decoderOptions =
                     createDecoderOptions(
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,
                     )
-                logger.info("Loading image from container")
-
                 val sourceImage = VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
                 val preProcessed = preProcessingPipeline.run(arena, sourceImage, transformation)
-                try {
-                    if (lqipImplementations.isNotEmpty()) {
-                        generatePreviewVariant(
-                            arena = arena,
-                            sourceImage = preProcessed.processed,
-                            channel = resizedPreviewChannel,
-                        )
-                    }
-                } finally {
-                    resizedPreviewChannel.close()
+
+                if (lqipImplementations.isNotEmpty()) {
+                    generatePreviewVariant(
+                        arena = arena,
+                        sourceImage = preProcessed.processed,
+                        variantStream = previewOutputStream,
+                    )
                 }
                 processedFile =
                     if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
@@ -98,7 +96,7 @@ class VipsImageProcessor {
                 attributes = checkNotNull(attributes),
                 lqip =
                     if (lqipImplementations.isNotEmpty()) {
-                        createImagePreviews(resizedPreviewChannel, lqipImplementations)
+                        ImagePreviewGenerator.generatePreviews(previewOutputStream.toByteArray(), lqipImplementations)
                     } else {
                         LQIPs.NONE
                     },
@@ -106,17 +104,69 @@ class VipsImageProcessor {
             )
         }
 
+    suspend fun generateVariants(
+        source: File,
+        transformationDataContainers: List<TransformationDataContainer>,
+        lqipImplementations: Set<LQIPImplementation>,
+    ) = withContext(Dispatchers.IO) {
+        Vips.run { arena ->
+            // Some transformations may want all pages, if present
+            val sourceByDecoderOptions = mutableMapOf<Array<VipsOption>, VImage>()
+            val sourceFormat = ImageFormat.fromExtension(".${source.extension}")
+            for (container in transformationDataContainers) {
+                val (transformation, output) = container
+                val decoderOptions =
+                    createDecoderOptions(
+                        sourceFormat = sourceFormat,
+                        destinationFormat = transformation.format,
+                    )
+                val image = sourceByDecoderOptions.getOrPut(decoderOptions) {
+                    VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
+                }.copy()
+
+                val variantResult = variantGenerationPipeline.run(arena, image, transformation)
+
+                if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
+                    val previewVariantStream = ByteArrayOutputStream()
+                    generatePreviewVariant(
+                        arena = arena,
+                        sourceImage = variantResult.processed,
+                        variantStream = previewVariantStream,
+                    )
+                    container.lqips = ImagePreviewGenerator.generatePreviews(
+                        source = previewVariantStream.toByteArray(),
+                        lqipImplementations = lqipImplementations
+                    )
+                }
+
+                VipsEncoder.writeToFile(
+                    source = variantResult.processed,
+                    format = transformation.format,
+                    quality = transformation.quality,
+                    file = output,
+                )
+
+                container.attributes =
+                    AttributesFactory.createAttributes(
+                        image = variantResult.processed,
+                        sourceFormat = sourceFormat,
+                        destinationFormat = transformation.format,
+                    )
+            }
+        }
+    }
+
     suspend fun generateVariant(
         source: File,
         lqipImplementations: Set<LQIPImplementation>,
         transformation: Transformation,
         originalVariant: VariantData,
+        output: File,
     ): ProcessedImage =
         withContext(Dispatchers.IO) {
             var attributes: Attributes? = null
-            val resizedPreviewChannel = ByteChannel(autoFlush = true)
+            val previewOutputStream = ByteArrayOutputStream()
             var regenerateLqip = false
-            var result: File? = null
             Vips.run { arena ->
                 val decoderOptions =
                     createDecoderOptions(
@@ -125,24 +175,20 @@ class VipsImageProcessor {
                     )
                 val image = VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
                 val variantResult = variantGenerationPipeline.run(arena, image, transformation)
-                try {
-                    if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
-                        regenerateLqip = true
-                        generatePreviewVariant(
-                            arena = arena,
-                            sourceImage = variantResult.processed,
-                            channel = resizedPreviewChannel,
-                        )
-                    }
-                } finally {
-                    resizedPreviewChannel.close()
-                }
-                result =
-                    VipsEncoder.writeToFile(
-                        source = variantResult.processed,
-                        format = transformation.format,
-                        quality = transformation.quality,
+                if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
+                    regenerateLqip = true
+                    generatePreviewVariant(
+                        arena = arena,
+                        sourceImage = variantResult.processed,
+                        variantStream = previewOutputStream,
                     )
+                }
+                VipsEncoder.writeToFile(
+                    source = variantResult.processed,
+                    format = transformation.format,
+                    quality = transformation.quality,
+                    file = output,
+                )
 
                 attributes =
                     AttributesFactory.createAttributes(
@@ -157,37 +203,20 @@ class VipsImageProcessor {
                 // This will change when we start adding color filters
                 lqip =
                     if (regenerateLqip) {
-                        createImagePreviews(resizedPreviewChannel, lqipImplementations)
+                        ImagePreviewGenerator.generatePreviews(previewOutputStream.toByteArray(), lqipImplementations)
                     } else {
                         originalVariant.lqips
                     },
                 transformation = transformation,
-                result = checkNotNull(result),
             )
         }
-
-    private suspend fun createImagePreviews(
-        previewImageChannel: ByteChannel,
-        lqipImplementations: Set<LQIPImplementation>,
-    ): LQIPs {
-        val previews: LQIPs
-        val duration =
-            measureTime {
-                previews = ImagePreviewGenerator.generatePreviews(previewImageChannel, lqipImplementations)
-            }
-        logger.info("Created previews in: ${duration.inWholeMilliseconds}ms")
-
-        return previews
-    }
 
     private fun generatePreviewVariant(
         arena: Arena,
         sourceImage: VImage,
-        channel: ByteChannel,
+        variantStream: OutputStream,
     ) {
         val previewResult = lqipVariantPipeline.run(arena, sourceImage.copy(), lqipTransformation)
-        ByteChannelOutputStream(channel).use {
-            previewResult.processed.writeToStream(it, ImageFormat.PNG.extension)
-        }
+        previewResult.processed.writeToStream(variantStream, ImageFormat.PNG.extension)
     }
 }

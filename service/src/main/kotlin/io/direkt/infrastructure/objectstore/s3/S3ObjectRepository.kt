@@ -32,7 +32,7 @@ class S3ObjectRepository(
     override suspend fun persist(
         bucket: String,
         key: String,
-        asset: File,
+        file: File,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
             s3Client.putObject(
@@ -40,7 +40,7 @@ class S3ObjectRepository(
                     PutObjectRequest {
                         this.bucket = bucket
                         this.key = key
-                        body = ByteStream.fromFile(asset)
+                        body = ByteStream.fromFile(file)
                     },
             )
 

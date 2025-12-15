@@ -19,11 +19,11 @@ class InMemoryObjectRepository : ObjectRepository {
     override suspend fun persist(
         bucket: String,
         key: String,
-        asset: File,
+        file: File,
     ): LocalDateTime {
         store.computeIfAbsent(bucket) { mutableMapOf() }
 
-        store[bucket]?.put(key, asset.readChannel().toByteArray())
+        store[bucket]?.put(key, file.readChannel().toByteArray())
 
         return LocalDateTime.now()
     }

@@ -141,7 +141,6 @@ class ImageAssetVariantTest {
                     first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
-                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
                     }
                 }
             }

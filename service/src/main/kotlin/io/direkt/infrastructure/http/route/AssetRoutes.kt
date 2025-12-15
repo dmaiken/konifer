@@ -4,10 +4,10 @@ import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.asset.MAX_BYTES_DEFAULT
-import io.direkt.domain.workflows.DeleteAssetWorkflow
-import io.direkt.domain.workflows.FetchAssetHandler
-import io.direkt.domain.workflows.StoreNewAssetWorkflow
-import io.direkt.domain.workflows.UpdateAssetWorkflow
+import io.direkt.domain.workflow.DeleteAssetWorkflow
+import io.direkt.domain.workflow.FetchAssetHandler
+import io.direkt.domain.workflow.StoreNewAssetWorkflow
+import io.direkt.domain.workflow.UpdateAssetWorkflow
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator

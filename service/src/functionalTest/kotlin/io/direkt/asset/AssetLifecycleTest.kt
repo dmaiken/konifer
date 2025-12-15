@@ -47,7 +47,7 @@ class AssetLifecycleTest {
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
@@ -90,7 +90,7 @@ class AssetLifecycleTest {
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
@@ -116,6 +116,9 @@ class AssetLifecycleTest {
                     attributes.width shouldBe vImage.width
                     attributes.pageCount shouldBe 19
                     attributes.loop shouldBe 0
+
+                    transformation shouldBe null
+                    isOriginalVariant shouldBe true
                 }
             }
 

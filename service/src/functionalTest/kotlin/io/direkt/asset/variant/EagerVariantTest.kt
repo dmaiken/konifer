@@ -125,7 +125,7 @@ class EagerVariantTest {
 
             val variants = fetchAssetMetadata(client, "users/123")!!.variants
             variants.forAll {
-                it.bucket shouldBe "correct-bucket"
+                it.storeBucket shouldBe "correct-bucket"
             }
         }
 }

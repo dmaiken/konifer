@@ -10,18 +10,16 @@ import java.io.File
 object VipsEncoder {
     fun writeToFile(
         source: VImage,
+        file: File,
         format: ImageFormat,
         quality: Int?,
-    ): File {
-        val processed = createPreProcessedTempFile(extension = format.extension)
+    ) {
         val options =
             constructEncoderOptions(
                 format = format,
                 quality = quality,
             )
-        source.writeToFile(processed.absolutePath, *options)
-
-        return processed
+        source.writeToFile(file.absolutePath, *options)
     }
 
     private fun constructEncoderOptions(

@@ -10,8 +10,11 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.util.Base64
 import javax.imageio.ImageIO
 
@@ -20,6 +23,18 @@ object ImagePreviewGenerator {
     const val MAX_HEIGHT = 100
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
+    fun generatePreviews(source: ByteArray, lqipImplementations: Set<LQIPImplementation>): LQIPs {
+        if (lqipImplementations.isEmpty()) {
+            logger.debug { "No preview implementations enabled for path, skipping preview generation." }
+            return LQIPs.NONE
+        }
+
+        val image = ImageIO.read(ByteArrayInputStream(source))
+        return runBlocking(Dispatchers.IO) {
+            generateLqips(image, lqipImplementations)
+        }
+    }
 
     suspend fun generatePreviews(
         imageChannel: ByteChannel?,
@@ -37,39 +52,46 @@ object ImagePreviewGenerator {
 
             val image = ImageIO.read(imageChannel.toInputStream())
 
-            if (image.width > MAX_WIDTH || image.height > MAX_HEIGHT) {
-                throw IllegalArgumentException("Image must be smaller than ${MAX_WIDTH}x$MAX_HEIGHT to generate previews")
+            generateLqips(image, lqipImplementations)
+        }
+
+    private suspend fun generateLqips(
+        image: BufferedImage,
+        lqipImplementations: Set<LQIPImplementation>,
+    ): LQIPs = withContext(Dispatchers.IO) {
+        if (image.width > MAX_WIDTH || image.height > MAX_HEIGHT) {
+            throw IllegalArgumentException("Image must be smaller than ${MAX_WIDTH}x$MAX_HEIGHT to generate previews")
+        }
+
+        val blurHash =
+            if (lqipImplementations.contains(LQIPImplementation.BLURHASH)) {
+                async {
+                    BlurHash.encode(
+                        bufferedImage = image,
+                        componentX = 4,
+                        componentY = 4,
+                    )
+                }
+            } else {
+                null
             }
 
-            val blurHash =
-                if (lqipImplementations.contains(LQIPImplementation.BLURHASH)) {
-                    async {
-                        BlurHash.encode(
-                            bufferedImage = image,
-                            componentX = 4,
-                            componentY = 4,
-                        )
-                    }
-                } else {
-                    null
+        val thumbHash =
+            if (lqipImplementations.contains(LQIPImplementation.THUMBHASH)) {
+                async {
+                    Base64
+                        .getEncoder()
+                        .encodeToString(ThumbHash.rgbaToThumbHash(image.width, image.height, toRgba(image)))
                 }
+            } else {
+                null
+            }
 
-            val thumbHash =
-                if (lqipImplementations.contains(LQIPImplementation.THUMBHASH)) {
-                    async {
-                        Base64
-                            .getEncoder()
-                            .encodeToString(ThumbHash.rgbaToThumbHash(image.width, image.height, toRgba(image)))
-                    }
-                } else {
-                    null
-                }
-
-            LQIPs(
-                blurhash = blurHash?.await(),
-                thumbhash = thumbHash?.await(),
-            )
-        }
+        LQIPs(
+            blurhash = blurHash?.await(),
+            thumbhash = thumbHash?.await(),
+        )
+    }
 
     private fun toRgba(image: BufferedImage): ByteArray {
         // Force image to TYPE_INT_ARGB to ensure predictable channel layout (ARGB)

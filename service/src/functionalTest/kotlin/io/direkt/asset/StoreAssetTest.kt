@@ -175,7 +175,7 @@ class StoreAssetTest {
 
             fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {
-                    it.bucket shouldBe "correct-bucket"
+                    it.storeBucket shouldBe "correct-bucket"
                 }
             }
         }
@@ -237,7 +237,7 @@ class StoreAssetTest {
                 )
             val storeAssetResponse = storeAssetUrlSource(client, request)
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.variants
                 .first()
