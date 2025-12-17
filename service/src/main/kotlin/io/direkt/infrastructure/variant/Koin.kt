@@ -23,12 +23,13 @@ fun Application.variantModule(): Module =
                 ?.tryGetString(QUEUE_SIZE)
                 ?.toInt()
                 ?: 1000
+
         single(named("synchronousChannel")) {
-            Channel<OnDemandVariantGenerationJob>(capacity = queueSize)
+            Channel<ImageProcessingJob<*>>(capacity = queueSize)
         }
 
         single(named("backgroundChannel")) {
-            Channel<OnDemandVariantGenerationJob>(capacity = queueSize)
+            Channel<ImageProcessingJob<*>>(capacity = queueSize)
         }
 
         single<CoroutineVariantGenerator>(createdAtStart = true) {
@@ -38,7 +39,7 @@ fun Application.variantModule(): Module =
                     ?.tryGetString(WORKERS)
                     ?.toInt()
                     ?: Runtime.getRuntime().availableProcessors()
-            CoroutineVariantGenerator(get(), get(), get(), get(), get(), numberOfWorkers)
+            CoroutineVariantGenerator(get(), get(), numberOfWorkers)
         }
 
         single<PriorityChannelConsumer<ImageProcessingJob<*>>> {

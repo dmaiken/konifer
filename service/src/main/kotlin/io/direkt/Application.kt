@@ -1,5 +1,6 @@
 package io.direkt
 
+import io.direkt.infrastructure.TemporaryFileFactory.ROOT_DIR
 import io.direkt.infrastructure.configureKoin
 import io.direkt.infrastructure.http.configureStatusPages
 import io.direkt.infrastructure.http.route.configureAssetRouting
@@ -12,6 +13,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
+import java.nio.file.Paths
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.Path
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.pathString
 import io.direkt.infrastructure.properties.ConfigurationProperties.ObjectStoreConfigurationProperties.PROVIDER as OBJECT_STORE_PROVIDER
 
 private val logger = KtorSimpleLogger("io.direkt.Application")

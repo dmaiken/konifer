@@ -2,9 +2,13 @@ package io.direkt.infrastructure.variant
 
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
+import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.ports.VariantGenerator
+import io.direkt.domain.ports.VariantType
 import io.direkt.domain.variant.Transformation
+import io.direkt.infrastructure.TemporaryFileFactory
 import io.direkt.service.context.RequestedTransformation
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.channels.Channel
@@ -33,12 +37,16 @@ class PrioritizedChannelVariantSchedulerTest {
                 Files.createTempFile("", ".tmp").toFile().apply {
                     deleteOnExit()
                 }
+            val output = Files.createTempFile("", ".tmp").toFile().apply {
+                deleteOnExit()
+            }
             val deferred =
                 scheduler.preProcessOriginalVariant(
                     sourceFormat = sourceFormat,
                     lqipImplementations = lqipImplementations,
                     transformation = transformation,
-                    source = source,
+                    source = source.toPath(),
+                    output = output.toPath()
                 )
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
@@ -56,28 +64,26 @@ class PrioritizedChannelVariantSchedulerTest {
     @Test
     fun `eager variants are scheduled on background channel`() =
         runTest {
-            val path = "path"
-            val entryId = 3L
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val bucket = "bucket"
-            val requestedTransformations = listOf(RequestedTransformation.ORIGINAL_VARIANT)
+            val transformationDataContainer = TransformationDataContainer(
+                transformation = Transformation.ORIGINAL_VARIANT,
+                output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension)
+            )
+            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
-            scheduler.initiateEagerVariants(
-                path = path,
-                entryId = entryId,
-                requestedTransformations = requestedTransformations,
+            scheduler.generateVariantsFromSource(
+                source = source,
+                transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
-                bucket = bucket,
+                variantType = VariantType.EAGER
             )
 
             val sent = backgroundChannel.receiveCatching().getOrNull()
             sent shouldNotBe null
-            with(sent!! as EagerVariantGenerationJob) {
-                this.path shouldBe path
-                this.entryId shouldBe entryId
+            with(sent!! as GenerateVariantsJob) {
+                this.source shouldBe source
+                this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
-                this.requestedTransformations shouldBe requestedTransformations
-                this.bucket shouldBe bucket
                 this.deferredResult shouldBe null
             }
         }
@@ -85,31 +91,27 @@ class PrioritizedChannelVariantSchedulerTest {
     @Test
     fun `on-demand variants are scheduled on high-priority channel`() =
         runTest {
-            val path = "path"
-            val entryId = 3L
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val bucket = "bucket"
-            val transformation = Transformation.ORIGINAL_VARIANT
+            val transformationDataContainer = TransformationDataContainer(
+                transformation = Transformation.ORIGINAL_VARIANT,
+                output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension)
+            )
+            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
-            val deferred =
-                scheduler.generateOnDemandVariant(
-                    path = path,
-                    entryId = entryId,
-                    transformation = transformation,
-                    lqipImplementations = lqipImplementations,
-                    bucket = bucket,
-                )
+            scheduler.generateVariantsFromSource(
+                source = source,
+                transformationDataContainers = listOf(transformationDataContainer),
+                lqipImplementations = lqipImplementations,
+                variantType = VariantType.ON_DEMAND
+            )
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
             sent shouldNotBe null
-            with(sent!! as OnDemandVariantGenerationJob) {
-                this.path shouldBe path
-                this.entryId shouldBe entryId
+            with(sent!! as GenerateVariantsJob) {
+                this.source shouldBe source
+                this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
-                this.transformation shouldBe transformation
-                this.bucket shouldBe bucket
-                this.deferredResult shouldBe deferred
+                this.deferredResult shouldBe null
             }
-            deferred.cancel()
         }
 }

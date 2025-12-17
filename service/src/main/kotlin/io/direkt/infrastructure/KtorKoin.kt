@@ -16,6 +16,7 @@ import io.direkt.infrastructure.variant.variantModule
 import io.direkt.infrastructure.vips.vipsModule
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.transformation.TransformationNormalizer
+import io.direkt.service.variant.VariantService
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.core.module.Module
@@ -44,7 +45,7 @@ fun Application.configureKoin(objectStoreProvider: ObjectStoreProvider) {
 fun domainModule(): Module =
     module {
         single<StoreNewAssetWorkflow> {
-            StoreNewAssetWorkflow(get(), get(), get(), get(), get(), get(), get(), get())
+            StoreNewAssetWorkflow(get(), get(), get(), get(), get(), get(), get(), get(), get())
         }
         single<FetchAssetHandler> {
             FetchAssetHandler(get(), get(), get())
@@ -62,5 +63,9 @@ fun domainModule(): Module =
 
         single<TransformationNormalizer> {
             TransformationNormalizer(get())
+        }
+
+        single<VariantService> {
+            VariantService(get(), get(), get(), get())
         }
     }

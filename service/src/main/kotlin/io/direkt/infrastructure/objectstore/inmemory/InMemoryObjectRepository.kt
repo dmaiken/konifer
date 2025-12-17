@@ -31,18 +31,18 @@ class InMemoryObjectRepository : ObjectRepository {
     override suspend fun fetch(
         bucket: String,
         key: String,
-        stream: ByteWriteChannel,
+        channel: ByteWriteChannel,
     ): FetchResult =
         try {
             store[bucket]?.get(key)?.let {
-                stream.writeFully(it)
+                channel.writeFully(it)
                 FetchResult(
                     found = true,
                     contentLength = it.size.toLong(),
                 )
             } ?: FetchResult.NOT_FOUND
         } finally {
-            stream.flushAndClose()
+            channel.flushAndClose()
         }
 
     override suspend fun exists(

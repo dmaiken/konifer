@@ -10,30 +10,16 @@ import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
+import java.nio.file.Path
 
 interface VariantGenerator {
     suspend fun preProcessOriginalVariant(
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
         transformation: Transformation,
-        source: File,
+        source: Path,
+        output: Path,
     ): CompletableDeferred<PreProcessedImage>
-
-    suspend fun initiateEagerVariants(
-        path: String,
-        entryId: Long,
-        requestedTransformations: List<RequestedTransformation>,
-        lqipImplementations: Set<LQIPImplementation>,
-        bucket: String,
-    )
-
-    suspend fun generateOnDemandVariant(
-        path: String,
-        entryId: Long,
-        lqipImplementations: Set<LQIPImplementation>,
-        bucket: String,
-        transformation: Transformation,
-    ): CompletableDeferred<Variant>
 
     suspend fun generateVariantsFromSource(
         source: File,

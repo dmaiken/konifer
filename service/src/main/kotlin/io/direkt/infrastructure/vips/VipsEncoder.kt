@@ -19,6 +19,7 @@ object VipsEncoder {
                 format = format,
                 quality = quality,
             )
+        file.createNewFile()
         source.writeToFile(file.absolutePath, *options)
     }
 

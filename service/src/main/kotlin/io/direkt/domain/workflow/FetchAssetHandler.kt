@@ -1,20 +1,30 @@
 package io.direkt.domain.workflow
 
 import io.direkt.domain.asset.AssetData
+import io.direkt.domain.asset.AssetId
 import io.direkt.domain.asset.AssetMetadata
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
-import io.direkt.domain.ports.VariantGenerator
+import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.Variant
+import io.direkt.domain.variant.VariantData
 import io.direkt.domain.variant.VariantLink
+import io.direkt.infrastructure.TemporaryFileFactory
 import io.direkt.service.context.AssetQueryRequestContext
 import io.direkt.service.context.ContentTypeNotPermittedException
+import io.direkt.service.variant.VariantService
+import io.ktor.util.cio.use
+import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 class FetchAssetHandler(
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectRepository,
-    private val variantGenerator: VariantGenerator,
+    private val variantService: VariantService,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -43,8 +53,7 @@ class FetchAssetHandler(
     suspend fun fetchAssetMetadataByPath(
         context: AssetQueryRequestContext,
         generateVariant: Boolean,
-    ): AssetMetadata? {
-        val entryId = context.modifiers.entryId
+    ): AssetMetadata? = coroutineScope {
         logger.info(
             "Fetching asset metadata by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
         )
@@ -52,44 +61,36 @@ class FetchAssetHandler(
         val assetData =
             assetRepository.fetchByPath(
                 path = context.path,
-                entryId = entryId,
+                entryId = context.modifiers.entryId,
                 transformation = context.transformation,
                 orderBy = context.modifiers.orderBy,
                 labels = context.labels,
-            ) ?: return null
+            ) ?: return@coroutineScope null
         if (!generateVariant) {
-            return AssetMetadata(assetData, true)
+            return@coroutineScope AssetMetadata(assetData, true)
         }
 
-        return if (assetData.variants.isEmpty()) {
-            logger.info("Generating variant of asset with path: ${context.path} and entryId: $entryId")
-            context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
-                    throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
-                }
-            }
+        if (assetData.variants.isEmpty()) {
+            logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
 
-            variantGenerator
-                .generateOnDemandVariant(
-                    path = assetData.path,
-                    entryId = assetData.entryId,
-                    lqipImplementations = context.pathConfiguration.imageProperties.previews,
-                    bucket = context.pathConfiguration.s3PathProperties.bucket,
-                    transformation = checkNotNull(context.transformation),
-                ).await()
+            createOnDemandVariant(
+                assetId = assetData.id,
+                context = context,
+            )
+
             AssetMetadata(
                 asset =
                     assetRepository.fetchByPath(
                         path = context.path,
-                        entryId = entryId,
+                        entryId = context.modifiers.entryId,
                         transformation = context.transformation,
                         orderBy = context.modifiers.orderBy,
                         labels = context.labels,
-                    ) ?: return null,
+                    ) ?: return@coroutineScope null,
                 cacheHit = false,
             )
         } else {
-            logger.info("Variant found for asset with path: ${context.path} and entryId: $entryId")
+            logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
             AssetMetadata(assetData, true)
         }
     }
@@ -104,4 +105,48 @@ class FetchAssetHandler(
             .takeIf { it.found }
             ?.contentLength
             ?: throw IllegalStateException("Asset not found in object store: $bucket/$storeKey")
+
+    private suspend fun createOnDemandVariant(
+        assetId: AssetId,
+        context: AssetQueryRequestContext,
+    ) {
+        context.pathConfiguration.allowedContentTypes?.let {
+            if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
+                throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
+            }
+        }
+        val originalVariant = assetRepository.fetchByPath(
+            path = context.path,
+            entryId = context.modifiers.entryId,
+            transformation = Transformation.ORIGINAL_VARIANT,
+            orderBy = context.modifiers.orderBy,
+            labels = context.labels,
+        )?.variants?.first { it.isOriginalVariant }
+            ?: return
+        val originalVariantFile = TemporaryFileFactory.createOriginalVariantTempFile(
+            extension = originalVariant.attributes.format.extension
+        )
+        try {
+            val fileChannel = withContext(Dispatchers.IO) {
+                originalVariantFile.writeChannel()
+            }
+            fileChannel.use {
+                objectStore.fetch(
+                    bucket = originalVariant.objectStoreBucket,
+                    key = originalVariant.objectStoreKey,
+                    channel = fileChannel
+                )
+            }
+            variantService.generateOnDemandVariant(
+                originalVariantFile = originalVariantFile,
+                transformation = checkNotNull(context.transformation),
+                assetId = assetId,
+                lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                originalVariantLQIPs = originalVariant.lqips,
+                bucket = context.pathConfiguration.s3PathProperties.bucket
+            )
+        } finally {
+            originalVariantFile.delete()
+        }
+    }
 }

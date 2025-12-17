@@ -24,6 +24,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.lang.foreign.Arena
+import java.nio.file.Files
+import java.nio.file.Path
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -48,17 +50,16 @@ class VipsImageProcessor {
      * since they reflect any changes performed on the image.
      */
     suspend fun preprocess(
-        source: File,
+        source: Path,
+        output: Path,
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
         transformation: Transformation,
-        output: File,
     ): PreProcessedImage =
         withContext(Dispatchers.IO) {
             // Note: You cannot use coroutines in here unless we change up the way the arena is defined
             // FFM requires that only one thread access the native memory arena
             var attributes: Attributes? = null
-            var processedFile: File? = null
             val previewOutputStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 val decoderOptions =
@@ -66,7 +67,7 @@ class VipsImageProcessor {
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,
                     )
-                val sourceImage = VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
+                val sourceImage = VImage.newFromFile(arena, source.toFile().absolutePath, *decoderOptions)
                 val preProcessed = preProcessingPipeline.run(arena, sourceImage, transformation)
 
                 if (lqipImplementations.isNotEmpty()) {
@@ -76,14 +77,18 @@ class VipsImageProcessor {
                         variantStream = previewOutputStream,
                     )
                 }
-                processedFile =
-                    if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
-                        VipsEncoder.writeToFile(preProcessed.processed, transformation.format, transformation.quality)
-                    } else {
-                        // Encoding is where all the work is done - don't bother if the image was not transformed
-                        logger.info("No applied transformations for image, not encoding image with vips")
-                        source
-                    }
+                if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
+                    VipsEncoder.writeToFile(
+                        source = preProcessed.processed,
+                        file = output.toFile(),
+                        format = transformation.format,
+                        quality = transformation.quality
+                    )
+                } else {
+                    // Encoding is where all the work is done - don't bother if the image was not transformed
+                    logger.info("No applied transformations for image, not encoding image with vips")
+                    Files.createSymbolicLink(output, source)
+                }
 
                 attributes =
                     AttributesFactory.createAttributes(
@@ -100,7 +105,6 @@ class VipsImageProcessor {
                     } else {
                         LQIPs.NONE
                     },
-                result = checkNotNull(processedFile),
             )
         }
 

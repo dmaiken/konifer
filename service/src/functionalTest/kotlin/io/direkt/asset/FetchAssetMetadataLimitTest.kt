@@ -30,18 +30,10 @@ class FetchAssetMetadataLimitTest {
                     labels = labels,
                     tags = tags,
                 )
-            coroutineScope {
-                buildList {
-                    repeat(10) {
-                        add(
-                            async {
-                                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
-                                    this shouldNotBe null
-                                }
-                            },
-                        )
-                    }
-                }.awaitAll()
+            repeat(10) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
             }
 
             fetchAllAssetMetadata(

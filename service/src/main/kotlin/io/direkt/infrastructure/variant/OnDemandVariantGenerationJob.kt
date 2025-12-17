@@ -9,34 +9,18 @@ import io.direkt.domain.variant.Variant
 import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
+import java.nio.file.Path
 
 sealed interface ImageProcessingJob<T> {
     val deferredResult: CompletableDeferred<T>?
 }
 
-data class OnDemandVariantGenerationJob(
-    val path: String,
-    val entryId: Long,
-    val lqipImplementations: Set<LQIPImplementation>,
-    val bucket: String,
-    val transformation: Transformation,
-    override val deferredResult: CompletableDeferred<Variant>,
-) : ImageProcessingJob<Variant>
-
-data class EagerVariantGenerationJob(
-    val path: String,
-    val entryId: Long,
-    val lqipImplementations: Set<LQIPImplementation>,
-    val bucket: String,
-    val requestedTransformations: List<RequestedTransformation>,
-    override val deferredResult: CompletableDeferred<Nothing>? = null,
-) : ImageProcessingJob<Nothing>
-
 data class PreProcessJob(
+    val source: Path,
+    val output: Path,
     val sourceFormat: ImageFormat,
     val lqipImplementations: Set<LQIPImplementation>,
     val transformation: Transformation,
-    val source: File,
     override val deferredResult: CompletableDeferred<PreProcessedImage>,
 ) : ImageProcessingJob<PreProcessedImage>
 

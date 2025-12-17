@@ -50,7 +50,7 @@ class S3ObjectRepository(
     override suspend fun fetch(
         bucket: String,
         key: String,
-        stream: ByteWriteChannel,
+        channel: ByteWriteChannel,
     ): FetchResult =
         withContext(Dispatchers.IO) {
             try {
@@ -62,16 +62,16 @@ class S3ObjectRepository(
                         },
                 ) {
                     it.body?.let { body ->
-                        body.writeToOutputStream(stream.toOutputStream())
+                        body.writeToOutputStream(channel.toOutputStream())
                         FetchResult.found(requireNotNull(it.contentLength))
                     } ?: FetchResult.NOT_FOUND.also {
-                        stream.flushAndClose()
+                        channel.flushAndClose()
                     }
                 }
             } catch (e: NoSuchKey) {
                 logger.info("Object with key $key in bucket $bucket does not exist", e)
                 FetchResult.NOT_FOUND.also {
-                    stream.flushAndClose()
+                    channel.flushAndClose()
                 }
             }
         }

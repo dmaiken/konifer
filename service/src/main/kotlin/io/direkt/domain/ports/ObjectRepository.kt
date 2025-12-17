@@ -14,7 +14,7 @@ interface ObjectRepository {
     suspend fun fetch(
         bucket: String,
         key: String,
-        stream: ByteWriteChannel,
+        channel: ByteWriteChannel,
     ): FetchResult
 
     suspend fun exists(

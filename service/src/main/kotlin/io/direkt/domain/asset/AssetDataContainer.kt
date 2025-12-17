@@ -50,9 +50,8 @@ class AssetDataContainer(
                 FileChannel
                     .open(
                         tempFile?.toPath(),
-                        StandardOpenOption.CREATE,
                         StandardOpenOption.WRITE,
-                        StandardOpenOption.TRUNCATE_EXISTING,
+                        StandardOpenOption.CREATE_NEW,
                     ).use { fileChannel ->
                         var bytesWritten = fileChannel.write(ByteBuffer.wrap(buffer.toByteArray())).toLong()
                         bytesWritten += counterChannel.copyTo(fileChannel)

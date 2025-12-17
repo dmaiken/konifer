@@ -17,15 +17,21 @@ import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.TemporaryFileFactory
 import io.direkt.infrastructure.vips.createDecoderOptions
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.StoreRequestContext
 import io.direkt.service.transformation.TransformationNormalizer
+import io.direkt.service.variant.VariantService
 import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -33,6 +39,7 @@ class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectRepository,
+    private val variantService: VariantService,
     private val variantGenerator: VariantGenerator,
     private val variantProfileRepository: VariantProfileRepository,
     private val requestContextFactory: RequestContextFactory,
@@ -40,6 +47,12 @@ class StoreNewAssetWorkflow(
     private val transformationNormalizer: TransformationNormalizer,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, exception ->
+            logger.error("Variant generation failed", exception)
+        }
+    private val createVariantsScope = CoroutineScope(SupervisorJob() + exceptionHandler)
 
     suspend fun handleFromUpload(
         deferredRequest: CompletableDeferred<StoreAssetRequest>,
@@ -68,7 +81,8 @@ class StoreNewAssetWorkflow(
         uriPath: String,
     ): AssetAndLocation =
         coroutineScope {
-            container.use { container ->
+            var hasEagerVariants = false
+            try {
                 val format = deriveValidImageFormat(container.readNBytes(4096, true))
                 val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
                 val newAsset =
@@ -85,59 +99,80 @@ class StoreNewAssetWorkflow(
                         sourceFormat = format,
                     )
 
-                val preProcessed =
-                    variantGenerator
-                        .preProcessOriginalVariant(
-                            sourceFormat = format,
-                            lqipImplementations = context.pathConfiguration.imageProperties.previews,
-                            transformation = transformation,
-                            source = container.getTemporaryFile(),
-                        ).await()
+                val preProcessedOutput = TemporaryFileFactory.createPreProcessedTempFile(
+                    extension = transformation.format.extension
+                )
+                try {
+                    val preProcessed =
+                        variantGenerator
+                            .preProcessOriginalVariant(
+                                sourceFormat = format,
+                                lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                                transformation = transformation,
+                                source = container.getTemporaryFile().toPath(),
+                                output = preProcessedOutput.toPath(),
+                            ).await()
 
-                val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
-                val pendingAsset =
-                    newAsset.markPending(
-                        originalVariant =
-                            Variant.Pending.originalVariant(
-                                assetId = newAsset.id,
-                                attributes = preProcessed.attributes,
-                                objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
-                                objectStoreKey = objectStoreKey,
-                                lqip = preProcessed.lqip,
-                            ),
-                    )
-
-                val pendingPersisted = assetRepository.storeNew(pendingAsset)
-                val originalVariant = pendingPersisted.variants.first()
-                val uploadedAt =
-                    objectStore.persist(
-                        bucket = originalVariant.objectStoreBucket,
-                        key = objectStoreKey,
-                        file = preProcessed.result,
-                    )
-                logger.info("Asset uploaded at $uploadedAt, marking as ready")
-                val ready =
-                    pendingPersisted.markReady(uploadedAt).also {
-                        assetRepository.markReady(it)
-                    }
-
-                AssetAndLocation(
-                    asset = ready,
-                    locationPath = context.path,
-                ).also { response ->
-                    val eagerVariantTransformations =
-                        context.pathConfiguration.eagerVariants.map {
-                            variantProfileRepository.fetch(it)
-                        }
-                    if (eagerVariantTransformations.isNotEmpty()) {
-                        variantGenerator.initiateEagerVariants(
-                            path = response.asset.path,
-                            entryId = checkNotNull(response.asset.entryId),
-                            requestedTransformations = eagerVariantTransformations,
-                            lqipImplementations = context.pathConfiguration.imageProperties.previews,
-                            bucket = context.pathConfiguration.s3PathProperties.bucket,
+                    val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
+                    val pendingAsset =
+                        newAsset.markPending(
+                            originalVariant =
+                                Variant.Pending.originalVariant(
+                                    assetId = newAsset.id,
+                                    attributes = preProcessed.attributes,
+                                    objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
+                                    objectStoreKey = objectStoreKey,
+                                    lqip = preProcessed.lqip,
+                                ),
                         )
+
+                    val pendingPersisted = assetRepository.storeNew(pendingAsset)
+                    val originalVariant = pendingPersisted.variants.first()
+                    val uploadedAt =
+                        objectStore.persist(
+                            bucket = originalVariant.objectStoreBucket,
+                            key = objectStoreKey,
+                            file = preProcessedOutput,
+                        )
+                    logger.info("Asset uploaded at $uploadedAt, marking as ready")
+                    val readyAsset =
+                        pendingPersisted.markReady(uploadedAt).also {
+                            assetRepository.markReady(it)
+                        }
+
+                    AssetAndLocation(
+                        asset = readyAsset,
+                        locationPath = context.path,
+                    ).also {
+                        val eagerVariantTransformations =
+                            context.pathConfiguration.eagerVariants.map {
+                                variantProfileRepository.fetch(it)
+                            }
+                        if (eagerVariantTransformations.isNotEmpty()) {
+                            hasEagerVariants = true
+                            createVariantsScope.launch {
+                                container.use { container ->
+                                    variantService.createEagerVariants(
+                                        originalVariantFile = container.getTemporaryFile(),
+                                        requestedTransformations = eagerVariantTransformations,
+                                        assetId = readyAsset.id,
+                                        originalVariantAttributes = originalVariant.attributes,
+                                        lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                                        originalVariantLQIPs = originalVariant.lqips,
+                                        bucket = context.pathConfiguration.s3PathProperties.bucket,
+                                    )
+                                }
+                            }
+                        }
                     }
+                } finally {
+                    if (!hasEagerVariants) {
+                        preProcessedOutput.delete()
+                    }
+                }
+            } finally {
+                if (!hasEagerVariants) {
+                    container.close()
                 }
             }
         }
