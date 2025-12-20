@@ -5,7 +5,10 @@ package direkt.jooq.tables
 
 
 import direkt.jooq.Public
-import direkt.jooq.indexes.ASSET_TREE_PATH_IDX
+import direkt.jooq.indexes.ASSET_TREE_NOT_READY
+import direkt.jooq.indexes.ASSET_TREE_PATH_ENTRY_ID_UQ
+import direkt.jooq.indexes.ASSET_TREE_PATH_GIST_IDX
+import direkt.jooq.indexes.ASSET_TREE_PATH_IS_READY_IDX
 import direkt.jooq.keys.ASSET_LABEL__FK_ASSET_LABEL_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.keys.ASSET_TAG__FK_ASSET_TAG_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.keys.ASSET_TREE_PKEY
@@ -116,6 +119,11 @@ open class AssetTree(
     val SOURCE_URL: TableField<AssetTreeRecord, String?> = createField(DSL.name("source_url"), SQLDataType.CLOB, this, "")
 
     /**
+     * The column <code>public.asset_tree.is_ready</code>.
+     */
+    val IS_READY: TableField<AssetTreeRecord, Boolean?> = createField(DSL.name("is_ready"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "")
+
+    /**
      * The column <code>public.asset_tree.created_at</code>.
      */
     val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
@@ -157,7 +165,7 @@ open class AssetTree(
         override fun `as`(alias: Table<*>): AssetTreePath = AssetTreePath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(ASSET_TREE_PATH_IDX)
+    override fun getIndexes(): List<Index> = listOf(ASSET_TREE_NOT_READY, ASSET_TREE_PATH_ENTRY_ID_UQ, ASSET_TREE_PATH_GIST_IDX, ASSET_TREE_PATH_IS_READY_IDX)
     override fun getPrimaryKey(): UniqueKey<AssetTreeRecord> = ASSET_TREE_PKEY
 
     private lateinit var _assetLabel: AssetLabelPath

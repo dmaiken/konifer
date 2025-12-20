@@ -1,7 +1,7 @@
 package io.direkt.asset.variant
 
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetContent
 import io.direkt.util.fetchAssetMetadata
@@ -38,15 +38,15 @@ class FetchAssetVariantTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "/users/123")
+            storeAssetMultipartSource(client, image, request, path = "users/123")
 
             // "create" the variant by requesting it
-            fetchAssetContent(client, path = "/users/123", expectedMimeType = "image/png", height = 100, width = 100)
+            fetchAssetContent(client, path = "users/123", expectedMimeType = "image/png", height = 100, width = 100)
 
-            fetchAssetMetadata(client, path = "/users/123")!!.apply {
+            fetchAssetMetadata(client, path = "users/123")!!.apply {
                 variants shouldHaveSize 2
                 variants.forAll {
-                    it.bucket shouldBe "correct-bucket"
+                    it.storeBucket shouldBe "correct-bucket"
                 }
             }
         }

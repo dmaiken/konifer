@@ -94,7 +94,6 @@ dependencies {
     implementation(libs.libvips.ffm)
     implementation(libs.tika.core)
 
-    implementation(libs.zero.allocation.hashing)
     implementation(libs.blurhash)
 
     testImplementation(libs.twelvemonkeys.imageio.webp)

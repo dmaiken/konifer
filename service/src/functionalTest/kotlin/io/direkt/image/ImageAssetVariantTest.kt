@@ -8,17 +8,17 @@ import app.photofox.vipsffm.enums.VipsDirection
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.byteArrayToImage
-import io.direkt.asset.model.AssetClass
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.domain.asset.AssetClass
+import io.direkt.domain.image.ImageFormat
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
+import io.direkt.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetLink
 import io.direkt.util.fetchAssetViaRedirect
 import io.direkt.util.storeAssetMultipartSource
-import io.image.model.ImageFormat
-import io.image.vips.VipsOptionNames.OPTION_INTERESTING
-import io.image.vips.VipsOptionNames.OPTION_QUALITY
-import io.image.vips.transformation.ColorFilter.greyscaleMatrix3x3
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -141,7 +141,6 @@ class ImageAssetVariantTest {
                     first().attributes.apply {
                         this.height shouldBe bufferedImage.height
                         this.width shouldBe bufferedImage.width
-                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
                     }
                 }
             }

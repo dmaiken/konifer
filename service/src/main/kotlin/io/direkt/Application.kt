@@ -1,16 +1,20 @@
 package io.direkt
 
-import io.database.connectToPostgres
-import io.database.migrateSchema
-import io.direkt.asset.http.configureAssetRouting
-import io.inmemory.configureInMemoryObjectStoreRouting
+import io.direkt.infrastructure.configureKoin
+import io.direkt.infrastructure.http.configureStatusPages
+import io.direkt.infrastructure.http.route.configureAssetRouting
+import io.direkt.infrastructure.http.route.configureInMemoryObjectStoreRouting
+import io.direkt.infrastructure.http.serialization.configureContentNegotiation
+import io.direkt.infrastructure.objectstore.ObjectStoreProvider
+import io.direkt.infrastructure.properties.ConfigurationProperties.OBJECT_STORE
+import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
-import io.path.configuration.configurePathConfigurationRouting
+import io.direkt.infrastructure.properties.ConfigurationProperties.ObjectStoreConfigurationProperties.PROVIDER as OBJECT_STORE_PROVIDER
 
-private val logger = KtorSimpleLogger("io.Application")
+private val logger = KtorSimpleLogger("io.direkt.Application")
 
 /**
  * Before you think about configuring this using embeddedServer, think again. This will break the ability to use
@@ -22,29 +26,24 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    logger.info("Starting main application module")
-    val inMemoryObjectStoreEnabled = environment.config.tryGetString("object-store.in-memory")?.toBoolean() ?: false
-    if (environment.config.tryGetString("database.in-memory")?.toBoolean() == true) {
-        logger.info("Using database in-memory")
-        configureKoin(null, inMemoryObjectStoreEnabled)
-    } else {
-        logger.info("Using postgres")
-        val connectionFactory = connectToPostgres()
-        migrateSchema(connectionFactory)
-        configureKoin(connectionFactory, inMemoryObjectStoreEnabled)
-    }
-    logger.info("Configuring content negotiation")
+    val objectStoreProvider =
+        environment.config
+            .tryGetConfig(OBJECT_STORE)
+            ?.tryGetString(OBJECT_STORE_PROVIDER)
+            ?.let {
+                ObjectStoreProvider.fromConfig(it)
+            } ?: ObjectStoreProvider.default
+
+    configureKoin(objectStoreProvider)
     configureContentNegotiation()
-    logger.info("Configuring routing")
-    configureRouting(inMemoryObjectStoreEnabled)
+    configureRouting(objectStoreProvider)
     configureStatusPages()
 }
 
-fun Application.configureRouting(inMemoryObjectStore: Boolean) {
+fun Application.configureRouting(objectStoreProvider: ObjectStoreProvider) {
     configureAssetRouting()
-    configurePathConfigurationRouting()
 
-    if (inMemoryObjectStore) {
+    if (objectStoreProvider == ObjectStoreProvider.IN_MEMORY) {
         logger.info("Configuring in-memory object store APIs. These should only be enabled during testing!!")
         configureInMemoryObjectStoreRouting()
     }

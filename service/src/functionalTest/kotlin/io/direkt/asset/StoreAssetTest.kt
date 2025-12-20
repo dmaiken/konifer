@@ -2,16 +2,17 @@ package io.direkt.asset
 
 import io.byteArrayToImage
 import io.direkt.BaseTestcontainerTest.Companion.BOUNDARY
-import io.direkt.asset.handler.AssetSource
-import io.direkt.asset.model.AssetClass
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.domain.asset.AssetClass
+import io.direkt.domain.asset.AssetSource
+import io.direkt.domain.image.ImageFormat
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.util.UnValidatedStoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetContent
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.direkt.util.storeAssetUrlSource
-import io.image.model.ImageFormat
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -174,7 +175,7 @@ class StoreAssetTest {
 
             fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {
-                    it.bucket shouldBe "correct-bucket"
+                    it.storeBucket shouldBe "correct-bucket"
                 }
             }
         }
@@ -236,7 +237,7 @@ class StoreAssetTest {
                 )
             val storeAssetResponse = storeAssetUrlSource(client, request)
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.variants
                 .first()
@@ -370,7 +371,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     alt = "a".repeat(126),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -384,7 +385,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     tags = setOf("tag1", "a".repeat(257)),
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -398,7 +399,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels =
                         mapOf(
                             "a" to "b",
@@ -416,7 +417,7 @@ class StoreAssetTest {
         testInMemory {
             val client = createJsonClient()
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels =
                         mapOf(
                             "a" to "b",
@@ -440,7 +441,7 @@ class StoreAssetTest {
                     }
                 }
             val request =
-                StoreAssetRequest(
+                UnValidatedStoreAssetRequest(
                     labels = labels,
                 )
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

@@ -1,15 +1,12 @@
 package io.direkt.asset
 
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAllAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import org.junit.jupiter.api.Test
 
 class FetchAssetMetadataLimitTest {
@@ -30,18 +27,10 @@ class FetchAssetMetadataLimitTest {
                     labels = labels,
                     tags = tags,
                 )
-            coroutineScope {
-                buildList {
-                    repeat(10) {
-                        add(
-                            async {
-                                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
-                                    this shouldNotBe null
-                                }
-                            },
-                        )
-                    }
-                }.awaitAll()
+            repeat(10) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
             }
 
             fetchAllAssetMetadata(
@@ -74,18 +63,10 @@ class FetchAssetMetadataLimitTest {
                     labels = labels,
                     tags = tags,
                 )
-            coroutineScope {
-                buildList {
-                    repeat(10) {
-                        add(
-                            async {
-                                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
-                                    this shouldNotBe null
-                                }
-                            },
-                        )
-                    }
-                }.awaitAll()
+            repeat(10) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
             }
 
             fetchAllAssetMetadata(

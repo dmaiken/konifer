@@ -4,17 +4,17 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.direkt.asset.handler.AssetSource
-import io.direkt.asset.model.AssetClass
-import io.direkt.asset.model.StoreAssetRequest
 import io.direkt.config.testInMemory
+import io.direkt.domain.asset.AssetClass
+import io.direkt.domain.asset.AssetSource
+import io.direkt.domain.image.ImageFormat
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_N
+import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
-import io.image.model.ImageFormat
-import io.image.vips.VipsOptionNames.OPTION_ACCESS
-import io.image.vips.VipsOptionNames.OPTION_N
-import io.image.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -47,7 +47,7 @@ class AssetLifecycleTest {
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
@@ -90,7 +90,7 @@ class AssetLifecycleTest {
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
             storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().bucket shouldBe "assets"
+            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants.first().storeKey shouldNotBe null
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
@@ -116,6 +116,9 @@ class AssetLifecycleTest {
                     attributes.width shouldBe vImage.width
                     attributes.pageCount shouldBe 19
                     attributes.loop shouldBe 0
+
+                    transformation shouldBe null
+                    isOriginalVariant shouldBe true
                 }
             }
 

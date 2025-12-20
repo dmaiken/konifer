@@ -25,10 +25,10 @@ fun testInMemory(
                 ConfigFactory.parseString(
                     """
                     object-store {
-                        in-memory = true
+                        provider = in-memory
                     }
-                    database {
-                        in-memory = true
+                    data-store {
+                        provider = in-memory
                     }
                     """.trimIndent(),
                 )

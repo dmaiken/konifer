@@ -1,13 +1,15 @@
 package io.direkt.util
 
-import io.direkt.APP_CACHE_STATUS
 import io.direkt.BaseTestcontainerTest.Companion.BOUNDARY
-import io.direkt.asset.context.OrderBy
-import io.direkt.asset.context.ReturnFormat
-import io.direkt.asset.model.AssetLinkResponse
-import io.direkt.asset.model.AssetResponse
-import io.direkt.asset.model.StoreAssetRequest
+import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.infrastructure.http.APP_CACHE_STATUS
+import io.direkt.infrastructure.http.AssetLinkResponse
+import io.direkt.infrastructure.http.AssetResponse
+import io.direkt.service.context.OrderBy
+import io.direkt.service.context.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldBeEqualIgnoringCase
@@ -36,10 +38,10 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 
-suspend fun storeAssetMultipartSource(
+suspend inline fun <reified T> storeAssetMultipartSource(
     client: HttpClient,
     asset: ByteArray,
-    request: StoreAssetRequest,
+    request: T,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
 ): Pair<Headers, AssetResponse?> =
@@ -51,7 +53,7 @@ suspend fun storeAssetMultipartSource(
                     formData {
                         append(
                             "metadata",
-                            Json.encodeToString<StoreAssetRequest>(request),
+                            Json.encodeToString<T>(request),
                             Headers.build {
                                 append(HttpHeaders.ContentType, "application/json")
                             },
@@ -80,10 +82,9 @@ suspend fun storeAssetMultipartSource(
                         status shouldBe HttpStatusCode.OK
                     }
                     response.body<AssetResponse>().apply {
-                        entryId shouldNotBe null
-                        createdAt shouldNotBe null
+                        entryId shouldBeGreaterThan -1
                         variants shouldHaveSize 1 // original variant
-                        modifiedAt shouldBe createdAt
+                        modifiedAt shouldBeAfter createdAt
                     }
                 } else {
                     null
@@ -113,9 +114,9 @@ suspend fun storeAssetUrlSource(
                     status shouldBe HttpStatusCode.OK
                 }
                 responseBody.apply {
-                    entryId shouldNotBe null
-                    createdAt shouldNotBe null
+                    entryId shouldBeGreaterThan -1
                     variants shouldHaveSize 1 // original variant
+                    modifiedAt shouldBeAfter createdAt
                 }
             } else {
                 null
