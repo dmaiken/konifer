@@ -7,11 +7,8 @@ import io.direkt.domain.ports.VariantGenerator
 import io.direkt.domain.ports.VariantType
 import io.direkt.domain.variant.Transformation
 import io.direkt.service.TemporaryFileFactory
-import io.direkt.service.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
-import io.kotest.matchers.channels.shouldReceiveAtMost
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +19,6 @@ import org.apache.commons.io.file.PathUtils.deleteOnExit
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import java.nio.file.Files
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrioritizedChannelVariantSchedulerTest {
@@ -40,24 +36,27 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val sourceFormat = ImageFormat.JPEG
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformation = Transformation(
-                height = 100,
-                width = 100,
-                format = ImageFormat.JPEG
-            )
-            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
-                deleteOnExit(this)
-            }
-            val output = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
-                deleteOnExit(this)
-            }
+            val transformation =
+                Transformation(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.JPEG,
+                )
+            val source =
+                TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
+                    deleteOnExit(this)
+                }
+            val output =
+                TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
+                    deleteOnExit(this)
+                }
             val deferred =
                 scheduler.preProcessOriginalVariant(
                     sourceFormat = sourceFormat,
                     lqipImplementations = lqipImplementations,
                     transformation = transformation,
                     source = source,
-                    output = output
+                    output = output,
                 )
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
@@ -76,21 +75,23 @@ class PrioritizedChannelVariantSchedulerTest {
     fun `eager variants are scheduled on background channel`() =
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformationDataContainer = TransformationDataContainer(
-                transformation = Transformation(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.JPEG
-                ),
-                output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension)
-            )
+            val transformationDataContainer =
+                TransformationDataContainer(
+                    transformation =
+                        Transformation(
+                            height = 100,
+                            width = 100,
+                            format = ImageFormat.JPEG,
+                        ),
+                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                )
             val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
             scheduler.generateVariantsFromSource(
                 source = source,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
-                variantType = VariantType.EAGER
+                variantType = VariantType.EAGER,
             )
 
             val sent = backgroundChannel.receiveCatching().getOrNull()
@@ -106,21 +107,23 @@ class PrioritizedChannelVariantSchedulerTest {
     fun `on-demand variants are scheduled on high-priority channel`() =
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformationDataContainer = TransformationDataContainer(
-                transformation = Transformation(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.JPEG
-                ),
-                output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension)
-            )
+            val transformationDataContainer =
+                TransformationDataContainer(
+                    transformation =
+                        Transformation(
+                            height = 100,
+                            width = 100,
+                            format = ImageFormat.JPEG,
+                        ),
+                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                )
             val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
             scheduler.generateVariantsFromSource(
                 source = source,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
-                variantType = VariantType.ON_DEMAND
+                variantType = VariantType.ON_DEMAND,
             )
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
@@ -134,41 +137,45 @@ class PrioritizedChannelVariantSchedulerTest {
 
     @ParameterizedTest
     @EnumSource(VariantType::class)
-    fun `returns and does nothing if no variants are defined in request`(variantType: VariantType) = runTest {
-        val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-        val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
+    fun `returns and does nothing if no variants are defined in request`(variantType: VariantType) =
+        runTest {
+            val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
+            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
-        val deferred = scheduler.generateVariantsFromSource(
-            source = source,
-            transformationDataContainers = listOf(),
-            lqipImplementations = lqipImplementations,
-            variantType = variantType
-        )
+            val deferred =
+                scheduler.generateVariantsFromSource(
+                    source = source,
+                    transformationDataContainers = listOf(),
+                    lqipImplementations = lqipImplementations,
+                    variantType = variantType,
+                )
 
-        highPriorityChannel.shouldBeEmpty()
-        backgroundChannel.shouldBeEmpty()
-        deferred.await() shouldBe true
-    }
+            highPriorityChannel.shouldBeEmpty()
+            backgroundChannel.shouldBeEmpty()
+            deferred.await() shouldBe true
+        }
 
     @ParameterizedTest
     @EnumSource(VariantType::class)
-    fun `throws if no transformations are for original variants`(variantType: VariantType) = runTest {
-        val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-        val transformationDataContainer = TransformationDataContainer(
-            transformation = Transformation.ORIGINAL_VARIANT,
-            output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension)
-        )
-        val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
+    fun `throws if no transformations are for original variants`(variantType: VariantType) =
+        runTest {
+            val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
+            val transformationDataContainer =
+                TransformationDataContainer(
+                    transformation = Transformation.ORIGINAL_VARIANT,
+                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                )
+            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
-        shouldThrow<IllegalArgumentException> {
-            scheduler.generateVariantsFromSource(
-                source = source,
-                transformationDataContainers = listOf(transformationDataContainer),
-                lqipImplementations = lqipImplementations,
-                variantType = variantType
-            )
+            shouldThrow<IllegalArgumentException> {
+                scheduler.generateVariantsFromSource(
+                    source = source,
+                    transformationDataContainers = listOf(transformationDataContainer),
+                    lqipImplementations = lqipImplementations,
+                    variantType = variantType,
+                )
+            }
+            highPriorityChannel.shouldBeEmpty()
+            backgroundChannel.shouldBeEmpty()
         }
-        highPriorityChannel.shouldBeEmpty()
-        backgroundChannel.shouldBeEmpty()
-    }
 }

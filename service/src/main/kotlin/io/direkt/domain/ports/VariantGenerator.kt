@@ -6,10 +6,7 @@ import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
-import io.direkt.domain.variant.Variant
-import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
-import java.io.File
 import java.nio.file.Path
 
 interface VariantGenerator {

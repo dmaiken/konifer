@@ -8,14 +8,12 @@ import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.variant.Transformation
-import io.direkt.service.TemporaryFileFactory
 import io.direkt.lqip.image.ThumbHash
+import io.direkt.service.TemporaryFileFactory
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import io.matchers.shouldHaveSamePixelContentAs
 import kotlinx.coroutines.coroutineScope
@@ -55,9 +53,10 @@ class VipsImageProcessorTest {
 
                 AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(".png")
-                    val output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.PNG.extension).apply {
-                        deleteOnExit(this)
-                    }
+                    val output =
+                        TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.PNG.extension).apply {
+                            deleteOnExit(this)
+                        }
                     var transformation = Transformation.ORIGINAL_VARIANT
                     Vips.run { arena ->
                         val sourceImage = VImage.newFromBytes(arena, image)
@@ -107,16 +106,17 @@ class VipsImageProcessorTest {
                 }
                 AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(ImageFormat.JPEG.extension)
-                    val output = TemporaryFileFactory.createPreProcessedTempFile(Transformation.ORIGINAL_VARIANT.format.extension).apply {
-                        deleteOnExit(this)
-                    }
+                    val output =
+                        TemporaryFileFactory.createPreProcessedTempFile(Transformation.ORIGINAL_VARIANT.format.extension).apply {
+                            deleteOnExit(this)
+                        }
                     val processedImage =
                         vipsImageProcessor.preprocess(
                             source = container.getTemporaryFile(),
                             sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = emptySet(),
                             transformation = Transformation.ORIGINAL_VARIANT,
-                            output = output
+                            output = output,
                         )
                     val outputBytes = output.readBytes()
                     processedImage.attributes.format shouldBe Transformation.ORIGINAL_VARIANT.format
@@ -142,9 +142,10 @@ class VipsImageProcessorTest {
 
                 AssetDataContainer(imageChannel).use { container ->
                     container.toTemporaryFile(".jpeg")
-                    val output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension).apply {
-                        deleteOnExit(this)
-                    }
+                    val output =
+                        TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension).apply {
+                            deleteOnExit(this)
+                        }
                     val processedImage =
                         vipsImageProcessor.preprocess(
                             source = container.getTemporaryFile(),
@@ -160,7 +161,7 @@ class VipsImageProcessorTest {
                                 } else {
                                     Transformation.ORIGINAL_VARIANT
                                 },
-                            output = output
+                            output = output,
                         )
                     val outputBytes = output.readBytes()
                     processedImage.lqip.blurhash shouldNotBe null
@@ -191,9 +192,10 @@ class VipsImageProcessorTest {
 
             AssetDataContainer(imageChannel).use { container ->
                 container.toTemporaryFile(ImageFormat.JPEG.extension)
-                val output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output =
+                    TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val processedImage =
                     vipsImageProcessor.preprocess(
                         source = container.getTemporaryFile(),
@@ -219,7 +221,7 @@ class VipsImageProcessorTest {
                                 }
                                 transformation
                             },
-                        output = output
+                        output = output,
                     )
                 val outputBytes = output.readBytes()
                 processedImage.attributes.format shouldBe ImageFormat.JPEG
@@ -257,9 +259,10 @@ class VipsImageProcessorTest {
 
             AssetDataContainer(imageChannel).use { container ->
                 container.toTemporaryFile(from.extension)
-                val output = TemporaryFileFactory.createPreProcessedTempFile(to.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output =
+                    TemporaryFileFactory.createPreProcessedTempFile(to.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val processedImage =
                     vipsImageProcessor.preprocess(
                         source = container.getTemporaryFile(),
@@ -272,7 +275,7 @@ class VipsImageProcessorTest {
                                 fit = Fit.FILL,
                                 format = to,
                             ),
-                        output = output
+                        output = output,
                     )
                 val outputBytes = output.readBytes()
 

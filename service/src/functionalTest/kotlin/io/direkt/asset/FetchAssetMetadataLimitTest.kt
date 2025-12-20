@@ -7,9 +7,6 @@ import io.direkt.util.fetchAllAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import org.junit.jupiter.api.Test
 
 class FetchAssetMetadataLimitTest {

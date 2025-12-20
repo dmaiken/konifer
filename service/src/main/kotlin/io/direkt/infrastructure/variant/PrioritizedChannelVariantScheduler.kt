@@ -15,7 +15,6 @@ class PrioritizedChannelVariantScheduler(
     private val highPriorityChannel: Channel<ImageProcessingJob<*>>,
     private val backgroundChannel: Channel<ImageProcessingJob<*>>,
 ) : VariantGenerator {
-
     override suspend fun preProcessOriginalVariant(
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
@@ -50,12 +49,13 @@ class PrioritizedChannelVariantScheduler(
             throw IllegalArgumentException("Cannot create variant using original variant transformation")
         }
         val deferred = CompletableDeferred<Boolean>()
-        val job = GenerateVariantsJob(
-            source = source,
-            transformationDataContainers = transformationDataContainers,
-            lqipImplementations = lqipImplementations,
-            deferredResult = deferred
-        )
+        val job =
+            GenerateVariantsJob(
+                source = source,
+                transformationDataContainers = transformationDataContainers,
+                lqipImplementations = lqipImplementations,
+                deferredResult = deferred,
+            )
         when (variantType) {
             VariantType.EAGER -> backgroundChannel.send(job)
             VariantType.ON_DEMAND -> highPriorityChannel.send(job)

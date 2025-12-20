@@ -17,7 +17,6 @@ import io.direkt.service.transformation.TransformationNormalizer
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.nio.file.Path
 import java.util.UUID
 
@@ -36,12 +35,13 @@ class VariantService(
         originalVariantAttributes: Attributes,
         lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
-        bucket: String
+        bucket: String,
     ) {
-        val transformations = transformationNormalizer.normalize(
-            requested = requestedTransformations,
-            originalVariantAttributes = originalVariantAttributes
-        )
+        val transformations =
+            transformationNormalizer.normalize(
+                requested = requestedTransformations,
+                originalVariantAttributes = originalVariantAttributes,
+            )
         generateVariants(
             originalVariantFile = originalVariantFile,
             transformations = transformations,
@@ -59,7 +59,7 @@ class VariantService(
         assetId: AssetId,
         lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
-        bucket: String
+        bucket: String,
     ) {
         generateVariants(
             originalVariantFile = originalVariantFile,
@@ -81,48 +81,55 @@ class VariantService(
         bucket: String,
         variantType: VariantType,
     ) {
-        val transformationDataContainers = createTransformationDataContainers(
-            transformations = transformations,
-        )
+        val transformationDataContainers =
+            createTransformationDataContainers(
+                transformations = transformations,
+            )
         try {
-            variantGenerator.generateVariantsFromSource(
-                source = originalVariantFile,
-                transformationDataContainers = transformationDataContainers,
-                lqipImplementations = lqipImplementations,
-                variantType = variantType,
-            ).await()
+            variantGenerator
+                .generateVariantsFromSource(
+                    source = originalVariantFile,
+                    transformationDataContainers = transformationDataContainers,
+                    lqipImplementations = lqipImplementations,
+                    variantType = variantType,
+                ).await()
             logger.info("Eager variant content generated for ${transformationDataContainers.size} variants for asset: ${assetId.value}")
 
             for (container in transformationDataContainers) {
-                val attributes = container.attributes ?: run {
-                    logger.error("No attributes found for transformation ${container.transformation}, skipping variant persistence")
-                    continue
-                }
-                val pendingVariant = assetRepository.storeNewVariant(
-                    variant = Variant.Pending.newVariant(
-                        assetId = assetId,
-                        attributes = attributes,
-                        transformation = container.transformation,
-                        objectStoreBucket = bucket,
-                        objectStoreKey = "${UUID.randomUUID()}${attributes.format.extension}",
-                        lqip = if (lqipImplementations.isNotEmpty() && container.lqips == LQIPs.NONE) {
-                            // No new Lqips were generated but they are required, use ones from the original variant
-                            originalVariantLQIPs
-                        } else {
-                            container.lqips
-                        }
+                val attributes =
+                    container.attributes ?: run {
+                        logger.error("No attributes found for transformation ${container.transformation}, skipping variant persistence")
+                        continue
+                    }
+                val pendingVariant =
+                    assetRepository.storeNewVariant(
+                        variant =
+                            Variant.Pending.newVariant(
+                                assetId = assetId,
+                                attributes = attributes,
+                                transformation = container.transformation,
+                                objectStoreBucket = bucket,
+                                objectStoreKey = "${UUID.randomUUID()}${attributes.format.extension}",
+                                lqip =
+                                    if (lqipImplementations.isNotEmpty() && container.lqips == LQIPs.NONE) {
+                                        // No new Lqips were generated but they are required, use ones from the original variant
+                                        originalVariantLQIPs
+                                    } else {
+                                        container.lqips
+                                    },
+                            ),
                     )
-                )
                 logger.info("Stored pending variant for ${container.transformation}: ${pendingVariant.id}")
 
-                val uploadedAt = objectRepository.persist(
-                    bucket = pendingVariant.objectStoreBucket,
-                    key = pendingVariant.objectStoreKey,
-                    file = container.output.toFile()
-                )
+                val uploadedAt =
+                    objectRepository.persist(
+                        bucket = pendingVariant.objectStoreBucket,
+                        key = pendingVariant.objectStoreKey,
+                        file = container.output.toFile(),
+                    )
 
                 assetRepository.markUploaded(
-                    variant = pendingVariant.markReady(uploadedAt)
+                    variant = pendingVariant.markReady(uploadedAt),
                 )
                 logger.info("Variant ${pendingVariant.id} is ready and was uploaded to object store at: $uploadedAt")
             }
@@ -135,13 +142,11 @@ class VariantService(
         }
     }
 
-    private suspend fun createTransformationDataContainers(
-        transformations: List<Transformation>,
-    ): List<TransformationDataContainer> = transformations.map { transformation ->
-        TransformationDataContainer(
-            output = TemporaryFileFactory.createProcessedVariantTempFile(transformation.format.extension),
-            transformation = transformation,
-        )
-    }
-
+    private suspend fun createTransformationDataContainers(transformations: List<Transformation>): List<TransformationDataContainer> =
+        transformations.map { transformation ->
+            TransformationDataContainer(
+                output = TemporaryFileFactory.createProcessedVariantTempFile(transformation.format.extension),
+                transformation = transformation,
+            )
+        }
 }

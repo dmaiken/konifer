@@ -81,7 +81,7 @@ class VipsImageProcessor {
                         source = preProcessed.processed,
                         file = output,
                         format = transformation.format,
-                        quality = transformation.quality
+                        quality = transformation.quality,
                     )
                 } else {
                     // Encoding is where all the work is done - don't bother if the image was not transformed
@@ -123,9 +123,11 @@ class VipsImageProcessor {
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,
                     )
-                val image = sourceByDecoderOptions.getOrPut(decoderOptions) {
-                    VImage.newFromFile(arena, source.pathString, *decoderOptions)
-                }.copy()
+                val image =
+                    sourceByDecoderOptions
+                        .getOrPut(decoderOptions) {
+                            VImage.newFromFile(arena, source.pathString, *decoderOptions)
+                        }.copy()
 
                 val variantResult = variantGenerationPipeline.run(arena, image, transformation)
 
@@ -136,10 +138,11 @@ class VipsImageProcessor {
                         sourceImage = variantResult.processed,
                         variantStream = previewVariantStream,
                     )
-                    container.lqips = ImagePreviewGenerator.generatePreviews(
-                        source = previewVariantStream.toByteArray(),
-                        lqipImplementations = lqipImplementations
-                    )
+                    container.lqips =
+                        ImagePreviewGenerator.generatePreviews(
+                            source = previewVariantStream.toByteArray(),
+                            lqipImplementations = lqipImplementations,
+                        )
                 }
 
                 VipsEncoder.writeToFile(

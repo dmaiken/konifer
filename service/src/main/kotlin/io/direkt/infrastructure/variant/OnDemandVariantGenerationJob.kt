@@ -5,10 +5,7 @@ import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.variant.Transformation
-import io.direkt.domain.variant.Variant
-import io.direkt.service.context.RequestedTransformation
 import kotlinx.coroutines.CompletableDeferred
-import java.io.File
 import java.nio.file.Path
 
 sealed interface ImageProcessingJob<T> {
@@ -28,5 +25,5 @@ data class GenerateVariantsJob(
     val source: Path,
     val transformationDataContainers: List<TransformationDataContainer>,
     val lqipImplementations: Set<LQIPImplementation>,
-    override val deferredResult: CompletableDeferred<Boolean>
+    override val deferredResult: CompletableDeferred<Boolean>,
 ) : ImageProcessingJob<Boolean>

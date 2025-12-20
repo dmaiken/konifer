@@ -17,8 +17,8 @@ import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
-import io.direkt.service.TemporaryFileFactory
 import io.direkt.infrastructure.vips.createDecoderOptions
+import io.direkt.service.TemporaryFileFactory
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.StoreRequestContext
 import io.direkt.service.transformation.TransformationNormalizer
@@ -100,9 +100,10 @@ class StoreNewAssetWorkflow(
                         sourceFormat = format,
                     )
 
-                val preProcessedOutput = TemporaryFileFactory.createPreProcessedTempFile(
-                    extension = transformation.format.extension
-                )
+                val preProcessedOutput =
+                    TemporaryFileFactory.createPreProcessedTempFile(
+                        extension = transformation.format.extension,
+                    )
                 try {
                     val preProcessed =
                         variantGenerator

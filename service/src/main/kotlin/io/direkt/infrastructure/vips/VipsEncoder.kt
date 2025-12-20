@@ -3,9 +3,7 @@ package io.direkt.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import io.direkt.domain.image.ImageFormat
-import io.direkt.service.TemporaryFileFactory.createPreProcessedTempFile
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.pathString
 

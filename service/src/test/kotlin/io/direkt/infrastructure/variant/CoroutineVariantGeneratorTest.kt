@@ -1,22 +1,14 @@
 package io.direkt.infrastructure.variant
 
-import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.direkt.domain.asset.Asset
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.variant.Transformation
-import io.direkt.domain.variant.Variant
 import io.direkt.getResourceAsFile
+import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.direkt.service.TemporaryFileFactory
 import io.direkt.service.TemporaryFileFactory.createProcessedVariantTempFile
-import io.direkt.infrastructure.datastore.inmemory.InMemoryAssetRepository
-import io.direkt.infrastructure.objectstore.inmemory.InMemoryObjectRepository
-import io.direkt.infrastructure.vips.VipsImageProcessor
-import io.direkt.service.transformation.TransformationNormalizer
-import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.spyk
@@ -31,13 +23,11 @@ import org.junit.jupiter.api.Test
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
-import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.io.path.exists
 import kotlin.io.path.writeBytes
 
 class CoroutineVariantGeneratorTest : BaseUnitTest() {
-
     private val imageProcessor =
         spyk<VipsImageProcessor>(
             VipsImageProcessor(),
@@ -48,11 +38,12 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
     private val coroutineVariantGenerator =
         CoroutineVariantGenerator(
             imageProcessor = imageProcessor,
-            consumer = PriorityChannelConsumer(
-                highPriorityChannel = channel,
-                backgroundChannel = Channel(),
-                highPriorityWeight = 80,
-            ),
+            consumer =
+                PriorityChannelConsumer(
+                    highPriorityChannel = channel,
+                    backgroundChannel = Channel(),
+                    highPriorityWeight = 80,
+                ),
             numberOfWorkers = 8,
         )
 
@@ -64,10 +55,11 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         runBlocking {
             val imageFile = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             bufferedImage = ImageIO.read(ByteArrayInputStream(imageFile.readBytes()))
-            source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.PNG.extension).apply {
-                deleteOnExit(this)
-                writeBytes(imageFile.readBytes())
-            }
+            source =
+                TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.PNG.extension).apply {
+                    deleteOnExit(this)
+                    writeBytes(imageFile.readBytes())
+                }
         }
 
     @Nested
@@ -75,24 +67,27 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `can generate variant from channel`() =
             runTest {
-                val output = createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output =
+                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
-                        transformationDataContainers = listOf(
-                            TransformationDataContainer(
-                                transformation = Transformation(
-                                    height = 200,
-                                    width = 200,
-                                    format = ImageFormat.PNG,
-                                    fit = Fit.FILL
+                        transformationDataContainers =
+                            listOf(
+                                TransformationDataContainer(
+                                    transformation =
+                                        Transformation(
+                                            height = 200,
+                                            width = 200,
+                                            format = ImageFormat.PNG,
+                                            fit = Fit.FILL,
+                                        ),
+                                    output = output,
                                 ),
-                                output = output
-                            )
-                        ),
+                            ),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                     )
@@ -107,40 +102,44 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `can generate multiple variants for same image through single channel request`() =
             runTest {
-                val output1 = createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                    deleteOnExit(this)
-                }
-                val output2 = createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output1 =
+                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
+                        deleteOnExit(this)
+                    }
+                val output2 =
+                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
-                        transformationDataContainers = listOf(
-                            TransformationDataContainer(
-                                transformation = Transformation(
-                                    height = 200,
-                                    width = 200,
-                                    format = ImageFormat.PNG,
-                                    fit = Fit.FILL
+                        transformationDataContainers =
+                            listOf(
+                                TransformationDataContainer(
+                                    transformation =
+                                        Transformation(
+                                            height = 200,
+                                            width = 200,
+                                            format = ImageFormat.PNG,
+                                            fit = Fit.FILL,
+                                        ),
+                                    output = output1,
                                 ),
-                                output = output1
+                                TransformationDataContainer(
+                                    transformation =
+                                        Transformation(
+                                            height = 100,
+                                            width = 100,
+                                            format = ImageFormat.PNG,
+                                            fit = Fit.FILL,
+                                        ),
+                                    output = output2,
+                                ),
                             ),
-                            TransformationDataContainer(
-                                transformation = Transformation(
-                                    height = 100,
-                                    width = 100,
-                                    format = ImageFormat.PNG,
-                                    fit = Fit.FILL
-                                ),
-                                output = output2
-                            )
-                        ),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
-
-                        )
+                    )
                 channel.send(variantGenerationJob)
                 result.await()
 
@@ -155,9 +154,10 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `if no variants are in request then nothing is processed`() =
             runTest {
-                val output = createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output =
+                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
@@ -165,8 +165,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                         transformationDataContainers = listOf(),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
-
-                        )
+                    )
                 channel.send(variantGenerationJob)
                 result.await()
                 output.exists() shouldBe false
@@ -175,24 +174,27 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `if variant fails to generate then channel is still live`() =
             runTest {
-                val output = createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                    deleteOnExit(this)
-                }
+                val output =
+                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
+                        deleteOnExit(this)
+                    }
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
-                        transformationDataContainers = listOf(
-                            TransformationDataContainer(
-                                transformation = Transformation(
-                                    height = 200,
-                                    width = 200,
-                                    format = ImageFormat.PNG,
-                                    fit = Fit.FILL
+                        transformationDataContainers =
+                            listOf(
+                                TransformationDataContainer(
+                                    transformation =
+                                        Transformation(
+                                            height = 200,
+                                            width = 200,
+                                            format = ImageFormat.PNG,
+                                            fit = Fit.FILL,
+                                        ),
+                                    output = output,
                                 ),
-                                output = output
-                            )
-                        ),
+                            ),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                     )
@@ -201,7 +203,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     imageProcessor.generateVariants(
                         source = any(),
                         transformationDataContainers = any(),
-                        lqipImplementations = any()
+                        lqipImplementations = any(),
                     )
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }

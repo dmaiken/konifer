@@ -1,9 +1,6 @@
 package io.direkt.infrastructure.variant
 
 import io.direkt.domain.image.PreProcessedImage
-import io.direkt.domain.ports.AssetRepository
-import io.direkt.domain.ports.ObjectRepository
-import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -53,9 +50,10 @@ class CoroutineVariantGenerator(
                     handlePreProcessJob(job).also {
                         job.deferredResult.complete(it)
                     }
-                is GenerateVariantsJob -> handleGenerateVariantsJob(job).also {
-                    job.deferredResult.complete(it)
-                }
+                is GenerateVariantsJob ->
+                    handleGenerateVariantsJob(job).also {
+                        job.deferredResult.complete(it)
+                    }
             }
         } catch (e: Exception) {
             logger.error("Error while generating variant generation with request: {}", job, e)
