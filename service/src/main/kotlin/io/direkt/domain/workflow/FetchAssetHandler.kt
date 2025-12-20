@@ -9,10 +9,11 @@ import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantData
 import io.direkt.domain.variant.VariantLink
-import io.direkt.infrastructure.TemporaryFileFactory
+import io.direkt.service.TemporaryFileFactory
 import io.direkt.service.context.AssetQueryRequestContext
 import io.direkt.service.context.ContentTypeNotPermittedException
 import io.direkt.service.variant.VariantService
+import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
@@ -128,7 +129,7 @@ class FetchAssetHandler(
         )
         try {
             val fileChannel = withContext(Dispatchers.IO) {
-                originalVariantFile.writeChannel()
+                originalVariantFile.toFile().writeChannel()
             }
             fileChannel.use {
                 objectStore.fetch(
@@ -146,7 +147,9 @@ class FetchAssetHandler(
                 bucket = context.pathConfiguration.s3PathProperties.bucket
             )
         } finally {
-            originalVariantFile.delete()
+            withContext(Dispatchers.IO) {
+                originalVariantFile.toFile().delete()
+            }
         }
     }
 }

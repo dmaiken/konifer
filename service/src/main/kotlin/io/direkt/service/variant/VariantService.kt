@@ -11,11 +11,14 @@ import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.infrastructure.TemporaryFileFactory
+import io.direkt.service.TemporaryFileFactory
 import io.direkt.service.context.RequestedTransformation
 import io.direkt.service.transformation.TransformationNormalizer
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.nio.file.Path
 import java.util.UUID
 
 class VariantService(
@@ -27,7 +30,7 @@ class VariantService(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     suspend fun createEagerVariants(
-        originalVariantFile: File,
+        originalVariantFile: Path,
         requestedTransformations: List<RequestedTransformation>,
         assetId: AssetId,
         originalVariantAttributes: Attributes,
@@ -51,7 +54,7 @@ class VariantService(
     }
 
     suspend fun generateOnDemandVariant(
-        originalVariantFile: File,
+        originalVariantFile: Path,
         transformation: Transformation,
         assetId: AssetId,
         lqipImplementations: Set<LQIPImplementation>,
@@ -70,7 +73,7 @@ class VariantService(
     }
 
     private suspend fun generateVariants(
-        originalVariantFile: File,
+        originalVariantFile: Path,
         transformations: List<Transformation>,
         assetId: AssetId,
         lqipImplementations: Set<LQIPImplementation>,
@@ -115,7 +118,7 @@ class VariantService(
                 val uploadedAt = objectRepository.persist(
                     bucket = pendingVariant.objectStoreBucket,
                     key = pendingVariant.objectStoreKey,
-                    file = container.output
+                    file = container.output.toFile()
                 )
 
                 assetRepository.markUploaded(
@@ -124,8 +127,10 @@ class VariantService(
                 logger.info("Variant ${pendingVariant.id} is ready and was uploaded to object store at: $uploadedAt")
             }
         } finally {
-            transformationDataContainers.forEach {
-                it.output.delete()
+            withContext(Dispatchers.IO) {
+                transformationDataContainers.forEach {
+                    it.output.toFile().delete()
+                }
             }
         }
     }

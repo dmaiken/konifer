@@ -1,9 +1,8 @@
-package io.direkt.infrastructure
+package io.direkt.service
 
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.UUID
@@ -32,23 +31,23 @@ object TemporaryFileFactory {
     const val ORIGINAL_VARIANT_PREFIX = "original-variant-"
     const val PROCESSED_VARIANT_PREFIX = "processed-variant-"
 
-    suspend fun createUploadTempFile(extension: String): File =
+    suspend fun createUploadTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$UPLOAD_PREFIX-${UUID.randomUUID()}$extension").toFile()
+            tempDir.resolve("$UPLOAD_PREFIX-${UUID.randomUUID()}$extension")
         }
 
-    suspend fun createPreProcessedTempFile(extension: String): File =
+    suspend fun createPreProcessedTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$PRE_PROCESSED_PREFIX-${UUID.randomUUID()}$extension").toFile()
+            tempDir.resolve("$PRE_PROCESSED_PREFIX-${UUID.randomUUID()}$extension")
         }
 
-    suspend fun createOriginalVariantTempFile(extension: String): File =
+    suspend fun createOriginalVariantTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$ORIGINAL_VARIANT_PREFIX-${UUID.randomUUID()}$extension").toFile()
+            tempDir.resolve("$ORIGINAL_VARIANT_PREFIX-${UUID.randomUUID()}$extension")
         }
 
-    suspend fun createProcessedVariantTempFile(extension: String): File =
+    suspend fun createProcessedVariantTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$PROCESSED_VARIANT_PREFIX-${UUID.randomUUID()}$extension").toFile()
+            tempDir.resolve("$PROCESSED_VARIANT_PREFIX-${UUID.randomUUID()}$extension")
         }
 }

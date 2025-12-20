@@ -1,6 +1,6 @@
 package io.direkt
 
-import io.direkt.infrastructure.TemporaryFileFactory.ROOT_DIR
+import io.direkt.service.TemporaryFileFactory.ROOT_DIR
 import io.direkt.infrastructure.configureKoin
 import io.direkt.infrastructure.http.configureStatusPages
 import io.direkt.infrastructure.http.route.configureAssetRouting

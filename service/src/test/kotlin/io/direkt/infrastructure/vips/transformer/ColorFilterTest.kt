@@ -32,6 +32,7 @@ import org.junit.jupiter.params.provider.EnumSource.Mode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlin.io.path.pathString
 import kotlin.use
 
 class ColorFilterTest {
@@ -74,14 +75,14 @@ class ColorFilterTest {
                         val transformed =
                             ColorFilter.transform(
                                 arena = arena,
-                                source = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath),
+                                source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
                                 transformation = colorFilterTransformation(Filter.GREYSCALE),
                             )
                         transformed.processed.writeToStream(actualStream, format.extension)
 
                         val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
                         VImage
-                            .newFromFile(arena, container.getTemporaryFile().absolutePath)
+                            .newFromFile(arena, container.getTemporaryFile().pathString)
                             .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                             .recomb(matrixImage)
                             .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
@@ -163,12 +164,12 @@ class ColorFilterTest {
                         val transformed =
                             ColorFilter.transform(
                                 arena = arena,
-                                source = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath),
+                                source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
                                 transformation = colorFilterTransformation(Filter.BLACK_WHITE),
                             )
                         transformed.processed.writeToStream(actualStream, format.extension)
 
-                        val expectedSource = VImage.newFromFile(arena, container.getTemporaryFile().absolutePath)
+                        val expectedSource = VImage.newFromFile(arena, container.getTemporaryFile().pathString)
                         val bands = expectedSource.getInt("bands")
                         val alpha = expectedSource.extractBand(bands - 1, VipsOption.Int("n", 1))
                         val rgb = expectedSource.extractBand(0, VipsOption.Int("n", bands - 1))

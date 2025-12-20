@@ -22,7 +22,7 @@ interface VariantGenerator {
     ): CompletableDeferred<PreProcessedImage>
 
     suspend fun generateVariantsFromSource(
-        source: File,
+        source: Path,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
@@ -36,7 +36,7 @@ enum class VariantType {
 
 data class TransformationDataContainer(
     val transformation: Transformation,
-    val output: File,
+    val output: Path,
 ) {
     var lqips: LQIPs = LQIPs.NONE
     var attributes: Attributes? = null

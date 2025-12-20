@@ -9,7 +9,6 @@ import io.direkt.domain.ports.VariantType
 import io.direkt.domain.variant.Transformation
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
-import java.io.File
 import java.nio.file.Path
 
 class PrioritizedChannelVariantScheduler(
@@ -39,11 +38,17 @@ class PrioritizedChannelVariantScheduler(
     }
 
     override suspend fun generateVariantsFromSource(
-        source: File,
+        source: Path,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
     ): CompletableDeferred<Boolean> {
+        if (transformationDataContainers.isEmpty()) {
+            return CompletableDeferred(true)
+        }
+        if (transformationDataContainers.all { it.transformation == Transformation.ORIGINAL_VARIANT }) {
+            throw IllegalArgumentException("Cannot create variant using original variant transformation")
+        }
         val deferred = CompletableDeferred<Boolean>()
         val job = GenerateVariantsJob(
             source = source,

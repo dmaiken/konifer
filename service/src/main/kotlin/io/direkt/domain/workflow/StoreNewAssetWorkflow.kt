@@ -17,7 +17,7 @@ import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
-import io.direkt.infrastructure.TemporaryFileFactory
+import io.direkt.service.TemporaryFileFactory
 import io.direkt.infrastructure.vips.createDecoderOptions
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.StoreRequestContext
@@ -34,6 +34,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import kotlin.io.path.pathString
 
 class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
@@ -109,8 +110,8 @@ class StoreNewAssetWorkflow(
                                 sourceFormat = format,
                                 lqipImplementations = context.pathConfiguration.imageProperties.previews,
                                 transformation = transformation,
-                                source = container.getTemporaryFile().toPath(),
-                                output = preProcessedOutput.toPath(),
+                                source = container.getTemporaryFile(),
+                                output = preProcessedOutput,
                             ).await()
 
                     val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
@@ -132,7 +133,7 @@ class StoreNewAssetWorkflow(
                         objectStore.persist(
                             bucket = originalVariant.objectStoreBucket,
                             key = objectStoreKey,
-                            file = preProcessedOutput,
+                            file = preProcessedOutput.toFile(),
                         )
                     logger.info("Asset uploaded at $uploadedAt, marking as ready")
                     val readyAsset =
@@ -167,7 +168,7 @@ class StoreNewAssetWorkflow(
                     }
                 } finally {
                     if (!hasEagerVariants) {
-                        preProcessedOutput.delete()
+                        preProcessedOutput.toFile().delete()
                     }
                 }
             } finally {
@@ -202,7 +203,7 @@ class StoreNewAssetWorkflow(
                 val image =
                     VImage.newFromFile(
                         arena,
-                        container.getTemporaryFile().absolutePath,
+                        container.getTemporaryFile().pathString,
                         *createDecoderOptions(
                             sourceFormat = sourceFormat,
                             destinationFormat =

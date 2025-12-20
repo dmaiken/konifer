@@ -3,6 +3,7 @@ package io.direkt.infrastructure.variant
 import io.direkt.domain.image.PreProcessedImage
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
+import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CoroutineExceptionHandler

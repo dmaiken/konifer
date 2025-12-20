@@ -8,12 +8,10 @@ import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.image.PreProcessedImage
-import io.direkt.domain.image.ProcessedImage
 import io.direkt.domain.ports.TransformationDataContainer
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
-import io.direkt.domain.variant.VariantData
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -21,11 +19,12 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.OutputStream
 import java.lang.foreign.Arena
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.extension
+import kotlin.io.path.pathString
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -80,7 +79,7 @@ class VipsImageProcessor {
                 if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
                     VipsEncoder.writeToFile(
                         source = preProcessed.processed,
-                        file = output.toFile(),
+                        file = output,
                         format = transformation.format,
                         quality = transformation.quality
                     )
@@ -109,7 +108,7 @@ class VipsImageProcessor {
         }
 
     suspend fun generateVariants(
-        source: File,
+        source: Path,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
@@ -125,7 +124,7 @@ class VipsImageProcessor {
                         destinationFormat = transformation.format,
                     )
                 val image = sourceByDecoderOptions.getOrPut(decoderOptions) {
-                    VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
+                    VImage.newFromFile(arena, source.pathString, *decoderOptions)
                 }.copy()
 
                 val variantResult = variantGenerationPipeline.run(arena, image, transformation)
@@ -159,61 +158,6 @@ class VipsImageProcessor {
             }
         }
     }
-
-    suspend fun generateVariant(
-        source: File,
-        lqipImplementations: Set<LQIPImplementation>,
-        transformation: Transformation,
-        originalVariant: VariantData,
-        output: File,
-    ): ProcessedImage =
-        withContext(Dispatchers.IO) {
-            var attributes: Attributes? = null
-            val previewOutputStream = ByteArrayOutputStream()
-            var regenerateLqip = false
-            Vips.run { arena ->
-                val decoderOptions =
-                    createDecoderOptions(
-                        sourceFormat = originalVariant.attributes.format,
-                        destinationFormat = transformation.format,
-                    )
-                val image = VImage.newFromFile(arena, source.absolutePath, *decoderOptions)
-                val variantResult = variantGenerationPipeline.run(arena, image, transformation)
-                if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
-                    regenerateLqip = true
-                    generatePreviewVariant(
-                        arena = arena,
-                        sourceImage = variantResult.processed,
-                        variantStream = previewOutputStream,
-                    )
-                }
-                VipsEncoder.writeToFile(
-                    source = variantResult.processed,
-                    format = transformation.format,
-                    quality = transformation.quality,
-                    file = output,
-                )
-
-                attributes =
-                    AttributesFactory.createAttributes(
-                        image = variantResult.processed,
-                        sourceFormat = originalVariant.attributes.format,
-                        destinationFormat = transformation.format,
-                    )
-            }
-
-            ProcessedImage(
-                attributes = checkNotNull(attributes),
-                // This will change when we start adding color filters
-                lqip =
-                    if (regenerateLqip) {
-                        ImagePreviewGenerator.generatePreviews(previewOutputStream.toByteArray(), lqipImplementations)
-                    } else {
-                        originalVariant.lqips
-                    },
-                transformation = transformation,
-            )
-        }
 
     private fun generatePreviewVariant(
         arena: Arena,

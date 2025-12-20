@@ -25,7 +25,7 @@ data class PreProcessJob(
 ) : ImageProcessingJob<PreProcessedImage>
 
 data class GenerateVariantsJob(
-    val source: File,
+    val source: Path,
     val transformationDataContainers: List<TransformationDataContainer>,
     val lqipImplementations: Set<LQIPImplementation>,
     override val deferredResult: CompletableDeferred<Boolean>
