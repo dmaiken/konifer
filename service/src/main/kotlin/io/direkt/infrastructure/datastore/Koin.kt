@@ -5,7 +5,9 @@ import io.direkt.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.direkt.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.direkt.infrastructure.datastore.postgres.configureJOOQ
 import io.direkt.infrastructure.datastore.postgres.connectToPostgres
+import io.direkt.infrastructure.datastore.postgres.createPostgresProperties
 import io.direkt.infrastructure.datastore.postgres.migrateSchema
+import io.direkt.infrastructure.datastore.postgres.scheduling.configureScheduling
 import io.direkt.infrastructure.properties.ConfigurationProperties.DATASTORE
 import io.direkt.infrastructure.properties.ConfigurationProperties.DatabaseConfigurationProperties.PROVIDER
 import io.direkt.infrastructure.tryGetConfig
@@ -32,8 +34,10 @@ fun Application.assetRepositoryModule(): Module =
                 }
             }
             DataStoreProvider.POSTGRES -> {
-                val connectionFactory = connectToPostgres()
+                val properties = createPostgresProperties()
+                val connectionFactory = connectToPostgres(properties)
                 migrateSchema(connectionFactory)
+                configureScheduling(properties)
                 single<ConnectionFactory> {
                     connectionFactory
                 }

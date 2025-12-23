@@ -17,7 +17,7 @@ class PriorityChannelConsumer<T>(
         require(highPriorityWeight in 1..100) {
             "High priority weight must be between 0 and 100"
         }
-        logger.info("Initiated Variant generation consumer with synchronous priority of: $highPriorityWeight")
+        logger.info("Initiated Variant generation consumer with synchronous priority of: $highPriorityWeight%")
     }
 
     suspend fun nextJob(): T {

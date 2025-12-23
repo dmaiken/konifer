@@ -64,7 +64,7 @@ fun main() {
             database = Database().apply {
                 name = "org.jooq.meta.postgres.PostgresDatabase"
                 inputSchema = "public"
-                excludes = "migrations"
+                excludes = "migrations|scheduled_tasks"
             }
             target = Target().apply {
                 packageName = "direkt.jooq"
