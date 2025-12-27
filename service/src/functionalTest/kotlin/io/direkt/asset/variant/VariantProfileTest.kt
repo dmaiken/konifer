@@ -96,4 +96,18 @@ class VariantProfileTest {
                 Tika().detect(imageBytes) shouldBe "image/jpeg"
             }
         }
+
+    @Test
+    fun `no variant profiles are okay`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetMultipartSource(client, image, request, path = "profile")
+
+            fetchAssetLink(client, path = "profile", profile = "medium", expectedStatusCode = HttpStatusCode.BadRequest)
+        }
 }

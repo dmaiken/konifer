@@ -9,3 +9,10 @@ fun ApplicationConfig.tryGetConfig(path: String): ApplicationConfig? =
     } catch (_: ConfigException) {
         null
     }
+
+fun ApplicationConfig.tryGetConfigList(path: String): List<ApplicationConfig> =
+    try {
+        this.configList(path)
+    } catch (_: ConfigException) {
+        emptyList()
+    }

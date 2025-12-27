@@ -15,17 +15,27 @@ import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantData
+import io.direkt.infrastructure.http.serialization.AssetClassSerializer
+import io.direkt.infrastructure.http.serialization.AssetSourceSerializer
+import io.direkt.infrastructure.http.serialization.FilterSerializer
+import io.direkt.infrastructure.http.serialization.FitSerializer
+import io.direkt.infrastructure.http.serialization.FlipSerializer
+import io.direkt.infrastructure.http.serialization.GravitySerializer
+import io.direkt.infrastructure.http.serialization.ImageFormatSerializer
 import io.direkt.infrastructure.http.serialization.LocalDateTimeSerializer
+import io.direkt.infrastructure.http.serialization.RotateSerializer
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
 @Serializable
 data class AssetResponse(
+    @Serializable(with = AssetClassSerializer::class)
     val `class`: AssetClass,
     val alt: String?,
     val entryId: Long,
     val labels: Map<String, String>,
     val tags: Set<String>,
+    @Serializable(with = AssetSourceSerializer::class)
     val source: AssetSource,
     val sourceUrl: String?,
     val variants: List<VariantResponse>,
@@ -131,11 +141,17 @@ data class AttributeResponse(
 data class TransformationResponse(
     val width: Int,
     val height: Int,
+    @Serializable(with = FitSerializer::class)
     val fit: Fit,
+    @Serializable(with = GravitySerializer::class)
     val gravity: Gravity,
+    @Serializable(with = ImageFormatSerializer::class)
     val format: ImageFormat,
+    @Serializable(with = RotateSerializer::class)
     val rotate: Rotate,
+    @Serializable(with = FlipSerializer::class)
     val flip: Flip,
+    @Serializable(with = FilterSerializer::class)
     val filter: Filter,
     val blur: Int,
     val quality: Int,

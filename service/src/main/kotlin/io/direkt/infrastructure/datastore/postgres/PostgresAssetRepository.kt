@@ -15,7 +15,6 @@ import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
-import io.direkt.infrastructure.http.serialization.format
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.coroutineScope
@@ -478,6 +477,7 @@ class PostgresAssetRepository(
                 ).and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "filter").eq(transformation.filter.name))
                 .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "gravity").eq(transformation.gravity.name))
                 .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "quality").eq(transformation.quality.toString()))
+                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "blur").eq(transformation.blur.toString()))
                 .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "pad").eq(transformation.pad.toString()))
                 .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "background").eq(transformation.background.toString()))
         }

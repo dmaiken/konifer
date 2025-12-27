@@ -11,7 +11,6 @@ import io.direkt.domain.asset.AssetSource
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantData
 import io.direkt.domain.variant.VariantId
-import io.direkt.infrastructure.http.serialization.format
 import org.jooq.Field
 import org.jooq.Record
 import java.time.LocalDateTime

@@ -1240,6 +1240,46 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `can fetch variant by blur transformation`() =
+            runTest {
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                repository.markReady(persisted.markReady(LocalDateTime.now()))
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        blur = 10,
+                    )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
+                val persistedVariant = repository.storeNewVariant(pendingVariant)
+
+                val fetchedAsset =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = transformation,
+                    )
+                fetchedAsset shouldNotBe null
+                fetchedAsset!!.variants shouldHaveSize 1
+                fetchedAsset.variants.first().id shouldBe persistedVariant.id
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = transformation.copy(blur = 50),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
         fun `can fetch variant by pad transformation`() =
             runTest {
                 val pending = createPendingAsset()

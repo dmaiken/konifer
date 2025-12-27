@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.time.measureTime
 
 class VariantService(
     private val assetRepository: AssetRepository,
@@ -86,14 +87,19 @@ class VariantService(
                 transformations = transformations,
             )
         try {
-            variantGenerator
-                .generateVariantsFromSource(
-                    source = originalVariantFile,
-                    transformationDataContainers = transformationDataContainers,
-                    lqipImplementations = lqipImplementations,
-                    variantType = variantType,
-                ).await()
-            logger.info("Eager variant content generated for ${transformationDataContainers.size} variants for asset: ${assetId.value}")
+            val time =
+                measureTime {
+                    variantGenerator
+                        .generateVariantsFromSource(
+                            source = originalVariantFile,
+                            transformationDataContainers = transformationDataContainers,
+                            lqipImplementations = lqipImplementations,
+                            variantType = variantType,
+                        ).await()
+                }
+            logger.info(
+                "$variantType variant content generated for ${transformationDataContainers.size} variants for asset: ${assetId.value} in ${time.inWholeMilliseconds}ms",
+            )
 
             for (container in transformationDataContainers) {
                 val attributes =

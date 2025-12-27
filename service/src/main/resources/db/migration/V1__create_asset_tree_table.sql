@@ -36,5 +36,7 @@ CREATE TABLE IF NOT EXISTS asset_variant
 
 CREATE INDEX IF NOT EXISTS asset_variant_asset_id_idx ON asset_variant (asset_id);
 CREATE UNIQUE INDEX IF NOT EXISTS asset_variant_transformation_uq ON asset_variant (asset_id, transformation);
-CREATE UNIQUE INDEX IF NOT EXISTS asset_variant_asset_id_original_variant_uq ON asset_variant (asset_id, original_variant);
+CREATE UNIQUE INDEX IF NOT EXISTS asset_variant_asset_id_original_variant_uq
+    ON asset_variant (asset_id)
+    WHERE (original_variant = true);
 CREATE INDEX IF NOT EXISTS asset_variant_not_uploaded ON asset_variant (id) WHERE uploaded_at IS NULL;
