@@ -9,6 +9,7 @@ import direkt.jooq.tables.AssetLabel
 import direkt.jooq.tables.AssetTag
 import direkt.jooq.tables.AssetTree
 import direkt.jooq.tables.AssetVariant
+import direkt.jooq.tables.Outbox
 
 
 
@@ -31,3 +32,8 @@ val ASSET_TREE: AssetTree = AssetTree.ASSET_TREE
  * The table <code>public.asset_variant</code>.
  */
 val ASSET_VARIANT: AssetVariant = AssetVariant.ASSET_VARIANT
+
+/**
+ * The table <code>public.outbox</code>.
+ */
+val OUTBOX: Outbox = Outbox.OUTBOX

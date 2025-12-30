@@ -8,6 +8,7 @@ import direkt.jooq.tables.AssetLabel
 import direkt.jooq.tables.AssetTag
 import direkt.jooq.tables.AssetTree
 import direkt.jooq.tables.AssetVariant
+import direkt.jooq.tables.Outbox
 
 import kotlin.collections.List
 
@@ -50,12 +51,18 @@ open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALO
      */
     val ASSET_VARIANT: AssetVariant get() = AssetVariant.ASSET_VARIANT
 
+    /**
+     * The table <code>public.outbox</code>.
+     */
+    val OUTBOX: Outbox get() = Outbox.OUTBOX
+
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
         AssetLabel.ASSET_LABEL,
         AssetTag.ASSET_TAG,
         AssetTree.ASSET_TREE,
-        AssetVariant.ASSET_VARIANT
+        AssetVariant.ASSET_VARIANT,
+        Outbox.OUTBOX
     )
 }

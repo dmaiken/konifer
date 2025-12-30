@@ -9,10 +9,12 @@ import direkt.jooq.tables.AssetLabel
 import direkt.jooq.tables.AssetTag
 import direkt.jooq.tables.AssetTree
 import direkt.jooq.tables.AssetVariant
+import direkt.jooq.tables.Outbox
 import direkt.jooq.tables.records.AssetLabelRecord
 import direkt.jooq.tables.records.AssetTagRecord
 import direkt.jooq.tables.records.AssetTreeRecord
 import direkt.jooq.tables.records.AssetVariantRecord
+import direkt.jooq.tables.records.OutboxRecord
 
 import org.jooq.ForeignKey
 import org.jooq.UniqueKey
@@ -30,6 +32,7 @@ val ASSET_LABEL_PKEY: UniqueKey<AssetLabelRecord> = Internal.createUniqueKey(Ass
 val ASSET_TAG_PKEY: UniqueKey<AssetTagRecord> = Internal.createUniqueKey(AssetTag.ASSET_TAG, DSL.name("asset_tag_pkey"), arrayOf(AssetTag.ASSET_TAG.ID), true)
 val ASSET_TREE_PKEY: UniqueKey<AssetTreeRecord> = Internal.createUniqueKey(AssetTree.ASSET_TREE, DSL.name("asset_tree_pkey"), arrayOf(AssetTree.ASSET_TREE.ID), true)
 val ASSET_VARIANT_PKEY: UniqueKey<AssetVariantRecord> = Internal.createUniqueKey(AssetVariant.ASSET_VARIANT, DSL.name("asset_variant_pkey"), arrayOf(AssetVariant.ASSET_VARIANT.ID), true)
+val OUTBOX_PKEY: UniqueKey<OutboxRecord> = Internal.createUniqueKey(Outbox.OUTBOX, DSL.name("outbox_pkey"), arrayOf(Outbox.OUTBOX.ID), true)
 
 // -------------------------------------------------------------------------
 // FOREIGN KEY definitions

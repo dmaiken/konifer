@@ -5,14 +5,6 @@ import io.ktor.server.application.log
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.builder
-import name.nkonev.r2dbc.migrate.core.R2dbcMigrate
-import name.nkonev.r2dbc.migrate.core.R2dbcMigrateProperties
-import name.nkonev.r2dbc.migrate.reader.ReflectionsClasspathResourceReader
-import org.jooq.DSLContext
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
-import org.jooq.impl.DefaultConfiguration
-import org.jooq.tools.LoggerListener
 import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE as R2DBC_DATABASE
 import io.r2dbc.spi.ConnectionFactoryOptions.DRIVER as R2DBC_DRIVER
 import io.r2dbc.spi.ConnectionFactoryOptions.HOST as R2DBC_HOST
@@ -36,27 +28,4 @@ fun Application.connectToPostgres(properties: PostgresProperties): ConnectionFac
     }
 
     return ConnectionFactories.get(options.build())
-}
-
-fun migrateSchema(connectionFactory: ConnectionFactory) {
-    val migrateProperties =
-        R2dbcMigrateProperties().apply {
-            setResourcesPath("db/migration")
-        }
-
-    R2dbcMigrate.migrate(connectionFactory, migrateProperties, ReflectionsClasspathResourceReader(), null, null).block()
-}
-
-fun configureJOOQ(connectionFactory: ConnectionFactory): DSLContext {
-    val config =
-        DefaultConfiguration().apply {
-            setSQLDialect(SQLDialect.POSTGRES)
-            setConnectionFactory(connectionFactory)
-            setExecuteListener(LoggerListener())
-            settings()
-                .withExecuteLogging(true)
-                .withRenderFormatted(true)
-        }
-
-    return DSL.using(config)
 }

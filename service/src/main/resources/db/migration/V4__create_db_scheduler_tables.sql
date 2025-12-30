@@ -21,3 +21,13 @@ CREATE INDEX IF NOT EXISTS priority_execution_time_idx ON scheduled_tasks (prior
 -- an optimization for users of priority might be to add priority to the execution_time_idx
 -- this _might_ save reads as the priority-value is already in the index
 -- CREATE INDEX IF NOT EXISTS execution_time_idx ON scheduled_tasks (execution_time asc, priority desc);
+
+
+CREATE TABLE IF NOT EXISTS outbox (
+    id UUID NOT NULL PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    payload JSONB,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS outbox_event_type_idx ON outbox (event_type);
