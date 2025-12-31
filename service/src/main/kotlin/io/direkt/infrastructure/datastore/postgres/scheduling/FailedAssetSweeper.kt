@@ -49,7 +49,7 @@ object FailedAssetSweeper {
                 }.toList()
 
         logger.info("Found ${result.size} failed assets to sweep")
-        var failedCount = 0
+        var errorCount = 0
         result.forEach { failedAsset ->
             runCatching {
                 dslContext.transactionCoroutine { trx ->
@@ -75,12 +75,12 @@ object FailedAssetSweeper {
                     }
                 }
             }.onFailure { e ->
-                failedCount++
-                logger.error("Failed to delete asset ${failedAsset.assetId} with original variant", e)
+                errorCount++
+                logger.error("Failed to delete asset ${failedAsset.assetId} and original variant", e)
             }.getOrNull()
         }
 
-        logger.info("Swept ${result.size - failedCount} failed assets with $failedCount failures")
+        logger.info("Swept ${result.size - errorCount} failed assets with $errorCount errors")
     }
 }
 

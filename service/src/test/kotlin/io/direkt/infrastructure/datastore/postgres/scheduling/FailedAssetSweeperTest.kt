@@ -2,16 +2,13 @@ package io.direkt.infrastructure.datastore.postgres.scheduling
 
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
-import direkt.jooq.tables.references.OUTBOX
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.infrastructure.datastore.createPendingAsset
 import io.direkt.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.direkt.infrastructure.datastore.postgres.createR2dbcDslContext
-import io.direkt.infrastructure.datastore.postgres.getNonNull
 import io.direkt.infrastructure.datastore.postgres.postgresContainer
 import io.direkt.infrastructure.datastore.postgres.truncateTables
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -23,7 +20,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import org.jooq.Configuration
 import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
@@ -57,7 +53,7 @@ class FailedAssetSweeperTest {
     }
 
     @Test
-    fun `deletes failed assets and schedules purging of original variant`() =
+    fun `deletes failed assets and schedules reaping of original variant`() =
         runTest {
             val pending = createPendingAsset()
             val pendingPersisted = assetRepository.storeNew(pending)
@@ -71,7 +67,7 @@ class FailedAssetSweeperTest {
                 .where(ASSET_TREE.ID.eq(pendingPersisted.id.value))
                 .awaitFirstOrNull() shouldBe null
 
-            val event = fetchOutboxEvents(1).first()
+            val event = fetchOutboxReaperEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBe pendingPersisted.variants.first { it.isOriginalVariant }.objectStoreBucket
             event.objectStoreKey shouldBe pendingPersisted.variants.first { it.isOriginalVariant }.objectStoreKey
         }
@@ -93,7 +89,7 @@ class FailedAssetSweeperTest {
                 entryId = ready.entryId,
                 transformation = null,
             ) shouldNotBe null
-            fetchOutboxEvents(0)
+            fetchOutboxReaperEvents(dslContext, 0)
         }
 
     @Test
@@ -110,7 +106,7 @@ class FailedAssetSweeperTest {
                 .from(ASSET_TREE)
                 .where(ASSET_TREE.ID.eq(pendingPersisted.id.value))
                 .awaitFirstOrNull() shouldNotBe null
-            fetchOutboxEvents(0)
+            fetchOutboxReaperEvents(dslContext, 0)
         }
 
     @Test
@@ -132,11 +128,11 @@ class FailedAssetSweeperTest {
                 transformation = null,
             ) shouldBe null
 
-            fetchOutboxEvents(0)
+            fetchOutboxReaperEvents(dslContext, 0)
         }
 
     @Test
-    fun `if one asset fails to be deleted then the rest are attempted`() =
+    fun `if one asset fails to be deleted then the rest are still attempted`() =
         runTest {
             mockkStatic("org.jooq.kotlin.coroutines.CoroutineExtensionsKt")
             val pendingPersisted1 = assetRepository.storeNew(createPendingAsset())
@@ -158,7 +154,7 @@ class FailedAssetSweeperTest {
                 ).asFlow()
                 .toList() shouldHaveSize 1
 
-            val event = fetchOutboxEvents(1).first()
+            val event = fetchOutboxReaperEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBeIn
                 listOf(
                     pendingPersisted1.variants.first { it.isOriginalVariant }.objectStoreBucket,
@@ -178,23 +174,4 @@ class FailedAssetSweeperTest {
                 FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
             }
         }
-
-    private suspend fun fetchOutboxEvents(expectAmount: Int): List<ReapVariantEvent> {
-        val events =
-            Flux
-                .from(
-                    dslContext
-                        .select()
-                        .from(OUTBOX),
-                ).asFlow()
-                .toList()
-        events shouldHaveSize expectAmount
-        events.forAll {
-            it.get(OUTBOX.EVENT_TYPE) shouldBe "REAP_VARIANT"
-        }
-
-        return events.map {
-            Json.decodeFromString<ReapVariantEvent>(it.getNonNull(OUTBOX.PAYLOAD).data())
-        }
-    }
 }

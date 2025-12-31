@@ -217,6 +217,81 @@ class VariantReaperTest {
         }
 
     @Test
+    fun `limit is respected when reaping variants`() =
+        runTest {
+            objectRepository.persist(
+                bucket = "bucket",
+                key = "key1",
+                file = file,
+            )
+            objectRepository.persist(
+                bucket = "bucket",
+                key = "key2",
+                file = file,
+            )
+
+            val eventId1 = UUID.randomUUID()
+            dslContext
+                .insertInto(OUTBOX)
+                .set(OUTBOX.ID, eventId1)
+                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(
+                    OUTBOX.PAYLOAD,
+                    JSONB.valueOf(
+                        Json.encodeToString(
+                            ReapVariantEvent(
+                                objectStoreBucket = "bucket",
+                                objectStoreKey = "key1",
+                            ),
+                        ),
+                    ),
+                ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
+                .awaitFirstOrNull()
+            val eventId2 = UUID.randomUUID()
+            dslContext
+                .insertInto(OUTBOX)
+                .set(OUTBOX.ID, eventId2)
+                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(
+                    OUTBOX.PAYLOAD,
+                    JSONB.valueOf(
+                        Json.encodeToString(
+                            ReapVariantEvent(
+                                objectStoreBucket = "bucket",
+                                objectStoreKey = "key2",
+                            ),
+                        ),
+                    ),
+                ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
+                .awaitFirstOrNull()
+
+            VariantReaper.invoke(
+                dslContext = dslContext,
+                objectRepository = objectRepository,
+                reapLimit = 1,
+            )
+
+            objectRepository.exists(
+                bucket = "bucket",
+                key = "key1",
+            ) shouldBe false
+            objectRepository.exists(
+                bucket = "bucket",
+                key = "key2",
+            ) shouldBe true
+            dslContext
+                .select()
+                .from(OUTBOX)
+                .where(OUTBOX.ID.eq(eventId1))
+                .awaitFirstOrNull() shouldBe null
+            dslContext
+                .select()
+                .from(OUTBOX)
+                .where(OUTBOX.ID.eq(eventId2))
+                .awaitFirstOrNull() shouldNotBe null
+        }
+
+    @Test
     fun `does not fail if nothing needs to be reaped`() =
         runTest {
             shouldNotThrowAny {

@@ -8,10 +8,12 @@ import com.zaxxer.hikari.HikariDataSource
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.infrastructure.datastore.postgres.PostgresProperties
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.log
 import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
+import org.koin.ktor.ext.get
 import org.koin.ktor.ext.inject
 import org.postgresql.ds.PGSimpleDataSource
 import java.util.concurrent.Executors
@@ -30,15 +32,23 @@ fun Application.configureScheduling(
 
     val failedAssetSweeperTask =
         Tasks
-            .recurring(FailedAssetSweeper.TASK_NAME, FixedDelay.ofMinutes(5))
+            .recurring(FailedAssetSweeper.TASK_NAME, FixedDelay.ofMinutes(1))
             .execute { _, _ ->
                 runBlocking {
                     FailedAssetSweeper.invoke(dslContext)
                 }
             }
+    val failedVariantSweeperTask =
+        Tasks
+            .recurring(FailedVariantSweeper.TASK_NAME, FixedDelay.ofMinutes(1))
+            .execute { _, _ ->
+                runBlocking {
+                    FailedVariantSweeper.invoke(dslContext)
+                }
+            }
     val variantReaperTask =
         Tasks
-            .recurring(VariantReaper.TASK_NAME, FixedDelay.ofMinutes(1))
+            .recurring(VariantReaper.TASK_NAME, FixedDelay.ofSeconds(30))
             .execute { _, _ ->
                 runBlocking {
                     VariantReaper.invoke(
@@ -53,11 +63,14 @@ fun Application.configureScheduling(
             .create(jdbcPostgresDatasource(postgresProperties))
             .executorService(Executors.newVirtualThreadPerTaskExecutor())
             .serializer(KotlinSerializer())
-            .startTasks(failedAssetSweeperTask, variantReaperTask)
+            .startTasks(failedAssetSweeperTask, failedVariantSweeperTask, variantReaperTask)
             .build()
-    scheduler.start()
 
-    // Stop the scheduler when the Ktor app shuts down
+    monitor.subscribe(ApplicationStarted) {
+        scheduler.start()
+    }
+
+    // Stop the scheduler when the app shuts down
     monitor.subscribe(ApplicationStopping) {
         log.info("Shutting down scheduler...")
         scheduler.stop()
