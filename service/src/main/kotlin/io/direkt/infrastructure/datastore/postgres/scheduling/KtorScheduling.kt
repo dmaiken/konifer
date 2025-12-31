@@ -74,7 +74,6 @@ fun Application.configureScheduling(
     monitor.subscribe(ApplicationStopping) {
         log.info("Shutting down scheduler...")
         scheduler.stop()
-        log.info("Scheduler shutdown complete")
     }
 }
 

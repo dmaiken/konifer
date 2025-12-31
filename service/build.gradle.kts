@@ -100,8 +100,6 @@ dependencies {
 
     implementation(libs.blurhash)
 
-    testImplementation(libs.twelvemonkeys.imageio.webp)
-
     // Dependencies needed by testFixtures
     testFixturesImplementation(libs.kotlin.test.junit)
     testFixturesImplementation(libs.mockk)
