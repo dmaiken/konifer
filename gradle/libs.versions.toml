@@ -10,7 +10,7 @@ r2dbc-pool-version = "1.0.2.RELEASE"
 r2dbc-postgresql-version = "1.1.1.RELEASE"
 testcontainers-version = "1.20.6"
 kotest-version = "6.0.7"
-photofix-libvips-version = "1.9.2"
+photofix-libvips-version = "1.9.5"
 mockk-version = "1.14.7"
 tika-version = "3.2.3"
 postgres-version = "42.7.8"
@@ -21,6 +21,8 @@ commons-math3-version = "3.6.1"
 kotlin-coroutine-reactive-version = "1.10.2"
 db-scheduler-version = "16.6.0"
 hikari-version = "7.0.2"
+uuid-creator-version = "6.1.1"
+bytebuddy-version = "1.18.3"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -48,8 +50,8 @@ r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool-version
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgresql-version" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlin-coroutine-reactive-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
-db-scheduler = { module = "com.github.kagkarlsson:db-scheduler", version.ref = "db-scheduler-version" }
-hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
+uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator-version" }
+commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
 
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }
@@ -65,10 +67,10 @@ junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "jun
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
 blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }
 
-# JDBC
+# Scheduling
 postresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
-
-commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
+db-scheduler = { module = "com.github.kagkarlsson:db-scheduler", version.ref = "db-scheduler-version" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

@@ -206,7 +206,7 @@ abstract class AssetRepositoryTest {
                 shouldThrow<IllegalArgumentException> {
                     repository.storeNewVariant(
                         createPendingVariant(
-                            assetId = AssetId(UUID.randomUUID()),
+                            assetId = AssetId(),
                             transformation =
                                 Transformation(
                                     height = 100,

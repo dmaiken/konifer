@@ -1,11 +1,12 @@
 package io.direkt.domain.variant
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.direkt.domain.asset.AssetId
 import java.time.LocalDateTime
 import java.util.UUID
 
 @JvmInline value class VariantId(
-    val value: UUID,
+    val value: UUID = UuidCreator.getTimeOrderedEpoch(),
 )
 
 sealed interface Variant {
@@ -45,7 +46,7 @@ sealed interface Variant {
                 lqip: LQIPs,
             ): Pending =
                 Pending(
-                    id = VariantId(UUID.randomUUID()),
+                    id = VariantId(),
                     assetId = assetId,
                     objectStoreBucket = objectStoreBucket,
                     objectStoreKey = objectStoreKey,
@@ -72,7 +73,7 @@ sealed interface Variant {
                 lqip: LQIPs,
             ): Pending =
                 Pending(
-                    id = VariantId(UUID.randomUUID()),
+                    id = VariantId(),
                     assetId = assetId,
                     objectStoreBucket = objectStoreBucket,
                     objectStoreKey = objectStoreKey,

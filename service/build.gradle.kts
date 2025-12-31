@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.client.java)
+    implementation(libs.uuid.creator)
 
     implementation(libs.r2dbc.migrate)
     implementation(libs.r2dbc.migrate.resource.reader)
@@ -111,12 +112,25 @@ dependencies {
     "functionalTestImplementation"(testFixtures(project))
 }
 
+/**
+ * Necessary for Java 25 support - hopefully this can go away when ktor BOM supports Java 25
+ */
+configurations.all {
+    resolutionStrategy {
+        val bytebuddyVersion =
+            libs.versions.bytebuddy.version
+                .get()
+
+        force("net.bytebuddy:byte-buddy:$bytebuddyVersion")
+        force("net.bytebuddy:byte-buddy-agent:$bytebuddyVersion")
+    }
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("kotest.extensions.autoscan.disable", "true")
 }
 
-// Register the task
 tasks.register<Test>("functionalTest") {
     description = "Runs functional tests"
     group = "verification"
@@ -139,12 +153,11 @@ tasks.named("check") {
 }
 
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(25)
 }
 
 ktor {
     docker {
-        jreVersion.set(JavaVersion.VERSION_24)
         localImageName.set("direkt")
         imageTag.set("0.0.1-preview")
     }

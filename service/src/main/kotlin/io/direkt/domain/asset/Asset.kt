@@ -1,12 +1,13 @@
 package io.direkt.domain.asset
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
 import java.time.LocalDateTime
 import java.util.UUID
 
 @JvmInline value class AssetId(
-    val value: UUID,
+    val value: UUID = UuidCreator.getTimeOrderedEpoch(),
 )
 
 sealed interface Asset {
@@ -66,7 +67,7 @@ sealed interface Asset {
             ): New {
                 val now = LocalDateTime.now()
                 return New(
-                    id = AssetId(UUID.randomUUID()),
+                    id = AssetId(),
                     path = path,
                     entryId = null,
                     alt = request.alt,
