@@ -2,7 +2,6 @@ package io.direkt.service.context
 
 import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
-import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
@@ -293,33 +292,66 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun deleteModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/children",
+                    "/assets/profile/-/created/10",
                     DeleteModifiers(
-                        mode = DeleteMode.CHILDREN,
+                        orderBy = OrderBy.CREATED,
+                        limit = 10,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/recursive",
+                    "/assets/profile/-/modified/10",
                     DeleteModifiers(
-                        mode = DeleteMode.RECURSIVE,
+                        orderBy = OrderBy.MODIFIED,
+                        limit = 10,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/single",
+                    "/assets/profile/-/created/all",
                     DeleteModifiers(
-                        mode = DeleteMode.SINGLE,
+                        orderBy = OrderBy.CREATED,
+                        limit = -1,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/",
+                    "/assets/profile/-/created/",
                     DeleteModifiers(
-                        mode = DeleteMode.SINGLE,
+                        orderBy = OrderBy.CREATED,
+                        limit = 1,
+                    ),
+                ),
+                arguments(
+                    "/assets/profile/-/modified/",
+                    DeleteModifiers(
+                        orderBy = OrderBy.MODIFIED,
+                        limit = 1,
                     ),
                 ),
                 arguments(
                     "/assets/profile/",
                     DeleteModifiers(
-                        mode = DeleteMode.SINGLE,
+                        orderBy = OrderBy.CREATED,
+                        limit = 1,
+                        recursive = false,
+                    ),
+                ),
+                arguments(
+                    "/assets/profile/-/",
+                    DeleteModifiers(
+                        orderBy = OrderBy.CREATED,
+                        limit = 1,
+                        recursive = false,
+                    ),
+                ),
+                arguments(
+                    "/assets/profile/-/recursive",
+                    DeleteModifiers(
+                        recursive = true,
+                    ),
+                ),
+                arguments(
+                    "/assets/profile/-/all",
+                    DeleteModifiers(
+                        limit = -1,
                     ),
                 ),
             )
@@ -794,9 +826,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/childrenn/",
-                "/assets/profile/-/children/10",
-                "/assets/profile/-/10/",
+                "/assets/profile/-/createdd/",
+                "/assets/profile/-/entry/-1",
+                "/assets/profile/-/-10/",
+                "/assets/profile/-/recursive/all",
+                "/assets/profile/-/recursive/entry/1",
+                "/assets/profile/-/recursive/created",
+                "/assets/profile/-/recursive/1",
             ],
         )
         fun `throws when DELETE query modifiers are invalid`(path: String) {
@@ -820,7 +856,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
         @Test
         fun `path can only have one namespace separator in DELETE request context`() {
-            val path = "/assets/profile/-/-/single/"
+            val path = "/assets/profile/-/-/1/"
             val exception =
                 shouldThrow<InvalidPathException> {
                     requestContextFactory.fromDeleteRequest(path)
@@ -828,21 +864,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
             exception.message shouldBe "$path has more than one '-' segment"
         }
 
-        @Test
-        fun `can parse DELETE asset path from the uri request path`() =
-            runTest {
-                val context = requestContextFactory.fromDeleteRequest("/assets/profile/123/-/children")
-
-                context.path shouldBe "/profile/123/"
-            }
-
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/ASSETS/profile/-/children/",
-                "/Assets/profile/-/children/",
-                "/Asssetts/profile/-/children/",
-                "/profile/-/children/",
+                "/ASSETS/profile/-/1/",
+                "/Assets/profile/-/1/",
+                "/Asssetts/profile/-/1/",
+                "/profile/-/1/",
             ],
         )
         fun `throws if DELETE uri path does not start with correct prefix`(path: String) {

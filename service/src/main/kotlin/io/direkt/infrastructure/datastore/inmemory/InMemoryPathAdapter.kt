@@ -1,5 +1,10 @@
 package io.direkt.infrastructure.datastore.inmemory
 
 object InMemoryPathAdapter {
-    fun toInMemoryPathFromUriPath(uriPath: String): String = uriPath.removeSuffix("/")
+    fun toInMemoryPathFromUriPath(uriPath: String): String =
+        if (uriPath.startsWith("/")) {
+            uriPath.removeSuffix("/")
+        } else {
+            "/${uriPath.removeSuffix("/")}"
+        }
 }

@@ -120,61 +120,32 @@ class InMemoryAssetRepository : AssetRepository {
         labels: Map<String, String>,
         limit: Int,
     ): List<AssetData> =
-        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
-            ?.asSequence()
-            ?.filter { it.isReady }
-            ?.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
-            ?.map { asset ->
-                val variants =
-                    if (transformation == null) {
-                        asset.variants
-                    } else if (transformation.originalVariant) {
-                        listOf(asset.variants.first { it.isOriginalVariant })
-                    } else {
-                        asset.variants
-                            .firstOrNull { variant ->
-                                transformation == variant.transformation
-                            }?.let { matched ->
-                                listOf(matched)
-                            } ?: emptyList()
-                    }
-                asset.toAssetData(variants)
-            }?.sortedWith(
-                when (orderBy) {
-                    OrderBy.CREATED -> compareByDescending<AssetData> { it.createdAt }
-                    OrderBy.MODIFIED -> compareByDescending<AssetData> { it.modifiedAt }
-                }.let {
-                    it.thenByDescending { comparator -> comparator.entryId }
-                },
-            )?.let {
-                if (limit > 0) {
-                    it.take(limit)
-                } else {
-                    it
-                }
-            }?.toList() ?: emptyList()
+        fetchAll(
+            path = path,
+            transformation = transformation,
+            orderBy = orderBy,
+            labels = labels,
+            limit = limit,
+            includeOnlyReady = true,
+        )
 
-    override suspend fun deleteAssetByPath(
+    override suspend fun deleteByPath(
         path: String,
-        entryId: Long?,
+        entryId: Long,
     ): List<VariantBucketAndKey> {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting asset at path: $inMemoryPath and entryId: ${entryId ?: "not specified"}")
+        logger.info("Deleting asset at path: $inMemoryPath and entryId: $entryId")
 
         val asset =
             store[inMemoryPath]?.let { assets ->
-                val resolvedEntryId = entryId ?: assets.maxByOrNull { it.createdAt }?.entryId
-                assets.firstOrNull { it.entryId == resolvedEntryId }
+                assets.firstOrNull { it.entryId == entryId }
             }
 
         asset?.let {
             idReference.remove(it.id)
         }
         store[inMemoryPath]?.let { assets ->
-            val resolvedEntryId = entryId ?: assets.maxByOrNull { it.createdAt }?.entryId
-            resolvedEntryId?.let {
-                assets.removeIf { it.entryId == resolvedEntryId }
-            }
+            assets.removeIf { it.entryId == entryId }
         }
         return asset?.variants?.map {
             VariantBucketAndKey(
@@ -184,37 +155,52 @@ class InMemoryAssetRepository : AssetRepository {
         } ?: emptyList()
     }
 
-    override suspend fun deleteAssetsByPath(
+    override suspend fun deleteAllByPath(
         path: String,
-        recursive: Boolean,
+        orderBy: OrderBy,
+        limit: Int,
     ): List<VariantBucketAndKey> {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
         val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
-        if (recursive) {
-            logger.info("Deleting assets (recursively) at path: $inMemoryPath")
-            store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
-                val assetAndVariants = store[path]
-                assetAndVariants?.forEach {
-                    objectStoreInformation.addAll(mapToBucketAndKey(it))
-                }
-                assetAndVariants?.map { it.id }?.forEach {
-                    idReference.remove(it)
-                }
-                store.remove(path)
-            }
-        } else {
-            logger.info("Deleting assets at path: $inMemoryPath")
-            val assetAndVariants = store[inMemoryPath]
+        logger.info("Deleting assets at path: $inMemoryPath")
+        val assetsToDelete =
+            fetchAll(
+                path = path,
+                orderBy = orderBy,
+                transformation = null,
+                limit = limit,
+                labels = emptyMap(),
+                includeOnlyReady = false,
+            )
+        assetsToDelete.forEach {
+            objectStoreInformation.addAll(mapToBucketAndKey(it))
+        }
+        assetsToDelete.map { it.id }.forEach {
+            idReference.remove(it)
+        }
+        store[inMemoryPath]?.let { assets ->
+            assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
+        }
+
+        return objectStoreInformation.toList()
+    }
+
+    override suspend fun deleteRecursivelyByPath(path: String): List<VariantBucketAndKey> {
+        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
+        val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
+        logger.info("Deleting assets (recursively) at path: $inMemoryPath")
+        store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
+            val assetAndVariants = store[path]
             assetAndVariants?.forEach {
                 objectStoreInformation.addAll(mapToBucketAndKey(it))
             }
             assetAndVariants?.map { it.id }?.forEach {
                 idReference.remove(it)
             }
-            store.remove(inMemoryPath)
+            store.remove(path)
         }
 
-        return objectStoreInformation
+        return objectStoreInformation.toList()
     }
 
     override suspend fun update(asset: Asset): Asset {
@@ -231,6 +217,14 @@ class InMemoryAssetRepository : AssetRepository {
     }
 
     private fun mapToBucketAndKey(asset: Asset): List<VariantBucketAndKey> =
+        asset.variants.map { variant ->
+            VariantBucketAndKey(
+                bucket = variant.objectStoreBucket,
+                key = variant.objectStoreKey,
+            )
+        }
+
+    private fun mapToBucketAndKey(asset: AssetData): List<VariantBucketAndKey> =
         asset.variants.map { variant ->
             VariantBucketAndKey(
                 bucket = variant.objectStoreBucket,
@@ -280,4 +274,51 @@ class InMemoryAssetRepository : AssetRepository {
                 }
             }
     }
+
+    private fun fetchAll(
+        path: String,
+        transformation: Transformation?,
+        orderBy: OrderBy,
+        labels: Map<String, String>,
+        limit: Int,
+        includeOnlyReady: Boolean,
+    ): List<AssetData> =
+        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
+            ?.asSequence()
+            ?.filter {
+                if (includeOnlyReady) {
+                    it.isReady
+                } else {
+                    true
+                }
+            }?.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
+            ?.map { asset ->
+                val variants =
+                    if (transformation == null) {
+                        asset.variants
+                    } else if (transformation.originalVariant) {
+                        listOf(asset.variants.first { it.isOriginalVariant })
+                    } else {
+                        asset.variants
+                            .firstOrNull { variant ->
+                                transformation == variant.transformation
+                            }?.let { matched ->
+                                listOf(matched)
+                            } ?: emptyList()
+                    }
+                asset.toAssetData(variants)
+            }?.sortedWith(
+                when (orderBy) {
+                    OrderBy.CREATED -> compareByDescending<AssetData> { it.createdAt }
+                    OrderBy.MODIFIED -> compareByDescending<AssetData> { it.modifiedAt }
+                }.let {
+                    it.thenByDescending { comparator -> comparator.entryId }
+                },
+            )?.let {
+                if (limit > 0) {
+                    it.take(limit)
+                } else {
+                    it
+                }
+            }?.toList() ?: emptyList()
 }

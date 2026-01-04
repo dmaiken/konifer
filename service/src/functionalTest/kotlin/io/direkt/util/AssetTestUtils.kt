@@ -451,6 +451,22 @@ suspend fun deleteAsset(
     }
 }
 
+suspend fun deleteAssetsAtPath(
+    client: HttpClient,
+    path: String = "profile",
+    orderBy: OrderBy = OrderBy.CREATED,
+    limit: Int = 1,
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
+) {
+    val limit =
+        if (limit == -1) {
+            "all"
+        } else {
+            limit.toString()
+        }
+    client.delete("/assets/$path/-/$orderBy/$limit").status shouldBe expectedStatusCode
+}
+
 suspend fun updateAsset(
     client: HttpClient,
     location: String,

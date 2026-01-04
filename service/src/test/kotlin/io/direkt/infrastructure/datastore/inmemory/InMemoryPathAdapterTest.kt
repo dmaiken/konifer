@@ -10,4 +10,11 @@ class InMemoryPathAdapterTest {
 
         inMemoryPath shouldBe "/profile-picture"
     }
+
+    @Test
+    fun `prefix slash is added if not already there`() {
+        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath("profile-picture/")
+
+        inMemoryPath shouldBe "/profile-picture"
+    }
 }

@@ -2,9 +2,11 @@ package io.direkt.asset
 
 import io.direkt.config.testInMemory
 import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.service.context.OrderBy
 import io.direkt.util.assertAssetDoesNotExist
 import io.direkt.util.createJsonClient
 import io.direkt.util.deleteAsset
+import io.direkt.util.deleteAssetsAtPath
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -90,6 +92,63 @@ class DeleteAssetTest {
         }
 
     @Test
+    fun `can delete assets by path and order`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+
+            deleteAssetsAtPath(client, path = "profile", orderBy = OrderBy.CREATED, limit = 1)
+
+            fetchAssetMetadata(client, path = "profile")!!.apply {
+                entryId shouldBe firstAsset?.entryId
+            }
+            fetchAssetMetadata(
+                client,
+                path = "profile",
+                entryId = secondAsset!!.entryId,
+                expectedStatus = HttpStatusCode.NotFound,
+            )
+        }
+
+    @Test
+    fun `can delete assets by path and order and limit`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+
+            deleteAssetsAtPath(client, path = "profile", orderBy = OrderBy.CREATED, limit = 2)
+
+            fetchAssetMetadata(client, path = "profile")!!.apply {
+                entryId shouldBe firstAsset?.entryId
+            }
+            fetchAssetMetadata(
+                client,
+                path = "profile",
+                entryId = secondAsset!!.entryId,
+                expectedStatus = HttpStatusCode.NotFound,
+            )
+            fetchAssetMetadata(
+                client,
+                path = "profile",
+                entryId = thirdAsset!!.entryId,
+                expectedStatus = HttpStatusCode.NotFound,
+            )
+        }
+
+    @Test
     fun `cannot supply invalid entryId when deleting asset`() =
         testInMemory {
             val client = createJsonClient()
@@ -116,7 +175,7 @@ class DeleteAssetTest {
             val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
             val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
 
-            client.delete("/assets/user/123/-/children").status shouldBe HttpStatusCode.NoContent
+            client.delete("/assets/user/123/-/all").status shouldBe HttpStatusCode.NoContent
 
             fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
             fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)

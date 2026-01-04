@@ -1,6 +1,5 @@
 package io.direkt.service.context
 
-import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip
@@ -39,6 +38,7 @@ class RequestContextFactory(
         const val ASSET_PATH_PREFIX = "/assets"
         const val ENTRY_ID_MODIFIER = "ENTRY"
         const val NO_LIMIT_MODIFIER = "ALL"
+        const val RECURSIVE_MODIFIER = "RECURSIVE"
     }
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -155,25 +155,39 @@ class RequestContextFactory(
             try {
                 when (deleteModifierSegments.size) {
                     2 -> {
-                        if (deleteModifierSegments[0] != ENTRY_ID_MODIFIER) {
+                        if (deleteModifierSegments[0] == ENTRY_ID_MODIFIER) {
+                            DeleteModifiers(
+                                entryId = deleteModifierSegments[1].toNonNegativeLong(),
+                            )
+                        } else {
+                            DeleteModifiers(
+                                orderBy = OrderBy.valueOf(deleteModifierSegments[0]),
+                                limit = toLimit(deleteModifierSegments[1]),
+                            )
+                        }
+                    }
+                    1 -> {
+                        if (deleteModifierSegments[0] == RECURSIVE_MODIFIER) {
+                            DeleteModifiers(
+                                recursive = true,
+                            )
+                        } else if (OrderBy.valueOfOrNull(deleteModifierSegments[0]) != null) {
+                            DeleteModifiers(
+                                orderBy = OrderBy.valueOf(deleteModifierSegments[0]),
+                            )
+                        } else if (deleteModifierSegments[0] == NO_LIMIT_MODIFIER || deleteModifierSegments[0].toIntOrNull() != null) {
+                            DeleteModifiers(
+                                limit = toLimit(deleteModifierSegments[0]),
+                            )
+                        } else {
                             throw InvalidDeleteModifiersException("Invalid delete modifiers: $deleteModifierSegments")
                         }
-                        DeleteModifiers(
-                            entryId = deleteModifierSegments[1].toNonNegativeLong(),
-                        )
                     }
-                    1 ->
-                        DeleteModifiers(
-                            mode = DeleteMode.valueOf(deleteModifierSegments[0]),
-                        )
                     else -> DeleteModifiers()
                 }
             } catch (e: Exception) {
                 throw InvalidDeleteModifiersException("Invalid delete modifiers: $deleteModifierSegments", e)
             }
-        if (deleteModifiers.entryId != null && deleteModifiers.mode != DeleteMode.SINGLE) {
-            throw InvalidDeleteModifiersException("Cannot supply an entryId and mode of: ${deleteModifiers.mode}")
-        }
         logger.info("Parsed delete modifiers for path: $path - $deleteModifiers")
 
         return deleteModifiers
@@ -354,10 +368,10 @@ class RequestContextFactory(
             .map { Pair(it.key.substringAfter("label:"), it.value) }
             .associate { it.first to it.second.first() }
 
-    private fun toLimit(modifier: String): Int =
-        if (modifier == NO_LIMIT_MODIFIER) {
+    private fun toLimit(segment: String): Int =
+        if (segment == NO_LIMIT_MODIFIER) {
             -1
         } else {
-            modifier.toPositiveInt()
+            segment.toPositiveInt()
         }
 }

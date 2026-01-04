@@ -14,6 +14,7 @@ import io.direkt.service.context.OrderBy
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.date.shouldBeAfter
@@ -124,22 +125,23 @@ abstract class AssetRepositoryTest {
         @Test
         fun `entryId is always the next highest value`() =
             runTest {
-                val pending1 = createPendingAsset()
-                val pending2 = createPendingAsset()
-                val persisted1 = repository.storeNew(pending1)
-                val persisted2 = repository.storeNew(pending2)
+                val persisted1 = repository.storeNew(createPendingAsset())
+                val persisted2 = repository.storeNew(createPendingAsset())
                 persisted1.entryId shouldBe 0
                 persisted2.entryId shouldBe 1
-                repository.deleteAssetByPath(persisted1.path)
+                repository.deleteByPath(
+                    path = persisted1.path,
+                    entryId = persisted1.entryId!!,
+                )
 
                 val pending3 = createPendingAsset()
                 val persisted3 = repository.storeNew(pending3)
-                persisted3.entryId shouldBe 1
+                persisted3.entryId shouldBe 2
 
-                repository.deleteAssetByPath(persisted1.path, entryId = persisted1.entryId!!)
+                repository.deleteByPath(persisted2.path, entryId = persisted2.entryId!!)
                 val pending4 = createPendingAsset()
                 val persisted4 = repository.storeNew(pending4)
-                persisted4.entryId shouldBe 2
+                persisted4.entryId shouldBe 3
             }
     }
 
@@ -877,83 +879,230 @@ abstract class AssetRepositoryTest {
     @Nested
     inner class DeleteByPathTests {
         @Test
-        fun `deleteAssetByPath deletes the asset`() =
+        fun `deletes an asset`() =
             runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.deleteAssetByPath("/users/123")
+                val ready =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val deleteResponse =
+                    repository.deleteByPath(
+                        path = "/users/123",
+                        entryId = 0,
+                    )
+                deleteResponse shouldHaveSize 1
+                deleteResponse.first().apply {
+                    bucket shouldBe ready.variants.first().objectStoreBucket
+                    key shouldBe ready.variants.first().objectStoreKey
+                }
 
-                repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath("/users/123", entryId = null, transformation = null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(
+                    "/users/123",
+                    entryId = null,
+                    transformation = null,
+                    OrderBy.CREATED,
+                ) shouldBe null
             }
 
         @Test
-        fun `deleteAssetByPath returns does nothing if asset does not exist`() =
+        fun `returns does nothing if no assets exist in path`() =
             runTest {
                 shouldNotThrowAny {
-                    repository.deleteAssetByPath("/users/123")
-                }
+                    repository.deleteByPath(
+                        path = "/users/123",
+                        entryId = 0,
+                    )
+                } shouldHaveSize 0
             }
 
         @Test
-        fun `deleteAssetByPath returns does nothing if asset does not exist at specific entryId`() =
+        fun `returns does nothing if asset does not exist at specific entryId`() =
             runTest {
                 val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
+                val ready =
+                    repository
+                        .storeNew(pending)
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
                 shouldNotThrowAny {
-                    repository.deleteAssetByPath("/users/123", entryId = 1)
-                }
-                repository.markReady(persisted.markReady(LocalDateTime.now()))
+                    repository.deleteByPath("/users/123", entryId = 1)
+                } shouldHaveSize 0
 
-                repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)?.id shouldBe
-                    persisted.id
+                repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED)?.id shouldBe
+                    ready.id
                 repository.fetchAllByPath("/users/123", null, limit = 10).apply {
                     this shouldHaveSize 1
-                    first().id shouldBe persisted.id
+                    first().id shouldBe ready.id
                 }
             }
+    }
+
+    @Nested
+    inner class DeleteAllByPathTests {
+        @Test
+        fun `limit is respected when deleting assets at path`() =
+            runTest {
+                val ready1 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready2 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResult = repository.deleteAllByPath("/users/123", limit = 1)
+                deleteResult shouldHaveSize 1
+                deleteResult.forExactly(1) {
+                    it.bucket shouldBe ready2.variants.first().objectStoreBucket
+                    it.key shouldBe ready2.variants.first().objectStoreKey
+                }
+
+                repository.fetchByPath(
+                    path = ready1.path,
+                    entryId = ready1.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldNotBe null
+                repository.fetchByPath(
+                    path = ready2.path,
+                    entryId = ready2.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe null
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    limit = 10,
+                ) shouldHaveSize 1
+            }
 
         @Test
-        fun `deleteAssetsByPath deletes all assets at path`() =
+        fun `deletes all assets at path`() =
             runTest {
-                val pending1 = createPendingAsset()
-                val pending2 = createPendingAsset()
-                val persisted1 = repository.storeNew(pending1)
-                val persisted2 = repository.storeNew(pending2)
+                val ready1 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready2 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
 
-                repository.deleteAssetsByPath("/users/123", recursive = false)
+                repository.deleteAllByPath("/users/123", limit = -1)
 
-                repository.fetchByPath(persisted1.path, persisted1.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(persisted2.path, persisted2.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
             }
 
         @Test
-        fun `deleteAssetsByPath deletes all assets at path and under if recursive delete`() =
+        fun `orderBy is respected when deleting assets at path`() =
             runTest {
-                val pending1 = createPendingAsset()
-                val pending2 = createPendingAsset()
-                val pending3 = createPendingAsset(path = "users/123/profile")
-                val persisted1 = repository.storeNew(pending1)
-                val persisted2 = repository.storeNew(pending2)
-                val persisted3 = repository.storeNew(pending3)
+                val ready1 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also {
+                            repository.markReady(it)
+                        }
+                val ready2 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also {
+                            repository.markReady(it)
+                        }
+                val updated =
+                    repository.update(
+                        ready1.update(
+                            alt = "updated",
+                            labels = emptyMap(),
+                            tags = emptySet(),
+                        ),
+                    )
+                updated.modifiedAt shouldBeAfter ready1.modifiedAt
 
-                repository.deleteAssetsByPath("/users/123", recursive = true)
+                val deleteResult = repository.deleteAllByPath("/users/123", limit = 1, orderBy = OrderBy.MODIFIED)
+                deleteResult shouldHaveSize 1
+                deleteResult.forExactly(1) {
+                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
+                    it.key shouldBe ready1.variants.first().objectStoreKey
+                }
 
-                repository.fetchByPath(persisted1.path, persisted1.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(persisted2.path, persisted2.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(persisted3.path, persisted3.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
-                repository.fetchAllByPath("users/123/profile", null, limit = 10) shouldBe emptyList()
+                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldNotBe null
+                repository.fetchAllByPath("/users/123", null, limit = 10) shouldHaveSize 1
             }
 
-        @ParameterizedTest
-        @ValueSource(booleans = [true, false])
-        fun `deleteAssetsByPath does nothing if nothing exists at path`(recursive: Boolean) =
+        @Test
+        fun `does nothing if nothing exists at path`() =
             runTest {
                 shouldNotThrowAny {
-                    repository.deleteAssetsByPath("/users/123", recursive)
+                    repository.deleteAllByPath(
+                        path = "/users/123",
+                        limit = -1,
+                    )
+                } shouldHaveSize 0
+            }
+    }
+
+    @Nested
+    inner class DeleteRecursivelyByPathTests {
+        @Test
+        fun `deletes all assets at path recursively`() =
+            runTest {
+                val ready1 =
+                    repository
+                        .storeNew(createPendingAsset(path = "users/123"))
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready2 =
+                    repository
+                        .storeNew(createPendingAsset(path = "users/123"))
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready3 =
+                    repository
+                        .storeNew(createPendingAsset(path = "users/123/profile"))
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResponse = repository.deleteRecursivelyByPath("/users/123")
+                deleteResponse.forExactly(1) {
+                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
+                    it.key shouldBe ready1.variants.first().objectStoreKey
                 }
+                deleteResponse.forExactly(1) {
+                    it.bucket shouldBe ready2.variants.first().objectStoreBucket
+                    it.key shouldBe ready2.variants.first().objectStoreKey
+                }
+                deleteResponse.forExactly(1) {
+                    it.bucket shouldBe ready3.variants.first().objectStoreBucket
+                    it.key shouldBe ready3.variants.first().objectStoreKey
+                }
+
+                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready3.path, ready3.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchAllByPath("/users/123", null, limit = -1) shouldBe emptyList()
+                repository.fetchAllByPath("users/123/profile", null, limit = -1) shouldBe emptyList()
+            }
+
+        @Test
+        fun `does nothing if nothing exists at path`() =
+            runTest {
+                shouldNotThrowAny {
+                    repository.deleteRecursivelyByPath(
+                        path = "/users/123",
+                    )
+                } shouldHaveSize 0
             }
     }
 

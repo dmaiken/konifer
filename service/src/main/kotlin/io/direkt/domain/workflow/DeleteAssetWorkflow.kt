@@ -1,7 +1,7 @@
 package io.direkt.domain.workflow
 
-import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.ports.AssetRepository
+import io.direkt.service.context.DeleteRequestContext
 import io.ktor.util.logging.KtorSimpleLogger
 
 class DeleteAssetWorkflow(
@@ -9,27 +9,27 @@ class DeleteAssetWorkflow(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun deleteAsset(
-        uriPath: String,
-        entryId: Long? = null,
-    ) {
-        if (entryId == null) {
-            logger.info("Deleting asset with path: $uriPath")
+    suspend fun deleteAssets(context: DeleteRequestContext) {
+        if (context.modifiers.entryId != null) {
+            logger.info("Deleting asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
+            assetRepository.deleteByPath(
+                path = context.path,
+                entryId = context.modifiers.entryId,
+            )
+        } else if (context.modifiers.recursive) {
+            logger.info("Deleting assets recursively at path: ${context.path}")
+            assetRepository.deleteRecursivelyByPath(
+                path = context.path,
+            )
         } else {
-            logger.info("Deleting asset with path: $uriPath and entry id: $entryId")
+            logger.info(
+                "Deleting assets at path: ${context.path} ordering by: ${context.modifiers.orderBy} and limit: ${context.modifiers.limit}",
+            )
+            assetRepository.deleteAllByPath(
+                path = context.path,
+                orderBy = context.modifiers.orderBy,
+                limit = context.modifiers.limit,
+            )
         }
-        assetRepository.deleteAssetByPath(uriPath, entryId)
-    }
-
-    suspend fun deleteAssets(
-        uriPath: String,
-        mode: DeleteMode,
-    ) {
-        when (mode) {
-            DeleteMode.SINGLE -> throw IllegalArgumentException("Delete mode of: $mode not allowed")
-            DeleteMode.CHILDREN -> logger.info("Deleting assets at path: $uriPath")
-            DeleteMode.RECURSIVE -> logger.info("Deleting assets at path: $uriPath and all underneath it!")
-        }
-        assetRepository.deleteAssetsByPath(uriPath, mode == DeleteMode.RECURSIVE)
     }
 }

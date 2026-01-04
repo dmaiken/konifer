@@ -2,7 +2,6 @@ package io.direkt.infrastructure.http.route
 
 import io.direkt.domain.asset.AssetAndLocation
 import io.direkt.domain.asset.AssetDataContainer
-import io.direkt.domain.asset.DeleteMode
 import io.direkt.domain.asset.MAX_BYTES_DEFAULT
 import io.direkt.domain.workflow.DeleteAssetWorkflow
 import io.direkt.domain.workflow.FetchAssetHandler
@@ -174,12 +173,7 @@ fun Application.configureAssetRouting() {
 
         delete("$ASSET_PATH_PREFIX/{...}") {
             val requestContext = requestContextFactory.fromDeleteRequest(call.request.path())
-            logger.info("Deleting asset with path: ${requestContext.path}")
-            if (requestContext.modifiers.mode != DeleteMode.SINGLE) {
-                deleteAssetWorkflow.deleteAssets(requestContext.path, requestContext.modifiers.mode)
-            } else {
-                deleteAssetWorkflow.deleteAsset(requestContext.path, requestContext.modifiers.entryId)
-            }
+            deleteAssetWorkflow.deleteAssets(requestContext)
 
             call.respond(HttpStatusCode.NoContent)
         }

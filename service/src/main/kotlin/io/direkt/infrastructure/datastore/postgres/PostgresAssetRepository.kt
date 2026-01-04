@@ -17,7 +17,6 @@ import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -254,25 +253,13 @@ class PostgresAssetRepository(
             .toList()
     }
 
-    override suspend fun deleteAssetByPath(
+    override suspend fun deleteByPath(
         path: String,
-        entryId: Long?,
+        entryId: Long,
     ): List<VariantBucketAndKey> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val objectStoreInformation =
             dslContext.transactionCoroutine { trx ->
-                val entryIdCondition =
-                    entryId?.let {
-                        ASSET_TREE.ENTRY_ID.eq(entryId)
-                    } ?: ASSET_TREE.ENTRY_ID.eq(
-                        trx
-                            .dsl()
-                            .select(ASSET_TREE.ENTRY_ID)
-                            .from(ASSET_TREE)
-                            .where(ASSET_TREE.PATH.eq(treePath))
-                            .orderBy(ASSET_TREE.CREATED_AT.desc())
-                            .limit(1),
-                    )
                 val variantObjectStoreInformation =
                     trx
                         .dsl()
@@ -281,7 +268,7 @@ class PostgresAssetRepository(
                         .join(ASSET_VARIANT)
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .where(ASSET_TREE.PATH.eq(treePath))
-                        .and(entryIdCondition)
+                        .and(ASSET_TREE.ENTRY_ID.eq(entryId))
                         .asFlow()
                         .map {
                             VariantBucketAndKey(
@@ -289,61 +276,95 @@ class PostgresAssetRepository(
                                 key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
                             )
                         }.toList()
-
-                trx
-                    .dsl()
-                    .deleteFrom(ASSET_TREE)
-                    .where(ASSET_TREE.PATH.eq(treePath))
-                    .and(entryIdCondition)
-                    .awaitFirstOrNull()
-
+                if (variantObjectStoreInformation.isNotEmpty()) {
+                    trx
+                        .dsl()
+                        .deleteFrom(ASSET_TREE)
+                        .where(ASSET_TREE.PATH.eq(treePath))
+                        .and(ASSET_TREE.ENTRY_ID.eq(entryId))
+                        .awaitFirst()
+                }
                 variantObjectStoreInformation
             }
         return objectStoreInformation
     }
 
-    override suspend fun deleteAssetsByPath(
+    override suspend fun deleteAllByPath(
         path: String,
-        recursive: Boolean,
-    ) = coroutineScope {
+        orderBy: OrderBy,
+        limit: Int,
+    ): List<VariantBucketAndKey> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val deletedAssets =
             dslContext.transactionCoroutine { trx ->
-                val objectStoreInformation =
+                val assetsToDelete =
                     trx
                         .dsl()
-                        .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+                        .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
                         .from(ASSET_TREE)
                         .join(ASSET_VARIANT)
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                        .where(ASSET_TREE.PATH.eq(treePath))
+                        .orderBy(*orderByConditions(orderBy))
                         .let {
-                            if (recursive) {
-                                it.where(ASSET_TREE.PATH.contains(treePath))
+                            if (limit > 0) {
+                                it.limit(limit)
                             } else {
-                                it.where(ASSET_TREE.PATH.eq(treePath))
+                                it
                             }
                         }.asFlow()
-                        .map {
-                            VariantBucketAndKey(
-                                bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                                key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                            )
-                        }.toList()
+                        .toList()
+
+                val amountDeleted =
+                    trx
+                        .dsl()
+                        .deleteFrom(ASSET_TREE)
+                        .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
+                        .awaitFirst()
+
+                logger.info("Deleted $amountDeleted assets from database")
+
+                assetsToDelete.map {
+                    VariantBucketAndKey(
+                        bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
+                        key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
+                    )
+                }
+            }
+
+        return deletedAssets
+    }
+
+    override suspend fun deleteRecursivelyByPath(path: String): List<VariantBucketAndKey> {
+        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val deletedAssets =
+            dslContext.transactionCoroutine { trx ->
+                val assetsToDelete =
+                    trx
+                        .dsl()
+                        .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+                        .from(ASSET_TREE)
+                        .join(ASSET_VARIANT)
+                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                        .where(ASSET_TREE.PATH.contains(treePath))
+                        .asFlow()
+                        .toList()
 
                 trx
                     .dsl()
                     .deleteFrom(ASSET_TREE)
-                    .let {
-                        if (recursive) {
-                            it.where(ASSET_TREE.PATH.contains(treePath))
-                        } else {
-                            it.where(ASSET_TREE.PATH.eq(treePath))
-                        }
-                    }.awaitFirstOrNull()
-                objectStoreInformation
+                    .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
+                    .awaitFirstOrNull()
+
+                assetsToDelete.map {
+                    VariantBucketAndKey(
+                        bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
+                        key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
+                    )
+                }
             }
 
-        deletedAssets
+        return deletedAssets
     }
 
     override suspend fun update(asset: Asset): Asset {
