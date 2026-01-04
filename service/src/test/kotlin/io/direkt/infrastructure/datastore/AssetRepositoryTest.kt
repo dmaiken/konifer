@@ -1042,6 +1042,95 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `deletes nothing if no assets have supplied labels`() =
+            runTest {
+                val ready =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                labels = mapOf("animal" to "cat"),
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "dog"), limit = 1)
+                deleteResult shouldHaveSize 0
+
+                repository.fetchByPath(
+                    path = ready.path,
+                    entryId = ready.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldNotBe null
+            }
+
+        @Test
+        fun `deletes asset if it contains a superset of supplied labels`() =
+            runTest {
+                val ready =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                labels = mapOf("animal" to "cat", "phone" to "iphone"),
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
+                deleteResult shouldHaveSize 1
+
+                repository.fetchByPath(
+                    path = ready.path,
+                    entryId = ready.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe null
+            }
+
+        @Test
+        fun `deletes assets with supplied labels`() =
+            runTest {
+                val ready1 =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                labels = mapOf("animal" to "cat"),
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready2 =
+                    repository
+                        .storeNew(createPendingAsset())
+                        .markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
+                deleteResult shouldHaveSize 1
+                deleteResult.forExactly(1) {
+                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
+                    it.key shouldBe ready1.variants.first().objectStoreKey
+                }
+
+                repository.fetchByPath(
+                    path = ready1.path,
+                    entryId = ready1.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe null
+                repository.fetchByPath(
+                    path = ready2.path,
+                    entryId = ready2.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldNotBe null
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    limit = 10,
+                ) shouldHaveSize 1
+            }
+
+        @Test
         fun `does nothing if nothing exists at path`() =
             runTest {
                 shouldNotThrowAny {
@@ -1093,6 +1182,81 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(ready3.path, ready3.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = -1) shouldBe emptyList()
                 repository.fetchAllByPath("users/123/profile", null, limit = -1) shouldBe emptyList()
+            }
+
+        @Test
+        fun `deletes assets recursively with supplied labels`() =
+            runTest {
+                val ready1 =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                path = "/users/123",
+                                labels = mapOf("animal" to "cat"),
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready2 =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                path = "/users/123",
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready3 =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                labels = mapOf("animal" to "cat"),
+                                path = "/users/123/photo",
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+                val ready4 =
+                    repository
+                        .storeNew(
+                            createPendingAsset(
+                                path = "/users/123/photo",
+                            ),
+                        ).markReady(LocalDateTime.now())
+                        .also { repository.markReady(it) }
+
+                val deleteResult = repository.deleteRecursivelyByPath("/users/123", labels = mapOf("animal" to "cat"))
+                deleteResult shouldHaveSize 2
+                deleteResult.forExactly(1) {
+                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
+                    it.key shouldBe ready1.variants.first().objectStoreKey
+                }
+                deleteResult.forExactly(1) {
+                    it.bucket shouldBe ready3.variants.first().objectStoreBucket
+                    it.key shouldBe ready3.variants.first().objectStoreKey
+                }
+
+                repository.fetchByPath(
+                    path = ready1.path,
+                    entryId = ready1.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe null
+                repository.fetchByPath(
+                    path = ready2.path,
+                    entryId = ready2.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldNotBe null
+                repository.fetchByPath(
+                    path = ready3.path,
+                    entryId = ready3.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldBe null
+                repository.fetchByPath(
+                    path = ready4.path,
+                    entryId = ready4.entryId,
+                    transformation = null,
+                    orderBy = OrderBy.CREATED,
+                ) shouldNotBe null
             }
 
         @Test

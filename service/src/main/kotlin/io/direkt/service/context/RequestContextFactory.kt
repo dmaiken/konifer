@@ -95,12 +95,16 @@ class RequestContextFactory(
         )
     }
 
-    fun fromDeleteRequest(path: String): DeleteRequestContext {
+    fun fromDeleteRequest(
+        path: String,
+        queryParameters: Parameters,
+    ): DeleteRequestContext {
         val segments = extractPathSegments(path)
 
         return DeleteRequestContext(
             path = segments.first(),
             modifiers = extractDeleteModifiers(segments.getOrNull(1)),
+            labels = extractLabels(queryParameters),
         )
     }
 

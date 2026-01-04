@@ -172,7 +172,7 @@ fun Application.configureAssetRouting() {
         }
 
         delete("$ASSET_PATH_PREFIX/{...}") {
-            val requestContext = requestContextFactory.fromDeleteRequest(call.request.path())
+            val requestContext = requestContextFactory.fromDeleteRequest(call.request.path(), call.queryParameters)
             deleteAssetWorkflow.deleteAssets(requestContext)
 
             call.respond(HttpStatusCode.NoContent)

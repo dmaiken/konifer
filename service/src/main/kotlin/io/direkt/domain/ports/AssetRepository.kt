@@ -44,15 +44,16 @@ interface AssetRepository {
      *
      * @param transformation null means fetch all variants and any transformations that has [Transformation.originalVariant] == true
      * will fetch the original variant regardless of the rest of the transformation parameters.
-     * @param orderBy sorts the assets at the [path] before applying the [limit]
+     *
      * @param labels filters assets at the path before sorting and applying the [limit]
+     * @param orderBy sorts the assets at the [path] before applying the [limit]
      * @param limit the maximum amount of assets to return. -1 means no limit.
      */
     suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
-        orderBy: OrderBy = OrderBy.CREATED,
         labels: Map<String, String> = emptyMap(),
+        orderBy: OrderBy = OrderBy.CREATED,
         limit: Int,
     ): List<AssetData>
 
@@ -63,11 +64,15 @@ interface AssetRepository {
 
     suspend fun deleteAllByPath(
         path: String,
+        labels: Map<String, String> = emptyMap(),
         orderBy: OrderBy = OrderBy.CREATED,
         limit: Int,
     ): List<VariantBucketAndKey>
 
-    suspend fun deleteRecursivelyByPath(path: String): List<VariantBucketAndKey>
+    suspend fun deleteRecursivelyByPath(
+        path: String,
+        labels: Map<String, String> = emptyMap(),
+    ): List<VariantBucketAndKey>
 
     /**
      * @throws IllegalStateException if asset cannot be found with the given path and entryId

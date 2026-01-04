@@ -454,17 +454,38 @@ suspend fun deleteAsset(
 suspend fun deleteAssetsAtPath(
     client: HttpClient,
     path: String = "profile",
+    labels: Map<String, String> = emptyMap(),
     orderBy: OrderBy = OrderBy.CREATED,
     limit: Int = 1,
+    all: Boolean = false,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
 ) {
     val limit =
-        if (limit == -1) {
+        if (all) {
             "all"
         } else {
             limit.toString()
         }
-    client.delete("/assets/$path/-/$orderBy/$limit").status shouldBe expectedStatusCode
+    val urlBuilder = URLBuilder()
+    urlBuilder.path("/assets/$path/-/$orderBy/$limit")
+    labels.forEach { label ->
+        urlBuilder.parameters.append(label.key, label.value)
+    }
+    client.delete(urlBuilder.build()).status shouldBe expectedStatusCode
+}
+
+suspend fun deleteAssetsRecursivelyAtPath(
+    client: HttpClient,
+    path: String = "profile",
+    labels: Map<String, String> = emptyMap(),
+    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
+) {
+    val urlBuilder = URLBuilder()
+    urlBuilder.path("/assets/$path/-/recursive")
+    labels.forEach { label ->
+        urlBuilder.parameters.append(label.key, label.value)
+    }
+    client.delete(urlBuilder.build()).status shouldBe expectedStatusCode
 }
 
 suspend fun updateAsset(

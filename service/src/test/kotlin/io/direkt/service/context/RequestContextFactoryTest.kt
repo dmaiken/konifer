@@ -807,7 +807,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             path: String,
             deleteModifiers: DeleteModifiers,
         ) {
-            val context = requestContextFactory.fromDeleteRequest(path)
+            val context = requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
 
             context.modifiers shouldBe deleteModifiers
         }
@@ -815,7 +815,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `can fetch DELETE request context with entryId`() =
             runTest {
-                val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10")
+                val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10", Parameters.Empty)
 
                 context.modifiers shouldBe
                     DeleteModifiers(
@@ -837,7 +837,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         )
         fun `throws when DELETE query modifiers are invalid`(path: String) {
             shouldThrow<InvalidDeleteModifiersException> {
-                requestContextFactory.fromDeleteRequest(path)
+                requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
             }
         }
 
@@ -850,7 +850,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         )
         fun `entryId must be positive when fetching DELETE request context`(path: String) {
             shouldThrow<InvalidDeleteModifiersException> {
-                requestContextFactory.fromDeleteRequest(path)
+                requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
             }
         }
 
@@ -859,7 +859,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             val path = "/assets/profile/-/-/1/"
             val exception =
                 shouldThrow<InvalidPathException> {
-                    requestContextFactory.fromDeleteRequest(path)
+                    requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
                 }
             exception.message shouldBe "$path has more than one '-' segment"
         }
@@ -876,10 +876,36 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `throws if DELETE uri path does not start with correct prefix`(path: String) {
             val exception =
                 shouldThrow<InvalidPathException> {
-                    requestContextFactory.fromDeleteRequest(path)
+                    requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
                 }
 
             exception.message shouldBe "Asset path must start with: /assets"
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "/assets/profile/-/created/10/",
+                "/assets/profile/-/recursive",
+            ],
+        )
+        fun `labels are added to delete context if supplied`(path: String) {
+            val context =
+                requestContextFactory.fromDeleteRequest(
+                    path,
+                    ParametersBuilder(6)
+                        .apply {
+                            append("phone", "iphone")
+                            append("case", "soft")
+                            append("label:h", "hello")
+                        }.build(),
+                )
+            context.labels shouldContainExactly
+                mapOf(
+                    "phone" to "iphone",
+                    "case" to "soft",
+                    "h" to "hello",
+                )
         }
     }
 

@@ -17,16 +17,19 @@ class DeleteAssetWorkflow(
                 entryId = context.modifiers.entryId,
             )
         } else if (context.modifiers.recursive) {
-            logger.info("Deleting assets recursively at path: ${context.path}")
+            logger.info("Deleting assets recursively at path: ${context.path} with labels: ${context.labels}")
             assetRepository.deleteRecursivelyByPath(
                 path = context.path,
+                labels = context.labels,
             )
         } else {
             logger.info(
-                "Deleting assets at path: ${context.path} ordering by: ${context.modifiers.orderBy} and limit: ${context.modifiers.limit}",
+                "Deleting assets at path: ${context.path} with labels: ${context.labels} ordering by: ${context.modifiers.orderBy}" +
+                    " and limit: ${context.modifiers.limit}",
             )
             assetRepository.deleteAllByPath(
                 path = context.path,
+                labels = context.labels,
                 orderBy = context.modifiers.orderBy,
                 limit = context.modifiers.limit,
             )

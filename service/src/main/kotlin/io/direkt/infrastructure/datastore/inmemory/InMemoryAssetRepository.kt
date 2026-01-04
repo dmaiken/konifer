@@ -12,6 +12,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
+import kotlin.text.get
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -116,8 +117,8 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
-        orderBy: OrderBy,
         labels: Map<String, String>,
+        orderBy: OrderBy,
         limit: Int,
     ): List<AssetData> =
         fetchAll(
@@ -157,19 +158,20 @@ class InMemoryAssetRepository : AssetRepository {
 
     override suspend fun deleteAllByPath(
         path: String,
+        labels: Map<String, String>,
         orderBy: OrderBy,
         limit: Int,
     ): List<VariantBucketAndKey> {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
         val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
-        logger.info("Deleting assets at path: $inMemoryPath")
+        logger.info("Deleting assets at path: $inMemoryPath, labels: $labels, orderBy: $orderBy, limit: $limit")
         val assetsToDelete =
             fetchAll(
                 path = path,
                 orderBy = orderBy,
                 transformation = null,
                 limit = limit,
-                labels = emptyMap(),
+                labels = labels,
                 includeOnlyReady = false,
             )
         assetsToDelete.forEach {
@@ -185,19 +187,29 @@ class InMemoryAssetRepository : AssetRepository {
         return objectStoreInformation.toList()
     }
 
-    override suspend fun deleteRecursivelyByPath(path: String): List<VariantBucketAndKey> {
+    override suspend fun deleteRecursivelyByPath(
+        path: String,
+        labels: Map<String, String>,
+    ): List<VariantBucketAndKey> {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
         val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
-        logger.info("Deleting assets (recursively) at path: $inMemoryPath")
+        logger.info("Deleting assets (recursively) at path: $inMemoryPath with labels: $labels")
         store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
-            val assetAndVariants = store[path]
-            assetAndVariants?.forEach {
-                objectStoreInformation.addAll(mapToBucketAndKey(it))
-            }
-            assetAndVariants?.map { it.id }?.forEach {
+            val assetAndVariants = store[path] ?: emptyList()
+            val assetsToDelete =
+                assetAndVariants
+                    .filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
+                    .also { assets ->
+                        assets.forEach {
+                            objectStoreInformation.addAll(mapToBucketAndKey(it))
+                        }
+                    }
+            assetsToDelete.map { it.id }.forEach {
                 idReference.remove(it)
             }
-            store.remove(path)
+            store[path]?.let { assets ->
+                assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
+            }
         }
 
         return objectStoreInformation.toList()

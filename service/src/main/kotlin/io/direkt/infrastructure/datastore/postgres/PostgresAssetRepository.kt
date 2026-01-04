@@ -207,8 +207,8 @@ class PostgresAssetRepository(
     override suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
-        orderBy: OrderBy,
         labels: Map<String, String>,
+        orderBy: OrderBy,
         limit: Int,
     ): List<AssetData> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
@@ -291,6 +291,7 @@ class PostgresAssetRepository(
 
     override suspend fun deleteAllByPath(
         path: String,
+        labels: Map<String, String>,
         orderBy: OrderBy,
         limit: Int,
     ): List<VariantBucketAndKey> {
@@ -304,8 +305,12 @@ class PostgresAssetRepository(
                         .from(ASSET_TREE)
                         .join(ASSET_VARIANT)
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
-                        .where(ASSET_TREE.PATH.eq(treePath))
-                        .orderBy(*orderByConditions(orderBy))
+                        .where(
+                            appendLabelConditions(
+                                whereCondition = ASSET_TREE.PATH.eq(treePath),
+                                labels = labels,
+                            ),
+                        ).orderBy(*orderByConditions(orderBy))
                         .let {
                             if (limit > 0) {
                                 it.limit(limit)
@@ -335,7 +340,10 @@ class PostgresAssetRepository(
         return deletedAssets
     }
 
-    override suspend fun deleteRecursivelyByPath(path: String): List<VariantBucketAndKey> {
+    override suspend fun deleteRecursivelyByPath(
+        path: String,
+        labels: Map<String, String>,
+    ): List<VariantBucketAndKey> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val deletedAssets =
             dslContext.transactionCoroutine { trx ->
@@ -346,8 +354,12 @@ class PostgresAssetRepository(
                         .from(ASSET_TREE)
                         .join(ASSET_VARIANT)
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
-                        .where(ASSET_TREE.PATH.contains(treePath))
-                        .asFlow()
+                        .where(
+                            appendLabelConditions(
+                                whereCondition = ASSET_TREE.PATH.contains(treePath),
+                                labels = labels,
+                            ),
+                        ).asFlow()
                         .toList()
 
                 trx

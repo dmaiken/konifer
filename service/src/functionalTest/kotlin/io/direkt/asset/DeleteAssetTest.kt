@@ -7,6 +7,7 @@ import io.direkt.util.assertAssetDoesNotExist
 import io.direkt.util.createJsonClient
 import io.direkt.util.deleteAsset
 import io.direkt.util.deleteAssetsAtPath
+import io.direkt.util.deleteAssetsRecursivelyAtPath
 import io.direkt.util.fetchAssetMetadata
 import io.direkt.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -207,6 +208,70 @@ class DeleteAssetTest {
             fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
             fetchAssetMetadata(client, "user/123/profile", thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
             fetchAssetMetadata(client, "user/123/profile/other", fourthAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+
+            fetchAssetMetadata(client, "user")
+            fetchAssetMetadata(client, "user", entryId = control!!.entryId)
+        }
+
+    @Test
+    fun `can delete assets at path by labels`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val requestWithLabels =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = mapOf("phone" to "iphone"),
+                )
+            val requestWithoutLabels =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            val firstAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123").second
+            val control = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123/profile").second
+
+            deleteAssetsAtPath(
+                client = client,
+                path = "user/123",
+                all = true,
+                labels = mapOf("phone" to "iphone"),
+            )
+
+            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
+
+            fetchAssetMetadata(client, "user/123/profile", control!!.entryId)
+            fetchAssetMetadata(client, "user/123/profile")
+        }
+
+    @Test
+    fun `can delete assets recursively at path by labels`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val requestWithLabels =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = mapOf("phone" to "iphone"),
+                )
+            val requestWithoutLabels = StoreAssetRequest()
+            val control = storeAssetMultipartSource(client, image, requestWithLabels, path = "user").second
+            val firstAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123").second
+            val secondAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123").second
+            val thirdAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123/profile").second
+            val fourthAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123/profile/other").second
+
+            deleteAssetsRecursivelyAtPath(
+                client = client,
+                path = "user/123",
+                labels = mapOf("phone" to "iphone"),
+            )
+
+            fetchAssetMetadata(client, "user/123", entryId = firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123", entryId = secondAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
+            fetchAssetMetadata(client, "user/123/profile", entryId = thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, "user/123/profile/other", entryId = fourthAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
 
             fetchAssetMetadata(client, "user")
             fetchAssetMetadata(client, "user", entryId = control!!.entryId)
