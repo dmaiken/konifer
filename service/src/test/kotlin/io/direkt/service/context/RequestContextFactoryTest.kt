@@ -124,6 +124,20 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
+                    "/assets/profile/-/metadata/created/all",
+                    QueryModifiers(
+                        returnFormat = ReturnFormat.METADATA,
+                        orderBy = OrderBy.CREATED,
+                        limit = -1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                orderBy = true,
+                                limit = true,
+                            ),
+                    ),
+                ),
+                arguments(
                     "/assets/profile/-/created/10",
                     QueryModifiers(
                         returnFormat = ReturnFormat.LINK,
@@ -163,11 +177,36 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
+                    "/assets/profile/-/metadata/all",
+                    QueryModifiers(
+                        returnFormat = ReturnFormat.METADATA,
+                        orderBy = OrderBy.CREATED,
+                        limit = -1,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                returnFormat = true,
+                                limit = true,
+                            ),
+                    ),
+                ),
+                arguments(
                     "/assets/profile/-/10",
                     QueryModifiers(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
+                        specifiedModifiers =
+                            SpecifiedInRequest(
+                                limit = true,
+                            ),
+                    ),
+                ),
+                arguments(
+                    "/assets/profile/-/all",
+                    QueryModifiers(
+                        returnFormat = ReturnFormat.LINK,
+                        orderBy = OrderBy.CREATED,
+                        limit = -1,
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 limit = true,

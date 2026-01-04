@@ -418,8 +418,15 @@ suspend fun fetchAllAssetMetadata(
     path: String,
     orderBy: OrderBy = OrderBy.CREATED,
     limit: Int = 1,
+    all: Boolean = false,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
+    val limit =
+        if (all) {
+            "all"
+        } else {
+            limit.toString()
+        }
     val requestPath = "/assets/$path/-/metadata/${orderBy.name.lowercase()}/$limit"
     val response = client.get(requestPath)
     response.status shouldBe expectedStatus

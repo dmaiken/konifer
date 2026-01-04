@@ -846,6 +846,21 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `no limit is respected if negative`() =
+            runTest {
+                repeat(10) {
+                    repository.storeNew(createPendingAsset()).let {
+                        repository.markReady(it.markReady(LocalDateTime.now()))
+                    }
+                }
+                repository.fetchAllByPath(
+                    path = "/users/123",
+                    transformation = null,
+                    limit = -1,
+                ) shouldHaveSize 10
+            }
+
+        @Test
         fun `does not return assets that are not ready`() =
             runTest {
                 repeat(10) {

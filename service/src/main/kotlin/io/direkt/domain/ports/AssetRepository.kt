@@ -39,6 +39,15 @@ interface AssetRepository {
         includeOnlyReady: Boolean = true,
     ): AssetData?
 
+    /**
+     * Fetch assets at the specific [path].
+     *
+     * @param transformation null means fetch all variants and any transformations that has [Transformation.originalVariant] == true
+     * will fetch the original variant regardless of the rest of the transformation parameters.
+     * @param orderBy sorts the assets at the [path] before applying the [limit]
+     * @param labels filters assets at the path before sorting and applying the [limit]
+     * @param limit the maximum amount of assets to return. -1 means no limit.
+     */
     suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,

@@ -146,8 +146,13 @@ class InMemoryAssetRepository : AssetRepository {
                 }.let {
                     it.thenByDescending { comparator -> comparator.entryId }
                 },
-            )?.take(limit)
-            ?.toList() ?: emptyList()
+            )?.let {
+                if (limit > 0) {
+                    it.take(limit)
+                } else {
+                    it
+                }
+            }?.toList() ?: emptyList()
 
     override suspend fun deleteAssetByPath(
         path: String,

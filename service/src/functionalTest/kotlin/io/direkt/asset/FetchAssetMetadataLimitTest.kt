@@ -75,4 +75,34 @@ class FetchAssetMetadataLimitTest {
                 limit = 50,
             ) shouldHaveSize 10
         }
+
+    @Test
+    fun `can fetch all at path using all modifier`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                    "type" to "vegetable",
+                )
+            val tags = setOf("smart", "cool")
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = labels,
+                    tags = tags,
+                )
+            repeat(5) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
+            }
+
+            fetchAllAssetMetadata(
+                client = client,
+                path = "profile",
+                all = true,
+            ) shouldHaveSize 5
+        }
 }

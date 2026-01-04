@@ -38,6 +38,7 @@ class RequestContextFactory(
         const val PATH_NAMESPACE_SEPARATOR = "-"
         const val ASSET_PATH_PREFIX = "/assets"
         const val ENTRY_ID_MODIFIER = "ENTRY"
+        const val NO_LIMIT_MODIFIER = "ALL"
     }
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -142,7 +143,7 @@ class RequestContextFactory(
     }
 
     private fun extractDeleteModifiers(path: String?): DeleteModifiers {
-        if (path == null || path.isBlank()) {
+        if (path.isNullOrBlank()) {
             return DeleteModifiers()
         }
         val deleteModifierSegments = path.trim('/').uppercase().split('/')
@@ -179,7 +180,7 @@ class RequestContextFactory(
     }
 
     private fun extractQueryModifiers(path: String?): QueryModifiers {
-        if (path == null || path.isBlank()) {
+        if (path.isNullOrBlank()) {
             return QueryModifiers()
         }
         val queryModifierSegments = path.trim('/').uppercase().split('/')
@@ -204,7 +205,7 @@ class RequestContextFactory(
                             QueryModifiers(
                                 returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
                                 orderBy = OrderBy.valueOf(queryModifierSegments[1]),
-                                limit = queryModifierSegments[2].toPositiveInt(),
+                                limit = toLimit(queryModifierSegments[2]),
                                 specifiedModifiers =
                                     SpecifiedInRequest(
                                         returnFormat = true,
@@ -218,7 +219,7 @@ class RequestContextFactory(
                         if (OrderBy.valueOfOrNull(queryModifierSegments[0]) != null) {
                             QueryModifiers(
                                 orderBy = OrderBy.valueOf(queryModifierSegments[0]),
-                                limit = queryModifierSegments[1].toPositiveInt(),
+                                limit = toLimit(queryModifierSegments[1]),
                                 specifiedModifiers =
                                     SpecifiedInRequest(
                                         orderBy = true,
@@ -226,11 +227,12 @@ class RequestContextFactory(
                                     ),
                             )
                         } else if (ReturnFormat.valueOfOrNull(queryModifierSegments[0]) != null) {
-                            val secondInt = queryModifierSegments[1].toIntOrNull()
-                            if (secondInt != null) {
+                            val limitSpecified =
+                                queryModifierSegments[1] == NO_LIMIT_MODIFIER || queryModifierSegments[1].toIntOrNull() != null
+                            if (limitSpecified) {
                                 QueryModifiers(
                                     returnFormat = ReturnFormat.valueOf(queryModifierSegments[0]),
-                                    limit = queryModifierSegments[1].toPositiveInt(),
+                                    limit = toLimit(queryModifierSegments[1]),
                                     specifiedModifiers =
                                         SpecifiedInRequest(
                                             returnFormat = true,
@@ -257,9 +259,9 @@ class RequestContextFactory(
                         }
                     }
                     1 ->
-                        if (queryModifierSegments[0].toIntOrNull() != null) {
+                        if (queryModifierSegments[0] == NO_LIMIT_MODIFIER || queryModifierSegments[0].toIntOrNull() != null) {
                             QueryModifiers(
-                                limit = queryModifierSegments[0].toPositiveInt(),
+                                limit = toLimit(queryModifierSegments[0]),
                                 specifiedModifiers =
                                     SpecifiedInRequest(
                                         limit = true,
@@ -351,4 +353,11 @@ class RequestContextFactory(
             .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
             .map { Pair(it.key.substringAfter("label:"), it.value) }
             .associate { it.first to it.second.first() }
+
+    private fun toLimit(modifier: String): Int =
+        if (modifier == NO_LIMIT_MODIFIER) {
+            -1
+        } else {
+            modifier.toPositiveInt()
+        }
 }

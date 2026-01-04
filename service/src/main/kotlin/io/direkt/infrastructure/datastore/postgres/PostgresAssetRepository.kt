@@ -236,8 +236,13 @@ class PostgresAssetRepository(
             ).from(ASSET_TREE)
             .where(whereCondition)
             .orderBy(*orderByConditions)
-            .limit(limit)
-            .asFlow()
+            .let {
+                if (limit > 0) {
+                    it.limit(limit)
+                } else {
+                    it
+                }
+            }.asFlow()
             .map { record ->
                 val assetTreeRecord = record.into(ASSET_TREE) // Get the main record fields
                 val variants = record.getValue(variantsField)
