@@ -51,48 +51,47 @@ class FetchAssetHandler(
     suspend fun fetchAssetMetadataByPath(
         context: AssetQueryRequestContext,
         generateVariant: Boolean,
-    ): AssetMetadata? =
-        coroutineScope {
-            logger.info(
-                "Fetching asset metadata by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
+    ): AssetMetadata? {
+        logger.info(
+            "Fetching asset metadata by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
+        )
+
+        val assetData =
+            assetRepository.fetchByPath(
+                path = context.path,
+                entryId = context.modifiers.entryId,
+                transformation = context.transformation,
+                orderBy = context.modifiers.orderBy,
+                labels = context.labels,
+            ) ?: return null
+        if (!generateVariant) {
+            return AssetMetadata(assetData, true)
+        }
+
+        return if (assetData.variants.isEmpty()) {
+            logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
+
+            createOnDemandVariant(
+                assetId = assetData.id,
+                context = context,
             )
 
-            val assetData =
-                assetRepository.fetchByPath(
-                    path = context.path,
-                    entryId = context.modifiers.entryId,
-                    transformation = context.transformation,
-                    orderBy = context.modifiers.orderBy,
-                    labels = context.labels,
-                ) ?: return@coroutineScope null
-            if (!generateVariant) {
-                return@coroutineScope AssetMetadata(assetData, true)
-            }
-
-            if (assetData.variants.isEmpty()) {
-                logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
-
-                createOnDemandVariant(
-                    assetId = assetData.id,
-                    context = context,
-                )
-
-                AssetMetadata(
-                    asset =
-                        assetRepository.fetchByPath(
-                            path = context.path,
-                            entryId = context.modifiers.entryId,
-                            transformation = context.transformation,
-                            orderBy = context.modifiers.orderBy,
-                            labels = context.labels,
-                        ) ?: return@coroutineScope null,
-                    cacheHit = false,
-                )
-            } else {
-                logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
-                AssetMetadata(assetData, true)
-            }
+            AssetMetadata(
+                asset =
+                    assetRepository.fetchByPath(
+                        path = context.path,
+                        entryId = context.modifiers.entryId,
+                        transformation = context.transformation,
+                        orderBy = context.modifiers.orderBy,
+                        labels = context.labels,
+                    ) ?: return null,
+                cacheHit = false,
+            )
+        } else {
+            logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
+            AssetMetadata(assetData, true)
         }
+    }
 
     suspend fun fetchAssetContent(
         bucket: String,
