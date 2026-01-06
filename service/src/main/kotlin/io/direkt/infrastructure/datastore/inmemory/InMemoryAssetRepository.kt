@@ -6,13 +6,11 @@ import io.direkt.domain.asset.AssetId
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
-import kotlin.text.get
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -133,7 +131,7 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun deleteByPath(
         path: String,
         entryId: Long,
-    ): List<VariantBucketAndKey> {
+    ) {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
         logger.info("Deleting asset at path: $inMemoryPath and entryId: $entryId")
 
@@ -148,12 +146,6 @@ class InMemoryAssetRepository : AssetRepository {
         store[inMemoryPath]?.let { assets ->
             assets.removeIf { it.entryId == entryId }
         }
-        return asset?.variants?.map {
-            VariantBucketAndKey(
-                bucket = it.objectStoreBucket,
-                key = it.objectStoreKey,
-            )
-        } ?: emptyList()
     }
 
     override suspend fun deleteAllByPath(
@@ -161,9 +153,8 @@ class InMemoryAssetRepository : AssetRepository {
         labels: Map<String, String>,
         orderBy: OrderBy,
         limit: Int,
-    ): List<VariantBucketAndKey> {
+    ) {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
         logger.info("Deleting assets at path: $inMemoryPath, labels: $labels, orderBy: $orderBy, limit: $limit")
         val assetsToDelete =
             fetchAll(
@@ -174,36 +165,23 @@ class InMemoryAssetRepository : AssetRepository {
                 labels = labels,
                 includeOnlyReady = false,
             )
-        assetsToDelete.forEach {
-            objectStoreInformation.addAll(mapToBucketAndKey(it))
-        }
         assetsToDelete.map { it.id }.forEach {
             idReference.remove(it)
         }
         store[inMemoryPath]?.let { assets ->
             assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
         }
-
-        return objectStoreInformation.toList()
     }
 
     override suspend fun deleteRecursivelyByPath(
         path: String,
         labels: Map<String, String>,
-    ): List<VariantBucketAndKey> {
+    ) {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        val objectStoreInformation = mutableListOf<VariantBucketAndKey>()
         logger.info("Deleting assets (recursively) at path: $inMemoryPath with labels: $labels")
         store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
             val assetAndVariants = store[path] ?: emptyList()
-            val assetsToDelete =
-                assetAndVariants
-                    .filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
-                    .also { assets ->
-                        assets.forEach {
-                            objectStoreInformation.addAll(mapToBucketAndKey(it))
-                        }
-                    }
+            val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
             assetsToDelete.map { it.id }.forEach {
                 idReference.remove(it)
             }
@@ -211,8 +189,6 @@ class InMemoryAssetRepository : AssetRepository {
                 assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
             }
         }
-
-        return objectStoreInformation.toList()
     }
 
     override suspend fun update(asset: Asset): Asset {
@@ -227,22 +203,6 @@ class InMemoryAssetRepository : AssetRepository {
 
         return asset
     }
-
-    private fun mapToBucketAndKey(asset: Asset): List<VariantBucketAndKey> =
-        asset.variants.map { variant ->
-            VariantBucketAndKey(
-                bucket = variant.objectStoreBucket,
-                key = variant.objectStoreKey,
-            )
-        }
-
-    private fun mapToBucketAndKey(asset: AssetData): List<VariantBucketAndKey> =
-        asset.variants.map { variant ->
-            VariantBucketAndKey(
-                bucket = variant.objectStoreBucket,
-                key = variant.objectStoreKey,
-            )
-        }
 
     private fun getNextEntryId(path: String): Long =
         store[path]

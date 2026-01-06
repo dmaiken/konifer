@@ -1,5 +1,6 @@
 package io.direkt.infrastructure.datastore.postgres
 
+import com.github.f4b6a3.uuid.UuidCreator
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.tables.records.AssetLabelRecord
@@ -9,12 +10,14 @@ import direkt.jooq.tables.references.ASSET_LABEL
 import direkt.jooq.tables.references.ASSET_TAG
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
+import direkt.jooq.tables.references.OUTBOX
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
+import io.direkt.infrastructure.datastore.postgres.scheduling.ReapVariantEvent
 import io.direkt.service.context.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.map
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.serialization.json.Json
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
@@ -32,6 +36,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.map
 
 class PostgresAssetRepository(
     private val dslContext: DSLContext,
@@ -256,37 +261,38 @@ class PostgresAssetRepository(
     override suspend fun deleteByPath(
         path: String,
         entryId: Long,
-    ): List<VariantBucketAndKey> {
+    ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        val objectStoreInformation =
-            dslContext.transactionCoroutine { trx ->
-                val variantObjectStoreInformation =
-                    trx
-                        .dsl()
-                        .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
-                        .from(ASSET_TREE)
-                        .join(ASSET_VARIANT)
-                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
-                        .where(ASSET_TREE.PATH.eq(treePath))
-                        .and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                        .asFlow()
-                        .map {
-                            VariantBucketAndKey(
-                                bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                                key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                            )
-                        }.toList()
-                if (variantObjectStoreInformation.isNotEmpty()) {
-                    trx
-                        .dsl()
-                        .deleteFrom(ASSET_TREE)
-                        .where(ASSET_TREE.PATH.eq(treePath))
-                        .and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                        .awaitFirst()
-                }
-                variantObjectStoreInformation
+        dslContext.transactionCoroutine { trx ->
+            val variantObjectStoreInformation =
+                trx
+                    .dsl()
+                    .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+                    .from(ASSET_TREE)
+                    .join(ASSET_VARIANT)
+                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                    .where(ASSET_TREE.PATH.eq(treePath))
+                    .and(ASSET_TREE.ENTRY_ID.eq(entryId))
+                    .asFlow()
+                    .map {
+                        VariantBucketAndKey(
+                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
+                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
+                        )
+                    }.toList()
+            if (variantObjectStoreInformation.isNotEmpty()) {
+                trx
+                    .dsl()
+                    .deleteFrom(ASSET_TREE)
+                    .where(ASSET_TREE.PATH.eq(treePath))
+                    .and(ASSET_TREE.ENTRY_ID.eq(entryId))
+                    .awaitFirst()
             }
-        return objectStoreInformation
+            insertReapVariantOutboxEvents(
+                context = trx.dsl(),
+                variants = variantObjectStoreInformation,
+            )
+        }
     }
 
     override suspend fun deleteAllByPath(
@@ -294,89 +300,91 @@ class PostgresAssetRepository(
         labels: Map<String, String>,
         orderBy: OrderBy,
         limit: Int,
-    ): List<VariantBucketAndKey> {
+    ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        val deletedAssets =
-            dslContext.transactionCoroutine { trx ->
-                val assetsToDelete =
-                    trx
-                        .dsl()
-                        .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
-                        .from(ASSET_TREE)
-                        .join(ASSET_VARIANT)
-                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
-                        .where(
-                            appendLabelConditions(
-                                whereCondition = ASSET_TREE.PATH.eq(treePath),
-                                labels = labels,
-                            ),
-                        ).orderBy(*orderByConditions(orderBy))
-                        .let {
-                            if (limit > 0) {
-                                it.limit(limit)
-                            } else {
-                                it
-                            }
-                        }.asFlow()
-                        .toList()
+        dslContext.transactionCoroutine { trx ->
+            val assetsToDelete =
+                trx
+                    .dsl()
+                    .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+                    .from(ASSET_TREE)
+                    .join(ASSET_VARIANT)
+                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                    .where(
+                        appendLabelConditions(
+                            whereCondition = ASSET_TREE.PATH.eq(treePath),
+                            labels = labels,
+                        ),
+                    ).orderBy(*orderByConditions(orderBy))
+                    .let {
+                        if (limit > 0) {
+                            it.limit(limit)
+                        } else {
+                            it
+                        }
+                    }.asFlow()
+                    .toList()
 
-                val amountDeleted =
-                    trx
-                        .dsl()
-                        .deleteFrom(ASSET_TREE)
-                        .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
-                        .awaitFirst()
+            val amountDeleted =
+                trx
+                    .dsl()
+                    .deleteFrom(ASSET_TREE)
+                    .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
+                    .awaitFirst()
 
-                logger.info("Deleted $amountDeleted assets from database")
+            logger.info("Deleted $amountDeleted assets from database")
 
-                assetsToDelete.map {
-                    VariantBucketAndKey(
-                        bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                        key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                    )
-                }
-            }
-
-        return deletedAssets
+            insertReapVariantOutboxEvents(
+                context = trx.dsl(),
+                variants =
+                    assetsToDelete.map {
+                        VariantBucketAndKey(
+                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
+                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
+                        )
+                    },
+            )
+        }
     }
 
     override suspend fun deleteRecursivelyByPath(
         path: String,
         labels: Map<String, String>,
-    ): List<VariantBucketAndKey> {
+    ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        val deletedAssets =
-            dslContext.transactionCoroutine { trx ->
-                val assetsToDelete =
-                    trx
-                        .dsl()
-                        .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
-                        .from(ASSET_TREE)
-                        .join(ASSET_VARIANT)
-                        .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
-                        .where(
-                            appendLabelConditions(
-                                whereCondition = ASSET_TREE.PATH.contains(treePath),
-                                labels = labels,
-                            ),
-                        ).asFlow()
-                        .toList()
-
+        dslContext.transactionCoroutine { trx ->
+            val assetsToDelete =
                 trx
                     .dsl()
-                    .deleteFrom(ASSET_TREE)
-                    .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
-                    .awaitFirstOrNull()
+                    .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+                    .from(ASSET_TREE)
+                    .join(ASSET_VARIANT)
+                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
+                    .where(
+                        appendLabelConditions(
+                            whereCondition = ASSET_TREE.PATH.contains(treePath),
+                            labels = labels,
+                        ),
+                    ).asFlow()
+                    .toList()
 
-                assetsToDelete.map {
-                    VariantBucketAndKey(
-                        bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                        key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                    )
-                }
-            }
+            trx
+                .dsl()
+                .deleteFrom(ASSET_TREE)
+                .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
+                .awaitFirstOrNull()
 
-        return deletedAssets
+            insertReapVariantOutboxEvents(
+                context = trx.dsl(),
+                variants =
+                    assetsToDelete.map {
+                        VariantBucketAndKey(
+                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
+                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
+                        )
+                    },
+            )
+        }
     }
 
     override suspend fun update(asset: Asset): Asset {
@@ -652,5 +660,32 @@ class PostgresAssetRepository(
             }
 
         return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
+    }
+
+    private suspend fun insertReapVariantOutboxEvents(
+        context: DSLContext,
+        variants: List<VariantBucketAndKey>,
+    ) {
+        if (variants.isEmpty()) {
+            return
+        }
+        val step =
+            context.insertInto(
+                OUTBOX,
+                OUTBOX.ID,
+                OUTBOX.EVENT_TYPE,
+                OUTBOX.PAYLOAD,
+                OUTBOX.CREATED_AT,
+            )
+        val now = LocalDateTime.now()
+        variants.forEach { variant ->
+            val event =
+                ReapVariantEvent(
+                    objectStoreBucket = variant.bucket,
+                    objectStoreKey = variant.key,
+                )
+            step.values(UuidCreator.getTimeOrderedEpoch(), event.eventType, JSONB.valueOf(Json.encodeToString(event)), now)
+        }
+        step.awaitFirst()
     }
 }

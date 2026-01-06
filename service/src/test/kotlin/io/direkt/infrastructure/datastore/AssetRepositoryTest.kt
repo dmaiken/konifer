@@ -14,7 +14,6 @@ import io.direkt.service.context.OrderBy
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
-import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.date.shouldBeAfter
@@ -886,16 +885,10 @@ abstract class AssetRepositoryTest {
                         .storeNew(createPendingAsset())
                         .markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
-                val deleteResponse =
-                    repository.deleteByPath(
-                        path = "/users/123",
-                        entryId = 0,
-                    )
-                deleteResponse shouldHaveSize 1
-                deleteResponse.first().apply {
-                    bucket shouldBe ready.variants.first().objectStoreBucket
-                    key shouldBe ready.variants.first().objectStoreKey
-                }
+                repository.deleteByPath(
+                    path = "/users/123",
+                    entryId = 0,
+                )
 
                 repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(
@@ -914,7 +907,7 @@ abstract class AssetRepositoryTest {
                         path = "/users/123",
                         entryId = 0,
                     )
-                } shouldHaveSize 0
+                }
             }
 
         @Test
@@ -928,7 +921,7 @@ abstract class AssetRepositoryTest {
                         .also { repository.markReady(it) }
                 shouldNotThrowAny {
                     repository.deleteByPath("/users/123", entryId = 1)
-                } shouldHaveSize 0
+                }
 
                 repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED)?.id shouldBe
                     ready.id
@@ -955,12 +948,7 @@ abstract class AssetRepositoryTest {
                         .markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResult = repository.deleteAllByPath("/users/123", limit = 1)
-                deleteResult shouldHaveSize 1
-                deleteResult.forExactly(1) {
-                    it.bucket shouldBe ready2.variants.first().objectStoreBucket
-                    it.key shouldBe ready2.variants.first().objectStoreKey
-                }
+                repository.deleteAllByPath("/users/123", limit = 1)
 
                 repository.fetchByPath(
                     path = ready1.path,
@@ -1029,12 +1017,7 @@ abstract class AssetRepositoryTest {
                     )
                 updated.modifiedAt shouldBeAfter ready1.modifiedAt
 
-                val deleteResult = repository.deleteAllByPath("/users/123", limit = 1, orderBy = OrderBy.MODIFIED)
-                deleteResult shouldHaveSize 1
-                deleteResult.forExactly(1) {
-                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
-                    it.key shouldBe ready1.variants.first().objectStoreKey
-                }
+                repository.deleteAllByPath("/users/123", limit = 1, orderBy = OrderBy.MODIFIED)
 
                 repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldNotBe null
@@ -1053,8 +1036,7 @@ abstract class AssetRepositoryTest {
                         ).markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "dog"), limit = 1)
-                deleteResult shouldHaveSize 0
+                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "dog"), limit = 1)
 
                 repository.fetchByPath(
                     path = ready.path,
@@ -1076,8 +1058,7 @@ abstract class AssetRepositoryTest {
                         ).markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
-                deleteResult shouldHaveSize 1
+                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
 
                 repository.fetchByPath(
                     path = ready.path,
@@ -1104,12 +1085,7 @@ abstract class AssetRepositoryTest {
                         .markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResult = repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
-                deleteResult shouldHaveSize 1
-                deleteResult.forExactly(1) {
-                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
-                    it.key shouldBe ready1.variants.first().objectStoreKey
-                }
+                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
 
                 repository.fetchByPath(
                     path = ready1.path,
@@ -1138,7 +1114,7 @@ abstract class AssetRepositoryTest {
                         path = "/users/123",
                         limit = -1,
                     )
-                } shouldHaveSize 0
+                }
             }
     }
 
@@ -1163,19 +1139,7 @@ abstract class AssetRepositoryTest {
                         .markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResponse = repository.deleteRecursivelyByPath("/users/123")
-                deleteResponse.forExactly(1) {
-                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
-                    it.key shouldBe ready1.variants.first().objectStoreKey
-                }
-                deleteResponse.forExactly(1) {
-                    it.bucket shouldBe ready2.variants.first().objectStoreBucket
-                    it.key shouldBe ready2.variants.first().objectStoreKey
-                }
-                deleteResponse.forExactly(1) {
-                    it.bucket shouldBe ready3.variants.first().objectStoreBucket
-                    it.key shouldBe ready3.variants.first().objectStoreKey
-                }
+                repository.deleteRecursivelyByPath("/users/123")
 
                 repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
                 repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldBe null
@@ -1222,16 +1186,7 @@ abstract class AssetRepositoryTest {
                         ).markReady(LocalDateTime.now())
                         .also { repository.markReady(it) }
 
-                val deleteResult = repository.deleteRecursivelyByPath("/users/123", labels = mapOf("animal" to "cat"))
-                deleteResult shouldHaveSize 2
-                deleteResult.forExactly(1) {
-                    it.bucket shouldBe ready1.variants.first().objectStoreBucket
-                    it.key shouldBe ready1.variants.first().objectStoreKey
-                }
-                deleteResult.forExactly(1) {
-                    it.bucket shouldBe ready3.variants.first().objectStoreBucket
-                    it.key shouldBe ready3.variants.first().objectStoreKey
-                }
+                repository.deleteRecursivelyByPath("/users/123", labels = mapOf("animal" to "cat"))
 
                 repository.fetchByPath(
                     path = ready1.path,
@@ -1266,7 +1221,7 @@ abstract class AssetRepositoryTest {
                     repository.deleteRecursivelyByPath(
                         path = "/users/123",
                     )
-                } shouldHaveSize 0
+                }
             }
     }
 

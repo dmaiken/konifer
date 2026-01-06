@@ -4,7 +4,6 @@ import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.service.context.OrderBy
 
 interface AssetRepository {
@@ -60,19 +59,19 @@ interface AssetRepository {
     suspend fun deleteByPath(
         path: String,
         entryId: Long,
-    ): List<VariantBucketAndKey>
+    )
 
     suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String> = emptyMap(),
         orderBy: OrderBy = OrderBy.CREATED,
         limit: Int,
-    ): List<VariantBucketAndKey>
+    )
 
     suspend fun deleteRecursivelyByPath(
         path: String,
         labels: Map<String, String> = emptyMap(),
-    ): List<VariantBucketAndKey>
+    )
 
     /**
      * @throws IllegalStateException if asset cannot be found with the given path and entryId

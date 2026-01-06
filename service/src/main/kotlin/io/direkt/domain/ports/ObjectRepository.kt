@@ -41,11 +41,6 @@ interface ObjectRepository {
     ): String
 }
 
-data class PersistResult(
-    val key: String,
-    val bucket: String,
-)
-
 data class FetchResult(
     val found: Boolean,
     val contentLength: Long,
