@@ -1,10 +1,6 @@
 package io.direkt.domain.image
 
-import io.createPreProcessingProperties
-import io.direkt.domain.image.Flip
-import io.direkt.domain.image.Gravity
-import io.direkt.domain.image.PreProcessingProperties
-import io.direkt.domain.image.Rotate
+import io.direkt.createPreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

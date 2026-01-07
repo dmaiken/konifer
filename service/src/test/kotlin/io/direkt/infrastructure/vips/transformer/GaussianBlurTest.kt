@@ -4,13 +4,13 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.PHash
+import io.direkt.PHash
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.transformation.GaussianBlur
+import io.direkt.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
-import io.matchers.shouldHaveSamePixelContentAs
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

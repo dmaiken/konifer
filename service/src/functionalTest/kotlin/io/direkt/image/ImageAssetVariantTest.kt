@@ -7,7 +7,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsDirection
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
-import io.byteArrayToImage
+import io.direkt.byteArrayToImage
 import io.direkt.config.testInMemory
 import io.direkt.domain.asset.AssetClass
 import io.direkt.domain.image.ImageFormat
@@ -15,6 +15,8 @@ import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.direkt.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3
+import io.direkt.matchers.shouldBeApproximately
+import io.direkt.matchers.shouldHaveSamePixelContentAs
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetLink
 import io.direkt.util.fetchAssetViaRedirect
@@ -25,8 +27,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import io.matchers.shouldBeApproximately
-import io.matchers.shouldHaveSamePixelContentAs
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

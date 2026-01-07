@@ -1,7 +1,7 @@
 package io.direkt.asset.variant
 
-import io.createRequestedImageTransformation
 import io.direkt.config.testInMemory
+import io.direkt.createRequestedImageTransformation
 import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip

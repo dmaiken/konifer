@@ -1,8 +1,8 @@
 package io.direkt.infrastructure.variant
 
+import io.direkt.matchers.beApproximately
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.matchers.beApproximately
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest

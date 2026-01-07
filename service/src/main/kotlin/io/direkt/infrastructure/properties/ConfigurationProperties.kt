@@ -6,6 +6,7 @@ object ConfigurationProperties {
     const val PATH_CONFIGURATION = "path-configuration"
     const val SOURCE = "source"
     const val VARIANT_GENERATION = "variant-generation"
+    const val URL_SIGNING = "url-signing"
 
     object DatabaseConfigurationProperties {
         const val PROVIDER = "provider"
@@ -79,5 +80,11 @@ object ConfigurationProperties {
         const val QUEUE_SIZE = "queue-size"
         const val SYNCHRONOUS_PRIORITY = "synchronous-priority"
         const val WORKERS = "workers"
+    }
+
+    object UrlSigningConfigurationProperties {
+        const val ENABLED = "enabled"
+        const val ALGORITHM = "algorithm"
+        const val SECRET_KEY = "secret-key"
     }
 }

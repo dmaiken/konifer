@@ -1,7 +1,7 @@
 package io.direkt.service.context
 
-import io.createRequestedImageTransformation
 import io.direkt.BaseUnitTest
+import io.direkt.createRequestedImageTransformation
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties

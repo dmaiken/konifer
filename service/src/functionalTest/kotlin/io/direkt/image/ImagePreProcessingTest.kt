@@ -1,15 +1,15 @@
 package io.direkt.image
 
-import io.byteArrayToImage
+import io.direkt.byteArrayToImage
 import io.direkt.config.testInMemory
 import io.direkt.domain.asset.AssetClass
 import io.direkt.infrastructure.StoreAssetRequest
+import io.direkt.matchers.shouldBeApproximately
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAssetViaRedirect
 import io.direkt.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.matchers.shouldBeApproximately
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test

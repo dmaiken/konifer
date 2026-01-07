@@ -44,6 +44,7 @@ suspend inline fun <reified T> storeAssetMultipartSource(
     request: T,
     path: String = "profile",
     expectedStatus: HttpStatusCode = HttpStatusCode.Created,
+    verifyLocationHeader: Boolean = true,
 ): Pair<Headers, AssetResponse?> =
     client
         .post("/assets/$path") {
@@ -77,9 +78,11 @@ suspend inline fun <reified T> storeAssetMultipartSource(
                 if (response.status == HttpStatusCode.Created) {
                     // validate location header
                     response.headers[HttpHeaders.Location] shouldNotBe null
-                    val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
-                    client.get(locationUrl.fullPath).apply {
-                        status shouldBe HttpStatusCode.OK
+                    if (verifyLocationHeader) {
+                        val locationUrl = Url(response.headers[HttpHeaders.Location]!!)
+                        client.get(locationUrl.fullPath).apply {
+                            status shouldBe HttpStatusCode.OK
+                        }
                     }
                     response.body<AssetResponse>().apply {
                         entryId shouldBeGreaterThan -1
@@ -325,6 +328,7 @@ suspend fun fetchAssetLink(
     pad: Int? = null,
     background: String? = null,
     expectCacheHit: Boolean? = null,
+    signature: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): AssetLinkResponse? {
     val urlBuilder = URLBuilder()
@@ -335,6 +339,9 @@ suspend fun fetchAssetLink(
     }
 
     attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    signature?.let {
+        urlBuilder.parameters["s"] = signature
+    }
     val fetchUrl = urlBuilder.build()
     client.get(fetchUrl.fullPath).apply {
         status shouldBe expectedStatusCode

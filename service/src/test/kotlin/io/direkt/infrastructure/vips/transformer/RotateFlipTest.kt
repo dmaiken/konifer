@@ -7,8 +7,8 @@ import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import io.direkt.domain.variant.Transformation
 import io.direkt.infrastructure.vips.transformation.RotateFlip
+import io.direkt.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.shouldBe
-import io.matchers.shouldHaveSamePixelContentAs
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

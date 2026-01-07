@@ -16,7 +16,6 @@ import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 class FetchAssetHandler(

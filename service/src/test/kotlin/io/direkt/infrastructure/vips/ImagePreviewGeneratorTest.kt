@@ -3,6 +3,8 @@ package io.direkt.infrastructure.vips
 import com.vanniktech.blurhash.BlurHash
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.lqip.image.ThumbHash
+import io.direkt.matchers.shouldHaveSamePixelContentAs
+import io.direkt.toBufferedImage
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -10,8 +12,6 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
-import io.matchers.shouldHaveSamePixelContentAs
-import io.toBufferedImage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test

@@ -1,4 +1,4 @@
-package io
+package io.direkt
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips

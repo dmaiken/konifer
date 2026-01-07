@@ -1,6 +1,6 @@
 package io.direkt.asset.variant
 
-import io.byteArrayToImage
+import io.direkt.byteArrayToImage
 import io.direkt.config.testInMemory
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.util.createJsonClient

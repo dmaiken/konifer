@@ -1,6 +1,6 @@
 package io.direkt.image
 
-import io.byteArrayToImage
+import io.direkt.byteArrayToImage
 import io.direkt.config.testInMemory
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.infrastructure.StoreAssetRequest

@@ -9,13 +9,13 @@ import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.LQIPImplementation
 import io.direkt.domain.variant.Transformation
 import io.direkt.lqip.image.ThumbHash
+import io.direkt.matchers.shouldHaveSamePixelContentAs
 import io.direkt.service.TemporaryFileFactory
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
-import io.matchers.shouldHaveSamePixelContentAs
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest

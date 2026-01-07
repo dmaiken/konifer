@@ -6,7 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
-import io.PHash
+import io.direkt.PHash
 import io.direkt.domain.asset.AssetDataContainer
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Gravity
@@ -18,14 +18,14 @@ import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.direkt.infrastructure.vips.transformation.Resize
+import io.direkt.matchers.shouldBeApproximately
+import io.direkt.matchers.shouldBeWithinOneOf
+import io.direkt.matchers.shouldHaveSamePixelContentAs
 import io.image.vips.aspectRatio
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteReadChannel
-import io.matchers.shouldBeApproximately
-import io.matchers.shouldBeWithinOneOf
-import io.matchers.shouldHaveSamePixelContentAs
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

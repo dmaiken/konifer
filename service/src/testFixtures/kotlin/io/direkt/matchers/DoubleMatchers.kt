@@ -1,4 +1,4 @@
-package io.matchers
+package io.direkt.matchers
 
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult

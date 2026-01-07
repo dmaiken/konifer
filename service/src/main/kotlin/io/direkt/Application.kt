@@ -5,6 +5,7 @@ import io.direkt.infrastructure.http.configureStatusPages
 import io.direkt.infrastructure.http.route.configureAssetRouting
 import io.direkt.infrastructure.http.route.configureInMemoryObjectStoreRouting
 import io.direkt.infrastructure.http.serialization.configureContentNegotiation
+import io.direkt.infrastructure.http.signature.configureSignatureVerification
 import io.direkt.infrastructure.objectstore.ObjectStoreProvider
 import io.direkt.infrastructure.properties.ConfigurationProperties.OBJECT_STORE
 import io.direkt.infrastructure.tryGetConfig
@@ -38,6 +39,7 @@ fun Application.module() {
     configureContentNegotiation()
     configureRouting(objectStoreProvider)
     configureStatusPages()
+    configureSignatureVerification()
 }
 
 fun Application.configureRouting(objectStoreProvider: ObjectStoreProvider) {
