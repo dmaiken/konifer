@@ -18,12 +18,12 @@ import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.vips.createDecoderOptions
+import io.direkt.infrastructure.vips.pageSafeHeight
 import io.direkt.service.TemporaryFileFactory
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.StoreRequestContext
 import io.direkt.service.transformation.TransformationNormalizer
 import io.direkt.service.variant.VariantService
-import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler

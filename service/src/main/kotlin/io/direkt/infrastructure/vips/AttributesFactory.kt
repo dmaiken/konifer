@@ -3,7 +3,6 @@ package io.direkt.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.variant.Attributes
-import io.image.vips.pageSafeHeight
 
 object AttributesFactory {
     fun createAttributes(

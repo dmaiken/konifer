@@ -67,6 +67,7 @@ object ColorFilter : VipsTransformer {
     val blackWhiteThreshold = listOf(128.0)
 
     override val name: String = "ColorFilter"
+    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
     override fun requiresTransformation(
         arena: Arena,

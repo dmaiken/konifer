@@ -90,16 +90,12 @@ direkt provides:
 
 - asset processing (image resizing, filetype conversion)
 - returning asset content directly from direkt or returning a redirect to the backing object store
-- an image transformation API built on Libvips, the standard in image processing performance (and no JNI is used) (*
-  *coming soon!**)
+- an image transformation API built on Libvips, the standard in image processing performance (and no JNI is used)
 - asset metadata
-- on-the-fly variant generation or variant caching including precomputation of common image variants at upload time (*
-  *all coming soon!**)
-- image compression at storage and/or over the network (**coming soon!**)
+- on-the-fly variant generation or variant caching including precomputation of common image variants at upload time
 - Lots of asset types (currently only image types are supported but **more to come!**)
 - Template generation (**coming soon!**)
 - Default assets based on path patterns (**coming soon!**)
-- OAuth based on path patterns (**coming soon!**)
 
 ## Building & Running
 

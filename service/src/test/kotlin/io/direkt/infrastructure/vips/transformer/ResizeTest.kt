@@ -17,11 +17,11 @@ import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_SIZE
+import io.direkt.infrastructure.vips.aspectRatio
 import io.direkt.infrastructure.vips.transformation.Resize
 import io.direkt.matchers.shouldBeApproximately
 import io.direkt.matchers.shouldBeWithinOneOf
 import io.direkt.matchers.shouldHaveSamePixelContentAs
-import io.image.vips.aspectRatio
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

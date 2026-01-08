@@ -12,8 +12,8 @@ import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.direkt.infrastructure.vips.VipsOptionNames.OPTION_SIZE
+import io.direkt.infrastructure.vips.pageSafeHeight
 import io.direkt.infrastructure.vips.pipeline.VipsTransformationResult
-import io.image.vips.pageSafeHeight
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
 
@@ -25,6 +25,7 @@ object Resize : VipsTransformer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override val name: String = "Resize"
+    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
     override fun requiresTransformation(
         arena: Arena,

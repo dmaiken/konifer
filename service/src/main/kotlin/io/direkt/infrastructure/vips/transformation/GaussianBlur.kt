@@ -11,6 +11,7 @@ import java.lang.foreign.Arena
  */
 object GaussianBlur : VipsTransformer {
     override val name: String = "GaussianBlur"
+    override val requiresAlphaState: AlphaState = AlphaState.PREMULTIPLIED
 
     override fun requiresTransformation(
         arena: Arena,

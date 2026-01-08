@@ -39,7 +39,7 @@ class AttributesFactoryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("io.image.ImageTestSources#supportsPagedSource")
+    @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
     fun `multi page gif images have correct attributes when being converted to format that supports paging`(
         destinationFormat: ImageFormat,
     ) {
@@ -73,7 +73,7 @@ class AttributesFactoryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("io.image.ImageTestSources#notSupportsPagedSource")
+    @MethodSource("io.direkt.domain.image.ImageTestSources#notSupportsPagedSource")
     fun `multi page gif images have correct attributes when being converted to format that does not support paging`(
         destinationFormat: ImageFormat,
     ) {

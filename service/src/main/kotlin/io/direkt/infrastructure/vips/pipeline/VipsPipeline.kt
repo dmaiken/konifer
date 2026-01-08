@@ -2,7 +2,10 @@ package io.direkt.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
 import io.direkt.domain.variant.Transformation
+import io.direkt.infrastructure.vips.premultiplyIfNecessary
+import io.direkt.infrastructure.vips.transformation.AlphaState
 import io.direkt.infrastructure.vips.transformation.VipsTransformer
+import io.direkt.infrastructure.vips.unPremultiplyIfNecessary
 import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
 
@@ -24,21 +27,15 @@ class VipsPipeline(
     fun run(
         arena: Arena,
         source: VImage,
-        transformation: Transformation?,
+        transformation: Transformation,
     ): VipsPipelineResult {
-        if (transformation == null) {
-            return VipsPipelineResult(
-                successful = true,
-                processed = source,
-                requiresLqipRegeneration = false,
-                appliedTransformations = emptyList(),
-            )
-        }
         val appliedTransformations = mutableListOf<AppliedTransformation>()
+        var isAlphaPremultiplied = false
+        var requiresLqipRegeneration = false
         var processed =
             VipsTransformationResult(
                 processed = source,
-                requiresLqipRegeneration = false,
+                requiresLqipRegeneration = requiresLqipRegeneration,
             )
         var failed = false
 
@@ -52,11 +49,25 @@ class VipsPipeline(
                     transformation = transformation,
                 )
             ) {
+                val source =
+                    when (transformer.requiresAlphaState) {
+                        AlphaState.PREMULTIPLIED -> {
+                            processed.processed.premultiplyIfNecessary(isAlphaPremultiplied).let {
+                                isAlphaPremultiplied = it.second
+                                it.first
+                            }
+                        }
+                        AlphaState.UN_PREMULTIPLIED -> {
+                            processed.processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
+                                isAlphaPremultiplied = false
+                            }
+                        }
+                    }
                 try {
                     processed =
                         transformer.transform(
                             arena = arena,
-                            source = processed.processed,
+                            source = source,
                             transformation = transformation,
                         )
                     appliedTransformations.add(
@@ -65,6 +76,7 @@ class VipsPipeline(
                             exceptionMessage = null,
                         ),
                     )
+                    requiresLqipRegeneration = requiresLqipRegeneration || processed.requiresLqipRegeneration
                 } catch (e: Exception) {
                     logger.error("Vips pipeline failed! Pipeline results: $appliedTransformations", e)
                     failed = true
@@ -84,8 +96,8 @@ class VipsPipeline(
 
         return VipsPipelineResult(
             successful = !failed,
-            processed = processed.processed,
-            requiresLqipRegeneration = processed.requiresLqipRegeneration,
+            processed = processed.processed.unPremultiplyIfNecessary(isAlphaPremultiplied),
+            requiresLqipRegeneration = requiresLqipRegeneration,
             appliedTransformations = appliedTransformations,
         )
     }

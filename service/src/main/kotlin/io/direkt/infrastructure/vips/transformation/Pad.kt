@@ -20,6 +20,7 @@ object Pad : VipsTransformer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override val name: String = "Pad"
+    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
     override fun requiresTransformation(
         arena: Arena,
@@ -50,7 +51,10 @@ object Pad : VipsTransformer {
                 VipsOption.ArrayDouble(OPTION_BACKGROUND, preprocessedBackground),
             )
 
-        return VipsTransformationResult(processed, requiresLqipRegeneration = true)
+        return VipsTransformationResult(
+            processed = processed,
+            requiresLqipRegeneration = true,
+        )
     }
 
     private fun addOrRemoveAlphaIfNeeded(

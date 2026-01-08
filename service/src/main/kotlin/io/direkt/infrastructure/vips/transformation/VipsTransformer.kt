@@ -18,5 +18,16 @@ interface VipsTransformer {
         transformation: Transformation,
     ): Boolean
 
+    /**
+     * What state does alpha need to be in before running this transformer. Implementations should
+     * assume that the image passed to [transform] will have alpha in the desired state.
+     */
+    val requiresAlphaState: AlphaState
+
     val name: String
+}
+
+enum class AlphaState {
+    PREMULTIPLIED,
+    UN_PREMULTIPLIED,
 }

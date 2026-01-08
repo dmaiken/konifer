@@ -10,6 +10,7 @@ import java.lang.foreign.Arena
 
 object RotateFlip : VipsTransformer {
     override val name: String = "RotateFlip"
+    override val requiresAlphaState: AlphaState = AlphaState.PREMULTIPLIED
 
     override fun requiresTransformation(
         arena: Arena,
