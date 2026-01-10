@@ -10,6 +10,7 @@ import aws.sdk.kotlin.services.s3.model.NoSuchKey
 import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.ObjectIdentifier
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.sdk.kotlin.services.s3.presigners.presignGetObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
@@ -133,20 +134,34 @@ class S3ObjectRepository(
         }
     }
 
-    override fun generateObjectUrl(
+    override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-    ): String {
-        return if (s3ClientProperties.usePathStyleUrl) {
-            s3ClientProperties.endpointUrl?.let { endpointUrl ->
-                // Not using AWS S3
-                "https://$endpointUrl/$bucket/$key"
-            } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/$bucket/$key"
-        } else {
-            return s3ClientProperties.endpointUrl?.let { endpointUrl ->
-                // Not using AWS S3
-                "https://$bucket.$endpointUrl/$key"
-            } ?: "https://$bucket.s3.${s3ClientProperties.region}.amazonaws.com/$key"
+    ): String =
+        when {
+            s3ClientProperties.presignedUrlProperties != null -> {
+                withContext(Dispatchers.IO) {
+                    s3Client.presignGetObject(
+                        input =
+                            GetObjectRequest {
+                                this.bucket = bucket
+                                this.key = key
+                            },
+                        duration = s3ClientProperties.presignedUrlProperties.ttl,
+                    )
+                }.url.toString()
+            }
+            s3ClientProperties.usePathStyleUrl -> {
+                s3ClientProperties.endpointDomain?.let { endpointDomain ->
+                    // Not using AWS S3
+                    "https://$endpointDomain/$bucket/$key"
+                } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/$bucket/$key"
+            }
+            else -> {
+                s3ClientProperties.endpointDomain?.let { endpointDomain ->
+                    // Not using AWS S3
+                    "https://$bucket.$endpointDomain/$key"
+                } ?: "https://$bucket.s3.${s3ClientProperties.region}.amazonaws.com/$key"
+            }
         }
-    }
 }

@@ -66,7 +66,7 @@ abstract class ObjectRepositoryTest {
     fun `can fetch if the object does not exist`() =
         runTest {
             val stream = ByteChannel(autoFlush = true)
-            val fetchResult = store.fetch("something", UUID.randomUUID().toString(), stream)
+            val fetchResult = store.fetch(BUCKET_1, UUID.randomUUID().toString(), stream)
 
             fetchResult.found shouldBe false
             fetchResult.contentLength shouldBe 0
@@ -96,7 +96,7 @@ abstract class ObjectRepositoryTest {
     fun `can delete if object does not exist`() =
         runTest {
             shouldNotThrowAny {
-                store.delete("something", UUID.randomUUID().toString())
+                store.delete(BUCKET_1, UUID.randomUUID().toString())
             }
         }
 

@@ -31,6 +31,12 @@ object ConfigurationProperties {
             const val REGION = "region"
             const val SECRET_KEY = "secret-key"
             const val USE_PATH_STYLE = "use-path-style"
+            const val PRESIGN_URL = "presign"
+
+            object PreSignedUrlConfigurationProperties {
+                const val ENABLED = "enabled"
+                const val TTL = "ttl"
+            }
         }
     }
 

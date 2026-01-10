@@ -35,7 +35,7 @@ interface ObjectRepository {
         keys: List<String>,
     )
 
-    fun generateObjectUrl(
+    suspend fun generateObjectUrl(
         bucket: String,
         key: String,
     ): String

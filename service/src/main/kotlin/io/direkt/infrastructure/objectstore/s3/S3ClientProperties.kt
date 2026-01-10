@@ -1,6 +1,8 @@
 package io.direkt.infrastructure.objectstore.s3
 
 import io.direkt.infrastructure.properties.ValidatedProperties
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 data class S3ClientProperties(
     val endpointUrl: String?,
@@ -8,8 +10,11 @@ data class S3ClientProperties(
     val secretKey: String?,
     val region: String?,
     val usePathStyleUrl: Boolean,
+    val presignedUrlProperties: PresignedUrlProperties?,
     val providerHint: S3Provider? = null,
 ) : ValidatedProperties {
+    val endpointDomain = endpointUrl?.replaceFirst("https://", "")?.replaceFirst("http://", "")
+
     override fun validate() {
         if (providerHint == S3Provider.LOCALSTACK) {
             require(endpointUrl != null && region != null) {
@@ -20,6 +25,19 @@ data class S3ClientProperties(
             if (endpointUrl == null && region == null) {
                 throw IllegalArgumentException("Region must not be null if endpoint url is not specified")
             }
+        }
+    }
+}
+
+data class PresignedUrlProperties(
+    val ttl: Duration,
+) : ValidatedProperties {
+    override fun validate() {
+        require(ttl.isPositive()) {
+            "Presigned TTL must be positive"
+        }
+        require(ttl <= 7.days) {
+            "Presigned TTL cannot be greater than 7 days"
         }
     }
 }

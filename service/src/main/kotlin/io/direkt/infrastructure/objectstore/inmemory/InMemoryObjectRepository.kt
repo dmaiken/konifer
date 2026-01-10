@@ -64,7 +64,7 @@ class InMemoryObjectRepository : ObjectRepository {
         keys.forEach { delete(bucket, it) }
     }
 
-    override fun generateObjectUrl(
+    override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
     ): String = "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
