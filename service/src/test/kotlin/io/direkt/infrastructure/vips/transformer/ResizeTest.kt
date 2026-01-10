@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -227,11 +228,12 @@ class ResizeTest {
             }
         }
 
-        @Test
-        fun `can resize multi page gif`() {
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `can resize multi page image`(format: ImageFormat) {
             val width = 200
             val image =
-                javaClass.getResourceAsStream("/images/kermit.gif")!!.use {
+                javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
@@ -258,7 +260,7 @@ class ResizeTest {
 
                     processedImage.processed.width shouldBeWithinOneOf width
                     processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
-                    processedImage.processed.writeToStream(output, ".gif")
+                    processedImage.processed.writeToStream(output, format.extension)
                 }
                 val outputBytes = output.toByteArray()
                 PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
@@ -468,12 +470,13 @@ class ResizeTest {
             }
         }
 
-        @Test
-        fun `can resize multi page gif with stretch mode`() {
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `can resize multi page gif with stretch mode`(format: ImageFormat) {
             val height = 200
             val width = 200
             val image =
-                javaClass.getResourceAsStream("/images/kermit.gif")!!.use {
+                javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.use {
                     it.readBytes()
                 }
             val imageChannel = ByteReadChannel(image)
@@ -497,7 +500,7 @@ class ResizeTest {
                                     fit = Fit.STRETCH,
                                 ),
                         )
-                    processedImage.processed.writeToStream(output, ".gif")
+                    processedImage.processed.writeToStream(output, format.extension)
                 }
                 val outputBytes = output.toByteArray()
                 PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING

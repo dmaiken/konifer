@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.EnumSource.Mode
+import org.junit.jupiter.params.provider.MethodSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -94,9 +95,10 @@ class ColorFilterTest {
                 }
             }
 
-        @Test
-        fun `when filter is greyscale then multi-page gif is converted to greyscale`() {
-            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readAllBytes()
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `when filter is greyscale then multi-page image is converted to greyscale`(format: ImageFormat) {
+            val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
             val actualStream = ByteArrayOutputStream()
             val expectedStream = ByteArrayOutputStream()
@@ -120,7 +122,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.GREYSCALE),
                     )
-                transformed.processed.writeToStream(actualStream, ".gif")
+                transformed.processed.writeToStream(actualStream, format.extension)
 
                 val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix4x4))
                 VImage
@@ -132,7 +134,7 @@ class ColorFilterTest {
                     ).colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                     .recomb(matrixImage)
                     .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, ".gif")
+                    .writeToStream(expectedStream, format.extension)
                 val processed =
                     VImage.newFromBytes(
                         arena,
@@ -221,9 +223,10 @@ class ColorFilterTest {
                 }
             }
 
-        @Test
-        fun `when filter is black white then multi-page gif is converted to black and white`() {
-            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readAllBytes()
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `when filter is black white then multi-page image is converted to black and white`(format: ImageFormat) {
+            val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
             val actualStream = ByteArrayOutputStream()
             val expectedStream = ByteArrayOutputStream()
@@ -247,7 +250,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.BLACK_WHITE),
                     )
-                transformed.processed.writeToStream(actualStream, ".gif")
+                transformed.processed.writeToStream(actualStream, format.extension)
 
                 VImage
                     .newFromBytes(
@@ -257,7 +260,7 @@ class ColorFilterTest {
                         VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     ).relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, listOf(128.0))
                     .colourspace(VipsInterpretation.INTERPRETATION_B_W)
-                    .writeToStream(expectedStream, ".gif")
+                    .writeToStream(expectedStream, format.extension)
                 val processed =
                     VImage.newFromBytes(
                         arena,
@@ -308,9 +311,10 @@ class ColorFilterTest {
                 }
             }
 
-        @Test
-        fun `when filter is sepia then multi-page gif is converted to sepia`() {
-            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readAllBytes()
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `when filter is sepia then multi-page image is converted to sepia`(format: ImageFormat) {
+            val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
             val actualStream = ByteArrayOutputStream()
             val expectedStream = ByteArrayOutputStream()
@@ -334,7 +338,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.SEPIA),
                     )
-                transformed.processed.writeToStream(actualStream, ".gif")
+                transformed.processed.writeToStream(actualStream, format.extension)
 
                 val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix4x4))
                 VImage
@@ -346,7 +350,7 @@ class ColorFilterTest {
                     ).colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                     .recomb(matrixImage)
                     .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, ".gif")
+                    .writeToStream(expectedStream, format.extension)
                 val processed =
                     VImage.newFromBytes(
                         arena,

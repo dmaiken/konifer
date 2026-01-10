@@ -75,7 +75,7 @@ class AssetLifecycleTest {
     fun `can create and get an image that is multi-paged`() =
         testInMemory {
             val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/kermit/kermit.gif")!!.readBytes()
             val labels =
                 mapOf(
                     "phone" to "iphone",

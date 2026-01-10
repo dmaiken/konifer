@@ -2,6 +2,7 @@ package io.direkt.infrastructure.vips.pipeline
 
 import io.direkt.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.direkt.infrastructure.vips.transformation.ColorFilter
+import io.direkt.infrastructure.vips.transformation.CropFirstPage
 import io.direkt.infrastructure.vips.transformation.GaussianBlur
 import io.direkt.infrastructure.vips.transformation.Pad
 import io.direkt.infrastructure.vips.transformation.Resize
@@ -10,6 +11,7 @@ import io.direkt.infrastructure.vips.transformation.RotateFlip
 object VipsPipelines {
     val lqipVariantPipeline =
         vipsPipeline {
+            add(CropFirstPage)
             add(Resize)
         }.build()
 

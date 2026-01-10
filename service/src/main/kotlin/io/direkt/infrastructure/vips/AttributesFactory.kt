@@ -23,8 +23,8 @@ object AttributesFactory {
             width = image.width,
             height = height,
             format = destinationFormat,
-            pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) else null,
-            loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) else null,
+            pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else null,
+            loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,
         )
     }
 }

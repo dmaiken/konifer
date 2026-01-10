@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -75,9 +76,10 @@ class GaussianBlurTest {
             }
         }
 
-        @Test
-        fun `gaussian blur works on multi-page gif`() {
-            val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readAllBytes()
+        @ParameterizedTest
+        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        fun `gaussian blur works on multi-page image`(format: ImageFormat) {
+            val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
             val actualStream = ByteArrayOutputStream()
             val expectedStream = ByteArrayOutputStream()
@@ -101,7 +103,7 @@ class GaussianBlurTest {
                             ),
                         transformation = blurTransformation(10),
                     )
-                transformed.processed.writeToStream(actualStream, ".gif")
+                transformed.processed.writeToStream(actualStream, format.extension)
 
                 VImage
                     .newFromBytes(
@@ -110,7 +112,7 @@ class GaussianBlurTest {
                         VipsOption.Int("n", -1),
                         VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     ).gaussblur(10 / 2.0)
-                    .writeToStream(expectedStream, ".gif")
+                    .writeToStream(expectedStream, format.extension)
 
                 transformed.processed.getInt("n-pages") shouldBe original.getInt("n-pages")
                 transformed.processed.getInt("page-height") shouldBe original.getInt("page-height")

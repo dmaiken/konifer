@@ -43,7 +43,7 @@ class AttributesFactoryTest {
     fun `multi page gif images have correct attributes when being converted to format that supports paging`(
         destinationFormat: ImageFormat,
     ) {
-        val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readBytes()
+        val image = javaClass.getResourceAsStream("/images/kermit/kermit.gif")!!.readBytes()
 
         Vips.run { arena ->
             // Interesting that if you don't specify n=-1, then you get nothing for page-height
@@ -77,7 +77,7 @@ class AttributesFactoryTest {
     fun `multi page gif images have correct attributes when being converted to format that does not support paging`(
         destinationFormat: ImageFormat,
     ) {
-        val image = javaClass.getResourceAsStream("/images/kermit.gif")!!.readBytes()
+        val image = javaClass.getResourceAsStream("/images/kermit/kermit.gif")!!.readBytes()
 
         Vips.run { arena ->
             val vImage =
