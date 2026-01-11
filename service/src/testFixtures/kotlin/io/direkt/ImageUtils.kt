@@ -11,8 +11,8 @@ import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
-import io.direkt.domain.image.PreProcessingProperties
 import io.direkt.domain.image.Rotate
+import io.direkt.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.direkt.service.context.RequestedTransformation
 import org.apache.commons.math3.transform.DctNormalization
 import org.apache.commons.math3.transform.FastCosineTransformer
@@ -189,7 +189,7 @@ fun createRequestedImageTransformation(
         background = background,
     )
 
-fun createPreProcessingProperties(
+fun createImagePreProcessingProperties(
     maxWidth: Int? = null,
     maxHeight: Int? = null,
     width: Int? = null,
@@ -204,8 +204,8 @@ fun createPreProcessingProperties(
     quality: Int? = null,
     pad: Int? = null,
     background: String? = null,
-): PreProcessingProperties =
-    PreProcessingProperties.create(
+): ImagePreProcessingProperties =
+    ImagePreProcessingProperties.create(
         maxWidth = maxWidth,
         maxHeight = maxHeight,
         width = width,

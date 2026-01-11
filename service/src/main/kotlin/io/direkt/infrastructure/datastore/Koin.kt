@@ -6,8 +6,8 @@ import io.direkt.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.direkt.infrastructure.datastore.postgres.connectToPostgres
 import io.direkt.infrastructure.datastore.postgres.createPostgresProperties
 import io.direkt.infrastructure.datastore.postgres.scheduling.configureScheduling
-import io.direkt.infrastructure.properties.ConfigurationProperties.DATASTORE
-import io.direkt.infrastructure.properties.ConfigurationProperties.DatabaseConfigurationProperties.PROVIDER
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.DATASTORE
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PROVIDER
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString

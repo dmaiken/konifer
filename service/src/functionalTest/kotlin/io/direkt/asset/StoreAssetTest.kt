@@ -188,8 +188,8 @@ class StoreAssetTest {
             path-configuration = [
               {
                 path = "/**"
-                image {
-                  preprocessing {
+                preprocessing {
+                  image {
                     image-format = ${format.format.first()}
                   }
                 }

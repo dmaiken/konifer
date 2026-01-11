@@ -12,7 +12,7 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties`() {
         val properties =
-            S3PathProperties.create(
+            S3PathProperties(
                 bucket = "test-bucket",
             )
 
@@ -21,7 +21,7 @@ class S3PathPropertiesTest {
 
     @Test
     fun `can create S3Properties with defaults`() {
-        val properties = S3PathProperties.create(null)
+        val properties = S3PathProperties()
 
         properties.bucket shouldBe "assets"
     }
@@ -29,7 +29,7 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties with parent`() {
         val parent =
-            S3PathProperties.create(
+            S3PathProperties(
                 bucket = "test-bucket",
             )
         val properties =
@@ -61,7 +61,7 @@ class S3PathPropertiesTest {
     @Test
     fun `can create S3Properties with application config and parent`() {
         val parent =
-            S3PathProperties.create(
+            S3PathProperties(
                 bucket = "test-bucket",
             )
         val config =
@@ -106,7 +106,7 @@ class S3PathPropertiesTest {
     fun `bucket name conform to S3 standards`(bucket: String) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                S3PathProperties.create(
+                S3PathProperties(
                     bucket = bucket,
                 )
             }

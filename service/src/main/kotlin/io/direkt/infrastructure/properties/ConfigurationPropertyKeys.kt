@@ -1,6 +1,6 @@
 package io.direkt.infrastructure.properties
 
-object ConfigurationProperties {
+object ConfigurationPropertyKeys {
     const val DATASTORE = "datastore"
     const val OBJECT_STORE = "object-store"
     const val PATH_CONFIGURATION = "path-configuration"
@@ -8,11 +8,11 @@ object ConfigurationProperties {
     const val VARIANT_GENERATION = "variant-generation"
     const val URL_SIGNING = "url-signing"
 
-    object DatabaseConfigurationProperties {
+    object DatabasePropertyKeys {
         const val PROVIDER = "provider"
         const val POSTGRES = "postgresql"
 
-        object PostgresConfigurationProperties {
+        object PostgresPropertyKeys {
             const val DATABASE = "database"
             const val HOST = "host"
             const val PASSWORD = "password"
@@ -21,11 +21,11 @@ object ConfigurationProperties {
         }
     }
 
-    object ObjectStoreConfigurationProperties {
+    object ObjectStorePropertyKeys {
         const val PROVIDER = "provider"
         const val S3 = "s3"
 
-        object S3ConfigurationProperties {
+        object S3PropertyKeys {
             const val ACCESS_KEY = "access-key"
             const val ENDPOINT_URL = "endpoint-url"
             const val REGION = "region"
@@ -33,26 +33,27 @@ object ConfigurationProperties {
             const val USE_PATH_STYLE = "use-path-style"
             const val PRESIGN_URL = "presign"
 
-            object PreSignedUrlConfigurationProperties {
+            object PreSignedUrlPropertyKeys {
                 const val ENABLED = "enabled"
                 const val TTL = "ttl"
             }
         }
     }
 
-    object PathConfigurationProperties {
+    object PathPropertyKeys {
         const val IMAGE = "image"
         const val PATH = "path"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val VARIANT_PROFILES = "variant-profiles"
         const val EAGER_VARIANTS = "eager-variants"
         const val S3 = "s3"
+        const val PREPROCESSING = "preprocessing"
 
         object ImagePropertyKeys {
-            const val PREPROCESSING = "preprocessing"
             const val LQIP = "lqip"
 
             object PreProcessingPropertyKeys {
+                const val IMAGE = "image"
                 const val MAX_HEIGHT = "max-height"
                 const val MAX_WIDTH = "max-width"
                 const val IMAGE_FORMAT = "image-format"

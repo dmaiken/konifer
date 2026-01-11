@@ -6,7 +6,6 @@ import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
-import io.direkt.infrastructure.properties.ValidatedProperties
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
@@ -25,7 +24,11 @@ data class RequestedTransformation(
     val quality: Int?,
     val pad: Int?,
     val background: String?,
-) : ValidatedProperties {
+) {
+    init {
+        validate()
+    }
+
     companion object Factory {
         val ORIGINAL_VARIANT =
             RequestedTransformation(
@@ -64,35 +67,47 @@ data class RequestedTransformation(
             }
     }
 
-    override fun validate() {
+    private fun validate() {
         if (originalVariant) {
             return
         }
-        if (width != null && width < 1) {
-            throw IllegalArgumentException("Width cannot be < 1")
+        if (width != null) {
+            require(width >= 1) {
+                "Width cannot be < 1"
+            }
         }
-        if (height != null && height < 1) {
-            throw IllegalArgumentException("Height cannot be < 1")
+        if (height != null) {
+            require(height >= 1) {
+                "Height cannot be < 1"
+            }
         }
         when (fit) {
             Fit.FIT -> {}
             Fit.FILL, Fit.STRETCH, Fit.CROP -> {
-                if (height == null || width == null) {
-                    throw IllegalArgumentException("Height or width must be supplied for fit: $fit")
+                require(height != null && width != null) {
+                    "Height or width must be supplied for fit: $fit"
                 }
             }
         }
-        if (blur != null && (blur !in 0..150)) {
-            throw IllegalArgumentException("Blur must be between 0 and 150")
+        if (blur != null) {
+            require(blur in 0..150) {
+                "Blur must be between 0 and 150"
+            }
         }
-        if (quality != null && (quality !in 1..100)) {
-            throw IllegalArgumentException("Quality must be between 1 and 100")
+        if (quality != null) {
+            require(quality in 1..100) {
+                "Quality must be between 1 and 100"
+            }
         }
-        if (pad != null && pad < 0) {
-            throw IllegalArgumentException("Pad must not be negative")
+        if (pad != null) {
+            require(pad >= 0) {
+                "Pad must not be negative"
+            }
         }
-        if (background != null && (!background.startsWith('#') || background.drop(1).toLongOrNull(16) == null)) {
-            throw IllegalArgumentException("Background must be a hex value starting with '#'")
+        if (background != null) {
+            require(background.startsWith('#') && background.drop(1).toLongOrNull(16) != null) {
+                "Background must be a hex value starting with '#'"
+            }
         }
     }
 }

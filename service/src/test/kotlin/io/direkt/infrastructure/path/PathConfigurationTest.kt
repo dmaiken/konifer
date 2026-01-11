@@ -1,8 +1,8 @@
 package io.direkt.infrastructure.path
 
 import io.direkt.domain.image.ImageProperties
-import io.direkt.domain.image.PreProcessingProperties
 import io.direkt.domain.path.PathConfiguration
+import io.direkt.domain.variant.preprocessing.PreProcessingProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -13,15 +13,15 @@ class PathConfigurationTest {
     fun `unsupported content type is not allowed`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                PathConfiguration.create(
+                PathConfiguration(
                     allowedContentTypes = listOf("not/supported"),
-                    imageProperties =
-                        ImageProperties.create(
-                            preProcessing = PreProcessingProperties.DEFAULT,
-                            lqip = setOf(),
+                    image =
+                        ImageProperties(
+                            previews = setOf(),
                         ),
                     eagerVariants = emptyList(),
-                    s3PathProperties = S3PathProperties.DEFAULT,
+                    s3Path = S3PathProperties.DEFAULT,
+                    preProcessing = PreProcessingProperties.DEFAULT,
                 )
             }
 

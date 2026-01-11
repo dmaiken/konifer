@@ -12,9 +12,9 @@ import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
 import io.direkt.infrastructure.http.getAppStatusCacheHeader
 import io.direkt.infrastructure.http.getContentDispositionHeader
-import io.direkt.infrastructure.properties.ConfigurationProperties.SOURCE
-import io.direkt.infrastructure.properties.ConfigurationProperties.SourceConfigurationProperties.MULTIPART
-import io.direkt.infrastructure.properties.ConfigurationProperties.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
 import io.direkt.infrastructure.tryGetConfig
 import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.ReturnFormat

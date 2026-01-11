@@ -1,17 +1,16 @@
 package io.direkt.infrastructure.objectstore.s3
 
-import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.S3PropertyKeys.BUCKET
-import io.direkt.infrastructure.properties.ValidatedProperties
-import io.direkt.infrastructure.properties.validateAndCreate
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.S3PropertyKeys.BUCKET
 import io.ktor.server.config.ApplicationConfig
 
-class S3PathProperties private constructor(
-    val bucket: String,
-) : ValidatedProperties {
-    companion object Factory {
-        private const val DEFAULT_BUCKET = "assets"
-        val DEFAULT = S3PathProperties(DEFAULT_BUCKET)
+data class S3PathProperties(
+    val bucket: String = DEFAULT_BUCKET,
+) {
+    init {
+        validate()
+    }
 
+    companion object Factory {
         /**
          * Reflects rules outlined here: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
          */
@@ -20,22 +19,19 @@ class S3PathProperties private constructor(
                 "^((?!xn--)(?!amzn-s3-demo-)(?!sthree-)(?!.*-s3alias$)(?!.*--ol-s3$)(?!.*--x-s3$)(?!.*--table-s3$)" +
                     "(?!.*\\.mwrap$)[a-z0-9][a-z0-9-]{1,61}[a-z0-9])$",
             )
+        private const val DEFAULT_BUCKET = "assets"
+        val DEFAULT = S3PathProperties(DEFAULT_BUCKET)
 
         fun create(
             applicationConfig: ApplicationConfig?,
             parent: S3PathProperties?,
         ): S3PathProperties =
-            create(
-                bucket = applicationConfig?.propertyOrNull(BUCKET)?.getString() ?: parent?.bucket,
+            S3PathProperties(
+                bucket = applicationConfig?.propertyOrNull(BUCKET)?.getString() ?: parent?.bucket ?: DEFAULT_BUCKET,
             )
-
-        fun create(bucket: String?): S3PathProperties =
-            validateAndCreate {
-                S3PathProperties(bucket ?: DEFAULT_BUCKET)
-            }
     }
 
-    override fun validate() {
+    private fun validate() {
         require(bucketRegex.matches(bucket)) {
             "Bucket must be conform to S3 name requirements"
         }

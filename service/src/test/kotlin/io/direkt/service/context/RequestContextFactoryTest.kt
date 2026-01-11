@@ -7,6 +7,7 @@ import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.variant.Transformation
+import io.direkt.domain.variant.preprocessing.PreProcessingProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
 import io.direkt.infrastructure.path.TriePathConfigurationRepository
 import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
@@ -926,11 +927,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
             every {
                 pathConfigurationRepository.fetch("/profile/123")
             } returns
-                PathConfiguration.create(
+                PathConfiguration(
                     allowedContentTypes = listOf("image/png"),
-                    imageProperties = ImageProperties.DEFAULT,
+                    image = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3PathProperties = S3PathProperties.DEFAULT,
+                    s3Path = S3PathProperties.DEFAULT,
+                    preProcessing = PreProcessingProperties.DEFAULT,
                 )
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -954,11 +956,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
             every {
                 pathConfigurationRepository.fetch("/profile/123")
             } returns
-                PathConfiguration.create(
+                PathConfiguration(
                     allowedContentTypes = listOf("image/jpeg"),
-                    imageProperties = ImageProperties.DEFAULT,
+                    image = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3PathProperties = S3PathProperties.DEFAULT,
+                    s3Path = S3PathProperties.DEFAULT,
+                    preProcessing = PreProcessingProperties.DEFAULT,
                 )
 
             val exception =

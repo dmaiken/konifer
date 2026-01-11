@@ -1,9 +1,9 @@
 package io.direkt.infrastructure.http.signature
 
-import io.direkt.infrastructure.properties.ConfigurationProperties.URL_SIGNING
-import io.direkt.infrastructure.properties.ConfigurationProperties.UrlSigningConfigurationProperties.ALGORITHM
-import io.direkt.infrastructure.properties.ConfigurationProperties.UrlSigningConfigurationProperties.ENABLED
-import io.direkt.infrastructure.properties.ConfigurationProperties.UrlSigningConfigurationProperties.SECRET_KEY
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.URL_SIGNING
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.ALGORITHM
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.ENABLED
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.SECRET_KEY
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

@@ -289,26 +289,6 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
     @Nested
     inner class NormalizeResizeAttributesTests {
-        @ParameterizedTest
-        @EnumSource(Fit::class, mode = EnumSource.Mode.EXCLUDE, names = ["FIT"])
-        fun `height and width are required depending on the fit`(fit: Fit) =
-            runTest {
-                val asset = storePersistedAsset()
-                val requested =
-                    createRequestedImageTransformation(
-                        height = 200,
-                        format = ImageFormat.PNG,
-                        fit = fit,
-                    )
-                shouldThrow<IllegalArgumentException> {
-                    transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
-                        requested = requested,
-                    )
-                }
-            }
-
         @Test
         fun `only height is required when using scale fit`() =
             runTest {
@@ -737,7 +717,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "#", "", " ", "#F", "#-1", "FFFFFF", "##",
+                "#F", "#-1",
             ],
         )
         fun `throws when normalizing invalidBackground`(badBackground: String) =

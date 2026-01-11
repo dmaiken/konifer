@@ -1,6 +1,5 @@
 package io.direkt.infrastructure.objectstore.s3
 
-import io.direkt.infrastructure.properties.ValidatedProperties
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
@@ -12,10 +11,8 @@ data class S3ClientProperties(
     val usePathStyleUrl: Boolean,
     val presignedUrlProperties: PresignedUrlProperties?,
     val providerHint: S3Provider? = null,
-) : ValidatedProperties {
-    val endpointDomain = endpointUrl?.replaceFirst("https://", "")?.replaceFirst("http://", "")
-
-    override fun validate() {
+) {
+    init {
         if (providerHint == S3Provider.LOCALSTACK) {
             require(endpointUrl != null && region != null) {
                 "If using localstack you must specify endpointUrl and region"
@@ -27,12 +24,14 @@ data class S3ClientProperties(
             }
         }
     }
+
+    val endpointDomain = endpointUrl?.replaceFirst("https://", "")?.replaceFirst("http://", "")
 }
 
 data class PresignedUrlProperties(
     val ttl: Duration,
-) : ValidatedProperties {
-    override fun validate() {
+) {
+    init {
         require(ttl.isPositive()) {
             "Presigned TTL must be positive"
         }

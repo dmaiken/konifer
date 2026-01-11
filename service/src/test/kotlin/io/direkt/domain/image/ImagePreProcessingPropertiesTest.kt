@@ -1,6 +1,7 @@
 package io.direkt.domain.image
 
-import io.direkt.createPreProcessingProperties
+import io.direkt.createImagePreProcessingProperties
+import io.direkt.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -8,13 +9,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-class ImagePropertiesTest {
+class ImagePreProcessingPropertiesTest {
     @ParameterizedTest
     @ValueSource(ints = [-1, 0])
-    fun `PreProcessingProperties maxHeight cannot be less than 0`(maxHeight: Int) {
+    fun `ImagePreProcessingProperties maxHeight cannot be less than 0`(maxHeight: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxHeight = maxHeight,
                 )
             }
@@ -24,10 +25,10 @@ class ImagePropertiesTest {
 
     @ParameterizedTest
     @ValueSource(ints = [-1, 0])
-    fun `PreProcessingProperties maxWidth cannot be less than 0`(maxWidth: Int) {
+    fun `ImagePreProcessingProperties maxWidth cannot be less than 0`(maxWidth: Int) {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxWidth = maxWidth,
                 )
             }
@@ -36,9 +37,9 @@ class ImagePropertiesTest {
     }
 
     @Test
-    fun `PreProcessingProperties maxHeight can be null`() {
+    fun `ImagePreProcessingProperties maxHeight can be null`() {
         shouldNotThrowAny {
-            createPreProcessingProperties(
+            createImagePreProcessingProperties(
                 maxWidth = 100,
                 maxHeight = null,
             )
@@ -46,9 +47,9 @@ class ImagePropertiesTest {
     }
 
     @Test
-    fun `PreProcessingProperties maxWidth can be null`() {
+    fun `ImagePreProcessingProperties maxWidth can be null`() {
         shouldNotThrowAny {
-            createPreProcessingProperties(
+            createImagePreProcessingProperties(
                 maxWidth = null,
                 maxHeight = 100,
             )
@@ -59,7 +60,7 @@ class ImagePropertiesTest {
     @ValueSource(ints = [-1, 151])
     fun `blur cannot be outside bounds`(blur: Int) {
         shouldThrow<IllegalArgumentException> {
-            createPreProcessingProperties(
+            createImagePreProcessingProperties(
                 blur = blur,
             )
         }
@@ -69,7 +70,7 @@ class ImagePropertiesTest {
     @ValueSource(ints = [0, 101])
     fun `quality cannot be outside bounds`(quality: Int) {
         shouldThrow<IllegalArgumentException> {
-            createPreProcessingProperties(
+            createImagePreProcessingProperties(
                 quality = quality,
             )
         }
@@ -78,7 +79,7 @@ class ImagePropertiesTest {
     @Test
     fun `pad cannot be negative`() {
         shouldThrow<IllegalArgumentException> {
-            createPreProcessingProperties(
+            createImagePreProcessingProperties(
                 pad = -1,
             )
         }
@@ -86,7 +87,7 @@ class ImagePropertiesTest {
 
     @Test
     fun `PreProcessingProperties default contains default values`() {
-        val default = PreProcessingProperties.DEFAULT
+        val default = ImagePreProcessingProperties.DEFAULT
         default.format shouldBe null
         default.maxWidth shouldBe null
         default.maxHeight shouldBe null
@@ -105,7 +106,7 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation uses the width over the maxWidth if supplied`() {
         val properties =
             shouldNotThrowAny {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxWidth = 100,
                     width = 200,
                 )
@@ -117,7 +118,7 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation uses the height over the maxHeight if supplied`() {
         val properties =
             shouldNotThrowAny {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxHeight = 100,
                     height = 200,
                 )
@@ -129,7 +130,7 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is false if maxWidth is true`() {
         val properties =
             shouldNotThrowAny {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxWidth = 100,
                 )
             }
@@ -140,7 +141,7 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is false if maxHeight is true`() {
         val properties =
             shouldNotThrowAny {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     maxHeight = 100,
                 )
             }
@@ -151,7 +152,7 @@ class ImagePropertiesTest {
     fun `toRequestedImageTransformation canUpscale is true if maxHeight and maxWidth are null`() {
         val properties =
             shouldNotThrowAny {
-                createPreProcessingProperties(
+                createImagePreProcessingProperties(
                     width = 200,
                 )
             }

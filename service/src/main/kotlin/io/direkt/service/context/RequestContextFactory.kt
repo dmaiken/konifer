@@ -8,7 +8,6 @@ import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import io.direkt.domain.ports.PathConfigurationRepository
 import io.direkt.domain.ports.VariantProfileRepository
-import io.direkt.infrastructure.properties.validateAndCreate
 import io.direkt.service.context.ManipulationParameters.ALL_RESERVED_PARAMETERS
 import io.direkt.service.context.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
 import io.direkt.service.context.ManipulationParameters.BACKGROUND
@@ -340,22 +339,20 @@ class RequestContextFactory(
         } else if (variantProfile == null && ALL_TRANSFORMATION_PARAMETERS.none { parameters.contains(it) }) {
             RequestedTransformation.ORIGINAL_VARIANT
         } else {
-            validateAndCreate {
-                RequestedTransformation(
-                    width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
-                    height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
-                    format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
-                    fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
-                    gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
-                    rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
-                    flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
-                    filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
-                    blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
-                    quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
-                    pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
-                    background = parameters[BACKGROUND] ?: variantProfile?.background,
-                )
-            }
+            RequestedTransformation(
+                width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
+                height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
+                format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
+                fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
+                gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
+                rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
+                flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
+                filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
+                blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
+                quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
+                pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
+                background = parameters[BACKGROUND] ?: variantProfile?.background,
+            )
         }
     }
 

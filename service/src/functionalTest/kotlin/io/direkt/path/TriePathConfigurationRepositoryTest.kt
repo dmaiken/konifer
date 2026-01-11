@@ -139,9 +139,7 @@ class TriePathConfigurationRepositoryTest {
             application {
                 val pathConfigurationRepository = TriePathConfigurationRepository(environment.config)
                 pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
-                    imageProperties.apply {
-                        preProcessing.enabled shouldBe false
-                    }
+                    preProcessing.image.enabled shouldBe false
                     allowedContentTypes shouldBe null
                 }
             }
@@ -188,8 +186,8 @@ class TriePathConfigurationRepositoryTest {
                   "image/png",
                   "image/jpeg"
                 ],
-                image {
-                  preprocessing = {
+                preprocessing = {
+                  image {
                     max-height = 10
                   }
                 }
@@ -197,8 +195,8 @@ class TriePathConfigurationRepositoryTest {
               {
                 path = "/users/*/profile"
                 allowed-content-types = [ ]
-                image {
-                  preprocessing = {
+                preprocessing = {
+                  image {
                     max-width = 10
                   }
                 }
@@ -210,8 +208,8 @@ class TriePathConfigurationRepositoryTest {
                 val pathConfigurationRepository = TriePathConfigurationRepository(environment.config)
                 val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf()
-                pathConfiguration.imageProperties.preProcessing.maxWidth shouldBe 10
-                pathConfiguration.imageProperties.preProcessing.maxHeight shouldBe 10
+                pathConfiguration.preProcessing.image.maxWidth shouldBe 10
+                pathConfiguration.preProcessing.image.maxHeight shouldBe 10
             }
         }
 
@@ -229,8 +227,7 @@ class TriePathConfigurationRepositoryTest {
               },
               {
                 path = "/users/**"
-                allowed-content-types = [
-                ]
+                allowed-content-types = [ ]
               }
             ]
             """.trimIndent(),
@@ -253,8 +250,8 @@ class TriePathConfigurationRepositoryTest {
                   "image/png",
                   "image/jpeg"
                 ],
-                image {
-                  preprocessing = {
+                preprocessing = {
+                  image {
                     max-height = 10
                   }
                 }
@@ -262,8 +259,8 @@ class TriePathConfigurationRepositoryTest {
               {
                 path = "/users/*/profile"
                 allowed-content-types = [ ]
-                image {
-                  preprocessing = {
+                preprocessing = {
+                  image {
                     max-width = 10
                   }
                 }
@@ -275,8 +272,8 @@ class TriePathConfigurationRepositoryTest {
                 val pathConfigurationRepository = TriePathConfigurationRepository(environment.config)
                 val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
                 pathConfiguration.allowedContentTypes shouldBe listOf()
-                pathConfiguration.imageProperties.preProcessing.maxWidth shouldBe 10
-                pathConfiguration.imageProperties.preProcessing.maxHeight shouldBe 10
+                pathConfiguration.preProcessing.image.maxWidth shouldBe 10
+                pathConfiguration.preProcessing.image.maxHeight shouldBe 10
             }
         }
 

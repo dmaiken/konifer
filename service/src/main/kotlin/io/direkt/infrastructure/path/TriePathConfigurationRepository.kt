@@ -2,8 +2,8 @@ package io.direkt.infrastructure.path
 
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.ports.PathConfigurationRepository
-import io.direkt.infrastructure.properties.ConfigurationProperties
-import io.direkt.infrastructure.properties.ConfigurationProperties.PathConfigurationProperties.PATH
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.PATH
 import io.direkt.infrastructure.tryGetConfigList
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
@@ -39,7 +39,7 @@ class TriePathConfigurationRepository(
     private fun initializeTrieWithDefault(applicationConfig: ApplicationConfig): PathTrieNode {
         val defaultConfig =
             applicationConfig
-                .tryGetConfigList(ConfigurationProperties.PATH_CONFIGURATION)
+                .tryGetConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
                 .firstOrNull { it.tryGetString(PATH) == DEFAULT_PATH }
         return PathTrieNode(
             segment = GREEDY_WILDCARD_SEGMENT,
@@ -49,7 +49,7 @@ class TriePathConfigurationRepository(
 
     private fun constructPathConfigurationTrie(applicationConfig: ApplicationConfig) {
         applicationConfig
-            .tryGetConfigList(ConfigurationProperties.PATH_CONFIGURATION)
+            .tryGetConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
             .filter { it.tryGetString(PATH) != DEFAULT_PATH } // skip the default that we already populated
             .forEach { pathConfig ->
                 insertPath(

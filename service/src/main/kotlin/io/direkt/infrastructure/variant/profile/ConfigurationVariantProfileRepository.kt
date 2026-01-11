@@ -1,7 +1,7 @@
 package io.direkt.infrastructure.variant.profile
 
 import io.direkt.domain.ports.VariantProfileRepository
-import io.direkt.infrastructure.properties.ConfigurationProperties
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
 import io.direkt.infrastructure.tryGetConfigList
 import io.direkt.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
@@ -20,11 +20,11 @@ class ConfigurationVariantProfileRepository(
         buildMap {
             applicationConfig
                 .tryGetConfigList(
-                    path = ConfigurationProperties.PathConfigurationProperties.VARIANT_PROFILES,
+                    path = ConfigurationPropertyKeys.PathPropertyKeys.VARIANT_PROFILES,
                 ).forEach { profileConfig ->
                     val profileName =
                         profileConfig.tryGetString(
-                            key = ConfigurationProperties.PathConfigurationProperties.VariantProfilePropertyKeys.NAME,
+                            key = ConfigurationPropertyKeys.PathPropertyKeys.VariantProfilePropertyKeys.NAME,
                         ) ?: throw IllegalArgumentException("All variant profiles must have a name")
                     if (!isUrlSafe(profileName)) {
                         throw IllegalArgumentException("Profile name: '$profileName' is not valid")

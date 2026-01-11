@@ -3,7 +3,6 @@ package io.direkt.infrastructure.objectstore.s3
 import aws.sdk.kotlin.services.s3.S3Client
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.infrastructure.objectstore.ObjectRepositoryTest
-import io.direkt.infrastructure.properties.validateAndCreate
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
@@ -60,7 +59,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 val store =
                     S3ObjectRepository(
                         s3Client = s3Client,
-                        s3ClientProperties = properties.copy(endpointUrl = null),
+                        s3ClientProperties = properties.copy(endpointUrl = null, providerHint = null),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
@@ -93,16 +92,14 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                     S3ObjectRepository(
                         s3Client = s3Client,
                         s3ClientProperties =
-                            validateAndCreate {
-                                S3ClientProperties(
-                                    endpointUrl = null,
-                                    region = "us-east-1",
-                                    accessKey = null,
-                                    secretKey = null,
-                                    usePathStyleUrl = false,
-                                    presignedUrlProperties = null,
-                                )
-                            },
+                            S3ClientProperties(
+                                endpointUrl = null,
+                                region = "us-east-1",
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = false,
+                                presignedUrlProperties = null,
+                            ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
@@ -119,16 +116,14 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                     S3ObjectRepository(
                         s3Client = s3Client,
                         s3ClientProperties =
-                            validateAndCreate {
-                                S3ClientProperties(
-                                    endpointUrl = "minio.local",
-                                    region = null,
-                                    accessKey = null,
-                                    secretKey = null,
-                                    usePathStyleUrl = false,
-                                    presignedUrlProperties = null,
-                                )
-                            },
+                            S3ClientProperties(
+                                endpointUrl = "minio.local",
+                                region = null,
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = false,
+                                presignedUrlProperties = null,
+                            ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
@@ -145,16 +140,14 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                     S3ObjectRepository(
                         s3Client = s3Client,
                         s3ClientProperties =
-                            validateAndCreate {
-                                S3ClientProperties(
-                                    endpointUrl = null,
-                                    region = "us-east-1",
-                                    accessKey = null,
-                                    secretKey = null,
-                                    usePathStyleUrl = false,
-                                    presignedUrlProperties = PresignedUrlProperties(7.days),
-                                )
-                            },
+                            S3ClientProperties(
+                                endpointUrl = null,
+                                region = "us-east-1",
+                                accessKey = null,
+                                secretKey = null,
+                                usePathStyleUrl = false,
+                                presignedUrlProperties = PresignedUrlProperties(7.days),
+                            ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
@@ -172,22 +165,20 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
         presignedTtl: Duration? = null,
     ): Pair<S3Client, S3ClientProperties> {
         val properties =
-            validateAndCreate {
-                S3ClientProperties(
-                    endpointUrl = localstack.endpoint.toString(),
-                    region = localstack.region,
-                    accessKey = localstack.accessKey,
-                    secretKey = localstack.secretKey,
-                    usePathStyleUrl = usePathStyleUrl,
-                    presignedUrlProperties =
-                        presignedTtl?.let {
-                            PresignedUrlProperties(
-                                ttl = it,
-                            )
-                        },
-                    providerHint = S3Provider.LOCALSTACK,
-                )
-            }
+            S3ClientProperties(
+                endpointUrl = localstack.endpoint.toString(),
+                region = localstack.region,
+                accessKey = localstack.accessKey,
+                secretKey = localstack.secretKey,
+                usePathStyleUrl = usePathStyleUrl,
+                presignedUrlProperties =
+                    presignedTtl?.let {
+                        PresignedUrlProperties(
+                            ttl = it,
+                        )
+                    },
+                providerHint = S3Provider.LOCALSTACK,
+            )
 
         return Pair(
             first =

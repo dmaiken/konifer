@@ -2,27 +2,32 @@ package io.direkt.domain.path
 
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
+import io.direkt.domain.variant.preprocessing.PreProcessingProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
-import io.direkt.infrastructure.properties.ConfigurationProperties
-import io.direkt.infrastructure.properties.ValidatedProperties
-import io.direkt.infrastructure.properties.validateAndCreate
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 
-class PathConfiguration private constructor(
+data class PathConfiguration(
     val allowedContentTypes: List<String>?,
-    val imageProperties: ImageProperties,
+    val preProcessing: PreProcessingProperties,
+    val image: ImageProperties,
     val eagerVariants: List<String>,
-    val s3PathProperties: S3PathProperties,
-) : ValidatedProperties {
+    val s3Path: S3PathProperties,
+) {
+    init {
+        validate()
+    }
+
     companion object {
         val DEFAULT =
             PathConfiguration(
                 allowedContentTypes = null,
-                imageProperties = ImageProperties.DEFAULT,
+                preProcessing = PreProcessingProperties.DEFAULT,
+                image = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
-                s3PathProperties = S3PathProperties.DEFAULT,
+                s3Path = S3PathProperties.DEFAULT,
             )
 
         fun create(
@@ -32,43 +37,33 @@ class PathConfiguration private constructor(
             if (applicationConfig == null) {
                 return DEFAULT
             }
-            return create(
+            return PathConfiguration(
                 allowedContentTypes =
-                    applicationConfig.tryGetStringList(ConfigurationProperties.PathConfigurationProperties.ALLOWED_CONTENT_TYPES)
+                    applicationConfig.tryGetStringList(ConfigurationPropertyKeys.PathPropertyKeys.ALLOWED_CONTENT_TYPES)
                         ?: parent?.allowedContentTypes,
-                imageProperties =
+                preProcessing =
+                    PreProcessingProperties.create(
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.PREPROCESSING),
+                        parent = parent?.preProcessing,
+                    ),
+                image =
                     ImageProperties.create(
-                        applicationConfig.tryGetConfig(ConfigurationProperties.PathConfigurationProperties.IMAGE),
-                        parent?.imageProperties,
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.IMAGE),
+                        parent = parent?.image,
                     ),
                 eagerVariants =
-                    applicationConfig.tryGetStringList(ConfigurationProperties.PathConfigurationProperties.EAGER_VARIANTS)
+                    applicationConfig.tryGetStringList(ConfigurationPropertyKeys.PathPropertyKeys.EAGER_VARIANTS)
                         ?: parent?.eagerVariants ?: emptyList(),
-                s3PathProperties =
+                s3Path =
                     S3PathProperties.create(
-                        applicationConfig.tryGetConfig(ConfigurationProperties.PathConfigurationProperties.S3),
-                        parent?.s3PathProperties,
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.S3),
+                        parent = parent?.s3Path,
                     ),
             )
         }
-
-        fun create(
-            allowedContentTypes: List<String>?,
-            imageProperties: ImageProperties,
-            eagerVariants: List<String>,
-            s3PathProperties: S3PathProperties,
-        ): PathConfiguration =
-            validateAndCreate {
-                PathConfiguration(
-                    allowedContentTypes = allowedContentTypes,
-                    imageProperties = imageProperties,
-                    eagerVariants = eagerVariants,
-                    s3PathProperties = s3PathProperties,
-                )
-            }
     }
 
-    override fun validate() {
+    private fun validate() {
         allowedContentTypes?.let { allowedContentTypes ->
             val supportedContentTypes = ImageFormat.entries.map { it.mimeType }
             allowedContentTypes.forEach { allowedContentType ->
@@ -78,7 +73,4 @@ class PathConfiguration private constructor(
             }
         }
     }
-
-    override fun toString(): String =
-        "${this.javaClass.simpleName}(allowedContentTypes=$allowedContentTypes, imageProperties=$imageProperties)"
 }

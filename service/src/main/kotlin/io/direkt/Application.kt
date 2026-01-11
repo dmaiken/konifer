@@ -7,13 +7,13 @@ import io.direkt.infrastructure.http.route.configureInMemoryObjectStoreRouting
 import io.direkt.infrastructure.http.serialization.configureContentNegotiation
 import io.direkt.infrastructure.http.signature.configureSignatureVerification
 import io.direkt.infrastructure.objectstore.ObjectStoreProvider
-import io.direkt.infrastructure.properties.ConfigurationProperties.OBJECT_STORE
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.OBJECT_STORE
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
-import io.direkt.infrastructure.properties.ConfigurationProperties.ObjectStoreConfigurationProperties.PROVIDER as OBJECT_STORE_PROVIDER
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.ObjectStorePropertyKeys.PROVIDER as OBJECT_STORE_PROVIDER
 
 private val logger = KtorSimpleLogger("io.direkt.Application")
 

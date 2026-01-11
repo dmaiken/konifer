@@ -109,7 +109,7 @@ class StoreNewAssetWorkflow(
                         variantGenerator
                             .preProcessOriginalVariant(
                                 sourceFormat = format,
-                                lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                                lqipImplementations = context.pathConfiguration.image.previews,
                                 transformation = transformation,
                                 source = container.getTemporaryFile(),
                                 output = preProcessedOutput,
@@ -122,7 +122,7 @@ class StoreNewAssetWorkflow(
                                 Variant.Pending.originalVariant(
                                     assetId = newAsset.id,
                                     attributes = preProcessed.attributes,
-                                    objectStoreBucket = context.pathConfiguration.s3PathProperties.bucket,
+                                    objectStoreBucket = context.pathConfiguration.s3Path.bucket,
                                     objectStoreKey = objectStoreKey,
                                     lqip = preProcessed.lqip,
                                 ),
@@ -159,9 +159,9 @@ class StoreNewAssetWorkflow(
                                         requestedTransformations = eagerVariantTransformations,
                                         assetId = readyAsset.id,
                                         originalVariantAttributes = originalVariant.attributes,
-                                        lqipImplementations = context.pathConfiguration.imageProperties.previews,
+                                        lqipImplementations = context.pathConfiguration.image.previews,
                                         originalVariantLQIPs = originalVariant.lqips,
-                                        bucket = context.pathConfiguration.s3PathProperties.bucket,
+                                        bucket = context.pathConfiguration.s3Path.bucket,
                                     )
                                 }
                             }
@@ -208,7 +208,7 @@ class StoreNewAssetWorkflow(
                         *createDecoderOptions(
                             sourceFormat = sourceFormat,
                             destinationFormat =
-                                context.pathConfiguration.imageProperties.preProcessing.format
+                                context.pathConfiguration.preProcessing.image.format
                                     ?: sourceFormat,
                         ),
                     )
@@ -216,7 +216,7 @@ class StoreNewAssetWorkflow(
                 dimensions = Pair(image.width, image.pageSafeHeight())
             }
             val requestedTransformation =
-                context.pathConfiguration.imageProperties.preProcessing.requestedImageTransformation
+                context.pathConfiguration.preProcessing.image.requestedImageTransformation
 
             transformationNormalizer.normalize(
                 requested = requestedTransformation,

@@ -46,8 +46,8 @@ class ImagePreProcessingTest {
             path-configuration = [
                 {
                     path = "/**"
-                    image {
-                        preprocessing {
+                    preprocessing {
+                        image {
                             max-width = 100
                         }
                     }
@@ -92,8 +92,8 @@ class ImagePreProcessingTest {
             path-configuration = [
                 {
                     path = "/**"
-                    image {
-                        preprocessing {
+                    preprocessing {
+                        image {
                             max-height = 50
                         }
                     }
@@ -143,8 +143,8 @@ class ImagePreProcessingTest {
         path-configuration = [
             {
                 path = "/**"
-                image {
-                    preprocessing {
+                preprocessing {
+                    image {
                         ${maxHeight?.let { "max-height = $it" } ?: ""}
                         ${maxWidth?.let { "max-width = $it" } ?: ""}
                     }
@@ -193,8 +193,8 @@ class ImagePreProcessingTest {
         path-configuration = [
             {
                 path = "/**"
-                image {
-                    preprocessing {
+                preprocessing {
+                    image {
                         image-format = $imageFormat
                     }
                 }
@@ -236,8 +236,8 @@ class ImagePreProcessingTest {
             path-configuration = [
                 {
                     path = "/**"
-                    image {
-                        preprocessing {
+                    preprocessing {
+                        image {
                             image-format = jpeg
                             max-height = 55
                         }
@@ -245,10 +245,10 @@ class ImagePreProcessingTest {
                 }
                 {
                     path = "/Users/*/Profile"
-                    image {
-                        preprocessing {
+                    preprocessing {
+                        image {
                             image-format = webp
-                            max-height = 50
+                                max-height = 50
                         }
                     }
                 }
