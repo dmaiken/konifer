@@ -10,8 +10,10 @@ import io.direkt.domain.workflow.UpdateAssetWorkflow
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
+import io.direkt.infrastructure.http.getAltHeader
 import io.direkt.infrastructure.http.getAppStatusCacheHeader
 import io.direkt.infrastructure.http.getContentDispositionHeader
+import io.direkt.infrastructure.http.getLqipHeaders
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
@@ -116,6 +118,16 @@ fun Application.configureAssetRouting() {
                     fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                         logger.info("Found asset content with path: ${requestContext.path}")
                         getAppStatusCacheHeader(response.cacheHit).let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        getAltHeader(response.asset.alt)?.let {
+                            call.response.headers.append(it.first, it.second)
+                        }
+                        getLqipHeaders(
+                            response.asset.variants
+                                .first()
+                                .lqips,
+                        ).forEach {
                             call.response.headers.append(it.first, it.second)
                         }
                         getContentDispositionHeader(

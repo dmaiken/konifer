@@ -32,8 +32,9 @@ class FetchAssetHandler(
 
         return VariantLink(
             url = objectStore.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey),
-            cacheHit = assetAndCacheStatus.cacheHit,
+            alt = assetAndCacheStatus.asset.alt,
             lqip = variant.lqips,
+            cacheHit = assetAndCacheStatus.cacheHit,
         )
     }
 

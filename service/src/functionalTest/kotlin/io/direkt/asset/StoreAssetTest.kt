@@ -137,7 +137,7 @@ class StoreAssetTest {
                 )
             storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
-            fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png")!!.let { imageBytes ->
+            fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png").second!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
                 rendered.width shouldBe bufferedImage.width
                 rendered.height shouldBe bufferedImage.height
@@ -209,7 +209,7 @@ class StoreAssetTest {
                 client,
                 path = "users/123/profile",
                 expectedMimeType = format.mimeType,
-            )!!.let { imageBytes ->
+            ).second!!.let { imageBytes ->
                 Tika().detect(imageBytes) shouldBe format.mimeType
             }
         }

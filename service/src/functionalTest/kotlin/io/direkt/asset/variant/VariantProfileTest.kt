@@ -59,7 +59,7 @@ class VariantProfileTest {
                 )
             storeAssetMultipartSource(client, image, request, path = "profile")
 
-            fetchAssetContent(client, path = "profile", profile = "small")!!.let { imageBytes ->
+            fetchAssetContent(client, path = "profile", profile = "small").second!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
                 rendered.width shouldBe 10
                 rendered.height shouldNotBe bufferedImage.height
@@ -89,7 +89,7 @@ class VariantProfileTest {
                 )
             storeAssetMultipartSource(client, image, request, path = "profile")
 
-            fetchAssetContent(client, path = "profile", profile = "small", width = 100)!!.let { imageBytes ->
+            fetchAssetContent(client, path = "profile", profile = "small", width = 100).second!!.let { imageBytes ->
                 val rendered = byteArrayToImage(imageBytes)
                 rendered.width shouldBe 100
                 rendered.height shouldNotBe bufferedImage.height

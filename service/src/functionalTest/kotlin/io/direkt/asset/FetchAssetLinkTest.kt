@@ -52,6 +52,7 @@ class FetchAssetLinkTest {
                 body<AssetLinkResponse>().apply {
                     lqip.blurhash shouldBe null
                     lqip.thumbhash shouldBe null
+                    alt shouldBe request.alt
 
                     url shouldContain "http://"
                     url shouldContain storedAssetInfo!!.variants.first().storeKey
@@ -96,6 +97,7 @@ class FetchAssetLinkTest {
             fetchAssetLink(client, path = "profile")!!.apply {
                 lqip.blurhash shouldNotBe null
                 lqip.thumbhash shouldNotBe null
+                alt shouldBe request.alt
 
                 url shouldContain storedAssetInfo!!.variants.first().storeKey
                 val location =
@@ -144,6 +146,7 @@ class FetchAssetLinkTest {
                 )!!.apply {
                     lqip.blurhash shouldNotBe null
                     lqip.thumbhash shouldNotBe null
+                    alt shouldBe request.alt
 
                     url shouldNotContain storedAssetInfo!!.variants.first().storeKey
                     val location =

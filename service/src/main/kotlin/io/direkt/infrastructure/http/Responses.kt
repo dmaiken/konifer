@@ -194,5 +194,6 @@ data class LQIPResponse(
 @Serializable
 data class AssetLinkResponse(
     val url: String,
+    val alt: String?,
     val lqip: LQIPResponse,
 )
