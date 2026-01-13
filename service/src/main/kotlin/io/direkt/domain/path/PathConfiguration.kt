@@ -15,6 +15,7 @@ data class PathConfiguration(
     val image: ImageProperties,
     val eagerVariants: List<String>,
     val s3Path: S3PathProperties,
+    val cacheControl: CacheControlProperties,
 ) {
     init {
         validate()
@@ -28,6 +29,7 @@ data class PathConfiguration(
                 image = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
                 s3Path = S3PathProperties.DEFAULT,
+                cacheControl = CacheControlProperties.DEFAULT,
             )
 
         fun create(
@@ -59,6 +61,11 @@ data class PathConfiguration(
                         applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.S3),
                         parent = parent?.s3Path,
                     ),
+                cacheControl =
+                    CacheControlProperties.create(
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL),
+                        parent = parent?.cacheControl,
+                    )
             )
         }
     }

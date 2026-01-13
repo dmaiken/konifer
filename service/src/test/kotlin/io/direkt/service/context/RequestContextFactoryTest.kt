@@ -5,6 +5,7 @@ import io.direkt.createRequestedImageTransformation
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
+import io.direkt.domain.path.CacheControlProperties
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.preprocessing.PreProcessingProperties
@@ -933,6 +934,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     eagerVariants = listOf(),
                     s3Path = S3PathProperties.DEFAULT,
                     preProcessing = PreProcessingProperties.DEFAULT,
+                    cacheControl = CacheControlProperties.DEFAULT,
                 )
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -962,6 +964,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     eagerVariants = listOf(),
                     s3Path = S3PathProperties.DEFAULT,
                     preProcessing = PreProcessingProperties.DEFAULT,
+                    cacheControl = CacheControlProperties.DEFAULT,
                 )
 
             val exception =
