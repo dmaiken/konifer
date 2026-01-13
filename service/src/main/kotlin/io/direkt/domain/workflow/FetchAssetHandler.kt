@@ -8,8 +8,8 @@ import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.VariantLink
 import io.direkt.service.TemporaryFileFactory
-import io.direkt.service.context.QueryRequestContext
 import io.direkt.service.context.ContentTypeNotPermittedException
+import io.direkt.service.context.QueryRequestContext
 import io.direkt.service.variant.VariantService
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel

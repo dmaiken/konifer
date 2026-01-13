@@ -11,7 +11,10 @@ import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
 import io.direkt.infrastructure.http.CustomAttributes.deleteRequestContextKey
+import io.direkt.infrastructure.http.CustomAttributes.queryRequestContextKey
+import io.direkt.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.direkt.infrastructure.http.RequestContextPlugin
+import io.direkt.infrastructure.http.cache.AssetCacheControlPlugin
 import io.direkt.infrastructure.http.getAltHeader
 import io.direkt.infrastructure.http.getAppStatusCacheHeader
 import io.direkt.infrastructure.http.getContentDispositionHeader
@@ -27,6 +30,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.config.tryGetString
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
@@ -40,6 +44,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -49,11 +54,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import io.direkt.infrastructure.http.CustomAttributes.queryRequestContextKey
-import io.direkt.infrastructure.http.CustomAttributes.updateRequestContextKey
-import io.direkt.infrastructure.http.cache.AssetCacheControlPlugin
-import io.ktor.server.application.install
-import io.ktor.server.routing.route
 
 private val logger = KtorSimpleLogger("io.direkt.infrastructure.http.AssetRouting")
 
@@ -198,7 +198,6 @@ fun Application.configureAssetRouting() {
                 call.respond(HttpStatusCode.NoContent)
             }
         }
-
     }
 }
 

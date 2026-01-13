@@ -35,7 +35,7 @@ class VipsPipeline(
         var processed =
             VipsTransformationResult(
                 processed = source,
-                requiresLqipRegeneration = requiresLqipRegeneration,
+                requiresLqipRegeneration = false,
             )
         var failed = false
 

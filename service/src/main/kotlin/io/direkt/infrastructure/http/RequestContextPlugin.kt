@@ -13,31 +13,35 @@ import org.koin.ktor.ext.getKoin
 /**
  * Populates the request context on the call's attributes.
  */
-val RequestContextPlugin = createRouteScopedPlugin(
-    name = "RequestContext",
-) {
-    val requestContextFactory by application.getKoin().inject<RequestContextFactory>()
+val RequestContextPlugin =
+    createRouteScopedPlugin(
+        name = "RequestContext",
+    ) {
+        val requestContextFactory by application.getKoin().inject<RequestContextFactory>()
 
-    onCall { call ->
-        when (call.request.httpMethod) {
-            HttpMethod.Get -> {
-                call.attributes[queryRequestContextKey] = requestContextFactory.fromGetRequest(
-                    path = call.request.path(),
-                    queryParameters = call.parameters
-                )
+        onCall { call ->
+            when (call.request.httpMethod) {
+                HttpMethod.Get -> {
+                    call.attributes[queryRequestContextKey] =
+                        requestContextFactory.fromGetRequest(
+                            path = call.request.path(),
+                            queryParameters = call.parameters,
+                        )
+                }
+                HttpMethod.Delete -> {
+                    call.attributes[deleteRequestContextKey] =
+                        requestContextFactory.fromDeleteRequest(
+                            path = call.request.path(),
+                            queryParameters = call.parameters,
+                        )
+                }
+                HttpMethod.Put -> {
+                    call.attributes[updateRequestContextKey] =
+                        requestContextFactory.fromUpdateRequest(
+                            path = call.request.path(),
+                        )
+                }
+                // Skipping POST because its more complicated - we need to extract the mimeType of the asset content
             }
-            HttpMethod.Delete -> {
-                call.attributes[deleteRequestContextKey] = requestContextFactory.fromDeleteRequest(
-                    path = call.request.path(),
-                    queryParameters = call.parameters,
-                )
-            }
-            HttpMethod.Put -> {
-                call.attributes[updateRequestContextKey] = requestContextFactory.fromUpdateRequest(
-                    path = call.request.path(),
-                )
-            }
-            // Skipping POST because its more complicated - we need to extract the mimeType of the asset content
         }
     }
-}

@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class CacheControlPropertiesTest {
-
     @Test
     fun `cannot create with negative maxAge`() {
         shouldThrow<IllegalArgumentException> {

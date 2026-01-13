@@ -65,7 +65,7 @@ data class PathConfiguration(
                     CacheControlProperties.create(
                         applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL),
                         parent = parent?.cacheControl,
-                    )
+                    ),
             )
         }
     }

@@ -11,19 +11,25 @@ import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.PathPropert
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
-enum class CacheControlVisibility(val value: String) {
+enum class CacheControlVisibility(
+    val value: String,
+) {
     PUBLIC("public"),
-    PRIVATE("private");
+    PRIVATE("private"),
+    ;
 
     companion object Factory {
         fun fromConfig(value: String?): CacheControlVisibility = entries.first { it.value == value }
     }
 }
 
-enum class CacheControlRevalidate(val value: String) {
+enum class CacheControlRevalidate(
+    val value: String,
+) {
     MUST_REVALIDATE("must-revalidate"),
     PROXY_REVALIDATE("proxy-revalidate"),
-    NO_CACHE("no-cache");
+    NO_CACHE("no-cache"),
+    ;
 
     companion object Factory {
         fun fromConfig(value: String?): CacheControlRevalidate = CacheControlRevalidate.entries.first { it.value == value }
@@ -56,16 +62,17 @@ data class CacheControlProperties(
     }
 
     companion object Factory {
-        val DEFAULT = CacheControlProperties(
-            enabled = false,
-            maxAge = null,
-            sharedMaxAge = null,
-            visibility = null,
-            revalidate = null,
-            staleWhileRevalidate = null,
-            staleIfError = null,
-            immutable = null,
-        )
+        val DEFAULT =
+            CacheControlProperties(
+                enabled = false,
+                maxAge = null,
+                sharedMaxAge = null,
+                visibility = null,
+                revalidate = null,
+                staleWhileRevalidate = null,
+                staleIfError = null,
+                immutable = null,
+            )
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -75,13 +82,21 @@ data class CacheControlProperties(
                 enabled = applicationConfig?.tryGetString(ENABLED)?.toBoolean() ?: parent?.enabled ?: false,
                 maxAge = applicationConfig?.tryGetString(MAX_AGE)?.toLong() ?: parent?.maxAge,
                 sharedMaxAge = applicationConfig?.tryGetString(SHARED_MAX_AGE)?.toLong() ?: parent?.sharedMaxAge,
-                visibility = applicationConfig?.tryGetString(VISIBILITY)
-                    ?.let { CacheControlVisibility.fromConfig(it) }
-                    ?: parent?.visibility,
-                revalidate = applicationConfig?.tryGetString(REVALIDATE)
-                    ?.let { CacheControlRevalidate.fromConfig(it) }
-                    ?: parent?.revalidate,
-                staleWhileRevalidate = applicationConfig?.tryGetString(STALE_WHILE_REVALIDATE)?.toLong() ?: parent?.staleWhileRevalidate,
+                visibility =
+                    applicationConfig
+                        ?.tryGetString(VISIBILITY)
+                        ?.let { CacheControlVisibility.fromConfig(it) }
+                        ?: parent?.visibility,
+                revalidate =
+                    applicationConfig
+                        ?.tryGetString(REVALIDATE)
+                        ?.let { CacheControlRevalidate.fromConfig(it) }
+                        ?: parent?.revalidate,
+                staleWhileRevalidate =
+                    applicationConfig
+                        ?.tryGetString(
+                            STALE_WHILE_REVALIDATE,
+                        )?.toLong() ?: parent?.staleWhileRevalidate,
                 staleIfError = applicationConfig?.tryGetString(STALE_IF_ERROR)?.toLong() ?: parent?.staleIfError,
                 immutable = applicationConfig?.tryGetString(IMMUTABLE)?.toBoolean() ?: parent?.immutable,
             )
