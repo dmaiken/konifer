@@ -8,8 +8,8 @@ import io.direkt.domain.ports.ObjectRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.VariantLink
 import io.direkt.service.TemporaryFileFactory
-import io.direkt.service.context.AssetQueryRequestContext
 import io.direkt.service.context.ContentTypeNotPermittedException
+import io.direkt.service.context.QueryRequestContext
 import io.direkt.service.variant.VariantService
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
@@ -25,7 +25,7 @@ class FetchAssetHandler(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun fetchAssetLinkByPath(context: AssetQueryRequestContext): VariantLink? {
+    suspend fun fetchAssetLinkByPath(context: QueryRequestContext): VariantLink? {
         val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
         logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
         val variant = assetAndCacheStatus.asset.variants.first()
@@ -38,7 +38,7 @@ class FetchAssetHandler(
         )
     }
 
-    suspend fun fetchAssetMetadataAtPath(context: AssetQueryRequestContext): List<AssetData> {
+    suspend fun fetchAssetMetadataAtPath(context: QueryRequestContext): List<AssetData> {
         logger.info("Fetching asset info at path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
@@ -49,7 +49,7 @@ class FetchAssetHandler(
     }
 
     suspend fun fetchAssetMetadataByPath(
-        context: AssetQueryRequestContext,
+        context: QueryRequestContext,
         generateVariant: Boolean,
     ): AssetMetadata? {
         logger.info(
@@ -106,7 +106,7 @@ class FetchAssetHandler(
 
     private suspend fun createOnDemandVariant(
         assetId: AssetId,
-        context: AssetQueryRequestContext,
+        context: QueryRequestContext,
     ) {
         context.pathConfiguration.allowedContentTypes?.let {
             if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {

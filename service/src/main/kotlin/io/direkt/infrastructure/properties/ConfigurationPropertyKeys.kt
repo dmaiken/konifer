@@ -48,6 +48,7 @@ object ConfigurationPropertyKeys {
         const val EAGER_VARIANTS = "eager-variants"
         const val S3 = "s3"
         const val PREPROCESSING = "preprocessing"
+        const val CACHE_CONTROL = "cache-control"
 
         object ImagePropertyKeys {
             const val LQIP = "lqip"
@@ -66,6 +67,17 @@ object ConfigurationPropertyKeys {
 
         object S3PropertyKeys {
             const val BUCKET = "bucket"
+        }
+
+        object CacheControlPropertyKeys {
+            const val ENABLED = "enabled"
+            const val MAX_AGE = "max-age"
+            const val SHARED_MAX_AGE = "s-maxage"
+            const val VISIBILITY = "visibility"
+            const val REVALIDATE = "revalidate"
+            const val STALE_WHILE_REVALIDATE = "stale-while-revalidate"
+            const val STALE_IF_ERROR = "stale-if-error"
+            const val IMMUTABLE = "immutable"
         }
     }
 

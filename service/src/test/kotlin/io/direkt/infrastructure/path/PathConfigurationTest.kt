@@ -1,6 +1,7 @@
 package io.direkt.infrastructure.path
 
 import io.direkt.domain.image.ImageProperties
+import io.direkt.domain.path.CacheControlProperties
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.variant.preprocessing.PreProcessingProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
@@ -22,6 +23,7 @@ class PathConfigurationTest {
                     eagerVariants = emptyList(),
                     s3Path = S3PathProperties.DEFAULT,
                     preProcessing = PreProcessingProperties.DEFAULT,
+                    cacheControl = CacheControlProperties.DEFAULT,
                 )
             }
 

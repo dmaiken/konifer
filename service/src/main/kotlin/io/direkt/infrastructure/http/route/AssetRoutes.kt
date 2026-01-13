@@ -10,6 +10,11 @@ import io.direkt.domain.workflow.UpdateAssetWorkflow
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
+import io.direkt.infrastructure.http.CustomAttributes.deleteRequestContextKey
+import io.direkt.infrastructure.http.CustomAttributes.queryRequestContextKey
+import io.direkt.infrastructure.http.CustomAttributes.updateRequestContextKey
+import io.direkt.infrastructure.http.RequestContextPlugin
+import io.direkt.infrastructure.http.cache.AssetCacheControlPlugin
 import io.direkt.infrastructure.http.getAltHeader
 import io.direkt.infrastructure.http.getAppStatusCacheHeader
 import io.direkt.infrastructure.http.getContentDispositionHeader
@@ -18,7 +23,6 @@ import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
 import io.direkt.infrastructure.tryGetConfig
-import io.direkt.service.context.RequestContextFactory
 import io.direkt.service.context.ReturnFormat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -26,6 +30,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.config.tryGetString
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
@@ -39,6 +44,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -54,11 +60,10 @@ private val logger = KtorSimpleLogger("io.direkt.infrastructure.http.AssetRoutin
 const val ASSET_PATH_PREFIX = "/assets"
 
 fun Application.configureAssetRouting() {
-    val storeNewAssetWorkflow by inject<StoreNewAssetWorkflow>()
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetWorkflow by inject<DeleteAssetWorkflow>()
     val updateAssetWorkflow by inject<UpdateAssetWorkflow>()
-    val requestContextFactory by inject<RequestContextFactory>()
+    val storeNewAssetWorkflow by inject<StoreNewAssetWorkflow>()
     val assetUrlGenerator by inject<AssetUrlGenerator>()
     val maxMultipartContentLength =
         environment.config
@@ -69,125 +74,129 @@ fun Application.configureAssetRouting() {
             ?: MAX_BYTES_DEFAULT
 
     routing {
-        get("$ASSET_PATH_PREFIX/{...}") {
-            val requestContext = requestContextFactory.fromGetRequest(call.request.path(), call.queryParameters)
+        route(ASSET_PATH_PREFIX) {
+            install(RequestContextPlugin)
+            install(AssetCacheControlPlugin)
 
-            logger.info(
-                "Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}",
-            )
-            when (requestContext.modifiers.returnFormat) {
-                ReturnFormat.METADATA -> {
-                    if (requestContext.modifiers.limit == 1) {
-                        fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let { response ->
-                            logger.info("Found asset info: $response with path: ${requestContext.path}")
+            get("/{...}") {
+                val requestContext = call.attributes[queryRequestContextKey]
+
+                logger.info(
+                    "Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}",
+                )
+                when (requestContext.modifiers.returnFormat) {
+                    ReturnFormat.METADATA -> {
+                        if (requestContext.modifiers.limit == 1) {
+                            fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let { response ->
+                                logger.info("Found asset info: $response with path: ${requestContext.path}")
+                                getAppStatusCacheHeader(response.cacheHit).let {
+                                    call.response.headers.append(it.first, it.second)
+                                }
+                                call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
+                            } ?: call.respond(HttpStatusCode.NotFound)
+                            return@get
+                        } else {
+                            fetchAssetHandler
+                                .fetchAssetMetadataAtPath(requestContext)
+                                .map {
+                                    AssetResponse.fromAssetData(it)
+                                }.let {
+                                    logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
+                                    call.respond(HttpStatusCode.OK, it)
+                                }
+                        }
+                    }
+                    ReturnFormat.REDIRECT -> {
+                        fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
+                            call.response.headers.append(HttpHeaders.Location, response.url)
                             getAppStatusCacheHeader(response.cacheHit).let {
                                 call.response.headers.append(it.first, it.second)
                             }
-                            call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
+                            call.respond(HttpStatusCode.TemporaryRedirect)
                         } ?: call.respond(HttpStatusCode.NotFound)
-                        return@get
-                    } else {
-                        fetchAssetHandler
-                            .fetchAssetMetadataAtPath(requestContext)
-                            .map {
-                                AssetResponse.fromAssetData(it)
-                            }.let {
-                                logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
-                                call.respond(HttpStatusCode.OK, it)
-                            }
                     }
-                }
-                ReturnFormat.REDIRECT -> {
-                    fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
-                        call.response.headers.append(HttpHeaders.Location, response.url)
-                        getAppStatusCacheHeader(response.cacheHit).let {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        call.respond(HttpStatusCode.TemporaryRedirect)
-                    } ?: call.respond(HttpStatusCode.NotFound)
-                }
-                ReturnFormat.LINK -> {
-                    fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
-                        getAppStatusCacheHeader(response.cacheHit).let {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        call.respond(HttpStatusCode.OK, response.toResponse())
-                    } ?: call.respond(HttpStatusCode.NotFound)
-                }
-                ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
-                    fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
-                        logger.info("Found asset content with path: ${requestContext.path}")
-                        getAppStatusCacheHeader(response.cacheHit).let {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        getAltHeader(response.asset.alt)?.let {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        getLqipHeaders(
-                            response.asset.variants
-                                .first()
-                                .lqips,
-                        ).forEach {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        getContentDispositionHeader(
-                            asset = response.asset,
-                            returnFormat = requestContext.modifiers.returnFormat,
-                            imageFormat =
+                    ReturnFormat.LINK -> {
+                        fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
+                            getAppStatusCacheHeader(response.cacheHit).let {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            call.respond(HttpStatusCode.OK, response.toResponse())
+                        } ?: call.respond(HttpStatusCode.NotFound)
+                    }
+                    ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
+                        fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
+                            logger.info("Found asset content with path: ${requestContext.path}")
+                            getAppStatusCacheHeader(response.cacheHit).let {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            getAltHeader(response.asset.alt)?.let {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            getLqipHeaders(
                                 response.asset.variants
                                     .first()
-                                    .attributes.format,
-                        )?.also {
-                            call.response.headers.append(it.first, it.second)
-                        }
-                        call.respondBytesWriter(
-                            contentType =
-                                ContentType.parse(
+                                    .lqips,
+                            ).forEach {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            getContentDispositionHeader(
+                                asset = response.asset,
+                                returnFormat = requestContext.modifiers.returnFormat,
+                                imageFormat =
                                     response.asset.variants
                                         .first()
-                                        .attributes.format.mimeType,
-                                ),
-                            status = HttpStatusCode.OK,
-                        ) {
-                            fetchAssetHandler.fetchAssetContent(
-                                response.asset.variants
-                                    .first()
-                                    .objectStoreBucket,
-                                response.asset.variants
-                                    .first()
-                                    .objectStoreKey,
-                                this,
-                            )
-                        }
-                    } ?: call.respond(HttpStatusCode.NotFound)
+                                        .attributes.format,
+                            )?.also {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            call.respondBytesWriter(
+                                contentType =
+                                    ContentType.parse(
+                                        response.asset.variants
+                                            .first()
+                                            .attributes.format.mimeType,
+                                    ),
+                                status = HttpStatusCode.OK,
+                            ) {
+                                fetchAssetHandler.fetchAssetContent(
+                                    response.asset.variants
+                                        .first()
+                                        .objectStoreBucket,
+                                    response.asset.variants
+                                        .first()
+                                        .objectStoreKey,
+                                    this,
+                                )
+                            }
+                        } ?: call.respond(HttpStatusCode.NotFound)
+                    }
                 }
             }
-        }
 
-        post(ASSET_PATH_PREFIX) {
-            storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
-        }
+            post {
+                storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
+            }
 
-        post("$ASSET_PATH_PREFIX/{...}") {
-            storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
-        }
+            post("/{...}") {
+                storeNewAsset(assetUrlGenerator, call, storeNewAssetWorkflow, maxMultipartContentLength)
+            }
 
-        put("$ASSET_PATH_PREFIX/{...}") {
-            val context = requestContextFactory.fromUpdateRequest(call.request.path())
-            logger.info("Received request to update asset at path: ${context.path} and entryId: ${context.entryId}")
-            val asset =
-                updateAssetWorkflow.updateAsset(
-                    context = context,
-                    request = call.receive(StoreAssetRequest::class),
-                )
-            call.respond(HttpStatusCode.OK, AssetResponse.fromAsset(asset.asset))
-        }
+            put("/{...}") {
+                val requestContext = call.attributes[updateRequestContextKey]
+                logger.info("Received request to update asset at path: ${requestContext.path} and entryId: ${requestContext.entryId}")
+                val asset =
+                    updateAssetWorkflow.updateAsset(
+                        context = requestContext,
+                        request = call.receive(StoreAssetRequest::class),
+                    )
+                call.respond(HttpStatusCode.OK, AssetResponse.fromAsset(asset.asset))
+            }
 
-        delete("$ASSET_PATH_PREFIX/{...}") {
-            val requestContext = requestContextFactory.fromDeleteRequest(call.request.path(), call.queryParameters)
-            deleteAssetWorkflow.deleteAssets(requestContext)
+            delete("/{...}") {
+                deleteAssetWorkflow.deleteAssets(call.attributes[deleteRequestContextKey])
 
-            call.respond(HttpStatusCode.NoContent)
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }

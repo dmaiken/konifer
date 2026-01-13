@@ -3,7 +3,7 @@ package io.direkt.service.context
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.variant.Transformation
 
-data class AssetQueryRequestContext(
+data class QueryRequestContext(
     val path: String,
     val pathConfiguration: PathConfiguration,
     val modifiers: QueryModifiers,
