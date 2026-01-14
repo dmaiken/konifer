@@ -62,11 +62,13 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.conditional.headers)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.client.java)
     implementation(libs.uuid.creator)
+    implementation(libs.commons.codec)
 
     implementation(libs.r2dbc.migrate)
     implementation(libs.r2dbc.migrate.resource.reader)

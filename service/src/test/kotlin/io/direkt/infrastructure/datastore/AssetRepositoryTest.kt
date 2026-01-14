@@ -10,7 +10,7 @@ import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
 import io.direkt.domain.variant.Transformation
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll

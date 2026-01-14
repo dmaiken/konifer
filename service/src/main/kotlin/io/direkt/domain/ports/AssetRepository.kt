@@ -4,7 +4,7 @@ import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 
 interface AssetRepository {
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted

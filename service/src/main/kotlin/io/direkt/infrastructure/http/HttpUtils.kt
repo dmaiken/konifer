@@ -3,7 +3,7 @@ package io.direkt.infrastructure.http
 import io.direkt.domain.asset.AssetData
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.variant.LQIPs
-import io.direkt.service.context.ReturnFormat
+import io.direkt.service.context.modifiers.ReturnFormat
 import io.ktor.http.HttpHeaders
 import java.net.URLEncoder
 

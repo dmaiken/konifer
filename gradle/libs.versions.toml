@@ -23,6 +23,7 @@ db-scheduler-version = "16.6.0"
 hikari-version = "7.0.2"
 uuid-creator-version = "6.1.1"
 bytebuddy-version = "1.18.3"
+commons-codec-version = "1.20.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -37,6 +38,7 @@ ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor-ve
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-version" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor-version" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-version" }
+ktor-server-conditional-headers = { module = "io.ktor:ktor-server-conditional-headers", version.ref = "ktor-version" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor-version" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor-version" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
@@ -52,6 +54,7 @@ kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutin
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
 uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator-version" }
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }

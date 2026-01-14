@@ -7,8 +7,8 @@ import io.direkt.domain.image.Gravity
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
-import io.direkt.service.context.ManipulationParameters
 import io.direkt.service.context.RequestedTransformation
+import io.direkt.service.context.modifiers.ManipulationParameters
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 

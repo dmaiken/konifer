@@ -6,7 +6,7 @@ import io.direkt.domain.asset.AssetId
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap

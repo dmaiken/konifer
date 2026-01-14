@@ -11,6 +11,8 @@ import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.AssetResponse
 import io.direkt.infrastructure.http.AssetUrlGenerator
 import io.direkt.infrastructure.http.CustomAttributes.deleteRequestContextKey
+import io.direkt.infrastructure.http.CustomAttributes.entryIdKey
+import io.direkt.infrastructure.http.CustomAttributes.lastModifiedKey
 import io.direkt.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.direkt.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.direkt.infrastructure.http.RequestContextPlugin
@@ -23,14 +25,13 @@ import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
 import io.direkt.infrastructure.tryGetConfig
-import io.direkt.service.context.ReturnFormat
+import io.direkt.service.context.modifiers.ReturnFormat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.config.tryGetString
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
@@ -54,6 +55,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
+import kotlin.let
 
 private val logger = KtorSimpleLogger("io.direkt.infrastructure.http.AssetRouting")
 
@@ -149,6 +151,10 @@ fun Application.configureAssetRouting() {
                             )?.also {
                                 call.response.headers.append(it.first, it.second)
                             }
+                            // Populate attributes used for etag creation
+                            call.attributes[entryIdKey] = response.asset.entryId
+                            call.attributes[lastModifiedKey] = response.asset.modifiedAt
+
                             call.respondBytesWriter(
                                 contentType =
                                     ContentType.parse(

@@ -12,6 +12,11 @@ import io.direkt.domain.variant.preprocessing.PreProcessingProperties
 import io.direkt.infrastructure.objectstore.s3.S3PathProperties
 import io.direkt.infrastructure.path.TriePathConfigurationRepository
 import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
+import io.direkt.service.context.modifiers.DeleteModifiers
+import io.direkt.service.context.modifiers.OrderBy
+import io.direkt.service.context.modifiers.QueryModifiers
+import io.direkt.service.context.modifiers.ReturnFormat
+import io.direkt.service.context.modifiers.SpecifiedInRequest
 import io.direkt.service.transformation.TransformationNormalizer
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

@@ -18,7 +18,7 @@ import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.domain.variant.VariantBucketAndKey
 import io.direkt.infrastructure.datastore.postgres.scheduling.ReapVariantEvent
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList

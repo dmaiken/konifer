@@ -9,7 +9,7 @@ import io.direkt.domain.ports.AssetRepository
 import io.direkt.infrastructure.datastore.AssetRepositoryTest
 import io.direkt.infrastructure.datastore.createPendingAsset
 import io.direkt.infrastructure.datastore.postgres.scheduling.ReapVariantEvent
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.reactive.awaitFirstOrNull

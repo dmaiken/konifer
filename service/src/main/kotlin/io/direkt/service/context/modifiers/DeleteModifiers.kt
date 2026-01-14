@@ -1,4 +1,6 @@
-package io.direkt.service.context
+package io.direkt.service.context.modifiers
+
+import io.direkt.service.context.modifiers.OrderBy
 
 const val IS_RECURSIVE_DEFAULT = false
 

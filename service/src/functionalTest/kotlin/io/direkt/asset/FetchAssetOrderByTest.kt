@@ -2,7 +2,7 @@ package io.direkt.asset
 
 import io.direkt.config.testInMemory
 import io.direkt.infrastructure.StoreAssetRequest
-import io.direkt.service.context.OrderBy
+import io.direkt.service.context.modifiers.OrderBy
 import io.direkt.util.createJsonClient
 import io.direkt.util.fetchAllAssetMetadata
 import io.direkt.util.fetchAssetMetadata

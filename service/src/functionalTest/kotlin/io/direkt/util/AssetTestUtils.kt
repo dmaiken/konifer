@@ -5,8 +5,8 @@ import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.APP_CACHE_STATUS
 import io.direkt.infrastructure.http.AssetLinkResponse
 import io.direkt.infrastructure.http.AssetResponse
-import io.direkt.service.context.OrderBy
-import io.direkt.service.context.ReturnFormat
+import io.direkt.service.context.modifiers.OrderBy
+import io.direkt.service.context.modifiers.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.date.shouldBeAfter
@@ -238,10 +238,13 @@ suspend fun fetchAssetContent(
             }
 
             headers[HttpHeaders.ContentDisposition] shouldBe null
+            headers[HttpHeaders.ETag] shouldNotBe null
             Pair(this, bodyAsBytes())
         } else {
-            headers.contains(HttpHeaders.Location) shouldBe false
-            headers.contains(HttpHeaders.ContentType) shouldBe false
+            headers[HttpHeaders.Location] shouldBe null
+            headers[HttpHeaders.ContentType] shouldBe null
+            headers[HttpHeaders.ContentDisposition] shouldBe null
+            headers[HttpHeaders.ETag] shouldBe null
 
             Pair(this, null)
         }
@@ -299,6 +302,7 @@ suspend fun fetchAssetContentDownload(
                 headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "miss"
             }
             headers[HttpHeaders.ContentDisposition] shouldNotBe null
+            headers[HttpHeaders.ETag] shouldNotBe null
 
             Pair(this, bodyAsBytes())
         } else {
@@ -347,6 +351,7 @@ suspend fun fetchAssetLink(
     client.get(fetchUrl.fullPath).apply {
         status shouldBe expectedStatusCode
         headers[HttpHeaders.Location] shouldBe null
+        headers[HttpHeaders.ETag] shouldBe null
         return if (expectedStatusCode == HttpStatusCode.OK) {
             contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
 
@@ -411,6 +416,7 @@ suspend fun fetchAssetMetadata(
         }
         val response = client.get(urlBuilder.build())
         response.status shouldBe expectedStatus
+        response.headers[HttpHeaders.ETag] shouldBe null
 
         if (response.status == HttpStatusCode.NotFound) {
             null

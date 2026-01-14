@@ -1,4 +1,4 @@
-package io.direkt.service.context
+package io.direkt.service.context.modifiers
 
 object ManipulationParameters {
     const val HEIGHT = "h"

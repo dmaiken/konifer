@@ -54,6 +54,8 @@ class FetchAssetDownloadTest {
                 response.headers[APP_LQIP_BLURHASH] shouldNotBe null
                 response.headers[APP_LQIP_THUMBHASH] shouldNotBe null
                 response.headers[APP_ALT] shouldBe request.alt
+
+                response.headers[HttpHeaders.ETag] shouldNotBe null
             }
         }
 
