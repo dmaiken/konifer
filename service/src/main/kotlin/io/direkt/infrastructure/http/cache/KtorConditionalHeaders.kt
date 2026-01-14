@@ -10,7 +10,6 @@ import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
 import io.ktor.util.date.GMTDate
 import org.apache.commons.codec.digest.MurmurHash3
 import java.time.ZoneOffset
-import kotlin.getValue
 
 fun Application.configureConditionalHeaders() {
     install(ConditionalHeaders) {

@@ -2,6 +2,7 @@ package io.direkt
 
 import io.direkt.infrastructure.configureKoin
 import io.direkt.infrastructure.http.cache.configureConditionalHeaders
+import io.direkt.infrastructure.http.configureCompression
 import io.direkt.infrastructure.http.configureStatusPages
 import io.direkt.infrastructure.http.route.configureAssetRouting
 import io.direkt.infrastructure.http.route.configureInMemoryObjectStoreRouting
@@ -42,6 +43,7 @@ fun Application.module() {
     configureStatusPages()
     configureSignatureVerification()
     configureConditionalHeaders()
+    configureCompression()
 }
 
 fun Application.configureRouting(objectStoreProvider: ObjectStoreProvider) {
