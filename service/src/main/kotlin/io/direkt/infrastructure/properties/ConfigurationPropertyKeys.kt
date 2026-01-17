@@ -57,7 +57,6 @@ object ConfigurationPropertyKeys {
                 const val IMAGE = "image"
                 const val MAX_HEIGHT = "max-height"
                 const val MAX_WIDTH = "max-width"
-                const val IMAGE_FORMAT = "image-format"
             }
         }
 

@@ -32,7 +32,7 @@ class VariantProfileRepositoryTest {
                             name = small
                             h = 10
                             w = 15
-                            mimeType = "image/png"
+                            format = png
                         }
                     ]
                     """.trimIndent(),
@@ -265,12 +265,12 @@ class VariantProfileRepositoryTest {
                 ),
                 arguments(
                     named(
-                        "bad mimeType",
+                        "bad format",
                         """
                         variant-profiles = [
                             {
                                 name = small
-                                mimeType = bad
+                                format = bad
                             }
                         ]
                         """.trimIndent(),

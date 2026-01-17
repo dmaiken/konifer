@@ -1,6 +1,7 @@
 package io.direkt.util
 
 import io.direkt.BaseTestcontainerTest.Companion.BOUNDARY
+import io.direkt.domain.image.ImageFormat
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.infrastructure.http.APP_CACHE_STATUS
 import io.direkt.infrastructure.http.AssetLinkResponse
@@ -134,7 +135,7 @@ suspend fun fetchAssetViaRedirect(
     profile: String? = null,
     height: Int? = null,
     width: Int? = null,
-    mimeType: String? = null,
+    format: String? = null,
     fit: String? = null,
     gravity: String? = null,
     rotate: String? = null,
@@ -154,7 +155,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -193,7 +194,7 @@ suspend fun fetchAssetContent(
     profile: String? = null,
     height: Int? = null,
     width: Int? = null,
-    mimeType: String? = null,
+    format: String? = null,
     fit: String? = null,
     gravity: String? = null,
     rotate: String? = null,
@@ -214,7 +215,7 @@ suspend fun fetchAssetContent(
         urlBuilder.path("/assets/$path/-/content")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -222,9 +223,9 @@ suspend fun fetchAssetContent(
             headers.contains(HttpHeaders.Location) shouldBe false
             if (expectedMimeType != null) {
                 headers[HttpHeaders.ContentType] shouldBe expectedMimeType
-            } else if (mimeType != null) {
+            } else if (format != null) {
                 (
-                    headers[HttpHeaders.ContentType] shouldBe mimeType
+                    headers[HttpHeaders.ContentType] shouldBe ImageFormat.fromFormat(format).mimeType
                 )
             } else {
                 headers[HttpHeaders.ContentType] shouldNotBe null
@@ -258,7 +259,7 @@ suspend fun fetchAssetContentDownload(
     profile: String? = null,
     height: Int? = null,
     width: Int? = null,
-    mimeType: String? = null,
+    format: String? = null,
     fit: String? = null,
     gravity: String? = null,
     rotate: String? = null,
@@ -279,7 +280,7 @@ suspend fun fetchAssetContentDownload(
         urlBuilder.path("/assets/$path/-/download")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -287,9 +288,9 @@ suspend fun fetchAssetContentDownload(
             headers.contains(HttpHeaders.Location) shouldBe false
             if (expectedMimeType != null) {
                 headers[HttpHeaders.ContentType] shouldBe expectedMimeType
-            } else if (mimeType != null) {
+            } else if (format != null) {
                 (
-                    headers[HttpHeaders.ContentType] shouldBe mimeType
+                    headers[HttpHeaders.ContentType] shouldBe ImageFormat.fromFormat(format).mimeType
                 )
             } else {
                 headers[HttpHeaders.ContentType] shouldNotBe null
@@ -322,7 +323,7 @@ suspend fun fetchAssetLink(
     profile: String? = null,
     height: Int? = null,
     width: Int? = null,
-    mimeType: String? = null,
+    format: String? = null,
     fit: String? = null,
     gravity: String? = null,
     rotate: String? = null,
@@ -343,7 +344,7 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, mimeType, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
     signature?.let {
         urlBuilder.parameters["s"] = signature
     }
@@ -529,7 +530,7 @@ private fun attachVariantModifiers(
     profile: String? = null,
     height: Int? = null,
     width: Int? = null,
-    mimeType: String? = null,
+    format: String? = null,
     fit: String? = null,
     gravity: String? = null,
     rotate: String? = null,
@@ -549,8 +550,8 @@ private fun attachVariantModifiers(
     if (width != null) {
         urlBuilder.parameters.append("w", width.toString())
     }
-    if (mimeType != null) {
-        urlBuilder.parameters.append("mimeType", mimeType)
+    if (format != null) {
+        urlBuilder.parameters.append("format", format)
     }
     if (fit != null) {
         urlBuilder.parameters.append("fit", fit)

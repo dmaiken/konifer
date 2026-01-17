@@ -197,7 +197,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(client, mimeType = "image/jpeg", expectCacheHit = (count == 1))!!.apply {
+                fetchAssetViaRedirect(client, format = "jpg", expectCacheHit = (count == 1))!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe bufferedImage.width
                     variantImage.height shouldBe bufferedImage.height
@@ -530,7 +530,7 @@ class ImageAssetVariantTest {
 
                 fetchAssetViaRedirect(
                     client,
-                    mimeType = variantFormat.mimeType,
+                    format = variantFormat.format,
                     quality = quality,
                     expectCacheHit = false,
                 )!!.apply {
@@ -539,14 +539,14 @@ class ImageAssetVariantTest {
                 val result =
                     fetchAssetViaRedirect(
                         client,
-                        mimeType = variantFormat.mimeType,
+                        format = variantFormat.format,
                         quality = quality,
                         expectCacheHit = true,
                     )!!
                 val higherQualityResult =
                     fetchAssetViaRedirect(
                         client,
-                        mimeType = variantFormat.mimeType,
+                        format = variantFormat.format,
                         quality = quality + 10,
                         expectCacheHit = false,
                     )!!
@@ -584,7 +584,7 @@ class ImageAssetVariantTest {
             val result =
                 fetchAssetViaRedirect(
                     client,
-                    mimeType = variantFormat.mimeType,
+                    format = variantFormat.format,
                     quality = quality,
                     expectCacheHit = false,
                 )!!
@@ -617,14 +617,14 @@ class ImageAssetVariantTest {
                 val lowerQualityResult =
                     fetchAssetViaRedirect(
                         client,
-                        mimeType = ImageFormat.PNG.mimeType,
+                        format = ImageFormat.PNG.format,
                         quality = 40,
                         expectCacheHit = true,
                     )!!
                 val higherQualityResult =
                     fetchAssetViaRedirect(
                         client,
-                        mimeType = ImageFormat.PNG.mimeType,
+                        format = ImageFormat.PNG.format,
                         quality = 100,
                         expectCacheHit = true,
                     )!!

@@ -118,7 +118,7 @@ data class ImagePreProcessingProperties(
                     ?.toInt() ?: parent?.height,
             format =
                 applicationConfig
-                    ?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE_FORMAT)
+                    ?.tryGetString(ManipulationParameters.FORMAT)
                     ?.let {
                         ImageFormat.fromFormat(it)
                     } ?: parent?.format,

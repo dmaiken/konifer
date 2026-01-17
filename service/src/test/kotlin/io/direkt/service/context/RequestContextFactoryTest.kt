@@ -24,7 +24,10 @@ import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
 import io.ktor.http.ParametersBuilder
 import io.mockk.every
@@ -426,7 +429,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         .apply {
                             append("w", "10")
                             append("h", "20")
-                            append("mimeType", "image/png")
+                            append("format", "png")
                         }.build(),
                     Transformation(
                         width = 10,
@@ -463,7 +466,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("mimeType", "image/jpeg")
+                            append("format", "jpg")
                         }.build(),
                     Transformation(
                         width = 100,
@@ -496,7 +499,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
             path: String,
             expectedQueryModifiers: QueryModifiers,
         ) = runTest {
-            val context = requestContextFactory.fromGetRequest(path, Parameters.Empty)
+            val context =
+                requestContextFactory.fromGetRequest(
+                    path = path,
+                    headers = HeadersBuilder().build(),
+                    queryParameters = Parameters.Empty,
+                )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
             context.modifiers shouldBe expectedQueryModifiers
@@ -509,7 +517,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
             path: String,
             expectedQueryModifiers: QueryModifiers,
         ) = runTest {
-            val context = requestContextFactory.fromGetRequest(path, Parameters.Empty)
+            val context =
+                requestContextFactory.fromGetRequest(
+                    path = path,
+                    headers = HeadersBuilder().build(),
+                    queryParameters = Parameters.Empty,
+                )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
             context.modifiers shouldBe expectedQueryModifiers
@@ -532,11 +545,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
                 val context =
                     requestContextFactory.fromGetRequest(
-                        "/assets/user/",
-                        ParametersBuilder(1)
-                            .apply {
-                                append("profile", profileName)
-                            }.build(),
+                        path = "/assets/user/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder(1)
+                                .apply {
+                                    append("profile", profileName)
+                                }.build(),
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
@@ -564,14 +579,16 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
                 val context =
                     requestContextFactory.fromGetRequest(
-                        "/assets/user/",
-                        ParametersBuilder(4)
-                            .apply {
-                                append("profile", profileName)
-                                append("h", "100")
-                                append("w", "500")
-                                append("mimeType", "image/jpeg")
-                            }.build(),
+                        path = "/assets/user/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder(4)
+                                .apply {
+                                    append("profile", profileName)
+                                    append("h", "100")
+                                    append("w", "500")
+                                    append("format", "jpg")
+                                }.build(),
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
@@ -600,7 +617,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `throws when GET query modifiers are invalid`(path: String) =
             runTest {
                 shouldThrow<InvalidQueryModifiersException> {
-                    requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                    requestContextFactory.fromGetRequest(
+                        path = path,
+                        headers = HeadersBuilder().build(),
+                        queryParameters = Parameters.Empty,
+                    )
                 }
             }
 
@@ -616,7 +637,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `entryId must be positive when fetching GET request context`(path: String) =
             runTest {
                 shouldThrow<InvalidQueryModifiersException> {
-                    requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                    requestContextFactory.fromGetRequest(
+                        path = path,
+                        headers = HeadersBuilder().build(),
+                        queryParameters = Parameters.Empty,
+                    )
                 }
             }
 
@@ -626,7 +651,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val exception =
                     shouldThrow<InvalidQueryModifiersException> {
-                        requestContextFactory.fromGetRequest("/assets/profile/user/123/-/$returnFormat/2", Parameters.Empty)
+                        requestContextFactory.fromGetRequest(
+                            path = "/assets/profile/user/123/-/$returnFormat/2",
+                            headers = HeadersBuilder().build(),
+                            queryParameters = Parameters.Empty,
+                        )
                     }
 
                 exception.message shouldBe "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}"
@@ -638,7 +667,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val path = "/assets/profile/-/-/metadata/created/10/"
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                        requestContextFactory.fromGetRequest(
+                            path = path,
+                            headers = HeadersBuilder().build(),
+                            queryParameters = Parameters.Empty,
+                        )
                     }
                 exception.message shouldBe "$path has more than one '-' segment"
             }
@@ -656,7 +689,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 format = ImageFormat.PNG,
                 path = "/profile/",
             )
-            val context = requestContextFactory.fromGetRequest(path, parameters)
+            val context =
+                requestContextFactory.fromGetRequest(
+                    path = path,
+                    headers = HeadersBuilder().build(),
+                    queryParameters = parameters,
+                )
             context.transformation shouldBe transformation
             context.labels shouldBe emptyMap()
         }
@@ -669,12 +707,16 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         .apply {
                             append("w", "10")
                             append("h", "20")
-                            append("mimeType", "image/png")
+                            append("format", "png")
                         }.build()
 
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest("/assets/profile/-/metadata/created/10/", parameters)
+                        requestContextFactory.fromGetRequest(
+                            path = "/assets/profile/-/metadata/created/10/",
+                            headers = HeadersBuilder().build(),
+                            queryParameters = parameters,
+                        )
                     }
                 exception.message shouldBe "Cannot specify image attributes when requesting asset metadata"
             }
@@ -682,7 +724,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `can parse GET asset path from the uri request path`() =
             runTest {
-                val context = requestContextFactory.fromGetRequest("/assets/profile/123/-/metadata/2", Parameters.Empty)
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/123/-/metadata/2",
+                        headers = HeadersBuilder().build(),
+                        queryParameters = Parameters.Empty,
+                    )
 
                 context.path shouldBe "/profile/123/"
             }
@@ -700,7 +747,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest(path, Parameters.Empty)
+                        requestContextFactory.fromGetRequest(
+                            path = path,
+                            headers = HeadersBuilder().build(),
+                            queryParameters = Parameters.Empty,
+                        )
                     }
 
                 exception.message shouldBe "Asset path must start with: /assets"
@@ -718,16 +769,18 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
                 val context =
                     requestContextFactory.fromGetRequest(
-                        path,
-                        ParametersBuilder(6)
-                            .apply {
-                                append("h", "100")
-                                append("w", "500")
-                                append("mimeType", "image/jpeg")
-                                append("phone", "iphone")
-                                append("case", "soft")
-                                append("label:h", "hello")
-                            }.build(),
+                        path = path,
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder(6)
+                                .apply {
+                                    append("h", "100")
+                                    append("w", "500")
+                                    append("format", "jpg")
+                                    append("phone", "iphone")
+                                    append("case", "soft")
+                                    append("label:h", "hello")
+                                }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100
@@ -753,16 +806,18 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
                 val context =
                     requestContextFactory.fromGetRequest(
-                        path,
-                        ParametersBuilder(6)
-                            .apply {
-                                append("h", "100")
-                                append("w", "500")
-                                append("mimeType", "image/jpeg")
-                                append("phone", "iphone")
-                                append("case", "soft")
-                                append("case", "hello")
-                            }.build(),
+                        path = path,
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder(6)
+                                .apply {
+                                    append("h", "100")
+                                    append("w", "500")
+                                    append("format", "jpg")
+                                    append("phone", "iphone")
+                                    append("case", "soft")
+                                    append("case", "hello")
+                                }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100
@@ -785,16 +840,18 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
                 val context =
                     requestContextFactory.fromGetRequest(
-                        path,
-                        ParametersBuilder(6)
-                            .apply {
-                                append("h", "100")
-                                append("w", "500")
-                                append("mimeType", "image/jpeg")
-                                append("phone", "iphone")
-                                append("case", "soft")
-                                append("label:case", "hello")
-                            }.build(),
+                        path = path,
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder(6)
+                                .apply {
+                                    append("h", "100")
+                                    append("w", "500")
+                                    append("format", "jpg")
+                                    append("phone", "iphone")
+                                    append("case", "soft")
+                                    append("label:case", "hello")
+                                }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.DEFAULT
                 context.transformation?.height shouldBe 100
@@ -803,6 +860,144 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
+            }
+
+        @Test
+        fun `format is derived from accept header if not supplied in profile or query param`() =
+            runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers =
+                            HeadersBuilder()
+                                .apply {
+                                    append(HttpHeaders.Accept, "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5")
+                                }.build(),
+                        queryParameters = ParametersBuilder().build(),
+                    )
+
+                context.transformation?.format shouldBe ImageFormat.AVIF
+            }
+
+        @Test
+        fun `format is derived from accept header if not supplied in profile or query param and priority is respected`() =
+            runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers =
+                            HeadersBuilder()
+                                .apply {
+                                    append(HttpHeaders.Accept, "image/webp;q=0.8,image/gif;q=0.9,image/png;q=0.8,image/*;q=0.8,*/*;q=0.5")
+                                }.build(),
+                        queryParameters = ParametersBuilder().build(),
+                    )
+
+                context.transformation?.format shouldBe ImageFormat.GIF
+            }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "*/*", "image/*",
+            ],
+        )
+        fun `original variant format is set in context if accept header is generic`(accept: String) =
+            runTest {
+                val asset =
+                    storePersistedAsset(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        path = "/profile/",
+                    )
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers =
+                            HeadersBuilder()
+                                .apply {
+                                    append(HttpHeaders.Accept, accept)
+                                }.build(),
+                        queryParameters = ParametersBuilder().build(),
+                    )
+
+                context.transformation?.format shouldBe
+                    asset.variants
+                        .first { it.isOriginalVariant }
+                        .transformation.format
+            }
+
+        @Test
+        fun `variant profile format overwrites accept header`() =
+            runTest {
+                val profileName = "small"
+                val variantConfig =
+                    createRequestedImageTransformation(
+                        width = 10,
+                        height = 10,
+                        format = ImageFormat.HEIC,
+                    )
+                every {
+                    variantProfileRepository.fetch(profileName)
+                } returns variantConfig
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers =
+                            HeadersBuilder()
+                                .apply {
+                                    append(HttpHeaders.Accept, "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5")
+                                }.build(),
+                        queryParameters =
+                            ParametersBuilder()
+                                .apply {
+                                    append("profile", profileName)
+                                }.build(),
+                    )
+
+                context.transformation?.format shouldNotBe null
+                context.transformation?.format shouldBe variantConfig.format
+            }
+
+        @Test
+        fun `format specified in query parameter overwrites accept header`() =
+            runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                val context =
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers =
+                            HeadersBuilder()
+                                .apply {
+                                    append(HttpHeaders.Accept, "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5")
+                                }.build(),
+                        queryParameters =
+                            ParametersBuilder()
+                                .apply {
+                                    append("format", "heic")
+                                }.build(),
+                    )
+
+                context.transformation?.format shouldNotBe null
+                context.transformation?.format shouldBe ImageFormat.HEIC
             }
     }
 

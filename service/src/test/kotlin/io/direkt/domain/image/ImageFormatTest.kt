@@ -15,7 +15,6 @@ class ImageFormatTest {
         fun supportedImageFormatSource(): Stream<Arguments> =
             Stream.of(
                 Arguments.arguments("jpg", ImageFormat.JPEG),
-                Arguments.arguments("jpeg", ImageFormat.JPEG),
                 Arguments.arguments("png", ImageFormat.PNG),
                 Arguments.arguments("webp", ImageFormat.WEBP),
                 Arguments.arguments("avif", ImageFormat.AVIF),

@@ -17,9 +17,9 @@ import io.direkt.service.context.modifiers.ManipulationParameters.BLUR
 import io.direkt.service.context.modifiers.ManipulationParameters.FILTER
 import io.direkt.service.context.modifiers.ManipulationParameters.FIT
 import io.direkt.service.context.modifiers.ManipulationParameters.FLIP
+import io.direkt.service.context.modifiers.ManipulationParameters.FORMAT
 import io.direkt.service.context.modifiers.ManipulationParameters.GRAVITY
 import io.direkt.service.context.modifiers.ManipulationParameters.HEIGHT
-import io.direkt.service.context.modifiers.ManipulationParameters.MIME_TYPE
 import io.direkt.service.context.modifiers.ManipulationParameters.PAD
 import io.direkt.service.context.modifiers.ManipulationParameters.QUALITY
 import io.direkt.service.context.modifiers.ManipulationParameters.ROTATE
@@ -28,7 +28,11 @@ import io.direkt.service.context.modifiers.ManipulationParameters.WIDTH
 import io.direkt.service.context.modifiers.QueryModifiers
 import io.direkt.service.context.modifiers.ReturnFormat
 import io.direkt.service.transformation.TransformationNormalizer
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
+import io.ktor.http.parseAndSortContentTypeHeader
 
 class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
@@ -66,11 +70,17 @@ class RequestContextFactory(
 
     suspend fun fromGetRequest(
         path: String,
+        headers: Headers,
         queryParameters: Parameters,
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
         val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
-        val requestedImageAttributes = extractRequestedImageTransformation(queryModifiers, queryParameters)
+        val requestedImageAttributes =
+            extractRequestedImageTransformation(
+                queryModifiers = queryModifiers,
+                headers = headers,
+                parameters = queryParameters,
+            )
         if (
             queryModifiers.returnFormat == ReturnFormat.METADATA &&
             requestedImageAttributes != null &&
@@ -148,26 +158,34 @@ class RequestContextFactory(
 
     private fun extractRequestedImageTransformation(
         queryModifiers: QueryModifiers,
+        headers: Headers,
         parameters: Parameters,
     ): RequestedTransformation? {
         val variantProfile =
             parameters[VARIANT_PROFILE]?.let { profileName ->
                 variantProfileRepository.fetch(profileName)
             }
-        return if (queryModifiers.returnFormat == ReturnFormat.METADATA &&
-            variantProfile == null &&
-            ALL_TRANSFORMATION_PARAMETERS.none {
-                parameters.contains(it)
-            }
-        ) {
+        val requestedFormat =
+            determineRequestedFormat(
+                headers = headers,
+                variantProfile = variantProfile,
+                parameters = parameters,
+            )
+        val requestedOriginalVariant =
+            requestedFormat == null &&
+                ALL_TRANSFORMATION_PARAMETERS.none {
+                    parameters.contains(it)
+                } &&
+                variantProfile == null
+        return if (queryModifiers.returnFormat == ReturnFormat.METADATA && requestedOriginalVariant) {
             null
-        } else if (variantProfile == null && ALL_TRANSFORMATION_PARAMETERS.none { parameters.contains(it) }) {
+        } else if (requestedOriginalVariant) {
             RequestedTransformation.ORIGINAL_VARIANT
         } else {
             RequestedTransformation(
                 width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
                 height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
-                format = parameters[MIME_TYPE]?.let { ImageFormat.fromMimeType(it) } ?: variantProfile?.format,
+                format = requestedFormat,
                 fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                 gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
                 rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
@@ -193,4 +211,37 @@ class RequestContextFactory(
             .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
             .map { Pair(it.key.substringAfter("label:"), it.value) }
             .associate { it.first to it.second.first() }
+
+    /**
+     * Determine the requested format in this order:
+     * 1. [FORMAT] query parameter
+     * 2. format defined in variant profile (if any profile)
+     * 3. parsing the accept header
+     */
+    private fun determineRequestedFormat(
+        headers: Headers,
+        variantProfile: RequestedTransformation?,
+        parameters: Parameters,
+    ): ImageFormat? {
+        parameters[FORMAT]?.let {
+            return ImageFormat.fromFormat(it)
+        }
+        variantProfile?.takeIf { it.format != null }?.let {
+            return it.format
+        }
+        val parsedItems = parseAndSortContentTypeHeader(headers[HttpHeaders.Accept])
+
+        return parsedItems.firstNotNullOfOrNull { contentType ->
+            when (ContentType.parse(contentType.value)) {
+                ContentType.Image.AVIF -> ImageFormat.AVIF
+                ContentType.Image.WEBP -> ImageFormat.WEBP
+                ContentType.Image.PNG -> ImageFormat.PNG
+                ContentType.Image.JPEG -> ImageFormat.JPEG
+                ContentType.Image.HEIC -> ImageFormat.HEIC
+                ContentType.Image.GIF -> ImageFormat.GIF
+                ContentType.Image.JXL -> ImageFormat.JPEG_XL
+                else -> null
+            }
+        }
+    }
 }

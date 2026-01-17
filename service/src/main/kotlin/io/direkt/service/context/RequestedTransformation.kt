@@ -53,7 +53,7 @@ data class RequestedTransformation(
                 originalVariant = false,
                 width = applicationConfig.tryGetString(ManipulationParameters.WIDTH)?.toInt(),
                 height = applicationConfig.tryGetString(ManipulationParameters.HEIGHT)?.toInt(),
-                format = applicationConfig.tryGetString(ManipulationParameters.MIME_TYPE)?.let { ImageFormat.fromMimeType(it) },
+                format = applicationConfig.tryGetString(ManipulationParameters.FORMAT)?.let { ImageFormat.fromFormat(it) },
                 fit = Fit.fromString(applicationConfig.tryGetString(ManipulationParameters.FIT)),
                 gravity = Gravity.fromString(applicationConfig.tryGetString(ManipulationParameters.GRAVITY)),
                 rotate = Rotate.fromString(applicationConfig.tryGetString(ManipulationParameters.ROTATE)),

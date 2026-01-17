@@ -25,6 +25,7 @@ val RequestContextPlugin =
                     call.attributes[queryRequestContextKey] =
                         requestContextFactory.fromGetRequest(
                             path = call.request.path(),
+                            headers = call.request.headers,
                             queryParameters = call.parameters,
                         )
                 }

@@ -141,7 +141,7 @@ class FetchAssetLinkTest {
                 fetchAssetLink(
                     client,
                     path = "profile",
-                    mimeType = "image/jpeg",
+                    format = "jpg",
                     expectCacheHit = (count == 1),
                 )!!.apply {
                     lqip.blurhash shouldNotBe null

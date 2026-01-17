@@ -3,6 +3,7 @@ package io.direkt.image
 import io.direkt.byteArrayToImage
 import io.direkt.config.testInMemory
 import io.direkt.domain.asset.AssetClass
+import io.direkt.domain.image.ImageFormat
 import io.direkt.infrastructure.StoreAssetRequest
 import io.direkt.matchers.shouldBeApproximately
 import io.direkt.util.createJsonClient
@@ -29,14 +30,7 @@ class ImagePreProcessingTest {
             )
 
         @JvmStatic
-        fun imageConversionSource(): Stream<Arguments> =
-            Stream.of(
-                arguments("jpeg", "image/jpeg"),
-                arguments("jpg", "image/jpeg"),
-                arguments("png", "image/png"),
-                arguments("webp", "image/webp"),
-                arguments("avif", "image/avif"),
-            )
+        fun imageConversionSource(): List<Arguments> = ImageFormat.entries.map { arguments(it.format, it.mimeType) }
     }
 
     @Test
@@ -195,7 +189,7 @@ class ImagePreProcessingTest {
                 path = "/**"
                 preprocessing {
                     image {
-                        image-format = $imageFormat
+                        format = $imageFormat
                     }
                 }
             }
@@ -238,7 +232,7 @@ class ImagePreProcessingTest {
                     path = "/**"
                     preprocessing {
                         image {
-                            image-format = jpeg
+                            format = jpg
                             max-height = 55
                         }
                     }
@@ -247,8 +241,8 @@ class ImagePreProcessingTest {
                     path = "/Users/*/Profile"
                     preprocessing {
                         image {
-                            image-format = webp
-                                max-height = 50
+                            format = webp
+                            max-height = 50
                         }
                     }
                 }

@@ -182,7 +182,7 @@ class StoreAssetTest {
 
     @ParameterizedTest
     @EnumSource(ImageFormat::class)
-    fun `can convert image to any every supported type`(format: ImageFormat) =
+    fun `can preprocess image to any every supported type`(format: ImageFormat) =
         testInMemory(
             """
             path-configuration = [
@@ -190,7 +190,7 @@ class StoreAssetTest {
                 path = "/**"
                 preprocessing {
                   image {
-                    image-format = ${format.format.first()}
+                    format = ${format.format}
                   }
                 }
               }

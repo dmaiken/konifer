@@ -3,13 +3,13 @@ package io.direkt.domain.image
 import io.direkt.infrastructure.vips.VipsProperties
 
 enum class ImageFormat(
-    val format: Set<String>,
+    val format: String,
     val mimeType: String,
     val extension: String,
     val vipsProperties: VipsProperties,
 ) {
     JPEG(
-        format = setOf("jpeg", "jpg"),
+        format = "jpg",
         mimeType = "image/jpeg",
         extension = ".jpeg",
         vipsProperties =
@@ -22,7 +22,7 @@ enum class ImageFormat(
             ),
     ),
     PNG(
-        format = setOf("png"),
+        format = "png",
         mimeType = "image/png",
         extension = ".png",
         vipsProperties =
@@ -35,7 +35,7 @@ enum class ImageFormat(
             ),
     ),
     WEBP(
-        format = setOf("webp"),
+        format = "webp",
         mimeType = "image/webp",
         extension = ".webp",
         vipsProperties =
@@ -48,7 +48,7 @@ enum class ImageFormat(
             ),
     ),
     AVIF(
-        format = setOf("avif"),
+        format = "avif",
         mimeType = "image/avif",
         extension = ".avif",
         vipsProperties =
@@ -61,7 +61,7 @@ enum class ImageFormat(
             ),
     ),
     JPEG_XL(
-        format = setOf("jxl"),
+        format = "jxl",
         mimeType = "image/jxl",
         extension = ".jxl",
         vipsProperties =
@@ -73,7 +73,7 @@ enum class ImageFormat(
             ),
     ),
     HEIC(
-        format = setOf("heic"),
+        format = "heic",
         mimeType = "image/heic",
         extension = ".heic",
         vipsProperties =
@@ -85,7 +85,7 @@ enum class ImageFormat(
             ),
     ),
     GIF(
-        format = setOf("gif"),
+        format = "gif",
         mimeType = "image/gif",
         extension = ".gif",
         vipsProperties =
@@ -101,7 +101,7 @@ enum class ImageFormat(
     companion object Factory {
         fun fromFormat(string: String): ImageFormat =
             entries.firstOrNull {
-                it.format.contains(string.lowercase())
+                it.format == string
             } ?: throw IllegalArgumentException("Unsupported image format: $string")
 
         fun fromMimeType(string: String): ImageFormat =

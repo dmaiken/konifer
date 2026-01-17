@@ -45,7 +45,7 @@ class VariantProfileTest {
                 {
                     name = small
                     w = 10
-                    mimeType = "image/jpeg"
+                    format = jpg
                 }
             ]
             """.trimIndent(),
@@ -75,7 +75,7 @@ class VariantProfileTest {
                 {
                     name = small
                     w = 10
-                    mimeType = "image/jpeg"
+                    format = jpg
                 }
             ]
             """.trimIndent(),
