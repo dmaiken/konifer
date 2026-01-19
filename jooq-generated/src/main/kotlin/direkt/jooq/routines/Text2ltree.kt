@@ -43,7 +43,9 @@ open class Text2ltree : AbstractRoutine<Ltree>("text2ltree", Public.PUBLIC, DSL.
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: String?): Unit = setValue(Text2ltree._1, value)
+    fun set__1(value: String?): Unit {
+        setValue(Text2ltree._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a

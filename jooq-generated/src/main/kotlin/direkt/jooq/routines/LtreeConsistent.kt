@@ -61,7 +61,9 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(LtreeConsistent._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(LtreeConsistent._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -74,7 +76,9 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Ltree?): Unit = setValue(LtreeConsistent._2, value)
+    fun set__2(value: Ltree?): Unit {
+        setValue(LtreeConsistent._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a
@@ -87,7 +91,9 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
     /**
      * Set the <code>_3</code> parameter IN value to the routine
      */
-    fun set__3(value: Short?): Unit = setValue(LtreeConsistent._3, value)
+    fun set__3(value: Short?): Unit {
+        setValue(LtreeConsistent._3, value)
+    }
 
     /**
      * Set the <code>_3</code> parameter to the function to be used with a
@@ -100,7 +106,9 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
     /**
      * Set the <code>_4</code> parameter IN value to the routine
      */
-    fun set__4(value: Long?): Unit = setValue(LtreeConsistent._4, value)
+    fun set__4(value: Long?): Unit {
+        setValue(LtreeConsistent._4, value)
+    }
 
     /**
      * Set the <code>_4</code> parameter to the function to be used with a
@@ -113,7 +121,9 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
     /**
      * Set the <code>_5</code> parameter IN value to the routine
      */
-    fun set__5(value: Any?): Unit = setValue(LtreeConsistent._5, value)
+    fun set__5(value: Any?): Unit {
+        setValue(LtreeConsistent._5, value)
+    }
 
     /**
      * Set the <code>_5</code> parameter to the function to be used with a

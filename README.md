@@ -163,3 +163,13 @@ To run this (which must be done if you make a schema change):
 ```
 **Note**: Linting is disabled for the `jooq-generated` module.
 
+We do not want JOOQ to generate code for tables that the application will not interact with (e.g. db-scheduler tables).
+Code generation for these tables can be skipped within the generator configuration file `CodeGen.kt` like so:
+
+```kotlin
+database = Database().apply {
+    name = "org.jooq.meta.postgres.PostgresDatabase"
+    inputSchema = "public"
+    excludes = "migrations|scheduled_tasks|path_entry_counter" // regex for excluded tables
+}
+```

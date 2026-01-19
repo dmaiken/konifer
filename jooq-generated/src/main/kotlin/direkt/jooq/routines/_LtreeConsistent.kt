@@ -60,7 +60,9 @@ open class _LtreeConsistent : AbstractRoutine<Boolean>("_ltree_consistent", Publ
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(_LtreeConsistent._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(_LtreeConsistent._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -73,7 +75,9 @@ open class _LtreeConsistent : AbstractRoutine<Boolean>("_ltree_consistent", Publ
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Array<org.jooq.postgres.extensions.types.Ltree?>?): Unit = setValue(_LtreeConsistent._2, value)
+    fun set__2(value: Array<org.jooq.postgres.extensions.types.Ltree?>?): Unit {
+        setValue(_LtreeConsistent._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a
@@ -86,7 +90,9 @@ open class _LtreeConsistent : AbstractRoutine<Boolean>("_ltree_consistent", Publ
     /**
      * Set the <code>_3</code> parameter IN value to the routine
      */
-    fun set__3(value: Short?): Unit = setValue(_LtreeConsistent._3, value)
+    fun set__3(value: Short?): Unit {
+        setValue(_LtreeConsistent._3, value)
+    }
 
     /**
      * Set the <code>_3</code> parameter to the function to be used with a
@@ -99,7 +105,9 @@ open class _LtreeConsistent : AbstractRoutine<Boolean>("_ltree_consistent", Publ
     /**
      * Set the <code>_4</code> parameter IN value to the routine
      */
-    fun set__4(value: Long?): Unit = setValue(_LtreeConsistent._4, value)
+    fun set__4(value: Long?): Unit {
+        setValue(_LtreeConsistent._4, value)
+    }
 
     /**
      * Set the <code>_4</code> parameter to the function to be used with a
@@ -112,7 +120,9 @@ open class _LtreeConsistent : AbstractRoutine<Boolean>("_ltree_consistent", Publ
     /**
      * Set the <code>_5</code> parameter IN value to the routine
      */
-    fun set__5(value: Any?): Unit = setValue(_LtreeConsistent._5, value)
+    fun set__5(value: Any?): Unit {
+        setValue(_LtreeConsistent._5, value)
+    }
 
     /**
      * Set the <code>_5</code> parameter to the function to be used with a

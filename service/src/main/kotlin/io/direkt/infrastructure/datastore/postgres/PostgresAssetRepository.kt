@@ -54,8 +54,6 @@ class PostgresAssetRepository(
         val attributes = VariantParameterGenerator.generateImageVariantAttributes(originalVariant.attributes)
         val assetId = asset.id.value
         return dslContext.transactionCoroutine { trx ->
-            val entryId = getNextEntryId(trx.dsl(), treePath)
-            logger.info("Calculated entry_id: $entryId when storing new asset with path: $treePath")
             val insert =
                 trx
                     .dsl()
@@ -63,7 +61,6 @@ class PostgresAssetRepository(
                     .set(ASSET_TREE.ID, assetId)
                     .set(ASSET_TREE.PATH, treePath)
                     .set(ASSET_TREE.ALT, asset.alt)
-                    .set(ASSET_TREE.ENTRY_ID, entryId)
                     .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
                     .set(ASSET_TREE.MODIFIED_AT, now)
@@ -91,6 +88,7 @@ class PostgresAssetRepository(
                     .returning()
                     .awaitFirst()
 
+            logger.info("Assigned entry_id: ${persistedAsset.entryId} to new asset with path: $treePath")
             persistedAsset.toPendingPersisted(persistedVariant, asset.labels, asset.tags)
         }
     }
@@ -439,20 +437,6 @@ class PostgresAssetRepository(
         } else {
             asset
         }
-    }
-
-    private suspend fun getNextEntryId(
-        context: DSLContext,
-        treePath: Ltree,
-    ): Long {
-        val maxField = DSL.max(ASSET_TREE.ENTRY_ID).`as`("max_entry")
-        return context
-            .select(maxField)
-            .from(ASSET_TREE)
-            .where(ASSET_TREE.PATH.eq(treePath))
-            .awaitFirstOrNull()
-            ?.get(maxField)
-            ?.inc() ?: 0L
     }
 
     private suspend fun fetch(

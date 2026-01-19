@@ -55,7 +55,9 @@ open class Subltree : AbstractRoutine<Ltree>("subltree", Public.PUBLIC, DSL.comm
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Ltree?): Unit = setValue(Subltree._1, value)
+    fun set__1(value: Ltree?): Unit {
+        setValue(Subltree._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -68,7 +70,9 @@ open class Subltree : AbstractRoutine<Ltree>("subltree", Public.PUBLIC, DSL.comm
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Int?): Unit = setValue(Subltree._2, value)
+    fun set__2(value: Int?): Unit {
+        setValue(Subltree._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a
@@ -81,7 +85,9 @@ open class Subltree : AbstractRoutine<Ltree>("subltree", Public.PUBLIC, DSL.comm
     /**
      * Set the <code>_3</code> parameter IN value to the routine
      */
-    fun set__3(value: Int?): Unit = setValue(Subltree._3, value)
+    fun set__3(value: Int?): Unit {
+        setValue(Subltree._3, value)
+    }
 
     /**
      * Set the <code>_3</code> parameter to the function to be used with a

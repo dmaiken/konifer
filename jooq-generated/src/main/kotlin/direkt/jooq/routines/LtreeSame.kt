@@ -38,7 +38,9 @@ open class LtreeSame : AbstractRoutine<Any>("ltree_same", Public.PUBLIC, DSL.com
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(LtreeSame._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(LtreeSame._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -51,7 +53,9 @@ open class LtreeSame : AbstractRoutine<Any>("ltree_same", Public.PUBLIC, DSL.com
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Any?): Unit = setValue(LtreeSame._2, value)
+    fun set__2(value: Any?): Unit {
+        setValue(LtreeSame._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a
@@ -64,7 +68,9 @@ open class LtreeSame : AbstractRoutine<Any>("ltree_same", Public.PUBLIC, DSL.com
     /**
      * Set the <code>_3</code> parameter IN value to the routine
      */
-    fun set__3(value: Any?): Unit = setValue(LtreeSame._3, value)
+    fun set__3(value: Any?): Unit {
+        setValue(LtreeSame._3, value)
+    }
 
     /**
      * Set the <code>_3</code> parameter to the function to be used with a

@@ -56,7 +56,9 @@ open class Subpath1 : AbstractRoutine<Ltree>("subpath", Public.PUBLIC, DSL.comme
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Ltree?): Unit = setValue(Subpath1._1, value)
+    fun set__1(value: Ltree?): Unit {
+        setValue(Subpath1._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -69,7 +71,9 @@ open class Subpath1 : AbstractRoutine<Ltree>("subpath", Public.PUBLIC, DSL.comme
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Int?): Unit = setValue(Subpath1._2, value)
+    fun set__2(value: Int?): Unit {
+        setValue(Subpath1._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a
@@ -82,7 +86,9 @@ open class Subpath1 : AbstractRoutine<Ltree>("subpath", Public.PUBLIC, DSL.comme
     /**
      * Set the <code>_3</code> parameter IN value to the routine
      */
-    fun set__3(value: Int?): Unit = setValue(Subpath1._3, value)
+    fun set__3(value: Int?): Unit {
+        setValue(Subpath1._3, value)
+    }
 
     /**
      * Set the <code>_3</code> parameter to the function to be used with a

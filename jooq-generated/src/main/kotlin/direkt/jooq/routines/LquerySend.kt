@@ -38,7 +38,9 @@ open class LquerySend : AbstractRoutine<ByteArray>("lquery_send", Public.PUBLIC,
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(LquerySend._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(LquerySend._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a

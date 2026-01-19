@@ -43,7 +43,9 @@ open class LtreeSend : AbstractRoutine<ByteArray>("ltree_send", Public.PUBLIC, D
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Ltree?): Unit = setValue(LtreeSend._1, value)
+    fun set__1(value: Ltree?): Unit {
+        setValue(LtreeSend._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a

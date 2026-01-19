@@ -32,7 +32,9 @@ open class LtreeDecompress : AbstractRoutine<Any>("ltree_decompress", Public.PUB
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(LtreeDecompress._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(LtreeDecompress._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a

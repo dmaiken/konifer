@@ -15,7 +15,6 @@ RUN --mount=type=cache,target=/home/gradle/.gradle gradle :service:buildFatJar
 
 FROM eclipse-temurin:25-jre AS runtime
 
-ENV VIPS_VERSION=8.17.1
 ENV LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
 
 # Copy and Run the VIPS installer

@@ -49,7 +49,9 @@ open class LtreeTextadd : AbstractRoutine<Ltree>("ltree_textadd", Public.PUBLIC,
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: String?): Unit = setValue(LtreeTextadd._1, value)
+    fun set__1(value: String?): Unit {
+        setValue(LtreeTextadd._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -62,7 +64,9 @@ open class LtreeTextadd : AbstractRoutine<Ltree>("ltree_textadd", Public.PUBLIC,
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Ltree?): Unit = setValue(LtreeTextadd._2, value)
+    fun set__2(value: Ltree?): Unit {
+        setValue(LtreeTextadd._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a

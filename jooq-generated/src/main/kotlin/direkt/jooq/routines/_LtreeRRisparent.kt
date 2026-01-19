@@ -50,7 +50,9 @@ open class _LtreeRRisparent : AbstractRoutine<Boolean>("_ltree_r_risparent", Pub
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Ltree?): Unit = setValue(_LtreeRRisparent._1, value)
+    fun set__1(value: Ltree?): Unit {
+        setValue(_LtreeRRisparent._1, value)
+    }
 
     /**
      * Set the <code>_1</code> parameter to the function to be used with a
@@ -63,7 +65,9 @@ open class _LtreeRRisparent : AbstractRoutine<Boolean>("_ltree_r_risparent", Pub
     /**
      * Set the <code>_2</code> parameter IN value to the routine
      */
-    fun set__2(value: Array<org.jooq.postgres.extensions.types.Ltree?>?): Unit = setValue(_LtreeRRisparent._2, value)
+    fun set__2(value: Array<org.jooq.postgres.extensions.types.Ltree?>?): Unit {
+        setValue(_LtreeRRisparent._2, value)
+    }
 
     /**
      * Set the <code>_2</code> parameter to the function to be used with a

@@ -30,5 +30,7 @@ open class _LtreeGistOptions : AbstractRoutine<java.lang.Void>("_ltree_gist_opti
     /**
      * Set the <code>_1</code> parameter IN value to the routine
      */
-    fun set__1(value: Any?): Unit = setValue(_LtreeGistOptions._1, value)
+    fun set__1(value: Any?): Unit {
+        setValue(_LtreeGistOptions._1, value)
+    }
 }
