@@ -30,8 +30,9 @@ CREATE TABLE IF NOT EXISTS asset_variant
     original_variant    BOOLEAN                     NOT NULL,
     created_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     uploaded_at         TIMESTAMP WITHOUT TIME ZONE,
+    -- No ON DELETE CASCADE intentionally
     CONSTRAINT fk_asset_variant_asset_id_asset_tree_id FOREIGN KEY (asset_id)
-        REFERENCES asset_tree(id) ON DELETE CASCADE
+        REFERENCES asset_tree(id)
 );
 
 CREATE INDEX IF NOT EXISTS asset_variant_asset_id_idx ON asset_variant (asset_id);

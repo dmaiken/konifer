@@ -2,6 +2,7 @@ package io.direkt.domain.ports
 
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
+import io.direkt.domain.asset.AssetId
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
 import io.direkt.service.context.modifiers.OrderBy
@@ -72,6 +73,8 @@ interface AssetRepository {
         path: String,
         labels: Map<String, String> = emptyMap(),
     )
+
+    suspend fun deleteByAssetId(assetId: AssetId)
 
     /**
      * @throws IllegalStateException if asset cannot be found with the given path and entryId

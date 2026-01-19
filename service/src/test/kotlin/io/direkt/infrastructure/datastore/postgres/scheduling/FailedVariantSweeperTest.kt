@@ -85,7 +85,7 @@ class FailedVariantSweeperTest {
                 .where(ASSET_VARIANT.ID.eq(pendingVariant.id.value))
                 .awaitFirstOrNull() shouldBe null
 
-            val event = fetchOutboxReaperEvents(dslContext, 1).first()
+            val event = fetchVariantDeletedEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBe pendingVariant.objectStoreBucket
             event.objectStoreKey shouldBe pendingVariant.objectStoreKey
         }
@@ -129,7 +129,7 @@ class FailedVariantSweeperTest {
                 it.id shouldBe readyVariant.id
             }
 
-            fetchOutboxReaperEvents(dslContext, 0)
+            fetchVariantDeletedEvents(dslContext, 0)
         }
 
     @Test
@@ -162,7 +162,7 @@ class FailedVariantSweeperTest {
                 .where(ASSET_VARIANT.ID.eq(pendingVariant.id.value))
                 .awaitFirstOrNull() shouldNotBe null
 
-            fetchOutboxReaperEvents(dslContext, 0)
+            fetchVariantDeletedEvents(dslContext, 0)
         }
 
     @Test
@@ -220,7 +220,7 @@ class FailedVariantSweeperTest {
                 ).asFlow()
                 .toList() shouldHaveSize 1
 
-            val event = fetchOutboxReaperEvents(dslContext, 1).first()
+            val event = fetchVariantDeletedEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBeIn
                 listOf(
                     pendingVariant1.objectStoreBucket,

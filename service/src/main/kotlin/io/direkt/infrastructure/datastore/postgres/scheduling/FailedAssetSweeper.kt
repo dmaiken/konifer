@@ -2,20 +2,17 @@ package io.direkt.infrastructure.datastore.postgres.scheduling
 
 import direkt.jooq.tables.references.ASSET_TREE
 import direkt.jooq.tables.references.ASSET_VARIANT
-import direkt.jooq.tables.references.OUTBOX
+import io.direkt.domain.asset.AssetId
+import io.direkt.domain.ports.AssetRepository
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.serialization.json.Json
 import org.jooq.DSLContext
-import org.jooq.JSONB
-import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
-import java.time.Duration
 import java.time.LocalDateTime
-import java.util.UUID
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 object FailedAssetSweeper {
     const val TASK_NAME = "failed-asset-sweeper"
@@ -23,7 +20,8 @@ object FailedAssetSweeper {
 
     suspend fun invoke(
         dslContext: DSLContext,
-        olderThan: Duration = Duration.ofMinutes(5),
+        assetRepository: AssetRepository,
+        olderThan: Duration = 5.minutes,
     ) {
         logger.info("Sweeping failed assets...")
 
@@ -37,12 +35,12 @@ object FailedAssetSweeper {
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .where(ASSET_TREE.IS_READY.equal(false))
                         .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
-                        .and(ASSET_TREE.CREATED_AT.lessOrEqual(LocalDateTime.now().minusSeconds(olderThan.toSeconds())))
+                        .and(ASSET_TREE.CREATED_AT.lessOrEqual(LocalDateTime.now().minusSeconds(olderThan.inWholeSeconds)))
                         .orderBy(ASSET_TREE.CREATED_AT),
                 ).asFlow()
                 .map {
                     FailedAsset(
-                        assetId = checkNotNull(it.get(ASSET_TREE.ID)),
+                        assetId = AssetId(checkNotNull(it.get(ASSET_TREE.ID))),
                         objectStoreBucket = it.get(ASSET_VARIANT.OBJECT_STORE_BUCKET),
                         objectStoreKey = it.get(ASSET_VARIANT.OBJECT_STORE_KEY),
                     )
@@ -52,28 +50,7 @@ object FailedAssetSweeper {
         var errorCount = 0
         result.forEach { failedAsset ->
             runCatching {
-                dslContext.transactionCoroutine { trx ->
-                    trx
-                        .dsl()
-                        .deleteFrom(ASSET_TREE)
-                        .where(ASSET_TREE.ID.eq(failedAsset.assetId))
-                        .awaitFirstOrNull()
-                    if (failedAsset.objectStoreBucket != null && failedAsset.objectStoreKey != null) {
-                        val event =
-                            ReapVariantEvent(
-                                objectStoreBucket = failedAsset.objectStoreBucket,
-                                objectStoreKey = failedAsset.objectStoreKey,
-                            )
-                        trx
-                            .dsl()
-                            .insertInto(OUTBOX)
-                            .set(OUTBOX.ID, UUID.randomUUID())
-                            .set(OUTBOX.EVENT_TYPE, event.eventType)
-                            .set(OUTBOX.PAYLOAD, JSONB.valueOf(Json.encodeToString(event)))
-                            .set(OUTBOX.CREATED_AT, LocalDateTime.now())
-                            .awaitFirstOrNull()
-                    }
-                }
+                assetRepository.deleteByAssetId(failedAsset.assetId)
             }.onFailure { e ->
                 errorCount++
                 logger.error("Failed to delete asset ${failedAsset.assetId} and original variant", e)
@@ -85,7 +62,7 @@ object FailedAssetSweeper {
 }
 
 data class FailedAsset(
-    val assetId: UUID,
+    val assetId: AssetId,
     val objectStoreBucket: String?,
     val objectStoreKey: String?,
 )

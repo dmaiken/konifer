@@ -191,6 +191,18 @@ class InMemoryAssetRepository : AssetRepository {
         }
     }
 
+    override suspend fun deleteByAssetId(assetId: AssetId) {
+        logger.info("Deleting asset with id: : $assetId")
+
+        idReference[assetId]?.let { asset ->
+            idReference.remove(asset.id)
+            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            store[path]?.let { assets ->
+                assets.removeIf { it.id == assetId }
+            }
+        }
+    }
+
     override suspend fun update(asset: Asset): Asset {
         if (asset !is Asset.Ready) {
             throw IllegalArgumentException("Asset must be in ready state")

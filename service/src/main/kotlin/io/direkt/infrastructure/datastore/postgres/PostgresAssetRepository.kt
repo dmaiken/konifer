@@ -1,6 +1,5 @@
 package io.direkt.infrastructure.datastore.postgres
 
-import com.github.f4b6a3.uuid.UuidCreator
 import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import direkt.jooq.tables.records.AssetLabelRecord
@@ -13,11 +12,11 @@ import direkt.jooq.tables.references.ASSET_VARIANT
 import direkt.jooq.tables.references.OUTBOX
 import io.direkt.domain.asset.Asset
 import io.direkt.domain.asset.AssetData
+import io.direkt.domain.asset.AssetId
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.Variant
-import io.direkt.domain.variant.VariantBucketAndKey
-import io.direkt.infrastructure.datastore.postgres.scheduling.ReapVariantEvent
+import io.direkt.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
 import io.direkt.service.context.modifiers.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.flow.map
@@ -25,18 +24,25 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.serialization.json.Json
+import org.jooq.CommonTableExpression
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
+import org.jooq.Record1
 import org.jooq.SortField
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.currentLocalDateTime
+import org.jooq.impl.DSL.deleteFrom
+import org.jooq.impl.DSL.function
+import org.jooq.impl.DSL.inline
+import org.jooq.impl.DSL.insertInto
+import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.select
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.collections.map
 
 class PostgresAssetRepository(
     private val dslContext: DSLContext,
@@ -261,36 +267,16 @@ class PostgresAssetRepository(
         entryId: Long,
     ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        dslContext.transactionCoroutine { trx ->
-            val variantObjectStoreInformation =
-                trx
-                    .dsl()
-                    .select(ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+        val target =
+            name("target").`as`(
+                select(ASSET_TREE.ID)
                     .from(ASSET_TREE)
-                    .join(ASSET_VARIANT)
-                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                     .where(ASSET_TREE.PATH.eq(treePath))
                     .and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                    .asFlow()
-                    .map {
-                        VariantBucketAndKey(
-                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                        )
-                    }.toList()
-            if (variantObjectStoreInformation.isNotEmpty()) {
-                trx
-                    .dsl()
-                    .deleteFrom(ASSET_TREE)
-                    .where(ASSET_TREE.PATH.eq(treePath))
-                    .and(ASSET_TREE.ENTRY_ID.eq(entryId))
-                    .awaitFirst()
-            }
-            insertReapVariantOutboxEvents(
-                context = trx.dsl(),
-                variants = variantObjectStoreInformation,
+                    .forUpdate()
+                    .of(ASSET_TREE),
             )
-        }
+        deleteAssets(target)
     }
 
     override suspend fun deleteAllByPath(
@@ -300,49 +286,27 @@ class PostgresAssetRepository(
         limit: Int,
     ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        dslContext.transactionCoroutine { trx ->
-            val assetsToDelete =
-                trx
-                    .dsl()
-                    .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+
+        // Identify the IDs of the Asset Trees we want to delete
+        val targets =
+            name("targets").`as`(
+                select(ASSET_TREE.ID)
                     .from(ASSET_TREE)
-                    .join(ASSET_VARIANT)
-                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                     .where(
                         appendLabelConditions(
                             whereCondition = ASSET_TREE.PATH.eq(treePath),
                             labels = labels,
                         ),
                     ).orderBy(*orderByConditions(orderBy))
-                    .let {
-                        if (limit > 0) {
-                            it.limit(limit)
-                        } else {
-                            it
-                        }
-                    }.asFlow()
-                    .toList()
-
-            val amountDeleted =
-                trx
-                    .dsl()
-                    .deleteFrom(ASSET_TREE)
-                    .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
-                    .awaitFirst()
-
-            logger.info("Deleted $amountDeleted assets from database")
-
-            insertReapVariantOutboxEvents(
-                context = trx.dsl(),
-                variants =
-                    assetsToDelete.map {
-                        VariantBucketAndKey(
-                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                        )
-                    },
+                    .apply {
+                        if (limit > 0) limit(limit)
+                    }.forUpdate()
+                    .of(ASSET_TREE),
             )
-        }
+
+        val count = deleteAssets(targets)
+
+        logger.info("Atomically deleted $count assets and logged their variants")
     }
 
     override suspend fun deleteRecursivelyByPath(
@@ -350,39 +314,31 @@ class PostgresAssetRepository(
         labels: Map<String, String>,
     ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
-        dslContext.transactionCoroutine { trx ->
-            val assetsToDelete =
-                trx
-                    .dsl()
-                    .select(ASSET_TREE.ID, ASSET_VARIANT.OBJECT_STORE_BUCKET, ASSET_VARIANT.OBJECT_STORE_KEY)
+        val target =
+            name("target").`as`(
+                select(ASSET_TREE.ID)
                     .from(ASSET_TREE)
-                    .join(ASSET_VARIANT)
-                    .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                     .where(
                         appendLabelConditions(
-                            whereCondition = ASSET_TREE.PATH.contains(treePath),
+                            whereCondition = ASSET_TREE.PATH.startsWith(treePath),
                             labels = labels,
                         ),
-                    ).asFlow()
-                    .toList()
-
-            trx
-                .dsl()
-                .deleteFrom(ASSET_TREE)
-                .where(ASSET_TREE.ID.`in`(assetsToDelete.map { it.getNonNull(ASSET_TREE.ID) }.toSet()))
-                .awaitFirstOrNull()
-
-            insertReapVariantOutboxEvents(
-                context = trx.dsl(),
-                variants =
-                    assetsToDelete.map {
-                        VariantBucketAndKey(
-                            bucket = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_BUCKET),
-                            key = it.getNonNull(ASSET_VARIANT.OBJECT_STORE_KEY),
-                        )
-                    },
+                    ).forUpdate()
+                    .of(ASSET_TREE),
             )
-        }
+        deleteAssets(target)
+    }
+
+    override suspend fun deleteByAssetId(assetId: AssetId) {
+        val target =
+            name("target").`as`(
+                select(ASSET_TREE.ID)
+                    .from(ASSET_TREE)
+                    .where(ASSET_TREE.ID.eq(assetId.value))
+                    .forUpdate()
+                    .of(ASSET_TREE),
+            )
+        deleteAssets(target)
     }
 
     override suspend fun update(asset: Asset): Asset {
@@ -646,30 +602,59 @@ class PostgresAssetRepository(
         return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
 
-    private suspend fun insertReapVariantOutboxEvents(
-        context: DSLContext,
-        variants: List<VariantBucketAndKey>,
-    ) {
-        if (variants.isEmpty()) {
-            return
-        }
-        val step =
-            context.insertInto(
-                OUTBOX,
-                OUTBOX.ID,
-                OUTBOX.EVENT_TYPE,
-                OUTBOX.PAYLOAD,
-                OUTBOX.CREATED_AT,
-            )
-        val now = LocalDateTime.now()
-        variants.forEach { variant ->
-            val event =
-                ReapVariantEvent(
-                    objectStoreBucket = variant.bucket,
-                    objectStoreKey = variant.key,
+    private suspend fun deleteAssets(deleteIdentificationCte: CommonTableExpression<Record1<UUID?>>): Int =
+        dslContext.transactionCoroutine { trx ->
+            // Delete ALL variants belonging to the identified trees.
+            val deletedVariants =
+                name("deleted_variants").`as`(
+                    deleteFrom(ASSET_VARIANT)
+                        .where(
+                            ASSET_VARIANT.ASSET_ID.`in`(
+                                select(deleteIdentificationCte.field(ASSET_TREE.ID)).from(deleteIdentificationCte),
+                            ),
+                        ).returning(
+                            ASSET_VARIANT.ASSET_ID,
+                            ASSET_VARIANT.OBJECT_STORE_BUCKET,
+                            ASSET_VARIANT.OBJECT_STORE_KEY,
+                        ),
                 )
-            step.values(UuidCreator.getTimeOrderedEpoch(), event.eventType, JSONB.valueOf(Json.encodeToString(event)), now)
+
+            // Bulk insert the captured data into the outbox.
+            val insertedOutbox =
+                name("inserted_outbox").`as`(
+                    insertInto(OUTBOX)
+                        .columns(OUTBOX.ID, OUTBOX.EVENT_TYPE, OUTBOX.PAYLOAD, OUTBOX.CREATED_AT)
+                        .select(
+                            select(
+                                function("gen_random_uuid", UUID::class.java),
+                                inline(VariantDeletedEvent.TYPE),
+                                VariantDeletedEvent.jsonJooqFunction(deletedVariants),
+                                currentLocalDateTime(),
+                            ).from(deletedVariants),
+                        ).returning(OUTBOX.ID),
+                )
+
+            // Run the logic and return the distinct deleted parentIds
+            val processedParentIds =
+                trx
+                    .dsl()
+                    .with(deleteIdentificationCte)
+                    .with(deletedVariants)
+                    .with(insertedOutbox)
+                    .selectDistinct(deletedVariants.field(ASSET_VARIANT.ASSET_ID))
+                    .from(deletedVariants)
+                    .asFlow()
+                    .map { it.value1() }
+                    .toList()
+
+            processedParentIds
+                .takeIf { it.isNotEmpty() }
+                ?.let { ids ->
+                    trx
+                        .dsl()
+                        .deleteFrom(ASSET_TREE)
+                        .where(ASSET_TREE.ID.`in`(ids))
+                        .awaitFirstOrNull()
+                } ?: 0
         }
-        step.awaitFirst()
-    }
 }

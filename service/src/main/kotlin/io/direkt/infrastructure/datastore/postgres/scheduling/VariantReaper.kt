@@ -28,7 +28,7 @@ object VariantReaper {
                     dslContext
                         .select(OUTBOX.ID, OUTBOX.PAYLOAD)
                         .from(OUTBOX)
-                        .where(OUTBOX.EVENT_TYPE.eq(ReapVariantEvent.TYPE))
+                        .where(OUTBOX.EVENT_TYPE.eq(VariantDeletedEvent.TYPE))
                         .orderBy(OUTBOX.CREATED_AT)
                         .limit(reapLimit),
                 ).asFlow()
@@ -37,7 +37,7 @@ object VariantReaper {
                         first = it.get(OUTBOX.ID) ?: return@mapNotNull null,
                         second =
                             it.get(OUTBOX.PAYLOAD)?.let { json ->
-                                Json.decodeFromString<ReapVariantEvent>(json.data())
+                                Json.decodeFromString<VariantDeletedEvent>(json.data())
                             } ?: return@mapNotNull null,
                     )
                 }.toList()

@@ -28,8 +28,9 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
-import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class FailedAssetSweeperTest {
@@ -58,7 +59,11 @@ class FailedAssetSweeperTest {
             val pending = createPendingAsset()
             val pendingPersisted = assetRepository.storeNew(pending)
 
-            FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
+            FailedAssetSweeper.invoke(
+                dslContext = dslContext,
+                assetRepository = assetRepository,
+                olderThan = 0.seconds,
+            )
 
             // Asset is not ready so we must query for it directly
             dslContext
@@ -67,7 +72,7 @@ class FailedAssetSweeperTest {
                 .where(ASSET_TREE.ID.eq(pendingPersisted.id.value))
                 .awaitFirstOrNull() shouldBe null
 
-            val event = fetchOutboxReaperEvents(dslContext, 1).first()
+            val event = fetchVariantDeletedEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBe pendingPersisted.variants.first { it.isOriginalVariant }.objectStoreBucket
             event.objectStoreKey shouldBe pendingPersisted.variants.first { it.isOriginalVariant }.objectStoreKey
         }
@@ -82,14 +87,18 @@ class FailedAssetSweeperTest {
                     .markReady(LocalDateTime.now())
                     .also { assetRepository.markReady(it) }
 
-            FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
+            FailedAssetSweeper.invoke(
+                dslContext = dslContext,
+                assetRepository = assetRepository,
+                olderThan = 0.seconds,
+            )
 
             assetRepository.fetchByPath(
                 path = ready.path,
                 entryId = ready.entryId,
                 transformation = null,
             ) shouldNotBe null
-            fetchOutboxReaperEvents(dslContext, 0)
+            fetchVariantDeletedEvents(dslContext, 0)
         }
 
     @Test
@@ -98,7 +107,11 @@ class FailedAssetSweeperTest {
             val pending = createPendingAsset()
             val pendingPersisted = assetRepository.storeNew(pending)
 
-            FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ofMinutes(1))
+            FailedAssetSweeper.invoke(
+                dslContext = dslContext,
+                assetRepository = assetRepository,
+                olderThan = 1.minutes,
+            )
 
             // Asset is not ready so we must query for it directly
             dslContext
@@ -106,7 +119,7 @@ class FailedAssetSweeperTest {
                 .from(ASSET_TREE)
                 .where(ASSET_TREE.ID.eq(pendingPersisted.id.value))
                 .awaitFirstOrNull() shouldNotBe null
-            fetchOutboxReaperEvents(dslContext, 0)
+            fetchVariantDeletedEvents(dslContext, 0)
         }
 
     @Test
@@ -120,7 +133,11 @@ class FailedAssetSweeperTest {
                 .where(ASSET_VARIANT.ASSET_ID.eq(pendingPersisted.id.value))
                 .awaitFirstOrNull()
 
-            FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
+            FailedAssetSweeper.invoke(
+                dslContext = dslContext,
+                assetRepository = assetRepository,
+                olderThan = 0.seconds,
+            )
 
             assetRepository.fetchByPath(
                 path = pendingPersisted.path,
@@ -128,7 +145,7 @@ class FailedAssetSweeperTest {
                 transformation = null,
             ) shouldBe null
 
-            fetchOutboxReaperEvents(dslContext, 0)
+            fetchVariantDeletedEvents(dslContext, 0)
         }
 
     @Test
@@ -143,7 +160,11 @@ class FailedAssetSweeperTest {
                 dslContext.transactionCoroutine(any<suspend (Configuration) -> Any?>())
             } throws RuntimeException() andThenAnswer { callOriginal() }
 
-            FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
+            FailedAssetSweeper.invoke(
+                dslContext = dslContext,
+                assetRepository = assetRepository,
+                olderThan = 0.seconds,
+            )
 
             Flux
                 .from(
@@ -154,7 +175,7 @@ class FailedAssetSweeperTest {
                 ).asFlow()
                 .toList() shouldHaveSize 1
 
-            val event = fetchOutboxReaperEvents(dslContext, 1).first()
+            val event = fetchVariantDeletedEvents(dslContext, 1).first()
             event.objectStoreBucket shouldBeIn
                 listOf(
                     pendingPersisted1.variants.first { it.isOriginalVariant }.objectStoreBucket,
@@ -171,7 +192,11 @@ class FailedAssetSweeperTest {
     fun `does not fail if nothing needs to be deleted`() =
         runTest {
             shouldNotThrowAny {
-                FailedAssetSweeper.invoke(dslContext, olderThan = Duration.ZERO)
+                FailedAssetSweeper.invoke(
+                    dslContext = dslContext,
+                    assetRepository = assetRepository,
+                    olderThan = 0.seconds,
+                )
             }
         }
 }

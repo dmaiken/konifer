@@ -59,12 +59,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key",
                             ),
@@ -102,12 +102,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key",
                             ),
@@ -155,12 +155,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId1)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key1",
                             ),
@@ -172,12 +172,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId2)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key2",
                             ),
@@ -234,12 +234,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId1)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key1",
                             ),
@@ -251,12 +251,12 @@ class VariantReaperTest {
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId2)
-                .set(OUTBOX.EVENT_TYPE, ReapVariantEvent.TYPE)
+                .set(OUTBOX.EVENT_TYPE, VariantDeletedEvent.TYPE)
                 .set(
                     OUTBOX.PAYLOAD,
                     JSONB.valueOf(
                         Json.encodeToString(
-                            ReapVariantEvent(
+                            VariantDeletedEvent(
                                 objectStoreBucket = "bucket",
                                 objectStoreKey = "key2",
                             ),

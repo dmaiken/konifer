@@ -8,7 +8,7 @@ import direkt.jooq.tables.references.OUTBOX
 import io.direkt.domain.ports.AssetRepository
 import io.direkt.infrastructure.datastore.AssetRepositoryTest
 import io.direkt.infrastructure.datastore.createPendingAsset
-import io.direkt.infrastructure.datastore.postgres.scheduling.ReapVariantEvent
+import io.direkt.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
 import io.direkt.service.context.modifiers.OrderBy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -101,7 +101,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 dslContext
                     .select()
                     .from(OUTBOX)
-                    .where(OUTBOX.EVENT_TYPE.eq(ReapVariantEvent.TYPE))
+                    .where(OUTBOX.EVENT_TYPE.eq(VariantDeletedEvent.TYPE))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreBucket").eq(variant.objectStoreBucket))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreKey").eq(variant.objectStoreKey))
                     .awaitFirstOrNull() shouldNotBe null
@@ -124,7 +124,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 dslContext
                     .select()
                     .from(OUTBOX)
-                    .where(OUTBOX.EVENT_TYPE.eq(ReapVariantEvent.TYPE))
+                    .where(OUTBOX.EVENT_TYPE.eq(VariantDeletedEvent.TYPE))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreBucket").eq(variant.objectStoreBucket))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreKey").eq(variant.objectStoreKey))
                     .awaitFirstOrNull() shouldNotBe null
@@ -146,7 +146,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 dslContext
                     .select()
                     .from(OUTBOX)
-                    .where(OUTBOX.EVENT_TYPE.eq(ReapVariantEvent.TYPE))
+                    .where(OUTBOX.EVENT_TYPE.eq(VariantDeletedEvent.TYPE))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreBucket").eq(variant.objectStoreBucket))
                     .and(DSL.jsonbGetAttributeAsText(OUTBOX.PAYLOAD, "objectStoreKey").eq(variant.objectStoreKey))
                     .awaitFirstOrNull() shouldNotBe null

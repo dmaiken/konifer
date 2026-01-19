@@ -11,10 +11,10 @@ import kotlinx.serialization.json.Json
 import org.jooq.DSLContext
 import reactor.core.publisher.Flux
 
-suspend fun fetchOutboxReaperEvents(
+suspend fun fetchVariantDeletedEvents(
     dslContext: DSLContext,
     expectAmount: Int,
-): List<ReapVariantEvent> {
+): List<VariantDeletedEvent> {
     val events =
         Flux
             .from(
@@ -25,10 +25,10 @@ suspend fun fetchOutboxReaperEvents(
             .toList()
     events shouldHaveSize expectAmount
     events.forAll {
-        it.get(OUTBOX.EVENT_TYPE) shouldBe "REAP_VARIANT"
+        it.get(OUTBOX.EVENT_TYPE) shouldBe "VARIANT_DELETED"
     }
 
     return events.map {
-        Json.decodeFromString<ReapVariantEvent>(it.getNonNull(OUTBOX.PAYLOAD).data())
+        Json.decodeFromString<VariantDeletedEvent>(it.getNonNull(OUTBOX.PAYLOAD).data())
     }
 }

@@ -5,6 +5,7 @@ import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.direkt.domain.ports.AssetRepository
 import io.direkt.domain.ports.ObjectRepository
 import io.direkt.infrastructure.datastore.postgres.PostgresProperties
 import io.ktor.server.application.Application
@@ -24,6 +25,7 @@ fun Application.configureScheduling(
     dslContext: DSLContext,
 ) {
     val objectRepository by inject<ObjectRepository>()
+    val assetRepository by inject<AssetRepository>()
 
     // Tasks
     // failed asset sweeper - assets with no original variant that has been uploaded (after 5 minutes?) (cron) - delete row and schedule grim reaper in one transaction
@@ -35,7 +37,10 @@ fun Application.configureScheduling(
             .recurring(FailedAssetSweeper.TASK_NAME, FixedDelay.ofMinutes(1))
             .execute { _, _ ->
                 runBlocking {
-                    FailedAssetSweeper.invoke(dslContext)
+                    FailedAssetSweeper.invoke(
+                        dslContext = dslContext,
+                        assetRepository = assetRepository,
+                    )
                 }
             }
     val failedVariantSweeperTask =

@@ -60,7 +60,7 @@ object FailedVariantSweeper {
                         .where(ASSET_VARIANT.ID.eq(failedVariant.variantId))
                         .awaitFirstOrNull()
                     val event =
-                        ReapVariantEvent(
+                        VariantDeletedEvent(
                             objectStoreBucket = failedVariant.objectStoreBucket,
                             objectStoreKey = failedVariant.objectStoreKey,
                         )
