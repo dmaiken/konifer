@@ -122,7 +122,7 @@ class StoreNewAssetWorkflow(
                                 Variant.Pending.originalVariant(
                                     assetId = newAsset.id,
                                     attributes = preProcessed.attributes,
-                                    objectStoreBucket = context.pathConfiguration.s3Path.bucket,
+                                    objectStoreBucket = context.pathConfiguration.objectStore.bucket,
                                     objectStoreKey = objectStoreKey,
                                     lqip = preProcessed.lqip,
                                 ),
@@ -161,7 +161,7 @@ class StoreNewAssetWorkflow(
                                         originalVariantAttributes = originalVariant.attributes,
                                         lqipImplementations = context.pathConfiguration.image.previews,
                                         originalVariantLQIPs = originalVariant.lqips,
-                                        bucket = context.pathConfiguration.s3Path.bucket,
+                                        bucket = context.pathConfiguration.objectStore.bucket,
                                     )
                                 }
                             }

@@ -10,6 +10,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -17,12 +18,17 @@ import java.util.UUID
 abstract class ObjectRepositoryTest {
     abstract fun createObjectStore(): ObjectRepository
 
-    protected val store = createObjectStore()
-
     companion object {
         protected const val BUCKET_1 = "bucket-1"
         protected const val BUCKET_2 = "bucket-2"
         protected const val BUCKET_3 = "bucket-3"
+    }
+
+    protected lateinit var store: ObjectRepository
+
+    @BeforeEach
+    fun initialize() {
+        store = createObjectStore()
     }
 
     @Test

@@ -146,7 +146,7 @@ class FetchAssetHandler(
                 assetId = assetId,
                 lqipImplementations = context.pathConfiguration.image.previews,
                 originalVariantLQIPs = originalVariant.lqips,
-                bucket = context.pathConfiguration.s3Path.bucket,
+                bucket = context.pathConfiguration.objectStore.bucket,
             )
         } finally {
             withContext(Dispatchers.IO) {

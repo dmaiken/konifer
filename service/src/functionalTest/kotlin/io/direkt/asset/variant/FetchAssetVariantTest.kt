@@ -19,13 +19,13 @@ class FetchAssetVariantTest {
             path-configuration = [
                 {
                     path = "/**"
-                    s3 {
+                    object-store {
                       bucket = default-bucket
                     }
                 }
                 {
                     path = "/users/**"
-                    s3 {
+                    object-store {
                       bucket = correct-bucket
                     }
                 }

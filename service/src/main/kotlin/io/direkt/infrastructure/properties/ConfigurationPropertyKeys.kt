@@ -21,9 +21,10 @@ object ConfigurationPropertyKeys {
         }
     }
 
-    object ObjectStorePropertyKeys {
+    object ObjectRepositoryPropertyKeys {
         const val PROVIDER = "provider"
         const val S3 = "s3"
+        const val FILESYSTEM = "filesystem"
 
         object S3PropertyKeys {
             const val ACCESS_KEY = "access-key"
@@ -38,6 +39,11 @@ object ConfigurationPropertyKeys {
                 const val TTL = "ttl"
             }
         }
+
+        object FileSystemPropertyKeys {
+            const val MOUNT_PATH = "mount-path"
+            const val HTTP_PATH = "http-path"
+        }
     }
 
     object PathPropertyKeys {
@@ -46,7 +52,7 @@ object ConfigurationPropertyKeys {
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val VARIANT_PROFILES = "variant-profiles"
         const val EAGER_VARIANTS = "eager-variants"
-        const val S3 = "s3"
+        const val OBJECT_STORE = "object-store"
         const val PREPROCESSING = "preprocessing"
         const val CACHE_CONTROL = "cache-control"
 

@@ -92,14 +92,14 @@ class EagerVariantTest {
             path-configuration = [
                 {
                     path = "/**"
-                    s3 {
+                    object-store {
                       bucket = default-bucket
                     }
                 }
                 {
                     path = "/users/**"
                     eager-variants = [small, medium]
-                    s3 {
+                    object-store {
                       bucket = correct-bucket
                     }
                 }

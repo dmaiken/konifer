@@ -9,7 +9,7 @@ import io.direkt.domain.path.CacheControlProperties
 import io.direkt.domain.path.PathConfiguration
 import io.direkt.domain.variant.Transformation
 import io.direkt.domain.variant.preprocessing.PreProcessingProperties
-import io.direkt.infrastructure.objectstore.s3.S3PathProperties
+import io.direkt.infrastructure.objectstore.ObjectStoreProperties
 import io.direkt.infrastructure.path.TriePathConfigurationRepository
 import io.direkt.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.direkt.service.context.modifiers.DeleteModifiers
@@ -1132,7 +1132,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     allowedContentTypes = listOf("image/png"),
                     image = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3Path = S3PathProperties.DEFAULT,
+                    objectStore = ObjectStoreProperties.DEFAULT,
                     preProcessing = PreProcessingProperties.DEFAULT,
                     cacheControl = CacheControlProperties.DEFAULT,
                 )
@@ -1162,7 +1162,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     allowedContentTypes = listOf("image/jpeg"),
                     image = ImageProperties.DEFAULT,
                     eagerVariants = listOf(),
-                    s3Path = S3PathProperties.DEFAULT,
+                    objectStore = ObjectStoreProperties.DEFAULT,
                     preProcessing = PreProcessingProperties.DEFAULT,
                     cacheControl = CacheControlProperties.DEFAULT,
                 )

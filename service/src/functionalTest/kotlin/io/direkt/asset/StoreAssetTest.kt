@@ -152,13 +152,13 @@ class StoreAssetTest {
             path-configuration = [
               {
                 path = "/**"
-                s3 {
+                object-store {
                   bucket = default-bucket
                 }
               }
               {
                 path = "/users/*/profile"
-                s3 {
+                object-store {
                   bucket = correct-bucket
                 }
               }

@@ -70,7 +70,7 @@ class S3ObjectRepository(
                     }
                 }
             } catch (e: NoSuchKey) {
-                logger.info("Object with key $key in bucket $bucket does not exist", e)
+                logger.info("Object with key: $key in bucket: $bucket does not exist", e)
                 FetchResult.NOT_FOUND.also {
                     channel.flushAndClose()
                 }

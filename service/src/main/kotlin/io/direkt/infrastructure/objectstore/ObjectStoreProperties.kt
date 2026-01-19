@@ -1,9 +1,9 @@
-package io.direkt.infrastructure.objectstore.s3
+package io.direkt.infrastructure.objectstore
 
-import io.direkt.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.S3PropertyKeys.BUCKET
+import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
 import io.ktor.server.config.ApplicationConfig
 
-data class S3PathProperties(
+data class ObjectStoreProperties(
     val bucket: String = DEFAULT_BUCKET,
 ) {
     init {
@@ -20,14 +20,17 @@ data class S3PathProperties(
                     "(?!.*\\.mwrap$)[a-z0-9][a-z0-9-]{1,61}[a-z0-9])$",
             )
         private const val DEFAULT_BUCKET = "assets"
-        val DEFAULT = S3PathProperties(DEFAULT_BUCKET)
+        val DEFAULT = ObjectStoreProperties(DEFAULT_BUCKET)
 
         fun create(
             applicationConfig: ApplicationConfig?,
-            parent: S3PathProperties?,
-        ): S3PathProperties =
-            S3PathProperties(
-                bucket = applicationConfig?.propertyOrNull(BUCKET)?.getString() ?: parent?.bucket ?: DEFAULT_BUCKET,
+            parent: ObjectStoreProperties?,
+        ): ObjectStoreProperties =
+            ObjectStoreProperties(
+                bucket =
+                    applicationConfig?.propertyOrNull(ConfigurationPropertyKeys.PathPropertyKeys.S3PropertyKeys.BUCKET)?.getString()
+                        ?: parent?.bucket
+                        ?: DEFAULT_BUCKET,
             )
     }
 

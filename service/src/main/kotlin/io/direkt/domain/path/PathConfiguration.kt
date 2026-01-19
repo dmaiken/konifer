@@ -3,7 +3,7 @@ package io.direkt.domain.path
 import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.ImageProperties
 import io.direkt.domain.variant.preprocessing.PreProcessingProperties
-import io.direkt.infrastructure.objectstore.s3.S3PathProperties
+import io.direkt.infrastructure.objectstore.ObjectStoreProperties
 import io.direkt.infrastructure.properties.ConfigurationPropertyKeys
 import io.direkt.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
@@ -14,7 +14,7 @@ data class PathConfiguration(
     val preProcessing: PreProcessingProperties,
     val image: ImageProperties,
     val eagerVariants: List<String>,
-    val s3Path: S3PathProperties,
+    val objectStore: ObjectStoreProperties,
     val cacheControl: CacheControlProperties,
 ) {
     init {
@@ -28,7 +28,7 @@ data class PathConfiguration(
                 preProcessing = PreProcessingProperties.DEFAULT,
                 image = ImageProperties.DEFAULT,
                 eagerVariants = emptyList(),
-                s3Path = S3PathProperties.DEFAULT,
+                objectStore = ObjectStoreProperties.DEFAULT,
                 cacheControl = CacheControlProperties.DEFAULT,
             )
 
@@ -56,10 +56,10 @@ data class PathConfiguration(
                 eagerVariants =
                     applicationConfig.tryGetStringList(ConfigurationPropertyKeys.PathPropertyKeys.EAGER_VARIANTS)
                         ?: parent?.eagerVariants ?: emptyList(),
-                s3Path =
-                    S3PathProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.S3),
-                        parent = parent?.s3Path,
+                objectStore =
+                    ObjectStoreProperties.create(
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE),
+                        parent = parent?.objectStore,
                     ),
                 cacheControl =
                     CacheControlProperties.create(
