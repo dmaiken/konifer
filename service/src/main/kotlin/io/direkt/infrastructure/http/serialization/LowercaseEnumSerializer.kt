@@ -6,7 +6,6 @@ import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
-import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -42,8 +41,6 @@ class AssetClassSerializer : KSerializer<AssetClass> by LowercaseEnumSerializer(
 class FitSerializer : KSerializer<Fit> by LowercaseEnumSerializer(Fit.entries)
 
 class GravitySerializer : KSerializer<Gravity> by LowercaseEnumSerializer(Gravity.entries)
-
-class ImageFormatSerializer : KSerializer<ImageFormat> by LowercaseEnumSerializer(ImageFormat.entries)
 
 class RotateSerializer : KSerializer<Rotate> by LowercaseEnumSerializer(Rotate.entries)
 

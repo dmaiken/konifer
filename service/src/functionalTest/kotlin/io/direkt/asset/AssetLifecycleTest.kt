@@ -61,7 +61,7 @@ class AssetLifecycleTest {
                 val vImage = VImage.newFromBytes(arena, image)
                 storeAssetResponse.variants.first().apply {
                     storeKey shouldEndWith format.extension
-                    attributes.mimeType shouldBe format.mimeType
+                    attributes.format shouldBe format.format
                     attributes.height shouldBe vImage.height
                     attributes.width shouldBe vImage.width
                     attributes.pageCount shouldBeOneOf listOf(null, 1)
@@ -111,7 +111,7 @@ class AssetLifecycleTest {
                     )
                 storeAssetResponse.variants.first().apply {
                     storeKey shouldEndWith ".gif"
-                    attributes.mimeType shouldBe "image/gif"
+                    attributes.format shouldBe "gif"
                     attributes.height shouldBe vImage.getInt(OPTION_PAGE_HEIGHT)
                     attributes.width shouldBe vImage.width
                     attributes.pageCount shouldBe 19

@@ -1,7 +1,5 @@
 package io.direkt.service.context.modifiers
 
-import io.direkt.service.context.modifiers.OrderBy
-
 val DEFAULT_RETURN_FORMAT = ReturnFormat.LINK
 val DEFAULT_ORDER_BY = OrderBy.CREATED
 const val DEFAULT_LIMIT = 1

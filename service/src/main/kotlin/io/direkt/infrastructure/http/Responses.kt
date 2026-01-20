@@ -8,7 +8,6 @@ import io.direkt.domain.image.Filter
 import io.direkt.domain.image.Fit
 import io.direkt.domain.image.Flip
 import io.direkt.domain.image.Gravity
-import io.direkt.domain.image.ImageFormat
 import io.direkt.domain.image.Rotate
 import io.direkt.domain.variant.Attributes
 import io.direkt.domain.variant.LQIPs
@@ -21,7 +20,6 @@ import io.direkt.infrastructure.http.serialization.FilterSerializer
 import io.direkt.infrastructure.http.serialization.FitSerializer
 import io.direkt.infrastructure.http.serialization.FlipSerializer
 import io.direkt.infrastructure.http.serialization.GravitySerializer
-import io.direkt.infrastructure.http.serialization.ImageFormatSerializer
 import io.direkt.infrastructure.http.serialization.LocalDateTimeSerializer
 import io.direkt.infrastructure.http.serialization.RotateSerializer
 import kotlinx.serialization.Serializable
@@ -121,7 +119,7 @@ data class VariantResponse(
 data class AttributeResponse(
     val height: Int,
     val width: Int,
-    val mimeType: String,
+    val format: String,
     val pageCount: Int?,
     val loop: Int?,
 ) {
@@ -130,7 +128,7 @@ data class AttributeResponse(
             AttributeResponse(
                 height = attributes.height,
                 width = attributes.width,
-                mimeType = attributes.format.mimeType,
+                format = attributes.format.format,
                 pageCount = attributes.pageCount,
                 loop = attributes.loop,
             )
@@ -145,8 +143,7 @@ data class TransformationResponse(
     val fit: Fit,
     @Serializable(with = GravitySerializer::class)
     val gravity: Gravity,
-    @Serializable(with = ImageFormatSerializer::class)
-    val format: ImageFormat,
+    val format: String,
     @Serializable(with = RotateSerializer::class)
     val rotate: Rotate,
     @Serializable(with = FlipSerializer::class)
@@ -165,7 +162,7 @@ data class TransformationResponse(
                 height = transformation.height,
                 fit = transformation.fit,
                 gravity = transformation.gravity,
-                format = transformation.format,
+                format = transformation.format.format,
                 rotate = transformation.rotate,
                 flip = if (transformation.horizontalFlip) Flip.H else Flip.NONE,
                 filter = transformation.filter,

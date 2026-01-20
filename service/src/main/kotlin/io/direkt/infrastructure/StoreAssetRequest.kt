@@ -22,6 +22,8 @@ private const val MAX_LABEL_VALUE_LENGTH: Int = 256
  */
 private const val MAX_LABELS: Int = 50
 
+private const val MAX_TAGS: Int = 50
+
 private const val MAX_TAG_VALUE_LENGTH: Int = 256
 
 @Serializable
@@ -32,17 +34,15 @@ data class StoreAssetRequest(
     val tags: Set<String> = emptySet(),
 ) {
     init {
-        if (alt != null && alt.length > MAX_ALT_LENGTH) {
-            throw IllegalArgumentException("Alt exceeds max length of $MAX_ALT_LENGTH")
+        if (alt != null) {
+            require(alt.length <= MAX_ALT_LENGTH) { "Alt exceeds max length of $MAX_ALT_LENGTH" }
         }
-        if (labels.any { it.key.length > MAX_LABEL_KEY_LENGTH || it.value.length > MAX_LABEL_VALUE_LENGTH }) {
-            throw IllegalArgumentException("Labels exceed max length of ($MAX_LABEL_KEY_LENGTH, $MAX_LABEL_VALUE_LENGTH)")
+        require(labels.all { it.key.length <= MAX_LABEL_KEY_LENGTH && it.value.length <= MAX_LABEL_VALUE_LENGTH }) {
+            "Labels exceed max length of ($MAX_LABEL_KEY_LENGTH, $MAX_LABEL_VALUE_LENGTH)"
         }
-        if (labels.size > MAX_LABELS) {
-            throw IllegalArgumentException("Cannot have more than $MAX_LABELS labels")
-        }
-        if (tags.any { it.length > MAX_TAG_VALUE_LENGTH }) {
-            throw IllegalArgumentException("Tags exceed max length of $MAX_TAG_VALUE_LENGTH")
-        }
+        require(labels.size <= MAX_LABELS) { "Cannot have more than $MAX_LABELS labels" }
+
+        require(tags.all { it.length <= MAX_TAG_VALUE_LENGTH  }) { "Tags exceeds max length of $MAX_TAG_VALUE_LENGTH" }
+        require(tags.size <= MAX_TAGS) { "Tags exceeds max length of $MAX_TAGS" }
     }
 }

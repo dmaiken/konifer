@@ -66,7 +66,7 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.format shouldBe "png"
                     first().attributes.width shouldBe 100
                     first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately originalScale
                 }
@@ -113,7 +113,7 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().storeBucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().attributes.mimeType shouldBe "image/png"
+                        first().attributes.format shouldBe "png"
                         first().attributes.height shouldBe 50
                         first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
@@ -164,7 +164,7 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().attributes.mimeType shouldBe "image/png"
+                    first().attributes.format shouldBe "png"
                     first().attributes.height shouldBe bufferedImage.height
                     first().attributes.width shouldBe bufferedImage.width
                 }
@@ -213,7 +213,7 @@ class ImagePreProcessingTest {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
                     first().storeKey shouldNotBe null
-                    first().attributes.mimeType shouldBe expectedType
+                    first().attributes.format shouldBe imageFormat
                     first().attributes.height shouldBe bufferedImage.height
                     first().attributes.width shouldBe bufferedImage.width
                 }
@@ -267,7 +267,7 @@ class ImagePreProcessingTest {
                         size shouldBe 1
                         first().storeBucket shouldBe "assets"
                         first().storeKey shouldNotBe null
-                        first().attributes.mimeType shouldBe "image/webp"
+                        first().attributes.format shouldBe "webp"
                         first().attributes.height shouldBe 50
                         first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
                             originalScale
