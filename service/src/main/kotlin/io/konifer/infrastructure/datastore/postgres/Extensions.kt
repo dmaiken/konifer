@@ -1,9 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import direkt.jooq.tables.records.AssetLabelRecord
-import direkt.jooq.tables.records.AssetTagRecord
-import direkt.jooq.tables.records.AssetTreeRecord
-import direkt.jooq.tables.records.AssetVariantRecord
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -11,6 +7,10 @@ import io.konifer.domain.asset.AssetSource
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantId
+import konifer.jooq.tables.records.AssetLabelRecord
+import konifer.jooq.tables.records.AssetTagRecord
+import konifer.jooq.tables.records.AssetTreeRecord
+import konifer.jooq.tables.records.AssetVariantRecord
 import org.jooq.Field
 import org.jooq.Record
 import java.time.LocalDateTime

@@ -1,15 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import direkt.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
-import direkt.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
-import direkt.jooq.tables.records.AssetLabelRecord
-import direkt.jooq.tables.records.AssetTagRecord
-import direkt.jooq.tables.records.AssetVariantRecord
-import direkt.jooq.tables.references.ASSET_LABEL
-import direkt.jooq.tables.references.ASSET_TAG
-import direkt.jooq.tables.references.ASSET_TREE
-import direkt.jooq.tables.references.ASSET_VARIANT
-import direkt.jooq.tables.references.OUTBOX
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -19,6 +9,16 @@ import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
 import io.konifer.service.context.modifiers.OrderBy
 import io.ktor.util.logging.KtorSimpleLogger
+import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
+import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
+import konifer.jooq.tables.records.AssetLabelRecord
+import konifer.jooq.tables.records.AssetTagRecord
+import konifer.jooq.tables.records.AssetVariantRecord
+import konifer.jooq.tables.references.ASSET_LABEL
+import konifer.jooq.tables.references.ASSET_TAG
+import konifer.jooq.tables.references.ASSET_TREE
+import konifer.jooq.tables.references.ASSET_VARIANT
+import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow

@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.ASSET_VARIANT
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
@@ -19,6 +18,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockkStatic
 import io.mockk.spyk
+import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull

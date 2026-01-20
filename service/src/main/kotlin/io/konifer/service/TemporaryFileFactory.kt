@@ -12,7 +12,7 @@ import kotlin.io.path.pathString
 
 @OptIn(ExperimentalPathApi::class)
 object TemporaryFileFactory {
-    private val logger = KtorSimpleLogger("io.direkt.Application")
+    private val logger = KtorSimpleLogger("io.konifer.Application")
 
     private val tempDir: Path = Paths.get(System.getProperty("java.io.tmpdir"), ROOT_DIR)
 
@@ -25,7 +25,7 @@ object TemporaryFileFactory {
         tempDir.toFile().mkdirs()
     }
 
-    const val ROOT_DIR = "direkt"
+    const val ROOT_DIR = "konifer"
     const val UPLOAD_PREFIX = "asset-upload-"
     const val PRE_PROCESSED_PREFIX = "asset-pre-processed-"
     const val ORIGINAL_VARIANT_PREFIX = "original-variant-"

@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import direkt.jooq.tables.records.AssetLabelRecord
-import direkt.jooq.tables.records.AssetTagRecord
-import direkt.jooq.tables.records.AssetTreeRecord
-import direkt.jooq.tables.records.AssetVariantRecord
+import konifer.jooq.tables.records.AssetLabelRecord
+import konifer.jooq.tables.records.AssetTagRecord
+import konifer.jooq.tables.records.AssetTreeRecord
+import konifer.jooq.tables.records.AssetVariantRecord
 
 data class AssetRecordsDto(
     val asset: AssetTreeRecord,

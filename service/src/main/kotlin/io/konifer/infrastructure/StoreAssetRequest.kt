@@ -42,7 +42,7 @@ data class StoreAssetRequest(
         }
         require(labels.size <= MAX_LABELS) { "Cannot have more than $MAX_LABELS labels" }
 
-        require(tags.all { it.length <= MAX_TAG_VALUE_LENGTH  }) { "Tags exceeds max length of $MAX_TAG_VALUE_LENGTH" }
+        require(tags.all { it.length <= MAX_TAG_VALUE_LENGTH }) { "Tags exceeds max length of $MAX_TAG_VALUE_LENGTH" }
         require(tags.size <= MAX_TAGS) { "Tags exceeds max length of $MAX_TAGS" }
     }
 }

@@ -2,7 +2,7 @@ plugins {
     id("java")
 }
 
-group = "io.direkt"
+group = "io.konifer"
 version = "0.0.1"
 
 repositories {

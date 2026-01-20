@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.ASSET_VARIANT
-import direkt.jooq.tables.references.OUTBOX
 import io.konifer.infrastructure.datastore.postgres.getNonNull
 import io.ktor.util.logging.KtorSimpleLogger
+import konifer.jooq.tables.references.ASSET_VARIANT
+import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow

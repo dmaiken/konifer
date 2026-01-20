@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.OUTBOX
 import io.konifer.domain.ports.ObjectRepository
 import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
 import io.konifer.infrastructure.datastore.postgres.postgresContainer
@@ -11,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.spyk
+import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json

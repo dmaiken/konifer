@@ -1,7 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.ASSET_TREE
-import direkt.jooq.tables.references.ASSET_VARIANT
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
@@ -16,6 +14,8 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockkStatic
 import io.mockk.spyk
+import konifer.jooq.tables.references.ASSET_TREE
+import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull

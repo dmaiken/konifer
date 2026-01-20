@@ -34,7 +34,7 @@ fun Application.createPostgresProperties(): PostgresProperties {
     val database =
         postgresProperties
             ?.tryGetString(DATABASE)
-            ?: "direkt"
+            ?: "konifer"
     val port =
         postgresProperties
             ?.tryGetString(PORT)

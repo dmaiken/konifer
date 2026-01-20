@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.records.AssetVariantRecord
-import direkt.jooq.tables.references.ASSET_VARIANT
+import konifer.jooq.tables.records.AssetVariantRecord
+import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.jooq.CommonTableExpression

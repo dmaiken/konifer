@@ -21,7 +21,7 @@ class CropFirstPageTest {
     @Nested
     inner class TransformTests {
         @ParameterizedTest
-        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
         fun `can crop first page of multi-page image`(format: ImageFormat) {
             val image =
                 javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.use {
@@ -67,7 +67,7 @@ class CropFirstPageTest {
     @Nested
     inner class RequiresTransformationTests {
         @ParameterizedTest
-        @MethodSource("io.direkt.domain.image.ImageTestSources#notSupportsPagedSource")
+        @MethodSource("io.konifer.domain.image.ImageTestSources#notSupportsPagedSource")
         fun `images that do not support multi-page are skipped`(format: ImageFormat) {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
@@ -92,7 +92,7 @@ class CropFirstPageTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
         fun `images that do support multi-page are skipped if they are only one page`(format: ImageFormat) {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.use {
@@ -117,7 +117,7 @@ class CropFirstPageTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.direkt.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
         fun `images that do support multi-page are not skipped if they have more than one page`(format: ImageFormat) {
             val image =
                 javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.use {

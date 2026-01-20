@@ -1,10 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import direkt.jooq.tables.references.ASSET_LABEL
-import direkt.jooq.tables.references.ASSET_TAG
-import direkt.jooq.tables.references.ASSET_TREE
-import direkt.jooq.tables.references.ASSET_VARIANT
-import direkt.jooq.tables.references.OUTBOX
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.AssetRepositoryTest
 import io.konifer.infrastructure.datastore.createPendingAsset
@@ -12,6 +7,11 @@ import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEve
 import io.konifer.service.context.modifiers.OrderBy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import konifer.jooq.tables.references.ASSET_LABEL
+import konifer.jooq.tables.references.ASSET_TAG
+import konifer.jooq.tables.references.ASSET_TREE
+import konifer.jooq.tables.references.ASSET_VARIANT
+import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext

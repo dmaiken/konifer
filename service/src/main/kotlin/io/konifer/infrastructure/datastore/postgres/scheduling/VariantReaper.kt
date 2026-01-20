@@ -1,8 +1,8 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.OUTBOX
 import io.konifer.domain.ports.ObjectRepository
 import io.ktor.util.logging.KtorSimpleLogger
+import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow

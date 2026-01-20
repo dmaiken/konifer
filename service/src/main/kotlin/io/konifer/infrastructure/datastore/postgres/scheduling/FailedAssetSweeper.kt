@@ -1,10 +1,10 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import direkt.jooq.tables.references.ASSET_TREE
-import direkt.jooq.tables.references.ASSET_VARIANT
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
 import io.ktor.util.logging.KtorSimpleLogger
+import konifer.jooq.tables.references.ASSET_TREE
+import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
