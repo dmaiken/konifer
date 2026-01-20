@@ -27,8 +27,8 @@ RUN chmod +x /usr/local/bin/install-vips.sh \
 RUN vips list format
 
 WORKDIR /app
-COPY --from=build /home/gradle/app/service/build/libs/*.jar direkt.jar
+COPY --from=build /home/gradle/app/service/build/libs/*.jar konifer.jar
 
 ENV JAVA_OPTS=""
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","direkt.jar", "-config=application.conf", "-config=/app/config/direkt.conf"]
+ENTRYPOINT ["java","-jar","konifer.jar", "-config=application.conf", "-config=/app/config/konifer.conf"]

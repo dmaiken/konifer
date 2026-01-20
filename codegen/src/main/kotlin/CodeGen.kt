@@ -67,7 +67,7 @@ fun main() {
                 excludes = "migrations|scheduled_tasks|path_entry_counter"
             }
             target = Target().apply {
-                packageName = "direkt.jooq"
+                packageName = "konifer.jooq"
                 directory = "../jooq-generated/src/main/kotlin"
             }
             generate = Generate().apply {

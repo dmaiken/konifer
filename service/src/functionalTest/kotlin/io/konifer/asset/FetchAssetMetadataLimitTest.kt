@@ -1,0 +1,108 @@
+package io.konifer.asset
+
+import io.konifer.config.testInMemory
+import io.konifer.infrastructure.StoreAssetRequest
+import io.konifer.util.createJsonClient
+import io.konifer.util.fetchAllAssetMetadata
+import io.konifer.util.storeAssetMultipartSource
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldNotBe
+import org.junit.jupiter.api.Test
+
+class FetchAssetMetadataLimitTest {
+    @Test
+    fun `limit is respected when fetching asset`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                    "type" to "vegetable",
+                )
+            val tags = setOf("smart", "cool")
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = labels,
+                    tags = tags,
+                )
+            repeat(10) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
+            }
+
+            fetchAllAssetMetadata(
+                client = client,
+                path = "profile",
+                limit = 5,
+            ) shouldHaveSize 5
+
+            fetchAllAssetMetadata(
+                client = client,
+                path = "profile",
+                limit = 50,
+            ) shouldHaveSize 10
+        }
+
+    @Test
+    fun `can have limit greater than amount at path`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                    "type" to "vegetable",
+                )
+            val tags = setOf("smart", "cool")
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = labels,
+                    tags = tags,
+                )
+            repeat(10) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
+            }
+
+            fetchAllAssetMetadata(
+                client = client,
+                path = "profile",
+                limit = 50,
+            ) shouldHaveSize 10
+        }
+
+    @Test
+    fun `can fetch all at path using all modifier`() =
+        testInMemory {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                    "type" to "vegetable",
+                )
+            val tags = setOf("smart", "cool")
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = labels,
+                    tags = tags,
+                )
+            repeat(5) {
+                storeAssetMultipartSource(client, image, request, path = "profile").second.apply {
+                    this shouldNotBe null
+                }
+            }
+
+            fetchAllAssetMetadata(
+                client = client,
+                path = "profile",
+                all = true,
+            ) shouldHaveSize 5
+        }
+}

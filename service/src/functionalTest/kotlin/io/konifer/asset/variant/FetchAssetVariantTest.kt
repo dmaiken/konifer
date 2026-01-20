@@ -1,0 +1,53 @@
+package io.konifer.asset.variant
+
+import io.konifer.config.testInMemory
+import io.konifer.infrastructure.StoreAssetRequest
+import io.konifer.util.createJsonClient
+import io.konifer.util.fetchAssetContent
+import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.storeAssetMultipartSource
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Test
+
+class FetchAssetVariantTest {
+    @Test
+    fun `requested asset variants are persisted in configured bucket`() =
+        testInMemory(
+            """
+            path-configuration = [
+                {
+                    path = "/**"
+                    object-store {
+                      bucket = default-bucket
+                    }
+                }
+                {
+                    path = "/users/**"
+                    object-store {
+                      bucket = correct-bucket
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetMultipartSource(client, image, request, path = "users/123")
+
+            // "create" the variant by requesting it
+            fetchAssetContent(client, path = "users/123", expectedMimeType = "image/png", height = 100, width = 100)
+
+            fetchAssetMetadata(client, path = "users/123")!!.apply {
+                variants shouldHaveSize 2
+                variants.forAll {
+                    it.storeBucket shouldBe "correct-bucket"
+                }
+            }
+        }
+}

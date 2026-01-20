@@ -9,7 +9,7 @@
 
     <logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
     <logger name="org.jooq" level="DEBUG" />
-    <logger name="io.direkt.asset" level="DEBUG" />
+    <logger name="io.konifer.asset" level="DEBUG" />
     <logger name="io.image" level="DEBUG" />
 
     <root level="INFO">

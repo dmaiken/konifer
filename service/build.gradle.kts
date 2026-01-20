@@ -7,7 +7,7 @@ plugins {
 }
 
 version = "0.0.1"
-group = "io.direkt"
+group = "io.konifer"
 
 application {
     mainClass = "io.ApplicationKt"
@@ -161,7 +161,7 @@ kotlin {
 
 ktor {
     docker {
-        localImageName.set("direkt")
+        localImageName.set("konifer")
         imageTag.set("0.0.1-preview")
     }
 }
