@@ -14,7 +14,7 @@ import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.modifiers.DeleteModifiers
 import io.konifer.service.context.modifiers.OrderBy
-import io.konifer.service.context.modifiers.QueryModifiers
+import io.konifer.service.context.modifiers.QuerySelectors
 import io.konifer.service.context.modifiers.ReturnFormat
 import io.konifer.service.context.modifiers.SpecifiedInRequest
 import io.konifer.service.transformation.TransformationNormalizer
@@ -49,8 +49,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun queryModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/metadata/created/10",
-                    QueryModifiers(
+                    "/assets/profile/-/created/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
@@ -63,8 +67,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata/modified/10",
-                    QueryModifiers(
+                    "/assets/profile/-/modified/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.MODIFIED,
                         limit = 10,
@@ -77,22 +85,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/link/created/10",
-                    QueryModifiers(
-                        returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
-                        limit = 10,
-                        specifiedModifiers =
-                            SpecifiedInRequest(
-                                returnFormat = true,
-                                orderBy = true,
-                                limit = true,
-                            ),
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/redirect/created/1",
-                    QueryModifiers(
+                    "/assets/profile/-/created/redirect",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "1")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.REDIRECT,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -105,8 +103,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/content/created/1",
-                    QueryModifiers(
+                    "/assets/profile/-/created/content",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "1")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.CONTENT,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -119,8 +121,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/mEtAData/created/10",
-                    QueryModifiers(
+                    "/assets/profile/-/created/mEtAData/",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
@@ -133,8 +139,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata/created/all",
-                    QueryModifiers(
+                    "/assets/profile/-/created/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "-1")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = -1,
@@ -147,21 +157,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/10",
-                    QueryModifiers(
-                        returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
-                        limit = 10,
-                        specifiedModifiers =
-                            SpecifiedInRequest(
-                                orderBy = true,
-                                limit = true,
-                            ),
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/metadata/created",
-                    QueryModifiers(
+                    "/assets/profile/-/created/metadata",
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -173,8 +171,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata/10",
-                    QueryModifiers(
+                    "/assets/profile/-/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
@@ -186,8 +188,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata/all",
-                    QueryModifiers(
+                    "/assets/profile/-/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "-1")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = -1,
@@ -199,20 +205,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/10",
-                    QueryModifiers(
-                        returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
-                        limit = 10,
-                        specifiedModifiers =
-                            SpecifiedInRequest(
-                                limit = true,
-                            ),
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/all",
-                    QueryModifiers(
+                    "/assets/profile",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "-1")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = -1,
@@ -224,7 +222,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/metadata",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -236,7 +235,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/created",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -248,7 +248,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -257,7 +258,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -266,7 +268,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -275,7 +278,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/",
-                    QueryModifiers(
+                    Parameters.Empty,
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -283,8 +287,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata/created/10/",
-                    QueryModifiers(
+                    "/assets/profile/-/created/metadata",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         orderBy = OrderBy.CREATED,
                         limit = 10,
@@ -302,21 +310,33 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun deleteModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/created/10",
+                    "/assets/profile/-/created",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
                     DeleteModifiers(
                         orderBy = OrderBy.CREATED,
                         limit = 10,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/modified/10",
+                    "/assets/profile/-/modified",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "10")
+                        }.build(),
                     DeleteModifiers(
                         orderBy = OrderBy.MODIFIED,
                         limit = 10,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/all",
+                    "/assets/profile/-/created",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "-1")
+                        }.build(),
                     DeleteModifiers(
                         orderBy = OrderBy.CREATED,
                         limit = -1,
@@ -324,6 +344,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/created/",
+                    Parameters.Empty,
                     DeleteModifiers(
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -331,6 +352,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/modified/",
+                    Parameters.Empty,
                     DeleteModifiers(
                         orderBy = OrderBy.MODIFIED,
                         limit = 1,
@@ -338,6 +360,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/",
+                    Parameters.Empty,
                     DeleteModifiers(
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -346,6 +369,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/",
+                    Parameters.Empty,
                     DeleteModifiers(
                         orderBy = OrderBy.CREATED,
                         limit = 1,
@@ -354,12 +378,17 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/recursive",
+                    Parameters.Empty,
                     DeleteModifiers(
                         recursive = true,
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/all",
+                    "/assets/profile/-/",
+                    ParametersBuilder()
+                        .apply {
+                            append("limit", "-1")
+                        }.build(),
                     DeleteModifiers(
                         limit = -1,
                     ),
@@ -370,8 +399,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun getEntryIdSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/metadata/entry/10",
-                    QueryModifiers(
+                    "/assets/profile/-/entry/10/metadata",
+                    QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
                         entryId = 10,
                         specifiedModifiers =
@@ -381,8 +410,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/content/entry/10",
-                    QueryModifiers(
+                    "/assets/profile/-/entry/10/content",
+                    QuerySelectors(
                         returnFormat = ReturnFormat.CONTENT,
                         entryId = 10,
                         specifiedModifiers =
@@ -392,8 +421,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/redirect/entry/10",
-                    QueryModifiers(
+                    "/assets/profile/-/entry/10/redirect",
+                    QuerySelectors(
                         returnFormat = ReturnFormat.REDIRECT,
                         entryId = 10,
                         specifiedModifiers =
@@ -403,8 +432,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/link/entry/10",
-                    QueryModifiers(
+                    "/assets/profile/-/entry/10/link",
+                    QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         entryId = 10,
                         specifiedModifiers =
@@ -415,7 +444,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 ),
                 arguments(
                     "/assets/profile/-/entry/10",
-                    QueryModifiers(
+                    QuerySelectors(
                         entryId = 10,
                     ),
                 ),
@@ -497,17 +526,18 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.konifer.service.context.RequestContextFactoryTest#queryModifierSource")
         fun `can fetch GET request context with query modifiers`(
             path: String,
-            expectedQueryModifiers: QueryModifiers,
+            queryParameters: Parameters,
+            expectedQuerySelectors: QuerySelectors,
         ) = runTest {
             val context =
                 requestContextFactory.fromGetRequest(
                     path = path,
                     headers = HeadersBuilder().build(),
-                    queryParameters = Parameters.Empty,
+                    queryParameters = queryParameters,
                 )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe expectedQueryModifiers
+            context.modifiers shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
 
@@ -515,7 +545,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.konifer.service.context.RequestContextFactoryTest#getEntryIdSource")
         fun `can fetch GET request context with entryId`(
             path: String,
-            expectedQueryModifiers: QueryModifiers,
+            expectedQuerySelectors: QuerySelectors,
         ) = runTest {
             val context =
                 requestContextFactory.fromGetRequest(
@@ -525,7 +555,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe expectedQueryModifiers
+            context.modifiers shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
 
@@ -616,7 +646,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         )
         fun `throws when GET query modifiers are invalid`(path: String) =
             runTest {
-                shouldThrow<InvalidQueryModifiersException> {
+                shouldThrow<InvalidQuerySelectorsException> {
                     requestContextFactory.fromGetRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
@@ -636,7 +666,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         )
         fun `entryId must be positive when fetching GET request context`(path: String) =
             runTest {
-                shouldThrow<InvalidQueryModifiersException> {
+                shouldThrow<InvalidQuerySelectorsException> {
                     requestContextFactory.fromGetRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
@@ -650,15 +680,19 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `cannot have limit greater than one with certain return formats`(returnFormat: ReturnFormat) =
             runTest {
                 val exception =
-                    shouldThrow<InvalidQueryModifiersException> {
+                    shouldThrow<InvalidQuerySelectorsException> {
                         requestContextFactory.fromGetRequest(
-                            path = "/assets/profile/user/123/-/$returnFormat/2",
+                            path = "/assets/profile/user/123/-/$returnFormat",
                             headers = HeadersBuilder().build(),
-                            queryParameters = Parameters.Empty,
+                            queryParameters =
+                                ParametersBuilder()
+                                    .apply {
+                                        append("limit", "3")
+                                    }.build(),
                         )
                     }
 
-                exception.message shouldBe "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}"
+                exception.message shouldBe "Invalid query modifiers: [${returnFormat.name}]"
             }
 
         @Test
@@ -682,7 +716,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             parameters: Parameters,
             transformation: Transformation,
         ) = runTest {
-            val path = "/assets/profile/-/link/created/10/"
+            val path = "/assets/profile/-/created/link"
             storePersistedAsset(
                 height = 100,
                 width = 100,
@@ -713,7 +747,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val exception =
                     shouldThrow<InvalidPathException> {
                         requestContextFactory.fromGetRequest(
-                            path = "/assets/profile/-/metadata/created/10/",
+                            path = "/assets/profile/-/created/metadata/",
                             headers = HeadersBuilder().build(),
                             queryParameters = parameters,
                         )
@@ -726,9 +760,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val context =
                     requestContextFactory.fromGetRequest(
-                        path = "/assets/profile/123/-/metadata/2",
+                        path = "/assets/profile/123/-/metadata/",
                         headers = HeadersBuilder().build(),
-                        queryParameters = Parameters.Empty,
+                        queryParameters =
+                            ParametersBuilder()
+                                .apply {
+                                    append("limit", "10")
+                                }.build(),
                     )
 
                 context.path shouldBe "/profile/123/"
@@ -760,7 +798,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `can parse labels in request`() =
             runTest {
-                val path = "/assets/profile/-/link/created/10/"
+                val path = "/assets/profile/-/created/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -797,7 +835,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `some label is used when duplicates exist in request`() =
             runTest {
-                val path = "/assets/profile/-/link/created/10/"
+                val path = "/assets/profile/-/created/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -831,7 +869,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `some label is used when duplicates exist and one is namespaced in request`() =
             runTest {
-                val path = "/assets/profile/-/link/created/10/"
+                val path = "/assets/profile/-/created/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -1007,9 +1045,14 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.konifer.service.context.RequestContextFactoryTest#deleteModifierSource")
         fun `can fetch DELETE request context with query modifiers`(
             path: String,
+            parameters: Parameters,
             deleteModifiers: DeleteModifiers,
         ) {
-            val context = requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
+            val context =
+                requestContextFactory.fromDeleteRequest(
+                    path = path,
+                    queryParameters = parameters,
+                )
 
             context.modifiers shouldBe deleteModifiers
         }
@@ -1038,7 +1081,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             ],
         )
         fun `throws when DELETE query modifiers are invalid`(path: String) {
-            shouldThrow<InvalidDeleteModifiersException> {
+            shouldThrow<InvalidDeleteSelectorsException> {
                 requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
             }
         }
@@ -1051,7 +1094,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             ],
         )
         fun `entryId must be positive when fetching DELETE request context`(path: String) {
-            shouldThrow<InvalidDeleteModifiersException> {
+            shouldThrow<InvalidDeleteSelectorsException> {
                 requestContextFactory.fromDeleteRequest(path, Parameters.Empty)
             }
         }
@@ -1087,7 +1130,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/created/10/",
+                "/assets/profile/-/created/",
                 "/assets/profile/-/recursive",
             ],
         )
@@ -1191,7 +1234,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
         @Test
         fun `cannot specify return format`() {
-            val path = "/assets/profile/123/-/metadata/entry/1"
+            val path = "/assets/profile/123/-/entry/1/metadata"
 
             val exception =
                 shouldThrow<InvalidPathException> {

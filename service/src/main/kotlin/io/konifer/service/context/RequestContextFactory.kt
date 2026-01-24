@@ -8,8 +8,8 @@ import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
-import io.konifer.service.context.PathModifierExtractor.extractDeleteModifiers
-import io.konifer.service.context.PathModifierExtractor.extractQueryModifiers
+import io.konifer.service.context.PathSelectorExtractor.extractDeleteSelectors
+import io.konifer.service.context.PathSelectorExtractor.extractQuerySelectors
 import io.konifer.service.context.modifiers.ManipulationParameters.ALL_RESERVED_PARAMETERS
 import io.konifer.service.context.modifiers.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
 import io.konifer.service.context.modifiers.ManipulationParameters.BACKGROUND
@@ -25,7 +25,7 @@ import io.konifer.service.context.modifiers.ManipulationParameters.QUALITY
 import io.konifer.service.context.modifiers.ManipulationParameters.ROTATE
 import io.konifer.service.context.modifiers.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.service.context.modifiers.ManipulationParameters.WIDTH
-import io.konifer.service.context.modifiers.QueryModifiers
+import io.konifer.service.context.modifiers.QuerySelectors
 import io.konifer.service.context.modifiers.ReturnFormat
 import io.konifer.service.transformation.TransformationNormalizer
 import io.ktor.http.ContentType
@@ -43,7 +43,6 @@ class RequestContextFactory(
         const val PATH_NAMESPACE_SEPARATOR = "-"
         const val ASSET_PATH_PREFIX = "/assets"
         const val ENTRY_ID_MODIFIER = "ENTRY"
-        const val NO_LIMIT_MODIFIER = "ALL"
         const val RECURSIVE_MODIFIER = "RECURSIVE"
     }
 
@@ -74,15 +73,19 @@ class RequestContextFactory(
         queryParameters: Parameters,
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
-        val queryModifiers = extractQueryModifiers(segments.getOrNull(1))
+        val querySelectors =
+            extractQuerySelectors(
+                path = segments.getOrNull(1),
+                parameters = queryParameters,
+            )
         val requestedImageAttributes =
             extractRequestedImageTransformation(
-                queryModifiers = queryModifiers,
+                querySelectors = querySelectors,
                 headers = headers,
                 parameters = queryParameters,
             )
         if (
-            queryModifiers.returnFormat == ReturnFormat.METADATA &&
+            querySelectors.returnFormat == ReturnFormat.METADATA &&
             requestedImageAttributes != null &&
             !requestedImageAttributes.originalVariant
         ) {
@@ -92,12 +95,12 @@ class RequestContextFactory(
         return QueryRequestContext(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
-            modifiers = queryModifiers,
+            modifiers = querySelectors,
             transformation =
                 requestedImageAttributes?.let {
                     transformationNormalizer.normalize(
                         treePath = segments.first(),
-                        entryId = queryModifiers.entryId,
+                        entryId = querySelectors.entryId,
                         requested = it,
                     )
                 },
@@ -113,29 +116,37 @@ class RequestContextFactory(
 
         return DeleteRequestContext(
             path = segments.first(),
-            modifiers = extractDeleteModifiers(segments.getOrNull(1)),
+            modifiers =
+                extractDeleteSelectors(
+                    path = segments.getOrNull(1),
+                    parameters = queryParameters,
+                ),
             labels = extractLabels(queryParameters),
         )
     }
 
     fun fromUpdateRequest(path: String): UpdateRequestContext {
         val segments = extractPathSegments(path)
-        val modifiers = extractQueryModifiers(segments.getOrNull(1))
-        if (modifiers.entryId == null) {
+        val selectors =
+            extractQuerySelectors(
+                path = segments.getOrNull(1),
+                parameters = Parameters.Empty,
+            )
+        if (selectors.entryId == null) {
             throw InvalidPathException("Entry id must be specified on an update request")
         }
-        if (modifiers.specifiedModifiers.limit) {
+        if (selectors.specifiedModifiers.limit) {
             throw InvalidPathException("Limit cannot be supplied on update request")
         }
-        if (modifiers.specifiedModifiers.returnFormat) {
+        if (selectors.specifiedModifiers.returnFormat) {
             throw InvalidPathException("Return format cannot be supplied on update request")
         }
-        if (modifiers.specifiedModifiers.orderBy) {
+        if (selectors.specifiedModifiers.orderBy) {
             throw InvalidPathException("Order cannot be supplied on update request")
         }
         return UpdateRequestContext(
             path = segments.first(),
-            entryId = modifiers.entryId,
+            entryId = selectors.entryId,
         )
     }
 
@@ -157,7 +168,7 @@ class RequestContextFactory(
     }
 
     private fun extractRequestedImageTransformation(
-        queryModifiers: QueryModifiers,
+        querySelectors: QuerySelectors,
         headers: Headers,
         parameters: Parameters,
     ): RequestedTransformation? {
@@ -177,7 +188,7 @@ class RequestContextFactory(
                     parameters.contains(it)
                 } &&
                 variantProfile == null
-        return if (queryModifiers.returnFormat == ReturnFormat.METADATA && requestedOriginalVariant) {
+        return if (querySelectors.returnFormat == ReturnFormat.METADATA && requestedOriginalVariant) {
             null
         } else if (requestedOriginalVariant) {
             RequestedTransformation.ORIGINAL_VARIANT

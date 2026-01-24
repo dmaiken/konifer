@@ -102,7 +102,7 @@ class FetchAssetMetadataLimitTest {
             fetchAllAssetMetadata(
                 client = client,
                 path = "profile",
-                all = true,
+                limit = -1,
             ) shouldHaveSize 5
         }
 }

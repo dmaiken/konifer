@@ -5,12 +5,12 @@ open class InvalidPathException(
     e: Throwable? = null,
 ) : RuntimeException(msg, e)
 
-class InvalidQueryModifiersException(
+class InvalidQuerySelectorsException(
     msg: String,
     e: Throwable? = null,
 ) : InvalidPathException(msg, e)
 
-class InvalidDeleteModifiersException(
+class InvalidDeleteSelectorsException(
     msg: String,
     e: Throwable? = null,
 ) : InvalidPathException(msg, e)

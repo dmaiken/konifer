@@ -21,6 +21,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -150,7 +151,7 @@ suspend fun fetchAssetViaRedirect(
 ): ByteArray? {
     val urlBuilder = URLBuilder()
     if (entryId != null) {
-        urlBuilder.path("/assets/$path/-/redirect/entry/$entryId")
+        urlBuilder.path("/assets/$path/-/entry/$entryId/redirect")
     } else {
         urlBuilder.path("/assets/$path/-/redirect")
     }
@@ -398,16 +399,18 @@ suspend fun fetchAssetMetadata(
     orderBy: OrderBy? = null, // CREATED by default
     labels: Map<String, String> = emptyMap(),
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
-): AssetResponse? =
-    if (entryId != null) {
-        "/assets/$path/-/metadata/entry/$entryId"
-    } else {
-        "/assets/$path/-/metadata".let {
-            if (orderBy != null) {
-                "$it/${orderBy.name.lowercase()}"
-            } else {
-                it
-            }
+): AssetResponse? {
+    when {
+        entryId != null -> {
+            "/assets/$path/-/entry/$entryId/metadata"
+        }
+
+        orderBy != null -> {
+            "/assets/$path/-/${orderBy.name.lowercase()}/metadata"
+        }
+
+        else -> {
+            "/assets/$path/-/metadata"
         }
     }.let { requestPath ->
         val urlBuilder = URLBuilder()
@@ -419,7 +422,7 @@ suspend fun fetchAssetMetadata(
         response.status shouldBe expectedStatus
         response.headers[HttpHeaders.ETag] shouldBe null
 
-        if (response.status == HttpStatusCode.NotFound) {
+        return if (response.status == HttpStatusCode.NotFound) {
             null
         } else {
             response.body<AssetResponse>().apply {
@@ -427,23 +430,20 @@ suspend fun fetchAssetMetadata(
             }
         }
     }
+}
 
 suspend fun fetchAllAssetMetadata(
     client: HttpClient,
     path: String,
     orderBy: OrderBy = OrderBy.CREATED,
     limit: Int = 1,
-    all: Boolean = false,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
-    val limit =
-        if (all) {
-            "all"
-        } else {
-            limit.toString()
+    val requestPath = "/assets/$path/-/${orderBy.name.lowercase()}/metadata/"
+    val response =
+        client.get(requestPath) {
+            parameter("limit", limit.toString())
         }
-    val requestPath = "/assets/$path/-/metadata/${orderBy.name.lowercase()}/$limit"
-    val response = client.get(requestPath)
     response.status shouldBe expectedStatus
 
     return if (response.status == HttpStatusCode.NotFound) {
@@ -472,20 +472,14 @@ suspend fun deleteAssetsAtPath(
     labels: Map<String, String> = emptyMap(),
     orderBy: OrderBy = OrderBy.CREATED,
     limit: Int = 1,
-    all: Boolean = false,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
 ) {
-    val limit =
-        if (all) {
-            "all"
-        } else {
-            limit.toString()
-        }
     val urlBuilder = URLBuilder()
-    urlBuilder.path("/assets/$path/-/$orderBy/$limit")
+    urlBuilder.path("/assets/$path/-/$orderBy")
     labels.forEach { label ->
         urlBuilder.parameters.append(label.key, label.value)
     }
+    urlBuilder.parameters.append("limit", limit.toString())
     client.delete(urlBuilder.build()).status shouldBe expectedStatusCode
 }
 

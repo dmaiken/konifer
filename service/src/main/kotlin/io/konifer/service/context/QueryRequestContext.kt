@@ -2,12 +2,12 @@ package io.konifer.service.context
 
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.variant.Transformation
-import io.konifer.service.context.modifiers.QueryModifiers
+import io.konifer.service.context.modifiers.QuerySelectors
 
 data class QueryRequestContext(
     val path: String,
     val pathConfiguration: PathConfiguration,
-    val modifiers: QueryModifiers,
+    val modifiers: QuerySelectors,
     val transformation: Transformation?,
     val labels: Map<String, String>,
 )

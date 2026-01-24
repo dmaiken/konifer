@@ -12,6 +12,7 @@ import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
@@ -176,7 +177,10 @@ class DeleteAssetTest {
             val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
             val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
 
-            client.delete("/assets/user/123/-/all").status shouldBe HttpStatusCode.NoContent
+            client
+                .delete("/assets/user/123") {
+                    parameter("limit", "-1")
+                }.status shouldBe HttpStatusCode.NoContent
 
             fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
             fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
@@ -234,7 +238,7 @@ class DeleteAssetTest {
             deleteAssetsAtPath(
                 client = client,
                 path = "user/123",
-                all = true,
+                limit = -1,
                 labels = mapOf("phone" to "iphone"),
             )
 
