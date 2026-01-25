@@ -25,6 +25,7 @@ uuid-creator-version = "6.1.1"
 bytebuddy-version = "1.18.3"
 commons-codec-version = "1.20.0"
 detekt-version = "2.0.0-alpha.1"
+license-version = "3.0.1"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -83,3 +84,4 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
 detekt = { id = "dev.detekt", version.ref = "detekt-version" }
+license = { id = "com.github.jk1.dependency-license-report", version.ref = "license-version" }

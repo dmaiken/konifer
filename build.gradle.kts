@@ -1,3 +1,9 @@
+import com.github.jk1.license.filter.DependencyFilter
+import com.github.jk1.license.filter.ExcludeDependenciesWithoutArtifactsFilter
+import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
+import com.github.jk1.license.render.JsonReportRenderer
+import com.github.jk1.license.render.ReportRenderer
 import dev.detekt.gradle.Detekt
 import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
 
@@ -7,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.license)
 }
 
 group = "io.konifer"
@@ -31,6 +38,19 @@ val kotlinId: String =
     libs.plugins.kotlin.jvm
         .get()
         .pluginId
+
+licenseReport {
+    renderers =
+        arrayOf<ReportRenderer>(
+            InventoryHtmlReportRenderer("report.html", "Backend"),
+            JsonReportRenderer("report.json", true),
+        )
+    filters =
+        arrayOf<DependencyFilter>(
+            LicenseBundleNormalizer(),
+            ExcludeDependenciesWithoutArtifactsFilter(),
+        )
+}
 
 subprojects {
     pluginManager.withPlugin(kotlinId) {

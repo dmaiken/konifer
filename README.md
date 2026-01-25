@@ -303,3 +303,9 @@ database = Database().apply {
     excludes = "migrations|scheduled_tasks|path_entry_counter" // regex for excluded tables
 }
 ```
+
+### License Report
+To generate a license report, run:
+```shell
+./gradlew generateLicenseReport
+```
