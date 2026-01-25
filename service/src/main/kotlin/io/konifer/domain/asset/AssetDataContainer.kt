@@ -47,7 +47,7 @@ class AssetDataContainer(
     suspend fun toTemporaryFile(extension: String) =
         withContext(Dispatchers.IO) {
             tempFile = createUploadTempFile(extension)
-            try {
+            runCatching {
                 FileChannel
                     .open(
                         tempFile,
@@ -63,11 +63,10 @@ class AssetDataContainer(
                         logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile?.pathString}" }
                         isDumpedToFile = true
                     }
-            } catch (e: Exception) {
+            }.onFailure {
                 // If an error occurs during streaming, ensure the incomplete file is deleted.
                 tempFile?.toFile()?.delete()
-                throw e
-            }
+            }.getOrThrow()
         }
 
     /**

@@ -1,7 +1,7 @@
 [versions]
 jooq-version = "3.20.10"
 koin-version = "4.1.1"
-kotlin-version = "2.3.0"
+kotlin-version = "2.2.20"
 ktlint-version = "14.0.1"
 ktor-version = "3.3.3"
 logback-version = "1.5.20"
@@ -24,6 +24,7 @@ hikari-version = "7.0.2"
 uuid-creator-version = "6.1.1"
 bytebuddy-version = "1.18.3"
 commons-codec-version = "1.20.0"
+detekt-version = "2.0.0-alpha.1"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -81,3 +82,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
+detekt = { id = "dev.detekt", version.ref = "detekt-version" }

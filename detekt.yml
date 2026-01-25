@@ -1,0 +1,7 @@
+style:
+  active: false
+complexity:
+  active: false
+exceptions:
+  TooGenericExceptionCaught:
+    active: false

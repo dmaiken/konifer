@@ -50,6 +50,10 @@ configurations {
     }
 }
 
+detekt {
+    buildUponDefaultConfig = true
+}
+
 dependencies {
     implementation(project(":jooq-generated"))
 
@@ -153,10 +157,6 @@ tasks.named<ProcessResources>("processTestFixturesResources") {
 
 tasks.named("check") {
     dependsOn("functionalTest")
-}
-
-kotlin {
-    jvmToolchain(25)
 }
 
 ktor {

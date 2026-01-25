@@ -18,6 +18,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.measureTime
 
@@ -127,17 +128,12 @@ class VariantService(
                     )
                 logger.info("Stored pending variant for ${container.transformation}: ${pendingVariant.id}")
 
-                val uploadedAt =
-                    objectRepository.persist(
-                        bucket = pendingVariant.objectStoreBucket,
-                        key = pendingVariant.objectStoreKey,
-                        file = container.output.toFile(),
-                    )
-
-                assetRepository.markUploaded(
-                    variant = pendingVariant.markReady(uploadedAt),
-                )
-                logger.info("Variant ${pendingVariant.id} is ready and was uploaded to object store at: $uploadedAt")
+                markVariantUploaded(
+                    pendingVariant = pendingVariant,
+                    container = container,
+                ).also {
+                    logger.info("Variant ${pendingVariant.id} is ready and was uploaded to object store at: $it")
+                }
             }
         } finally {
             withContext(Dispatchers.IO) {
@@ -146,6 +142,24 @@ class VariantService(
                 }
             }
         }
+    }
+
+    private suspend fun markVariantUploaded(
+        pendingVariant: Variant.Pending,
+        container: TransformationDataContainer,
+    ): LocalDateTime {
+        val uploadedAt =
+            objectRepository.persist(
+                bucket = pendingVariant.objectStoreBucket,
+                key = pendingVariant.objectStoreKey,
+                file = container.output.toFile(),
+            )
+
+        assetRepository.markUploaded(
+            variant = pendingVariant.markReady(uploadedAt),
+        )
+
+        return uploadedAt
     }
 
     private suspend fun createTransformationDataContainers(transformations: List<Transformation>): List<TransformationDataContainer> =

@@ -17,13 +17,3 @@ dependencies {
 tasks.matching { it.name.startsWith("ktlint") }.configureEach {
     enabled = false
 }
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
-kotlin {
-    jvmToolchain(25)
-}

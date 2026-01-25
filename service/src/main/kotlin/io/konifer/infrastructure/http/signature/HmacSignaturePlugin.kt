@@ -7,13 +7,6 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
 
-// Must be mutable with no-args constructor
-class SignatureConfig {
-    var secretKey = ""
-    var signatureParam = "s"
-    var algorithm = HmacSigningAlgorithm.HMAC_SHA256
-}
-
 val HmacSignatureVerification =
     createRouteScopedPlugin(
         name = "HmacSignatureVerification",

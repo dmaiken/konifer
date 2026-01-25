@@ -31,7 +31,3 @@ tasks.register("generateJooq") {
 tasks.test {
     useJUnitPlatform()
 }
-
-kotlin {
-    jvmToolchain(25)
-}
