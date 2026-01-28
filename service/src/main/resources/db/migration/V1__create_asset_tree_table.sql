@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS ltree;
-
 CREATE TABLE IF NOT EXISTS asset_tree
 (
     id          UUID       NOT NULL PRIMARY KEY,

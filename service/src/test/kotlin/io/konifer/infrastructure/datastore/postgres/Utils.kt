@@ -42,6 +42,19 @@ fun createR2dbcDslContext(postgres: PostgreSQLContainer<out PostgreSQLContainer<
             .build()
 
     val connectionFactory = ConnectionFactories.get(options)
+    installLtree(postgres)
     migrateSchema(connectionFactory)
     return configureR2dbcJOOQ(connectionFactory)
+}
+
+fun installLtree(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>) {
+    postgres.execInContainer(
+        "psql",
+        "-U",
+        postgres.username,
+        "-d",
+        postgres.databaseName,
+        "-c",
+        "CREATE EXTENSION IF NOT EXISTS ltree;",
+    )
 }
