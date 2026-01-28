@@ -47,7 +47,7 @@ class AssetFilesystemRepositoryTest {
                 http-path = "https://localhost:9000/files"
               }
             }
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 image {

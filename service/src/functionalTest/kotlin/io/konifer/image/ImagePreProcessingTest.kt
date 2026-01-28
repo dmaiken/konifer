@@ -37,7 +37,7 @@ class ImagePreProcessingTest {
     fun `image width is resized when it is too large`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     preprocessing {
@@ -83,7 +83,7 @@ class ImagePreProcessingTest {
     fun `image height is resized when it is too large`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     preprocessing {
@@ -134,7 +134,7 @@ class ImagePreProcessingTest {
         maxHeight: Int?,
     ) = testInMemory(
         """
-        path-configuration = [
+        paths = [
             {
                 path = "/**"
                 preprocessing {
@@ -184,7 +184,7 @@ class ImagePreProcessingTest {
         expectedType: String,
     ) = testInMemory(
         """
-        path-configuration = [
+        paths = [
             {
                 path = "/**"
                 preprocessing {
@@ -227,7 +227,7 @@ class ImagePreProcessingTest {
     fun `image preprocessing is available per route`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     preprocessing {

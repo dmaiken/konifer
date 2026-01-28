@@ -28,7 +28,7 @@ class FetchAssetContentTest {
     fun `can fetch asset and render`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {

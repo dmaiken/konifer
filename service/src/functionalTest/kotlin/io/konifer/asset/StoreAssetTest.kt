@@ -77,7 +77,7 @@ class StoreAssetTest {
     fun `cannot store asset that is a disallowed content type`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/*/profile"
                 allowed-content-types = [
@@ -100,7 +100,7 @@ class StoreAssetTest {
     fun `cannot store asset if no content type is allowed`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/*/profile"
                 allowed-content-types = [ ]
@@ -121,7 +121,7 @@ class StoreAssetTest {
     fun `can store asset if allowed-content-types is not defined for path`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/*/profile"
               }
@@ -149,7 +149,7 @@ class StoreAssetTest {
     fun `object is stored in configured bucket`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 object-store {
@@ -185,7 +185,7 @@ class StoreAssetTest {
     fun `can preprocess image to any every supported type`(format: ImageFormat) =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 preprocessing {

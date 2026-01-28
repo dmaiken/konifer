@@ -3,7 +3,7 @@ package io.konifer.infrastructure.properties
 object ConfigurationPropertyKeys {
     const val DATASTORE = "datastore"
     const val OBJECT_STORE = "object-store"
-    const val PATH_CONFIGURATION = "path-configuration"
+    const val PATH_CONFIGURATION = "paths"
     const val SOURCE = "source"
     const val VARIANT_GENERATION = "variant-generation"
     const val URL_SIGNING = "url-signing"

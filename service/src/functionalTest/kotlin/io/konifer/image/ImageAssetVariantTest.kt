@@ -476,7 +476,7 @@ class ImageAssetVariantTest {
         fun `lqips are not regenerated when requesting variant with blur`() =
             testInMemory(
                 """
-                path-configuration = [
+                paths = [
                     {
                         path = "/**"
                         image {

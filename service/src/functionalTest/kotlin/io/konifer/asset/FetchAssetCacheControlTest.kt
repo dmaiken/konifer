@@ -14,7 +14,7 @@ class FetchAssetCacheControlTest {
     fun `can fetch assets with cache-control header configured`() =
         testInMemory(
             """
-                path-configuration = [
+                paths = [
                 {
                     path = "/**"
                     cache-control {

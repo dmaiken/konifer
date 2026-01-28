@@ -34,7 +34,7 @@ class EagerVariantTest {
                     h = 15
                 }
             ]
-            path-configuration = [
+            paths = [
                 {
                     path = "/users/**"
                     eager-variants = [small, medium]
@@ -89,7 +89,7 @@ class EagerVariantTest {
                     h = 15
                 }
             ]
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     object-store {

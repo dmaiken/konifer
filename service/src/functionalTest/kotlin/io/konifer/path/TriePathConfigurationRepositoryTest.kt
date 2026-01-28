@@ -13,7 +13,7 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matches exactly`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/123/profile"
                 allowed-content-types = [
@@ -41,7 +41,7 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matches exactly but case does not`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/Users/123/Profile"
                 allowed-content-types = [
@@ -74,7 +74,7 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matcher has single wildcard`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/*/profile"
                 allowed-content-types = [
@@ -96,7 +96,7 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matcher has double wildcard`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/**"
                 allowed-content-types = [
@@ -125,7 +125,7 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch does not return a path configuration when the path matcher does not match`(path: String) =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "$path"
                 allowed-content-types = [
@@ -156,7 +156,7 @@ class TriePathConfigurationRepositoryTest {
     fun `greedy wildcard matching works`(path: String) =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "$path"
                 allowed-content-types = [
@@ -179,7 +179,7 @@ class TriePathConfigurationRepositoryTest {
     fun `path configuration is inherited if not supplied`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/users/*"
                 allowed-content-types = [
@@ -217,7 +217,7 @@ class TriePathConfigurationRepositoryTest {
     fun `default path is used when none suffice`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 allowed-content-types = [
@@ -243,7 +243,7 @@ class TriePathConfigurationRepositoryTest {
     fun `default path configuration is inherited`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 allowed-content-types = [
@@ -281,7 +281,7 @@ class TriePathConfigurationRepositoryTest {
     fun `path is stripped of blank and empty path segments`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 allowed-content-types = [
@@ -303,7 +303,7 @@ class TriePathConfigurationRepositoryTest {
     fun `path must be supplied`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 allowed-content-types = [
                   "image/png",
@@ -326,7 +326,7 @@ class TriePathConfigurationRepositoryTest {
     fun `eager variants are parsed`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 eager-variants = [small, large]
@@ -345,7 +345,7 @@ class TriePathConfigurationRepositoryTest {
     fun `eager variants override parent paths`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
               {
                 path = "/**"
                 eager-variants = [small, large]

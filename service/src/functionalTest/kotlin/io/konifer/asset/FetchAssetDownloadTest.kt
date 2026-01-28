@@ -24,7 +24,7 @@ class FetchAssetDownloadTest {
     fun `can fetch asset and render with return format of download`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -63,7 +63,7 @@ class FetchAssetDownloadTest {
     fun `path is used as filename if alt is not supplied`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {

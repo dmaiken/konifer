@@ -24,7 +24,7 @@ class ImagePreviewTest {
     fun `blurhash is generated and returned when storing an asset`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -45,7 +45,7 @@ class ImagePreviewTest {
     fun `thumbhash is generated and returned when storing an asset`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -66,7 +66,7 @@ class ImagePreviewTest {
     fun `blurhash and thumbhash are generated and returned when storing an asset`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -87,7 +87,7 @@ class ImagePreviewTest {
     fun `no lqip is generated when storing an asset if none specified`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -108,7 +108,7 @@ class ImagePreviewTest {
     fun `no lqip is generated when storing an asset if not enabled`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image { }
@@ -127,7 +127,7 @@ class ImagePreviewTest {
     fun `requesting a variant gives back the same LQIPs if only resizing is done`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {

@@ -75,7 +75,7 @@ class FetchAssetLinkTest {
     fun `can fetch asset and render with lqip`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {
@@ -117,7 +117,7 @@ class FetchAssetLinkTest {
     fun `can fetch variant link and render`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     image {

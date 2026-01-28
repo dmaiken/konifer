@@ -16,7 +16,7 @@ class FetchAssetVariantTest {
     fun `requested asset variants are persisted in configured bucket`() =
         testInMemory(
             """
-            path-configuration = [
+            paths = [
                 {
                     path = "/**"
                     object-store {
