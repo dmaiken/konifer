@@ -4,6 +4,9 @@ Konifer is a high-performance, non-blocking REST API for managing images.
 Built with Kotlin on the Ktor framework, it provides a flexible, path-driven design that allows clients to 
 define their own hierarchical structure for image storage and retrieval.
 
+## Documentation
+To learn more about Konifer please visit the [documentation](https://dmaiken.github.io/konifer-docs/).
+
 ## Features
 
 ### Composable URL Structure
