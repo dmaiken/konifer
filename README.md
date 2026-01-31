@@ -266,10 +266,12 @@ To build the docker image for this (highly recommended since it will contain all
 ```shell
 docker build . -t konifer:latest
 ```
-Then, to run, mount a file to `/app/config/konifer.conf` like so:
-```
+Then, to run, mount a file to `/app/config/konifer.conf`:
+```shell
 docker run -v path/to/your/conf/file:/app/config/konifer.conf -p 8080:8080 konifer
-# Example
+```
+Example:
+```shell
 docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 konifer
 ```
 

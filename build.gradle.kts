@@ -55,14 +55,14 @@ licenseReport {
 subprojects {
     pluginManager.withPlugin(kotlinId) {
         extensions.configure<KotlinBaseExtension> {
-            jvmToolchain(24)
+            jvmToolchain(25)
         }
     }
 
     pluginManager.withPlugin("java") {
         extensions.configure<JavaPluginExtension> {
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(24))
+                languageVersion.set(JavaLanguageVersion.of(25))
             }
         }
     }

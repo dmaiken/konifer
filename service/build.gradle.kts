@@ -10,7 +10,7 @@ version = "0.0.1"
 group = "io.konifer"
 
 application {
-    mainClass = "io.ApplicationKt"
+    mainClass = "io.konifer.ApplicationKt"
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -136,6 +136,10 @@ configurations.all {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("kotest.extensions.autoscan.disable", "true")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+
+    // Tell libvips where to find jemallow
+    environment("LD_PRELOAD", "/usr/lib/x86_64-linux-gnu/libjemalloc.so.2")
 }
 
 tasks.register<Test>("functionalTest") {
