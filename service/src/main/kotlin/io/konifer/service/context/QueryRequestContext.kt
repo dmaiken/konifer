@@ -2,7 +2,7 @@ package io.konifer.service.context
 
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.variant.Transformation
-import io.konifer.service.context.modifiers.QuerySelectors
+import io.konifer.service.context.selector.QuerySelectors
 
 data class QueryRequestContext(
     val path: String,

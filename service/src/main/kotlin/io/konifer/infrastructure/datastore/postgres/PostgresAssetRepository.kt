@@ -7,7 +7,7 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
@@ -175,7 +175,7 @@ class PostgresAssetRepository(
             treePath = LtreePathAdapter.toTreePathFromUriPath(path),
             entryId = entryId,
             transformation = null,
-            orderBy = OrderBy.CREATED,
+            order = Order.NEW,
             includeOnlyReady = false,
         )?.let { fetched ->
             if (fetched.asset.isReady == true) {
@@ -197,7 +197,7 @@ class PostgresAssetRepository(
         path: String,
         entryId: Long?,
         transformation: Transformation?,
-        orderBy: OrderBy,
+        order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): AssetData? =
@@ -206,7 +206,7 @@ class PostgresAssetRepository(
             treePath = LtreePathAdapter.toTreePathFromUriPath(path),
             entryId = entryId,
             transformation = transformation,
-            orderBy = orderBy,
+            order = order,
             labels = labels,
             includeOnlyReady = includeOnlyReady,
         )?.let {
@@ -217,7 +217,7 @@ class PostgresAssetRepository(
         path: String,
         transformation: Transformation?,
         labels: Map<String, String>,
-        orderBy: OrderBy,
+        order: Order,
         limit: Int,
     ): List<AssetData> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
@@ -233,7 +233,7 @@ class PostgresAssetRepository(
                     ),
                 onlyReady = true,
             )
-        val orderByConditions = orderByConditions(orderBy)
+        val orderByConditions = orderByConditions(order)
 
         return dslContext
             .select(
@@ -282,7 +282,7 @@ class PostgresAssetRepository(
     override suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String>,
-        orderBy: OrderBy,
+        order: Order,
         limit: Int,
     ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
@@ -297,7 +297,7 @@ class PostgresAssetRepository(
                             whereCondition = ASSET_TREE.PATH.eq(treePath),
                             labels = labels,
                         ),
-                    ).orderBy(*orderByConditions(orderBy))
+                    ).orderBy(*orderByConditions(order))
                     .apply {
                         if (limit > 0) limit(limit)
                     }.forUpdate()
@@ -343,7 +343,7 @@ class PostgresAssetRepository(
 
     override suspend fun update(asset: Asset): Asset {
         val fetched =
-            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, Order.NEW)
                 ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
 
         val assetId = fetched.id
@@ -387,7 +387,7 @@ class PostgresAssetRepository(
         }
 
         return if (modified) {
-            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, OrderBy.CREATED)
+            fetchByPath(asset.path, asset.entryId, Transformation.ORIGINAL_VARIANT, Order.NEW)
                 ?.let { Asset.Ready.from(it) }
                 ?: throw IllegalStateException("Asset does not exist after updating")
         } else {
@@ -400,7 +400,7 @@ class PostgresAssetRepository(
         treePath: Ltree,
         entryId: Long?,
         transformation: Transformation?,
-        orderBy: OrderBy,
+        order: Order,
         labels: Map<String, String> = emptyMap(),
         includeOnlyReady: Boolean = true,
     ): AssetRecordsDto? {
@@ -408,7 +408,7 @@ class PostgresAssetRepository(
             entryId?.let {
                 ASSET_TREE.ENTRY_ID.eq(entryId)
             } ?: DSL.noCondition()
-        val assetOrderConditions = orderByConditions(orderBy)
+        val assetOrderConditions = orderByConditions(order)
         val whereCondition =
             includeReadyConditions(
                 whereCondition =
@@ -592,14 +592,14 @@ class PostgresAssetRepository(
         }
     }
 
-    private fun orderByConditions(orderBy: OrderBy): Array<out SortField<out Comparable<*>?>> {
-        val orderByModifierCondition =
-            when (orderBy) {
-                OrderBy.CREATED -> ASSET_TREE.CREATED_AT.desc()
-                OrderBy.MODIFIED -> ASSET_TREE.MODIFIED_AT.desc()
+    private fun orderByConditions(order: Order): Array<out SortField<out Comparable<*>?>> {
+        val orderModifierCondition =
+            when (order) {
+                Order.NEW -> ASSET_TREE.CREATED_AT.desc()
+                Order.MODIFIED -> ASSET_TREE.MODIFIED_AT.desc()
             }
 
-        return arrayOf(orderByModifierCondition, ASSET_TREE.ENTRY_ID.desc())
+        return arrayOf(orderModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
 
     private suspend fun deleteAssets(deleteIdentificationCte: CommonTableExpression<Record1<UUID?>>): Int =

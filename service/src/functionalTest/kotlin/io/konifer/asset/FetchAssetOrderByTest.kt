@@ -2,7 +2,7 @@ package io.konifer.asset
 
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.fetchAssetMetadata
@@ -51,11 +51,11 @@ class FetchAssetOrderByTest {
             ).second.apply {
                 this shouldNotBe null
             }!!
-            fetchAssetMetadata(client, "profile", orderBy = OrderBy.CREATED)!!.apply {
+            fetchAssetMetadata(client, "profile", order = Order.NEW)!!.apply {
                 entryId shouldBe response3.entryId
             }
 
-            fetchAllAssetMetadata(client, path = "profile", orderBy = OrderBy.CREATED, limit = 10).apply {
+            fetchAllAssetMetadata(client, path = "profile", order = Order.NEW, limit = 10).apply {
                 size shouldBe 3
                 get(0).entryId shouldBe response3.entryId
                 get(1).entryId shouldBe response2.second!!.entryId
@@ -101,11 +101,11 @@ class FetchAssetOrderByTest {
                 ).second.apply {
                     this shouldNotBe null
                 }!!
-            fetchAssetMetadata(client, "profile", orderBy = OrderBy.MODIFIED)!!.apply {
+            fetchAssetMetadata(client, "profile", order = Order.MODIFIED)!!.apply {
                 entryId shouldBe updated.entryId
             }
 
-            fetchAllAssetMetadata(client, path = "profile", orderBy = OrderBy.MODIFIED, limit = 10).apply {
+            fetchAllAssetMetadata(client, path = "profile", order = Order.MODIFIED, limit = 10).apply {
                 size shouldBe 3
                 get(0).entryId shouldBe updated.entryId
                 get(1).entryId shouldBe response3.entryId

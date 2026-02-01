@@ -1,4 +1,4 @@
-package io.konifer.service.context.modifiers
+package io.konifer.service.context.selector
 
 object ManipulationParameters {
     const val HEIGHT = "h"

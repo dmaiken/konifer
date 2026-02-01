@@ -10,7 +10,7 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
@@ -70,7 +70,7 @@ abstract class AssetRepositoryTest {
                     this.isOriginalVariant shouldBe true
                     this.lqips shouldBe LQIPs.NONE
                 }
-                val fetched = repository.fetchByPath(pendingPersisted.path, pendingPersisted.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(pendingPersisted.path, pendingPersisted.entryId, null, Order.NEW)
 
                 fetched?.id shouldBe pendingPersisted.id
             }
@@ -90,7 +90,7 @@ abstract class AssetRepositoryTest {
                     sourceUrl shouldBe null
                     createdAt shouldBe modifiedAt
                 }
-                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, Order.NEW)
 
                 fetched?.id shouldBe persisted.id
             }
@@ -102,11 +102,11 @@ abstract class AssetRepositoryTest {
                 val persisted = repository.storeNew(pending)
                 repository.markReady(persisted.markReady(LocalDateTime.now()))
                 persisted.path shouldNotEndWith "/"
-                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, Order.NEW)
 
                 fetched?.id shouldBe persisted.id
                 fetched!!.id shouldBe
-                    repository.fetchByPath(persisted.path + "/", persisted.entryId, null, OrderBy.CREATED)?.id
+                    repository.fetchByPath(persisted.path + "/", persisted.entryId, null, Order.NEW)?.id
             }
 
         @Test
@@ -194,7 +194,7 @@ abstract class AssetRepositoryTest {
                         persisted.path,
                         persisted.entryId,
                         null,
-                        OrderBy.CREATED,
+                        Order.NEW,
                     )
                 assetData shouldNotBe null
                 assetData!!.id shouldBe persisted.id
@@ -265,7 +265,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `fetching asset that does not exist returns null`() =
             runTest {
-                repository.fetchByPath("/doesNotExist", null, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath("/doesNotExist", null, null, Order.NEW) shouldBe null
             }
 
         @Test
@@ -273,7 +273,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val pending = createPendingAsset()
                 val persisted = repository.storeNew(pending)
-                repository.fetchByPath(persisted.path, persisted.entryId!! + 1, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(persisted.path, persisted.entryId!! + 1, null, Order.NEW) shouldBe null
             }
 
         @Test
@@ -283,7 +283,7 @@ abstract class AssetRepositoryTest {
                 val persisted = repository.storeNew(pending)
                 val ready = persisted.markReady(LocalDateTime.now())
                 repository.markReady(ready)
-                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, OrderBy.CREATED)
+                val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, Order.NEW)
 
                 assertFetchedAgainstAggregate(fetched, ready, true)
             }
@@ -299,7 +299,7 @@ abstract class AssetRepositoryTest {
                         persisted.path + "/",
                         persisted.entryId,
                         null,
-                        OrderBy.CREATED,
+                        Order.NEW,
                     )
 
                 fetched?.id shouldBe persisted.id
@@ -314,7 +314,7 @@ abstract class AssetRepositoryTest {
                 val persisted2 = repository.storeNew(pending2)
                 repository.markReady(persisted2.markReady(LocalDateTime.now()))
 
-                repository.fetchByPath(pending1.path, entryId = null, transformation = null, OrderBy.CREATED)?.id shouldBe persisted2.id
+                repository.fetchByPath(pending1.path, entryId = null, transformation = null, Order.NEW)?.id shouldBe persisted2.id
             }
 
         @Test
@@ -327,9 +327,9 @@ abstract class AssetRepositoryTest {
                 val persisted2 = repository.storeNew(pending2)
                 repository.markReady(persisted2.markReady(LocalDateTime.now()))
 
-                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, OrderBy.CREATED)?.id shouldBe
+                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, Order.NEW)?.id shouldBe
                     persisted1.id
-                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, OrderBy.CREATED)?.id shouldBe
+                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, Order.NEW)?.id shouldBe
                     persisted2.id
             }
 
@@ -338,7 +338,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val pending = createPendingAsset()
                 repository.storeNew(pending)
-                repository.fetchByPath(pending.path, entryId = 1, transformation = null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(pending.path, entryId = 1, transformation = null, Order.NEW) shouldBe null
             }
 
         @Test
@@ -432,7 +432,7 @@ abstract class AssetRepositoryTest {
                         path = persisted.path,
                         entryId = persisted.entryId,
                         transformation = originalVariantTransformation,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                     )
                 assetData shouldNotBe null
                 assetData!!.id shouldBe persisted.id
@@ -560,14 +560,14 @@ abstract class AssetRepositoryTest {
                         path = updated1.path,
                         entryId = null,
                         transformation = null,
-                        orderBy = OrderBy.MODIFIED,
+                        order = Order.MODIFIED,
                     )?.id shouldBe updated1.id
                 repository
                     .fetchByPath(
                         path = persisted1.path,
                         entryId = null,
                         transformation = null,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                     )?.id shouldBe persisted2.id
             }
     }
@@ -622,12 +622,12 @@ abstract class AssetRepositoryTest {
                     )
                 repository.update(ready1)
 
-                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.CREATED, limit = 10).also {
+                repository.fetchAllByPath("/users/123", null, order = Order.NEW, limit = 10).also {
                     it shouldHaveSize 2
                     it[0].id shouldBe persisted2.id
                     it[1].id shouldBe persisted1.id
                 }
-                repository.fetchAllByPath("/users/123", null, orderBy = OrderBy.MODIFIED, limit = 10).also {
+                repository.fetchAllByPath("/users/123", null, order = Order.MODIFIED, limit = 10).also {
                     it shouldHaveSize 2
                     it[0].id shouldBe persisted1.id
                     it[1].id shouldBe persisted2.id
@@ -890,12 +890,12 @@ abstract class AssetRepositoryTest {
                     entryId = 0,
                 )
 
-                repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready.path, ready.entryId, null, Order.NEW) shouldBe null
                 repository.fetchByPath(
                     "/users/123",
                     entryId = null,
                     transformation = null,
-                    OrderBy.CREATED,
+                    Order.NEW,
                 ) shouldBe null
             }
 
@@ -923,7 +923,7 @@ abstract class AssetRepositoryTest {
                     repository.deleteByPath("/users/123", entryId = 1)
                 }
 
-                repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED)?.id shouldBe
+                repository.fetchByPath(ready.path, ready.entryId, null, Order.NEW)?.id shouldBe
                     ready.id
                 repository.fetchAllByPath("/users/123", null, limit = 10).apply {
                     this shouldHaveSize 1
@@ -954,13 +954,13 @@ abstract class AssetRepositoryTest {
                     path = ready1.path,
                     entryId = ready1.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchByPath(
                     path = ready2.path,
                     entryId = ready2.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldBe null
                 repository.fetchAllByPath(
                     path = "/users/123",
@@ -985,8 +985,8 @@ abstract class AssetRepositoryTest {
 
                 repository.deleteAllByPath("/users/123", limit = -1)
 
-                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready1.path, ready1.entryId, null, Order.NEW) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, Order.NEW) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
             }
 
@@ -1017,10 +1017,10 @@ abstract class AssetRepositoryTest {
                     )
                 updated.modifiedAt shouldBeAfter ready1.modifiedAt
 
-                repository.deleteAllByPath("/users/123", limit = 1, orderBy = OrderBy.MODIFIED)
+                repository.deleteAllByPath("/users/123", limit = 1, order = Order.MODIFIED)
 
-                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldNotBe null
+                repository.fetchByPath(ready1.path, ready1.entryId, null, Order.NEW) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, Order.NEW) shouldNotBe null
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldHaveSize 1
             }
 
@@ -1042,7 +1042,7 @@ abstract class AssetRepositoryTest {
                     path = ready.path,
                     entryId = ready.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldNotBe null
             }
 
@@ -1064,7 +1064,7 @@ abstract class AssetRepositoryTest {
                     path = ready.path,
                     entryId = ready.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldBe null
             }
 
@@ -1091,13 +1091,13 @@ abstract class AssetRepositoryTest {
                     path = ready1.path,
                     entryId = ready1.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = ready2.path,
                     entryId = ready2.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchAllByPath(
                     path = "/users/123",
@@ -1141,9 +1141,9 @@ abstract class AssetRepositoryTest {
 
                 repository.deleteRecursivelyByPath("/users/123")
 
-                repository.fetchByPath(ready1.path, ready1.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(ready2.path, ready2.entryId, null, OrderBy.CREATED) shouldBe null
-                repository.fetchByPath(ready3.path, ready3.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready1.path, ready1.entryId, null, Order.NEW) shouldBe null
+                repository.fetchByPath(ready2.path, ready2.entryId, null, Order.NEW) shouldBe null
+                repository.fetchByPath(ready3.path, ready3.entryId, null, Order.NEW) shouldBe null
                 repository.fetchAllByPath("/users/123", null, limit = -1) shouldBe emptyList()
                 repository.fetchAllByPath("users/123/profile", null, limit = -1) shouldBe emptyList()
             }
@@ -1192,25 +1192,25 @@ abstract class AssetRepositoryTest {
                     path = ready1.path,
                     entryId = ready1.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = ready2.path,
                     entryId = ready2.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchByPath(
                     path = ready3.path,
                     entryId = ready3.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = ready4.path,
                     entryId = ready4.entryId,
                     transformation = null,
-                    orderBy = OrderBy.CREATED,
+                    order = Order.NEW,
                 ) shouldNotBe null
             }
 

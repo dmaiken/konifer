@@ -84,7 +84,7 @@ class StoreNewAssetWorkflow(
         coroutineScope {
             var hasEagerVariants = false
             try {
-                val format = deriveValidImageFormat(container.readNBytes(4096, true))
+                val format = deriveValidImageFormat(container.peek(1024))
                 val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
                 val newAsset =
                     Asset.New.fromHttpRequest(

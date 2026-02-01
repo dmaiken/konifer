@@ -6,7 +6,7 @@ import io.konifer.domain.image.Flip
 import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
-import io.konifer.service.context.modifiers.ManipulationParameters
+import io.konifer.service.context.selector.ManipulationParameters
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 

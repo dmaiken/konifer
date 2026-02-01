@@ -6,7 +6,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.ktor.util.logging.KtorSimpleLogger
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
@@ -87,11 +87,11 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
-        orderBy: OrderBy,
+        order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): AssetData? {
-        val asset = fetch(path, entryId, orderBy, labels, includeOnlyReady) ?: return null
+        val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         logger.info(
             "Fetched asset with variant transformations: ${asset.variants.map { it.transformation }} " +
                 "Looking for transformation: $transformation",
@@ -116,13 +116,13 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         transformation: Transformation?,
         labels: Map<String, String>,
-        orderBy: OrderBy,
+        order: Order,
         limit: Int,
     ): List<AssetData> =
         fetchAll(
             path = path,
             transformation = transformation,
-            orderBy = orderBy,
+            order = order,
             labels = labels,
             limit = limit,
             includeOnlyReady = true,
@@ -151,15 +151,15 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String>,
-        orderBy: OrderBy,
+        order: Order,
         limit: Int,
     ) {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting assets at path: $inMemoryPath, labels: $labels, orderBy: $orderBy, limit: $limit")
+        logger.info("Deleting assets at path: $inMemoryPath, labels: $labels, orderBy: $order, limit: $limit")
         val assetsToDelete =
             fetchAll(
                 path = path,
-                orderBy = orderBy,
+                order = order,
                 transformation = null,
                 limit = limit,
                 labels = labels,
@@ -207,7 +207,7 @@ class InMemoryAssetRepository : AssetRepository {
         if (asset !is Asset.Ready) {
             throw IllegalArgumentException("Asset must be in ready state")
         }
-        fetch(asset.path, asset.entryId, OrderBy.CREATED, emptyMap(), true)
+        fetch(asset.path, asset.entryId, Order.NEW, emptyMap(), true)
             ?: throw IllegalStateException("Asset does not exist")
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         store[path]?.removeIf { it.entryId == asset.entryId }
@@ -225,7 +225,7 @@ class InMemoryAssetRepository : AssetRepository {
     private fun fetch(
         path: String,
         entryId: Long?,
-        orderBy: OrderBy,
+        order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): Asset? {
@@ -252,9 +252,9 @@ class InMemoryAssetRepository : AssetRepository {
                     true
                 }
             }.maxByOrNull { asset ->
-                when (orderBy) {
-                    OrderBy.CREATED -> asset.createdAt
-                    OrderBy.MODIFIED -> asset.modifiedAt
+                when (order) {
+                    Order.NEW -> asset.createdAt
+                    Order.MODIFIED -> asset.modifiedAt
                 }
             }
     }
@@ -262,7 +262,7 @@ class InMemoryAssetRepository : AssetRepository {
     private fun fetchAll(
         path: String,
         transformation: Transformation?,
-        orderBy: OrderBy,
+        order: Order,
         labels: Map<String, String>,
         limit: Int,
         includeOnlyReady: Boolean,
@@ -292,9 +292,9 @@ class InMemoryAssetRepository : AssetRepository {
                     }
                 asset.toAssetData(variants)
             }?.sortedWith(
-                when (orderBy) {
-                    OrderBy.CREATED -> compareByDescending<AssetData> { it.createdAt }
-                    OrderBy.MODIFIED -> compareByDescending<AssetData> { it.modifiedAt }
+                when (order) {
+                    Order.NEW -> compareByDescending<AssetData> { it.createdAt }
+                    Order.MODIFIED -> compareByDescending<AssetData> { it.modifiedAt }
                 }.let {
                     it.thenByDescending { comparator -> comparator.entryId }
                 },

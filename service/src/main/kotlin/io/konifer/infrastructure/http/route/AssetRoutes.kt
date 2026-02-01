@@ -25,7 +25,7 @@ import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
 import io.konifer.infrastructure.tryGetConfig
-import io.konifer.service.context.modifiers.ReturnFormat
+import io.konifer.service.context.selector.ReturnFormat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode

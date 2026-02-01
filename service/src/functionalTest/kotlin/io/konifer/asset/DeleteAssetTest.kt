@@ -2,7 +2,7 @@ package io.konifer.asset
 
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.konifer.util.assertAssetDoesNotExist
 import io.konifer.util.createJsonClient
 import io.konifer.util.deleteAsset
@@ -105,7 +105,7 @@ class DeleteAssetTest {
             val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
             val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
-            deleteAssetsAtPath(client, path = "profile", orderBy = OrderBy.CREATED, limit = 1)
+            deleteAssetsAtPath(client, path = "profile", order = Order.NEW, limit = 1)
 
             fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe firstAsset?.entryId
@@ -131,7 +131,7 @@ class DeleteAssetTest {
             val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
             val thirdAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
 
-            deleteAssetsAtPath(client, path = "profile", orderBy = OrderBy.CREATED, limit = 2)
+            deleteAssetsAtPath(client, path = "profile", order = Order.NEW, limit = 2)
 
             fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe firstAsset?.entryId

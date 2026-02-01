@@ -43,7 +43,7 @@ class FetchAssetHandler(
         return assetRepository.fetchAllByPath(
             path = context.path,
             transformation = null,
-            orderBy = context.modifiers.orderBy,
+            order = context.modifiers.order,
             limit = context.modifiers.limit,
         )
     }
@@ -61,7 +61,7 @@ class FetchAssetHandler(
                 path = context.path,
                 entryId = context.modifiers.entryId,
                 transformation = context.transformation,
-                orderBy = context.modifiers.orderBy,
+                order = context.modifiers.order,
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
@@ -82,7 +82,7 @@ class FetchAssetHandler(
                         path = context.path,
                         entryId = context.modifiers.entryId,
                         transformation = context.transformation,
-                        orderBy = context.modifiers.orderBy,
+                        order = context.modifiers.order,
                         labels = context.labels,
                     ) ?: return null,
                 cacheHit = false,
@@ -119,7 +119,7 @@ class FetchAssetHandler(
                     path = context.path,
                     entryId = context.modifiers.entryId,
                     transformation = Transformation.ORIGINAL_VARIANT,
-                    orderBy = context.modifiers.orderBy,
+                    order = context.modifiers.order,
                     labels = context.labels,
                 )?.variants
                 ?.first { it.isOriginalVariant }

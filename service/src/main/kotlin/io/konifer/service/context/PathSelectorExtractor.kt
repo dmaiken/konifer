@@ -2,13 +2,13 @@ package io.konifer.service.context
 
 import io.konifer.service.context.RequestContextFactory.Companion.ENTRY_ID_MODIFIER
 import io.konifer.service.context.RequestContextFactory.Companion.RECURSIVE_MODIFIER
-import io.konifer.service.context.modifiers.DEFAULT_LIMIT
-import io.konifer.service.context.modifiers.DeleteModifiers
-import io.konifer.service.context.modifiers.LIMIT_PARAMETER
-import io.konifer.service.context.modifiers.OrderBy
-import io.konifer.service.context.modifiers.QuerySelectors
-import io.konifer.service.context.modifiers.ReturnFormat
-import io.konifer.service.context.modifiers.SpecifiedInRequest
+import io.konifer.service.context.selector.DEFAULT_LIMIT
+import io.konifer.service.context.selector.DeleteModifiers
+import io.konifer.service.context.selector.LIMIT_PARAMETER
+import io.konifer.service.context.selector.Order
+import io.konifer.service.context.selector.QuerySelectors
+import io.konifer.service.context.selector.ReturnFormat
+import io.konifer.service.context.selector.SpecifiedInRequest
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.text.toIntOrNull
@@ -57,9 +57,9 @@ object PathSelectorExtractor {
                         }
                     }
                     2 -> {
-                        if (OrderBy.valueOfOrNull(querySelectorSegments[0]) != null) {
+                        if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
                             QuerySelectors(
-                                orderBy = OrderBy.valueOf(querySelectorSegments[0]),
+                                order = Order.valueOf(querySelectorSegments[0]),
                                 returnFormat = ReturnFormat.valueOf(querySelectorSegments[1]),
                                 limit = limit,
                                 specifiedModifiers =
@@ -93,9 +93,9 @@ object PathSelectorExtractor {
                                         limit = isLimitSpecified,
                                     ),
                             )
-                        } else if (OrderBy.valueOfOrNull(querySelectorSegments[0]) != null) {
+                        } else if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
                             QuerySelectors(
-                                orderBy = OrderBy.valueOf(querySelectorSegments[0]),
+                                order = Order.valueOf(querySelectorSegments[0]),
                                 limit = limit,
                                 specifiedModifiers =
                                     SpecifiedInRequest(
@@ -150,9 +150,9 @@ object PathSelectorExtractor {
                                 recursive = true,
                                 limit = limit,
                             )
-                        } else if (OrderBy.valueOfOrNull(deleteModifierSegments[0]) != null) {
+                        } else if (Order.valueOfOrNull(deleteModifierSegments[0]) != null) {
                             DeleteModifiers(
-                                orderBy = OrderBy.valueOf(deleteModifierSegments[0]),
+                                order = Order.valueOf(deleteModifierSegments[0]),
                                 limit = limit,
                             )
                         } else {

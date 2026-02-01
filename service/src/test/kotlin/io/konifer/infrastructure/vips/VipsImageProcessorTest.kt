@@ -52,7 +52,7 @@ class VipsImageProcessorTest {
                 val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
 
                 AssetDataContainer(imageChannel).use { container ->
-                    container.toTemporaryFile(".png")
+                    container.toTemporaryFile(ImageFormat.PNG.extension)
                     val output =
                         TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.PNG.extension).apply {
                             deleteOnExit(this)
@@ -141,7 +141,7 @@ class VipsImageProcessorTest {
                 }
 
                 AssetDataContainer(imageChannel).use { container ->
-                    container.toTemporaryFile(".jpeg")
+                    container.toTemporaryFile(ImageFormat.JPEG.extension)
                     val output =
                         TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension).apply {
                             deleteOnExit(this)

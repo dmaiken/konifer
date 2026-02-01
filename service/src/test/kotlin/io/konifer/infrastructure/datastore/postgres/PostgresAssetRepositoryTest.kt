@@ -4,7 +4,7 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.AssetRepositoryTest
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import konifer.jooq.tables.references.ASSET_LABEL
@@ -58,7 +58,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                     entryId = 0,
                 )
 
-                repository.fetchByPath(ready.path, ready.entryId, null, OrderBy.CREATED) shouldBe null
+                repository.fetchByPath(ready.path, ready.entryId, null, Order.NEW) shouldBe null
                 dslContext
                     .select()
                     .from(ASSET_TREE)

@@ -48,14 +48,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Add runtime versions of libraries you linked against (e.g. libjpeg-turbo8)
     && rm -rf /var/lib/apt/lists/*
 
-# Install GraalVM 25 (Manual Download)
+# Install GraalVM 25 manually
 ARG GRAAL_VERSION=25.0.0
 ARG GRAAL_URL=https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAAL_VERSION}/graalvm-community-jdk-${GRAAL_VERSION}_linux-x64_bin.tar.gz
 
+# Aggressive JDK Cleanup: Remove src.zip, man pages, and jmods to save ~100MB
 RUN wget -q $GRAAL_URL -O graal.tar.gz \
     && mkdir -p /opt/java/graalvm \
     && tar -xzf graal.tar.gz -C /opt/java/graalvm --strip-components=1 \
-    # Aggressive JDK Cleanup: Remove src.zip, man pages, and jmods to save ~100MB
     && rm graal.tar.gz \
     && rm -f /opt/java/graalvm/lib/src.zip \
     && rm -rf /opt/java/graalvm/man \

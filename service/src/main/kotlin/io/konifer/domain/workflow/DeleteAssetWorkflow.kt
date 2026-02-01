@@ -24,13 +24,13 @@ class DeleteAssetWorkflow(
             )
         } else {
             logger.info(
-                "Deleting assets at path: ${context.path} with labels: ${context.labels} ordering by: ${context.modifiers.orderBy}" +
+                "Deleting assets at path: ${context.path} with labels: ${context.labels} ordering by: ${context.modifiers.order}" +
                     " and limit: ${context.modifiers.limit}",
             )
             assetRepository.deleteAllByPath(
                 path = context.path,
                 labels = context.labels,
-                orderBy = context.modifiers.orderBy,
+                order = context.modifiers.order,
                 limit = context.modifiers.limit,
             )
         }

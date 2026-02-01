@@ -3,7 +3,7 @@ package io.konifer.infrastructure.http
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.variant.LQIPs
-import io.konifer.service.context.modifiers.ReturnFormat
+import io.konifer.service.context.selector.ReturnFormat
 import io.ktor.http.HttpHeaders
 import java.net.URLEncoder
 

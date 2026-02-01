@@ -6,8 +6,8 @@ import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
 import io.konifer.infrastructure.http.AssetLinkResponse
 import io.konifer.infrastructure.http.AssetResponse
-import io.konifer.service.context.modifiers.OrderBy
-import io.konifer.service.context.modifiers.ReturnFormat
+import io.konifer.service.context.selector.Order
+import io.konifer.service.context.selector.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.date.shouldBeAfter
@@ -396,7 +396,7 @@ suspend fun fetchAssetMetadata(
     client: HttpClient,
     path: String,
     entryId: Long? = null,
-    orderBy: OrderBy? = null, // CREATED by default
+    order: Order? = null, // CREATED by default
     labels: Map<String, String> = emptyMap(),
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): AssetResponse? {
@@ -405,8 +405,8 @@ suspend fun fetchAssetMetadata(
             "/assets/$path/-/entry/$entryId/metadata"
         }
 
-        orderBy != null -> {
-            "/assets/$path/-/${orderBy.name.lowercase()}/metadata"
+        order != null -> {
+            "/assets/$path/-/${order.name.lowercase()}/metadata"
         }
 
         else -> {
@@ -435,11 +435,11 @@ suspend fun fetchAssetMetadata(
 suspend fun fetchAllAssetMetadata(
     client: HttpClient,
     path: String,
-    orderBy: OrderBy = OrderBy.CREATED,
+    order: Order = Order.NEW,
     limit: Int = 1,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
-    val requestPath = "/assets/$path/-/${orderBy.name.lowercase()}/metadata/"
+    val requestPath = "/assets/$path/-/${order.name.lowercase()}/metadata/"
     val response =
         client.get(requestPath) {
             parameter("limit", limit.toString())
@@ -470,12 +470,12 @@ suspend fun deleteAssetsAtPath(
     client: HttpClient,
     path: String = "profile",
     labels: Map<String, String> = emptyMap(),
-    orderBy: OrderBy = OrderBy.CREATED,
+    order: Order = Order.NEW,
     limit: Int = 1,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
 ) {
     val urlBuilder = URLBuilder()
-    urlBuilder.path("/assets/$path/-/$orderBy")
+    urlBuilder.path("/assets/$path/-/$order")
     labels.forEach { label ->
         urlBuilder.parameters.append(label.key, label.value)
     }

@@ -12,11 +12,11 @@ import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.infrastructure.objectstore.ObjectStoreProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
-import io.konifer.service.context.modifiers.DeleteModifiers
-import io.konifer.service.context.modifiers.OrderBy
-import io.konifer.service.context.modifiers.QuerySelectors
-import io.konifer.service.context.modifiers.ReturnFormat
-import io.konifer.service.context.modifiers.SpecifiedInRequest
+import io.konifer.service.context.selector.DeleteModifiers
+import io.konifer.service.context.selector.Order
+import io.konifer.service.context.selector.QuerySelectors
+import io.konifer.service.context.selector.ReturnFormat
+import io.konifer.service.context.selector.SpecifiedInRequest
 import io.konifer.service.transformation.TransformationNormalizer
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -56,7 +56,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -74,7 +74,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.MODIFIED,
+                        order = Order.MODIFIED,
                         limit = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -92,7 +92,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.REDIRECT,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -110,7 +110,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.CONTENT,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -128,7 +128,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -146,7 +146,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -161,7 +161,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -178,7 +178,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -195,7 +195,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -212,7 +212,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -225,7 +225,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -238,7 +238,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -251,7 +251,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
@@ -261,7 +261,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
@@ -271,7 +271,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
@@ -281,7 +281,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
@@ -294,7 +294,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         }.build(),
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -316,7 +316,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("limit", "10")
                         }.build(),
                     DeleteModifiers(
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 10,
                     ),
                 ),
@@ -327,7 +327,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("limit", "10")
                         }.build(),
                     DeleteModifiers(
-                        orderBy = OrderBy.MODIFIED,
+                        order = Order.MODIFIED,
                         limit = 10,
                     ),
                 ),
@@ -338,7 +338,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("limit", "-1")
                         }.build(),
                     DeleteModifiers(
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = -1,
                     ),
                 ),
@@ -346,7 +346,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     "/assets/profile/-/created/",
                     Parameters.Empty,
                     DeleteModifiers(
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                     ),
                 ),
@@ -354,7 +354,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     "/assets/profile/-/modified/",
                     Parameters.Empty,
                     DeleteModifiers(
-                        orderBy = OrderBy.MODIFIED,
+                        order = Order.MODIFIED,
                         limit = 1,
                     ),
                 ),
@@ -362,7 +362,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     "/assets/profile/",
                     Parameters.Empty,
                     DeleteModifiers(
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         recursive = false,
                     ),
@@ -371,7 +371,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     "/assets/profile/-/",
                     Parameters.Empty,
                     DeleteModifiers(
-                        orderBy = OrderBy.CREATED,
+                        order = Order.NEW,
                         limit = 1,
                         recursive = false,
                     ),

@@ -5,7 +5,7 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.service.context.modifiers.OrderBy
+import io.konifer.service.context.selector.Order
 
 interface AssetRepository {
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
@@ -34,7 +34,7 @@ interface AssetRepository {
         path: String,
         entryId: Long?,
         transformation: Transformation?,
-        orderBy: OrderBy = OrderBy.CREATED,
+        order: Order = Order.NEW,
         labels: Map<String, String> = emptyMap(),
         includeOnlyReady: Boolean = true,
     ): AssetData?
@@ -46,14 +46,14 @@ interface AssetRepository {
      * will fetch the original variant regardless of the rest of the transformation parameters.
      *
      * @param labels filters assets at the path before sorting and applying the [limit]
-     * @param orderBy sorts the assets at the [path] before applying the [limit]
+     * @param order sorts the assets at the [path] before applying the [limit]
      * @param limit the maximum amount of assets to return. -1 means no limit.
      */
     suspend fun fetchAllByPath(
         path: String,
         transformation: Transformation?,
         labels: Map<String, String> = emptyMap(),
-        orderBy: OrderBy = OrderBy.CREATED,
+        order: Order = Order.NEW,
         limit: Int,
     ): List<AssetData>
 
@@ -65,7 +65,7 @@ interface AssetRepository {
     suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String> = emptyMap(),
-        orderBy: OrderBy = OrderBy.CREATED,
+        order: Order = Order.NEW,
         limit: Int,
     )
 

@@ -1,6 +1,6 @@
 package io.konifer.domain.image
 
-import io.konifer.service.context.modifiers.ManipulationParameters.ROTATE
+import io.konifer.service.context.selector.ManipulationParameters.ROTATE
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ParametersBuilder
