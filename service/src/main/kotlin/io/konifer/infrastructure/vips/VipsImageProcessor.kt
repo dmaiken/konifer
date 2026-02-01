@@ -31,6 +31,8 @@ class VipsImageProcessor {
 
     init {
         logger.info("Initializing Vips image processor")
+        // Not necessary since this will be a long-running service
+        Vips.disableOperationCache()
     }
 
     companion object {
