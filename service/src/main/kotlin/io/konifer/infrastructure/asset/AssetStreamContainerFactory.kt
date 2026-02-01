@@ -36,6 +36,6 @@ class AssetStreamContainerFactory(
             throw IllegalArgumentException("Asset from URL source is too large")
         }
 
-        return AssetDataContainer(response.bodyAsChannel())
+        return AssetDataContainer(response.bodyAsChannel(), maxBytes)
     }
 }

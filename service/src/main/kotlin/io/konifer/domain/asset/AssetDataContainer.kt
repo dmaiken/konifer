@@ -4,7 +4,6 @@ import io.konifer.service.TemporaryFileFactory.createUploadTempFile
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.CountedByteReadChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.peek
 import kotlinx.coroutines.Dispatchers
@@ -20,14 +19,13 @@ import kotlin.io.path.pathString
 const val MAX_BYTES_DEFAULT = (1024 * 1024 * 100).toLong()
 
 class AssetDataContainer(
-    channel: ByteReadChannel,
+    private val channel: ByteReadChannel,
     private val maxBytes: Long = MAX_BYTES_DEFAULT,
 ) : AutoCloseable {
     companion object {
         private const val TOO_LARGE_MESSAGE = "Asset exceeds the maximum allowed size"
     }
 
-    private val counterChannel = CountedByteReadChannel(delegate = channel)
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private var tempFile: Path? = null
 
@@ -48,7 +46,11 @@ class AssetDataContainer(
                         StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE_NEW,
                     ).use { fileChannel ->
-                        val bytesWritten = counterChannel.copyTo(fileChannel)
+                        val bytesWritten =
+                            channel.copyTo(
+                                channel = fileChannel,
+                                limit = maxBytes + 1,
+                            )
                         if (bytesWritten > maxBytes) {
                             throw IllegalArgumentException(TOO_LARGE_MESSAGE)
                         }
@@ -56,13 +58,14 @@ class AssetDataContainer(
                         logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile?.pathString}" }
                         isDumpedToFile = true
                     }
-            }.onFailure {
+            }.onFailure { e ->
                 // If an error occurs during streaming, ensure the incomplete file is deleted.
                 tempFile?.toFile()?.delete()
+                channel.cancel(e)
             }.getOrThrow()
         }
 
-    suspend fun peek(n: Int): ByteArray = counterChannel.peek(n)?.toByteArray() ?: ByteArray(0)
+    suspend fun peek(n: Int): ByteArray = channel.peek(n)?.toByteArray() ?: ByteArray(0)
 
     /**
      * If a temporary file is created, delete it. If the delegate channel is still open, then cancel is.
@@ -72,8 +75,6 @@ class AssetDataContainer(
             logger.info("Deleting temporary file: ${tempFile?.pathString}")
             tempFile?.toFile()?.delete()
         }
-        if (!counterChannel.isClosedForRead) {
-            counterChannel.cancel(null)
-        }
+        if (!channel.isClosedForRead) channel.cancel(null)
     }
 }
