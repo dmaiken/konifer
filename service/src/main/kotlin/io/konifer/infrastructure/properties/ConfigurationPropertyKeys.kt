@@ -1,14 +1,15 @@
 package io.konifer.infrastructure.properties
 
 object ConfigurationPropertyKeys {
-    const val DATASTORE = "datastore"
+    const val DATASTORE = "data-store"
     const val OBJECT_STORE = "object-store"
     const val PATH_CONFIGURATION = "paths"
     const val SOURCE = "source"
     const val VARIANT_GENERATION = "variant-generation"
     const val URL_SIGNING = "url-signing"
+    const val HTTP = "http"
 
-    object DatabasePropertyKeys {
+    object DataStorePropertyKeys {
         const val PROVIDER = "provider"
         const val POSTGRES = "postgresql"
 
@@ -32,17 +33,10 @@ object ConfigurationPropertyKeys {
             const val REGION = "region"
             const val SECRET_KEY = "secret-key"
             const val USE_PATH_STYLE = "use-path-style"
-            const val PRESIGN_URL = "presign"
-
-            object PreSignedUrlPropertyKeys {
-                const val ENABLED = "enabled"
-                const val TTL = "ttl"
-            }
         }
 
         object FileSystemPropertyKeys {
             const val MOUNT_PATH = "mount-path"
-            const val HTTP_PATH = "http-path"
         }
     }
 
@@ -70,8 +64,19 @@ object ConfigurationPropertyKeys {
             const val NAME = "name"
         }
 
-        object S3PropertyKeys {
+        object ObjectStorePropertyKeys {
             const val BUCKET = "bucket"
+            const val REDIRECT_MODE = "redirect-mode"
+            const val PRESIGNED = "presigned"
+            const val CDN = "cdn"
+
+            object PreSignedProperties {
+                const val TTL = "ttl"
+            }
+
+            object CdnProperties {
+                const val DOMAIN = "domain"
+            }
         }
 
         object CacheControlPropertyKeys {
@@ -110,5 +115,9 @@ object ConfigurationPropertyKeys {
         const val ENABLED = "enabled"
         const val ALGORITHM = "algorithm"
         const val SECRET_KEY = "secret-key"
+    }
+
+    object HttpPropertyKeys {
+        const val PUBLIC_URL = "public-url"
     }
 }

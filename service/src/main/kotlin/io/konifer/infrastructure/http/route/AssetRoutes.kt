@@ -11,16 +11,12 @@ import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.http.AssetResponse
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
-import io.konifer.infrastructure.http.CustomAttributes.entryIdKey
-import io.konifer.infrastructure.http.CustomAttributes.lastModifiedKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.konifer.infrastructure.http.RequestContextPlugin
 import io.konifer.infrastructure.http.cache.AssetCacheControlPlugin
-import io.konifer.infrastructure.http.getAltHeader
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getContentDispositionHeader
-import io.konifer.infrastructure.http.getLqipHeaders
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
@@ -39,7 +35,6 @@ import io.ktor.server.request.path
 import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
@@ -84,12 +79,12 @@ fun Application.configureAssetRouting() {
                 val requestContext = call.attributes[queryRequestContextKey]
 
                 logger.info(
-                    "Navigating to asset (limit: ${requestContext.modifiers.limit}) with path (${requestContext.modifiers.returnFormat}): ${requestContext.path}",
+                    "Navigating to asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
                 )
-                when (requestContext.modifiers.returnFormat) {
+                when (requestContext.selectors.returnFormat) {
                     ReturnFormat.METADATA -> {
-                        if (requestContext.modifiers.limit == 1) {
-                            fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = false)?.let { response ->
+                        if (requestContext.selectors.limit == 1) {
+                            fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
                                 logger.info("Found asset info: $response with path: ${requestContext.path}")
                                 getAppStatusCacheHeader(response.cacheHit).let {
                                     call.response.headers.append(it.first, it.second)
@@ -99,7 +94,7 @@ fun Application.configureAssetRouting() {
                             return@get
                         } else {
                             fetchAssetHandler
-                                .fetchAssetMetadataAtPath(requestContext)
+                                .fetchMetadataAtPath(requestContext)
                                 .map {
                                     AssetResponse.fromAssetData(it)
                                 }.let {
@@ -109,16 +104,30 @@ fun Application.configureAssetRouting() {
                         }
                     }
                     ReturnFormat.REDIRECT -> {
-                        fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
-                            call.response.headers.append(HttpHeaders.Location, response.url)
-                            getAppStatusCacheHeader(response.cacheHit).let {
-                                call.response.headers.append(it.first, it.second)
+                        fetchAssetHandler.fetchRedirectByPath(requestContext)?.let { response ->
+                            if (response.url != null) {
+                                call.response.headers.append(HttpHeaders.Location, response.url)
+                                getAppStatusCacheHeader(response.cacheHit).let {
+                                    call.response.headers.append(it.first, it.second)
+                                }
+                                call.respond(HttpStatusCode.TemporaryRedirect)
+                            } else {
+                                call.respondContent(
+                                    objectStoreBucket = response.variant.objectStoreBucket,
+                                    objectStoreKey = response.variant.objectStoreKey,
+                                    cacheHit = response.cacheHit,
+                                    alt = response.asset.alt,
+                                    lqips = response.variant.lqips,
+                                    entryId = response.asset.entryId,
+                                    modifiedAt = response.asset.modifiedAt,
+                                    mimeType = response.variant.transformation.format.mimeType,
+                                    fetchAssetHandler = fetchAssetHandler,
+                                )
                             }
-                            call.respond(HttpStatusCode.TemporaryRedirect)
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
                     ReturnFormat.LINK -> {
-                        fetchAssetHandler.fetchAssetLinkByPath(requestContext)?.let { response ->
+                        fetchAssetHandler.fetchLinkByPath(requestContext)?.let { response ->
                             getAppStatusCacheHeader(response.cacheHit).let {
                                 call.response.headers.append(it.first, it.second)
                             }
@@ -126,24 +135,10 @@ fun Application.configureAssetRouting() {
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
                     ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
-                        fetchAssetHandler.fetchAssetMetadataByPath(requestContext, generateVariant = true)?.let { response ->
-                            logger.info("Found asset content with path: ${requestContext.path}")
-                            getAppStatusCacheHeader(response.cacheHit).let {
-                                call.response.headers.append(it.first, it.second)
-                            }
-                            getAltHeader(response.asset.alt)?.let {
-                                call.response.headers.append(it.first, it.second)
-                            }
-                            getLqipHeaders(
-                                response.asset.variants
-                                    .first()
-                                    .lqips,
-                            ).forEach {
-                                call.response.headers.append(it.first, it.second)
-                            }
+                        fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                             getContentDispositionHeader(
                                 asset = response.asset,
-                                returnFormat = requestContext.modifiers.returnFormat,
+                                returnFormat = requestContext.selectors.returnFormat,
                                 imageFormat =
                                     response.asset.variants
                                         .first()
@@ -151,29 +146,18 @@ fun Application.configureAssetRouting() {
                             )?.also {
                                 call.response.headers.append(it.first, it.second)
                             }
-                            // Populate attributes used for etag creation
-                            call.attributes[entryIdKey] = response.asset.entryId
-                            call.attributes[lastModifiedKey] = response.asset.modifiedAt
-
-                            call.respondBytesWriter(
-                                contentType =
-                                    ContentType.parse(
-                                        response.asset.variants
-                                            .first()
-                                            .attributes.format.mimeType,
-                                    ),
-                                status = HttpStatusCode.OK,
-                            ) {
-                                fetchAssetHandler.fetchAssetContent(
-                                    response.asset.variants
-                                        .first()
-                                        .objectStoreBucket,
-                                    response.asset.variants
-                                        .first()
-                                        .objectStoreKey,
-                                    this,
-                                )
-                            }
+                            val variant = response.asset.variants.first()
+                            call.respondContent(
+                                objectStoreBucket = variant.objectStoreBucket,
+                                objectStoreKey = variant.objectStoreKey,
+                                cacheHit = response.cacheHit,
+                                alt = response.asset.alt,
+                                lqips = variant.lqips,
+                                entryId = response.asset.entryId,
+                                modifiedAt = response.asset.modifiedAt,
+                                mimeType = variant.transformation.format.mimeType,
+                                fetchAssetHandler = fetchAssetHandler,
+                            )
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
                 }

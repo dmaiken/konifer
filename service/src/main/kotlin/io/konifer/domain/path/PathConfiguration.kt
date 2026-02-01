@@ -3,7 +3,7 @@ package io.konifer.domain.path
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
-import io.konifer.infrastructure.objectstore.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig

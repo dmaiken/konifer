@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.objectstore
+package io.konifer.infrastructure.objectstore.property
 
 import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
@@ -7,6 +7,9 @@ import io.ktor.server.config.HoconApplicationConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class ObjectStorePropertiesTest {
     @Test
@@ -112,5 +115,50 @@ class ObjectStorePropertiesTest {
             }
 
         exception.message shouldBe "Bucket must be conform to S3 name requirements"
+    }
+
+    @Test
+    fun `presigned url ttl cannot be negative if using presigned redirect mode`() {
+        val exception =
+            shouldThrow<IllegalArgumentException> {
+                ObjectStoreProperties(
+                    redirectMode = RedirectMode.PRESIGNED,
+                    preSigned =
+                        PreSignedProperties(
+                            ttl = (-1).minutes,
+                        ),
+                )
+            }
+        exception.message shouldBe "Presigned TTL must be positive"
+    }
+
+    @Test
+    fun `presigned url ttl cannot be greater than 7 days if using presigned redirect mode`() {
+        val exception =
+            shouldThrow<IllegalArgumentException> {
+                ObjectStoreProperties(
+                    redirectMode = RedirectMode.PRESIGNED,
+                    preSigned =
+                        PreSignedProperties(
+                            ttl = 7.days.plus(1.seconds),
+                        ),
+                )
+            }
+        exception.message shouldBe "Presigned TTL cannot be greater than 7 days"
+    }
+
+    @Test
+    fun `cdn domain cannot be blank if using cdn redirect mode`() {
+        val exception =
+            shouldThrow<IllegalArgumentException> {
+                ObjectStoreProperties(
+                    redirectMode = RedirectMode.CDN,
+                    cdn =
+                        CdnProperties(
+                            domain = " ",
+                        ),
+                )
+            }
+        exception.message shouldBe "CDN domain must be populated cannot be blank"
     }
 }

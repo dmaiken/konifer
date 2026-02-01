@@ -4,13 +4,19 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetMetadata
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.VariantLink
+import io.konifer.domain.variant.VariantRedirect
+import io.konifer.infrastructure.HttpProperties
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.ContentTypeNotPermittedException
 import io.konifer.service.context.QueryRequestContext
+import io.konifer.service.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.konifer.service.variant.VariantService
+import io.ktor.http.Parameters
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
@@ -20,35 +26,55 @@ import kotlinx.coroutines.withContext
 
 class FetchAssetHandler(
     private val assetRepository: AssetRepository,
-    private val objectStore: ObjectRepository,
+    private val objectStore: ObjectStore,
     private val variantService: VariantService,
+    private val httpProperties: HttpProperties,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun fetchAssetLinkByPath(context: QueryRequestContext): VariantLink? {
-        val assetAndCacheStatus = fetchAssetMetadataByPath(context, true) ?: return null
-        logger.info("Found asset with response: $assetAndCacheStatus and route: ${context.path}")
-        val variant = assetAndCacheStatus.asset.variants.first()
+    suspend fun fetchRedirectByPath(context: QueryRequestContext): VariantRedirect? {
+        val (asset, cacheHit) = fetchMetadataByPath(context, true) ?: return null
+        val variant = asset.variants.first()
 
-        return VariantLink(
-            url = objectStore.generateObjectUrl(variant.objectStoreBucket, variant.objectStoreKey),
-            alt = assetAndCacheStatus.asset.alt,
-            lqip = variant.lqips,
-            cacheHit = assetAndCacheStatus.cacheHit,
+        val url =
+            objectStore.generateObjectUrl(
+                bucket = variant.objectStoreBucket,
+                key = variant.objectStoreKey,
+                properties = context.pathConfiguration.objectStore,
+            )
+        return VariantRedirect(
+            url = url,
+            asset = asset,
+            cacheHit = cacheHit,
+            variant = variant,
         )
     }
 
-    suspend fun fetchAssetMetadataAtPath(context: QueryRequestContext): List<AssetData> {
+    suspend fun fetchLinkByPath(context: QueryRequestContext): VariantLink? {
+        val (asset, cacheHit) = fetchMetadataByPath(context, true) ?: return null
+        val variant = asset.variants.first()
+
+        return VariantLink(
+            path = asset.path,
+            entryId = asset.entryId,
+            alt = asset.alt,
+            lqip = variant.lqips,
+            cacheHit = cacheHit,
+            url = constructContentUrl(asset.path, asset.entryId, context.request.parameters),
+        )
+    }
+
+    suspend fun fetchMetadataAtPath(context: QueryRequestContext): List<AssetData> {
         logger.info("Fetching asset info at path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
             transformation = null,
-            order = context.modifiers.order,
-            limit = context.modifiers.limit,
+            order = context.selectors.order,
+            limit = context.selectors.limit,
         )
     }
 
-    suspend fun fetchAssetMetadataByPath(
+    suspend fun fetchMetadataByPath(
         context: QueryRequestContext,
         generateVariant: Boolean,
     ): AssetMetadata? {
@@ -59,9 +85,9 @@ class FetchAssetHandler(
         val assetData =
             assetRepository.fetchByPath(
                 path = context.path,
-                entryId = context.modifiers.entryId,
+                entryId = context.selectors.entryId,
                 transformation = context.transformation,
-                order = context.modifiers.order,
+                order = context.selectors.order,
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
@@ -69,7 +95,7 @@ class FetchAssetHandler(
         }
 
         return if (assetData.variants.isEmpty()) {
-            logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
+            logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.selectors.entryId}")
 
             createOnDemandVariant(
                 assetId = assetData.id,
@@ -80,20 +106,20 @@ class FetchAssetHandler(
                 asset =
                     assetRepository.fetchByPath(
                         path = context.path,
-                        entryId = context.modifiers.entryId,
+                        entryId = context.selectors.entryId,
                         transformation = context.transformation,
-                        order = context.modifiers.order,
+                        order = context.selectors.order,
                         labels = context.labels,
                     ) ?: return null,
                 cacheHit = false,
             )
         } else {
-            logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.modifiers.entryId}")
+            logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.selectors.entryId}")
             AssetMetadata(assetData, true)
         }
     }
 
-    suspend fun fetchAssetContent(
+    suspend fun fetchContent(
         bucket: String,
         storeKey: String,
         stream: ByteWriteChannel,
@@ -117,9 +143,9 @@ class FetchAssetHandler(
             assetRepository
                 .fetchByPath(
                     path = context.path,
-                    entryId = context.modifiers.entryId,
+                    entryId = context.selectors.entryId,
                     transformation = Transformation.ORIGINAL_VARIANT,
-                    order = context.modifiers.order,
+                    order = context.selectors.order,
                     labels = context.labels,
                 )?.variants
                 ?.first { it.isOriginalVariant }
@@ -154,4 +180,16 @@ class FetchAssetHandler(
             }
         }
     }
+
+    private fun constructContentUrl(
+        path: String,
+        entryId: Long,
+        parameters: Parameters,
+    ): String =
+        URLBuilder(httpProperties.publicUrl)
+            .apply {
+                appendPathSegments("assets", path.removePrefix("/"), PATH_NAMESPACE_SEPARATOR, "entry", entryId.toString(), "content")
+                this.parameters.appendAll(parameters)
+            }.build()
+            .toString()
 }

@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.http.route
 
-import io.konifer.domain.ports.ObjectRepository
-import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectRepository
+import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -13,7 +13,7 @@ import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 
 fun Application.configureInMemoryObjectStoreRouting() {
-    val objectStore by inject<ObjectRepository>()
+    val objectStore by inject<ObjectStore>()
 
     routing {
         get("objectStore/{bucket}/{key}") {
@@ -33,8 +33,8 @@ fun Application.configureInMemoryObjectStoreRouting() {
         }
 
         delete("objectStore") {
-            if (objectStore is InMemoryObjectRepository) {
-                (objectStore as InMemoryObjectRepository).clearObjectStore()
+            if (objectStore is InMemoryObjectStore) {
+                (objectStore as InMemoryObjectStore).clearObjectStore()
             }
             call.respond(HttpStatusCode.NoContent)
         }

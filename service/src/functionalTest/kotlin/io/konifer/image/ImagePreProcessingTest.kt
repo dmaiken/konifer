@@ -7,7 +7,7 @@ import io.konifer.domain.image.ImageFormat
 import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.util.createJsonClient
-import io.konifer.util.fetchAssetViaRedirect
+import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -72,7 +72,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-            val fetchedAsset = fetchAssetViaRedirect(client)!!
+            val fetchedAsset = fetchAssetContent(client).second!!
             Tika().detect(fetchedAsset) shouldBe "image/png"
             val fetchedImage = byteArrayToImage(fetchedAsset)
             fetchedImage.width shouldBe 100
@@ -120,7 +120,7 @@ class ImagePreProcessingTest {
                     }
                 }
 
-            val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)!!
+            val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo.entryId).second!!
             Tika().detect(fetchedAsset) shouldBe "image/png"
             val fetchedImage = byteArrayToImage(fetchedAsset)
             fetchedImage.height shouldBe 50
@@ -170,7 +170,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-        val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)!!
+        val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo.entryId).second!!
         Tika().detect(fetchedAsset) shouldBe "image/png"
         val fetchedImage = byteArrayToImage(fetchedAsset)
         fetchedImage.width shouldBe bufferedImage.width
@@ -219,7 +219,7 @@ class ImagePreProcessingTest {
                 }
             }
 
-        val fetchedAsset = fetchAssetViaRedirect(client, entryId = storedAssetInfo.entryId)
+        val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo.entryId).second
         Tika().detect(fetchedAsset) shouldBe expectedType
     }
 
@@ -275,7 +275,7 @@ class ImagePreProcessingTest {
                 }
 
             val fetchedAsset =
-                fetchAssetViaRedirect(client, path = "users/123/profile", entryId = storedAssetInfo.entryId)
+                fetchAssetContent(client, path = "users/123/profile", entryId = storedAssetInfo.entryId).second
             Tika().detect(fetchedAsset) shouldBe "image/webp"
         }
 }

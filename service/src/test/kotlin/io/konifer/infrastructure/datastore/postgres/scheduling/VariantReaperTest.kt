@@ -1,10 +1,10 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
 import io.konifer.infrastructure.datastore.postgres.postgresContainer
 import io.konifer.infrastructure.datastore.postgres.truncateTables
-import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectRepository
+import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -34,7 +34,7 @@ class VariantReaperTest {
     }
 
     val dslContext: DSLContext by lazy { createR2dbcDslContext(postgres) }
-    val objectRepository: ObjectRepository = spyk(InMemoryObjectRepository())
+    val objectStore: ObjectStore = spyk(InMemoryObjectStore())
 
     val file: File =
         Files.createTempFile("test", ".txt").toFile().apply {
@@ -49,7 +49,7 @@ class VariantReaperTest {
     @Test
     fun `can reap variants`() =
         runTest {
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key",
                 file = file,
@@ -75,10 +75,10 @@ class VariantReaperTest {
 
             VariantReaper.invoke(
                 dslContext = dslContext,
-                objectRepository = objectRepository,
+                objectStore = objectStore,
             )
 
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key",
             ) shouldBe false
@@ -92,7 +92,7 @@ class VariantReaperTest {
     @Test
     fun `if variant fails to be reaped then outbox event is not deleted`() =
         runTest {
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key",
                 file = file,
@@ -116,17 +116,17 @@ class VariantReaperTest {
                 ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
                 .awaitFirstOrNull()
             coEvery {
-                objectRepository.delete(any(), any())
+                objectStore.delete(any(), any())
             } throws RuntimeException()
 
             shouldNotThrowAny {
                 VariantReaper.invoke(
                     dslContext = dslContext,
-                    objectRepository = objectRepository,
+                    objectStore = objectStore,
                 )
             }
 
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key",
             ) shouldBe true
@@ -140,12 +140,12 @@ class VariantReaperTest {
     @Test
     fun `if variant fails to be reaped then others are attempted`() =
         runTest {
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key1",
                 file = file,
             )
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key2",
                 file = file,
@@ -186,21 +186,21 @@ class VariantReaperTest {
                 ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
                 .awaitFirstOrNull()
             coEvery {
-                objectRepository.delete(any(), key = "key1")
+                objectStore.delete(any(), key = "key1")
             } throws RuntimeException()
 
             shouldNotThrowAny {
                 VariantReaper.invoke(
                     dslContext = dslContext,
-                    objectRepository = objectRepository,
+                    objectStore = objectStore,
                 )
             }
 
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key1",
             ) shouldBe true
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key2",
             ) shouldBe false
@@ -219,12 +219,12 @@ class VariantReaperTest {
     @Test
     fun `limit is respected when reaping variants`() =
         runTest {
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key1",
                 file = file,
             )
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = "bucket",
                 key = "key2",
                 file = file,
@@ -267,15 +267,15 @@ class VariantReaperTest {
 
             VariantReaper.invoke(
                 dslContext = dslContext,
-                objectRepository = objectRepository,
+                objectStore = objectStore,
                 reapLimit = 1,
             )
 
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key1",
             ) shouldBe false
-            objectRepository.exists(
+            objectStore.exists(
                 bucket = "bucket",
                 key = "key2",
             ) shouldBe true
@@ -297,7 +297,7 @@ class VariantReaperTest {
             shouldNotThrowAny {
                 VariantReaper.invoke(
                     dslContext = dslContext,
-                    objectRepository = objectRepository,
+                    objectStore = objectStore,
                 )
             }
         }

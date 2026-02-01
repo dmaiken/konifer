@@ -10,7 +10,7 @@ import io.konifer.domain.image.InvalidImageException
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.MimeTypeDetector
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.Attributes
@@ -39,7 +39,7 @@ import kotlin.io.path.pathString
 class StoreNewAssetWorkflow(
     private val mimeTypeDetector: MimeTypeDetector,
     private val assetRepository: AssetRepository,
-    private val objectStore: ObjectRepository,
+    private val objectStore: ObjectStore,
     private val variantService: VariantService,
     private val variantGenerator: VariantGenerator,
     private val variantProfileRepository: VariantProfileRepository,

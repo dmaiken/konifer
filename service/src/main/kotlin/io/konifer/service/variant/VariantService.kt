@@ -3,7 +3,7 @@ package io.konifer.service.variant
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
@@ -24,7 +24,7 @@ import kotlin.time.measureTime
 
 class VariantService(
     private val assetRepository: AssetRepository,
-    private val objectRepository: ObjectRepository,
+    private val objectStore: ObjectStore,
     private val transformationNormalizer: TransformationNormalizer,
     private val variantGenerator: VariantGenerator,
 ) {
@@ -149,7 +149,7 @@ class VariantService(
         container: TransformationDataContainer,
     ): LocalDateTime {
         val uploadedAt =
-            objectRepository.persist(
+            objectStore.persist(
                 bucket = pendingVariant.objectStoreBucket,
                 key = pendingVariant.objectStoreKey,
                 file = container.output.toFile(),

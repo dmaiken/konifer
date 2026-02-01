@@ -11,8 +11,6 @@ import io.konifer.util.storeAssetMultipartSource
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -54,9 +52,7 @@ class FetchAssetLinkTest {
                     lqip.thumbhash shouldBe null
                     alt shouldBe request.alt
 
-                    url shouldContain "http://"
-                    url shouldContain storedAssetInfo!!.variants.first().storeKey
-                    url shouldEndWith ".png"
+                    url shouldBe "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
                     val location =
                         shouldNotThrowAny {
                             Url(url).fullPath
@@ -99,7 +95,7 @@ class FetchAssetLinkTest {
                 lqip.thumbhash shouldNotBe null
                 alt shouldBe request.alt
 
-                url shouldContain storedAssetInfo!!.variants.first().storeKey
+                url shouldBe "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
                 val location =
                     shouldNotThrowAny {
                         Url(url).fullPath
@@ -161,6 +157,58 @@ class FetchAssetLinkTest {
                     Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/jpeg"
                 }
                 count++
+            }
+        }
+
+    @Test
+    fun `link preserves all query parameters from original request`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    image {
+                        lqip = [ "thumbhash", "blurhash" ]
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val labels =
+                mapOf(
+                    "phone" to "iphone",
+                )
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                    labels = labels,
+                )
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
+
+            fetchAssetLink(
+                client,
+                path = "profile",
+                format = "jpg",
+                labels = labels,
+            )!!.apply {
+                lqip.blurhash shouldNotBe null
+                lqip.thumbhash shouldNotBe null
+                alt shouldBe request.alt
+
+                url shouldNotContain storedAssetInfo!!.variants.first().storeKey
+                val location =
+                    shouldNotThrowAny {
+                        Url(url).fullPath
+                    }
+                val storeResponse = client.get(location)
+                storeResponse.status shouldBe HttpStatusCode.OK
+                val rendered = byteArrayToImage(storeResponse.bodyAsBytes())
+                rendered.width shouldBe bufferedImage.width
+                rendered.height shouldBe bufferedImage.height
+                Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/jpeg"
             }
         }
 }

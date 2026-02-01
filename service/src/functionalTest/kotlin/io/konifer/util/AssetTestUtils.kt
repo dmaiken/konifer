@@ -211,7 +211,7 @@ suspend fun fetchAssetContent(
 ): Pair<HttpResponse, ByteArray?> {
     val urlBuilder = URLBuilder()
     if (entryId != null) {
-        urlBuilder.path("/assets/$path/-/content/entry/$entryId")
+        urlBuilder.path("/assets/$path/-/entry/$entryId/content")
     } else {
         urlBuilder.path("/assets/$path/-/content")
     }
@@ -336,6 +336,7 @@ suspend fun fetchAssetLink(
     background: String? = null,
     expectCacheHit: Boolean? = null,
     signature: String? = null,
+    labels: Map<String, String> = emptyMap(),
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): AssetLinkResponse? {
     val urlBuilder = URLBuilder()
@@ -343,6 +344,9 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link/entry/$entryId")
     } else {
         urlBuilder.path("/assets/$path/-/link")
+    }
+    labels.forEach { label ->
+        urlBuilder.parameters.append(label.key, label.value)
     }
 
     attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)

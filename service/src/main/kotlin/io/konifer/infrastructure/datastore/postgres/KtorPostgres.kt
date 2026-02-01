@@ -14,7 +14,7 @@ import io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL as R2DBC_PROTOCOL
 import io.r2dbc.spi.ConnectionFactoryOptions.USER as R2DBC_USER
 
 fun Application.connectToPostgres(properties: PostgresProperties): ConnectionFactory {
-    log.info("(R2DBC) Connecting to postgres database")
+    log.info("(R2DBC) Connecting to postgres on ${properties.host}:${properties.port} using database: ${properties.database}")
     val options =
         builder()
             .option(R2DBC_DATABASE, properties.database)
@@ -23,9 +23,7 @@ fun Application.connectToPostgres(properties: PostgresProperties): ConnectionFac
             .option(R2DBC_USER, properties.user)
             .option(R2DBC_HOST, properties.host)
             .option(R2DBC_PORT, properties.port)
-    properties.password?.let {
-        options.option(R2DBC_PASSWORD, it)
-    }
+            .option(R2DBC_PASSWORD, properties.password)
 
     return ConnectionFactories.get(options.build())
 }

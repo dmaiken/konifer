@@ -4,7 +4,7 @@ import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
-import io.konifer.infrastructure.objectstore.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

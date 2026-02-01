@@ -1,7 +1,9 @@
 package io.konifer.infrastructure.objectstore.inmemory
 
 import io.konifer.domain.ports.FetchResult
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.RedirectMode
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
@@ -9,7 +11,7 @@ import io.ktor.utils.io.writeFully
 import java.io.File
 import java.time.LocalDateTime
 
-class InMemoryObjectRepository : ObjectRepository {
+class InMemoryObjectStore : ObjectStore {
     companion object {
         const val DEFAULT_PORT = 8080
     }
@@ -67,7 +69,13 @@ class InMemoryObjectRepository : ObjectRepository {
     override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-    ): String = "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
+        properties: ObjectStoreProperties,
+    ): String? =
+        when (properties.redirectMode) {
+            RedirectMode.CDN -> "https://${properties.cdn.domain}/$bucket/$key"
+            RedirectMode.BUCKET -> "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
+            RedirectMode.PRESIGNED, RedirectMode.NONE -> null
+        }
 
     fun clearObjectStore() {
         store.clear()

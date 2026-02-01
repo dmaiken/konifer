@@ -1,12 +1,12 @@
 package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DATASTORE
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.POSTGRES
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PostgresPropertyKeys.DATABASE
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PostgresPropertyKeys.HOST
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PostgresPropertyKeys.PASSWORD
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PostgresPropertyKeys.PORT
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PostgresPropertyKeys.USER
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.POSTGRES
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.DATABASE
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.HOST
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PASSWORD
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PORT
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.USER
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
@@ -16,7 +16,7 @@ data class PostgresProperties(
     val user: String,
     val host: String,
     val port: Int,
-    val password: String?,
+    val password: String,
 )
 
 fun Application.createPostgresProperties(): PostgresProperties {
@@ -27,6 +27,7 @@ fun Application.createPostgresProperties(): PostgresProperties {
     val password =
         postgresProperties
             ?.tryGetString(PASSWORD)
+            ?: ""
     val host =
         postgresProperties
             ?.tryGetString(HOST)
@@ -43,7 +44,7 @@ fun Application.createPostgresProperties(): PostgresProperties {
     val user =
         postgresProperties
             ?.tryGetString(USER)
-            ?: throw IllegalStateException("$DATASTORE.$POSTGRES.$USER must be supplied if using Postgres datastore")
+            ?: "postgres"
 
     return PostgresProperties(
         database = database,

@@ -18,6 +18,7 @@ import io.konifer.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.util.createJsonClient
+import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
@@ -68,11 +69,11 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     height = bufferedImage.height - 10,
                     expectCacheHit = (count == 1),
-                )!!.apply {
+                ).second!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.height shouldBe bufferedImage.height - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
@@ -110,7 +111,7 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(client, width = bufferedImage.width - 10, expectCacheHit = (count == 1))!!.apply {
+                fetchAssetContent(client, width = bufferedImage.width - 10, expectCacheHit = (count == 1)).second!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe bufferedImage.width - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
@@ -149,13 +150,13 @@ class ImageAssetVariantTest {
             val variantWidth = bufferedImage.width - 100
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     width = variantWidth,
                     height = variantHeight,
                     expectCacheHit = (count == 1),
-                )!!.apply {
-                    val variantImage = byteArrayToImage(this)
+                ).let { (_, bytes) ->
+                    val variantImage = byteArrayToImage(bytes!!)
                     if (variantImage.width == variantWidth) {
                         variantImage.height shouldNotBe variantHeight
                     }
@@ -197,11 +198,11 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(client, format = "jpg", expectCacheHit = (count == 1))!!.apply {
-                    val variantImage = byteArrayToImage(this)
+                fetchAssetContent(client, format = "jpg", expectCacheHit = (count == 1)).let { (_, bytes) ->
+                    val variantImage = byteArrayToImage(bytes!!)
                     variantImage.width shouldBe bufferedImage.width
                     variantImage.height shouldBe bufferedImage.height
-                    Tika().detect(this) shouldBe "image/jpeg"
+                    Tika().detect(bytes) shouldBe "image/jpeg"
                 }
                 count++
             }
@@ -236,13 +237,13 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     height = 200,
                     width = 200,
                     fit = "fill",
                     expectCacheHit = (count == 1),
-                )!!.apply {
+                ).second!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe 200
                     variantImage.height shouldBe 200
@@ -279,12 +280,12 @@ class ImageAssetVariantTest {
                 }
             }
 
-            fetchAssetViaRedirect(
+            fetchAssetContent(
                 client,
                 height = bufferedImage.height,
                 width = bufferedImage.width,
                 expectCacheHit = true,
-            )!!.apply {
+            ).second!!.apply {
                 val variantImage = byteArrayToImage(this)
                 variantImage.width shouldBe bufferedImage.width
                 variantImage.height shouldBe bufferedImage.height
@@ -304,10 +305,10 @@ class ImageAssetVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = false)!!.apply {
+            fetchAssetContent(client, rotate = "270", flip = "V", expectCacheHit = false).second!!.apply {
                 Tika().detect(this) shouldBe "image/png"
             }
-            val result = fetchAssetViaRedirect(client, rotate = "270", flip = "V", expectCacheHit = true)!!
+            val result = fetchAssetContent(client, rotate = "270", flip = "V", expectCacheHit = true).second!!
             Vips.run { arena ->
                 val expected =
                     VImage
@@ -336,10 +337,10 @@ class ImageAssetVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = false)!!.apply {
+            fetchAssetContent(client, filter = "greyscale", expectCacheHit = false).second!!.apply {
                 Tika().detect(this) shouldBe "image/png"
             }
-            val result = fetchAssetViaRedirect(client, filter = "greyscale", expectCacheHit = true)!!
+            val result = fetchAssetContent(client, filter = "greyscale", expectCacheHit = true).second!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 val linear =
@@ -372,25 +373,25 @@ class ImageAssetVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            fetchAssetViaRedirect(
+            fetchAssetContent(
                 client,
                 fit = "crop",
                 height = 200,
                 width = 200,
                 gravity = "entropy",
                 expectCacheHit = false,
-            )!!.apply {
+            ).second!!.apply {
                 Tika().detect(this) shouldBe "image/png"
             }
             val result =
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     fit = "crop",
                     height = 200,
                     width = 200,
                     gravity = "entropy",
                     expectCacheHit = true,
-                )!!
+                ).second!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 VImage
@@ -422,15 +423,15 @@ class ImageAssetVariantTest {
                     )
                 storeAssetMultipartSource(client, image, request)
 
-                fetchAssetViaRedirect(client, blur = 50, expectCacheHit = false)!!.apply {
+                fetchAssetContent(client, blur = 50, expectCacheHit = false).second!!.apply {
                     Tika().detect(this) shouldBe "image/png"
                 }
                 val result =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         blur = 50,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
                     VImage
@@ -458,17 +459,17 @@ class ImageAssetVariantTest {
                 storeAssetMultipartSource(client, image, request)
 
                 val result =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         blur = 0,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
 
                 val original =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 result shouldBe original
             }
 
@@ -528,28 +529,28 @@ class ImageAssetVariantTest {
                     )
                 storeAssetMultipartSource(client, image, request)
 
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     format = variantFormat.format,
                     quality = quality,
                     expectCacheHit = false,
-                )!!.apply {
+                ).second!!.apply {
                     Tika().detect(this) shouldBe variantFormat.mimeType
                 }
                 val result =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         format = variantFormat.format,
                         quality = quality,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val higherQualityResult =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         format = variantFormat.format,
                         quality = quality + 10,
                         expectCacheHit = false,
-                    )!!
+                    ).second!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
                     VImage
@@ -582,12 +583,12 @@ class ImageAssetVariantTest {
             storeAssetMultipartSource(client, image, request)
 
             val result =
-                fetchAssetViaRedirect(
+                fetchAssetContent(
                     client,
                     format = variantFormat.format,
                     quality = quality,
                     expectCacheHit = false,
-                )!!
+                ).second!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 VImage
@@ -615,19 +616,19 @@ class ImageAssetVariantTest {
                 storeAssetMultipartSource(client, image, request)
 
                 val lowerQualityResult =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         format = ImageFormat.PNG.format,
                         quality = 40,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val higherQualityResult =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         format = ImageFormat.PNG.format,
                         quality = 100,
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
                     VImage
@@ -659,14 +660,14 @@ class ImageAssetVariantTest {
                 storeAssetMultipartSource(client, image, request)
 
                 val pad = 20
-                fetchAssetViaRedirect(client, pad = pad, background = "#FF0000", expectCacheHit = false)
+                fetchAssetContent(client, pad = pad, background = "#FF0000", expectCacheHit = false)
                 val result =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         pad = pad,
                         background = "#FF0000",
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 Vips.run { arena ->
                     val source = VImage.newFromBytes(arena, image)
                     val withBorder = VImage.newFromBytes(arena, result)
@@ -690,14 +691,14 @@ class ImageAssetVariantTest {
 
                 val pad = 20
                 val resultWithAlphaDefined =
-                    fetchAssetViaRedirect(client, pad = pad, background = "#FF0000FF", expectCacheHit = false)!!
+                    fetchAssetContent(client, pad = pad, background = "#FF0000FF", expectCacheHit = false).second!!
                 val resultWithoutAlphaDefined =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         pad = pad,
                         background = "#FF0000",
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
                 val withoutAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithoutAlphaDefined))
 
@@ -718,14 +719,14 @@ class ImageAssetVariantTest {
 
                 val pad = 20
                 val resultWithAlphaDefined =
-                    fetchAssetViaRedirect(client, pad = pad, background = "#FF0000", expectCacheHit = false)!!
+                    fetchAssetContent(client, pad = pad, background = "#FF0000", expectCacheHit = false).second!!
                 val resultWithoutAlphaDefined =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         pad = pad,
                         background = "#FF0000FF",
                         expectCacheHit = true,
-                    )!!
+                    ).second!!
                 val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
                 val withoutAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithoutAlphaDefined))
 
@@ -745,13 +746,13 @@ class ImageAssetVariantTest {
                 storeAssetMultipartSource(client, image, request)
 
                 val result =
-                    fetchAssetViaRedirect(
+                    fetchAssetContent(
                         client,
                         pad = 0,
                         background = "#FF0000",
                         expectCacheHit = true,
-                    )!!
-                val originalVariant = fetchAssetViaRedirect(client)
+                    ).second!!
+                val originalVariant = fetchAssetContent(client).second!!
                 ImageIO.read(ByteArrayInputStream(result)) shouldHaveSamePixelContentAs
                     ImageIO.read(ByteArrayInputStream(originalVariant))
             }

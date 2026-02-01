@@ -7,7 +7,7 @@ enum class ObjectStoreProvider {
     ;
 
     companion object Factory {
-        val default = IN_MEMORY
+        val default = FILESYSTEM
 
         fun fromConfig(value: String): ObjectStoreProvider =
             when (value.lowercase()) {

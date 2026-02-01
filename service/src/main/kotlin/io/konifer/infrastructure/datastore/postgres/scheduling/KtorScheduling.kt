@@ -6,7 +6,7 @@ import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.datastore.postgres.PostgresProperties
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
@@ -23,7 +23,7 @@ fun Application.configureScheduling(
     postgresProperties: PostgresProperties,
     dslContext: DSLContext,
 ) {
-    val objectRepository by inject<ObjectRepository>()
+    val objectStore by inject<ObjectStore>()
     val assetRepository by inject<AssetRepository>()
 
     // Tasks
@@ -57,7 +57,7 @@ fun Application.configureScheduling(
                 runBlocking {
                     VariantReaper.invoke(
                         dslContext = dslContext,
-                        objectRepository = objectRepository,
+                        objectStore = objectStore,
                     )
                 }
             }
@@ -87,9 +87,7 @@ fun jdbcPostgresDatasource(properties: PostgresProperties): DataSource {
     dataSource.setPortNumbers(intArrayOf(properties.port))
     dataSource.databaseName = properties.database
     dataSource.user = properties.user
-    properties.password?.let {
-        dataSource.password = it
-    }
+    dataSource.password = properties.password
 
     return HikariDataSource(
         HikariConfig().apply {

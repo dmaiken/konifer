@@ -1,6 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.flow.mapNotNull
@@ -17,7 +17,7 @@ object VariantReaper {
 
     suspend fun invoke(
         dslContext: DSLContext,
-        objectRepository: ObjectRepository,
+        objectStore: ObjectStore,
         reapLimit: Int = 1000,
     ) {
         logger.info("Reaping variants...")
@@ -47,7 +47,7 @@ object VariantReaper {
         var failedCount = 0
         for ((id, event) in events) {
             try {
-                objectRepository.delete(
+                objectStore.delete(
                     bucket = event.objectStoreBucket,
                     key = event.objectStoreKey,
                 )

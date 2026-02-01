@@ -7,7 +7,7 @@ import io.konifer.infrastructure.datastore.postgres.connectToPostgres
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduling
 import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DATASTORE
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DatabasePropertyKeys.PROVIDER
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.DataStorePropertyKeys.PROVIDER
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString

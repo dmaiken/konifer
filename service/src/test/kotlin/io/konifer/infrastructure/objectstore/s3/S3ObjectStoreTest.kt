@@ -1,9 +1,13 @@
 package io.konifer.infrastructure.objectstore.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
-import io.konifer.domain.ports.ObjectRepository
-import io.konifer.infrastructure.objectstore.ObjectRepositoryTest
+import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.objectstore.ObjectStoreTest
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.PreSignedProperties
+import io.konifer.infrastructure.objectstore.property.RedirectMode
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
@@ -16,11 +20,10 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import java.util.UUID
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 @Testcontainers
-class S3ObjectRepositoryTest : ObjectRepositoryTest() {
+class S3ObjectStoreTest : ObjectStoreTest() {
     companion object {
         @JvmStatic
         @Container
@@ -42,9 +45,9 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
         }
     }
 
-    override fun createObjectStore(): ObjectRepository {
+    override fun createObjectStore(): ObjectStore {
         val (s3Client, properties) = createS3Client()
-        return S3ObjectRepository(
+        return S3ObjectStore(
             s3Client = s3Client,
             s3ClientProperties = properties,
         )
@@ -57,14 +60,18 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             runTest {
                 val (s3Client, properties) = createS3Client(usePathStyleUrl = true)
                 val store =
-                    S3ObjectRepository(
+                    S3ObjectStore(
                         s3Client = s3Client,
                         s3ClientProperties = properties.copy(endpointUrl = null, providerHint = null),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
+                val pathProperties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.BUCKET,
+                    )
 
-                store.generateObjectUrl(bucket, key) shouldBe
+                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
                     "https://s3.us-east-1.amazonaws.com/$bucket/$key"
             }
 
@@ -73,14 +80,18 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             runTest {
                 val (s3Client, properties) = createS3Client(usePathStyleUrl = true)
                 val store =
-                    S3ObjectRepository(
+                    S3ObjectStore(
                         s3Client = s3Client,
                         s3ClientProperties = properties.copy(endpointUrl = "minio.local"),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
 
-                store.generateObjectUrl(bucket, key) shouldBe
+                val pathProperties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.BUCKET,
+                    )
+                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
                     "https://minio.local/$bucket/$key"
             }
 
@@ -89,7 +100,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             runTest {
                 val (s3Client, _) = createS3Client(usePathStyleUrl = false)
                 val store =
-                    S3ObjectRepository(
+                    S3ObjectStore(
                         s3Client = s3Client,
                         s3ClientProperties =
                             S3ClientProperties(
@@ -98,13 +109,16 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                                 accessKey = null,
                                 secretKey = null,
                                 usePathStyleUrl = false,
-                                presignedUrlProperties = null,
                             ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
 
-                store.generateObjectUrl(bucket, key) shouldBe
+                val pathProperties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.BUCKET,
+                    )
+                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
                     "https://$bucket.s3.us-east-1.amazonaws.com/$key"
             }
 
@@ -113,7 +127,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             runTest {
                 val (s3Client, _) = createS3Client(usePathStyleUrl = false)
                 val store =
-                    S3ObjectRepository(
+                    S3ObjectStore(
                         s3Client = s3Client,
                         s3ClientProperties =
                             S3ClientProperties(
@@ -122,13 +136,16 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                                 accessKey = null,
                                 secretKey = null,
                                 usePathStyleUrl = false,
-                                presignedUrlProperties = null,
                             ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
 
-                store.generateObjectUrl(bucket, key) shouldBe
+                val pathProperties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.BUCKET,
+                    )
+                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
                     "https://$bucket.minio.local/$key"
             }
 
@@ -137,7 +154,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             runTest {
                 val (s3Client, _) = createS3Client(usePathStyleUrl = false)
                 val store =
-                    S3ObjectRepository(
+                    S3ObjectStore(
                         s3Client = s3Client,
                         s3ClientProperties =
                             S3ClientProperties(
@@ -146,13 +163,22 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                                 accessKey = null,
                                 secretKey = null,
                                 usePathStyleUrl = false,
-                                presignedUrlProperties = PresignedUrlProperties(7.days),
                             ),
                     )
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
 
-                URI.create(store.generateObjectUrl(bucket, key)).toURL().apply {
+                val properties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.PRESIGNED,
+                        preSigned =
+                            PreSignedProperties(
+                                ttl = 7.days,
+                            ),
+                    )
+                val url = store.generateObjectUrl(bucket, key, properties)
+                url shouldNotBe null
+                URI.create(url!!).toURL().apply {
                     query shouldContain "x-id"
                     query shouldContain "X-Amz-Algorithm"
                     query shouldContain "X-Amz-Credential"
@@ -160,10 +186,7 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
             }
     }
 
-    private fun createS3Client(
-        usePathStyleUrl: Boolean = false,
-        presignedTtl: Duration? = null,
-    ): Pair<S3Client, S3ClientProperties> {
+    private fun createS3Client(usePathStyleUrl: Boolean = false): Pair<S3Client, S3ClientProperties> {
         val properties =
             S3ClientProperties(
                 endpointUrl = localstack.endpoint.toString(),
@@ -171,12 +194,6 @@ class S3ObjectRepositoryTest : ObjectRepositoryTest() {
                 accessKey = localstack.accessKey,
                 secretKey = localstack.secretKey,
                 usePathStyleUrl = usePathStyleUrl,
-                presignedUrlProperties =
-                    presignedTtl?.let {
-                        PresignedUrlProperties(
-                            ttl = it,
-                        )
-                    },
                 providerHint = S3Provider.LOCALSTACK,
             )
 

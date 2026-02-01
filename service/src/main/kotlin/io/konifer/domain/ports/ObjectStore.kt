@@ -1,10 +1,11 @@
 package io.konifer.domain.ports
 
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File
 import java.time.LocalDateTime
 
-interface ObjectRepository {
+interface ObjectStore {
     suspend fun persist(
         bucket: String,
         key: String,
@@ -38,7 +39,8 @@ interface ObjectRepository {
     suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-    ): String
+        properties: ObjectStoreProperties,
+    ): String?
 }
 
 data class FetchResult(

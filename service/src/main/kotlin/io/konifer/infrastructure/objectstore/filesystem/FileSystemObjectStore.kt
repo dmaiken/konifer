@@ -1,7 +1,8 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
 import io.konifer.domain.ports.FetchResult
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
@@ -15,9 +16,9 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
 
-class FileSystemObjectRepository(
-    private val properties: FileSystemProperties,
-) : ObjectRepository {
+class FileSystemObjectStore(
+    private val storeProperties: FileSystemProperties,
+) : ObjectStore {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun persist(
@@ -102,7 +103,8 @@ class FileSystemObjectRepository(
     override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-    ): String = "${properties.httpPath}/$bucket/$key"
+        properties: ObjectStoreProperties,
+    ): String? = null
 
     private fun resolvePath(
         bucket: String,
@@ -110,14 +112,14 @@ class FileSystemObjectRepository(
     ): Path {
         val resolved =
             Paths
-                .get(properties.mountPath)
+                .get(storeProperties.mountPath)
                 .resolve(bucket)
                 .resolve(key)
                 .normalize()
                 .toAbsolutePath()
 
         // The resulting path must start with the rootPath to prevent any shenanigans
-        if (!resolved.startsWith(properties.mountPath)) {
+        if (!resolved.startsWith(storeProperties.mountPath)) {
             throw SecurityException("Invalid path: Access outside of mount path denied.")
         }
 

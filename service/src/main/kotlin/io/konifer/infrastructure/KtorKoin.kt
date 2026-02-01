@@ -48,7 +48,7 @@ fun domainModule(): Module =
             StoreNewAssetWorkflow(get(), get(), get(), get(), get(), get(), get(), get(), get())
         }
         single<FetchAssetHandler> {
-            FetchAssetHandler(get(), get(), get())
+            FetchAssetHandler(get(), get(), get(), get())
         }
         single<DeleteAssetWorkflow> {
             DeleteAssetWorkflow(get())

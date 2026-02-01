@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Url
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
@@ -37,15 +36,17 @@ class AssetFilesystemRepositoryTest {
     }
 
     @Test
-    fun `can fetch asset redirect when using the filesystem object repository`() =
+    fun `asset redirect defaults to content response`() =
         testInMemory(
             """
             object-store {
               provider = filesystem
               filesystem {
                 mount-path = ${mountPath.absolutePathString()}
-                http-path = "https://localhost:9000/files"
               }
+            }
+            http {
+              public-url = "https://localhost:9000"
             }
             paths = [
               {
@@ -66,14 +67,11 @@ class AssetFilesystemRepositoryTest {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
+            storeAssetMultipartSource(client, image, request, path = "profile").second
 
             client.get("/assets/profile/-/redirect").apply {
-                status shouldBe HttpStatusCode.TemporaryRedirect
-
-                val location = Url(headers[HttpHeaders.Location]!!).toString()
-                location shouldBe
-                    "https://localhost:9000/files/${storedAssetInfo!!.variants.first().storeBucket}/${storedAssetInfo.variants.first().storeKey}"
+                status shouldBe HttpStatusCode.OK
+                headers[HttpHeaders.Location] shouldBe null
             }
         }
 

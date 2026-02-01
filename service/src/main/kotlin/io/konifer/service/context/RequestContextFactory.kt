@@ -95,7 +95,7 @@ class RequestContextFactory(
         return QueryRequestContext(
             path = segments.first(),
             pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
-            modifiers = querySelectors,
+            selectors = querySelectors,
             transformation =
                 requestedImageAttributes?.let {
                     transformationNormalizer.normalize(
@@ -105,6 +105,10 @@ class RequestContextFactory(
                     )
                 },
             labels = extractLabels(queryParameters),
+            request =
+                HttpRequest(
+                    parameters = queryParameters,
+                ),
         )
     }
 

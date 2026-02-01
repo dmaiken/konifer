@@ -5,8 +5,8 @@ import io.konifer.config.testInMemory
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
+import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
-import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
@@ -145,7 +145,7 @@ class ImagePreviewTest {
             storeAndAssert(client, image, request, setOf(LQIPImplementation.BLURHASH, LQIPImplementation.THUMBHASH))
 
             // Generate the variant
-            fetchAssetViaRedirect(
+            fetchAssetContent(
                 client,
                 width = bufferedImage.width - 10,
                 height = bufferedImage.height - 10,
@@ -199,6 +199,6 @@ class ImagePreviewTest {
                 }
             }
         }
-        fetchAssetViaRedirect(client, PATH)
+        fetchAssetContent(client, PATH)
     }
 }

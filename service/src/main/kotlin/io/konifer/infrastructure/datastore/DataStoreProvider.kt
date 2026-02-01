@@ -6,7 +6,7 @@ enum class DataStoreProvider {
     ;
 
     companion object Factory {
-        val default = IN_MEMORY
+        val default = POSTGRES
 
         fun fromConfig(value: String): DataStoreProvider =
             when (value.lowercase()) {

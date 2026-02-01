@@ -9,7 +9,7 @@ import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
-import io.konifer.infrastructure.objectstore.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.selector.DeleteModifiers
@@ -49,7 +49,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun queryModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/created/metadata",
+                    "/assets/profile/-/new/metadata",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
@@ -85,7 +85,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/redirect",
+                    "/assets/profile/-/new/redirect",
                     ParametersBuilder()
                         .apply {
                             append("limit", "1")
@@ -103,7 +103,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/content",
+                    "/assets/profile/-/new/content",
                     ParametersBuilder()
                         .apply {
                             append("limit", "1")
@@ -121,7 +121,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/mEtAData/",
+                    "/assets/profile/-/new/mEtAData/",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
@@ -139,7 +139,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/metadata",
+                    "/assets/profile/-/new/metadata",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
@@ -157,7 +157,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/metadata",
+                    "/assets/profile/-/new/metadata",
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.METADATA,
@@ -234,7 +234,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created",
+                    "/assets/profile/-/new",
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
@@ -287,7 +287,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/metadata",
+                    "/assets/profile/-/new/metadata",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
@@ -310,7 +310,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun deleteModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/created",
+                    "/assets/profile/-/new",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
@@ -332,7 +332,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created",
+                    "/assets/profile/-/new",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
@@ -343,7 +343,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/created/",
+                    "/assets/profile/-/new/",
                     Parameters.Empty,
                     DeleteModifiers(
                         order = Order.NEW,
@@ -537,7 +537,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe expectedQuerySelectors
+            context.selectors shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
 
@@ -555,7 +555,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 )
 
             context.pathConfiguration shouldBe PathConfiguration.DEFAULT
-            context.modifiers shouldBe expectedQuerySelectors
+            context.selectors shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
 
@@ -631,17 +631,17 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/created/metadata/10/",
-                "/assets/profile/-/metadataa/created/10/",
-                "/assets/profile/-/metadata/created/-1/",
-                "/assets/profile/-/metadata/ccreated/10/",
-                "/assets/profile/-/metadata/created/0/",
-                "/assets/profile/-/10/metadata/created/",
+                "/assets/profile/-/new/metadata/10/",
+                "/assets/profile/-/metadataa/new/10/",
+                "/assets/profile/-/metadata/new/-1/",
+                "/assets/profile/-/metadata/neww/10/",
+                "/assets/profile/-/metadata/new/0/",
+                "/assets/profile/-/10/metadata/new/",
                 "/assets/profile/-/metadata/metadata/metadata/",
-                "/assets/profile/-/created/created/created/",
+                "/assets/profile/-/new/new/new/",
                 "/assets/profile/-/10/10/10/",
-                "/assets/profile/-/metadata/created/10/20",
-                "/assets/profile/-/metadata/link/created/10/",
+                "/assets/profile/-/metadata/new/10/20",
+                "/assets/profile/-/metadata/link/new/10/",
             ],
         )
         fun `throws when GET query modifiers are invalid`(path: String) =
@@ -698,7 +698,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `path can only have one namespace separator in GET request context`() =
             runTest {
-                val path = "/assets/profile/-/-/metadata/created/10/"
+                val path = "/assets/profile/-/-/metadata/new/10/"
                 val exception =
                     shouldThrow<InvalidPathException> {
                         requestContextFactory.fromGetRequest(
@@ -716,7 +716,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             parameters: Parameters,
             transformation: Transformation,
         ) = runTest {
-            val path = "/assets/profile/-/created/link"
+            val path = "/assets/profile/-/new/link"
             storePersistedAsset(
                 height = 100,
                 width = 100,
@@ -747,7 +747,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val exception =
                     shouldThrow<InvalidPathException> {
                         requestContextFactory.fromGetRequest(
-                            path = "/assets/profile/-/created/metadata/",
+                            path = "/assets/profile/-/new/metadata/",
                             headers = HeadersBuilder().build(),
                             queryParameters = parameters,
                         )
@@ -775,10 +775,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/ASSETS/profile/-/created/10/",
-                "/Assets/profile/-/created/10/",
-                "/Asssetts/profile/-/created/10/",
-                "/profile/-/created/10/",
+                "/ASSETS/profile/-/new/10/",
+                "/Assets/profile/-/new/10/",
+                "/Asssetts/profile/-/new/10/",
+                "/profile/-/new/10/",
             ],
         )
         fun `throws if GET uri path does not start with correct prefix`(path: String) =
@@ -798,7 +798,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `can parse labels in request`() =
             runTest {
-                val path = "/assets/profile/-/created/link/"
+                val path = "/assets/profile/-/new/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -835,7 +835,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `some label is used when duplicates exist in request`() =
             runTest {
-                val path = "/assets/profile/-/created/link/"
+                val path = "/assets/profile/-/new/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -869,7 +869,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `some label is used when duplicates exist and one is namespaced in request`() =
             runTest {
-                val path = "/assets/profile/-/created/link/"
+                val path = "/assets/profile/-/new/link/"
                 storePersistedAsset(
                     height = 100,
                     width = 100,
@@ -1071,12 +1071,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/createdd/",
+                "/assets/profile/-/neww/",
                 "/assets/profile/-/entry/-1",
                 "/assets/profile/-/-10/",
                 "/assets/profile/-/recursive/all",
                 "/assets/profile/-/recursive/entry/1",
-                "/assets/profile/-/recursive/created",
+                "/assets/profile/-/recursive/new",
                 "/assets/profile/-/recursive/1",
             ],
         )
@@ -1130,7 +1130,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/created/",
+                "/assets/profile/-/new/",
                 "/assets/profile/-/recursive",
             ],
         )
@@ -1187,7 +1187,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
         @Test
         fun `store asset path cannot have modifiers`() {
-            val path = "/assets/profile/123/-/created"
+            val path = "/assets/profile/123/-/new"
             val exception =
                 shouldThrow<InvalidPathException> {
                     requestContextFactory.fromStoreRequest(path, "image/png")
@@ -1245,7 +1245,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
         @Test
         fun `cannot specify orderBy`() {
-            val path = "/assets/profile/123/-/created/entry/1"
+            val path = "/assets/profile/123/-/new/entry/1"
 
             val exception =
                 shouldThrow<InvalidPathException> {

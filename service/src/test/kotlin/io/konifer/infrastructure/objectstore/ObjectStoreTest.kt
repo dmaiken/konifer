@@ -1,8 +1,10 @@
 package io.konifer.infrastructure.objectstore
 
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.ports.ObjectRepository
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.getResourceAsFile
+import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.RedirectMode
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,8 +17,8 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-abstract class ObjectRepositoryTest {
-    abstract fun createObjectStore(): ObjectRepository
+abstract class ObjectStoreTest {
+    abstract fun createObjectStore(): ObjectStore
 
     companion object {
         protected const val BUCKET_1 = "bucket-1"
@@ -24,7 +26,7 @@ abstract class ObjectRepositoryTest {
         protected const val BUCKET_3 = "bucket-3"
     }
 
-    protected lateinit var store: ObjectRepository
+    protected lateinit var store: ObjectStore
 
     @BeforeEach
     fun initialize() {
@@ -217,5 +219,18 @@ abstract class ObjectRepositoryTest {
     fun `exists returns false if the key does not exist in the object store`() =
         runTest {
             store.exists(BUCKET_1, UUID.randomUUID().toString()) shouldBe false
+        }
+
+    @Test
+    fun `returns no url if redirect mode is disabled`() =
+        runTest {
+            store.generateObjectUrl(
+                bucket = BUCKET_1,
+                key = UUID.randomUUID().toString(),
+                properties =
+                    ObjectStoreProperties(
+                        redirectMode = RedirectMode.NONE,
+                    ),
+            ) shouldBe null
         }
 }
