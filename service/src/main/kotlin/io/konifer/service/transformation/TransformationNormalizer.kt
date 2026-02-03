@@ -5,6 +5,7 @@ import io.konifer.domain.image.Fit
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.RequestedTransformation
 import io.ktor.util.logging.KtorSimpleLogger
@@ -112,8 +113,11 @@ class TransformationNormalizer(
             filter = requested.filter,
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
-            pad = requested.pad ?: 0,
-            background = normalizeBackground(requested, format),
+            padding =
+                Padding(
+                    amount = requested.pad ?: 0,
+                    color = normalizeBackground(requested, format),
+                ),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {

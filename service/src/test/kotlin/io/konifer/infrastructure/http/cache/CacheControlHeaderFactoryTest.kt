@@ -12,7 +12,7 @@ class CacheControlHeaderFactoryTest {
     @Test
     fun `can construct header with max-age`() {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 maxAge = 100,
             ),
@@ -22,7 +22,7 @@ class CacheControlHeaderFactoryTest {
     @Test
     fun `can construct header with s-maxage`() {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 sharedMaxAge = 100,
             ),
@@ -33,7 +33,7 @@ class CacheControlHeaderFactoryTest {
     @EnumSource(CacheControlVisibility::class)
     fun `can construct header with visibility`(visibility: CacheControlVisibility) {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 visibility = visibility,
             ),
@@ -44,7 +44,7 @@ class CacheControlHeaderFactoryTest {
     @EnumSource(CacheControlRevalidate::class)
     fun `can construct header with revalidate`(revalidate: CacheControlRevalidate) {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 revalidate = revalidate,
             ),
@@ -54,7 +54,7 @@ class CacheControlHeaderFactoryTest {
     @Test
     fun `can construct header with stale-while-revalidate`() {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 staleWhileRevalidate = 100,
             ),
@@ -64,7 +64,7 @@ class CacheControlHeaderFactoryTest {
     @Test
     fun `can construct header with stale-if-error`() {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 staleIfError = 100,
             ),
@@ -74,7 +74,7 @@ class CacheControlHeaderFactoryTest {
     @Test
     fun `can construct header with immutable`() {
         CacheControlHeaderFactory.constructHeader(
-            CacheControlProperties.DEFAULT.copy(
+            CacheControlProperties.default.copy(
                 enabled = true,
                 immutable = true,
             ),

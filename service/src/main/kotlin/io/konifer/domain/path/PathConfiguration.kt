@@ -22,14 +22,14 @@ data class PathConfiguration(
     }
 
     companion object {
-        val DEFAULT =
+        val default =
             PathConfiguration(
                 allowedContentTypes = null,
-                preProcessing = PreProcessingProperties.DEFAULT,
-                image = ImageProperties.DEFAULT,
+                preProcessing = PreProcessingProperties.default,
+                image = ImageProperties.default,
                 eagerVariants = emptyList(),
-                objectStore = ObjectStoreProperties.DEFAULT,
-                cacheControl = CacheControlProperties.DEFAULT,
+                objectStore = ObjectStoreProperties.default,
+                cacheControl = CacheControlProperties.default,
             )
 
         fun create(
@@ -37,7 +37,7 @@ data class PathConfiguration(
             parent: PathConfiguration? = null,
         ): PathConfiguration {
             if (applicationConfig == null) {
-                return DEFAULT
+                return default
             }
             return PathConfiguration(
                 allowedContentTypes =

@@ -517,7 +517,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
     fun beforeEach() {
         every {
             pathConfigurationRepository.fetch(any())
-        } returns PathConfiguration.DEFAULT
+        } returns PathConfiguration.default
     }
 
     @Nested
@@ -536,7 +536,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     queryParameters = queryParameters,
                 )
 
-            context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+            context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
@@ -554,7 +554,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     queryParameters = Parameters.Empty,
                 )
 
-            context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+            context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
         }
@@ -584,7 +584,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+                context.pathConfiguration shouldBe PathConfiguration.default
                 context.transformation shouldBe
                     Transformation(
                         height = variantConfig.height!!,
@@ -621,7 +621,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+                context.pathConfiguration shouldBe PathConfiguration.default
                 context.transformation?.height shouldBe 100
                 context.transformation?.width shouldBe 500
                 context.transformation?.format shouldBe ImageFormat.JPEG
@@ -820,7 +820,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                     append("label:h", "hello")
                                 }.build(),
                     )
-                context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+                context.pathConfiguration shouldBe PathConfiguration.default
                 context.transformation?.height shouldBe 100
                 context.transformation?.width shouldBe 500
                 context.transformation?.format shouldBe ImageFormat.JPEG
@@ -857,7 +857,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                     append("case", "hello")
                                 }.build(),
                     )
-                context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+                context.pathConfiguration shouldBe PathConfiguration.default
                 context.transformation?.height shouldBe 100
                 context.transformation?.width shouldBe 500
                 context.transformation?.format shouldBe ImageFormat.JPEG
@@ -891,7 +891,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                     append("label:case", "hello")
                                 }.build(),
                     )
-                context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+                context.pathConfiguration shouldBe PathConfiguration.default
                 context.transformation?.height shouldBe 100
                 context.transformation?.width shouldBe 500
                 context.transformation?.format shouldBe ImageFormat.JPEG
@@ -1161,7 +1161,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             val path = "/assets/profile/123"
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
-            context.pathConfiguration shouldBe PathConfiguration.DEFAULT
+            context.pathConfiguration shouldBe PathConfiguration.default
             context.path shouldBe "/profile/123"
         }
 
@@ -1173,11 +1173,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
             } returns
                 PathConfiguration(
                     allowedContentTypes = listOf("image/png"),
-                    image = ImageProperties.DEFAULT,
+                    image = ImageProperties.default,
                     eagerVariants = listOf(),
-                    objectStore = ObjectStoreProperties.DEFAULT,
-                    preProcessing = PreProcessingProperties.DEFAULT,
-                    cacheControl = CacheControlProperties.DEFAULT,
+                    objectStore = ObjectStoreProperties.default,
+                    preProcessing = PreProcessingProperties.default,
+                    cacheControl = CacheControlProperties.default,
                 )
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -1203,11 +1203,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
             } returns
                 PathConfiguration(
                     allowedContentTypes = listOf("image/jpeg"),
-                    image = ImageProperties.DEFAULT,
+                    image = ImageProperties.default,
                     eagerVariants = listOf(),
-                    objectStore = ObjectStoreProperties.DEFAULT,
-                    preProcessing = PreProcessingProperties.DEFAULT,
-                    cacheControl = CacheControlProperties.DEFAULT,
+                    objectStore = ObjectStoreProperties.default,
+                    preProcessing = PreProcessingProperties.default,
+                    cacheControl = CacheControlProperties.default,
                 )
 
             val exception =

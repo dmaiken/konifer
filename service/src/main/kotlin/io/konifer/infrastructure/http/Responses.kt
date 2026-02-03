@@ -152,8 +152,7 @@ data class TransformationResponse(
     val filter: Filter,
     val blur: Int,
     val quality: Int,
-    val pad: Int,
-    val background: List<Int> = emptyList(),
+    val padding: PaddingResponse,
 ) {
     companion object Factory {
         fun fromTransformation(transformation: Transformation): TransformationResponse =
@@ -168,8 +167,11 @@ data class TransformationResponse(
                 filter = transformation.filter,
                 blur = transformation.blur,
                 quality = transformation.quality,
-                pad = transformation.pad,
-                background = transformation.background,
+                padding =
+                    PaddingResponse(
+                        amount = transformation.padding.amount,
+                        color = transformation.padding.color,
+                    ),
             )
     }
 }
@@ -193,4 +195,10 @@ data class AssetLinkResponse(
     val url: String,
     val alt: String?,
     val lqip: LQIPResponse,
+)
+
+@Serializable
+data class PaddingResponse(
+    val amount: Int,
+    val color: List<Int>,
 )

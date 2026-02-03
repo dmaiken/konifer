@@ -87,7 +87,7 @@ class ImagePreProcessingPropertiesTest {
 
     @Test
     fun `PreProcessingProperties default contains default values`() {
-        val default = ImagePreProcessingProperties.DEFAULT
+        val default = ImagePreProcessingProperties.default
         default.format shouldBe null
         default.maxWidth shouldBe null
         default.maxHeight shouldBe null

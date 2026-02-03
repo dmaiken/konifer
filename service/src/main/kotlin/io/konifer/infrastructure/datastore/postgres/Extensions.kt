@@ -44,16 +44,16 @@ fun AssetVariantRecord.toVariantData(): VariantData =
         objectStoreKey = checkNotNull(objectStoreKey),
         isOriginalVariant = originalVariant ?: false,
         attributes =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         transformation =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantTransformation>(
                     checkNotNull(transformation).data(),
                 ).toTransformation(),
-        lqips = format.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = uploadedAt,
     )
@@ -115,16 +115,16 @@ fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
         objectStoreKey = checkNotNull(objectStoreKey),
         isOriginalVariant = originalVariant ?: false,
         attributes =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         transformation =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantTransformation>(
                     checkNotNull(transformation).data(),
                 ).toTransformation(),
-        lqips = format.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = null,
     )
@@ -137,16 +137,16 @@ fun AssetVariantRecord.toReadyVariant(): Variant.Ready =
         objectStoreKey = checkNotNull(objectStoreKey),
         isOriginalVariant = originalVariant ?: false,
         attributes =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         transformation =
-            format
+            postgresJson
                 .decodeFromString<ImageVariantTransformation>(
                     checkNotNull(transformation).data(),
                 ).toTransformation(),
-        lqips = format.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = LocalDateTime.now(),
     )

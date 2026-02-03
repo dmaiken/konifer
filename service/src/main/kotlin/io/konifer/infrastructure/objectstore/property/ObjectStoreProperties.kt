@@ -8,9 +8,9 @@ import kotlin.time.Duration.Companion.days
 
 data class ObjectStoreProperties(
     val bucket: String = DEFAULT_BUCKET,
-    val redirectMode: RedirectMode = RedirectMode.DEFAULT,
-    val preSigned: PreSignedProperties = PreSignedProperties.DEFAULT,
-    val cdn: CdnProperties = CdnProperties.DEFAULT,
+    val redirectMode: RedirectMode = RedirectMode.default,
+    val preSigned: PreSignedProperties = PreSignedProperties.default,
+    val cdn: CdnProperties = CdnProperties.default,
 ) {
     init {
         validate()
@@ -26,7 +26,7 @@ data class ObjectStoreProperties(
                     "(?!.*\\.mwrap$)[a-z0-9][a-z0-9-]{1,61}[a-z0-9])$",
             )
         private const val DEFAULT_BUCKET = "assets"
-        val DEFAULT = ObjectStoreProperties()
+        val default = ObjectStoreProperties()
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -42,7 +42,7 @@ data class ObjectStoreProperties(
                         ?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.REDIRECT_MODE)
                         ?.let { RedirectMode.fromConfig(it) }
                         ?: parent?.redirectMode
-                        ?: RedirectMode.DEFAULT,
+                        ?: RedirectMode.default,
                 preSigned =
                     PreSignedProperties.create(
                         applicationConfig =

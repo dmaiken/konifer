@@ -62,7 +62,7 @@ data class RequestedTransformation(
                 blur = applicationConfig.tryGetString(ManipulationParameters.BLUR)?.toInt(),
                 quality = applicationConfig.tryGetString(ManipulationParameters.QUALITY)?.toInt(),
                 pad = applicationConfig.tryGetString(ManipulationParameters.PAD)?.toInt(),
-                background = applicationConfig.tryGetString(ManipulationParameters.BACKGROUND),
+                background = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
             ).apply {
                 validate()
             }

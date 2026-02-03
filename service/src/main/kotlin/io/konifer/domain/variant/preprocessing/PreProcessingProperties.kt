@@ -8,9 +8,9 @@ data class PreProcessingProperties(
     val image: ImagePreProcessingProperties,
 ) {
     companion object Factory {
-        val DEFAULT =
+        val default =
             PreProcessingProperties(
-                image = ImagePreProcessingProperties.DEFAULT,
+                image = ImagePreProcessingProperties.default,
             )
 
         fun create(

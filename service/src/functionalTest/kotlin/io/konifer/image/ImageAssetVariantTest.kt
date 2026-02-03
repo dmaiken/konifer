@@ -660,12 +660,12 @@ class ImageAssetVariantTest {
                 storeAssetMultipartSource(client, image, request)
 
                 val pad = 20
-                fetchAssetContent(client, pad = pad, background = "#FF0000", expectCacheHit = false)
+                fetchAssetContent(client, pad = pad, padColor = "#FF0000", expectCacheHit = false)
                 val result =
                     fetchAssetContent(
                         client,
                         pad = pad,
-                        background = "#FF0000",
+                        padColor = "#FF0000",
                         expectCacheHit = true,
                     ).second!!
                 Vips.run { arena ->
@@ -691,12 +691,12 @@ class ImageAssetVariantTest {
 
                 val pad = 20
                 val resultWithAlphaDefined =
-                    fetchAssetContent(client, pad = pad, background = "#FF0000FF", expectCacheHit = false).second!!
+                    fetchAssetContent(client, pad = pad, padColor = "#FF0000FF", expectCacheHit = false).second!!
                 val resultWithoutAlphaDefined =
                     fetchAssetContent(
                         client,
                         pad = pad,
-                        background = "#FF0000",
+                        padColor = "#FF0000",
                         expectCacheHit = true,
                     ).second!!
                 val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
@@ -719,12 +719,12 @@ class ImageAssetVariantTest {
 
                 val pad = 20
                 val resultWithAlphaDefined =
-                    fetchAssetContent(client, pad = pad, background = "#FF0000", expectCacheHit = false).second!!
+                    fetchAssetContent(client, pad = pad, padColor = "#FF0000", expectCacheHit = false).second!!
                 val resultWithoutAlphaDefined =
                     fetchAssetContent(
                         client,
                         pad = pad,
-                        background = "#FF0000FF",
+                        padColor = "#FF0000FF",
                         expectCacheHit = true,
                     ).second!!
                 val withAlphaDefined = ImageIO.read(ByteArrayInputStream(resultWithAlphaDefined))
@@ -749,7 +749,7 @@ class ImageAssetVariantTest {
                     fetchAssetContent(
                         client,
                         pad = 0,
-                        background = "#FF0000",
+                        padColor = "#FF0000",
                         expectCacheHit = true,
                     ).second!!
                 val originalVariant = fetchAssetContent(client).second!!
@@ -897,7 +897,7 @@ class ImageAssetVariantTest {
 
                 fetchAssetViaRedirect(
                     client,
-                    background = "bad",
+                    padColor = "bad",
                     expectCacheHit = false,
                     expectedStatusCode = HttpStatusCode.BadRequest,
                 )

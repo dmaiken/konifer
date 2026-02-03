@@ -46,7 +46,7 @@ data class ImagePreProcessingProperties(
             (pad != null && pad > 0)
 
     companion object Factory {
-        val DEFAULT =
+        val default =
             ImagePreProcessingProperties(
                 maxWidth = null,
                 maxHeight = null,
@@ -165,7 +165,7 @@ data class ImagePreProcessingProperties(
                     ?.tryGetString(ManipulationParameters.PAD)
                     ?.toInt() ?: parent?.pad,
             background =
-                applicationConfig?.tryGetString(ManipulationParameters.BACKGROUND)
+                applicationConfig?.tryGetString(ManipulationParameters.PAD_COLOR)
                     ?: parent?.background,
         )
     }
@@ -210,7 +210,7 @@ data class ImagePreProcessingProperties(
             require(it > 0) { "'${ManipulationParameters.PAD}' must be greater than 0" }
         }
         background?.let {
-            require(it.isNotBlank() && it.length > 3 && it.startsWith('#')) { "'${ManipulationParameters.BACKGROUND}' must not be blank" }
+            require(it.isNotBlank() && it.length > 3 && it.startsWith('#')) { "'${ManipulationParameters.PAD_COLOR}' must not be blank" }
         }
     }
 }

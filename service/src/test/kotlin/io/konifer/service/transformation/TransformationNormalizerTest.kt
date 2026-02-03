@@ -622,8 +622,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.pad shouldBe 1
-                normalized.background shouldBe listOf(0, 0, 0, 0)
+                normalized.padding.amount shouldBe 1
+                normalized.padding.color shouldBe listOf(0, 0, 0, 0)
             }
 
         @Test
@@ -644,8 +644,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.pad shouldBe 1
-                normalized.background shouldBe listOf(255, 255, 255, 255)
+                normalized.padding.amount shouldBe 1
+                normalized.padding.color shouldBe listOf(255, 255, 255, 255)
             }
 
         @Test
@@ -666,8 +666,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.pad shouldBe 1
-                normalized.background shouldBe listOf(250, 155, 30, 1)
+                normalized.padding.amount shouldBe 1
+                normalized.padding.color shouldBe listOf(250, 155, 30, 1)
             }
 
         @Test
@@ -688,8 +688,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.pad shouldBe 1
-                normalized.background shouldBe listOf(250, 155, 30, 255)
+                normalized.padding.amount shouldBe 1
+                normalized.padding.color shouldBe listOf(250, 155, 30, 255)
             }
 
         @Test
@@ -710,8 +710,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.pad shouldBe 0
-                normalized.background shouldBe emptyList()
+                normalized.padding.amount shouldBe 0
+                normalized.padding.color shouldBe emptyList()
             }
 
         @ParameterizedTest

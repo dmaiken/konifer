@@ -12,7 +12,6 @@ import io.konifer.service.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.service.context.PathSelectorExtractor.extractQuerySelectors
 import io.konifer.service.context.selector.ManipulationParameters.ALL_RESERVED_PARAMETERS
 import io.konifer.service.context.selector.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
-import io.konifer.service.context.selector.ManipulationParameters.BACKGROUND
 import io.konifer.service.context.selector.ManipulationParameters.BLUR
 import io.konifer.service.context.selector.ManipulationParameters.FILTER
 import io.konifer.service.context.selector.ManipulationParameters.FIT
@@ -21,6 +20,7 @@ import io.konifer.service.context.selector.ManipulationParameters.FORMAT
 import io.konifer.service.context.selector.ManipulationParameters.GRAVITY
 import io.konifer.service.context.selector.ManipulationParameters.HEIGHT
 import io.konifer.service.context.selector.ManipulationParameters.PAD
+import io.konifer.service.context.selector.ManipulationParameters.PAD_COLOR
 import io.konifer.service.context.selector.ManipulationParameters.QUALITY
 import io.konifer.service.context.selector.ManipulationParameters.ROTATE
 import io.konifer.service.context.selector.ManipulationParameters.VARIANT_PROFILE
@@ -209,7 +209,7 @@ class RequestContextFactory(
                 blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
                 quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
                 pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
-                background = parameters[BACKGROUND] ?: variantProfile?.background,
+                background = parameters[PAD_COLOR] ?: variantProfile?.background,
             )
         }
     }

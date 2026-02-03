@@ -77,7 +77,7 @@ class PostgresAssetRepository(
             insertLabels(trx.dsl(), assetId, asset.labels, now)
             insertTags(trx.dsl(), assetId, asset.tags, now)
 
-            val lqip = format.encodeToString(asset.variants.first().lqips)
+            val lqip = postgresJson.encodeToString(asset.variants.first().lqips)
             val persistedVariant =
                 trx
                     .dsl()
@@ -135,7 +135,7 @@ class PostgresAssetRepository(
                     variant.transformation,
                 )
             val attributes = VariantParameterGenerator.generateImageVariantAttributes(variant.attributes)
-            val lqip = format.encodeToString(variant.lqips)
+            val lqip = postgresJson.encodeToString(variant.lqips)
 
             val persistedVariant =
                 try {
@@ -448,24 +448,14 @@ class PostgresAssetRepository(
         return if (transformation.originalVariant) {
             condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
         } else {
+            val serializedTransformation =
+                VariantParameterGenerator.generateImageVariantTransformations(
+                    transformation,
+                )
             condition
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "width").eq(transformation.width.toString()))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "height").eq(transformation.height.toString()))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "format").eq(transformation.format.name))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "fit").eq(transformation.fit.name))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "rotate").eq(transformation.rotate.name))
                 .and(
-                    DSL
-                        .jsonbGetAttributeAsText(
-                            ASSET_VARIANT.TRANSFORMATION,
-                            "horizontalFlip",
-                        ).eq(transformation.horizontalFlip.toString()),
-                ).and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "filter").eq(transformation.filter.name))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "gravity").eq(transformation.gravity.name))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "quality").eq(transformation.quality.toString()))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "blur").eq(transformation.blur.toString()))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "pad").eq(transformation.pad.toString()))
-                .and(DSL.jsonbGetAttributeAsText(ASSET_VARIANT.TRANSFORMATION, "background").eq(transformation.background.toString()))
+                    ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation)),
+                )
         }
     }
 

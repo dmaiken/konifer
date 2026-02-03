@@ -8,7 +8,7 @@ enum class RedirectMode {
     ;
 
     companion object Factory {
-        val DEFAULT = NONE
+        val default = NONE
 
         fun fromConfig(value: String): RedirectMode = valueOf(value.uppercase())
     }

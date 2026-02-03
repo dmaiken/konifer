@@ -5,6 +5,7 @@ import io.konifer.domain.image.Fit
 import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
+import kotlin.collections.emptyList
 
 data class Transformation(
     val originalVariant: Boolean = false,
@@ -22,11 +23,7 @@ data class Transformation(
     val filter: Filter = Filter.default,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
-    val pad: Int = 0,
-    /**
-     * Background will be a 4-element list representing RGBA
-     */
-    val background: List<Int> = emptyList(),
+    val padding: Padding = Padding.default,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -52,8 +49,7 @@ data class Transformation(
                 filter == it.filter &&
                 blur == it.blur &&
                 quality == it.quality &&
-                pad == it.pad &&
-                background == it.background
+                padding == it.padding
         }
     }
 
@@ -65,13 +61,25 @@ data class Transformation(
         result = 31 * result + horizontalFlip.hashCode()
         result = 31 * result + blur
         result = 31 * result + quality
-        result = 31 * result + pad
         result = 31 * result + fit.hashCode()
         result = 31 * result + gravity.hashCode()
         result = 31 * result + format.hashCode()
         result = 31 * result + rotate.hashCode()
         result = 31 * result + filter.hashCode()
-        result = 31 * result + background.hashCode()
+        result = 31 * result + padding.hashCode()
         return result
+    }
+}
+
+data class Padding(
+    val amount: Int,
+    val color: List<Int>,
+) {
+    companion object Factory {
+        val default =
+            Padding(
+                amount = 0,
+                color = emptyList(),
+            )
     }
 }

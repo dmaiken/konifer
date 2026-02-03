@@ -21,9 +21,9 @@ class PathConfigurationTest {
                             previews = setOf(),
                         ),
                     eagerVariants = emptyList(),
-                    objectStore = ObjectStoreProperties.DEFAULT,
-                    preProcessing = PreProcessingProperties.DEFAULT,
-                    cacheControl = CacheControlProperties.DEFAULT,
+                    objectStore = ObjectStoreProperties.default,
+                    preProcessing = PreProcessingProperties.default,
+                    cacheControl = CacheControlProperties.default,
                 )
             }
 

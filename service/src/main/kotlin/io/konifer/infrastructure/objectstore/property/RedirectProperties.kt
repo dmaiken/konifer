@@ -11,7 +11,7 @@ data class PreSignedProperties(
 ) {
     companion object Factory {
         val DEFAULT_TTL = 30.minutes
-        val DEFAULT = PreSignedProperties()
+        val default = PreSignedProperties()
 
         fun create(
             applicationConfig: ApplicationConfig?,
@@ -33,7 +33,7 @@ data class CdnProperties(
     val domain: String? = DEFAULT_DOMAIN,
 ) {
     companion object Factory {
-        val DEFAULT = CdnProperties()
+        val default = CdnProperties()
         val DEFAULT_DOMAIN = null
 
         fun create(

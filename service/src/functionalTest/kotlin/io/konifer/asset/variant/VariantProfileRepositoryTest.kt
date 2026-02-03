@@ -359,12 +359,12 @@ class VariantProfileRepositoryTest {
                 ),
                 arguments(
                     named(
-                        "bad background",
+                        "bad pad-color",
                         """
                         variant-profiles = [
                             {
                                 name = small
-                                bg = bad
+                                pad-c = bad
                             }
                         ]
                         """.trimIndent(),

@@ -8,7 +8,7 @@ data class ImageProperties(
     val previews: Set<LQIPImplementation>,
 ) {
     companion object Factory {
-        val DEFAULT =
+        val default =
             ImageProperties(
                 previews = setOf(),
             )

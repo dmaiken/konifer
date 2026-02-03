@@ -6,8 +6,10 @@ import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.kotest.matchers.shouldBe
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 
@@ -38,7 +40,7 @@ class VariantParameterGeneratorTest {
     @Test
     fun `the same transformations generated based on the same parameters`() {
         val expectedAttributes =
-            Json.Default.encodeToString(
+            Json.encodeToString(
                 ImageVariantTransformation(
                     width = 100,
                     height = 100,
@@ -50,8 +52,11 @@ class VariantParameterGeneratorTest {
                     filter = Filter.GREYSCALE,
                     blur = 10,
                     quality = 30,
-                    pad = 10,
-                    background = listOf(100, 100, 50, 10),
+                    padding =
+                        ImageVariantPadding(
+                            amount = 10,
+                            color = listOf(100, 100, 50, 10),
+                        ),
                 ),
             )
         val transformations1 =
@@ -68,8 +73,11 @@ class VariantParameterGeneratorTest {
                         filter = Filter.GREYSCALE,
                         blur = 10,
                         quality = 30,
-                        pad = 10,
-                        background = listOf(100, 100, 50, 10),
+                        padding =
+                            Padding(
+                                amount = 10,
+                                color = listOf(100, 100, 50, 10),
+                            ),
                     ),
             )
         val transformations2 =
@@ -86,11 +94,39 @@ class VariantParameterGeneratorTest {
                         filter = Filter.GREYSCALE,
                         blur = 10,
                         quality = 30,
-                        pad = 10,
-                        background = listOf(100, 100, 50, 10),
+                        padding =
+                            Padding(
+                                amount = 10,
+                                color = listOf(100, 100, 50, 10),
+                            ),
                     ),
             )
 
         transformations1 shouldBe transformations2 shouldBe expectedAttributes
     }
+
+    @Test
+    fun `default fields are ignored when serializing`() {
+        val transformation =
+            Transformation(
+                height = 100,
+                width = 150,
+                format = ImageFormat.JPEG,
+            )
+        val expected =
+            RequiredTransformationFields(
+                height = 100,
+                width = 150,
+                format = ImageFormat.JPEG,
+            )
+
+        VariantParameterGenerator.generateImageVariantTransformations(transformation) shouldBe Json.encodeToString(expected)
+    }
+
+    @Serializable
+    data class RequiredTransformationFields(
+        val width: Int,
+        val height: Int,
+        val format: ImageFormat,
+    )
 }

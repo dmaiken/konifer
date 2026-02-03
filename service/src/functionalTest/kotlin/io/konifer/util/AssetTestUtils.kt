@@ -145,7 +145,7 @@ suspend fun fetchAssetViaRedirect(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
 ): ByteArray? {
@@ -156,7 +156,7 @@ suspend fun fetchAssetViaRedirect(
         urlBuilder.path("/assets/$path/-/redirect")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, padColor)
     val url = urlBuilder.build()
     val fetchResponse =
         client.get(url.fullPath).apply {
@@ -204,7 +204,7 @@ suspend fun fetchAssetContent(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -216,7 +216,7 @@ suspend fun fetchAssetContent(
         urlBuilder.path("/assets/$path/-/content")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, padColor)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -269,7 +269,7 @@ suspend fun fetchAssetContentDownload(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -281,7 +281,7 @@ suspend fun fetchAssetContentDownload(
         urlBuilder.path("/assets/$path/-/download")
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, padColor)
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
         status shouldBe expectedStatusCode
@@ -333,7 +333,7 @@ suspend fun fetchAssetLink(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
     expectCacheHit: Boolean? = null,
     signature: String? = null,
     labels: Map<String, String> = emptyMap(),
@@ -349,7 +349,7 @@ suspend fun fetchAssetLink(
         urlBuilder.parameters.append(label.key, label.value)
     }
 
-    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, background)
+    attachVariantModifiers(urlBuilder, profile, height, width, format, fit, gravity, rotate, flip, filter, blur, quality, pad, padColor)
     signature?.let {
         urlBuilder.parameters["s"] = signature
     }
@@ -537,7 +537,7 @@ private fun attachVariantModifiers(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
 ) {
     if (profile != null) {
         urlBuilder.parameters.append("profile", profile)
@@ -575,7 +575,7 @@ private fun attachVariantModifiers(
     if (pad != null) {
         urlBuilder.parameters.append("pad", pad.toString())
     }
-    if (background != null) {
-        urlBuilder.parameters.append("bg", background)
+    if (padColor != null) {
+        urlBuilder.parameters.append("pad-c", padColor)
     }
 }

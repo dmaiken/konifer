@@ -2,21 +2,21 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.Transformation
-import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.serialization.json.Json
 
+/**
+ * It is VERY IMPORTANT that the [postgresJson] serializer is used here. We do not want to serialize null values
+ * or default values because, if a new field is ever added (and it will be), we need backwards-compatability
+ * and that is done by not serializing default values.
+ */
 object VariantParameterGenerator {
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-
     /**
      * Generates the image variant attributes for an image asset.
      *
      * @return the attributes as a json string
      */
     fun generateImageVariantTransformations(imageTransformation: Transformation): String {
-        val transformations = Json.encodeToString(ImageVariantTransformation.from(imageTransformation))
+        val transformations = postgresJson.encodeToString(ImageVariantTransformation.from(imageTransformation))
 
-        logger.info("Generated transformations: $transformations")
         return transformations
     }
 
@@ -26,16 +26,15 @@ object VariantParameterGenerator {
      */
     fun generateImageVariantTransformations(attributes: Attributes): String {
         val transformations =
-            Json.encodeToString(
+            postgresJson.encodeToString(
                 ImageVariantTransformation.originalTransformation(attributes),
             )
 
-        logger.info("Generated transformations: $transformations using attributes: $attributes")
         return transformations
     }
 
     fun generateImageVariantAttributes(imageAttributes: Attributes): String =
-        Json.encodeToString(
+        postgresJson.encodeToString(
             ImageVariantAttributes(
                 width = imageAttributes.width,
                 height = imageAttributes.height,

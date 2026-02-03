@@ -62,7 +62,7 @@ data class CacheControlProperties(
     }
 
     companion object Factory {
-        val DEFAULT =
+        val default =
             CacheControlProperties(
                 enabled = false,
                 maxAge = null,

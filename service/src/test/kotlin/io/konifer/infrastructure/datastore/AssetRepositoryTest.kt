@@ -9,6 +9,7 @@ import io.konifer.domain.image.Rotate
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.selector.Order
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -1573,7 +1574,11 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = ImageFormat.PNG,
-                        pad = 10,
+                        padding =
+                            Padding(
+                                amount = 10,
+                                color = emptyList(),
+                            ),
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1596,14 +1601,21 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = transformation.copy(pad = 50),
+                        transformation =
+                            transformation.copy(
+                                padding =
+                                    Padding(
+                                        amount = 50,
+                                        color = emptyList(),
+                                    ),
+                            ),
                     )
                 noVariant shouldNotBe null
                 noVariant!!.variants shouldHaveSize 0
             }
 
         @Test
-        fun `can fetch variant by background transformation`() =
+        fun `can fetch variant by pad-color transformation`() =
             runTest {
                 val pending = createPendingAsset()
                 val persisted = repository.storeNew(pending)
@@ -1613,7 +1625,11 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = ImageFormat.PNG,
-                        background = listOf(255, 255, 255, 255),
+                        padding =
+                            Padding(
+                                amount = 0,
+                                color = listOf(255, 255, 255, 255),
+                            ),
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1636,7 +1652,14 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = transformation.copy(background = listOf(240, 255, 255, 255)),
+                        transformation =
+                            transformation.copy(
+                                padding =
+                                    Padding(
+                                        amount = 0,
+                                        color = listOf(240, 255, 255, 255),
+                                    ),
+                            ),
                     )
                 noVariant shouldNotBe null
                 noVariant!!.variants shouldHaveSize 0
@@ -1659,8 +1682,11 @@ abstract class AssetRepositoryTest {
                         filter = Filter.GREYSCALE,
                         gravity = Gravity.ENTROPY,
                         quality = 50,
-                        pad = 10,
-                        background = listOf(100, 50, 34, 100),
+                        padding =
+                            Padding(
+                                amount = 10,
+                                color = listOf(100, 50, 34, 100),
+                            ),
                     )
                 val pendingVariant =
                     createPendingVariant(

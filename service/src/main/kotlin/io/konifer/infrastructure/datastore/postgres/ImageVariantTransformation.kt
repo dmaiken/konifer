@@ -6,6 +6,7 @@ import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import kotlinx.serialization.Serializable
 
@@ -17,15 +18,14 @@ data class ImageVariantTransformation(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
-    val fit: Fit,
-    val gravity: Gravity,
-    val rotate: Rotate,
-    val horizontalFlip: Boolean,
-    val filter: Filter,
-    val blur: Int,
-    val quality: Int,
-    val pad: Int,
-    val background: List<Int>,
+    val fit: Fit = Fit.default,
+    val gravity: Gravity = Gravity.default,
+    val rotate: Rotate = Rotate.default,
+    val horizontalFlip: Boolean = false,
+    val filter: Filter = Filter.default,
+    val blur: Int = 0,
+    val quality: Int = format.vipsProperties.defaultQuality,
+    val padding: ImageVariantPadding = ImageVariantPadding.default,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -40,8 +40,11 @@ data class ImageVariantTransformation(
                 filter = Filter.default,
                 blur = 0,
                 quality = attributes.format.vipsProperties.defaultQuality,
-                pad = 0,
-                background = emptyList(),
+                padding =
+                    ImageVariantPadding(
+                        amount = 0,
+                        color = emptyList(),
+                    ),
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -56,8 +59,11 @@ data class ImageVariantTransformation(
                 filter = transformation.filter,
                 blur = transformation.blur,
                 quality = transformation.quality,
-                pad = transformation.pad,
-                background = transformation.background,
+                padding =
+                    ImageVariantPadding(
+                        amount = transformation.padding.amount,
+                        color = transformation.padding.color,
+                    ),
             )
     }
 
@@ -73,7 +79,24 @@ data class ImageVariantTransformation(
             filter = this.filter,
             blur = this.blur,
             quality = this.quality,
-            pad = this.pad,
-            background = this.background,
+            padding =
+                Padding(
+                    amount = this.padding.amount,
+                    color = this.padding.color,
+                ),
         )
+}
+
+@Serializable
+data class ImageVariantPadding(
+    val amount: Int,
+    val color: List<Int>,
+) {
+    companion object Factory {
+        val default =
+            ImageVariantPadding(
+                amount = 0,
+                color = emptyList(),
+            )
+    }
 }

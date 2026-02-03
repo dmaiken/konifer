@@ -12,7 +12,7 @@ object ManipulationParameters {
     const val BLUR = "blur"
     const val QUALITY = "q"
     const val PAD = "pad"
-    const val BACKGROUND = "bg"
+    const val PAD_COLOR = "pad-c"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -33,7 +33,7 @@ object ManipulationParameters {
             BLUR,
             QUALITY,
             PAD,
-            BACKGROUND,
+            PAD_COLOR,
         )
 
     val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + setOf(VARIANT_PROFILE) + "s" + LIMIT_PARAMETER
