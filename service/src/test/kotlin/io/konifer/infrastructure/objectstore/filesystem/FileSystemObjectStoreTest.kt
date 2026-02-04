@@ -2,14 +2,13 @@ package io.konifer.infrastructure.objectstore.filesystem
 
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
-import io.konifer.infrastructure.objectstore.property.CdnProperties
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectMode
+import io.konifer.infrastructure.objectstore.property.RedirectProperties
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -53,19 +52,17 @@ class FileSystemObjectStoreTest : ObjectStoreTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(RedirectMode::class)
-    fun `no url is returned regardless of redirect mode`(redirectMode: RedirectMode) =
+    @Test
+    fun `no url is returned for presigned redirect strategy`() =
         runTest {
             store.generateObjectUrl(
                 bucket = BUCKET_1,
                 key = UUID.randomUUID().toString(),
                 properties =
                     ObjectStoreProperties(
-                        redirectMode = redirectMode,
-                        cdn =
-                            CdnProperties(
-                                domain = "my.domain.com",
+                        redirect =
+                            RedirectProperties(
+                                strategy = RedirectStrategy.PRESIGNED,
                             ),
                     ),
             ) shouldBe null

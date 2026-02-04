@@ -3,6 +3,7 @@ package io.konifer.infrastructure.objectstore.filesystem
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
@@ -104,7 +105,15 @@ class FileSystemObjectStore(
         bucket: String,
         key: String,
         properties: ObjectStoreProperties,
-    ): String? = null
+    ): String? =
+        when (properties.redirect.strategy) {
+            RedirectStrategy.TEMPLATE ->
+                properties.redirect.template.resolve(
+                    bucket = bucket,
+                    key = key,
+                )
+            else -> null
+        }
 
     private fun resolvePath(
         bucket: String,

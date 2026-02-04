@@ -13,13 +13,6 @@ data class S3ClientProperties(
             require(endpointUrl != null && region != null) {
                 "If using localstack you must specify endpointUrl and region"
             }
-        } else {
-            // Reasoning for this is if endpointUrl is not set, we can assume client is using AWS S3 and a region is required
-            if (endpointUrl == null && region == null) {
-                throw IllegalArgumentException("Region must not be null if endpoint url is not specified")
-            }
         }
     }
-
-    val endpointDomain = endpointUrl?.replaceFirst("https://", "")?.replaceFirst("http://", "")
 }

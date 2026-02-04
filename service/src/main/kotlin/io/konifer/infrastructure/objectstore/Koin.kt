@@ -55,7 +55,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                     s3Client(s3ClientProperties)
                 }
                 single<ObjectStore> {
-                    S3ObjectStore(get(), s3ClientProperties)
+                    S3ObjectStore(get())
                 }
             }
             ObjectStoreProvider.FILESYSTEM -> {

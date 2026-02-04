@@ -33,21 +33,6 @@ class S3ClientPropertiesTest {
     }
 
     @Test
-    fun `region must be specified if endpoint url is not set`() {
-        val exception =
-            shouldThrow<IllegalArgumentException> {
-                S3ClientProperties(
-                    endpointUrl = null,
-                    accessKey = null,
-                    secretKey = null,
-                    region = null,
-                    usePathStyleUrl = false,
-                )
-            }
-        exception.message shouldBe "Region must not be null if endpoint url is not specified"
-    }
-
-    @Test
     fun `if provider hint is localstack then region must be supplied`() {
         val exception =
             shouldThrow<IllegalArgumentException> {

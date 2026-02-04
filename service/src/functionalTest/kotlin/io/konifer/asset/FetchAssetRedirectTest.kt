@@ -31,48 +31,19 @@ class FetchAssetRedirectTest {
         }
 
     @Test
-    fun `can fetch asset and render when redirect mode is bucket`() =
+    fun `can fetch asset and render when redirect mode is template`() =
         testInMemory(
             """
             paths = [
               {
                 path = "/**"
                 object-store {
-                  redirect-mode = bucket
-                }
-              }
-            ]
-            """.trimIndent(),
-        ) {
-            val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val variant = storedAssetInfo!!.variants.first()
-
-            client.get("/assets/profile/-/redirect").apply {
-                status shouldBe HttpStatusCode.TemporaryRedirect
-
-                val location = Url(headers[HttpHeaders.Location]!!).toString()
-                location shouldBe "http://localhost:8080/objectStore/${variant.storeBucket}/${variant.storeKey}"
-            }
-        }
-
-    @Test
-    fun `can fetch asset and render when redirect mode is cdn`() =
-        testInMemory(
-            """
-            paths = [
-              {
-                path = "/**"
-                object-store {
-                  redirect-mode = cdn
-                  cdn {
-                    domain = "my.domain.com"
-                  }
+                  redirect {
+                    strategy = template
+                    template {
+                      string = "https://{bucket}.domain.com/{key}"
+                    }
+                  }                
                 }
               }
             ]
@@ -92,19 +63,21 @@ class FetchAssetRedirectTest {
 
                 val variant = storedAssetInfo.variants.first()
                 val location = Url(headers[HttpHeaders.Location]!!).toString()
-                location shouldBe "https://my.domain.com/${variant.storeBucket}/${variant.storeKey}"
+                location shouldBe "https://${variant.storeBucket}.domain.com/${variant.storeKey}"
             }
         }
 
     @Test
-    fun `returns content without redirect when redirect-mode is none`() =
+    fun `returns content without redirect when redirect strategy is none`() =
         testInMemory(
             """
             paths = [
               {
                 path = "/**"
                 object-store {
-                  redirect-mode = none
+                  redirect {
+                    strategy = none
+                  }
                 }
               }
             ]

@@ -66,16 +66,20 @@ object ConfigurationPropertyKeys {
 
         object ObjectStorePropertyKeys {
             const val BUCKET = "bucket"
-            const val REDIRECT_MODE = "redirect-mode"
-            const val PRESIGNED = "presigned"
-            const val CDN = "cdn"
+            const val REDIRECT = "redirect"
 
-            object PreSignedProperties {
-                const val TTL = "ttl"
-            }
+            object RedirectProperties {
+                const val STRATEGY = "strategy"
+                const val PRESIGNED = "presigned"
+                const val TEMPLATE = "template"
 
-            object CdnProperties {
-                const val DOMAIN = "domain"
+                object PreSignedProperties {
+                    const val TTL = "ttl"
+                }
+
+                object TemplateProperties {
+                    const val STRING = "string"
+                }
             }
         }
 

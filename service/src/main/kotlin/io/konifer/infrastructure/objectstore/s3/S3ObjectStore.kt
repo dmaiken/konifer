@@ -17,7 +17,7 @@ import aws.smithy.kotlin.runtime.content.writeToOutputStream
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectMode
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
@@ -28,7 +28,6 @@ import java.time.LocalDateTime
 
 class S3ObjectStore(
     private val s3Client: S3Client,
-    private val s3ClientProperties: S3ClientProperties,
 ) : ObjectStore {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -141,14 +140,8 @@ class S3ObjectStore(
         key: String,
         properties: ObjectStoreProperties,
     ): String? =
-        when (properties.redirectMode) {
-            RedirectMode.CDN -> "https://${properties.cdn.domain}/$bucket/$key"
-            RedirectMode.BUCKET ->
-                generateBucketUrl(
-                    bucket = bucket,
-                    key = key,
-                )
-            RedirectMode.PRESIGNED ->
+        when (properties.redirect.strategy) {
+            RedirectStrategy.PRESIGNED ->
                 withContext(Dispatchers.IO) {
                     s3Client.presignGetObject(
                         input =
@@ -156,28 +149,14 @@ class S3ObjectStore(
                                 this.bucket = bucket
                                 this.key = key
                             },
-                        duration = properties.preSigned.ttl,
+                        duration = properties.redirect.preSigned.ttl,
                     )
                 }.url.toString()
-            RedirectMode.NONE -> null
-        }
-
-    private fun generateBucketUrl(
-        bucket: String,
-        key: String,
-    ): String =
-        when {
-            s3ClientProperties.usePathStyleUrl -> {
-                s3ClientProperties.endpointDomain?.let { endpointDomain ->
-                    // Not using AWS S3
-                    "https://$endpointDomain/$bucket/$key"
-                } ?: "https://s3.${s3ClientProperties.region}.amazonaws.com/$bucket/$key"
-            }
-            else -> {
-                s3ClientProperties.endpointDomain?.let { endpointDomain ->
-                    // Not using AWS S3
-                    "https://$bucket.$endpointDomain/$key"
-                } ?: "https://$bucket.s3.${s3ClientProperties.region}.amazonaws.com/$key"
-            }
+            RedirectStrategy.TEMPLATE ->
+                properties.redirect.template.resolve(
+                    bucket = bucket,
+                    key = key,
+                )
+            RedirectStrategy.NONE -> null
         }
 }

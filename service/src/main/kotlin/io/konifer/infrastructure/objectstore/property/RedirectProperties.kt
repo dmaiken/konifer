@@ -1,10 +1,67 @@
 package io.konifer.infrastructure.objectstore.property
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
+import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys
+import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+
+data class RedirectProperties(
+    val strategy: RedirectStrategy = RedirectStrategy.default,
+    val preSigned: PreSignedProperties = PreSignedProperties.default,
+    val template: TemplateProperties = TemplateProperties.default,
+) {
+    init {
+        if (strategy == RedirectStrategy.PRESIGNED) {
+            require(preSigned.ttl.isPositive()) {
+                "Presigned TTL must be positive"
+            }
+            require(preSigned.ttl <= 7.days) {
+                "Presigned TTL cannot be greater than 7 days"
+            }
+        }
+    }
+
+    companion object Factory {
+        val default =
+            RedirectProperties(
+                strategy = RedirectStrategy.default,
+                preSigned = PreSignedProperties.default,
+                template = TemplateProperties.default,
+            )
+
+        fun create(
+            applicationConfig: ApplicationConfig?,
+            parent: RedirectProperties?,
+        ): RedirectProperties =
+            RedirectProperties(
+                strategy =
+                    applicationConfig
+                        ?.tryGetString(ObjectStorePropertyKeys.RedirectProperties.STRATEGY)
+                        ?.let { RedirectStrategy.fromConfig(it) }
+                        ?: parent?.strategy
+                        ?: RedirectStrategy.default,
+                preSigned =
+                    PreSignedProperties.create(
+                        applicationConfig =
+                            applicationConfig?.tryGetConfig(
+                                ObjectStorePropertyKeys.RedirectProperties.PRESIGNED,
+                            ),
+                        parent = parent?.preSigned,
+                    ),
+                template =
+                    TemplateProperties.create(
+                        applicationConfig =
+                            applicationConfig?.tryGetConfig(
+                                ObjectStorePropertyKeys.RedirectProperties.TEMPLATE,
+                            ),
+                        parent = parent?.template,
+                    ),
+            )
+    }
+}
 
 data class PreSignedProperties(
     val ttl: Duration = DEFAULT_TTL,
@@ -21,7 +78,7 @@ data class PreSignedProperties(
                 ttl =
                     applicationConfig
                         ?.tryGetString(
-                            ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.PreSignedProperties.TTL,
+                            ObjectStorePropertyKeys.RedirectProperties.PreSignedProperties.TTL,
                         )?.let { Duration.parse(it) }
                         ?: parent?.ttl
                         ?: DEFAULT_TTL,
@@ -29,22 +86,44 @@ data class PreSignedProperties(
     }
 }
 
-data class CdnProperties(
-    val domain: String? = DEFAULT_DOMAIN,
+data class TemplateProperties(
+    val string: String,
 ) {
+    init {
+        require(string.isNotBlank()) {
+            "Redirect template must be populated"
+        }
+
+        require(DISALLOWED_SCHEMES.none { string.startsWith(it) }) {
+            "Redirect template cannot start with: $DISALLOWED_SCHEMES"
+        }
+    }
+
     companion object Factory {
-        val default = CdnProperties()
-        val DEFAULT_DOMAIN = null
+        private const val TEMPLATE_BUCKET = "{bucket}"
+        private const val TEMPLATE_KEY = "{key}"
+        private val DISALLOWED_SCHEMES = setOf("javascript:", "vbscript:", "data:")
+
+        const val DEFAULT_STRING = "http://localhost"
+        val default =
+            TemplateProperties(
+                string = DEFAULT_STRING,
+            )
 
         fun create(
             applicationConfig: ApplicationConfig?,
-            parent: CdnProperties?,
-        ): CdnProperties =
-            CdnProperties(
-                domain =
-                    applicationConfig?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.CdnProperties.DOMAIN)
-                        ?: parent?.domain
-                        ?: DEFAULT_DOMAIN,
+            parent: TemplateProperties?,
+        ): TemplateProperties =
+            TemplateProperties(
+                string =
+                    applicationConfig?.tryGetString(ObjectStorePropertyKeys.RedirectProperties.TemplateProperties.STRING)
+                        ?: parent?.string
+                        ?: DEFAULT_STRING,
             )
     }
+
+    fun resolve(
+        bucket: String,
+        key: String,
+    ): String = string.replace(TEMPLATE_BUCKET, bucket).replace(TEMPLATE_KEY, key)
 }

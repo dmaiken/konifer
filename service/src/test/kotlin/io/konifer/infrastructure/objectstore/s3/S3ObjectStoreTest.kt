@@ -5,8 +5,8 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.konifer.infrastructure.objectstore.property.PreSignedProperties
-import io.konifer.infrastructure.objectstore.property.RedirectMode
-import io.kotest.matchers.shouldBe
+import io.konifer.infrastructure.objectstore.property.RedirectProperties
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
@@ -49,131 +49,29 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         val (s3Client, properties) = createS3Client()
         return S3ObjectStore(
             s3Client = s3Client,
-            s3ClientProperties = properties,
         )
     }
 
     @Nested
     inner class GenerateS3ObjectUrlTests {
         @Test
-        fun `generates a path-style AWS URL if specified`() =
-            runTest {
-                val (s3Client, properties) = createS3Client(usePathStyleUrl = true)
-                val store =
-                    S3ObjectStore(
-                        s3Client = s3Client,
-                        s3ClientProperties = properties.copy(endpointUrl = null, providerHint = null),
-                    )
-                val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
-                val pathProperties =
-                    ObjectStoreProperties(
-                        redirectMode = RedirectMode.BUCKET,
-                    )
-
-                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
-                    "https://s3.us-east-1.amazonaws.com/$bucket/$key"
-            }
-
-        @Test
-        fun `generates a non-AWS path-style URL if specified`() =
-            runTest {
-                val (s3Client, properties) = createS3Client(usePathStyleUrl = true)
-                val store =
-                    S3ObjectStore(
-                        s3Client = s3Client,
-                        s3ClientProperties = properties.copy(endpointUrl = "minio.local"),
-                    )
-                val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
-
-                val pathProperties =
-                    ObjectStoreProperties(
-                        redirectMode = RedirectMode.BUCKET,
-                    )
-                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
-                    "https://minio.local/$bucket/$key"
-            }
-
-        @Test
-        fun `generates a virtual-host AWS URL if specified`() =
-            runTest {
-                val (s3Client, _) = createS3Client(usePathStyleUrl = false)
-                val store =
-                    S3ObjectStore(
-                        s3Client = s3Client,
-                        s3ClientProperties =
-                            S3ClientProperties(
-                                endpointUrl = null,
-                                region = "us-east-1",
-                                accessKey = null,
-                                secretKey = null,
-                                usePathStyleUrl = false,
-                            ),
-                    )
-                val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
-
-                val pathProperties =
-                    ObjectStoreProperties(
-                        redirectMode = RedirectMode.BUCKET,
-                    )
-                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
-                    "https://$bucket.s3.us-east-1.amazonaws.com/$key"
-            }
-
-        @Test
-        fun `generates a non-AWS virtual-host URL if specified`() =
-            runTest {
-                val (s3Client, _) = createS3Client(usePathStyleUrl = false)
-                val store =
-                    S3ObjectStore(
-                        s3Client = s3Client,
-                        s3ClientProperties =
-                            S3ClientProperties(
-                                endpointUrl = "minio.local",
-                                region = null,
-                                accessKey = null,
-                                secretKey = null,
-                                usePathStyleUrl = false,
-                            ),
-                    )
-                val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
-
-                val pathProperties =
-                    ObjectStoreProperties(
-                        redirectMode = RedirectMode.BUCKET,
-                    )
-                store.generateObjectUrl(bucket, key, pathProperties) shouldBe
-                    "https://$bucket.minio.local/$key"
-            }
-
-        @Test
         fun `can create presignedUrl`() =
             runTest {
                 val (s3Client, _) = createS3Client(usePathStyleUrl = false)
                 val store =
-                    S3ObjectStore(
-                        s3Client = s3Client,
-                        s3ClientProperties =
-                            S3ClientProperties(
-                                endpointUrl = null,
-                                region = "us-east-1",
-                                accessKey = null,
-                                secretKey = null,
-                                usePathStyleUrl = false,
-                            ),
-                    )
+                    S3ObjectStore(s3Client)
                 val bucket = "bucket"
                 val key = UUID.randomUUID().toString()
 
                 val properties =
                     ObjectStoreProperties(
-                        redirectMode = RedirectMode.PRESIGNED,
-                        preSigned =
-                            PreSignedProperties(
-                                ttl = 7.days,
+                        redirect =
+                            RedirectProperties(
+                                strategy = RedirectStrategy.PRESIGNED,
+                                preSigned =
+                                    PreSignedProperties(
+                                        ttl = 7.days,
+                                    ),
                             ),
                     )
                 val url = store.generateObjectUrl(bucket, key, properties)

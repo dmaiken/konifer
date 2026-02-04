@@ -4,7 +4,9 @@ import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectMode
+import io.konifer.infrastructure.objectstore.property.RedirectProperties
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
+import io.konifer.infrastructure.objectstore.property.TemplateProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -229,8 +231,32 @@ abstract class ObjectStoreTest {
                 key = UUID.randomUUID().toString(),
                 properties =
                     ObjectStoreProperties(
-                        redirectMode = RedirectMode.NONE,
+                        redirect =
+                            RedirectProperties(
+                                strategy = RedirectStrategy.NONE,
+                            ),
                     ),
             ) shouldBe null
+        }
+
+    @Test
+    fun `can create templated url`() =
+        runTest {
+            val bucket = "bucket"
+            val key = UUID.randomUUID().toString()
+
+            val properties =
+                ObjectStoreProperties(
+                    redirect =
+                        RedirectProperties(
+                            strategy = RedirectStrategy.TEMPLATE,
+                            template =
+                                TemplateProperties(
+                                    string = "https://localhost:9000/{bucket}/{key}",
+                                ),
+                        ),
+                )
+            val url = store.generateObjectUrl(bucket, key, properties)
+            url shouldBe "https://localhost:9000/$bucket/$key"
         }
 }

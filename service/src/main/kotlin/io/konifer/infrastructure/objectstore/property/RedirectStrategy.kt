@@ -1,15 +1,14 @@
 package io.konifer.infrastructure.objectstore.property
 
-enum class RedirectMode {
+enum class RedirectStrategy {
     NONE,
     PRESIGNED,
-    BUCKET,
-    CDN,
+    TEMPLATE,
     ;
 
     companion object Factory {
         val default = NONE
 
-        fun fromConfig(value: String): RedirectMode = valueOf(value.uppercase())
+        fun fromConfig(value: String): RedirectStrategy = valueOf(value.uppercase())
     }
 }

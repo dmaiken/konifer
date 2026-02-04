@@ -4,13 +4,10 @@ import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
-import kotlin.time.Duration.Companion.days
 
 data class ObjectStoreProperties(
     val bucket: String = DEFAULT_BUCKET,
-    val redirectMode: RedirectMode = RedirectMode.default,
-    val preSigned: PreSignedProperties = PreSignedProperties.default,
-    val cdn: CdnProperties = CdnProperties.default,
+    val redirect: RedirectProperties = RedirectProperties.default,
 ) {
     init {
         validate()
@@ -37,27 +34,13 @@ data class ObjectStoreProperties(
                     applicationConfig?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.BUCKET)
                         ?: parent?.bucket
                         ?: DEFAULT_BUCKET,
-                redirectMode =
-                    applicationConfig
-                        ?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.REDIRECT_MODE)
-                        ?.let { RedirectMode.fromConfig(it) }
-                        ?: parent?.redirectMode
-                        ?: RedirectMode.default,
-                preSigned =
-                    PreSignedProperties.create(
+                redirect =
+                    RedirectProperties.create(
                         applicationConfig =
                             applicationConfig?.tryGetConfig(
-                                ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.PRESIGNED,
+                                ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.REDIRECT,
                             ),
-                        parent = parent?.preSigned,
-                    ),
-                cdn =
-                    CdnProperties.create(
-                        applicationConfig =
-                            applicationConfig?.tryGetConfig(
-                                ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.CDN,
-                            ),
-                        parent = parent?.cdn,
+                        parent = parent?.redirect,
                     ),
             )
     }
@@ -65,19 +48,6 @@ data class ObjectStoreProperties(
     private fun validate() {
         require(bucketRegex.matches(bucket)) {
             "Bucket must be conform to S3 name requirements"
-        }
-        if (redirectMode == RedirectMode.PRESIGNED) {
-            require(preSigned.ttl.isPositive()) {
-                "Presigned TTL must be positive"
-            }
-            require(preSigned.ttl <= 7.days) {
-                "Presigned TTL cannot be greater than 7 days"
-            }
-        }
-        if (redirectMode == RedirectMode.CDN) {
-            require(cdn.domain?.isNotBlank() == true) {
-                "CDN domain must be populated cannot be blank"
-            }
         }
     }
 }

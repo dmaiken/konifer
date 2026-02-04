@@ -3,7 +3,7 @@ package io.konifer.infrastructure.objectstore.inmemory
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectMode
+import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.ktor.util.cio.readChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
@@ -71,10 +71,13 @@ class InMemoryObjectStore : ObjectStore {
         key: String,
         properties: ObjectStoreProperties,
     ): String? =
-        when (properties.redirectMode) {
-            RedirectMode.CDN -> "https://${properties.cdn.domain}/$bucket/$key"
-            RedirectMode.BUCKET -> "http://localhost:$DEFAULT_PORT/objectStore/$bucket/$key"
-            RedirectMode.PRESIGNED, RedirectMode.NONE -> null
+        when (properties.redirect.strategy) {
+            RedirectStrategy.TEMPLATE ->
+                properties.redirect.template.resolve(
+                    bucket = bucket,
+                    key = key,
+                )
+            RedirectStrategy.PRESIGNED, RedirectStrategy.NONE -> null
         }
 
     fun clearObjectStore() {
