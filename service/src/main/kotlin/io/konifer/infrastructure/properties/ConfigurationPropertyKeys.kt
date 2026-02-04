@@ -32,7 +32,6 @@ object ConfigurationPropertyKeys {
             const val ENDPOINT_URL = "endpoint-url"
             const val REGION = "region"
             const val SECRET_KEY = "secret-key"
-            const val USE_PATH_STYLE = "use-path-style"
         }
 
         object FileSystemPropertyKeys {
