@@ -146,11 +146,12 @@ tasks.withType<Test>().configureEach {
 
     testLogging {
         exceptionFormat = TestExceptionFormat.FULL
-        events = setOf(
-            TestLogEvent.FAILED,
-            TestLogEvent.SKIPPED,
-            TestLogEvent.STANDARD_ERROR
-        )
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+            )
         showStackTraces = true
         showCauses = true
     }
