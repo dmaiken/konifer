@@ -14,7 +14,6 @@ class S3ClientPropertiesTest {
                 accessKey = null,
                 secretKey = null,
                 region = "us-east-1",
-                usePathStyleUrl = false,
             )
         }
     }
@@ -27,7 +26,6 @@ class S3ClientPropertiesTest {
                 accessKey = "accessKey",
                 secretKey = "secretKey",
                 region = null,
-                usePathStyleUrl = false,
             )
         }
     }
@@ -41,7 +39,6 @@ class S3ClientPropertiesTest {
                     accessKey = null,
                     secretKey = null,
                     region = null,
-                    usePathStyleUrl = false,
                     providerHint = S3Provider.LOCALSTACK,
                 )
             }
@@ -57,7 +54,6 @@ class S3ClientPropertiesTest {
                     accessKey = null,
                     secretKey = null,
                     region = "us-east-1",
-                    usePathStyleUrl = false,
                     providerHint = S3Provider.LOCALSTACK,
                 )
             }

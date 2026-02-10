@@ -1,0 +1,82 @@
+name: Konifer Build and Package
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Note: JDK 25 is not yet standard. Using '23' (latest non-LTS) or '21' (LTS).
+      # Adjust if you are using a specific Early Access build.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          cache: 'gradle'
+
+      # CRITICAL: We must install system deps every time, even if Vips is cached.
+      # Otherwise, the cached Vips binary won't find libjpeg, libpng, etc.
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential pkg-config ninja-build wget meson \
+            glib2.0-dev libarchive-dev libexif-dev libexpat1 libfftw3-dev \
+            libimagequant-dev libjpeg62 liblcms2-dev liborc-0.4-dev \
+            libpango1.0-dev libpng-dev libpoppler-glib-dev librsvg2-dev \
+            librsvg2-2 libtiff5-dev libwebp-dev libheif-dev libde265-dev \
+            x265 libraw-dev libjxl-dev libgif-dev libaom-dev libheif-plugin-x265 libheif-plugin-aomenc \
+            libjemalloc-dev
+
+      - name: Cache libvips
+        id: cache-vips
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/bin/vips*
+            /usr/local/lib/libvips*
+            /usr/local/lib/pkgconfig/vips.pc
+            /usr/local/include/vips
+          key: ${{ runner.os }}-vips-${{ hashFiles('scripts/install-vips.sh') }}
+
+      - name: Compile and Install libvips
+        if: steps.cache-vips.outputs.cache-hit != 'true'
+        # Run the script but skip the internal dep install since we did it above
+        run: |
+          chmod +x ./scripts/install-vips.sh
+          sudo ./scripts/install-vips.sh 
+
+      - name: Refresh Linker Cache
+        # REQUIRED: Tells the system to look in /usr/local/lib for the new/cached files
+        run: sudo ldconfig
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build and Test with Gradle
+        # FFM needs native access enabled
+        env:
+          # Force the JVM and all native calls to use jemalloc
+          LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libjemalloc.so
+        run: ./gradlew build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: konifer:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

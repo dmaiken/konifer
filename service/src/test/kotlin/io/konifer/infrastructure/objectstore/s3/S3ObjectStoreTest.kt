@@ -46,7 +46,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
     }
 
     override fun createObjectStore(): ObjectStore {
-        val (s3Client, properties) = createS3Client()
+        val (s3Client, _) = createS3Client()
         return S3ObjectStore(
             s3Client = s3Client,
         )
@@ -57,7 +57,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `can create presignedUrl`() =
             runTest {
-                val (s3Client, _) = createS3Client(usePathStyleUrl = false)
+                val (s3Client, _) = createS3Client()
                 val store =
                     S3ObjectStore(s3Client)
                 val bucket = "bucket"
@@ -84,14 +84,13 @@ class S3ObjectStoreTest : ObjectStoreTest() {
             }
     }
 
-    private fun createS3Client(usePathStyleUrl: Boolean = false): Pair<S3Client, S3ClientProperties> {
+    private fun createS3Client(): Pair<S3Client, S3ClientProperties> {
         val properties =
             S3ClientProperties(
                 endpointUrl = localstack.endpoint.toString(),
                 region = localstack.region,
                 accessKey = localstack.accessKey,
                 secretKey = localstack.secretKey,
-                usePathStyleUrl = usePathStyleUrl,
                 providerHint = S3Provider.LOCALSTACK,
             )
 
