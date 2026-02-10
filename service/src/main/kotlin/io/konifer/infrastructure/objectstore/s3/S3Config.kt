@@ -26,5 +26,4 @@ fun s3Client(properties: S3ClientProperties): S3Client =
         properties.region?.also {
             region = it
         }
-        forcePathStyle = properties.usePathStyleUrl
     }

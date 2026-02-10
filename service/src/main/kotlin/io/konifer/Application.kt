@@ -24,7 +24,7 @@ private val logger = KtorSimpleLogger("io.konifer.Application")
  * eternalized config through ktor (-config) and you will have to mount any externalized config manually!
  */
 fun main(args: Array<String>) {
-    logger.info("Starting Konifer Netty")
+    logger.info("Starting Konifer...")
     EngineMain.main(args)
 }
 
