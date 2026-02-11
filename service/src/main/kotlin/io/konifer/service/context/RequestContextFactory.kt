@@ -209,7 +209,7 @@ class RequestContextFactory(
                 blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
                 quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
                 pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
-                background = parameters[PAD_COLOR] ?: variantProfile?.background,
+                padColor = parameters[PAD_COLOR] ?: variantProfile?.padColor,
             )
         }
     }

@@ -17,7 +17,6 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 # ==========================================
 # Build LibVips
 # ==========================================
-# We use the SAME base OS to ensure binary compatibility
 FROM ubuntu:24.04 AS vips-build
 
 # Install the compilers and dev tools needed for the script
@@ -32,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Run install script, but force it to install to a clean directory we can copy
 COPY scripts/install-vips.sh /install-vips.sh
+
 RUN chmod +x /install-vips.sh && /install-vips.sh  --with-deps --cleanup
 
 # ==========================================
@@ -39,14 +39,49 @@ RUN chmod +x /install-vips.sh && /install-vips.sh  --with-deps --cleanup
 # ==========================================
 FROM ubuntu:24.04 AS runtime
 
-# We DO NOT install build-essential or dev libs here. Only shared libs.
+## Generated from scripts/query-runtime-deps.sh
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
-    tini \
     ca-certificates \
+    libaom3 \
+    libcgif0 \
+    libde265-0 \
+    libexif12 \
     libexpat1 \
-    # Add runtime versions of libraries you linked against (e.g. libjpeg-turbo8)
+    libffi8 \
+    libfftw3-double3 \
+    libfftw3-long3 \
+    libfftw3-quad3 \
+    libfftw3-single3 \
+    libgif7 \
+    libgirepository-2.0-0 \
+    libglib2.0-0t64 \
+    libheif1 \
+    libheif-plugin-aomenc \
+    libheif-plugin-x265 \
+    libimagequant0 \
+    libjemalloc2 \
+    libjpeg-turbo8 \
+    libjxl0.7 \
+    liblcms2-2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0 \
+    libpangoxft-1.0-0 \
+    libpng16-16t64 \
+    libwebp7 \
+    libwebpdecoder3 \
+    libwebpdemux2 \
+    libwebpmux3 \
+    libx265-199 \
+    tini \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Tell JVM how to find GLib
+RUN cd /usr/lib/x86_64-linux-gnu && \
+    ln -s libglib-2.0.so.0 libglib-2.0.so && \
+    ln -s libgobject-2.0.so.0 libgobject-2.0.so && \
+    ln -s libgmodule-2.0.so.0 libgmodule-2.0.so
 
 # Install GraalVM 25 manually
 ARG GRAAL_VERSION=25.0.0
@@ -79,7 +114,7 @@ RUN chown -R konifer:konifer /app
 USER konifer
 
 ## Necessary for jemalloc
-ENV LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"
 
 ENV JAVA_OPTS=""
 EXPOSE 8080

@@ -186,7 +186,7 @@ fun createRequestedImageTransformation(
         blur = blur,
         quality = quality,
         pad = pad,
-        background = background,
+        padColor = background,
     )
 
 fun createImagePreProcessingProperties(

@@ -32,11 +32,11 @@ if [ "$INSTALL_DEPS" = true ]; then
   echo "Installing system dependencies..."
   apt-get update && apt-get install -y \
     build-essential pkg-config ninja-build wget meson \
-    glib2.0-dev libarchive-dev libexif-dev libexpat1 libfftw3-dev \
-    libimagequant-dev libjpeg62 liblcms2-dev liborc-0.4-dev \
-    libpango1.0-dev libpng-dev libpoppler-glib-dev librsvg2-dev \
-    librsvg2-2 libtiff5-dev libwebp-dev libheif-dev libde265-dev \
-    x265 libraw-dev libjxl-dev libgif-dev libcgif-dev libaom-dev \
+    glib2.0-dev libexif-dev libexpat1-dev libfftw3-dev \
+    libimagequant-dev libjpeg-turbo8-dev liblcms2-dev \
+    libpango1.0-dev libpng-dev \
+    libwebp-dev libheif-dev libde265-dev \
+    libjxl-dev libgif-dev libcgif-dev libaom-dev \
     libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
 fi
 

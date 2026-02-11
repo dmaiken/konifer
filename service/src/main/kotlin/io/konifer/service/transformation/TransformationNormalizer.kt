@@ -184,10 +184,10 @@ class TransformationNormalizer(
             // Background is useless unless padding is defined
             return emptyList()
         }
-        if (requested.background == null) {
+        if (requested.padColor == null) {
             return if (normalizedFormat.vipsProperties.supportsAlpha) ColorConverter.transparent else ColorConverter.white
         }
 
-        return ColorConverter.toRgba(requested.background)
+        return ColorConverter.toRgba(requested.padColor)
     }
 }

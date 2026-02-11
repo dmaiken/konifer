@@ -186,7 +186,7 @@ data class ImagePreProcessingProperties(
             blur = blur,
             quality = quality,
             pad = pad,
-            background = background,
+            padColor = background,
         )
 
     private fun validate() {

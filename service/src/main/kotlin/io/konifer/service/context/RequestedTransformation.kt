@@ -24,7 +24,7 @@ data class RequestedTransformation(
     val blur: Int?,
     val quality: Int?,
     val pad: Int?,
-    val background: String?,
+    val padColor: String?,
 ) {
     init {
         validate()
@@ -45,7 +45,7 @@ data class RequestedTransformation(
                 blur = null,
                 quality = null,
                 pad = null,
-                background = null,
+                padColor = null,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedTransformation =
@@ -62,7 +62,7 @@ data class RequestedTransformation(
                 blur = applicationConfig.tryGetString(ManipulationParameters.BLUR)?.toInt(),
                 quality = applicationConfig.tryGetString(ManipulationParameters.QUALITY)?.toInt(),
                 pad = applicationConfig.tryGetString(ManipulationParameters.PAD)?.toInt(),
-                background = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
+                padColor = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
             ).apply {
                 validate()
             }
@@ -105,9 +105,9 @@ data class RequestedTransformation(
                 "Pad must not be negative"
             }
         }
-        if (background != null) {
-            require(background.startsWith('#') && background.drop(1).toLongOrNull(16) != null) {
-                "Background must be a hex value starting with '#'"
+        if (padColor != null) {
+            require(padColor.startsWith('#') && padColor.drop(1).toLongOrNull(16) != null) {
+                "Pad color must be a hex value starting with '#'"
             }
         }
     }
