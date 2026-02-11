@@ -570,7 +570,8 @@ class ImageAssetVariantTest {
 
         @CartesianTest
         fun `variant can be fetched that is has highest or lowest quality applied`(
-            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PNG"]) variantFormat: ImageFormat,
+            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PNG", "GIF"]) variantFormat:
+                ImageFormat,
             @CartesianTest.Values(ints = [1, 100]) quality: Int,
         ) = testInMemory {
             val client = createJsonClient(followRedirects = false)

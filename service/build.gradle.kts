@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
@@ -138,8 +141,20 @@ tasks.withType<Test>().configureEach {
     systemProperty("kotest.extensions.autoscan.disable", "true")
     jvmArgs("--enable-native-access=ALL-UNNAMED")
 
-    // Tell libvips where to find jemallow
+    // Tell libvips where to find jemalloc
     environment("LD_PRELOAD", "/usr/lib/x86_64-linux-gnu/libjemalloc.so.2")
+
+    testLogging {
+        exceptionFormat = TestExceptionFormat.FULL
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+            )
+        showStackTraces = true
+        showCauses = true
+    }
 }
 
 tasks.register<Test>("functionalTest") {
