@@ -15,7 +15,6 @@ import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.storeAssetUrlSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.post
@@ -237,9 +236,7 @@ class StoreAssetTest {
                     url = url,
                 )
             val storeAssetResponse = storeAssetUrlSource(client, request)
-            storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
-            storeAssetResponse.variants.first().storeKey shouldNotBe null
+            storeAssetResponse!!.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants
                 .first()
                 .attributes.format shouldBe "jpg"

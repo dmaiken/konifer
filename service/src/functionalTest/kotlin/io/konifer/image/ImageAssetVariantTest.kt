@@ -53,7 +53,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
@@ -95,7 +94,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
@@ -133,7 +131,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
@@ -182,7 +179,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
@@ -221,7 +217,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
@@ -266,7 +261,6 @@ class ImageAssetVariantTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 

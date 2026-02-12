@@ -10,7 +10,6 @@ import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
@@ -59,14 +58,12 @@ class ImagePreProcessingTest {
                     alt = "an image",
                 )
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
                 variants.apply {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
-                    first().storeKey shouldNotBe null
                     first().attributes.format shouldBe "png"
                     first().attributes.width shouldBe 100
                     first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately originalScale
@@ -107,14 +104,12 @@ class ImagePreProcessingTest {
                 )
             val storedAssetInfo =
                 storeAssetMultipartSource(client, image, request).second!!.apply {
-                    createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
 
                     variants.apply {
                         size shouldBe 1
                         first().storeBucket shouldBe "assets"
-                        first().storeKey shouldNotBe null
                         first().attributes.format shouldBe "png"
                         first().attributes.height shouldBe 50
                         first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
@@ -158,14 +153,12 @@ class ImagePreProcessingTest {
             )
         val storedAssetInfo =
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
                 variants.apply {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
-                    first().storeKey shouldNotBe null
                     first().attributes.format shouldBe "png"
                     first().attributes.height shouldBe bufferedImage.height
                     first().attributes.width shouldBe bufferedImage.width
@@ -208,14 +201,12 @@ class ImagePreProcessingTest {
             )
         val storedAssetInfo =
             storeAssetMultipartSource(client, image, request).second!!.apply {
-                createdAt shouldNotBe null
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
 
                 variants.apply {
                     size shouldBe 1
                     first().storeBucket shouldBe "assets"
-                    first().storeKey shouldNotBe null
                     first().attributes.format shouldBe imageFormat
                     first().attributes.height shouldBe bufferedImage.height
                     first().attributes.width shouldBe bufferedImage.width
@@ -263,14 +254,12 @@ class ImagePreProcessingTest {
                 )
             val storedAssetInfo =
                 storeAssetMultipartSource(client, image, request, path = "users/123/profile").second!!.apply {
-                    createdAt shouldNotBe null
                     alt shouldBe "an image"
                     `class` shouldBe AssetClass.IMAGE
 
                     variants.apply {
                         size shouldBe 1
                         first().storeBucket shouldBe "assets"
-                        first().storeKey shouldNotBe null
                         first().attributes.format shouldBe "webp"
                         first().attributes.height shouldBe 50
                         first().attributes.width.toDouble() / first().attributes.height.toDouble() shouldBeApproximately
@@ -281,5 +270,96 @@ class ImagePreProcessingTest {
             val fetchedAsset =
                 fetchAssetContent(client, path = "users/123/profile", entryId = storedAssetInfo.entryId).second
             Tika().detect(fetchedAsset) shouldBe "image/webp"
+        }
+
+    @Test
+    fun `image is not preprocessed if preprocessing is disabled`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    preprocessing {
+                        enabled = false
+                        image {
+                            format = jpg
+                            max-height = 55
+                        }
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val request =
+                StoreAssetRequest()
+            val storedAssetInfo =
+                storeAssetMultipartSource(client, image, request, path = "users/123/profile").second!!.apply {
+                    `class` shouldBe AssetClass.IMAGE
+
+                    variants.apply {
+                        size shouldBe 1
+                        first().storeBucket shouldBe "assets"
+                        first().attributes.format shouldBe "png"
+                        first().attributes.height shouldBe bufferedImage.height
+                        first().attributes.width shouldBe bufferedImage.width
+                    }
+                }
+
+            val fetchedAsset =
+                fetchAssetContent(client, path = "users/123/profile", entryId = storedAssetInfo.entryId).second
+            Tika().detect(fetchedAsset) shouldBe "image/png"
+        }
+
+    @Test
+    fun `image is not preprocessed if preprocessing is disabled in parent path and not defined in current`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    preprocessing {
+                        enabled = false
+                        image {
+                            format = jpg
+                            max-height = 55
+                        }
+                    }
+                }
+                {
+                    path = "/Users/*/Profile"
+                    preprocessing {
+                        image {
+                            format = webp
+                            max-height = 50
+                        }
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val bufferedImage = byteArrayToImage(image)
+            val request =
+                StoreAssetRequest()
+            val storedAssetInfo =
+                storeAssetMultipartSource(client, image, request, path = "users/123/profile").second!!.apply {
+                    `class` shouldBe AssetClass.IMAGE
+
+                    variants.apply {
+                        size shouldBe 1
+                        first().storeBucket shouldBe "assets"
+                        first().attributes.format shouldBe "png"
+                        first().attributes.height shouldBe bufferedImage.height
+                        first().attributes.width shouldBe bufferedImage.width
+                    }
+                }
+
+            val fetchedAsset =
+                fetchAssetContent(client, path = "users/123/profile", entryId = storedAssetInfo.entryId).second
+            Tika().detect(fetchedAsset) shouldBe "image/png"
         }
 }

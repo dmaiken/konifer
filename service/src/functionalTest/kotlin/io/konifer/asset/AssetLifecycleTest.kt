@@ -20,7 +20,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldEndWith
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -46,9 +45,7 @@ class AssetLifecycleTest {
                     tags = tags,
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
-            storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
-            storeAssetResponse.variants.first().storeKey shouldNotBe null
+            storeAssetResponse!!.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
@@ -89,9 +86,7 @@ class AssetLifecycleTest {
                     tags = tags,
                 )
             val storeAssetResponse = storeAssetMultipartSource(client, image, request).second
-            storeAssetResponse!!.createdAt shouldNotBe null
-            storeAssetResponse.variants.first().storeBucket shouldBe "assets"
-            storeAssetResponse.variants.first().storeKey shouldNotBe null
+            storeAssetResponse!!.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
