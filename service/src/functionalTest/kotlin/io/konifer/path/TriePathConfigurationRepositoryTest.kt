@@ -139,7 +139,6 @@ class TriePathConfigurationRepositoryTest {
             application {
                 val pathConfigurationRepository = TriePathConfigurationRepository(environment.config)
                 pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
-                    preProcessing.image.enabled shouldBe false
                     allowedContentTypes shouldBe null
                 }
             }

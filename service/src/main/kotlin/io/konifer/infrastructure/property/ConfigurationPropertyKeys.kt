@@ -54,9 +54,13 @@ object ConfigurationPropertyKeys {
             const val LQIP = "lqip"
 
             object PreProcessingPropertyKeys {
+                const val ENABLED = "enabled"
                 const val IMAGE = "image"
-                const val MAX_HEIGHT = "max-height"
-                const val MAX_WIDTH = "max-width"
+
+                object ImagePreProcessingPropertyKeys {
+                    const val MAX_HEIGHT = "max-height"
+                    const val MAX_WIDTH = "max-width"
+                }
             }
         }
 

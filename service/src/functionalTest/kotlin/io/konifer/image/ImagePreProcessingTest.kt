@@ -41,6 +41,7 @@ class ImagePreProcessingTest {
                 {
                     path = "/**"
                     preprocessing {
+                        enabled = true
                         image {
                             max-width = 100
                         }
@@ -87,6 +88,7 @@ class ImagePreProcessingTest {
                 {
                     path = "/**"
                     preprocessing {
+                        enabled = true
                         image {
                             max-height = 50
                         }
@@ -188,6 +190,7 @@ class ImagePreProcessingTest {
             {
                 path = "/**"
                 preprocessing {
+                    enabled = true
                     image {
                         format = $imageFormat
                     }
@@ -231,6 +234,7 @@ class ImagePreProcessingTest {
                 {
                     path = "/**"
                     preprocessing {
+                        enabled = true
                         image {
                             format = jpg
                             max-height = 55

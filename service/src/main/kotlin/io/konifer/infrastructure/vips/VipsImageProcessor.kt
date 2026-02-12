@@ -92,7 +92,7 @@ class VipsImageProcessor {
                 }
 
                 attributes =
-                    AttributesFactory.createAttributes(
+                    Attributes.createAttributes(
                         image = preProcessed.processed,
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,
@@ -155,7 +155,7 @@ class VipsImageProcessor {
                 )
 
                 container.attributes =
-                    AttributesFactory.createAttributes(
+                    Attributes.createAttributes(
                         image = variantResult.processed,
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,

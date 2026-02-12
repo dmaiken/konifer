@@ -7,6 +7,7 @@ import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.InvalidImageException
+import io.konifer.domain.image.PreProcessedImage
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.MimeTypeDetector
@@ -14,11 +15,11 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.vips.createDecoderOptions
-import io.konifer.infrastructure.vips.pageSafeHeight
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.RequestContextFactory
 import io.konifer.service.context.StoreRequestContext
@@ -32,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.io.path.pathString
@@ -100,20 +102,35 @@ class StoreNewAssetWorkflow(
                         sourceFormat = format,
                     )
 
-                val preProcessedOutput =
+                var preProcessedPath =
                     TemporaryFileFactory.createPreProcessedTempFile(
                         extension = transformation.format.extension,
                     )
                 try {
                     val preProcessed =
-                        variantGenerator
-                            .preProcessOriginalVariant(
-                                sourceFormat = format,
-                                lqipImplementations = context.pathConfiguration.image.previews,
-                                transformation = transformation,
-                                source = container.getTemporaryFile(),
-                                output = preProcessedOutput,
-                            ).await()
+                        if (context.requiresPreProcessing()) {
+                            variantGenerator
+                                .preProcessOriginalVariant(
+                                    sourceFormat = format,
+                                    lqipImplementations = context.pathConfiguration.image.previews,
+                                    transformation = transformation,
+                                    source = container.getTemporaryFile(),
+                                    output = preProcessedPath,
+                                ).await()
+                        } else {
+                            // Skip preprocessing entirely if not required
+                            preProcessedPath = container.getTemporaryFile()
+                            PreProcessedImage(
+                                attributes =
+                                    withContext(Dispatchers.IO) {
+                                        Attributes.createAttributes(
+                                            path = preProcessedPath,
+                                            format = format,
+                                        )
+                                    },
+                                lqip = LQIPs.NONE,
+                            )
+                        }
 
                     val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
                     val pendingAsset =
@@ -134,7 +151,7 @@ class StoreNewAssetWorkflow(
                         objectStore.persist(
                             bucket = originalVariant.objectStoreBucket,
                             key = objectStoreKey,
-                            file = preProcessedOutput.toFile(),
+                            file = preProcessedPath.toFile(),
                         )
                     logger.info("Asset uploaded at $uploadedAt, marking as ready")
                     val readyAsset =
@@ -169,7 +186,7 @@ class StoreNewAssetWorkflow(
                     }
                 } finally {
                     if (!hasEagerVariants) {
-                        preProcessedOutput.toFile().delete()
+                        preProcessedPath.toFile().delete()
                     }
                 }
             } finally {
@@ -196,9 +213,14 @@ class StoreNewAssetWorkflow(
         sourceFormat: ImageFormat,
     ): Transformation =
         withContext(Dispatchers.IO) {
-            var dimensions: Pair<Int, Int>? = null
+            val requestedTransformation =
+                context.pathConfiguration.preProcessing.image.requestedImageTransformation
+            var transformation: Transformation? = null
 
             Vips.run { arena ->
+                val destinationFormat =
+                    context.pathConfiguration.preProcessing.image.format
+                        ?: sourceFormat
                 // Even if this image is paged, just need to load one frame to get height/width
                 // So don't specify "n" as an option
                 val image =
@@ -207,25 +229,23 @@ class StoreNewAssetWorkflow(
                         container.getTemporaryFile().pathString,
                         *createDecoderOptions(
                             sourceFormat = sourceFormat,
-                            destinationFormat =
-                                context.pathConfiguration.preProcessing.image.format
-                                    ?: sourceFormat,
+                            destinationFormat = destinationFormat,
                         ),
                     )
 
-                dimensions = Pair(image.width, image.pageSafeHeight())
+                transformation =
+                    runBlocking {
+                        transformationNormalizer.normalize(
+                            requested = requestedTransformation,
+                            originalVariantAttributes =
+                                Attributes.createAttributes(
+                                    image = image,
+                                    sourceFormat = sourceFormat,
+                                    destinationFormat = destinationFormat,
+                                ),
+                        )
+                    }
             }
-            val requestedTransformation =
-                context.pathConfiguration.preProcessing.image.requestedImageTransformation
-
-            transformationNormalizer.normalize(
-                requested = requestedTransformation,
-                originalVariantAttributes =
-                    Attributes(
-                        width = requireNotNull(dimensions).first,
-                        height = dimensions.second,
-                        format = sourceFormat,
-                    ),
-            )
+            checkNotNull(transformation)
         }
 }

@@ -119,7 +119,7 @@ class RequestedTransformationTest {
         shouldThrow<IllegalArgumentException> {
             createRequestedImageTransformation(
                 pad = 10,
-                background = badBackground,
+                padColor = badBackground,
                 format = ImageFormat.PNG,
             )
         }.message shouldBe "Pad color must be a hex value starting with '#'"

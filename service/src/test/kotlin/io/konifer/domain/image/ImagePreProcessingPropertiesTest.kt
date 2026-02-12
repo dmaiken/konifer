@@ -99,7 +99,7 @@ class ImagePreProcessingPropertiesTest {
         default.quality shouldBe null
         default.gravity shouldBe Gravity.default
         default.pad shouldBe null
-        default.background shouldBe null
+        default.padColor shouldBe null
     }
 
     @Test
@@ -157,6 +157,5 @@ class ImagePreProcessingPropertiesTest {
                 )
             }
         properties.requestedImageTransformation.canUpscale shouldBe true
-        properties.enabled
     }
 }

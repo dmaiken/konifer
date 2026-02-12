@@ -611,7 +611,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
-                        background = null,
+                        padColor = null,
                         format = ImageFormat.PNG,
                     )
                 val normalized =
@@ -633,7 +633,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
-                        background = null,
+                        padColor = null,
                         format = ImageFormat.JPEG,
                     )
                 val normalized =
@@ -655,7 +655,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
-                        background = "#FA9B1E01",
+                        padColor = "#FA9B1E01",
                         format = ImageFormat.PNG,
                     )
                 val normalized =
@@ -677,7 +677,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
-                        background = "#FA9B1E",
+                        padColor = "#FA9B1E",
                         format = ImageFormat.PNG,
                     )
                 val normalized =
@@ -699,7 +699,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 0,
-                        background = "#FA9B1E",
+                        padColor = "#FA9B1E",
                         format = ImageFormat.PNG,
                     )
                 val normalized =
@@ -726,7 +726,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val requested =
                     createRequestedImageTransformation(
                         pad = 10,
-                        background = badBackground,
+                        padColor = badBackground,
                         format = ImageFormat.PNG,
                     )
                 val exception =

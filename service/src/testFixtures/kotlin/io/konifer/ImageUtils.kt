@@ -171,7 +171,7 @@ fun createRequestedImageTransformation(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
 ): RequestedTransformation =
     RequestedTransformation(
         width = width,
@@ -186,7 +186,7 @@ fun createRequestedImageTransformation(
         blur = blur,
         quality = quality,
         pad = pad,
-        padColor = background,
+        padColor = padColor,
     )
 
 fun createImagePreProcessingProperties(
@@ -203,7 +203,7 @@ fun createImagePreProcessingProperties(
     blur: Int? = null,
     quality: Int? = null,
     pad: Int? = null,
-    background: String? = null,
+    padColor: String? = null,
 ): ImagePreProcessingProperties =
     ImagePreProcessingProperties.create(
         maxWidth = maxWidth,
@@ -219,7 +219,7 @@ fun createImagePreProcessingProperties(
         blur = blur,
         quality = quality,
         pad = pad,
-        background = background,
+        padColor = padColor,
     )
 
 /**

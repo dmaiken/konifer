@@ -1,17 +1,18 @@
-package io.konifer.infrastructure.vips
+package io.konifer.domain.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.domain.image.ImageFormat
+import io.konifer.infrastructure.vips.VipsOptionNames
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 
-class AttributesFactoryTest {
+class AttributesTest {
     @ParameterizedTest
     @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE)
     fun `non-paged images have correct attributes`(format: ImageFormat) {
@@ -25,7 +26,7 @@ class AttributesFactoryTest {
             val destinationFormat = ImageFormat.JPEG_XL
 
             val attributes =
-                AttributesFactory.createAttributes(
+                Attributes.createAttributes(
                     image = vImage,
                     sourceFormat = format,
                     destinationFormat = destinationFormat,
@@ -59,7 +60,7 @@ class AttributesFactoryTest {
             val width = vImage.width
 
             val attributes =
-                AttributesFactory.createAttributes(
+                Attributes.createAttributes(
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,
@@ -92,7 +93,7 @@ class AttributesFactoryTest {
             val width = vImage.width
 
             val attributes =
-                AttributesFactory.createAttributes(
+                Attributes.createAttributes(
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,

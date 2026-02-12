@@ -6,7 +6,7 @@ import io.konifer.domain.image.Flip
 import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys
 import io.konifer.service.context.RequestedTransformation
 import io.konifer.service.context.selector.ManipulationParameters
 import io.ktor.server.config.ApplicationConfig
@@ -26,24 +26,11 @@ data class ImagePreProcessingProperties(
     val blur: Int?,
     val quality: Int?,
     val pad: Int?,
-    val background: String?,
+    val padColor: String?,
 ) {
     init {
         validate()
     }
-
-    // I think we can be smarter about this
-    val enabled: Boolean =
-        maxWidth != null ||
-            maxHeight != null ||
-            format != null ||
-            fit != Fit.default ||
-            rotate != Rotate.default ||
-            flip != Flip.default ||
-            filter != Filter.default ||
-            (blur != null && blur > 0) ||
-            quality != null ||
-            (pad != null && pad > 0)
 
     companion object Factory {
         val default =
@@ -61,7 +48,7 @@ data class ImagePreProcessingProperties(
                 blur = null,
                 quality = null,
                 pad = null,
-                background = null,
+                padColor = null,
             )
 
         fun create(
@@ -78,22 +65,22 @@ data class ImagePreProcessingProperties(
             blur: Int?,
             quality: Int?,
             pad: Int?,
-            background: String?,
+            padColor: String?,
         ) = ImagePreProcessingProperties(
-            maxWidth,
-            maxHeight,
-            width,
-            height,
-            format,
-            fit,
-            gravity,
-            rotate,
-            flip,
-            filter,
-            blur,
-            quality,
-            pad,
-            background,
+            maxWidth = maxWidth,
+            maxHeight = maxHeight,
+            width = width,
+            height = height,
+            format = format,
+            fit = fit,
+            gravity = gravity,
+            rotate = rotate,
+            flip = flip,
+            filter = filter,
+            blur = blur,
+            quality = quality,
+            pad = pad,
+            padColor = padColor,
         )
 
         fun create(
@@ -102,11 +89,11 @@ data class ImagePreProcessingProperties(
         ) = create(
             maxWidth =
                 applicationConfig
-                    ?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH)
+                    ?.tryGetString(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH)
                     ?.toInt() ?: parent?.maxWidth,
             maxHeight =
                 applicationConfig
-                    ?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT)
+                    ?.tryGetString(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT)
                     ?.toInt() ?: parent?.maxHeight,
             width =
                 applicationConfig
@@ -164,9 +151,9 @@ data class ImagePreProcessingProperties(
                 applicationConfig
                     ?.tryGetString(ManipulationParameters.PAD)
                     ?.toInt() ?: parent?.pad,
-            background =
+            padColor =
                 applicationConfig?.tryGetString(ManipulationParameters.PAD_COLOR)
-                    ?: parent?.background,
+                    ?: parent?.padColor,
         )
     }
 
@@ -186,18 +173,18 @@ data class ImagePreProcessingProperties(
             blur = blur,
             quality = quality,
             pad = pad,
-            padColor = background,
+            padColor = padColor,
         )
 
     private fun validate() {
         maxWidth?.let {
             require(it > 0) {
-                "'${ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_WIDTH}' must be greater than 0"
+                "'${PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH}' must be greater than 0"
             }
         }
         maxHeight?.let {
             require(it > 0) {
-                "'${ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.MAX_HEIGHT}' must be greater than 0"
+                "'${PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT}' must be greater than 0"
             }
         }
         blur?.let {
@@ -209,7 +196,7 @@ data class ImagePreProcessingProperties(
         pad?.let {
             require(it > 0) { "'${ManipulationParameters.PAD}' must be greater than 0" }
         }
-        background?.let {
+        padColor?.let {
             require(it.isNotBlank() && it.length > 3 && it.startsWith('#')) { "'${ManipulationParameters.PAD_COLOR}' must not be blank" }
         }
     }
