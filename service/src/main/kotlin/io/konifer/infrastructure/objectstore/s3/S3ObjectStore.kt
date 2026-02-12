@@ -14,10 +14,10 @@ import aws.sdk.kotlin.services.s3.presigners.presignGetObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToOutputStream
+import io.konifer.domain.path.RedirectProperties
+import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
@@ -138,9 +138,9 @@ class S3ObjectStore(
     override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-        properties: ObjectStoreProperties,
+        properties: RedirectProperties,
     ): String? =
-        when (properties.redirect.strategy) {
+        when (properties.strategy) {
             RedirectStrategy.PRESIGNED ->
                 withContext(Dispatchers.IO) {
                     s3Client.presignGetObject(
@@ -149,11 +149,11 @@ class S3ObjectStore(
                                 this.bucket = bucket
                                 this.key = key
                             },
-                        duration = properties.redirect.preSigned.ttl,
+                        duration = properties.preSigned.ttl,
                     )
                 }.url.toString()
             RedirectStrategy.TEMPLATE ->
-                properties.redirect.template.resolve(
+                properties.template.resolve(
                     bucket = bucket,
                     key = key,
                 )

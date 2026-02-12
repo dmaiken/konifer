@@ -1,12 +1,11 @@
 package io.konifer.infrastructure.objectstore
 
 import io.konifer.domain.image.ImageFormat
+import io.konifer.domain.path.RedirectProperties
+import io.konifer.domain.path.RedirectStrategy
+import io.konifer.domain.path.TemplateProperties
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.getResourceAsFile
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectProperties
-import io.konifer.infrastructure.objectstore.property.RedirectStrategy
-import io.konifer.infrastructure.objectstore.property.TemplateProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -230,11 +229,8 @@ abstract class ObjectStoreTest {
                 bucket = BUCKET_1,
                 key = UUID.randomUUID().toString(),
                 properties =
-                    ObjectStoreProperties(
-                        redirect =
-                            RedirectProperties(
-                                strategy = RedirectStrategy.NONE,
-                            ),
+                    RedirectProperties(
+                        strategy = RedirectStrategy.NONE,
                     ),
             ) shouldBe null
         }
@@ -246,14 +242,11 @@ abstract class ObjectStoreTest {
             val key = UUID.randomUUID().toString()
 
             val properties =
-                ObjectStoreProperties(
-                    redirect =
-                        RedirectProperties(
-                            strategy = RedirectStrategy.TEMPLATE,
-                            template =
-                                TemplateProperties(
-                                    string = "https://localhost:9000/{bucket}/{key}",
-                                ),
+                RedirectProperties(
+                    strategy = RedirectStrategy.TEMPLATE,
+                    template =
+                        TemplateProperties(
+                            string = "https://localhost:9000/{bucket}/{key}",
                         ),
                 )
             val url = store.generateObjectUrl(bucket, key, properties)

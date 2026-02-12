@@ -6,10 +6,11 @@ import io.konifer.domain.image.Fit
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.path.CacheControlProperties
+import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.selector.DeleteModifiers
@@ -1178,6 +1179,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     objectStore = ObjectStoreProperties.default,
                     preProcessing = PreProcessingProperties.default,
                     cacheControl = CacheControlProperties.default,
+                    returnFormat = ReturnFormatProperties.default,
                 )
             val context = requestContextFactory.fromStoreRequest(path, "image/png")
 
@@ -1208,6 +1210,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     objectStore = ObjectStoreProperties.default,
                     preProcessing = PreProcessingProperties.default,
                     cacheControl = CacheControlProperties.default,
+                    returnFormat = ReturnFormatProperties.default,
                 )
 
             val exception =

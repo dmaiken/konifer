@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.http.signature
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.URL_SIGNING
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.ALGORITHM
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.ENABLED
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.UrlSigningConfigurationProperties.SECRET_KEY
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.URL_SIGNING
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.ALGORITHM
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.ENABLED
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.SECRET_KEY
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

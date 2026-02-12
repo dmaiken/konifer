@@ -3,8 +3,7 @@ package io.konifer.domain.path
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
@@ -15,6 +14,7 @@ data class PathConfiguration(
     val image: ImageProperties,
     val eagerVariants: List<String>,
     val objectStore: ObjectStoreProperties,
+    val returnFormat: ReturnFormatProperties,
     val cacheControl: CacheControlProperties,
 ) {
     init {
@@ -29,6 +29,7 @@ data class PathConfiguration(
                 image = ImageProperties.default,
                 eagerVariants = emptyList(),
                 objectStore = ObjectStoreProperties.default,
+                returnFormat = ReturnFormatProperties.default,
                 cacheControl = CacheControlProperties.default,
             )
 
@@ -60,6 +61,11 @@ data class PathConfiguration(
                     ObjectStoreProperties.create(
                         applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE),
                         parent = parent?.objectStore,
+                    ),
+                returnFormat =
+                    ReturnFormatProperties.create(
+                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.RETURN_FORMAT),
+                        parent = parent?.returnFormat,
                     ),
                 cacheControl =
                     CacheControlProperties.create(

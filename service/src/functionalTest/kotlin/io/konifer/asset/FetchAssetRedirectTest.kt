@@ -37,7 +37,7 @@ class FetchAssetRedirectTest {
             paths = [
               {
                 path = "/**"
-                object-store {
+                return-format {
                   redirect {
                     strategy = template
                     template {
@@ -74,7 +74,7 @@ class FetchAssetRedirectTest {
             paths = [
               {
                 path = "/**"
-                object-store {
+                return-format {
                   redirect {
                     strategy = none
                   }

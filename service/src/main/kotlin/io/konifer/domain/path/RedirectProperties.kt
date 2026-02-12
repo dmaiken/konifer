@@ -1,6 +1,6 @@
-package io.konifer.infrastructure.objectstore.property
+package io.konifer.domain.path
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
@@ -39,7 +39,7 @@ data class RedirectProperties(
             RedirectProperties(
                 strategy =
                     applicationConfig
-                        ?.tryGetString(ObjectStorePropertyKeys.RedirectProperties.STRATEGY)
+                        ?.tryGetString(ObjectStorePropertyKeys.RedirectPropertyKeys.STRATEGY)
                         ?.let { RedirectStrategy.fromConfig(it) }
                         ?: parent?.strategy
                         ?: RedirectStrategy.default,
@@ -47,7 +47,7 @@ data class RedirectProperties(
                     PreSignedProperties.create(
                         applicationConfig =
                             applicationConfig?.tryGetConfig(
-                                ObjectStorePropertyKeys.RedirectProperties.PRESIGNED,
+                                ObjectStorePropertyKeys.RedirectPropertyKeys.PRESIGNED,
                             ),
                         parent = parent?.preSigned,
                     ),
@@ -55,7 +55,7 @@ data class RedirectProperties(
                     TemplateProperties.create(
                         applicationConfig =
                             applicationConfig?.tryGetConfig(
-                                ObjectStorePropertyKeys.RedirectProperties.TEMPLATE,
+                                ObjectStorePropertyKeys.RedirectPropertyKeys.TEMPLATE,
                             ),
                         parent = parent?.template,
                     ),
@@ -78,7 +78,7 @@ data class PreSignedProperties(
                 ttl =
                     applicationConfig
                         ?.tryGetString(
-                            ObjectStorePropertyKeys.RedirectProperties.PreSignedProperties.TTL,
+                            ObjectStorePropertyKeys.RedirectPropertyKeys.PreSignedPropertyKeys.TTL,
                         )?.let { Duration.parse(it) }
                         ?: parent?.ttl
                         ?: DEFAULT_TTL,
@@ -116,7 +116,7 @@ data class TemplateProperties(
         ): TemplateProperties =
             TemplateProperties(
                 string =
-                    applicationConfig?.tryGetString(ObjectStorePropertyKeys.RedirectProperties.TemplateProperties.STRING)
+                    applicationConfig?.tryGetString(ObjectStorePropertyKeys.RedirectPropertyKeys.TemplatePropertyKeys.STRING)
                         ?: parent?.string
                         ?: DEFAULT_STRING,
             )

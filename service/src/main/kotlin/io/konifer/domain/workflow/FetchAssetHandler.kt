@@ -40,7 +40,7 @@ class FetchAssetHandler(
             objectStore.generateObjectUrl(
                 bucket = variant.objectStoreBucket,
                 key = variant.objectStoreKey,
-                properties = context.pathConfiguration.objectStore,
+                properties = context.pathConfiguration.returnFormat.redirect,
             )
         return VariantRedirect(
             url = url,

@@ -9,13 +9,13 @@ import io.konifer.infrastructure.http.route.configureInMemoryObjectStoreRouting
 import io.konifer.infrastructure.http.serialization.configureContentNegotiation
 import io.konifer.infrastructure.http.signature.configureSignatureVerification
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.OBJECT_STORE
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.OBJECT_STORE
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.PROVIDER as OBJECT_STORE_PROVIDER
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.PROVIDER as OBJECT_STORE_PROVIDER
 
 private val logger = KtorSimpleLogger("io.konifer.Application")
 

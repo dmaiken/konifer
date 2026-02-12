@@ -1,10 +1,9 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
+import io.konifer.domain.path.RedirectProperties
+import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectProperties
-import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -59,11 +58,8 @@ class FileSystemObjectStoreTest : ObjectStoreTest() {
                 bucket = BUCKET_1,
                 key = UUID.randomUUID().toString(),
                 properties =
-                    ObjectStoreProperties(
-                        redirect =
-                            RedirectProperties(
-                                strategy = RedirectStrategy.PRESIGNED,
-                            ),
+                    RedirectProperties(
+                        strategy = RedirectStrategy.PRESIGNED,
                     ),
             ) shouldBe null
         }

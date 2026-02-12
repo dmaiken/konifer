@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.objectstore.property
+package io.konifer.domain.path
 
 import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow

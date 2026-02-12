@@ -1,6 +1,6 @@
 package io.konifer.domain.variant.preprocessing
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys.IMAGE
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.config.ApplicationConfig
 

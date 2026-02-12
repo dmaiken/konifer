@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.objectstore.property
+package io.konifer.domain.path
 
 enum class RedirectStrategy {
     NONE,

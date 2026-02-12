@@ -17,9 +17,9 @@ import io.konifer.infrastructure.http.RequestContextPlugin
 import io.konifer.infrastructure.http.cache.AssetCacheControlPlugin
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getContentDispositionHeader
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MULTIPART
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.MultipartConfigurationProperties.MAX_BYTES
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
 import io.konifer.infrastructure.tryGetConfig
 import io.konifer.service.context.selector.ReturnFormat
 import io.ktor.http.ContentType

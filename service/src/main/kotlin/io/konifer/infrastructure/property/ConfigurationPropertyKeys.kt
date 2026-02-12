@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.properties
+package io.konifer.infrastructure.property
 
 object ConfigurationPropertyKeys {
     const val DATASTORE = "data-store"
@@ -46,6 +46,7 @@ object ConfigurationPropertyKeys {
         const val VARIANT_PROFILES = "variant-profiles"
         const val EAGER_VARIANTS = "eager-variants"
         const val OBJECT_STORE = "object-store"
+        const val RETURN_FORMAT = "return-format"
         const val PREPROCESSING = "preprocessing"
         const val CACHE_CONTROL = "cache-control"
 
@@ -65,21 +66,24 @@ object ConfigurationPropertyKeys {
 
         object ObjectStorePropertyKeys {
             const val BUCKET = "bucket"
-            const val REDIRECT = "redirect"
 
-            object RedirectProperties {
+            object RedirectPropertyKeys {
                 const val STRATEGY = "strategy"
                 const val PRESIGNED = "presigned"
                 const val TEMPLATE = "template"
 
-                object PreSignedProperties {
+                object PreSignedPropertyKeys {
                     const val TTL = "ttl"
                 }
 
-                object TemplateProperties {
+                object TemplatePropertyKeys {
                     const val STRING = "string"
                 }
             }
+        }
+
+        object ReturnFormatPropertyKeys {
+            const val REDIRECT = "redirect"
         }
 
         object CacheControlPropertyKeys {
@@ -94,27 +98,27 @@ object ConfigurationPropertyKeys {
         }
     }
 
-    object SourceConfigurationProperties {
+    object SourceConfigurationPropertyKeys {
         const val URL = "url"
         const val MULTIPART = "multipart"
 
-        object UrlConfigurationProperties {
+        object UrlConfigurationPropertyKeys {
             const val ALLOWED_DOMAINS = "allowed-domains"
             const val MAX_BYTES = "max-bytes"
         }
 
-        object MultipartConfigurationProperties {
+        object MultipartConfigurationPropertyKeys {
             const val MAX_BYTES = "max-bytes"
         }
     }
 
-    object VariantGenerationConfigurationProperties {
+    object VariantGenerationConfigurationPropertyKeys {
         const val QUEUE_SIZE = "queue-size"
         const val SYNCHRONOUS_PRIORITY = "synchronous-priority"
         const val WORKERS = "workers"
     }
 
-    object UrlSigningConfigurationProperties {
+    object UrlSigningConfigurationPropertyKeys {
         const val ENABLED = "enabled"
         const val ALGORITHM = "algorithm"
         const val SECRET_KEY = "secret-key"

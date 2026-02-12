@@ -1,6 +1,6 @@
 package io.konifer.domain.ports
 
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
+import io.konifer.domain.path.RedirectProperties
 import io.ktor.utils.io.ByteWriteChannel
 import java.io.File
 import java.time.LocalDateTime
@@ -39,7 +39,7 @@ interface ObjectStore {
     suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-        properties: ObjectStoreProperties,
+        properties: RedirectProperties,
     ): String?
 }
 

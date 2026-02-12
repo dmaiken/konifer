@@ -1,12 +1,11 @@
 package io.konifer.infrastructure.objectstore.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
+import io.konifer.domain.path.PreSignedProperties
+import io.konifer.domain.path.RedirectProperties
+import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.PreSignedProperties
-import io.konifer.infrastructure.objectstore.property.RedirectProperties
-import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
@@ -64,14 +63,11 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 val key = UUID.randomUUID().toString()
 
                 val properties =
-                    ObjectStoreProperties(
-                        redirect =
-                            RedirectProperties(
-                                strategy = RedirectStrategy.PRESIGNED,
-                                preSigned =
-                                    PreSignedProperties(
-                                        ttl = 7.days,
-                                    ),
+                    RedirectProperties(
+                        strategy = RedirectStrategy.PRESIGNED,
+                        preSigned =
+                            PreSignedProperties(
+                                ttl = 7.days,
                             ),
                     )
                 val url = store.generateObjectUrl(bucket, key, properties)

@@ -1,13 +1,11 @@
-package io.konifer.infrastructure.objectstore.property
+package io.konifer.domain.path
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
-import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
 data class ObjectStoreProperties(
     val bucket: String = DEFAULT_BUCKET,
-    val redirect: RedirectProperties = RedirectProperties.default,
 ) {
     init {
         validate()
@@ -34,14 +32,6 @@ data class ObjectStoreProperties(
                     applicationConfig?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.BUCKET)
                         ?: parent?.bucket
                         ?: DEFAULT_BUCKET,
-                redirect =
-                    RedirectProperties.create(
-                        applicationConfig =
-                            applicationConfig?.tryGetConfig(
-                                ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.REDIRECT,
-                            ),
-                        parent = parent?.redirect,
-                    ),
             )
     }
 

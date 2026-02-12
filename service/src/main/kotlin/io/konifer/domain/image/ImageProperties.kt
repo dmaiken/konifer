@@ -1,6 +1,6 @@
 package io.konifer.domain.image
 
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.LQIP
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.LQIP
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetStringList
 

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.objectstore.property
+package io.konifer.domain.path
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

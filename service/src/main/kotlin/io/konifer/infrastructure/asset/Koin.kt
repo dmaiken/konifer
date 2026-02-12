@@ -2,10 +2,10 @@ package io.konifer.infrastructure.asset
 
 import io.konifer.domain.asset.MAX_BYTES_DEFAULT
 import io.konifer.domain.ports.AssetContainerFactory
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SOURCE
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.URL
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.UrlConfigurationProperties.ALLOWED_DOMAINS
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.SourceConfigurationProperties.UrlConfigurationProperties.MAX_BYTES
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.URL
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.UrlConfigurationPropertyKeys.ALLOWED_DOMAINS
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.UrlConfigurationPropertyKeys.MAX_BYTES
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString

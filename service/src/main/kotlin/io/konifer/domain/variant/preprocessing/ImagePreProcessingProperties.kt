@@ -6,7 +6,7 @@ import io.konifer.domain.image.Flip
 import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.konifer.service.context.RequestedTransformation
 import io.konifer.service.context.selector.ManipulationParameters
 import io.ktor.server.config.ApplicationConfig

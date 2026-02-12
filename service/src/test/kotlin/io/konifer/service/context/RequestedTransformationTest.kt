@@ -122,6 +122,6 @@ class RequestedTransformationTest {
                 background = badBackground,
                 format = ImageFormat.PNG,
             )
-        }.message shouldBe "Background must be a hex value starting with '#'"
+        }.message shouldBe "Pad color must be a hex value starting with '#'"
     }
 }

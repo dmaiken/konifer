@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
+import io.konifer.domain.path.RedirectProperties
+import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.infrastructure.objectstore.property.ObjectStoreProperties
-import io.konifer.infrastructure.objectstore.property.RedirectStrategy
 import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteWriteChannel
@@ -104,11 +104,11 @@ class FileSystemObjectStore(
     override suspend fun generateObjectUrl(
         bucket: String,
         key: String,
-        properties: ObjectStoreProperties,
+        properties: RedirectProperties,
     ): String? =
-        when (properties.redirect.strategy) {
+        when (properties.strategy) {
             RedirectStrategy.TEMPLATE ->
-                properties.redirect.template.resolve(
+                properties.template.resolve(
                     bucket = bucket,
                     key = key,
                 )

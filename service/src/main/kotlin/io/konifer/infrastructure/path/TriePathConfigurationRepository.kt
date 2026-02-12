@@ -2,8 +2,8 @@ package io.konifer.infrastructure.path
 
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys
-import io.konifer.infrastructure.properties.ConfigurationPropertyKeys.PathPropertyKeys.PATH
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.PATH
 import io.konifer.infrastructure.tryGetConfigList
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
