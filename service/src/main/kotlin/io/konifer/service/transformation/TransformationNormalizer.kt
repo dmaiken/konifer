@@ -123,7 +123,7 @@ class TransformationNormalizer(
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
                 originalAttributesDeferred.cancel()
             }
-            logger.info("Normalized requested transformation: $requested to: $it")
+            logger.debug { "Normalized requested transformation: $requested to: $it" }
         }
     }
 

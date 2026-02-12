@@ -10,7 +10,6 @@ private val logger = KtorSimpleLogger("io.konifer.infrastructure.s3.S3Config")
 
 fun s3Client(properties: S3ClientProperties): S3Client =
     S3Client {
-        logger.info("Using s3 client properties: $properties")
         if (properties.accessKey != null && properties.secretKey != null) {
             credentialsProvider =
                 StaticCredentialsProvider(

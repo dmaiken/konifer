@@ -98,9 +98,6 @@ class VariantService(
                             variantType = variantType,
                         ).await()
                 }
-            logger.info(
-                "$variantType variant content generated for ${transformationDataContainers.size} variants for asset: ${assetId.value} in ${time.inWholeMilliseconds}ms",
-            )
 
             for (container in transformationDataContainers) {
                 val attributes =
@@ -126,7 +123,6 @@ class VariantService(
                                     },
                             ),
                     )
-                logger.info("Stored pending variant for ${container.transformation}: ${pendingVariant.id}")
 
                 markVariantUploaded(
                     pendingVariant = pendingVariant,

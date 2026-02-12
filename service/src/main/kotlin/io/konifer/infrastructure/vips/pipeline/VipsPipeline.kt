@@ -7,6 +7,7 @@ import io.konifer.infrastructure.vips.transformation.AlphaState
 import io.konifer.infrastructure.vips.transformation.VipsTransformer
 import io.konifer.infrastructure.vips.unPremultiplyIfNecessary
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import java.lang.foreign.Arena
 
 class VipsPipelineBuilder {
@@ -91,7 +92,7 @@ class VipsPipeline(
         }
 
         if (!failed) {
-            logger.info("Successfully processed image with transformation: $transformation with results: $appliedTransformations")
+            logger.debug { "Successfully processed image with transformation: $transformation with results: $appliedTransformations" }
         }
 
         return VipsPipelineResult(

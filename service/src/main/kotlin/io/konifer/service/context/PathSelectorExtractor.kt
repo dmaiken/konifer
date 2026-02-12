@@ -11,6 +11,7 @@ import io.konifer.service.context.selector.ReturnFormat
 import io.konifer.service.context.selector.SpecifiedInRequest
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import kotlin.text.toIntOrNull
 
 object PathSelectorExtractor {
@@ -111,7 +112,7 @@ object PathSelectorExtractor {
             } catch (e: Exception) {
                 throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments", e)
             }
-        logger.info("Parsed query modifiers for path: $path - $querySelectors")
+        logger.debug { "Parsed query modifiers for path: $path - $querySelectors" }
 
         return querySelectors
     }
@@ -164,7 +165,7 @@ object PathSelectorExtractor {
             } catch (e: Exception) {
                 throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments", e)
             }
-        logger.info("Parsed delete modifiers for path: $path - $deleteModifiers")
+        logger.debug { "Parsed delete modifiers for path: $path - $deleteModifiers" }
 
         return deleteModifiers
     }

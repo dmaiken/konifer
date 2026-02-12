@@ -15,6 +15,7 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pageSafeHeight
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import java.lang.foreign.Arena
 
 /**
@@ -45,10 +46,10 @@ object Resize : VipsTransformer {
                 transformation.height,
                 transformation.fit,
             )
-        logger.info(
+        logger.debug {
             "Scaling image with dimensions (${source.width}, ${source.pageSafeHeight()}) to ($resizeWidth, $resizeHeight) " +
-                "using fit: ${transformation.fit}",
-        )
+                "using fit: ${transformation.fit}"
+        }
         val regenerateLqip = requiresLqipRegeneration(source, resizeWidth, resizeHeight, transformation)
         val scaled =
             when (transformation.fit) {

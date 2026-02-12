@@ -153,7 +153,7 @@ class StoreNewAssetWorkflow(
                             key = objectStoreKey,
                             file = preProcessedPath.toFile(),
                         )
-                    logger.info("Asset uploaded at $uploadedAt, marking as ready")
+                    logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
                     val readyAsset =
                         pendingPersisted.markReady(uploadedAt).also {
                             assetRepository.markReady(it)

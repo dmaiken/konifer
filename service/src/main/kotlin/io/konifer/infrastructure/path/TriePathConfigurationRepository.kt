@@ -8,6 +8,7 @@ import io.konifer.infrastructure.tryGetConfigList
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 
 class TriePathConfigurationRepository(
     applicationConfig: ApplicationConfig,
@@ -59,7 +60,7 @@ class TriePathConfigurationRepository(
                     applicationConfig = pathConfig,
                 )
             }
-        logger.info("Populated config trie: {}", root)
+        logger.debug { "Populated config trie: $root" }
     }
 
     private fun insertPath(

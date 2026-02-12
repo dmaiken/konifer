@@ -306,7 +306,7 @@ class PostgresAssetRepository(
 
         val count = deleteAssets(targets)
 
-        logger.info("Atomically deleted $count assets and logged their variants")
+        logger.info("Deleted $count assets in path: $path")
     }
 
     override suspend fun deleteRecursivelyByPath(

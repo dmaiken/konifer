@@ -20,7 +20,7 @@ class InMemoryAssetRepository : AssetRepository {
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
         val entryId = getNextEntryId(path)
-        logger.info("Persisting asset at path: $path and entryId: $entryId")
+        logger.info("Persisting asset at path: $path, entryId: $entryId")
         return Asset
             .PendingPersisted(
                 id = asset.id,
@@ -92,10 +92,6 @@ class InMemoryAssetRepository : AssetRepository {
         includeOnlyReady: Boolean,
     ): AssetData? {
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
-        logger.info(
-            "Fetched asset with variant transformations: ${asset.variants.map { it.transformation }} " +
-                "Looking for transformation: $transformation",
-        )
         val variants =
             if (transformation == null) {
                 asset.variants
@@ -133,7 +129,7 @@ class InMemoryAssetRepository : AssetRepository {
         entryId: Long,
     ) {
         val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting asset at path: $inMemoryPath and entryId: $entryId")
+        logger.info("Deleting asset at path: $inMemoryPath, entryId: $entryId")
 
         val asset =
             store[inMemoryPath]?.let { assets ->

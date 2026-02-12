@@ -79,13 +79,12 @@ fun Application.configureAssetRouting() {
                 val requestContext = call.attributes[queryRequestContextKey]
 
                 logger.info(
-                    "Navigating to asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
+                    "Fetching asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
                 )
                 when (requestContext.selectors.returnFormat) {
                     ReturnFormat.METADATA -> {
                         if (requestContext.selectors.limit == 1) {
                             fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
-                                logger.info("Found asset info: $response with path: ${requestContext.path}")
                                 getAppStatusCacheHeader(response.cacheHit).let {
                                     call.response.headers.append(it.first, it.second)
                                 }
@@ -98,7 +97,6 @@ fun Application.configureAssetRouting() {
                                 .map {
                                     AssetResponse.fromAssetData(it)
                                 }.let {
-                                    logger.info("Found asset info for ${it.size} assets in path: ${requestContext.path}")
                                     call.respond(HttpStatusCode.OK, it)
                                 }
                         }
@@ -173,7 +171,7 @@ fun Application.configureAssetRouting() {
 
             put("/{...}") {
                 val requestContext = call.attributes[updateRequestContextKey]
-                logger.info("Received request to update asset at path: ${requestContext.path} and entryId: ${requestContext.entryId}")
+                logger.info("Received request to update asset in path: ${requestContext.path}, entryId: ${requestContext.entryId}")
                 val asset =
                     updateAssetWorkflow.updateAsset(
                         context = requestContext,

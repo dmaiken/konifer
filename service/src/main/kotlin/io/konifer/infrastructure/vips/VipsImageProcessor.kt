@@ -16,6 +16,7 @@ import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -30,7 +31,6 @@ class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     init {
-        logger.info("Initializing Vips image processor")
         // Not necessary since this will be a long-running service
         Vips.disableOperationCache()
     }
@@ -87,7 +87,7 @@ class VipsImageProcessor {
                     )
                 } else {
                     // Encoding is where all the work is done - don't bother if the image was not transformed
-                    logger.info("No applied transformations for image, not encoding image with vips")
+                    logger.debug { "No applied transformations for image, not encoding image with vips" }
                     Files.createSymbolicLink(output, source)
                 }
 

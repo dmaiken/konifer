@@ -3,6 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.domain.image.PreProcessedImage
 import io.konifer.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,6 @@ class CoroutineVariantGenerator(
 
     fun start(index: Int) {
         scope.launch {
-            logger.info("Starting variant generator channel listener: $index")
             while (isActive) {
                 handleVariantGenerationJob(consumer.nextJob())
             }
@@ -62,7 +62,7 @@ class CoroutineVariantGenerator(
     }
 
     private suspend fun handlePreProcessJob(job: PreProcessJob): PreProcessedImage {
-        logger.info("Handling preprocessing job: $job")
+        logger.debug { "Handling preprocessing job: $job" }
         return imageProcessor.preprocess(
             sourceFormat = job.sourceFormat,
             transformation = job.transformation,
@@ -73,7 +73,7 @@ class CoroutineVariantGenerator(
     }
 
     private suspend fun handleGenerateVariantsJob(job: GenerateVariantsJob): Boolean {
-        logger.info("Handling GenerateVariantsJob job: $job")
+        logger.debug { "Handling GenerateVariantsJob job: $job" }
         return try {
             imageProcessor.generateVariants(
                 source = job.source,

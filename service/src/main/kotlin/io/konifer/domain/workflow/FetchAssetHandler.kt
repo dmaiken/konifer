@@ -78,9 +78,7 @@ class FetchAssetHandler(
         context: QueryRequestContext,
         generateVariant: Boolean,
     ): AssetMetadata? {
-        logger.info(
-            "Fetching asset metadata by path: ${context.path} with transformation: ${context.transformation} and labels: ${context.labels}",
-        )
+        logger.info("Fetching asset metadata by path: ${context.path}")
 
         val assetData =
             assetRepository.fetchByPath(
@@ -95,7 +93,7 @@ class FetchAssetHandler(
         }
 
         return if (assetData.variants.isEmpty()) {
-            logger.info("Generating variant of asset with path: ${context.path} and entryId: ${context.selectors.entryId}")
+            logger.info("Generating variant of asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
 
             createOnDemandVariant(
                 assetId = assetData.id,
@@ -114,7 +112,7 @@ class FetchAssetHandler(
                 cacheHit = false,
             )
         } else {
-            logger.info("Variant found for asset with path: ${context.path} and entryId: ${context.selectors.entryId}")
+            logger.info("Variant found for asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
             AssetMetadata(assetData, true)
         }
     }

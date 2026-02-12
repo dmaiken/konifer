@@ -8,6 +8,7 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import java.lang.foreign.Arena
 
 /**
@@ -68,12 +69,12 @@ object Pad : VipsTransformer {
     ): List<Double> {
         val color = transformation.padding.color
         if (!transformation.format.vipsProperties.supportsAlpha) {
-            logger.info("Format ${transformation.format} does not support alpha, stripping alpha from background")
+            logger.debug { "Format ${transformation.format} does not support alpha, stripping alpha from background" }
             return color.take(3).map { it.toDouble() }
         }
         return if (source.hasAlpha() && color.size == 3) {
             // Add alpha band to background
-            logger.info("Source has an alpha band and background does not, adding opaque alpha band (255)")
+            logger.debug { "Source has an alpha band and background does not, adding opaque alpha band (255)" }
             listOf(color[0], color[1], color[2], 255)
         } else {
             color
@@ -89,7 +90,7 @@ object Pad : VipsTransformer {
             return source
         }
         if (requiresAlpha) {
-            logger.info("Source does not have an alpha band but one is required for color: $backgroundColor, adding opaque alpha band")
+            logger.debug { "Source does not have an alpha band but one is required for color: $backgroundColor, adding opaque alpha band" }
             return source.bandjoinConst(alphaBand)
         }
         return source

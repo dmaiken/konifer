@@ -18,10 +18,10 @@ object TemporaryFileFactory {
 
     init {
         // Replace temporary directory with empty one
-        logger.info("Deleting directory ${tempDir.pathString}")
+        logger.info("Deleting directory if exists ${tempDir.pathString}")
         tempDir.deleteRecursively()
 
-        logger.info("Creating directory ${tempDir.pathString}")
+        logger.info("Creating directory if exists ${tempDir.pathString}")
         tempDir.toFile().mkdirs()
     }
 

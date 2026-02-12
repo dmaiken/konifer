@@ -24,6 +24,9 @@ sealed interface Asset {
     val isReady: Boolean
     val variants: MutableList<Variant>
 
+    val descriptor: String
+        get() = "$path:$entryId"
+
     class New private constructor(
         override val id: AssetId,
         override val path: String,
