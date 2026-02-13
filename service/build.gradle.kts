@@ -57,6 +57,13 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+// Required to get dependencies that rely on ServiceLocator (SPI) to work
+// e.g. R2DBC
+tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+}
+
 dependencies {
     implementation(project(":jooq-generated"))
 

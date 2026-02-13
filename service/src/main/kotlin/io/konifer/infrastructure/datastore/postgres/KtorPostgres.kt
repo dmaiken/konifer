@@ -13,8 +13,12 @@ import io.r2dbc.spi.ConnectionFactoryOptions.PORT as R2DBC_PORT
 import io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL as R2DBC_PROTOCOL
 import io.r2dbc.spi.ConnectionFactoryOptions.USER as R2DBC_USER
 
-fun Application.connectToPostgres(properties: PostgresProperties): ConnectionFactory {
+fun Application.postgres(properties: PostgresProperties): ConnectionFactory {
     log.info("(R2DBC) Connecting to postgres on ${properties.host}:${properties.port} using database: ${properties.database}")
+    return connectToPostgres(properties)
+}
+
+fun connectToPostgres(properties: PostgresProperties): ConnectionFactory {
     val options =
         builder()
             .option(R2DBC_DATABASE, properties.database)

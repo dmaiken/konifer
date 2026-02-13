@@ -3,8 +3,8 @@ package io.konifer.infrastructure.datastore
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
-import io.konifer.infrastructure.datastore.postgres.connectToPostgres
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
+import io.konifer.infrastructure.datastore.postgres.postgres
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduling
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DATASTORE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PROVIDER
@@ -40,7 +40,7 @@ fun Application.assetRepositoryModule(): Module =
             }
             DataStoreProvider.POSTGRES -> {
                 val properties = createPostgresProperties()
-                val connectionFactory = connectToPostgres(properties)
+                val connectionFactory = postgres(properties)
                 migrateSchema(connectionFactory)
                 val dslContext = configureR2dbcJOOQ(connectionFactory)
                 configureScheduling(properties, dslContext)

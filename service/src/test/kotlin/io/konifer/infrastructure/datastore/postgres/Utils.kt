@@ -2,15 +2,6 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.infrastructure.datastore.configureR2dbcJOOQ
 import io.konifer.infrastructure.datastore.migrateSchema
-import io.r2dbc.spi.ConnectionFactories
-import io.r2dbc.spi.ConnectionFactoryOptions
-import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE
-import io.r2dbc.spi.ConnectionFactoryOptions.DRIVER
-import io.r2dbc.spi.ConnectionFactoryOptions.HOST
-import io.r2dbc.spi.ConnectionFactoryOptions.PASSWORD
-import io.r2dbc.spi.ConnectionFactoryOptions.PORT
-import io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL
-import io.r2dbc.spi.ConnectionFactoryOptions.USER
 import org.jooq.DSLContext
 import org.testcontainers.containers.PostgreSQLContainer
 
@@ -29,19 +20,16 @@ fun truncateTables(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>) {
 }
 
 fun createR2dbcDslContext(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>): DSLContext {
-    val options =
-        ConnectionFactoryOptions
-            .builder()
-            .option(DRIVER, "pool")
-            .option(PROTOCOL, "postgresql")
-            .option(HOST, postgres.host)
-            .option(PORT, postgres.getMappedPort(5432))
-            .option(USER, postgres.username)
-            .option(PASSWORD, postgres.password)
-            .option(DATABASE, postgres.databaseName)
-            .build()
-
-    val connectionFactory = ConnectionFactories.get(options)
+    val connectionFactory =
+        connectToPostgres(
+            PostgresProperties(
+                database = postgres.databaseName,
+                user = postgres.username,
+                host = postgres.host,
+                port = postgres.getMappedPort(5432),
+                password = postgres.password,
+            ),
+        )
     installLtree(postgres)
     migrateSchema(connectionFactory)
     return configureR2dbcJOOQ(connectionFactory)

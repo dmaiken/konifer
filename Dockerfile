@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 # Build Jar
 COPY . .
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle :service:buildFatJar --no-daemon -x test
+    gradle :service:shadowJar --no-daemon -x test
 
 # ==========================================
 # Build LibVips
