@@ -5,6 +5,7 @@ data class S3ClientProperties(
     val accessKey: String?,
     val secretKey: String?,
     val region: String?,
+    val forcePathStyle: Boolean = false,
     val providerHint: S3Provider? = null,
 ) {
     init {

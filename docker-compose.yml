@@ -21,7 +21,7 @@ services:
       - konifer-net
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: konifer_postgres
     environment:
       POSTGRES_USER: konifer_user
@@ -29,6 +29,7 @@ services:
       POSTGRES_DB: konifer
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     healthcheck:

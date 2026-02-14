@@ -14,6 +14,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectReposi
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.ACCESS_KEY
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.ENDPOINT_URL
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.FORCE_PATH_STYLE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.REGION
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.SECRET_KEY
 import io.konifer.infrastructure.tryGetConfig
@@ -44,6 +45,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                         accessKey = s3ConfigurationProperties?.tryGetString(ACCESS_KEY),
                         secretKey = s3ConfigurationProperties?.tryGetString(SECRET_KEY),
                         region = s3ConfigurationProperties?.tryGetString(REGION),
+                        forcePathStyle = s3ConfigurationProperties?.tryGetString(FORCE_PATH_STYLE)?.toBoolean() ?: false,
                     )
                 single<S3Client>(createdAtStart = true) {
                     s3Client(s3ClientProperties)

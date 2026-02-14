@@ -57,7 +57,9 @@ object FailedAssetSweeper {
             }.getOrNull()
         }
 
-        logger.info("Swept ${result.size - errorCount} failed assets with $errorCount errors")
+        if (result.isNotEmpty()) {
+            logger.info("Swept ${result.size - errorCount} failed assets with $errorCount errors")
+        }
     }
 }
 
