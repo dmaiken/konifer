@@ -10,8 +10,8 @@ services:
       - ./konifer.conf:/app/config/konifer.conf
     environment:
       # Override sensitive config values using Env Vars
-      - DB_PASSWORD=konifer_password
-      - S3_SECRET_KEY=minio_secret_key
+      PG_PASSWORD: konifer_password
+      S3_SECRET_KEY: minio_secret_key
     depends_on:
       postgres:
         condition: service_healthy
