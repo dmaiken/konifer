@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.infrastructure.datastore.postgres.getNonNull
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.tables.references.ASSET_VARIANT
@@ -67,7 +68,7 @@ object FailedVariantSweeper {
                     trx
                         .dsl()
                         .insertInto(OUTBOX)
-                        .set(OUTBOX.ID, UUID.randomUUID())
+                        .set(OUTBOX.ID, UuidCreator.getTimeOrderedEpoch())
                         .set(OUTBOX.EVENT_TYPE, event.eventType)
                         .set(OUTBOX.PAYLOAD, JSONB.valueOf(Json.encodeToString(event)))
                         .set(OUTBOX.CREATED_AT, LocalDateTime.now())

@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.byteArrayToImage
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
@@ -14,14 +15,13 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpStatusCode
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class FetchAssetContentTest {
     @Test
     fun `fetching asset content that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            fetchAssetContent(client, path = UUID.randomUUID().toString(), expectedStatusCode = HttpStatusCode.NotFound)
+            fetchAssetContent(client, path = UuidCreator.getRandomBasedFast().toString(), expectedStatusCode = HttpStatusCode.NotFound)
         }
 
     @Test

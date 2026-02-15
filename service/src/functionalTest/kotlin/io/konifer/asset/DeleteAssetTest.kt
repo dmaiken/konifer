@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.service.context.selector.Order
@@ -16,7 +17,6 @@ import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class DeleteAssetTest {
     @Test
@@ -24,7 +24,7 @@ class DeleteAssetTest {
         testInMemory {
             val client = createJsonClient()
             client
-                .delete("/assets/${UUID.randomUUID()}")
+                .delete("/assets/${UuidCreator.getRandomBasedFast()}")
                 .apply {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText() shouldBe ""

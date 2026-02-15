@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.ObjectStore
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.UUID
 import kotlin.io.path.absolutePathString
 
 class FileSystemObjectStoreTest : ObjectStoreTest() {
@@ -56,7 +56,7 @@ class FileSystemObjectStoreTest : ObjectStoreTest() {
         runTest {
             store.generateObjectUrl(
                 bucket = BUCKET_1,
-                key = UUID.randomUUID().toString(),
+                key = UuidCreator.getRandomBasedFast().toString(),
                 properties =
                     RedirectProperties(
                         strategy = RedirectStrategy.PRESIGNED,

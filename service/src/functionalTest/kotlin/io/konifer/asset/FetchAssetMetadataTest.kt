@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.config.testInMemory
 import io.konifer.domain.asset.AssetClass
 import io.konifer.infrastructure.StoreAssetRequest
@@ -14,7 +15,6 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class FetchAssetMetadataTest {
     @Test
@@ -68,13 +68,13 @@ class FetchAssetMetadataTest {
     fun `fetching info of asset that does not exist returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            fetchAssetMetadata(client, UUID.randomUUID().toString(), expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetMetadata(client, UuidCreator.getRandomBasedFast().toString(), expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
     fun `fetching info of asset path that does not contain any assets returns not found`() =
         testInMemory {
             val client = createJsonClient()
-            fetchAllAssetMetadata(client, UUID.randomUUID().toString(), limit = 10) shouldHaveSize 0
+            fetchAllAssetMetadata(client, UuidCreator.getRandomBasedFast().toString(), limit = 10) shouldHaveSize 0
         }
 }

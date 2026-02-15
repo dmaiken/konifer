@@ -280,7 +280,7 @@ docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 k
 This project uses Ktlint to enforce code styling and Detekt for static analysis. To run both:
 
 ```shell
- ./gradlew ktlintFormat detekt
+./gradlew ktlintFormat detekt
 ```
 
 ### JOOQ

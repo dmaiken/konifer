@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.Filter
 import io.konifer.domain.image.Fit
@@ -31,7 +32,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 abstract class AssetRepositoryTest {
     abstract fun createRepository(): AssetRepository
@@ -168,7 +168,7 @@ abstract class AssetRepositoryTest {
                         fit = Fit.FIT,
                     )
                 val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
+                val key = UuidCreator.getRandomBasedFast().toString()
                 val newVariant =
                     repository.storeNewVariant(
                         createPendingVariant(

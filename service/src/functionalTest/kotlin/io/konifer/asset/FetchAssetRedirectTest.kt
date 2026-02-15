@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.byteArrayToImage
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
@@ -16,7 +17,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class FetchAssetRedirectTest {
     @Test
@@ -25,7 +25,7 @@ class FetchAssetRedirectTest {
             val client = createJsonClient()
             fetchAssetViaRedirect(
                 client,
-                path = UUID.randomUUID().toString(),
+                path = UuidCreator.getRandomBasedFast().toString(),
                 expectedStatusCode = HttpStatusCode.NotFound,
             )
         }

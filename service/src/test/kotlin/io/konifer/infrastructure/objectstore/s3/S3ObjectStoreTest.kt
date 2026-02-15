@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.objectstore.s3
 
 import aws.sdk.kotlin.services.s3.S3Client
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.path.PreSignedProperties
 import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
@@ -18,7 +19,6 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import java.net.URI
-import java.util.UUID
 import kotlin.time.Duration.Companion.days
 
 @Testcontainers
@@ -60,7 +60,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 val store =
                     S3ObjectStore(s3Client)
                 val bucket = "bucket"
-                val key = UUID.randomUUID().toString()
+                val key = UuidCreator.getRandomBasedFast().toString()
 
                 val properties =
                     RedirectProperties(

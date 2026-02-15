@@ -2,6 +2,7 @@ package io.konifer.domain.workflow
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
@@ -35,7 +36,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.util.UUID
 import kotlin.io.path.pathString
 
 class StoreNewAssetWorkflow(
@@ -132,7 +132,7 @@ class StoreNewAssetWorkflow(
                             )
                         }
 
-                    val objectStoreKey = "${UUID.randomUUID()}${preProcessed.attributes.format.extension}"
+                    val objectStoreKey = "${UuidCreator.getRandomBasedFast()}${preProcessed.attributes.format.extension}"
                     val pendingAsset =
                         newAsset.markPending(
                             originalVariant =

@@ -9,7 +9,7 @@ services:
     volumes:
       - ./konifer.conf:/app/config/konifer.conf
     environment:
-      # Optional: Override sensitive config values using Env Vars
+      # Override sensitive config values using Env Vars
       - DB_PASSWORD=konifer_password
       - S3_SECRET_KEY=minio_secret_key
     depends_on:
@@ -60,7 +60,7 @@ services:
     networks:
       - konifer-net
 
-  # MinIO starts empty. This tiny container creates the default bucket automatically.
+  # MinIO starts empty. This container creates the default bucket automatically.
   createbuckets:
     image: minio/mc
     depends_on:

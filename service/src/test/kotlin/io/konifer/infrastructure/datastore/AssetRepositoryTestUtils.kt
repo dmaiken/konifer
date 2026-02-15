@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -14,7 +15,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 fun createPendingAsset(
     path: String = "/users/123",
@@ -37,7 +37,7 @@ fun createPendingAsset(
             format = ImageFormat.PNG,
         ),
     objectStoreBucket: String = "bucket",
-    objectStoreKey: String = "${UUID.randomUUID()}${attributes.format.extension}",
+    objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
     lqips: LQIPs = LQIPs.NONE,
 ): Asset.Pending =
     Asset.New
@@ -73,7 +73,7 @@ fun createPendingVariant(
         ),
     objectStoreBucket: String = "bucket",
     transformation: Transformation,
-    objectStoreKey: String = "${UUID.randomUUID()}${attributes.format.extension}",
+    objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
     lqip: LQIPs = LQIPs.NONE,
 ): Variant.Pending =
     Variant.Pending.newVariant(

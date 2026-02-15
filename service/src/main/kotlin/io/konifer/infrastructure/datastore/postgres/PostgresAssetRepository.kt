@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -82,7 +83,7 @@ class PostgresAssetRepository(
                 trx
                     .dsl()
                     .insertInto(ASSET_VARIANT)
-                    .set(ASSET_VARIANT.ID, UUID.randomUUID())
+                    .set(ASSET_VARIANT.ID, UuidCreator.getTimeOrderedEpoch())
                     .set(ASSET_VARIANT.ASSET_ID, assetId)
                     .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, originalVariant.objectStoreBucket)
                     .set(ASSET_VARIANT.OBJECT_STORE_KEY, originalVariant.objectStoreKey)
@@ -142,7 +143,7 @@ class PostgresAssetRepository(
                     trx
                         .dsl()
                         .insertInto(ASSET_VARIANT)
-                        .set(ASSET_VARIANT.ID, UUID.randomUUID())
+                        .set(ASSET_VARIANT.ID, UuidCreator.getTimeOrderedEpoch())
                         .set(ASSET_VARIANT.ASSET_ID, variant.assetId.value)
                         .set(ASSET_VARIANT.OBJECT_STORE_BUCKET, variant.objectStoreBucket)
                         .set(ASSET_VARIANT.OBJECT_STORE_KEY, variant.objectStoreKey)
@@ -552,7 +553,7 @@ class PostgresAssetRepository(
                     ASSET_LABEL.CREATED_AT,
                 )
             labels.forEach { (key, value) ->
-                step.values(UUID.randomUUID(), assetId, key, value, dateTime)
+                step.values(UuidCreator.getTimeOrderedEpoch(), assetId, key, value, dateTime)
             }
             step.returning().asFlow().toList(updated)
         }
@@ -576,7 +577,7 @@ class PostgresAssetRepository(
                     ASSET_TAG.CREATED_AT,
                 )
             tags.forEach { value ->
-                step.values(UUID.randomUUID(), assetId, value, dateTime)
+                step.values(UuidCreator.getTimeOrderedEpoch(), assetId, value, dateTime)
             }
             step.returning().asFlow().toList(updated)
         }

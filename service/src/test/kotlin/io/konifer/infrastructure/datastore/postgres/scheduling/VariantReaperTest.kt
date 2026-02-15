@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
 import io.konifer.infrastructure.datastore.postgres.postgresContainer
@@ -23,7 +24,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
-import java.util.UUID
 
 @Testcontainers
 class VariantReaperTest {
@@ -55,7 +55,7 @@ class VariantReaperTest {
                 file = file,
             )
 
-            val eventId = UUID.randomUUID()
+            val eventId = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId)
@@ -98,7 +98,7 @@ class VariantReaperTest {
                 file = file,
             )
 
-            val eventId = UUID.randomUUID()
+            val eventId = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId)
@@ -151,7 +151,7 @@ class VariantReaperTest {
                 file = file,
             )
 
-            val eventId1 = UUID.randomUUID()
+            val eventId1 = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId1)
@@ -168,7 +168,7 @@ class VariantReaperTest {
                     ),
                 ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
                 .awaitFirstOrNull()
-            val eventId2 = UUID.randomUUID()
+            val eventId2 = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId2)
@@ -230,7 +230,7 @@ class VariantReaperTest {
                 file = file,
             )
 
-            val eventId1 = UUID.randomUUID()
+            val eventId1 = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId1)
@@ -247,7 +247,7 @@ class VariantReaperTest {
                     ),
                 ).set(OUTBOX.CREATED_AT, LocalDateTime.now())
                 .awaitFirstOrNull()
-            val eventId2 = UUID.randomUUID()
+            val eventId2 = UuidCreator.getRandomBasedFast()
             dslContext
                 .insertInto(OUTBOX)
                 .set(OUTBOX.ID, eventId2)

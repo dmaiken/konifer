@@ -1,5 +1,6 @@
 package io.konifer.service.variant
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.AssetRepository
@@ -15,11 +16,11 @@ import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.RequestedTransformation
 import io.konifer.service.transformation.TransformationNormalizer
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.time.LocalDateTime
-import java.util.UUID
 import kotlin.time.measureTime
 
 class VariantService(
@@ -98,6 +99,7 @@ class VariantService(
                             variantType = variantType,
                         ).await()
                 }
+            logger.debug { "Created variant for asset: ${assetId.value} in $time" }
 
             for (container in transformationDataContainers) {
                 val attributes =
@@ -113,7 +115,7 @@ class VariantService(
                                 attributes = attributes,
                                 transformation = container.transformation,
                                 objectStoreBucket = bucket,
-                                objectStoreKey = "${UUID.randomUUID()}${attributes.format.extension}",
+                                objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
                                 lqip =
                                     if (lqipImplementations.isNotEmpty() && container.lqips == LQIPs.NONE) {
                                         // No new Lqips were generated but they are required, use ones from the original variant

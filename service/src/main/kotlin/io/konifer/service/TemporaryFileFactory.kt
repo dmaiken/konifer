@@ -1,11 +1,11 @@
 package io.konifer.service
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.UUID
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.pathString
@@ -33,21 +33,21 @@ object TemporaryFileFactory {
 
     suspend fun createUploadTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$UPLOAD_PREFIX-${UUID.randomUUID()}$extension")
+            tempDir.resolve("$UPLOAD_PREFIX-${UuidCreator.getRandomBasedFast()}$extension")
         }
 
     suspend fun createPreProcessedTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$PRE_PROCESSED_PREFIX-${UUID.randomUUID()}$extension")
+            tempDir.resolve("$PRE_PROCESSED_PREFIX-${UuidCreator.getRandomBasedFast()}$extension")
         }
 
     suspend fun createOriginalVariantTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$ORIGINAL_VARIANT_PREFIX-${UUID.randomUUID()}$extension")
+            tempDir.resolve("$ORIGINAL_VARIANT_PREFIX-${UuidCreator.getRandomBasedFast()}$extension")
         }
 
     suspend fun createProcessedVariantTempFile(extension: String): Path =
         withContext(Dispatchers.IO) {
-            tempDir.resolve("$PROCESSED_VARIANT_PREFIX-${UUID.randomUUID()}$extension")
+            tempDir.resolve("$PROCESSED_VARIANT_PREFIX-${UuidCreator.getRandomBasedFast()}$extension")
         }
 }

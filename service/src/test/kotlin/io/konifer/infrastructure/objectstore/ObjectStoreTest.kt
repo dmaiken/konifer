@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.objectstore
 
+import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
@@ -16,7 +17,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.UUID
 
 abstract class ObjectStoreTest {
     abstract fun createObjectStore(): ObjectStore
@@ -37,7 +37,7 @@ abstract class ObjectStoreTest {
     @Test
     fun `can persist and fetch an object`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             val result = store.persist(BUCKET_1, key, image)
             result.toLocalDate() shouldBe LocalDate.now()
@@ -56,7 +56,7 @@ abstract class ObjectStoreTest {
     @Test
     fun `can persist and fetch an object without supplying content length`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key, image)
 
@@ -75,7 +75,7 @@ abstract class ObjectStoreTest {
     fun `can fetch if the object does not exist`() =
         runTest {
             val stream = ByteChannel(autoFlush = true)
-            val fetchResult = store.fetch(BUCKET_1, UUID.randomUUID().toString(), stream)
+            val fetchResult = store.fetch(BUCKET_1, UuidCreator.getRandomBasedFast().toString(), stream)
 
             fetchResult.found shouldBe false
             fetchResult.contentLength shouldBe 0
@@ -85,7 +85,7 @@ abstract class ObjectStoreTest {
     @Test
     fun `can delete an object`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key, image)
             store.delete(BUCKET_1, key)
@@ -105,22 +105,22 @@ abstract class ObjectStoreTest {
     fun `can delete if object does not exist`() =
         runTest {
             shouldNotThrowAny {
-                store.delete(BUCKET_1, UUID.randomUUID().toString())
+                store.delete(BUCKET_1, UuidCreator.getRandomBasedFast().toString())
             }
         }
 
     @Test
     fun `deleteAll deletes supplied objects in bucket`() =
         runTest {
-            val key1 = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key1 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image1 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key1, image1)
 
-            val key2 = "${UUID.randomUUID()}${ImageFormat.JPEG.extension}"
+            val key2 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.JPEG.extension}"
             val image2 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.jpeg")
             store.persist(BUCKET_1, key2, image2)
 
-            val key3 = "${UUID.randomUUID()}${ImageFormat.HEIC.extension}"
+            val key3 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.HEIC.extension}"
             val image3 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.heic")
             store.persist(BUCKET_1, key3, image3)
 
@@ -161,7 +161,7 @@ abstract class ObjectStoreTest {
     @Test
     fun `deleteAll does nothing if wrong bucket is supplied`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key, image)
 
@@ -182,11 +182,11 @@ abstract class ObjectStoreTest {
     @Test
     fun `can deleteAll if keys do not exist in bucket`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key, image)
 
-            store.deleteAll(BUCKET_1, listOf(UUID.randomUUID().toString()))
+            store.deleteAll(BUCKET_1, listOf(UuidCreator.getRandomBasedFast().toString()))
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
@@ -203,7 +203,7 @@ abstract class ObjectStoreTest {
     @Test
     fun `exists returns true if the object exists in the object store`() =
         runTest {
-            val key = "${UUID.randomUUID()}${ImageFormat.PNG.extension}"
+            val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
             val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
             store.persist(BUCKET_1, key, image)
 
@@ -213,13 +213,13 @@ abstract class ObjectStoreTest {
     @Test
     fun `exists returns false if the bucket and key does not exist in the object store`() =
         runTest {
-            store.exists(UUID.randomUUID().toString(), UUID.randomUUID().toString()) shouldBe false
+            store.exists(UuidCreator.getRandomBasedFast().toString(), UuidCreator.getRandomBasedFast().toString()) shouldBe false
         }
 
     @Test
     fun `exists returns false if the key does not exist in the object store`() =
         runTest {
-            store.exists(BUCKET_1, UUID.randomUUID().toString()) shouldBe false
+            store.exists(BUCKET_1, UuidCreator.getRandomBasedFast().toString()) shouldBe false
         }
 
     @Test
@@ -227,7 +227,7 @@ abstract class ObjectStoreTest {
         runTest {
             store.generateObjectUrl(
                 bucket = BUCKET_1,
-                key = UUID.randomUUID().toString(),
+                key = UuidCreator.getRandomBasedFast().toString(),
                 properties =
                     RedirectProperties(
                         strategy = RedirectStrategy.NONE,
@@ -239,7 +239,7 @@ abstract class ObjectStoreTest {
     fun `can create templated url`() =
         runTest {
             val bucket = "bucket"
-            val key = UUID.randomUUID().toString()
+            val key = UuidCreator.getRandomBasedFast().toString()
 
             val properties =
                 RedirectProperties(
