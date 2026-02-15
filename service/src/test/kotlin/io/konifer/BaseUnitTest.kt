@@ -22,6 +22,7 @@ abstract class BaseUnitTest {
         alt: String? = "",
         objectStoreBucket: String = "bucket",
         objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${format.extension}",
+        orientation: Int = 1,
     ): Asset.PendingPersisted =
         assetRepository.storeNew(
             asset =
@@ -43,6 +44,7 @@ abstract class BaseUnitTest {
                                             height = height,
                                             width = width,
                                             format = format,
+                                            orientation = orientation,
                                         ),
                                     objectStoreBucket = objectStoreBucket,
                                     objectStoreKey = objectStoreKey,

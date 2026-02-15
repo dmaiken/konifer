@@ -46,7 +46,6 @@ object FailedAssetSweeper {
                     )
                 }.toList()
 
-        logger.info("Found ${result.size} failed assets to sweep")
         var errorCount = 0
         result.forEach { failedAsset ->
             runCatching {

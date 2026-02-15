@@ -320,6 +320,35 @@ class ImageAssetVariantTest {
         }
 
     @Test
+    fun `can request image with auto rotate`() =
+        testInMemory {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetMultipartSource(client, image, request)
+
+            // Should hit the first time since the image is oriented correctly and auto rotation does nothing
+            val result = fetchAssetContent(client, rotate = "auto", expectCacheHit = true).second!!
+            Vips.run { arena ->
+                val expected =
+                    VImage
+                        .newFromBytes(arena, image)
+                        .autorot()
+                val expectedStream = ByteArrayOutputStream()
+                expected.writeToStream(expectedStream, ".png")
+
+                val actualImage = ImageIO.read(ByteArrayInputStream(result))
+                val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
+
+                actualImage shouldHaveSamePixelContentAs expectedImage
+            }
+        }
+
+    @Test
     fun `variant can be fetched that is has a filter applied`() =
         testInMemory {
             val client = createJsonClient(followRedirects = false)

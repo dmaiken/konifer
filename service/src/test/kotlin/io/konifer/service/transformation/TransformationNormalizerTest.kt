@@ -2,6 +2,7 @@ package io.konifer.service.transformation
 
 import io.konifer.BaseUnitTest
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.Filter
 import io.konifer.domain.image.Fit
 import io.konifer.domain.image.Flip
@@ -9,6 +10,7 @@ import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.RequestedTransformation
+import io.konifer.service.context.selector.ManipulationParameters
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
@@ -493,6 +495,71 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 assetRepository.fetchByPath(any(), any(), any())
             }
         }
+
+        @Test
+        fun `can normalize auto rotation`() =
+            runTest {
+                val asset =
+                    storePersistedAsset(
+                        orientation = 4,
+                    )
+                val requested =
+                    createRequestedImageTransformation(
+                        width = 20,
+                        height = 20,
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = Rotate.AUTO,
+                        flip = Flip.NONE,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        transformationNormalizer.normalize(
+                            treePath = asset.path,
+                            entryId = asset.entryId,
+                            requested = requested,
+                        )
+                    }
+
+                normalized.rotate shouldBe ExifOrientations.FOUR.first
+                normalized.horizontalFlip shouldBe ExifOrientations.FOUR.second
+
+                coVerify(exactly = 1) {
+                    assetRepository.fetchByPath(
+                        asset.path,
+                        asset.entryId,
+                        Transformation.ORIGINAL_VARIANT,
+                        includeOnlyReady = false,
+                    )
+                }
+            }
+
+        @ParameterizedTest
+        @EnumSource(Flip::class, mode = EnumSource.Mode.EXCLUDE, names = ["NONE"])
+        fun `cannot specify flip with auto rotate`(flip: Flip) =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        width = 20,
+                        height = 20,
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = Rotate.AUTO,
+                        flip = flip,
+                    )
+                shouldThrow<IllegalArgumentException> {
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+                }.message shouldBe "Cannot specify flip (${ManipulationParameters.FLIP}) when r=${Rotate.AUTO.name.lowercase()}"
+
+                coVerify(exactly = 0) {
+                    assetRepository.fetchByPath(any(), any(), any())
+                }
+            }
     }
 
     @Nested

@@ -41,6 +41,7 @@ fun Application.assetRepositoryModule(): Module =
             DataStoreProvider.POSTGRES -> {
                 val properties = createPostgresProperties()
                 val connectionFactory = postgres(properties)
+                println("Postgres properties are: $properties")
                 migrateSchema(connectionFactory)
                 val dslContext = configureR2dbcJOOQ(connectionFactory)
                 configureScheduling(properties, dslContext)

@@ -13,6 +13,19 @@ object ExifOrientations {
     val SEVEN = Pair(Rotate.NINETY, true)
     val EIGHT = Pair(Rotate.NINETY, false)
 
+    fun fromExifOrientation(orientation: Int): Pair<Rotate, Boolean> =
+        when (orientation) {
+            1 -> ONE
+            2 -> TWO
+            3 -> THREE
+            4 -> FOUR
+            5 -> FIVE
+            6 -> SIX
+            7 -> SEVEN
+            8 -> EIGHT
+            else -> throw IllegalArgumentException("Invalid orientation")
+        }
+
     /**
      * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
      */

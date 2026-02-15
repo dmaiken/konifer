@@ -42,8 +42,6 @@ object VariantReaper {
                     )
                 }.toList()
 
-        logger.info("Found ${events.size} variants to reap")
-
         var failedCount = 0
         for ((id, event) in events) {
             try {
@@ -62,6 +60,8 @@ object VariantReaper {
                 .awaitFirstOrNull()
         }
 
-        logger.info("Reaped ${events.size - failedCount} variants with $failedCount failures")
+        if (events.isNotEmpty()) {
+            logger.info("Reaped ${events.size - failedCount} variants with $failedCount failures")
+        }
     }
 }

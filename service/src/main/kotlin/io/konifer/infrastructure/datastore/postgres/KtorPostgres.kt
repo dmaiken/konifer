@@ -5,6 +5,7 @@ import io.ktor.server.application.log
 import io.r2dbc.spi.ConnectionFactories
 import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions.builder
+import io.r2dbc.spi.Option
 import io.r2dbc.spi.ConnectionFactoryOptions.DATABASE as R2DBC_DATABASE
 import io.r2dbc.spi.ConnectionFactoryOptions.DRIVER as R2DBC_DRIVER
 import io.r2dbc.spi.ConnectionFactoryOptions.HOST as R2DBC_HOST
@@ -14,7 +15,10 @@ import io.r2dbc.spi.ConnectionFactoryOptions.PROTOCOL as R2DBC_PROTOCOL
 import io.r2dbc.spi.ConnectionFactoryOptions.USER as R2DBC_USER
 
 fun Application.postgres(properties: PostgresProperties): ConnectionFactory {
-    log.info("(R2DBC) Connecting to postgres on ${properties.host}:${properties.port} using database: ${properties.database}")
+    log.info(
+        "(R2DBC) Connecting to postgres on ${properties.host}:${properties.port} using database: ${properties.database}" +
+            "and user: ${properties.user}",
+    )
     return connectToPostgres(properties)
 }
 

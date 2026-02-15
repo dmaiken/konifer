@@ -12,6 +12,7 @@ data class Attributes(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
+    val orientation: Int = 1,
     val pageCount: Int? = null,
     val loop: Int? = null,
 ) {
@@ -34,6 +35,7 @@ data class Attributes(
                 width = image.width,
                 height = height,
                 format = destinationFormat,
+                orientation = image.getInt(VipsOptionNames.OPTION_ORIENTATION) ?: 1,
                 pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else null,
                 loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,
             )

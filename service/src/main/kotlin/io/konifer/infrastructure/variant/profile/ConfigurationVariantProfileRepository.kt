@@ -20,7 +20,7 @@ class ConfigurationVariantProfileRepository(
         buildMap {
             applicationConfig
                 .tryGetConfigList(
-                    path = ConfigurationPropertyKeys.PathPropertyKeys.VARIANT_PROFILES,
+                    path = ConfigurationPropertyKeys.VARIANT_PROFILES,
                 ).forEach { profileConfig ->
                     val profileName =
                         profileConfig.tryGetString(

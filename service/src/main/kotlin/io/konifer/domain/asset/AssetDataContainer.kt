@@ -72,7 +72,7 @@ class AssetDataContainer(
      */
     override fun close() {
         if (tempFile != null) {
-            logger.info("Deleting temporary file: ${tempFile?.pathString}")
+            logger.debug { "Deleting temporary file: ${tempFile?.pathString}" }
             tempFile?.toFile()?.delete()
         }
         if (!channel.isClosedForRead) channel.cancel(null)

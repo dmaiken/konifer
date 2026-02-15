@@ -37,7 +37,6 @@ object RotateFlip : VipsTransformer {
                 Rotate.NINETY -> 90.0
                 Rotate.ONE_HUNDRED_EIGHTY -> 180.0
                 Rotate.TWO_HUNDRED_SEVENTY -> 270.0
-                Rotate.AUTO -> 0.0
             }
 
         val processed =

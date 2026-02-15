@@ -8,6 +8,7 @@ object ConfigurationPropertyKeys {
     const val VARIANT_GENERATION = "variant-generation"
     const val URL_SIGNING = "url-signing"
     const val HTTP = "http"
+    const val VARIANT_PROFILES = "variant-profiles"
 
     object DataStorePropertyKeys {
         const val PROVIDER = "provider"
@@ -40,11 +41,40 @@ object ConfigurationPropertyKeys {
         }
     }
 
+    object SourceConfigurationPropertyKeys {
+        const val URL = "url"
+        const val MULTIPART = "multipart"
+
+        object UrlConfigurationPropertyKeys {
+            const val ALLOWED_DOMAINS = "allowed-domains"
+            const val MAX_BYTES = "max-bytes"
+        }
+
+        object MultipartConfigurationPropertyKeys {
+            const val MAX_BYTES = "max-bytes"
+        }
+    }
+
+    object VariantGenerationConfigurationPropertyKeys {
+        const val QUEUE_SIZE = "queue-size"
+        const val SYNCHRONOUS_PRIORITY = "synchronous-priority"
+        const val WORKERS = "workers"
+    }
+
+    object UrlSigningConfigurationPropertyKeys {
+        const val ENABLED = "enabled"
+        const val ALGORITHM = "algorithm"
+        const val SECRET_KEY = "secret-key"
+    }
+
+    object HttpPropertyKeys {
+        const val PUBLIC_URL = "public-url"
+    }
+
     object PathPropertyKeys {
         const val IMAGE = "image"
         const val PATH = "path"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
-        const val VARIANT_PROFILES = "variant-profiles"
         const val EAGER_VARIANTS = "eager-variants"
         const val OBJECT_STORE = "object-store"
         const val RETURN_FORMAT = "return-format"
@@ -101,35 +131,5 @@ object ConfigurationPropertyKeys {
             const val STALE_IF_ERROR = "stale-if-error"
             const val IMMUTABLE = "immutable"
         }
-    }
-
-    object SourceConfigurationPropertyKeys {
-        const val URL = "url"
-        const val MULTIPART = "multipart"
-
-        object UrlConfigurationPropertyKeys {
-            const val ALLOWED_DOMAINS = "allowed-domains"
-            const val MAX_BYTES = "max-bytes"
-        }
-
-        object MultipartConfigurationPropertyKeys {
-            const val MAX_BYTES = "max-bytes"
-        }
-    }
-
-    object VariantGenerationConfigurationPropertyKeys {
-        const val QUEUE_SIZE = "queue-size"
-        const val SYNCHRONOUS_PRIORITY = "synchronous-priority"
-        const val WORKERS = "workers"
-    }
-
-    object UrlSigningConfigurationPropertyKeys {
-        const val ENABLED = "enabled"
-        const val ALGORITHM = "algorithm"
-        const val SECRET_KEY = "secret-key"
-    }
-
-    object HttpPropertyKeys {
-        const val PUBLIC_URL = "public-url"
     }
 }
