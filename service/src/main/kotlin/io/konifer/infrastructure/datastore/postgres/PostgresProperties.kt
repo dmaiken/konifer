@@ -6,6 +6,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePro
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.HOST
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PASSWORD
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PORT
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.SSL_MODE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.USER
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
@@ -17,6 +18,7 @@ data class PostgresProperties(
     val host: String,
     val port: Int,
     val password: String,
+    val sslMode: String,
 )
 
 fun Application.createPostgresProperties(): PostgresProperties {
@@ -45,6 +47,10 @@ fun Application.createPostgresProperties(): PostgresProperties {
         postgresProperties
             ?.tryGetString(USER)
             ?: "postgres"
+    val sslMode =
+        postgresProperties
+            ?.tryGetString(SSL_MODE)
+            ?: "prefer"
 
     return PostgresProperties(
         database = database,
@@ -52,5 +58,6 @@ fun Application.createPostgresProperties(): PostgresProperties {
         host = host,
         port = port,
         password = password,
+        sslMode = sslMode,
     )
 }

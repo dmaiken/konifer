@@ -20,6 +20,7 @@ object ConfigurationPropertyKeys {
             const val PASSWORD = "password"
             const val PORT = "port"
             const val USER = "user"
+            const val SSL_MODE = "ssl-mode"
         }
     }
 

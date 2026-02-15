@@ -28,6 +28,7 @@ fun createR2dbcDslContext(postgres: PostgreSQLContainer<out PostgreSQLContainer<
                 host = postgres.host,
                 port = postgres.getMappedPort(5432),
                 password = postgres.password,
+                sslMode = "prefer",
             ),
         )
     installLtree(postgres)
