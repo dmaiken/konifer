@@ -1,8 +1,18 @@
 # Konifer
 
+```bash
+docker pull ghcr.io/dmaiken/konifer:0.1
+````
+
 Konifer is a high-performance, non-blocking REST API for managing images.
 Built with Kotlin on the Ktor framework, it provides a flexible, path-driven design that allows clients to 
 define their own hierarchical structure for image storage and retrieval.
+
+## Who should use this?
+- Those who never want to think about or pay for a usage "token" again
+- Companies who want to avoid vendor lock-in
+- Companies who want to scale their image processing in a way cloud processors simply don't accommodate (without a nice, expensive contract of course)
+- Those who wish to retain digital sovereignty of their data in a time where sovereignty's value is being demonstrated
 
 ## Documentation
 To learn more about Konifer please visit the [documentation](https://dmaiken.github.io/konifer-docs/).
@@ -108,23 +118,20 @@ GET /assets/user/123/profile/-/metadata
 ```
 ```json
 {
-  "class": "IMAGE",
+  "class": "image",
   "alt": "The alt text for an image",
   "entryId": 1049,
   "labels": {
     "label-key": "label-value",
     "phone": "Android"
   },
-  "tags": [
-    "cold",
-    "verified"
-  ],
-  "source": "URL",
-  // or UPLOAD if using multipart upload
+  "tags": [ "cold", "verified" ],
+  "source": "url",
   "sourceUrl": "https://yoururl.com/image.jpeg",
   "variants": [
     {
-      "bucket": "assets",
+      "isOriginalVariant": true,
+      "storeBucket": "assets",
       "storeKey": "d905170f-defd-47e4-b606-d01993ba7b42",
       "imageAttributes": {
         "height": 100,
@@ -132,10 +139,38 @@ GET /assets/user/123/profile/-/metadata
         "mimeType": "image/jpeg"
       },
       "lqip": {
-        // Empty if LQIPs are disabled
         "blurhash": "BASE64",
         "thumbhash": "BASE64"
       }
+    },
+    {
+      "isOriginalVariant": false,
+      "storeBucket": "assets",
+      "storeKey": "64fffa7e-85d2-42db-a081-354c91ec7ef9.webp",
+      "attributes": {
+        "height": 2560,
+        "width": 1752,
+        "format": "webp",
+        "pageCount": 1,
+        "loop": 0
+      },
+      "transformation": {
+        "width": 2560,
+        "height": 1752,
+        "fit": "fit",
+        "gravity": "center",
+        "format": "webp",
+        "rotate": "ninety",
+        "flip": "none",
+        "filter": "none",
+        "blur": 0,
+        "quality": 80,
+        "padding": {
+          "amount": 0,
+          "color": []
+        }
+      },
+      "lqip": {}
     }
   ],
   "createdAt": "2025-11-12T01:20:55"
@@ -149,12 +184,19 @@ GET /assets/user/123/profile/-/redirect
 GET /assets/user/123/profile/-/entry/1/redirect
 ```
 ```hocon 
-s3 {
-  presign {
-    enabled = true
-    ttl = 1h
+paths = [
+  {
+    path = "/**" # See Path Configuration in the documentation
+    return-format {
+      redirect {
+        strategy = presigned
+        presigned {
+          ttl = 1h
+        }
+      }
+    }
   }
-}
+]
 ```
 
 #### Content
@@ -234,15 +276,15 @@ GET /assets/user/123/profile?profile=thumbnail
 
 To build or run the project, use one of the following tasks:
 
-| Task                          | Description                                                          |
-|-------------------------------|----------------------------------------------------------------------|
-| `./gradlew test`              | Run the tests                                                        |
-| `./gradlew build`             | Build everything                                                     |
-| `buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `buildImage`                  | Build the docker asset to use with the fat JAR                       |
-| `publishImageToLocalRegistry` | Publish the docker asset locally                                     |
-| `run`                         | Run the server                                                       |
-| `runDocker`                   | Run using the local docker asset                                     |
+| Task                              | Description                                                                 |
+|-----------------------------------|-----------------------------------------------------------------------------|
+| `./gradlew test`                  | Run the tests                                                               |
+| `./gradlew build`                 | Build everything                                                            |
+| `./gradlew :service:shadowJar`    | Build an executable JAR of the server with all dependencies included        |
+| `./gradlew run`                   | Run the server                                                              |
+| `./gradlew ktlintFormat detekt`   | Lint the codebase                                                           |
+| `./gradlew generateJooq`          | Generate JOOQ schema (required for any DB change or JOOQ dependency upgrade |
+| `./gradlew generateLicenseReport` | Generate OSS license report                                                 |
 
 If the server starts successfully, you'll see the following output:
 
@@ -275,14 +317,6 @@ Example:
 docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 konifer
 ```
 
-### Formatting
-
-This project uses Ktlint to enforce code styling and Detekt for static analysis. To run both:
-
-```shell
-./gradlew ktlintFormat detekt
-```
-
 ### JOOQ
 This project used [JOOQ](https://www.jooq.org/) as it's interface to the database. JOOQ generates the code based on the database schema.
 This is done within the `codegen` module. Running the code generator will:
@@ -307,10 +341,4 @@ database = Database().apply {
     inputSchema = "public"
     excludes = "migrations|scheduled_tasks|path_entry_counter" // regex for excluded tables
 }
-```
-
-### License Report
-To generate a license report, run:
-```shell
-./gradlew generateLicenseReport
 ```
