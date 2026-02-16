@@ -1,10 +1,22 @@
-name: Konifer Build and Package
+name: Build and Package Konifer
 
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - '.github/release.yml'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docker-compose.yml'
+      - '.github/release.yml'
 
 jobs:
   build:
