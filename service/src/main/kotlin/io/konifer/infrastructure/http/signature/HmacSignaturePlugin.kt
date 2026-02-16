@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http.signature
 
+import io.konifer.infrastructure.http.exception.ErrorResponse
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createRouteScopedPlugin
@@ -28,13 +29,16 @@ val HmacSignatureVerification =
                 } catch (_: MissingSignatureException) {
                     call.respond(
                         status = HttpStatusCode.Forbidden,
-                        message = "Missing signature",
+                        message = ErrorResponse("Missing signature"),
                     )
                     return@onCall
                 }
 
             if (!isValid) {
-                call.respond(HttpStatusCode.Forbidden, "Invalid signature")
+                call.respond(
+                    status = HttpStatusCode.Forbidden,
+                    message = ErrorResponse("Invalid signature"),
+                )
                 return@onCall
             }
         }

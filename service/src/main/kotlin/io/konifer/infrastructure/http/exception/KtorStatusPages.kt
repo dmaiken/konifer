@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.http
+package io.konifer.infrastructure.http.exception
 
 import io.konifer.domain.asset.AssetNotFoundException
 import io.konifer.domain.image.InvalidImageException
@@ -17,22 +17,22 @@ private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.StatusPage
 fun Application.configureStatusPages() =
     install(StatusPages) {
         exception<InvalidImageException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
         exception<IllegalArgumentException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
         exception<InvalidPathException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
         exception<ContentTypeNotPermittedException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.Forbidden} for ${call.request.path()}", cause)
-            call.respond(HttpStatusCode.Forbidden, cause.message ?: "")
+            call.respond(HttpStatusCode.Forbidden, ErrorResponse(cause.message))
         }
         exception<AssetNotFoundException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.NotFound} for ${call.request.path()}", cause)
-            call.respond(HttpStatusCode.NotFound, cause.message)
+            call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message))
         }
     }

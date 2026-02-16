@@ -6,22 +6,43 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.HTTP
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.HttpPropertyKeys.PUBLIC_URL
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.java.Java
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
-import kotlinx.coroutines.Dispatchers
+import okhttp3.ConnectionPool
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.net.http.HttpClient as JavaHttpClient
+import java.util.concurrent.TimeUnit
 
 fun httpClientModule(): Module =
     module {
         single<HttpClient> {
-            HttpClient(Java) {
+            HttpClient(OkHttp) {
                 engine {
-                    dispatcher = Dispatchers.IO
-                    pipelining = true
-                    protocolVersion = JavaHttpClient.Version.HTTP_2
+                    config {
+                        connectionPool(
+                            ConnectionPool(
+                                maxIdleConnections = 100,
+                                keepAliveDuration = 5,
+                                timeUnit = TimeUnit.MINUTES,
+                            ),
+                        )
+
+                        followRedirects(true)
+                    }
+                }
+
+                install(HttpTimeout) {
+                    requestTimeoutMillis = 15000
+                    connectTimeoutMillis = 5000
+                    socketTimeoutMillis = 15000
+                }
+
+                install(HttpRequestRetry) {
+                    retryOnServerErrors(maxRetries = 3)
+                    exponentialDelay()
                 }
             }
         }
@@ -29,10 +50,6 @@ fun httpClientModule(): Module =
 
 fun Application.httpModule(): Module =
     module {
-        single<AssetUrlGenerator> {
-            AssetUrlGenerator(8080)
-        }
-
         single<HttpProperties> {
             HttpProperties(
                 publicUrl =
@@ -41,5 +58,9 @@ fun Application.httpModule(): Module =
                         ?.tryGetString(PUBLIC_URL)
                         ?: DEFAULT_PUBLIC_URL,
             )
+        }
+
+        single<AssetUrlGenerator> {
+            AssetUrlGenerator(get())
         }
     }

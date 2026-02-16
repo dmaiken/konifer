@@ -130,7 +130,7 @@ class VariantService(
                     pendingVariant = pendingVariant,
                     container = container,
                 ).also {
-                    logger.info("Variant ${pendingVariant.id} is ready and was uploaded to object store at: $it")
+                    logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $it")
                 }
             }
         } finally {

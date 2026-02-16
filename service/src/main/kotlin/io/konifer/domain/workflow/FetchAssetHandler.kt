@@ -8,15 +8,11 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.VariantLink
 import io.konifer.domain.variant.VariantRedirect
-import io.konifer.infrastructure.HttpProperties
+import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.ContentTypeNotPermittedException
 import io.konifer.service.context.QueryRequestContext
-import io.konifer.service.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.konifer.service.variant.VariantService
-import io.ktor.http.Parameters
-import io.ktor.http.URLBuilder
-import io.ktor.http.appendPathSegments
 import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
@@ -28,7 +24,7 @@ class FetchAssetHandler(
     private val assetRepository: AssetRepository,
     private val objectStore: ObjectStore,
     private val variantService: VariantService,
-    private val httpProperties: HttpProperties,
+    private val assetUrlGenerator: AssetUrlGenerator,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -60,7 +56,7 @@ class FetchAssetHandler(
             alt = asset.alt,
             lqip = variant.lqips,
             cacheHit = cacheHit,
-            url = constructContentUrl(asset.path, asset.entryId, context.request.parameters),
+            url = assetUrlGenerator.generateAbsoluteContentUrl(asset.path, asset.entryId, context.request.parameters),
         )
     }
 
@@ -176,16 +172,4 @@ class FetchAssetHandler(
             }
         }
     }
-
-    private fun constructContentUrl(
-        path: String,
-        entryId: Long,
-        parameters: Parameters,
-    ): String =
-        URLBuilder(httpProperties.publicUrl)
-            .apply {
-                appendPathSegments("assets", path.removePrefix("/"), PATH_NAMESPACE_SEPARATOR, "entry", entryId.toString(), "content")
-                this.parameters.appendAll(parameters)
-            }.build()
-            .toString()
 }

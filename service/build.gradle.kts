@@ -81,7 +81,9 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
-    implementation(libs.ktor.client.java)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+
     implementation(libs.uuid.creator)
     implementation(libs.commons.codec)
 
@@ -90,12 +92,12 @@ dependencies {
     implementation(libs.r2dbc.postgresql)
     implementation(libs.r2dbc.pool)
     implementation(libs.kotlinx.coroutines.reactive)
-    testImplementation(libs.ktor.client.content.negotiation)
 
     implementation(libs.db.scheduler)
     implementation(libs.postresql)
     implementation(libs.hikari)
 
+    testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.mockk)

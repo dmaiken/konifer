@@ -29,7 +29,6 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
-import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
@@ -171,7 +170,7 @@ fun Application.configureAssetRouting() {
 
             put("/{...}") {
                 val requestContext = call.attributes[updateRequestContextKey]
-                logger.info("Received request to update asset in path: ${requestContext.path}, entryId: ${requestContext.entryId}")
+                logger.info("Received request to update asset ${requestContext.path}:${requestContext.entryId}")
                 val asset =
                     updateAssetWorkflow.updateAsset(
                         context = requestContext,
@@ -254,8 +253,7 @@ suspend fun storeNewAsset(
     call.response.headers.append(
         name = HttpHeaders.Location,
         value =
-            assetUrlGenerator.generateEntryMetadataUrl(
-                host = call.request.origin.localAddress,
+            assetUrlGenerator.generateAbsoluteLocationUrl(
                 path = asset.locationPath,
                 entryId = checkNotNull(asset.asset.entryId),
             ),
