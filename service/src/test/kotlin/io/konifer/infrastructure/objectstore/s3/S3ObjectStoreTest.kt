@@ -14,9 +14,9 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import kotlin.time.Duration.Companion.days
@@ -29,7 +29,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         private val localstack =
             LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
                 .withEnv("LOCALSTACK_DISABLE_CHECKSUM_VALIDATION", "1") // Localstack does not like performing a checksum
-                .withServices(LocalStackContainer.Service.S3)
+                .withServices("s3")
 
         @JvmStatic
         @BeforeAll

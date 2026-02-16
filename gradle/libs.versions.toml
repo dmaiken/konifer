@@ -8,7 +8,7 @@ logback-version = "1.5.31"
 r2dbc-migrate-version = "3.3.0"
 r2dbc-pool-version = "1.0.2.RELEASE"
 r2dbc-postgresql-version = "1.1.1.RELEASE"
-testcontainers-version = "1.20.6"
+testcontainers-version = "2.0.3"
 kotest-version = "6.0.7"
 photofix-libvips-version = "1.9.5"
 mockk-version = "1.14.7"
@@ -62,9 +62,9 @@ commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "co
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
-testcontainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-version" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers-version" }
-testcontainers-localstack = { module = "org.testcontainers:localstack", version.ref = "testcontainers-version" }
+testcontainers-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers-version" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
+testcontainers-localstack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testcontainers-version" }
 
 kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }

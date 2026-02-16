@@ -3,11 +3,11 @@ package io.konifer.infrastructure.datastore.postgres
 import io.konifer.infrastructure.datastore.configureR2dbcJOOQ
 import io.konifer.infrastructure.datastore.migrateSchema
 import org.jooq.DSLContext
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
-fun postgresContainer(): PostgreSQLContainer<*> = PostgreSQLContainer("postgres:17-alpine").withReuse(true)
+fun postgresContainer(): PostgreSQLContainer = PostgreSQLContainer("postgres:17-alpine").withReuse(true)
 
-fun truncateTables(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>) {
+fun truncateTables(postgres: PostgreSQLContainer) {
     postgres.execInContainer(
         "psql",
         "-U",
@@ -19,7 +19,7 @@ fun truncateTables(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>) {
     )
 }
 
-fun createR2dbcDslContext(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>): DSLContext {
+fun createR2dbcDslContext(postgres: PostgreSQLContainer): DSLContext {
     val connectionFactory =
         connectToPostgres(
             PostgresProperties(
@@ -36,7 +36,7 @@ fun createR2dbcDslContext(postgres: PostgreSQLContainer<out PostgreSQLContainer<
     return configureR2dbcJOOQ(connectionFactory)
 }
 
-fun installLtree(postgres: PostgreSQLContainer<out PostgreSQLContainer<*>>) {
+fun installLtree(postgres: PostgreSQLContainer) {
     postgres.execInContainer(
         "psql",
         "-U",
