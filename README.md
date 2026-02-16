@@ -291,7 +291,7 @@ This is done within the `codegen` module. Running the code generator will:
 3. Run the code generator against the constructed schema
 4. Dump generated code into the `jooq-generated` module
 
-To run this (which must be done if you make a schema change):
+To run this (which must be done if you make a schema change or update the JOOQ dependency):
 
 ```shell
 ./gradlew generateJooq

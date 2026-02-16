@@ -12,7 +12,7 @@ import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import io.ktor.util.logging.KtorSimpleLogger
 
-private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.StatusPages")
+private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.exception.StatusPages")
 
 fun Application.configureStatusPages() =
     install(StatusPages) {

@@ -28,6 +28,16 @@ fun main() {
     val r2dbcUrl = "r2dbc:postgresql://${pg.host}:${pg.getMappedPort(5432)}/${pg.databaseName}"
     println("Running migrations on: $r2dbcUrl")
 
+    pg.execInContainer(
+        "psql",
+        "-U",
+        pg.username,
+        "-d",
+        pg.databaseName,
+        "-c",
+        "CREATE EXTENSION IF NOT EXISTS ltree;",
+    )
+
     // 2. Run migrations with r2dbc-migrate
     val options = builder()
         .option(DATABASE, pg.databaseName)

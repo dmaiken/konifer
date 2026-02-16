@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
-    alias(libs.plugins.kotlin.plugin.serialization)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktlint)
     `java-test-fixtures`
 }
@@ -109,6 +109,8 @@ dependencies {
     testImplementation(libs.testcontainers.localstack)
     testImplementation(libs.testcontainers.jupiter)
     testImplementation(libs.junit.pioneer)
+    testImplementation(libs.junit.params)
+    testRuntimeOnly(libs.junit.engine)
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.assertions)
@@ -185,11 +187,4 @@ tasks.named<ProcessResources>("processTestFixturesResources") {
 
 tasks.named("check") {
     dependsOn("functionalTest")
-}
-
-ktor {
-    docker {
-        localImageName.set("konifer")
-        imageTag.set("0.0.1-preview")
-    }
 }

@@ -1,10 +1,10 @@
 [versions]
-jooq-version = "3.20.10"
+jooq-version = "3.20.11"
 koin-version = "4.1.1"
 kotlin-version = "2.3.0"
 ktlint-version = "14.0.1"
-ktor-version = "3.3.3"
-logback-version = "1.5.20"
+ktor-version = "3.4.0"
+logback-version = "1.5.31"
 r2dbc-migrate-version = "3.3.0"
 r2dbc-pool-version = "1.0.2.RELEASE"
 r2dbc-postgresql-version = "1.1.1.RELEASE"
@@ -13,19 +13,20 @@ kotest-version = "6.0.7"
 photofix-libvips-version = "1.9.5"
 mockk-version = "1.14.7"
 tika-version = "3.2.3"
-postgres-version = "42.7.8"
+postgres-version = "42.7.10"
 blurhash-version = "0.3.0"
 awaitility-version = "4.3.0"
 junit-pioneer-version = "2.3.0"
 commons-math3-version = "3.6.1"
 kotlin-coroutine-reactive-version = "1.10.2"
-db-scheduler-version = "16.6.0"
+db-scheduler-version = "16.7.1"
 hikari-version = "7.0.2"
 uuid-creator-version = "6.1.1"
 bytebuddy-version = "1.18.3"
-commons-codec-version = "1.20.0"
+commons-codec-version = "1.21.0"
 detekt-version = "2.0.0-alpha.2"
 license-version = "3.0.1"
+junit-version = "6.0.2"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -70,6 +71,8 @@ kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility-version" }
 awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility-version" }
 junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junit-pioneer-version" }
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit-version" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-version" }
 
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
 blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }
@@ -82,7 +85,7 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
-kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
 detekt = { id = "dev.detekt", version.ref = "detekt-version" }
 license = { id = "com.github.jk1.dependency-license-report", version.ref = "license-version" }
