@@ -25,6 +25,8 @@ services:
           memory: 512M
     networks:
       - konifer-perf-net
+    security_opt:
+      - apparmor:unconfined
 
   perf-postgres:
     image: postgres:17-alpine
@@ -44,6 +46,8 @@ services:
       retries: 5
     networks:
       - konifer-perf-net
+    security_opt:
+      - apparmor:unconfined
 
   perf-minio:
     image: minio/minio
@@ -62,6 +66,8 @@ services:
       retries: 3
     networks:
       - konifer-perf-net
+    security_opt:
+      - apparmor:unconfined
 
   # MinIO starts empty. This container creates the default bucket automatically.
   createbuckets:

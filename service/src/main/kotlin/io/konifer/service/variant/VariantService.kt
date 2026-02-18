@@ -6,6 +6,7 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Attributes
@@ -108,29 +109,36 @@ class VariantService(
                         continue
                     }
                 val pendingVariant =
-                    assetRepository.storeNewVariant(
-                        variant =
-                            Variant.Pending.newVariant(
-                                assetId = assetId,
-                                attributes = attributes,
-                                transformation = container.transformation,
-                                objectStoreBucket = bucket,
-                                objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
-                                lqip =
-                                    if (lqipImplementations.isNotEmpty() && container.lqips == LQIPs.NONE) {
-                                        // No new Lqips were generated but they are required, use ones from the original variant
-                                        originalVariantLQIPs
-                                    } else {
-                                        container.lqips
-                                    },
-                            ),
-                    )
+                    try {
+                        assetRepository.storeNewVariant(
+                            variant =
+                                Variant.Pending.newVariant(
+                                    assetId = assetId,
+                                    attributes = attributes,
+                                    transformation = container.transformation,
+                                    objectStoreBucket = bucket,
+                                    objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
+                                    lqip =
+                                        if (lqipImplementations.isNotEmpty() && container.lqips == LQIPs.NONE) {
+                                            // No new Lqips were generated but they are required, use ones from the original variant
+                                            originalVariantLQIPs
+                                        } else {
+                                            container.lqips
+                                        },
+                                ),
+                        )
+                    } catch (_: VariantAlreadyExistsException) {
+                        logger.info("Variant already exists for assetId: ${assetId.value}")
+                        null
+                    }
 
-                markVariantUploaded(
-                    pendingVariant = pendingVariant,
-                    container = container,
-                ).also {
-                    logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $it")
+                pendingVariant?.also {
+                    markVariantUploaded(
+                        pendingVariant = it,
+                        container = container,
+                    ).also { uploadedAt ->
+                        logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
+                    }
                 }
             }
         } finally {
