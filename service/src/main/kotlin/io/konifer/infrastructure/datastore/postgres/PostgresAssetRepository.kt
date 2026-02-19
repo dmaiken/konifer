@@ -5,6 +5,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
@@ -156,10 +157,10 @@ class PostgresAssetRepository(
                         .awaitFirst()
                 } catch (e: IntegrityConstraintViolationException) {
                     if (e.message?.contains(ASSET_VARIANT_TRANSFORMATION_UQ.name) == true) {
-                        throw IllegalArgumentException("Variant already exists for assetId: ${variant.assetId}")
+                        throw VariantAlreadyExistsException("Variant already exists for assetId: ${variant.assetId.value}")
                     }
                     if (e.message?.contains(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID.name) == true) {
-                        throw IllegalArgumentException("No asset exists for assetId: ${variant.assetId}")
+                        throw IllegalArgumentException("No asset exists for assetId: ${variant.assetId.value}")
                     }
                     throw e
                 }

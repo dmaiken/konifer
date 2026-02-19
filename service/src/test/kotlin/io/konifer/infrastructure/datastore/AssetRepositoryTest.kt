@@ -8,6 +8,7 @@ import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Padding
@@ -255,7 +256,7 @@ abstract class AssetRepositoryTest {
                     isOriginalVariant shouldBe false
                 }
 
-                shouldThrow<IllegalArgumentException> {
+                shouldThrow<VariantAlreadyExistsException> {
                     repository.storeNewVariant(pendingVariant)
                 }
             }

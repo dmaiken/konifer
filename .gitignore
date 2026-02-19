@@ -39,3 +39,6 @@ out/
 
 /konifer.conf
 /.kotlin/
+
+# Performance testing
+/performance/*.html

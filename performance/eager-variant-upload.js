@@ -1,0 +1,113 @@
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { FormData } from 'https://jslib.k6.io/formdata/0.0.2/index.js';
+import exec from 'k6/execution';
+
+export const options = {
+    stages: [
+        { duration: '30s', target: 10 },
+        { duration: '90s', target: 40 },
+    ],
+    thresholds: {
+        'http_req_duration{phase:measurement}': ['p(95)<2000'],
+
+        'http_req_duration{phase:measurement,name:UploadImage}': ['p(95)<5000'],
+        'http_req_duration{phase:measurement,name:GetThumbnail200}': ['p(95)<500'],
+        'http_req_duration{phase:measurement,name:GetThumbnail400}': ['p(95)<500'],
+    },
+};
+
+const binFileMap = {
+    small: {
+        jpg: open('./assets/small/small.jpg', 'b'),
+        png: open('./assets/small/small.png', 'b'),
+        avif: open('./assets/small/small.avif', 'b'),
+        heic: open('./assets/small/small.heic', 'b'),
+        gif: open('./assets/small/small.gif', 'b'),
+        jxl: open('./assets/small/small.jxl', 'b'),
+        webp: open('./assets/small/small.webp', 'b')
+    },
+    medium: {
+        jpg: open('./assets/medium/medium.jpg', 'b'),
+        png: open('./assets/medium/medium.png', 'b'),
+        avif: open('./assets/medium/medium.avif', 'b'),
+        heic: open('./assets/medium/medium.heic', 'b'),
+        gif: open('./assets/medium/medium.gif', 'b'),
+        jxl: open('./assets/medium/medium.jxl', 'b'),
+        webp: open('./assets/medium/medium.webp', 'b')
+    },
+    large: {
+        jpg: open('./assets/large/large.jpg', 'b'),
+        png: open('./assets/large/large.png', 'b'),
+        avif: open('./assets/large/large.avif', 'b'),
+        heic: open('./assets/large/large.heic', 'b'),
+        gif: open('./assets/large/large.gif', 'b'),
+        jxl: open('./assets/large/large.jxl', 'b'),
+        webp: open('./assets/large/large.webp', 'b')
+    },
+};
+
+const metadata = {
+    alt: "Zion National Park",
+    tags: [
+        "hiking",
+        "Zion",
+        "vacation"
+    ],
+    labels: {
+        vacationYear: "2025"
+    }
+}
+
+export default function () {
+    const currentPhase = exec.instance.currentTestRunDuration < 30000 ? 'warmup' : 'measurement';
+
+    const size = __ENV.IMAGE_SIZE || 'small';
+    const format = __ENV.IMAGE_FORMAT || 'jpg';
+
+    const img = binFileMap[size][format];
+
+    const fd = new FormData();
+    fd.append('file', {
+        data: new Uint8Array(img).buffer,
+        filename: size + '.' + format,
+        content_type: 'image/jpeg',
+    });
+    fd.append('metadata', {
+        data: JSON.stringify(metadata),
+        content_type: 'application/json'
+    });
+
+    const res = http.post('http://localhost:8080/assets/test-upload-eager-variants', fd.body(), {
+        headers: { 'Content-Type': 'multipart/form-data; boundary=' + fd.boundary },
+        tags: {
+            name: 'UploadImage',
+            phase: currentPhase
+        },
+    });
+    check(res, {
+        'is status 201': (r) => r.status === 201,
+    });
+
+    sleep(1);
+    const fetchRes1 = http.get(res.headers['Location'] + '?profile=thumbnail-200', {
+        tags: {
+            name: 'GetThumbnail200',
+            phase: currentPhase
+        },
+    });
+    check(fetchRes1, {
+        'is status 200': (r) => r.status === 200,
+    });
+
+    sleep(1);
+    const fetchRes2 = http.get(res.headers['Location'] + '?profile=thumbnail-400', {
+        tags: {
+            name: 'GetThumbnail400',
+            phase: currentPhase
+        },
+    });
+    check(fetchRes2, {
+        'is status 200': (r) => r.status === 200,
+    });
+}

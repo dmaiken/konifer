@@ -4,7 +4,6 @@ import io.konifer.domain.image.PreProcessedImage
 import io.konifer.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -16,15 +15,10 @@ class CoroutineVariantGenerator(
     private val consumer: PriorityChannelConsumer<ImageProcessingJob<*>>,
     numberOfWorkers: Int,
 ) {
-    private val exceptionHandler =
-        CoroutineExceptionHandler { _, exception ->
-            logger.error("Variant generation failed", exception)
-        }
-
     /**
      * Since these jobs will interact with vips-ffm, the dispatcher must be IO
      */
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     init {

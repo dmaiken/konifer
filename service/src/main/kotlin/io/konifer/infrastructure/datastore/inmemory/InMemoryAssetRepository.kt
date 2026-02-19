@@ -4,6 +4,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.service.context.selector.Order
@@ -63,10 +64,7 @@ class InMemoryAssetRepository : AssetRepository {
         return store[path]?.let { assets ->
             val asset = assets.first { it.entryId == asset.entryId }
             if (asset.variants.any { it.transformation == variant.transformation }) {
-                throw IllegalArgumentException(
-                    "Variant already exists for asset with entry_id: ${asset.entryId} at path: $path " +
-                        "with attributes: ${variant.attributes}, transformation: ${variant.transformation}",
-                )
+                throw VariantAlreadyExistsException("Variant already exists for asset: ${asset.id.value}")
             }
             asset.variants.add(variant)
             asset.variants.sortByDescending { it.createdAt }
