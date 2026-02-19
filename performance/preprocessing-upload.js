@@ -52,6 +52,7 @@ const metadata = {
     }
 }
 
+// This test is still a WIP
 export default function () {
     const currentPhase = exec.instance.currentTestRunDuration < 30000 ? 'warmup' : 'measurement';
 
