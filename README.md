@@ -1,10 +1,10 @@
-# Konifer
+# Konifer - Self-Hosted Digital Asset Management
 
 ```bash
 docker pull ghcr.io/dmaiken/konifer:0.1
 ````
 
-Konifer is a high-performance, non-blocking REST API for managing images.
+Konifer is a self-hosted high-performance, non-blocking REST API for managing digital assets such as images.
 Built with Kotlin on the Ktor framework, it provides a flexible, path-driven design that allows clients to 
 define their own hierarchical structure for image storage and retrieval.
 
@@ -39,33 +39,33 @@ GET /assets/{imageId}
 Konifer's path structure supports multiple images within the same path. When images are uploaded to a path, they are assigned an `entryId`,
 an always-increasing value that uniquely identifies the image relative to the path.
 
-For example, lets create an album for a ski trip (multi-part upload omitted) with 2 pictures:
+For example, lets create an album for a ski trip (multipart upload omitted) with 2 pictures:
 ``` 
 POST /assets/users/{userId}/ski-trip
 ```
 Response:
 ```json
 {
-	"class": "image",
-	"entryId": 0,
-	"labels": {},
-	"tags": [],
-	"source": "upload",
-	"variants": [
-		{
-			"isOriginalVariant": true,
-			"storeBucket": "assets",
-			"storeKey": "513b9a74-0d78-40a3-9582-12bcb226fe1d.webp",
-			"attributes": {
-				"height": 1752,
-				"width": 2560,
-				"mimeType": "image/webp"
-			},
-			"lqip": {}
-		}
-	],
-	"createdAt": "2025-12-26T23:02:43.042568",
-	"modifiedAt": "2025-12-26T23:02:43.95746582"
+  "class": "image",   
+  "entryId": 0,
+  "labels": {},
+  "tags": [],
+  "source": "upload",
+  "variants": [
+    {
+      "isOriginalVariant": true,
+	  "storeBucket": "assets",
+      "storeKey": "513b9a74-0d78-40a3-9582-12bcb226fe1d.webp",
+      "attributes": {
+        "height": 1752,
+        "width": 2560,
+        "mimeType": "image/webp"
+      },
+      "lqip": {}
+    }
+  ],
+  "createdAt": "2025-12-26T23:02:43.042568",
+  "modifiedAt": "2025-12-26T23:02:43.95746582"
 }
 ```
 ```
@@ -74,26 +74,26 @@ POST /assets/users/{userId}/ski-trip
 Response:
 ```json
 {
-	"class": "image",
-	"entryId": 1,
-	"labels": {},
-	"tags": [],
-	"source": "upload",
-	"variants": [
-		{
-			"isOriginalVariant": true,
-			"storeBucket": "assets",
-			"storeKey": "2a09d243-82f8-42e2-ab64-16ec2adec793.webp",
-			"attributes": {
-				"height": 1600,
-				"width": 2410,
-				"mimeType": "image/webp"
-			},
-			"lqip": {}
-		}
-	],
-	"createdAt": "2025-12-26T23:03:48.934689",
-	"modifiedAt": "2025-12-26T23:03:48.934689"
+  "class": "image",
+  "entryId": 1,
+  "labels": {},
+  "tags": [],
+  "source": "upload",
+  "variants": [
+    {
+      "isOriginalVariant": true,
+      "storeBucket": "assets",
+      "storeKey": "2a09d243-82f8-42e2-ab64-16ec2adec793.webp",
+      "attributes": {
+        "height": 1600,
+        "width": 2410,
+        "mimeType": "image/webp"
+      },
+      "lqip": {}
+    }
+  ],
+  "createdAt": "2025-12-26T23:03:48.934689",
+  "modifiedAt": "2025-12-26T23:03:48.934689"
 }
 ```
 You can access each image in the album by supplying the `entryId`:
@@ -232,8 +232,8 @@ GET /assets/user/123/profile/-/entry/1/link
 
 ### Ordering
 You can apply an ordering to the image(s) you're fetching:
-- `created` (default) - order by last-created
-- `modified` - order by last-modified
+- `created` (default): order by last-created
+- `modified`: order by last-modified
 
 To fetch the latest image in the path:
 ``` 
