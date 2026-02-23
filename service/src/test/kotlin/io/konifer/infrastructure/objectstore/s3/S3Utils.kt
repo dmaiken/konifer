@@ -1,22 +1,23 @@
 package io.konifer.infrastructure.objectstore.s3
 
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 
 fun createImageBuckets(
-    s3Client: S3Client,
+    s3Client: S3AsyncClient,
     vararg buckets: String,
 ) = runBlocking {
     buckets
         .map {
             launch {
                 s3Client.createBucket(
-                    CreateBucketRequest {
-                        bucket = it
-                    },
+                    CreateBucketRequest
+                        .builder()
+                        .bucket(it)
+                        .build(),
                 )
             }
         }.joinAll()

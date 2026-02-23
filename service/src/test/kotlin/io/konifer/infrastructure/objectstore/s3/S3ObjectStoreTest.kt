@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.objectstore.s3
 
-import aws.sdk.kotlin.services.s3.S3Client
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.path.PreSignedProperties
 import io.konifer.domain.path.RedirectProperties
@@ -18,6 +17,9 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.transfer.s3.S3TransferManager
 import java.net.URI
 import kotlin.time.Duration.Companion.days
 
@@ -45,9 +47,12 @@ class S3ObjectStoreTest : ObjectStoreTest() {
     }
 
     override fun createObjectStore(): ObjectStore {
-        val (s3Client, _) = createS3Client()
+        val s3Clients = createS3Client()
+        createImageBuckets(s3Clients.client, BUCKET_1, BUCKET_2)
         return S3ObjectStore(
-            s3Client = s3Client,
+            s3Client = s3Clients.client,
+            s3TransferManager = s3Clients.transferManager,
+            s3Presigner = s3Clients.presigner,
         )
     }
 
@@ -56,9 +61,13 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `can create presignedUrl`() =
             runTest {
-                val (s3Client, _) = createS3Client()
+                val s3Clients = createS3Client()
                 val store =
-                    S3ObjectStore(s3Client)
+                    S3ObjectStore(
+                        s3Client = s3Clients.client,
+                        s3TransferManager = s3Clients.transferManager,
+                        s3Presigner = s3Clients.presigner,
+                    )
                 val bucket = "bucket"
                 val key = UuidCreator.getRandomBasedFast().toString()
 
@@ -73,14 +82,13 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 val url = store.generateObjectUrl(bucket, key, properties)
                 url shouldNotBe null
                 URI.create(url!!).toURL().apply {
-                    query shouldContain "x-id"
                     query shouldContain "X-Amz-Algorithm"
                     query shouldContain "X-Amz-Credential"
                 }
             }
     }
 
-    private fun createS3Client(): Pair<S3Client, S3ClientProperties> {
+    private fun createS3Client(): S3Clients {
         val properties =
             S3ClientProperties(
                 endpointUrl = localstack.endpoint.toString(),
@@ -90,12 +98,19 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 providerHint = S3Provider.LOCALSTACK,
             )
 
-        return Pair(
-            first =
-                s3Client(properties).also {
-                    createImageBuckets(it, BUCKET_1, BUCKET_2, BUCKET_3)
-                },
-            second = properties,
+        val client = s3Client(properties)
+        return S3Clients(
+            client = client,
+            transferManager = s3TransferManager(client),
+            presigner = s3Presigner(properties),
+            properties = properties,
         )
     }
 }
+
+data class S3Clients(
+    val client: S3AsyncClient,
+    val transferManager: S3TransferManager,
+    val presigner: S3Presigner,
+    val properties: S3ClientProperties,
+)

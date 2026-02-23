@@ -27,6 +27,8 @@ commons-codec-version = "1.21.0"
 detekt-version = "2.0.0-alpha.2"
 license-version = "3.0.1"
 junit-version = "6.0.2"
+aws-sdk-version = "2.41.31"
+aws-crt-sdk-version = "0.43.3"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -35,8 +37,8 @@ jooq-kotlin-coroutines = { module = "org.jooq:jooq-kotlin-coroutines", version.r
 jooq-postgres-extensions = { module = "org.jooq:jooq-postgres-extensions", version.ref = "jooq-version" }
 jooq-codegen = { module = "org.jooq:jooq-codegen", version.ref = "jooq-version" }
 jooq-codegen-meta-extensions = { module = "org.jooq:jooq-meta-extensions", version.ref = "jooq-version" }
+
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin-version" }
-koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin-version" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor-version" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-version" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor-version" }
@@ -46,26 +48,33 @@ ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-version" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor-version" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor-version" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor-version" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin-version" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
+
+koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin-version" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-version" }
+
 r2dbc-migrate = { module = "name.nkonev.r2dbc-migrate:r2dbc-migrate-core", version.ref = "r2dbc-migrate-version" }
 r2dbc-migrate-resource-reader = { module = "name.nkonev.r2dbc-migrate:r2dbc-migrate-resource-reader-reflections", version.ref = "r2dbc-migrate-version" }
 r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool-version" }
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgresql-version" }
+
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlin-coroutine-reactive-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
 uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator-version" }
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk-version" }
+aws-sdk-s3-transfermanager = { module = "software.amazon.awssdk:s3-transfer-manager", version.ref = "aws-sdk-version" }
+aws-sdk-crt = { module = "software.amazon.awssdk.crt:aws-crt", version.ref = "aws-crt-sdk-version" }
+
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers-version" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
 testcontainers-localstack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testcontainers-version" }
-
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin-version" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
 kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 kotest-assertions = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility-version" }

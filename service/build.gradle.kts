@@ -84,6 +84,10 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
 
+    implementation(libs.aws.sdk.s3)
+    implementation(libs.aws.sdk.s3.transfermanager)
+    implementation(libs.aws.sdk.crt)
+
     implementation(libs.uuid.creator)
     implementation(libs.commons.codec)
 
@@ -114,8 +118,6 @@ dependencies {
 
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.assertions)
-
-    implementation(awssdk.services.s3)
 
     implementation(libs.libvips.ffm)
     implementation(libs.tika.core)
