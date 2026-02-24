@@ -1,15 +1,15 @@
 package io.konifer.domain.ports
 
 import io.konifer.domain.path.RedirectProperties
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
-import java.io.File
 import java.time.LocalDateTime
 
 interface ObjectStore {
     suspend fun persist(
         bucket: String,
         key: String,
-        file: File,
+        channel: ByteChannel,
     ): LocalDateTime
 
     suspend fun fetch(

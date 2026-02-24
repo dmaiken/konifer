@@ -11,8 +11,13 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,7 +29,6 @@ abstract class ObjectStoreTest {
     companion object {
         protected const val BUCKET_1 = "bucket-1"
         protected const val BUCKET_2 = "bucket-2"
-        protected const val BUCKET_3 = "bucket-3"
     }
 
     protected lateinit var store: ObjectStore
@@ -34,12 +38,28 @@ abstract class ObjectStoreTest {
         store = createObjectStore()
     }
 
+    private val image =
+        runBlocking {
+            javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
+        }
+
+    // 2. Create a factory function for a fresh channel
+    private fun getFreshImageChannel(format: ImageFormat = ImageFormat.PNG): ByteReadChannel {
+        // toByteReadChannel() runs asynchronously and doesn't block
+        return javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.toByteReadChannel()
+    }
+
     @Test
     fun `can persist and fetch an object`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            val result = store.persist(BUCKET_1, key, image)
+
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            val result = store.persist(BUCKET_1, key, channel)
             result.toLocalDate() shouldBe LocalDate.now()
 
             val stream = ByteChannel(autoFlush = true)
@@ -47,9 +67,10 @@ abstract class ObjectStoreTest {
                 async {
                     stream.toByteArray()
                 }
+
             val fetchResult = store.fetch(BUCKET_1, key, stream)
             fetchResult.found shouldBe true
-            fetchResult.contentLength shouldBe image.readBytes().size.toLong()
+            fetchResult.contentLength shouldBe image.length()
             fetched.await() shouldBe image.readBytes()
         }
 
@@ -57,8 +78,12 @@ abstract class ObjectStoreTest {
     fun `can persist and fetch an object without supplying content length`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key, image)
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            store.persist(BUCKET_1, key, channel)
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
@@ -86,8 +111,12 @@ abstract class ObjectStoreTest {
     fun `can delete an object`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key, image)
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            store.persist(BUCKET_1, key, channel)
             store.delete(BUCKET_1, key)
 
             val stream = ByteChannel(autoFlush = true)
@@ -113,16 +142,28 @@ abstract class ObjectStoreTest {
     fun `deleteAll deletes supplied objects in bucket`() =
         runTest {
             val key1 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image1 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key1, image1)
+            val channel1 = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel1)
+                channel1.close()
+            }
+            store.persist(BUCKET_1, key1, channel1)
 
             val key2 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.JPEG.extension}"
-            val image2 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.jpeg")
-            store.persist(BUCKET_1, key2, image2)
+            val channel2 = ByteChannel()
+            launch {
+                getFreshImageChannel(ImageFormat.JPEG).copyTo(channel2)
+                channel2.close()
+            }
+            store.persist(BUCKET_1, key2, channel2)
 
             val key3 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.HEIC.extension}"
-            val image3 = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.heic")
-            store.persist(BUCKET_1, key3, image3)
+            val channel3 = ByteChannel()
+            launch {
+                getFreshImageChannel(ImageFormat.HEIC).copyTo(channel3)
+                channel3.close()
+            }
+            store.persist(BUCKET_1, key3, channel3)
 
             store.deleteAll(BUCKET_1, listOf(key1, key2, key3))
 
@@ -162,8 +203,12 @@ abstract class ObjectStoreTest {
     fun `deleteAll does nothing if wrong bucket is supplied`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key, image)
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            store.persist(BUCKET_1, key, channel)
 
             store.deleteAll(BUCKET_2, listOf(key))
 
@@ -183,8 +228,12 @@ abstract class ObjectStoreTest {
     fun `can deleteAll if keys do not exist in bucket`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key, image)
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            store.persist(BUCKET_1, key, channel)
 
             store.deleteAll(BUCKET_1, listOf(UuidCreator.getRandomBasedFast().toString()))
 
@@ -204,8 +253,12 @@ abstract class ObjectStoreTest {
     fun `exists returns true if the object exists in the object store`() =
         runTest {
             val key = "${UuidCreator.getRandomBasedFast()}${ImageFormat.PNG.extension}"
-            val image = javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
-            store.persist(BUCKET_1, key, image)
+            val channel = ByteChannel()
+            launch {
+                getFreshImageChannel().copyTo(channel)
+                channel.close()
+            }
+            store.persist(BUCKET_1, key, channel)
 
             store.exists(BUCKET_1, key) shouldBe true
         }

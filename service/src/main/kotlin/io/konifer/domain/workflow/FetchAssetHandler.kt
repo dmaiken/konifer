@@ -14,10 +14,13 @@ import io.konifer.service.context.ContentTypeNotPermittedException
 import io.konifer.service.context.QueryRequestContext
 import io.konifer.service.variant.VariantService
 import io.ktor.util.cio.use
-import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FetchAssetHandler(
@@ -125,51 +128,61 @@ class FetchAssetHandler(
     private suspend fun createOnDemandVariant(
         assetId: AssetId,
         context: QueryRequestContext,
-    ) {
-        context.pathConfiguration.allowedContentTypes?.let {
-            if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
-                throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
-            }
-        }
-        val originalVariant =
-            assetRepository
-                .fetchByPath(
-                    path = context.path,
-                    entryId = context.selectors.entryId,
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    order = context.selectors.order,
-                    labels = context.labels,
-                )?.variants
-                ?.first { it.isOriginalVariant }
-                ?: return
-        val originalVariantFile =
-            TemporaryFileFactory.createOriginalVariantTempFile(
-                extension = originalVariant.attributes.format.extension,
-            )
-        try {
-            val fileChannel =
-                withContext(Dispatchers.IO) {
-                    originalVariantFile.toFile().writeChannel()
+    ): Unit =
+        coroutineScope {
+            context.pathConfiguration.allowedContentTypes?.let {
+                if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
+                    throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
                 }
-            fileChannel.use {
-                objectStore.fetch(
-                    bucket = originalVariant.objectStoreBucket,
-                    key = originalVariant.objectStoreKey,
-                    channel = fileChannel,
-                )
             }
-            variantService.generateOnDemandVariant(
-                originalVariantFile = originalVariantFile,
-                transformation = checkNotNull(context.transformation),
-                assetId = assetId,
-                lqipImplementations = context.pathConfiguration.image.previews,
-                originalVariantLQIPs = originalVariant.lqips,
-                bucket = context.pathConfiguration.objectStore.bucket,
-            )
-        } finally {
-            withContext(Dispatchers.IO) {
-                originalVariantFile.toFile().delete()
+            val originalVariant =
+                assetRepository
+                    .fetchByPath(
+                        path = context.path,
+                        entryId = context.selectors.entryId,
+                        transformation = Transformation.ORIGINAL_VARIANT,
+                        order = context.selectors.order,
+                        labels = context.labels,
+                    )?.variants
+                    ?.first { it.isOriginalVariant }
+                    ?: return@coroutineScope
+            val originalVariantFile =
+                TemporaryFileFactory.createOriginalVariantTempFile(
+                    extension = originalVariant.attributes.format.extension,
+                )
+            try {
+                val channel = ByteChannel()
+
+                val fetchJob =
+                    launch {
+                        try {
+                            objectStore.fetch(
+                                bucket = originalVariant.objectStoreBucket,
+                                key = originalVariant.objectStoreKey,
+                                channel = channel,
+                            )
+                        } finally {
+                            channel.close()
+                        }
+                    }
+                withContext(Dispatchers.IO) {
+                    originalVariantFile.toFile().outputStream().buffered().use { fileStream ->
+                        channel.toInputStream().copyTo(fileStream)
+                    }
+                }
+                fetchJob.join()
+                variantService.generateOnDemandVariant(
+                    originalVariantFile = originalVariantFile,
+                    transformation = checkNotNull(context.transformation),
+                    assetId = assetId,
+                    lqipImplementations = context.pathConfiguration.image.previews,
+                    originalVariantLQIPs = originalVariant.lqips,
+                    bucket = context.pathConfiguration.objectStore.bucket,
+                )
+            } finally {
+                withContext(Dispatchers.IO) {
+                    originalVariantFile.toFile().delete()
+                }
             }
         }
-    }
 }

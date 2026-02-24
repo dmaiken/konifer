@@ -9,10 +9,13 @@ import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.writeByte
 import io.mockk.coEvery
 import io.mockk.spyk
 import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.jooq.DSLContext
@@ -21,8 +24,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.io.File
-import java.nio.file.Files
 import java.time.LocalDateTime
 
 @Testcontainers
@@ -36,9 +37,12 @@ class VariantReaperTest {
     val dslContext: DSLContext by lazy { createR2dbcDslContext(postgres) }
     val objectStore: ObjectStore = spyk(InMemoryObjectStore())
 
-    val file: File =
-        Files.createTempFile("test", ".txt").toFile().apply {
-            deleteOnExit()
+    val channel =
+        runBlocking {
+            ByteChannel().also {
+                it.writeByte(1)
+                it.close()
+            }
         }
 
     @BeforeEach
@@ -52,7 +56,7 @@ class VariantReaperTest {
             objectStore.persist(
                 bucket = "bucket",
                 key = "key",
-                file = file,
+                channel = channel,
             )
 
             val eventId = UuidCreator.getRandomBasedFast()
@@ -95,7 +99,7 @@ class VariantReaperTest {
             objectStore.persist(
                 bucket = "bucket",
                 key = "key",
-                file = file,
+                channel = channel,
             )
 
             val eventId = UuidCreator.getRandomBasedFast()
@@ -143,12 +147,12 @@ class VariantReaperTest {
             objectStore.persist(
                 bucket = "bucket",
                 key = "key1",
-                file = file,
+                channel = channel,
             )
             objectStore.persist(
                 bucket = "bucket",
                 key = "key2",
-                file = file,
+                channel = channel,
             )
 
             val eventId1 = UuidCreator.getRandomBasedFast()
@@ -222,12 +226,12 @@ class VariantReaperTest {
             objectStore.persist(
                 bucket = "bucket",
                 key = "key1",
-                file = file,
+                channel = channel,
             )
             objectStore.persist(
                 bucket = "bucket",
                 key = "key2",
-                file = file,
+                channel = channel,
             )
 
             val eventId1 = UuidCreator.getRandomBasedFast()

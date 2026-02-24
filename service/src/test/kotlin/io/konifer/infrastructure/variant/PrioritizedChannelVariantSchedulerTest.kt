@@ -2,7 +2,7 @@ package io.konifer.infrastructure.variant
 
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.ports.TransformationDataContainerV2
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
@@ -11,6 +11,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -76,14 +77,14 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainer(
+                TransformationDataContainerV2(
                     transformation =
                         Transformation(
                             height = 100,
                             width = 100,
                             format = ImageFormat.JPEG,
                         ),
-                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                    output = ByteChannel(),
                 )
             val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
@@ -108,14 +109,14 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainer(
+                TransformationDataContainerV2(
                     transformation =
                         Transformation(
                             height = 100,
                             width = 100,
                             format = ImageFormat.JPEG,
                         ),
-                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                    output = ByteChannel(),
                 )
             val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 
@@ -161,9 +162,9 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainer(
+                TransformationDataContainerV2(
                     transformation = Transformation.ORIGINAL_VARIANT,
-                    output = TemporaryFileFactory.createPreProcessedTempFile(ImageFormat.JPEG.extension),
+                    output = ByteChannel(),
                 )
             val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
 

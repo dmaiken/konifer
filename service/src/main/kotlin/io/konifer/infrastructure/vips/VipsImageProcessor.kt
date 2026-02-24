@@ -8,7 +8,7 @@ import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.PreProcessedImage
-import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.ports.TransformationDataContainerV2
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
@@ -78,6 +78,13 @@ class VipsImageProcessor {
                         variantStream = previewOutputStream,
                     )
                 }
+
+                attributes =
+                    Attributes.createAttributes(
+                        image = preProcessed.processed,
+                        sourceFormat = sourceFormat,
+                        destinationFormat = transformation.format,
+                    )
                 if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
                     VipsEncoder.writeToFile(
                         source = preProcessed.processed,
@@ -90,13 +97,6 @@ class VipsImageProcessor {
                     logger.debug { "No applied transformations for image, not encoding image with vips" }
                     Files.createSymbolicLink(output, source)
                 }
-
-                attributes =
-                    Attributes.createAttributes(
-                        image = preProcessed.processed,
-                        sourceFormat = sourceFormat,
-                        destinationFormat = transformation.format,
-                    )
             }
             PreProcessedImage(
                 attributes = checkNotNull(attributes),
@@ -111,7 +111,7 @@ class VipsImageProcessor {
 
     suspend fun generateVariants(
         source: Path,
-        transformationDataContainers: List<TransformationDataContainer>,
+        transformationDataContainers: List<TransformationDataContainerV2>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->
@@ -140,26 +140,29 @@ class VipsImageProcessor {
                         sourceImage = variantResult.processed,
                         variantStream = previewVariantStream,
                     )
-                    container.lqips =
+                    container.lqips.complete(
                         ImagePreviewGenerator.generatePreviews(
                             source = previewVariantStream.toByteArray(),
                             lqipImplementations = lqipImplementations,
-                        )
+                        ),
+                    )
+                } else {
+                    container.lqips.complete(null)
                 }
-
-                VipsEncoder.writeToFile(
-                    source = variantResult.processed,
-                    format = transformation.format,
-                    quality = transformation.quality,
-                    file = output,
-                )
-
-                container.attributes =
+                container.attributes.complete(
                     Attributes.createAttributes(
                         image = variantResult.processed,
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,
-                    )
+                    ),
+                )
+
+                VipsEncoder.writeToStream(
+                    source = variantResult.processed,
+                    format = transformation.format,
+                    quality = transformation.quality,
+                    outputChannel = output,
+                )
             }
         }
     }

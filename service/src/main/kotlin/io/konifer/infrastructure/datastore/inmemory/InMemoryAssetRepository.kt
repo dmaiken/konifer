@@ -9,6 +9,8 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.service.context.selector.Order
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
@@ -17,35 +19,40 @@ class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
+    private val storeMutex = Mutex()
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
-        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
-        val entryId = getNextEntryId(path)
-        logger.info("Persisting asset at path: $path, entryId: $entryId")
-        return Asset
-            .PendingPersisted(
-                id = asset.id,
-                path = asset.path,
-                entryId = entryId,
-                alt = asset.alt,
-                labels = asset.labels,
-                tags = asset.tags,
-                source = asset.source,
-                sourceUrl = asset.sourceUrl,
-                createdAt = asset.createdAt,
-                modifiedAt = asset.modifiedAt,
-                isReady = false,
-                variants = asset.variants,
-            ).also {
-                store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(it)
-                idReference[it.id] = it
-            }
+        storeMutex.withLock {
+            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            val entryId = getNextEntryId(path)
+            logger.info("Persisting asset at path: $path, entryId: $entryId")
+            return Asset
+                .PendingPersisted(
+                    id = asset.id,
+                    path = asset.path,
+                    entryId = entryId,
+                    alt = asset.alt,
+                    labels = asset.labels,
+                    tags = asset.tags,
+                    source = asset.source,
+                    sourceUrl = asset.sourceUrl,
+                    createdAt = asset.createdAt,
+                    modifiedAt = asset.modifiedAt,
+                    isReady = false,
+                    variants = asset.variants,
+                ).also {
+                    store.computeIfAbsent(path) { Collections.synchronizedList(mutableListOf()) }.add(it)
+                    idReference[it.id] = it
+                }
+        }
     }
 
     override suspend fun markReady(asset: Asset.Ready) {
-        idReference[asset.id] = asset
-        store[asset.path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
-        store[asset.path]?.add(asset)
+        storeMutex.withLock {
+            idReference[asset.id] = asset
+            store[asset.path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
+            store[asset.path]?.add(asset)
+        }
     }
 
     override suspend fun markUploaded(variant: Variant.Ready) {
@@ -59,18 +66,20 @@ class InMemoryAssetRepository : AssetRepository {
     }
 
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {
-        val asset = idReference[variant.assetId] ?: throw IllegalArgumentException("Asset not found")
-        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
-        return store[path]?.let { assets ->
-            val asset = assets.first { it.entryId == asset.entryId }
-            if (asset.variants.any { it.transformation == variant.transformation }) {
-                throw VariantAlreadyExistsException("Variant already exists for asset: ${asset.id.value}")
-            }
-            asset.variants.add(variant)
-            asset.variants.sortByDescending { it.createdAt }
+        storeMutex.withLock {
+            val asset = idReference[variant.assetId] ?: throw IllegalArgumentException("Asset not found")
+            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            return store[path]?.let { assets ->
+                val asset = assets.first { it.entryId == asset.entryId }
+                if (asset.variants.any { it.transformation == variant.transformation }) {
+                    throw VariantAlreadyExistsException("Variant already exists for asset: ${asset.id.value}")
+                }
+                asset.variants.add(variant)
+                asset.variants.sortByDescending { it.createdAt }
 
-            variant
-        } ?: throw IllegalArgumentException("Asset with path: $path and entry id: ${asset.entryId} not found in database")
+                variant
+            } ?: throw IllegalArgumentException("Asset with path: $path and entry id: ${asset.entryId} not found in database")
+        }
     }
 
     override suspend fun fetchForUpdate(

@@ -3,13 +3,15 @@ package io.konifer.infrastructure.variant
 import io.konifer.BaseUnitTest
 import io.konifer.domain.image.Fit
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.ports.TransformationDataContainerV2
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.vips.VipsImageProcessor
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.TemporaryFileFactory.createProcessedVariantTempFile
 import io.kotest.matchers.shouldBe
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.toByteArray
 import io.mockk.coEvery
 import io.mockk.spyk
 import kotlinx.coroutines.CompletableDeferred
@@ -44,7 +46,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     backgroundChannel = Channel(),
                     highPriorityWeight = 80,
                 ),
-            numberOfWorkers = 8,
+            numberOfWorkers = 4,
         )
 
     lateinit var source: Path
@@ -67,17 +69,14 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `can generate variant from channel`() =
             runTest {
-                val output =
-                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                        deleteOnExit(this)
-                    }
+                val output = ByteChannel()
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainer(
+                                TransformationDataContainerV2(
                                     transformation =
                                         Transformation(
                                             height = 200,
@@ -94,7 +93,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                 channel.send(variantGenerationJob)
                 result.await()
 
-                val outputImage = ImageIO.read(output.toFile())
+                val outputImage = ImageIO.read(ByteArrayInputStream(output.toByteArray()))
                 outputImage.width shouldBe 200
                 outputImage.height shouldBe 200
             }
@@ -102,21 +101,15 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `can generate multiple variants for same image through single channel request`() =
             runTest {
-                val output1 =
-                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                        deleteOnExit(this)
-                    }
-                val output2 =
-                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                        deleteOnExit(this)
-                    }
+                val output1 = ByteChannel()
+                val output2 = ByteChannel()
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainer(
+                                TransformationDataContainerV2(
                                     transformation =
                                         Transformation(
                                             height = 200,
@@ -126,7 +119,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                         ),
                                     output = output1,
                                 ),
-                                TransformationDataContainer(
+                                TransformationDataContainerV2(
                                     transformation =
                                         Transformation(
                                             height = 100,
@@ -143,10 +136,10 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                 channel.send(variantGenerationJob)
                 result.await()
 
-                val outputImage1 = ImageIO.read(output1.toFile())
+                val outputImage1 = ImageIO.read(ByteArrayInputStream(output1.toByteArray()))
                 outputImage1.width shouldBe 200
                 outputImage1.height shouldBe 200
-                val outputImage2 = ImageIO.read(output2.toFile())
+                val outputImage2 = ImageIO.read(ByteArrayInputStream(output2.toByteArray()))
                 outputImage2.width shouldBe 100
                 outputImage2.height shouldBe 100
             }
@@ -174,17 +167,14 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         @Test
         fun `if variant fails to generate then channel is still live`() =
             runTest {
-                val output =
-                    createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
-                        deleteOnExit(this)
-                    }
+                val output = ByteChannel()
                 val result = CompletableDeferred<Boolean>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainer(
+                                TransformationDataContainerV2(
                                     transformation =
                                         Transformation(
                                             height = 200,

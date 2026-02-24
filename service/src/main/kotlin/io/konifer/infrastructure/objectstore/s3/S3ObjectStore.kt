@@ -4,13 +4,17 @@ import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.consumeAsFlow
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.withContext
+import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.Delete
@@ -25,8 +29,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import software.amazon.awssdk.transfer.s3.S3TransferManager
-import software.amazon.awssdk.transfer.s3.model.UploadFileRequest
-import java.io.File
+import software.amazon.awssdk.transfer.s3.model.UploadRequest
 import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -41,16 +44,22 @@ class S3ObjectStore(
     override suspend fun persist(
         bucket: String,
         key: String,
-        file: File,
+        channel: ByteChannel,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
-            val uploadFileRequest =
-                UploadFileRequest
+            val publisher = channel.consumeAsFlow().asPublisher()
+            val requestBody = AsyncRequestBody.fromPublisher(publisher)
+
+            val uploadRequest =
+                UploadRequest
                     .builder()
-                    .putObjectRequest { b: PutObjectRequest.Builder -> b.bucket(bucket).key(key) }
-                    .source(file.toPath())
+                    .putObjectRequest { b: PutObjectRequest.Builder ->
+                        b
+                            .bucket(bucket)
+                            .key(key)
+                    }.requestBody(requestBody)
                     .build()
-            s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
+            s3TransferManager.upload(uploadRequest).completionFuture().await()
 
             LocalDateTime.now()
         }

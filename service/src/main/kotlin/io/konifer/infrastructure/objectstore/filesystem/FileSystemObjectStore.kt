@@ -5,16 +5,16 @@ import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.ktor.util.cio.readChannel
+import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
 
 class FileSystemObjectStore(
@@ -25,7 +25,7 @@ class FileSystemObjectStore(
     override suspend fun persist(
         bucket: String,
         key: String,
-        file: File,
+        channel: ByteChannel,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
             val target = resolvePath(bucket, key)
@@ -33,7 +33,7 @@ class FileSystemObjectStore(
             if (!Files.exists(target.parent)) {
                 Files.createDirectories(target.parent)
             }
-            Files.copy(file.toPath(), target, StandardCopyOption.REPLACE_EXISTING)
+            channel.copyAndClose(target.toFile().writeChannel())
 
             LocalDateTime.now()
         }

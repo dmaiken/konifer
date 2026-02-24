@@ -26,7 +26,10 @@ import io.konifer.service.context.RequestContextFactory
 import io.konifer.service.context.StoreRequestContext
 import io.konifer.service.transformation.TransformationNormalizer
 import io.konifer.service.variant.VariantService
+import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.copyTo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -147,11 +150,19 @@ class StoreNewAssetWorkflow(
 
                     val pendingPersisted = assetRepository.storeNew(pendingAsset)
                     val originalVariant = pendingPersisted.variants.first()
+                    val preprocessedChannel = ByteChannel()
+                    launch {
+                        try {
+                            preProcessedPath.toFile().readChannel().copyTo(preprocessedChannel)
+                        } finally {
+                            preprocessedChannel.close()
+                        }
+                    }
                     val uploadedAt =
                         objectStore.persist(
                             bucket = originalVariant.objectStoreBucket,
                             key = objectStoreKey,
-                            file = preProcessedPath.toFile(),
+                            channel = preprocessedChannel,
                         )
                     logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
                     val readyAsset =

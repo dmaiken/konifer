@@ -3,7 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.PreProcessedImage
-import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.ports.TransformationDataContainerV2
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
@@ -38,7 +38,7 @@ class PrioritizedChannelVariantScheduler(
 
     override suspend fun generateVariantsFromSource(
         source: Path,
-        transformationDataContainers: List<TransformationDataContainer>,
+        transformationDataContainers: List<TransformationDataContainerV2>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
     ): CompletableDeferred<Boolean> {

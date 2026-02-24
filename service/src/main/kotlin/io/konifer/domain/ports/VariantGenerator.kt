@@ -6,6 +6,7 @@ import io.konifer.domain.image.PreProcessedImage
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
+import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
 
@@ -20,7 +21,7 @@ interface VariantGenerator {
 
     suspend fun generateVariantsFromSource(
         source: Path,
-        transformationDataContainers: List<TransformationDataContainer>,
+        transformationDataContainers: List<TransformationDataContainerV2>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
     ): CompletableDeferred<Boolean>
@@ -31,10 +32,9 @@ enum class VariantType {
     ON_DEMAND,
 }
 
-data class TransformationDataContainer(
+data class TransformationDataContainerV2(
     val transformation: Transformation,
-    val output: Path,
-) {
-    var lqips: LQIPs = LQIPs.NONE
-    var attributes: Attributes? = null
-}
+    val output: ByteChannel = ByteChannel(),
+    val lqips: CompletableDeferred<LQIPs?> = CompletableDeferred(),
+    val attributes: CompletableDeferred<Attributes> = CompletableDeferred(),
+)
