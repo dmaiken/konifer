@@ -21,7 +21,7 @@ interface VariantGenerator {
 
     suspend fun generateVariantsFromSource(
         source: Path,
-        transformationDataContainers: List<TransformationDataContainerV2>,
+        transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
     ): CompletableDeferred<Boolean>
@@ -32,7 +32,7 @@ enum class VariantType {
     ON_DEMAND,
 }
 
-data class TransformationDataContainerV2(
+data class TransformationDataContainer(
     val transformation: Transformation,
     val output: ByteChannel = ByteChannel(),
     val lqips: CompletableDeferred<LQIPs?> = CompletableDeferred(),

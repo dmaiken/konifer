@@ -2,7 +2,7 @@ package io.konifer.infrastructure.variant
 
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.ports.TransformationDataContainerV2
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
@@ -77,7 +77,7 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainerV2(
+                TransformationDataContainer(
                     transformation =
                         Transformation(
                             height = 100,
@@ -109,7 +109,7 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainerV2(
+                TransformationDataContainer(
                     transformation =
                         Transformation(
                             height = 100,
@@ -162,7 +162,7 @@ class PrioritizedChannelVariantSchedulerTest {
         runTest {
             val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
             val transformationDataContainer =
-                TransformationDataContainerV2(
+                TransformationDataContainer(
                     transformation = Transformation.ORIGINAL_VARIANT,
                     output = ByteChannel(),
                 )

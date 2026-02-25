@@ -3,7 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.PreProcessedImage
-import io.konifer.domain.ports.TransformationDataContainerV2
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
@@ -23,7 +23,7 @@ data class PreProcessJob(
 
 data class GenerateVariantsJob(
     val source: Path,
-    val transformationDataContainers: List<TransformationDataContainerV2>,
+    val transformationDataContainers: List<TransformationDataContainer>,
     val lqipImplementations: Set<LQIPImplementation>,
     override val deferredResult: CompletableDeferred<Boolean>,
 ) : ImageProcessingJob<Boolean>

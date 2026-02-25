@@ -5,7 +5,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.ports.TransformationDataContainerV2
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
@@ -139,9 +139,9 @@ class VariantService(
             generationJob.await()
         }
 
-    private fun createTransformationDataContainersV2(transformations: List<Transformation>): List<TransformationDataContainerV2> =
+    private fun createTransformationDataContainersV2(transformations: List<Transformation>): List<TransformationDataContainer> =
         transformations.map { transformation ->
-            TransformationDataContainerV2(
+            TransformationDataContainer(
                 transformation = transformation,
             )
         }

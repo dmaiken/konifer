@@ -8,7 +8,7 @@ import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.PreProcessedImage
-import io.konifer.domain.ports.TransformationDataContainerV2
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
@@ -111,7 +111,7 @@ class VipsImageProcessor {
 
     suspend fun generateVariants(
         source: Path,
-        transformationDataContainers: List<TransformationDataContainerV2>,
+        transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->

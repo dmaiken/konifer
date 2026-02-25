@@ -3,7 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.BaseUnitTest
 import io.konifer.domain.image.Fit
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.ports.TransformationDataContainerV2
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.vips.VipsImageProcessor
@@ -76,7 +76,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainerV2(
+                                TransformationDataContainer(
                                     transformation =
                                         Transformation(
                                             height = 200,
@@ -109,7 +109,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainerV2(
+                                TransformationDataContainer(
                                     transformation =
                                         Transformation(
                                             height = 200,
@@ -119,7 +119,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                         ),
                                     output = output1,
                                 ),
-                                TransformationDataContainerV2(
+                                TransformationDataContainer(
                                     transformation =
                                         Transformation(
                                             height = 100,
@@ -174,7 +174,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                         source = source,
                         transformationDataContainers =
                             listOf(
-                                TransformationDataContainerV2(
+                                TransformationDataContainer(
                                     transformation =
                                         Transformation(
                                             height = 200,
