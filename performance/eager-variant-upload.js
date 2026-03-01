@@ -6,7 +6,7 @@ import exec from 'k6/execution';
 export const options = {
     stages: [
         { duration: '30s', target: 10 },
-        { duration: '90s', target: 40 },
+        { duration: '5m', target: 50 },
     ],
     thresholds: {
         'http_req_duration{phase:measurement}': ['p(95)<2000'],

@@ -58,7 +58,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                     s3TransferManager(get())
                 }
                 single<S3Presigner> {
-                    s3Presigner(get())
+                    s3Presigner(s3ClientProperties)
                 }
                 single<ObjectStore> {
                     S3ObjectStore(get(), get(), get())
