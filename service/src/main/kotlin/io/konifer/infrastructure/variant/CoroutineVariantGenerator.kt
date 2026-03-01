@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.variant
 
-import io.konifer.domain.image.PreProcessedImage
 import io.konifer.infrastructure.vips.VipsImageProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -55,15 +54,20 @@ class CoroutineVariantGenerator(
         }
     }
 
-    private suspend fun handlePreProcessJob(job: PreProcessJob): PreProcessedImage {
+    private suspend fun handlePreProcessJob(job: PreProcessJob): Boolean {
         logger.debug { "Handling preprocessing job: $job" }
-        return imageProcessor.preprocess(
-            sourceFormat = job.sourceFormat,
-            transformation = job.transformation,
-            lqipImplementations = job.lqipImplementations,
-            source = job.source,
-            output = job.output,
-        )
+        return try {
+            imageProcessor.preprocess(
+                sourceFormat = job.sourceFormat,
+                transformationDataContainer = job.transformationDataContainer,
+                lqipImplementations = job.lqipImplementations,
+                source = job.source,
+            )
+            true
+        } catch (e: Exception) {
+            logger.error("Error while preprocessing original with request: {}", job, e)
+            false
+        }
     }
 
     private suspend fun handleGenerateVariantsJob(job: GenerateVariantsJob): Boolean {

@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.vips.transformation
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.Transformation
@@ -33,14 +34,14 @@ object RotateFlip : VipsTransformer {
 
         val angle =
             when (transformation.rotate) {
-                Rotate.ZERO -> 0.0
-                Rotate.NINETY -> 90.0
-                Rotate.ONE_HUNDRED_EIGHTY -> 180.0
-                Rotate.TWO_HUNDRED_SEVENTY -> 270.0
+                Rotate.ZERO -> VipsAngle.ANGLE_D0
+                Rotate.NINETY -> VipsAngle.ANGLE_D90
+                Rotate.ONE_HUNDRED_EIGHTY -> VipsAngle.ANGLE_D180
+                Rotate.TWO_HUNDRED_SEVENTY -> VipsAngle.ANGLE_D270
             }
 
         val processed =
-            source.rotate(angle).set(OPTION_ORIENTATION, 1).let {
+            source.rot(angle).set(OPTION_ORIENTATION, 1).let {
                 if (transformation.horizontalFlip) {
                     it.flip(VipsDirection.DIRECTION_HORIZONTAL)
                 } else {

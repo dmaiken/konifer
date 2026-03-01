@@ -47,17 +47,16 @@ class PrioritizedChannelVariantSchedulerTest {
                 TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
                     deleteOnExit(this)
                 }
-            val output =
-                TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
-                    deleteOnExit(this)
-                }
+            val transformationDataContainer =
+                TransformationDataContainer(
+                    transformation = transformation,
+                )
             val deferred =
                 scheduler.preProcessOriginalVariant(
                     sourceFormat = sourceFormat,
                     lqipImplementations = lqipImplementations,
-                    transformation = transformation,
+                    transformationDataContainer = transformationDataContainer,
                     source = source,
-                    output = output,
                 )
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
@@ -65,7 +64,6 @@ class PrioritizedChannelVariantSchedulerTest {
             with(sent!! as PreProcessJob) {
                 this.sourceFormat shouldBe sourceFormat
                 this.lqipImplementations shouldBe lqipImplementations
-                this.transformation shouldBe transformation
                 this.source shouldBe source
                 this.deferredResult shouldBe deferred
             }

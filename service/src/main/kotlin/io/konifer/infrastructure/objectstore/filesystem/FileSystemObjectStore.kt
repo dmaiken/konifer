@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
 
 class FileSystemObjectStore(
@@ -34,6 +35,22 @@ class FileSystemObjectStore(
                 Files.createDirectories(target.parent)
             }
             channel.copyAndClose(target.toFile().writeChannel())
+
+            LocalDateTime.now()
+        }
+
+    override suspend fun persist(
+        bucket: String,
+        key: String,
+        file: Path,
+    ): LocalDateTime =
+        withContext(Dispatchers.IO) {
+            val target = resolvePath(bucket, key)
+
+            if (!Files.exists(target.parent)) {
+                Files.createDirectories(target.parent)
+            }
+            Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING)
 
             LocalDateTime.now()
         }

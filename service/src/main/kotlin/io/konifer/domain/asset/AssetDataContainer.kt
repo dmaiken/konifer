@@ -75,6 +75,10 @@ class AssetDataContainer(
             logger.debug { "Deleting temporary file: ${tempFile?.pathString}" }
             tempFile?.toFile()?.delete()
         }
+        closeChannel()
+    }
+
+    fun closeChannel() {
         if (!channel.isClosedForRead) channel.cancel(null)
     }
 }

@@ -2,7 +2,6 @@ package io.konifer.domain.ports
 
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.image.PreProcessedImage
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
@@ -14,10 +13,9 @@ interface VariantGenerator {
     suspend fun preProcessOriginalVariant(
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
-        transformation: Transformation,
         source: Path,
-        output: Path,
-    ): CompletableDeferred<PreProcessedImage>
+        transformationDataContainer: TransformationDataContainer,
+    ): CompletableDeferred<Boolean>
 
     suspend fun generateVariantsFromSource(
         source: Path,

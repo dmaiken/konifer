@@ -2,17 +2,16 @@ package io.konifer.domain.workflow
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.InvalidImageException
-import io.konifer.domain.image.PreProcessedImage
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.MimeTypeDetector
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.Attributes
@@ -25,20 +24,23 @@ import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.RequestContextFactory
 import io.konifer.service.context.StoreRequestContext
 import io.konifer.service.transformation.TransformationNormalizer
+import io.konifer.service.variant.ObjectStoreKeyFactory
 import io.konifer.service.variant.VariantService
-import io.ktor.util.cio.readChannel
+import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.copyTo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 
 class StoreNewAssetWorkflow(
@@ -98,92 +100,40 @@ class StoreNewAssetWorkflow(
                     )
 
                 container.toTemporaryFile(format.extension)
-                val transformation =
-                    normalizePreProcessing(
-                        context = context,
-                        container = container,
-                        sourceFormat = format,
-                    )
-
-                var preProcessedPath =
-                    TemporaryFileFactory.createPreProcessedTempFile(
-                        extension = transformation.format.extension,
-                    )
-                try {
-                    val preProcessed =
-                        if (context.requiresPreProcessing()) {
-                            variantGenerator
-                                .preProcessOriginalVariant(
-                                    sourceFormat = format,
-                                    lqipImplementations = context.pathConfiguration.image.previews,
-                                    transformation = transformation,
-                                    source = container.getTemporaryFile(),
-                                    output = preProcessedPath,
-                                ).await()
-                        } else {
-                            // Skip preprocessing entirely if not required
-                            preProcessedPath = container.getTemporaryFile()
-                            PreProcessedImage(
-                                attributes =
-                                    withContext(Dispatchers.IO) {
-                                        Attributes.createAttributes(
-                                            path = preProcessedPath,
-                                            format = format,
-                                        )
-                                    },
-                                lqip = LQIPs.NONE,
-                            )
-                        }
-
-                    val objectStoreKey = "${UuidCreator.getRandomBasedFast()}${preProcessed.attributes.format.extension}"
-                    val pendingAsset =
-                        newAsset.markPending(
-                            originalVariant =
-                                Variant.Pending.originalVariant(
-                                    assetId = newAsset.id,
-                                    attributes = preProcessed.attributes,
-                                    objectStoreBucket = context.pathConfiguration.objectStore.bucket,
-                                    objectStoreKey = objectStoreKey,
-                                    lqip = preProcessed.lqip,
-                                ),
-                        )
-
-                    val pendingPersisted = assetRepository.storeNew(pendingAsset)
-                    val originalVariant = pendingPersisted.variants.first()
-                    val preprocessedChannel = ByteChannel()
-                    launch {
-                        try {
-                            preProcessedPath.toFile().readChannel().copyTo(preprocessedChannel)
-                        } finally {
-                            preprocessedChannel.close()
-                        }
+                val eagerVariantTransformations =
+                    context.pathConfiguration.eagerVariants.map {
+                        variantProfileRepository.fetch(it)
                     }
-                    val uploadedAt =
-                        objectStore.persist(
-                            bucket = originalVariant.objectStoreBucket,
-                            key = objectStoreKey,
-                            channel = preprocessedChannel,
+                hasEagerVariants = eagerVariantTransformations.isNotEmpty()
+                val (preprocessedFile, readyAsset) =
+                    if (context.requiresPreProcessing()) {
+                        handleWithPreProcessing(
+                            newAsset = newAsset,
+                            context = context,
+                            container = container,
+                            sourceFormat = format,
+                            hasEagerVariants = hasEagerVariants,
                         )
-                    logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
-                    val readyAsset =
-                        pendingPersisted.markReady(uploadedAt).also {
-                            assetRepository.markReady(it)
-                        }
+                    } else {
+                        handleWithoutPreProcessing(
+                            newAsset = newAsset,
+                            context = context,
+                            container = container,
+                            sourceFormat = format,
+                        )
+                    }
+                val originalVariant = readyAsset.variants.first()
 
-                    AssetAndLocation(
-                        asset = readyAsset,
-                        locationPath = context.path,
-                    ).also {
-                        val eagerVariantTransformations =
-                            context.pathConfiguration.eagerVariants.map {
-                                variantProfileRepository.fetch(it)
-                            }
-                        if (eagerVariantTransformations.isNotEmpty()) {
-                            hasEagerVariants = true
-                            createVariantsScope.launch {
-                                container.use { container ->
+                AssetAndLocation(
+                    asset = readyAsset,
+                    locationPath = context.path,
+                ).also {
+                    if (hasEagerVariants) {
+                        createVariantsScope.launch {
+                            container.use {
+                                try {
                                     variantService.createEagerVariants(
-                                        originalVariantFile = container.getTemporaryFile(),
+                                        originalVariantFile = preprocessedFile,
                                         requestedTransformations = eagerVariantTransformations,
                                         assetId = readyAsset.id,
                                         originalVariantAttributes = originalVariant.attributes,
@@ -191,19 +141,137 @@ class StoreNewAssetWorkflow(
                                         originalVariantLQIPs = originalVariant.lqips,
                                         bucket = context.pathConfiguration.objectStore.bucket,
                                     )
+                                } finally {
+                                    preprocessedFile.deleteIfExists()
                                 }
                             }
                         }
-                    }
-                } finally {
-                    if (!hasEagerVariants) {
-                        preProcessedPath.toFile().delete()
                     }
                 }
             } finally {
                 if (!hasEagerVariants) {
                     container.close()
+                } else {
+                    container.closeChannel()
                 }
+            }
+        }
+
+    private suspend fun handleWithPreProcessing(
+        newAsset: Asset.New,
+        context: StoreRequestContext,
+        container: AssetDataContainer,
+        sourceFormat: ImageFormat,
+        hasEagerVariants: Boolean,
+    ): Pair<Path, Asset.Ready> =
+        coroutineScope {
+            val transformation =
+                normalizePreProcessing(
+                    context = context,
+                    container = container,
+                    sourceFormat = sourceFormat,
+                )
+            val preprocessedDataContainer =
+                TransformationDataContainer(
+                    transformation = transformation,
+                )
+            val generationJob =
+                variantGenerator
+                    .preProcessOriginalVariant(
+                        sourceFormat = sourceFormat,
+                        lqipImplementations = context.pathConfiguration.image.previews,
+                        transformationDataContainer = preprocessedDataContainer,
+                        source = container.getTemporaryFile(),
+                    )
+            val (preProcessedFile, objectStoreChannel) =
+                if (hasEagerVariants) {
+                    val eagerVariantInputFile = TemporaryFileFactory.createPreProcessedTempFile(transformation.format.extension)
+                    val channel = ByteChannel()
+                    launch {
+                        teeStream(
+                            source = preprocessedDataContainer.output,
+                            firstChannel = channel,
+                            secondChannel = eagerVariantInputFile.toFile().writeChannel(),
+                        )
+                    }
+                    Pair(eagerVariantInputFile, channel)
+                } else {
+                    Pair(container.getTemporaryFile(), preprocessedDataContainer.output)
+                }
+            val objectStoreBucket = context.pathConfiguration.objectStore.bucket
+            val objectStoreKey = ObjectStoreKeyFactory.newKey(preprocessedDataContainer.attributes.await().format)
+            val uploadJob =
+                async {
+                    objectStore.persist(
+                        bucket = objectStoreBucket,
+                        key = objectStoreKey,
+                        channel = objectStoreChannel,
+                    )
+                }
+
+            val pendingAsset =
+                newAsset.markPending(
+                    originalVariant =
+                        Variant.Pending.originalVariant(
+                            assetId = newAsset.id,
+                            attributes = preprocessedDataContainer.attributes.await(),
+                            objectStoreBucket = objectStoreBucket,
+                            objectStoreKey = objectStoreKey,
+                            lqip = preprocessedDataContainer.lqips.await() ?: LQIPs.NONE,
+                        ),
+                )
+
+            val pendingPersisted = assetRepository.storeNew(pendingAsset)
+            val uploadedAt = uploadJob.await()
+            generationJob.join()
+
+            pendingPersisted.markReady(uploadedAt).let {
+                logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt after preprocessing, marking as ready")
+                assetRepository.markReady(it)
+                Pair(preProcessedFile, it)
+            }
+        }
+
+    private suspend fun handleWithoutPreProcessing(
+        newAsset: Asset.New,
+        context: StoreRequestContext,
+        sourceFormat: ImageFormat,
+        container: AssetDataContainer,
+    ): Pair<Path, Asset.Ready> =
+        coroutineScope {
+            // Skip preprocessing entirely if not required
+            val attributes =
+                withContext(Dispatchers.IO) {
+                    Attributes.createAttributes(
+                        path = container.getTemporaryFile(),
+                        format = sourceFormat,
+                    )
+                }
+            val objectStoreKey = ObjectStoreKeyFactory.newKey(attributes.format)
+            val pendingAsset =
+                newAsset.markPending(
+                    originalVariant =
+                        Variant.Pending.originalVariant(
+                            assetId = newAsset.id,
+                            attributes = attributes,
+                            objectStoreBucket = context.pathConfiguration.objectStore.bucket,
+                            objectStoreKey = objectStoreKey,
+                            lqip = LQIPs.NONE,
+                        ),
+                )
+
+            val pendingPersisted = assetRepository.storeNew(pendingAsset)
+            val originalVariant = pendingPersisted.variants.first()
+            val uploadedAt =
+                objectStore.persist(
+                    bucket = originalVariant.objectStoreBucket,
+                    key = objectStoreKey,
+                    file = container.getTemporaryFile(),
+                )
+            logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt without preprocessing, marking as ready")
+            pendingPersisted.markReady(uploadedAt).let {
+                assetRepository.markReady(it)
+                Pair(container.getTemporaryFile(), it)
             }
         }
 

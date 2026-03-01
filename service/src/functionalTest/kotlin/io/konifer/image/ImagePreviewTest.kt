@@ -6,6 +6,7 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
+import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
@@ -161,6 +162,45 @@ class ImagePreviewTest {
                 // Assert only one unique lqip
                 variants.map { it.lqip }.toSet() shouldHaveSize 1
             }
+        }
+
+    @Test
+    fun `lqips are not regenerated when requesting variant with blur`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    image {
+                        lqip = [ "thumbhash", "blurhash" ]
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            storeAssetMultipartSource(client, image, request)
+            val result =
+                fetchAssetLink(
+                    client,
+                    blur = 50,
+                    expectCacheHit = false,
+                )!!
+
+            val original =
+                fetchAssetLink(
+                    client,
+                    expectCacheHit = true,
+                )!!
+
+            result.lqip.blurhash shouldBe original.lqip.blurhash
+            result.lqip.thumbhash shouldBe original.lqip.thumbhash
         }
 
     private suspend fun storeAndAssert(

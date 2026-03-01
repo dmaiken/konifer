@@ -3,6 +3,7 @@ package io.konifer.domain.ports
 import io.konifer.domain.path.RedirectProperties
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
+import java.nio.file.Path
 import java.time.LocalDateTime
 
 interface ObjectStore {
@@ -10,6 +11,12 @@ interface ObjectStore {
         bucket: String,
         key: String,
         channel: ByteChannel,
+    ): LocalDateTime
+
+    suspend fun persist(
+        bucket: String,
+        key: String,
+        file: Path,
     ): LocalDateTime
 
     suspend fun fetch(

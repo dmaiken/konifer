@@ -1,9 +1,10 @@
-package io.konifer.image
+package io.konifer.asset.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VSource
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
@@ -12,14 +13,12 @@ import io.konifer.config.testInMemory
 import io.konifer.domain.asset.AssetClass
 import io.konifer.domain.image.ImageFormat
 import io.konifer.infrastructure.StoreAssetRequest
-import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
-import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
-import io.konifer.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3
+import io.konifer.infrastructure.vips.VipsOptionNames
+import io.konifer.infrastructure.vips.transformation.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
-import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldBeSameSizeAs
@@ -39,7 +38,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
-class ImageAssetVariantTest {
+class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch image variant by height`() =
         testInMemory {
@@ -109,7 +108,11 @@ class ImageAssetVariantTest {
 
             var count = 0
             repeat(2) {
-                fetchAssetContent(client, width = bufferedImage.width - 10, expectCacheHit = (count == 1)).second!!.apply {
+                fetchAssetContent(
+                    client,
+                    width = bufferedImage.width - 10,
+                    expectCacheHit = (count == 1),
+                ).second!!.apply {
                     val variantImage = byteArrayToImage(this)
                     variantImage.width shouldBe bufferedImage.width - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
@@ -307,7 +310,7 @@ class ImageAssetVariantTest {
                 val expected =
                     VImage
                         .newFromBytes(arena, image)
-                        .rotate(90.0)
+                        .rot(VipsAngle.ANGLE_D90)
                         .flip(VipsDirection.DIRECTION_HORIZONTAL)
                 val expectedStream = ByteArrayOutputStream()
                 expected.writeToStream(expectedStream, ".png")
@@ -370,7 +373,8 @@ class ImageAssetVariantTest {
                     VImage
                         .newFromBytes(arena, image)
                         .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
-                val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
+                val matrixImage =
+                    VImage.matrixloadSource(arena, VSource.newFromBytes(arena, ColorFilter.greyscaleMatrix3x3))
 
                 linear
                     .recomb(matrixImage)
@@ -422,7 +426,7 @@ class ImageAssetVariantTest {
                     .smartcrop(
                         200,
                         200,
-                        VipsOption.Enum(OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
+                        VipsOption.Enum(VipsOptionNames.OPTION_INTERESTING, VipsInteresting.INTERESTING_ENTROPY),
                     ).writeToStream(expectedStream, ".png")
 
                 val actualImage = ImageIO.read(ByteArrayInputStream(result))
@@ -495,45 +499,6 @@ class ImageAssetVariantTest {
                     ).second!!
                 result shouldBe original
             }
-
-        @Test
-        fun `lqips are not regenerated when requesting variant with blur`() =
-            testInMemory(
-                """
-                paths = [
-                    {
-                        path = "/**"
-                        image {
-                            lqip = [ "thumbhash", "blurhash" ]
-                        }
-                    }
-                ]
-                """.trimIndent(),
-            ) {
-                val client = createJsonClient(followRedirects = false)
-                val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-
-                val request =
-                    StoreAssetRequest(
-                        alt = "an image",
-                    )
-                storeAssetMultipartSource(client, image, request)
-                val result =
-                    fetchAssetLink(
-                        client,
-                        blur = 50,
-                        expectCacheHit = false,
-                    )!!
-
-                val original =
-                    fetchAssetLink(
-                        client,
-                        expectCacheHit = true,
-                    )!!
-
-                result.lqip.blurhash shouldBe original.lqip.blurhash
-                result.lqip.thumbhash shouldBe original.lqip.thumbhash
-            }
     }
 
     @Nested
@@ -581,7 +546,7 @@ class ImageAssetVariantTest {
                         .writeToStream(
                             expectedStream,
                             variantFormat.extension,
-                            VipsOption.Int(OPTION_QUALITY, quality),
+                            VipsOption.Int(VipsOptionNames.OPTION_QUALITY, quality),
                         )
 
                     // Cannot use BufferedImage since AVIF is not supported
@@ -620,7 +585,7 @@ class ImageAssetVariantTest {
                     .writeToStream(
                         expectedStream,
                         variantFormat.extension,
-                        VipsOption.Int(OPTION_QUALITY, quality),
+                        VipsOption.Int(VipsOptionNames.OPTION_QUALITY, quality),
                     )
 
                 result shouldBeSameSizeAs expectedStream.toByteArray()
@@ -795,7 +760,7 @@ class ImageAssetVariantTest {
                     client,
                     height = height,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -810,7 +775,7 @@ class ImageAssetVariantTest {
                     client,
                     width = width,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -824,7 +789,7 @@ class ImageAssetVariantTest {
                     client,
                     fit = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -838,7 +803,7 @@ class ImageAssetVariantTest {
                     client,
                     rotate = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -852,7 +817,7 @@ class ImageAssetVariantTest {
                     client,
                     flip = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -866,7 +831,7 @@ class ImageAssetVariantTest {
                     client,
                     filter = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -880,7 +845,7 @@ class ImageAssetVariantTest {
                     client,
                     filter = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -895,7 +860,7 @@ class ImageAssetVariantTest {
                     client,
                     blur = blurAmount,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -909,7 +874,7 @@ class ImageAssetVariantTest {
                     client,
                     pad = -1,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 
@@ -923,7 +888,7 @@ class ImageAssetVariantTest {
                     client,
                     padColor = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.BadRequest,
+                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
                 )
             }
 

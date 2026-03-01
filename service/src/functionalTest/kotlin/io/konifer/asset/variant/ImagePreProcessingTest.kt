@@ -1,4 +1,4 @@
-package io.konifer.image
+package io.konifer.asset.variant
 
 import io.konifer.byteArrayToImage
 import io.konifer.config.testInMemory
@@ -11,11 +11,10 @@ import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import org.apache.tika.Tika
-import org.junit.jupiter.api.Named.named
+import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
@@ -24,12 +23,18 @@ class ImagePreProcessingTest {
         @JvmStatic
         fun scalingNotNeededSource(): Stream<Arguments> =
             Stream.of(
-                arguments(named("No height or width supplied", null), null),
-                arguments(named("Height and width are too large", 5000), 5000),
+                Arguments.arguments(Named.named("No height or width supplied", null), null),
+                Arguments.arguments(Named.named("Height and width are too large", 5000), 5000),
             )
 
         @JvmStatic
-        fun imageConversionSource(): List<Arguments> = ImageFormat.entries.map { arguments(it.format, it.mimeType) }
+        fun imageConversionSource(): List<Arguments> =
+            ImageFormat.entries.map {
+                Arguments.arguments(
+                    it.format,
+                    it.mimeType,
+                )
+            }
     }
 
     @Test

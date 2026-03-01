@@ -2,7 +2,6 @@ package io.konifer.infrastructure.variant
 
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.image.PreProcessedImage
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
@@ -18,18 +17,16 @@ class PrioritizedChannelVariantScheduler(
     override suspend fun preProcessOriginalVariant(
         sourceFormat: ImageFormat,
         lqipImplementations: Set<LQIPImplementation>,
-        transformation: Transformation,
         source: Path,
-        output: Path,
-    ): CompletableDeferred<PreProcessedImage> {
-        val deferred = CompletableDeferred<PreProcessedImage>()
+        transformationDataContainer: TransformationDataContainer,
+    ): CompletableDeferred<Boolean> {
+        val deferred = CompletableDeferred<Boolean>()
         highPriorityChannel.send(
             PreProcessJob(
                 sourceFormat = sourceFormat,
-                transformation = transformation,
                 source = source,
-                output = output,
                 lqipImplementations = lqipImplementations,
+                transformationDataContainer = transformationDataContainer,
                 deferredResult = deferred,
             ),
         )

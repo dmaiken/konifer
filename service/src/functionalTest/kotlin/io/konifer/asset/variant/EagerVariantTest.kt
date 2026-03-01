@@ -1,14 +1,18 @@
 package io.konifer.asset.variant
 
+import io.konifer.PHash
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.StoreAssetRequest
+import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.util.createJsonClient
+import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
@@ -127,5 +131,56 @@ class EagerVariantTest {
             variants.forAll {
                 it.storeBucket shouldBe "correct-bucket"
             }
+        }
+
+    @Test
+    fun `eager variants are generated from preprocessed content`() =
+        testInMemory(
+            """
+            variant-profiles = [
+              {
+                name = small
+                w = 50
+              }
+            ]
+            paths = [
+              {
+                path = "/users/**"
+                eager-variants = [small]
+                preprocessing {
+                  enabled = true
+                  image {
+                    r = 180
+                  }
+                }      
+              }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request = StoreAssetRequest()
+            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
+
+            // eager variants should not be in this list
+            storeResponse!!.variants shouldHaveSize 1
+            storeResponse.variants.forAll {
+                it.isOriginalVariant shouldBe true
+            }
+
+            await().untilCallTo {
+                runBlocking {
+                    fetchAssetMetadata(client, "users/123")!!.variants.size
+                }
+            } matches { count -> count == 2 }
+
+            val actualContent = fetchAssetContent(client, path = "users/123", profile = "small").second!!
+
+            // Store same asset without preprocessing and fetch r = 180 + small variant profile
+            storeAssetMultipartSource(client, image, request, path = "apple/123").second shouldNotBe null
+            val expectedContent = fetchAssetContent(client, path = "apple/123", rotate = "180", profile = "small").second!!
+
+            PHash.hammingDistance(actualContent, expectedContent) shouldBeLessThanOrEqual
+                HAMMING_DISTANCE_IDENTICAL
         }
 }

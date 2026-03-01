@@ -2,6 +2,7 @@ package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
@@ -61,16 +62,16 @@ class RotateFlipTest {
 
             val angle =
                 when (rotate) {
-                    Rotate.ZERO -> 0
-                    Rotate.NINETY -> 90
-                    Rotate.ONE_HUNDRED_EIGHTY -> 180
-                    Rotate.TWO_HUNDRED_SEVENTY -> 270
-                    else -> throw IllegalStateException()
-                }.toDouble()
+                    Rotate.ZERO -> VipsAngle.ANGLE_D0
+                    Rotate.NINETY -> VipsAngle.ANGLE_D90
+                    Rotate.ONE_HUNDRED_EIGHTY -> VipsAngle.ANGLE_D180
+                    Rotate.TWO_HUNDRED_SEVENTY -> VipsAngle.ANGLE_D270
+                    else -> throw IllegalArgumentException()
+                }
             val expected =
                 VImage
                     .newFromBytes(arena, image)
-                    .rotate(angle)
+                    .rot(angle)
                     .let {
                         if (horizontalFlip) {
                             it.flip(VipsDirection.DIRECTION_HORIZONTAL)
