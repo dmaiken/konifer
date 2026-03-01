@@ -130,7 +130,7 @@ dependencies {
     testFixturesImplementation(libs.kotest.runner)
     testFixturesImplementation(libs.kotest.assertions)
     testFixturesImplementation(libs.libvips.ffm)
-    testFixturesImplementation(libs.commons.math3)
+    testFixturesImplementation(libs.hipparchus.fft)
 
     "functionalTestImplementation"(testFixtures(project))
 }

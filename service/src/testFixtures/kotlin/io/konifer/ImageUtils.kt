@@ -14,9 +14,9 @@ import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.konifer.service.context.RequestedTransformation
-import org.apache.commons.math3.transform.DctNormalization
-import org.apache.commons.math3.transform.FastCosineTransformer
-import org.apache.commons.math3.transform.TransformType
+import org.hipparchus.transform.DctNormalization
+import org.hipparchus.transform.FastCosineTransformer
+import org.hipparchus.transform.TransformType
 import java.awt.Transparency
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage

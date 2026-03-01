@@ -29,6 +29,7 @@ license-version = "3.0.1"
 junit-version = "6.0.2"
 aws-sdk-version = "2.41.31"
 aws-crt-sdk-version = "0.43.3"
+hipparchus-version = "4.0.3"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -62,7 +63,7 @@ r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlin-coroutine-reactive-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
 uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator-version" }
-commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3-version" }
+hipparchus-fft = { module = "org.hipparchus:hipparchus-fft", version.ref = "hipparchus-version"}
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk-version" }
