@@ -36,8 +36,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libexpat1 \
     libffi8 \
     libfftw3-double3 \
-    libfftw3-long3 \
-    libfftw3-quad3 \
     libfftw3-single3 \
     libgif7 \
     libgirepository-2.0-0 \
