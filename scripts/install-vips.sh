@@ -2,6 +2,7 @@
 set -e # Exit immediately if a command exits with a non-zero status
 
 # Configuration
+PREFIX="/usr/local"
 VIPS_VERSION="8.18.0"
 VIPS_URL="https://github.com/libvips/libvips/releases/download"
 BUILD_DIR="/tmp/vips-build"
@@ -11,21 +12,16 @@ INSTALL_DEPS=false
 CLEANUP=false
 
 # Parse arguments
-for arg in "$@"
-do
-  case $arg in
-    --with-deps)
-    INSTALL_DEPS=true
-    shift
-    ;;
-    --cleanup)
-    CLEANUP=true
-    shift
-    ;;
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --with-deps) INSTALL_DEPS=true; shift ;;
+    --cleanup) CLEANUP=true; shift ;;
+    --prefix) PREFIX="$2"; shift 2 ;;
+    *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
 done
 
-echo "Starting VIPS setup. Version: $VIPS_VERSION"
+echo "Starting VIPS setup. Version: $VIPS_VERSION, Prefix: $PREFIX"
 
 # System Dependencies (Debian/Ubuntu specific)
 if [ "$INSTALL_DEPS" = true ]; then
@@ -52,7 +48,14 @@ cd "vips-${VIPS_VERSION}"
 # Configure, Build, Install
 # Note: We install to /usr/local. Local devs might need sudo access for this step
 # or should run this script with sudo.
-LDFLAGS="-ljemalloc" meson build --buildtype=release --libdir=lib
+LDFLAGS="-ljemalloc" meson setup build \
+  --prefix="$PREFIX" \
+  --buildtype=release \
+  --libdir=lib \
+  -Dintrospection=disabled \
+  -Dexamples=false \
+  -Dmodules=disabled \
+  -Dcplusplus=false
 cd build
 ninja
 ninja install
@@ -70,6 +73,3 @@ if [ "$CLEANUP" = true ]; then
   apt-get autoremove -y
   rm -rf /var/lib/apt/lists/*
 fi
-
-# Refresh shared library cache
-ldconfig
