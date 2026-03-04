@@ -55,7 +55,8 @@ LDFLAGS="-ljemalloc" meson setup build \
   -Dintrospection=disabled \
   -Dexamples=false \
   -Dmodules=disabled \
-  -Dcplusplus=false
+  -Dcplusplus=false \
+  -Ddeprecated=false
 cd build
 ninja
 ninja install
