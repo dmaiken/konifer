@@ -1,9 +1,6 @@
 plugins {
-    id("java")
+    alias(libs.plugins.kotlin.jvm)
 }
-
-group = "io.konifer"
-version = "0.0.1"
 
 repositories {
     mavenCentral()

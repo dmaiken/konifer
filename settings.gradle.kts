@@ -10,6 +10,7 @@ dependencyResolutionManagement {
 }
 
 include("service")
-// include("integration")
+include("client")
+include("integration-test")
 include("codegen")
 include("jooq-generated")

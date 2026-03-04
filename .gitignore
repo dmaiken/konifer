@@ -42,3 +42,6 @@ out/
 
 # Performance testing
 /performance/*.html
+
+# KMP
+/kotlin-js-store/
