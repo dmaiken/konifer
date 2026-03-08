@@ -1,4 +1,4 @@
-package io.konifer.domain.asset
+package io.konifer.common.asset
 
 enum class AssetSource {
     UPLOAD,

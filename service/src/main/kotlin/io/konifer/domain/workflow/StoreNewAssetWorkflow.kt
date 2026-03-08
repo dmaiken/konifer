@@ -2,6 +2,7 @@ package io.konifer.domain.workflow
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
@@ -18,7 +19,6 @@ import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.RequestContextFactory

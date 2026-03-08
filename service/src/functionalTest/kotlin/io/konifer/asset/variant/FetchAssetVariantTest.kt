@@ -1,7 +1,7 @@
 package io.konifer.asset.variant
 
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata

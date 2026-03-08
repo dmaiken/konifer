@@ -1,6 +1,6 @@
 package io.konifer.domain.variant
 
-import io.konifer.infrastructure.http.LQIPResponse
+import io.konifer.common.http.LQIPResponse
 import kotlinx.serialization.Serializable
 
 @Serializable

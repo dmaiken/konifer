@@ -6,7 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
-import io.konifer.domain.image.Filter
+import io.konifer.common.image.Filter
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N

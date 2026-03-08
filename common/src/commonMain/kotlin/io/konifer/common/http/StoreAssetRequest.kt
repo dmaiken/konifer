@@ -1,4 +1,4 @@
-package io.konifer.infrastructure
+package io.konifer.common.http
 
 import kotlinx.serialization.Serializable
 

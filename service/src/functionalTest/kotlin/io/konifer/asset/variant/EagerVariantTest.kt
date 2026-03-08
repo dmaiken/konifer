@@ -1,8 +1,8 @@
 package io.konifer.asset.variant
 
 import io.konifer.PHash
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent

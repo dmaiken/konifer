@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.common.asset.AssetSource
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.asset.AssetSource
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantId

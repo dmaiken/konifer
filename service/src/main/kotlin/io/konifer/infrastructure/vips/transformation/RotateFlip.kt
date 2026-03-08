@@ -3,7 +3,7 @@ package io.konifer.infrastructure.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
-import io.konifer.domain.image.Rotate
+import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
