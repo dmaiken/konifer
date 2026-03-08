@@ -1,12 +1,12 @@
 package io.konifer.infrastructure.datastore
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.Rotate
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Gravity
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Attributes

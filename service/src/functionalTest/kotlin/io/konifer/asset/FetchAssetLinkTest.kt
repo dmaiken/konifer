@@ -2,10 +2,10 @@ package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.byteArrayToImage
+import io.konifer.common.http.AssetLinkResponse
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
-import io.konifer.infrastructure.http.AssetLinkResponse
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource

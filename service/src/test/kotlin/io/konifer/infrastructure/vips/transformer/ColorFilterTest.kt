@@ -9,8 +9,8 @@ import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import app.photofox.vipsffm.enums.VipsOperationRelational
 import io.konifer.PHash
+import io.konifer.common.image.Filter
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.domain.image.Filter
 import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformation.ColorFilter

@@ -1,10 +1,10 @@
 package io.konifer.domain.workflow
 
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetNotFoundException
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.service.context.UpdateRequestContext
 import java.lang.IllegalArgumentException
 

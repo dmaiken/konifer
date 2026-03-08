@@ -1,5 +1,8 @@
 package io.konifer.domain.image
 
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Rotate
+
 /**
  * EXIF orientation mappings
  */
@@ -27,7 +30,7 @@ object ExifOrientations {
         }
 
     /**
-     * Normalize the rotation and flip from (clockwise [Rotate], [Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
+     * Normalize the rotation and flip from (clockwise [Rotate], [io.konifer.common.image.Flip]) to (clockwise [Rotate], [Boolean] horizontal flip)
      */
     fun normalizeOrientation(
         rotate: Rotate = Rotate.default,

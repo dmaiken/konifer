@@ -66,6 +66,7 @@ tasks.shadowJar {
 
 dependencies {
     implementation(project(":jooq-generated"))
+    implementation(project(":common"))
 
     implementation(libs.jooq)
     implementation(libs.jooq.kotlin)
@@ -83,6 +84,8 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
+
+    implementation(libs.kotlinx.datetime)
 
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.s3.transfermanager)
@@ -125,6 +128,7 @@ dependencies {
     implementation(libs.blurhash)
 
     // Dependencies needed by testFixtures
+    testFixturesImplementation(project(":common"))
     testFixturesImplementation(libs.kotlin.test.junit)
     testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.kotest.runner)
@@ -133,6 +137,7 @@ dependencies {
     testFixturesImplementation(libs.hipparchus.fft)
 
     "functionalTestImplementation"(testFixtures(project))
+    "functionalTestImplementation"(project(":common"))
 }
 
 /**

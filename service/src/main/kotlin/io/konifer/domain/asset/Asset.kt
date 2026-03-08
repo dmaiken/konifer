@@ -1,8 +1,9 @@
 package io.konifer.domain.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.common.asset.AssetSource
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.variant.Variant
-import io.konifer.infrastructure.StoreAssetRequest
 import java.time.LocalDateTime
 import java.util.UUID
 

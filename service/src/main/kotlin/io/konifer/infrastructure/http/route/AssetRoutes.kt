@@ -1,5 +1,7 @@
 package io.konifer.infrastructure.http.route
 
+import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.MAX_BYTES_DEFAULT
@@ -7,14 +9,14 @@ import io.konifer.domain.workflow.DeleteAssetWorkflow
 import io.konifer.domain.workflow.FetchAssetHandler
 import io.konifer.domain.workflow.StoreNewAssetWorkflow
 import io.konifer.domain.workflow.UpdateAssetWorkflow
-import io.konifer.infrastructure.StoreAssetRequest
-import io.konifer.infrastructure.http.AssetResponse
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.konifer.infrastructure.http.RequestContextPlugin
 import io.konifer.infrastructure.http.cache.AssetCacheControlPlugin
+import io.konifer.infrastructure.http.fromAsset
+import io.konifer.infrastructure.http.fromAssetData
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getContentDispositionHeader
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE

@@ -1,6 +1,6 @@
 package io.konifer.domain.variant
 
-import io.konifer.infrastructure.http.AssetLinkResponse
+import io.konifer.common.http.AssetLinkResponse
 
 data class VariantLink(
     val path: String,

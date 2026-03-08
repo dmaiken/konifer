@@ -1,12 +1,12 @@
 package io.konifer.asset.variant
 
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Rotate
 import io.konifer.config.testInMemory
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Flip
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny

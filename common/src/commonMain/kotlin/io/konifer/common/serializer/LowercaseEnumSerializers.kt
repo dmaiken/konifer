@@ -1,12 +1,12 @@
-package io.konifer.infrastructure.http.serialization
+package io.konifer.common.serializer
 
-import io.konifer.domain.asset.AssetClass
-import io.konifer.domain.asset.AssetSource
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Flip
-import io.konifer.domain.image.Gravity
-import io.konifer.domain.image.Rotate
+import io.konifer.common.asset.AssetClass
+import io.konifer.common.asset.AssetSource
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.Rotate
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

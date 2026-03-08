@@ -1,5 +1,8 @@
 package io.konifer.domain.image
 
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.Rotate
 import io.konifer.createImagePreProcessingProperties
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny

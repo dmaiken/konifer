@@ -4,8 +4,8 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
+import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformation.RotateFlip
 import io.konifer.matchers.shouldHaveSamePixelContentAs

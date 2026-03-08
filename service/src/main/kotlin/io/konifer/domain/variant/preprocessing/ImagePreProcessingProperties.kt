@@ -1,11 +1,12 @@
 package io.konifer.domain.variant.preprocessing
 
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Flip
-import io.konifer.domain.image.Gravity
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
+import io.konifer.domain.image.fromString
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys
 import io.konifer.service.context.RequestedTransformation
 import io.konifer.service.context.selector.ManipulationParameters

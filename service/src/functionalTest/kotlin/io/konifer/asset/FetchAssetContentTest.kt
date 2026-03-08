@@ -2,8 +2,8 @@ package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.byteArrayToImage
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
 import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
