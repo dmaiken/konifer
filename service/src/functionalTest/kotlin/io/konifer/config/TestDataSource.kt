@@ -1,10 +1,10 @@
 package io.konifer.config
 
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 
 class PostgresTestContainer :
-    PostgreSQLContainer<PostgresTestContainer>(
+    PostgreSQLContainer(
         DockerImageName.parse("postgres:17.4"),
     )
 

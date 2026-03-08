@@ -1,6 +1,6 @@
 package io.konifer.config
 
-import org.testcontainers.containers.localstack.LocalStackContainer
+import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 class LocalstackContainerManager {
@@ -11,7 +11,7 @@ class LocalstackContainerManager {
     private var started = false
     private val localstack =
         LocalStackContainer(image)
-            .withServices(LocalStackContainer.Service.S3)
+            .withServices("s3")
 
     init {
         localstack.start()
