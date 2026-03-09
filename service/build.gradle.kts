@@ -155,7 +155,7 @@ tasks.withType<Test>().configureEach {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
 
     // Tell libvips where to find jemalloc
-    environment("LD_PRELOAD", "/usr/lib/x86_64-linux-gnu/libjemalloc.so.2")
+    environment("LD_PRELOAD", "libjemalloc.so.2")
 
     testLogging {
         exceptionFormat = TestExceptionFormat.FULL

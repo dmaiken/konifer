@@ -86,8 +86,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and Test with Gradle
-        env:
-          LD_PRELOAD: libjemalloc.so.2
         run: ./gradlew build :service:shadowJar
 
       - name: Log in to the Container registry
