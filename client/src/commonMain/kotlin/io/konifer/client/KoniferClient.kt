@@ -1,12 +1,15 @@
 package io.konifer.client
 
+import io.konifer.common.http.AssetResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -19,7 +22,6 @@ class KoniferClient(
                 json(
                     Json {
                         ignoreUnknownKeys = true
-                        prettyPrint = true
                     },
                 )
             }
@@ -28,14 +30,22 @@ class KoniferClient(
             }
         }
 
-    // Example: Fetching Asset Metadata
-    suspend fun getAssetMetadata(assetId: String): String {
-        val response: HttpResponse = httpClient.get("/api/assets/$assetId")
-        return response.bodyAsText() // Swap with a kotlinx @Serializable data class
+
+    suspend fun getAssetMetadata(path: String): AssetResponse {
+        val stripped = path.removePrefix("/").removeSuffix("/")
+        val response: HttpResponse = httpClient.get("/assets/$stripped")
+        return response.body()
     }
 
-    // Example: Fetching Asset Bytes (since Konifer delegates to libvips)
-    suspend fun downloadAssetBytes(assetId: String): ByteArray = httpClient.get("/api/assets/$assetId/content").body<ByteArray>()
+    suspend fun getAssetMetadata(path: String, limit: Int): List<AssetResponse> {
+        TODO()
+    }
+
+    suspend fun getAssetContent(path: String): ByteArray {
+        val stripped = path.removePrefix("/").removeSuffix("/")
+        val response: HttpResponse = httpClient.get("/assets/$stripped")
+        return response.bodyAsBytes()
+    }
 
     fun close() {
         httpClient.close()
