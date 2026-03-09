@@ -30,11 +30,9 @@ jobs:
           - runner: ubuntu-latest
             platform: linux/amd64
             arch: amd64
-            ld_path: x86_64-linux-gnu
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
             arch: arm64
-            ld_path: aarch64-linux-gnu
 
     runs-on: ${{ matrix.runner }}
     permissions:
@@ -89,7 +87,7 @@ jobs:
 
       - name: Build and Test with Gradle
         env:
-          LD_PRELOAD: /usr/lib/${{ matrix.ld_path }}/libjemalloc.so
+          LD_PRELOAD: libjemalloc.so.2
         run: ./gradlew build :service:shadowJar
 
       - name: Log in to the Container registry
