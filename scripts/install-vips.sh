@@ -21,19 +21,33 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 
-echo "Starting VIPS setup. Version: $VIPS_VERSION, Prefix: $PREFIX"
+# Detect OS
+OS="$(uname -s)"
 
-# System Dependencies (Debian/Ubuntu specific)
+echo "Starting VIPS setup. Version: $VIPS_VERSION, Prefix: $PREFIX, OS: $OS"
+
+# System Dependencies
 if [ "$INSTALL_DEPS" = true ]; then
   echo "Installing system dependencies..."
-  apt-get update && apt-get install -y \
-    build-essential pkg-config ninja-build wget meson \
-    glib2.0-dev libexif-dev libexpat1-dev libfftw3-dev \
-    libimagequant-dev libjpeg-turbo8-dev liblcms2-dev \
-    libpango1.0-dev libpng-dev \
-    libwebp-dev libheif-dev libde265-dev \
-    libjxl-dev libgif-dev libcgif-dev libaom-dev \
-    libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
+  if [ "$OS" = "Darwin" ]; then
+    brew install \
+      pkg-config ninja meson \
+      glib libexif expat fftw \
+      libimagequant jpeg-turbo little-cms2 \
+      pango libpng \
+      webp libheif libde265 \
+      jpeg-xl giflib cgif aom \
+      x265 jemalloc
+  else
+    apt-get update && apt-get install -y \
+      build-essential pkg-config ninja-build curl meson \
+      glib2.0-dev libexif-dev libexpat1-dev libfftw3-dev \
+      libimagequant-dev libjpeg-turbo8-dev liblcms2-dev \
+      libpango1.0-dev libpng-dev \
+      libwebp-dev libheif-dev libde265-dev \
+      libjxl-dev libgif-dev libcgif-dev libaom-dev \
+      libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
+  fi
 fi
 
 echo "Downloading and compiling VIPS..."
@@ -41,14 +55,21 @@ echo "Downloading and compiling VIPS..."
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
-wget "${VIPS_URL}/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz"
+curl -L "${VIPS_URL}/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz" -o "vips-${VIPS_VERSION}.tar.xz"
 tar xf "vips-${VIPS_VERSION}.tar.xz"
 cd "vips-${VIPS_VERSION}"
 
 # Configure, Build, Install
 # Note: We install to /usr/local. Local devs might need sudo access for this step
 # or should run this script with sudo.
-LDFLAGS="-ljemalloc" meson setup build \
+if [ "$OS" = "Darwin" ]; then
+  JEMALLOC_PREFIX="$(brew --prefix jemalloc)"
+  LDFLAGS="-L${JEMALLOC_PREFIX}/lib -ljemalloc"
+else
+  LDFLAGS="-ljemalloc"
+fi
+
+LDFLAGS="$LDFLAGS" meson setup build \
   --prefix="$PREFIX" \
   --buildtype=release \
   --libdir=lib \
@@ -69,8 +90,10 @@ if [ "$CLEANUP" = true ]; then
   cd /
   rm -rf $BUILD_DIR
 
-  # Remove build-only dependencies to save space
-  apt-get remove -y build-essential pkg-config ninja-build
-  apt-get autoremove -y
-  rm -rf /var/lib/apt/lists/*
+  if [ "$OS" != "Darwin" ]; then
+    # Remove build-only dependencies to save space
+    apt-get remove -y build-essential pkg-config ninja-build
+    apt-get autoremove -y
+    rm -rf /var/lib/apt/lists/*
+  fi
 fi

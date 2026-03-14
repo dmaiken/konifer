@@ -299,15 +299,29 @@ ensures you're developing against the same version that Konifer will use within 
 
 To install:
 ```shell
-chmod +x /scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps                                                                                                                                                                                                                                                                                                                      luci
+chmod +x ./scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps
 ```
+
+> **macOS:** If you get a `Compiler cc cannot compile programs` error, you need to install Xcode Command Line Tools first:
+> ```shell
+> xcode-select --install
+> ```
 
 ## Docker
 
-To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS):
+To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS), first build the JAR, then build the image:
 ```shell
-docker build . -t konifer:latest
+./gradlew :service:shadowJar && docker build . -t konifer:latest
 ```
+
+> **macOS:** If you get `Unable to locate a Java Runtime`, install GraalVM (used by the project) via Homebrew:
+> ```shell
+> brew install --cask graalvm-jdk@25
+> ```
+> If you still get a `JAVA_HOME` error after installing, run:
+> ```shell
+> export JAVA_HOME=$(/usr/libexec/java_home)
+> ```
 Then, to run, mount a file to `/app/config/konifer.conf`:
 ```shell
 docker run -v path/to/your/conf/file:/app/config/konifer.conf -p 8080:8080 konifer
