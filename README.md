@@ -331,6 +331,25 @@ Example:
 docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 konifer
 ```
 
+### Docker Compose
+
+Docker Compose is the easiest way to run Konifer along with its dependencies (Postgres and MinIO). A `konifer.conf` must exist in the repo root before starting — one is already provided.
+
+```shell
+docker compose up
+```
+
+By default, Compose pulls the pre-built image from `ghcr.io`. If you want to run your locally built image instead, edit `docker-compose.yml` and replace the `image:` line with the `build:` block:
+
+```yaml
+# image: ghcr.io/dmaiken/konifer:0.1.0
+build:
+  context: .
+  dockerfile: Dockerfile
+```
+
+> **macOS (Apple Silicon):** The pre-built image is `amd64` only. Use the local `build:` block above to build a native `arm64` image instead.
+
 ### JOOQ
 This project used [JOOQ](https://www.jooq.org/) as it's interface to the database. JOOQ generates the code based on the database schema.
 This is done within the `codegen` module. Running the code generator will:
