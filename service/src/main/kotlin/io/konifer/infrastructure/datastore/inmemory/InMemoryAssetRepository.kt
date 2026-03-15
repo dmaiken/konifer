@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.inmemory
 
+import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -7,7 +8,6 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.service.context.selector.Order
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

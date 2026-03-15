@@ -1,6 +1,6 @@
 package io.konifer.domain.path
 
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys

@@ -2,8 +2,10 @@ package io.konifer.service.context
 
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.selector.Order
+import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.ObjectStoreProperties
@@ -14,9 +16,7 @@ import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.selector.DeleteModifiers
-import io.konifer.service.context.selector.Order
 import io.konifer.service.context.selector.QuerySelectors
-import io.konifer.service.context.selector.ReturnFormat
 import io.konifer.service.context.selector.SpecifiedInRequest
 import io.konifer.service.transformation.TransformationNormalizer
 import io.kotest.assertions.throwables.shouldNotThrowAny

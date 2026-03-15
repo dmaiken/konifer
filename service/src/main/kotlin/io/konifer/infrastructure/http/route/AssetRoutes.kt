@@ -2,6 +2,7 @@ package io.konifer.infrastructure.http.route
 
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.MAX_BYTES_DEFAULT
@@ -23,7 +24,6 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
 import io.konifer.infrastructure.tryGetConfig
-import io.konifer.service.context.selector.ReturnFormat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode

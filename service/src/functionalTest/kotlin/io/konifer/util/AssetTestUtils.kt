@@ -4,10 +4,11 @@ import io.konifer.BaseTestcontainerTest.Companion.BOUNDARY
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.selector.Order
+import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.image.fromFormat
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
-import io.konifer.service.context.selector.Order
-import io.konifer.service.context.selector.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.date.shouldBeAfter

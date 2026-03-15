@@ -3,8 +3,9 @@ package io.konifer.infrastructure.datastore.postgres
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
-import io.konifer.domain.image.ImageFormat
+import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation

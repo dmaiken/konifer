@@ -4,8 +4,10 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
@@ -27,7 +29,6 @@ import io.konifer.service.context.selector.ManipulationParameters.ROTATE
 import io.konifer.service.context.selector.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.service.context.selector.ManipulationParameters.WIDTH
 import io.konifer.service.context.selector.QuerySelectors
-import io.konifer.service.context.selector.ReturnFormat
 import io.konifer.service.transformation.TransformationNormalizer
 import io.ktor.http.ContentType
 import io.ktor.http.Headers

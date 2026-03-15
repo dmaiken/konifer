@@ -2,8 +2,8 @@ package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.selector.Order
 import io.konifer.config.testInMemory
-import io.konifer.service.context.selector.Order
 import io.konifer.util.assertAssetDoesNotExist
 import io.konifer.util.createJsonClient
 import io.konifer.util.deleteAsset

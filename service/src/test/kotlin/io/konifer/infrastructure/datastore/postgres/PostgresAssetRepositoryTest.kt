@@ -1,10 +1,10 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.common.selector.Order
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.AssetRepositoryTest
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
-import io.konifer.service.context.selector.Order
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import konifer.jooq.tables.references.ASSET_LABEL

@@ -1,15 +1,12 @@
-package io.konifer.service.context.selector
+package io.konifer.common.selector
 
-enum class ReturnFormat {
-    CONTENT,
-    METADATA,
-    REDIRECT,
-    DOWNLOAD,
-    LINK,
+enum class Order {
+    NEW,
+    MODIFIED,
     ;
 
     companion object {
-        fun valueOfOrNull(value: String?): ReturnFormat? =
+        fun valueOfOrNull(value: String?): Order? =
             value?.let {
                 try {
                     valueOf(it.uppercase())

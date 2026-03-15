@@ -119,7 +119,7 @@ dependencies {
     testImplementation(libs.junit.params)
     testRuntimeOnly(libs.junit.engine)
 
-    testImplementation(libs.kotest.runner)
+    testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions)
 
     implementation(libs.libvips.ffm)
@@ -131,7 +131,7 @@ dependencies {
     testFixturesImplementation(project(":common"))
     testFixturesImplementation(libs.kotlin.test.junit)
     testFixturesImplementation(libs.mockk)
-    testFixturesImplementation(libs.kotest.runner)
+    testFixturesImplementation(libs.kotest.runner.junit5)
     testFixturesImplementation(libs.kotest.assertions)
     testFixturesImplementation(libs.libvips.ffm)
     testFixturesImplementation(libs.hipparchus.fft)

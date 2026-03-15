@@ -5,8 +5,8 @@ import io.konifer.byteArrayToImage
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
-import io.konifer.domain.image.ImageFormat
 import io.konifer.util.UnValidatedStoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent

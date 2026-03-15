@@ -5,7 +5,7 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformation.GaussianBlur
 import io.konifer.matchers.shouldHaveSamePixelContentAs

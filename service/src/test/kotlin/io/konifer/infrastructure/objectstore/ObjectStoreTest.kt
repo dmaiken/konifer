@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.objectstore
 
 import com.github.f4b6a3.uuid.UuidCreator
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.path.TemplateProperties

@@ -1,5 +1,6 @@
 package io.konifer.service.context.selector
 
+import io.konifer.common.selector.Order
 import io.konifer.service.context.InvalidDeleteSelectorsException
 
 const val IS_RECURSIVE_DEFAULT = false

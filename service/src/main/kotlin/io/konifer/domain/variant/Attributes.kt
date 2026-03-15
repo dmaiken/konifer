@@ -2,7 +2,8 @@ package io.konifer.domain.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.pageSafeHeight

@@ -1,8 +1,8 @@
 package io.konifer.service.context
 
 import io.konifer.common.image.Fit
+import io.konifer.common.image.ImageFormat
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.image.ImageFormat
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
