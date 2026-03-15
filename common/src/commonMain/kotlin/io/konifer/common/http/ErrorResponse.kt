@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.http.exception
+package io.konifer.common.http
 
 import kotlinx.serialization.Serializable
 

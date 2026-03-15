@@ -5,7 +5,7 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
 import io.konifer.PHash
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND

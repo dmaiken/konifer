@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
@@ -9,7 +10,6 @@ import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
-import io.konifer.service.context.selector.Order
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID

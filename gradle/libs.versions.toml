@@ -56,6 +56,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-version" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor-version" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor-version" }
 
 koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin-version" }
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin-version" }
@@ -77,7 +78,7 @@ aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk-vers
 aws-sdk-s3-transfermanager = { module = "software.amazon.awssdk:s3-transfer-manager", version.ref = "aws-sdk-version" }
 aws-sdk-crt = { module = "software.amazon.awssdk.crt:aws-crt", version.ref = "aws-crt-sdk-version" }
 
-kotest-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest-version" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest-version" }
 
@@ -103,6 +104,7 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }

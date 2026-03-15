@@ -1,5 +1,6 @@
 package io.konifer.domain.image
 
+import io.konifer.common.image.ImageFormat
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

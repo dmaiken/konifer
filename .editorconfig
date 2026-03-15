@@ -1,0 +1,5 @@
+[**/build/**]
+ktlint = disabled
+
+[*]
+insert_final_newline = true

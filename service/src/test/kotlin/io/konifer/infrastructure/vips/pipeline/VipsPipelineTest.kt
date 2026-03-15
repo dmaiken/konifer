@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformation.AlphaState
 import io.konifer.infrastructure.vips.transformation.VipsTransformer

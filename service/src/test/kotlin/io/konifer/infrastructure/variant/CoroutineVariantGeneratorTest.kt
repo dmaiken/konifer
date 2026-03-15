@@ -2,7 +2,7 @@ package io.konifer.infrastructure.variant
 
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile

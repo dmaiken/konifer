@@ -1,11 +1,11 @@
 package io.konifer.domain.ports
 
+import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.service.context.selector.Order
 
 interface AssetRepository {
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted

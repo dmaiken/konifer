@@ -10,8 +10,8 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
-import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.konifer.service.context.RequestedTransformation
 import org.hipparchus.transform.DctNormalization

@@ -1,5 +1,6 @@
 package io.konifer.domain.image
 
+import io.konifer.common.image.ImageFormat
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 

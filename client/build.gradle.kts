@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kotest)
+    alias(libs.plugins.google.devtools.ksp)
 }
 
 group = "io.konifer"
@@ -15,7 +15,13 @@ repositories {
 }
 
 kotlin {
-    jvm()
+    jvm {
+        testRuns.configureEach {
+            executionTask.configure {
+                useJUnitPlatform()
+            }
+        }
+    }
     js {
         outputModuleName = "konifer-client"
         generateTypeScriptDefinitions()
@@ -31,15 +37,18 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
         }
         commonTest.dependencies {
+            implementation(kotlin("test"))
             implementation(libs.kotest.framework.engine)
             implementation(libs.kotest.assertions)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.datetime)
         }
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
         jvmTest.dependencies {
-            implementation(libs.kotest.runner)
+            implementation(libs.kotest.runner.junit5)
         }
 
         jsMain.dependencies {
@@ -48,6 +57,6 @@ kotlin {
     }
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
+// tasks.withType<Test>().configureEach {
+//    useJUnitPlatform()
+// }

@@ -1,6 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Attributes
 import kotlinx.serialization.Serializable
 

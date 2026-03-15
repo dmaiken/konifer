@@ -1,6 +1,6 @@
 package io.konifer.infrastructure.http.signature
 
-import io.konifer.infrastructure.http.exception.ErrorResponse
+import io.konifer.common.http.ErrorResponse
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createRouteScopedPlugin

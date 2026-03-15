@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http.exception
 
+import io.konifer.common.http.ErrorResponse
 import io.konifer.domain.asset.AssetNotFoundException
 import io.konifer.domain.image.InvalidImageException
 import io.konifer.service.context.ContentTypeNotPermittedException
