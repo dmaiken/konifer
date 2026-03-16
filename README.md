@@ -299,15 +299,29 @@ ensures you're developing against the same version that Konifer will use within 
 
 To install:
 ```shell
-chmod +x /scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps                                                                                                                                                                                                                                                                                                                      luci
+chmod +x ./scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps
 ```
+
+> **macOS:** If you get a `Compiler cc cannot compile programs` error, you need to install Xcode Command Line Tools first:
+> ```shell
+> xcode-select --install
+> ```
 
 ## Docker
 
-To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS):
+To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS), first build the JAR, then build the image:
 ```shell
-docker build . -t konifer:latest
+./gradlew :service:shadowJar && docker build . -t konifer:latest
 ```
+
+> **macOS:** If you get `Unable to locate a Java Runtime`, install GraalVM (used by the project) via Homebrew:
+> ```shell
+> brew install --cask graalvm-jdk@25
+> ```
+> If you still get a `JAVA_HOME` error after installing, run:
+> ```shell
+> export JAVA_HOME=$(/usr/libexec/java_home)
+> ```
 Then, to run, mount a file to `/app/config/konifer.conf`:
 ```shell
 docker run -v path/to/your/conf/file:/app/config/konifer.conf -p 8080:8080 konifer
@@ -316,6 +330,25 @@ Example:
 ```shell
 docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 konifer
 ```
+
+### Docker Compose
+
+Docker Compose is the easiest way to run Konifer along with its dependencies (Postgres and MinIO). A `konifer.conf` must exist in the repo root before starting.
+
+```shell
+docker compose up
+```
+
+By default, Compose pulls the pre-built image from `ghcr.io`. If you want to run your locally built image instead, edit `docker-compose.yml` and replace the `image:` line with the `build:` block:
+
+```yaml
+# image: ghcr.io/dmaiken/konifer:0.1.0
+build:
+  context: .
+  dockerfile: Dockerfile
+```
+
+> **macOS (Apple Silicon):** The pre-built image is `amd64` only. Use the local `build:` block above to build a native `arm64` image instead.
 
 ### JOOQ
 This project used [JOOQ](https://www.jooq.org/) as it's interface to the database. JOOQ generates the code based on the database schema.
