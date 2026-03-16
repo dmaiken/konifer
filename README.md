@@ -333,7 +333,7 @@ docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 k
 
 ### Docker Compose
 
-Docker Compose is the easiest way to run Konifer along with its dependencies (Postgres and MinIO). A `konifer.conf` must exist in the repo root before starting — one is already provided.
+Docker Compose is the easiest way to run Konifer along with its dependencies (Postgres and MinIO). A `konifer.conf` must exist in the repo root before starting.
 
 ```shell
 docker compose up
