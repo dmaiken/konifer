@@ -111,18 +111,3 @@ fun configureMockEngineHappy(
             headers = headersOf(HttpHeaders.ContentType, "application/json"),
         )
     }
-
-fun configureMockEngineError(
-    expectedPath: String,
-    response: ErrorResponse,
-    statusCode: HttpStatusCode = HttpStatusCode.NotFound,
-): MockEngine =
-    MockEngine { request ->
-        request.url.encodedPath shouldBe expectedPath
-
-        respond(
-            content = Json.encodeToString(response),
-            status = statusCode,
-            headers = headersOf(HttpHeaders.ContentType, "application/json"),
-        )
-    }
