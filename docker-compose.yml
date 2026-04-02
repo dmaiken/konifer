@@ -2,9 +2,9 @@ services:
   konifer:
     container_name: konifer
      # If building locally, comment out image: and uncomment the section below
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
+    # build:
+    #  context: .
+    #  dockerfile: Dockerfile
     image: ghcr.io/dmaiken/konifer:0.1.0
     ports:
       - "8080:8080"
