@@ -3,6 +3,7 @@ package io.konifer.client.metadata
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.QuerySelectors
+import io.konifer.client.configureMockEngineError
 import io.konifer.client.createErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec

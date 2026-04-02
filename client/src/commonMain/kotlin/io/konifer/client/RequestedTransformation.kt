@@ -5,6 +5,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
+import kotlin.jvm.JvmField
 
 inline fun requestedTransformation(block: RequestedTransformation.Builder.() -> Unit): RequestedTransformation =
     RequestedTransformation.Builder().apply(block).build()
@@ -22,6 +23,10 @@ class RequestedTransformation private constructor(
     val pad: Int?,
     val padColor: String?,
 ) {
+    companion object {
+        @JvmField
+        val OriginalVariant: RequestedTransformation = Builder().build()
+    }
     // Traditional Builder for Java interoperability
     class Builder {
         private var width: Int? = null

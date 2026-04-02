@@ -1,5 +1,6 @@
 package io.konifer.client
 
+import io.konifer.client.KoniferClient.Companion.LIMIT_PARAMETER
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.call.body
@@ -13,11 +14,17 @@ private const val PATH_SEPARATOR = "-"
 suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse<T> =
     when {
         status.isSuccess() -> KoniferResponse.Success(body())
-        else ->
+        else -> {
+            val errorMessage = runCatching {
+                body<ErrorResponse>().message
+            }.getOrElse {
+                "An unexpected server error occurred: ${status.description}"
+            }
             KoniferResponse.HttpError(
                 code = status.value,
-                message = body<ErrorResponse>().message,
+                message = errorMessage,
             )
+        }
     }
 
 fun URLBuilder.appendQuerySelectors(
@@ -34,4 +41,18 @@ fun URLBuilder.appendQuerySelectors(
         }
         is QuerySelectors.None -> { } // Nothing
     }
+}
+
+fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
+    requestedTransformation.width?.let { width -> parameters.append("w", width.toString()) }
+    requestedTransformation.height?.let { height -> parameters.append("h", height.toString()) }
+    requestedTransformation.format?.let { format -> parameters.append("format", format.toString()) }
+    requestedTransformation.fit?.let { fit -> parameters.append("fit", fit.toString()) }
+    requestedTransformation.gravity?.let { gravity -> parameters.append("g", gravity.toString()) }
+    requestedTransformation.rotate?.let { rotate -> parameters.append("r", rotate.toString()) }
+    requestedTransformation.filter?.let { filter -> parameters.append("filter", filter.toString()) }
+    requestedTransformation.blur?.let { blur -> parameters.append("blur", blur.toString()) }
+    requestedTransformation.quality?.let { quality -> parameters.append("q", quality.toString()) }
+    requestedTransformation.pad?.let { pad -> parameters.append("pad", pad.toString()) }
+    requestedTransformation.padColor?.let { padColor -> parameters.append("pad-c", padColor) }
 }
