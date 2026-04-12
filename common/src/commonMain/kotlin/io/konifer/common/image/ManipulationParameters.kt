@@ -1,4 +1,4 @@
-package io.konifer.service.context.selector
+package io.konifer.common.image
 
 object ManipulationParameters {
     const val HEIGHT = "h"
@@ -35,6 +35,4 @@ object ManipulationParameters {
             PAD,
             PAD_COLOR,
         )
-
-    val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + setOf(VARIANT_PROFILE) + "s" + LIMIT_PARAMETER
 }

@@ -5,6 +5,20 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
+import io.konifer.common.image.ManipulationParameters.BLUR
+import io.konifer.common.image.ManipulationParameters.FILTER
+import io.konifer.common.image.ManipulationParameters.FIT
+import io.konifer.common.image.ManipulationParameters.FLIP
+import io.konifer.common.image.ManipulationParameters.FORMAT
+import io.konifer.common.image.ManipulationParameters.GRAVITY
+import io.konifer.common.image.ManipulationParameters.HEIGHT
+import io.konifer.common.image.ManipulationParameters.PAD
+import io.konifer.common.image.ManipulationParameters.PAD_COLOR
+import io.konifer.common.image.ManipulationParameters.QUALITY
+import io.konifer.common.image.ManipulationParameters.ROTATE
+import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
+import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.image.Rotate
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.image.fromFormat
@@ -13,21 +27,7 @@ import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.service.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.service.context.PathSelectorExtractor.extractQuerySelectors
-import io.konifer.service.context.selector.ManipulationParameters.ALL_RESERVED_PARAMETERS
-import io.konifer.service.context.selector.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
-import io.konifer.service.context.selector.ManipulationParameters.BLUR
-import io.konifer.service.context.selector.ManipulationParameters.FILTER
-import io.konifer.service.context.selector.ManipulationParameters.FIT
-import io.konifer.service.context.selector.ManipulationParameters.FLIP
-import io.konifer.service.context.selector.ManipulationParameters.FORMAT
-import io.konifer.service.context.selector.ManipulationParameters.GRAVITY
-import io.konifer.service.context.selector.ManipulationParameters.HEIGHT
-import io.konifer.service.context.selector.ManipulationParameters.PAD
-import io.konifer.service.context.selector.ManipulationParameters.PAD_COLOR
-import io.konifer.service.context.selector.ManipulationParameters.QUALITY
-import io.konifer.service.context.selector.ManipulationParameters.ROTATE
-import io.konifer.service.context.selector.ManipulationParameters.VARIANT_PROFILE
-import io.konifer.service.context.selector.ManipulationParameters.WIDTH
+import io.konifer.service.context.selector.LIMIT_PARAMETER
 import io.konifer.service.context.selector.QuerySelectors
 import io.konifer.service.transformation.TransformationNormalizer
 import io.ktor.http.ContentType
@@ -46,6 +46,7 @@ class RequestContextFactory(
         const val ASSET_PATH_PREFIX = "/assets"
         const val ENTRY_ID_MODIFIER = "ENTRY"
         const val RECURSIVE_MODIFIER = "RECURSIVE"
+        private val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + VARIANT_PROFILE + "s" + LIMIT_PARAMETER
     }
 
     fun fromStoreRequest(

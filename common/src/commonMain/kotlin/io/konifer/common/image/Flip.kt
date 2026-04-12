@@ -1,17 +1,19 @@
 package io.konifer.common.image
 
-enum class Flip {
+enum class Flip(
+    override val queryParameterValue: String,
+) : Manipulation {
     /**
      * Horizontal
      */
-    H,
+    H("h"),
 
     /**
      * Vertical
      */
-    V,
+    V("v"),
 
-    NONE,
+    NONE(""),
 
     ;
 

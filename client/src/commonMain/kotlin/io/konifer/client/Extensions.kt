@@ -1,7 +1,19 @@
 package io.konifer.client
 
-import io.konifer.client.KoniferClient.Companion.LIMIT_PARAMETER
 import io.konifer.common.http.ErrorResponse
+import io.konifer.common.image.ManipulationParameters.BLUR
+import io.konifer.common.image.ManipulationParameters.FILTER
+import io.konifer.common.image.ManipulationParameters.FIT
+import io.konifer.common.image.ManipulationParameters.FLIP
+import io.konifer.common.image.ManipulationParameters.FORMAT
+import io.konifer.common.image.ManipulationParameters.GRAVITY
+import io.konifer.common.image.ManipulationParameters.HEIGHT
+import io.konifer.common.image.ManipulationParameters.PAD
+import io.konifer.common.image.ManipulationParameters.PAD_COLOR
+import io.konifer.common.image.ManipulationParameters.QUALITY
+import io.konifer.common.image.ManipulationParameters.ROTATE
+import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
+import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -15,11 +27,12 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
     when {
         status.isSuccess() -> KoniferResponse.Success(body())
         else -> {
-            val errorMessage = runCatching {
-                body<ErrorResponse>().message
-            }.getOrElse {
-                "An unexpected server error occurred: ${status.description}"
-            }
+            val errorMessage =
+                runCatching {
+                    body<ErrorResponse>().message
+                }.getOrElse {
+                    "An unexpected server error occurred: ${status.description}"
+                }
             KoniferResponse.HttpError(
                 code = status.value,
                 message = errorMessage,
@@ -44,15 +57,17 @@ fun URLBuilder.appendQuerySelectors(
 }
 
 fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
-    requestedTransformation.width?.let { width -> parameters.append("w", width.toString()) }
-    requestedTransformation.height?.let { height -> parameters.append("h", height.toString()) }
-    requestedTransformation.format?.let { format -> parameters.append("format", format.toString()) }
-    requestedTransformation.fit?.let { fit -> parameters.append("fit", fit.toString()) }
-    requestedTransformation.gravity?.let { gravity -> parameters.append("g", gravity.toString()) }
-    requestedTransformation.rotate?.let { rotate -> parameters.append("r", rotate.toString()) }
-    requestedTransformation.filter?.let { filter -> parameters.append("filter", filter.toString()) }
-    requestedTransformation.blur?.let { blur -> parameters.append("blur", blur.toString()) }
-    requestedTransformation.quality?.let { quality -> parameters.append("q", quality.toString()) }
-    requestedTransformation.pad?.let { pad -> parameters.append("pad", pad.toString()) }
-    requestedTransformation.padColor?.let { padColor -> parameters.append("pad-c", padColor) }
+    requestedTransformation.width?.let { width -> parameters.append(WIDTH, width.toString()) }
+    requestedTransformation.height?.let { height -> parameters.append(HEIGHT, height.toString()) }
+    requestedTransformation.format?.let { format -> parameters.append(FORMAT, format.queryParameterValue) }
+    requestedTransformation.fit?.let { fit -> parameters.append(FIT, fit.queryParameterValue) }
+    requestedTransformation.flip?.let { flip -> parameters.append(FLIP, flip.queryParameterValue) }
+    requestedTransformation.gravity?.let { gravity -> parameters.append(GRAVITY, gravity.queryParameterValue) }
+    requestedTransformation.rotate?.let { rotate -> parameters.append(ROTATE, rotate.queryParameterValue) }
+    requestedTransformation.filter?.let { filter -> parameters.append(FILTER, filter.queryParameterValue) }
+    requestedTransformation.blur?.let { blur -> parameters.append(BLUR, blur.toString()) }
+    requestedTransformation.quality?.let { quality -> parameters.append(QUALITY, quality.toString()) }
+    requestedTransformation.pad?.let { pad -> parameters.append(PAD, pad.toString()) }
+    requestedTransformation.padColor?.let { padColor -> parameters.append(PAD_COLOR, padColor) }
+    requestedTransformation.profile?.let { profile -> parameters.append(VARIANT_PROFILE, profile) }
 }

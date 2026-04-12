@@ -2,21 +2,32 @@ package io.konifer.client
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
+import io.ktor.client.request.forms.ChannelProvider
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.json.Json
@@ -28,6 +39,7 @@ class KoniferClient internal constructor(
     companion object {
         private const val ASSETS_BASE_PATH = "assets"
         private const val LIMIT_PARAMETER = "limit"
+        private const val BOUNDARY = "boundary"
 
         fun build(baseUrl: String): KoniferClient {
             val httpClient =
@@ -88,8 +100,9 @@ class KoniferClient internal constructor(
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         byteChannel: ByteChannel,
-    ): KoniferResponse<Unit> {
-        return httpClient.prepareGet {
+    ): KoniferResponse<Unit> =
+        httpClient
+            .prepareGet {
                 url {
                     appendPathSegments(ASSETS_BASE_PATH)
                     appendPathSegments(path.splitPath())
@@ -105,23 +118,75 @@ class KoniferClient internal constructor(
                     response.toKoniferResponse()
                 }
             }
-    }
 
     suspend fun getAssetLink(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
-    ): KoniferResponse<AssetLinkResponse> {
-        return httpClient.get {
-            url {
-                appendPathSegments(ASSETS_BASE_PATH)
-                appendPathSegments(path.splitPath())
-                appendQuerySelectors(ReturnFormat.LINK, querySelectors)
-                appendTransformationParameters(requestedTransformation)
-            }
-            accept(ContentType.Application.Json)
-        }.toKoniferResponse()
-    }
+    ): KoniferResponse<AssetLinkResponse> =
+        httpClient
+            .get {
+                url {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                    appendQuerySelectors(ReturnFormat.LINK, querySelectors)
+                    appendTransformationParameters(requestedTransformation)
+                }
+                accept(ContentType.Application.Json)
+            }.toKoniferResponse()
+
+    suspend fun storeAsset(
+        path: String,
+        format: ImageFormat,
+        request: StoreAssetRequest,
+        channel: ByteReadChannel,
+    ): KoniferResponse<AssetResponse> =
+        httpClient
+            .post {
+                url {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                }
+                contentType(ContentType.MultiPart.FormData)
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                key = "metadata",
+                                value = Json.encodeToString(request),
+                                headers =
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, "application/json")
+                                    },
+                            )
+                            append(
+                                key = "file",
+                                value = ChannelProvider { channel },
+                                headers =
+                                    Headers.build {
+                                        append(HttpHeaders.ContentType, format.mimeType)
+                                        append(HttpHeaders.ContentDisposition, "filename=\"upload.bin\"")
+                                    },
+                            )
+                        },
+                        BOUNDARY,
+                        ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+                    ),
+                )
+            }.toKoniferResponse()
+
+    suspend fun storeAsset(
+        path: String,
+        format: ImageFormat,
+        request: StoreAssetRequest,
+        bytes: ByteArray,
+    ): KoniferResponse<AssetResponse> =
+        storeAsset(
+            path = path,
+            format = format,
+            request = request,
+            channel = ByteReadChannel(bytes),
+        )
 
     fun close() {
         httpClient.close()

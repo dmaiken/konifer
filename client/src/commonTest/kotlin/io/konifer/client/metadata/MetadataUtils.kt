@@ -4,7 +4,6 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.AttributeResponse
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.http.PaddingResponse
 import io.konifer.common.http.TransformationResponse
@@ -18,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.datetime.TimeZone
@@ -103,6 +103,7 @@ fun configureMockEngineHappy(
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
+        request.method shouldBe HttpMethod.Get
         request.url.parameters["limit"] shouldBe response.size.toString()
 
         respond(
