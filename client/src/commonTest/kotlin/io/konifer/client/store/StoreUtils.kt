@@ -40,7 +40,7 @@ fun configureMockEngineHappy(
         metadataPart shouldNotBe null
         metadataPart?.value shouldBe Json.encodeToString(request)
 
-        val filePart = parts.find { it.name == "file" }
+        val filePart = parts.find { it.name == "asset" }
         filePart shouldNotBe null
 
         when (filePart) {

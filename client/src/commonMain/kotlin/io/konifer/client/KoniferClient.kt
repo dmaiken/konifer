@@ -160,7 +160,7 @@ class KoniferClient internal constructor(
                                     },
                             )
                             append(
-                                key = "file",
+                                key = "asset",
                                 value = ChannelProvider { channel },
                                 headers =
                                     Headers.build {

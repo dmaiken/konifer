@@ -65,7 +65,7 @@ suspend inline fun <reified T> storeAssetMultipartSource(
                             },
                         )
                         append(
-                            "file",
+                            "asset",
                             asset,
                             Headers.build {
                                 append(HttpHeaders.ContentType, "image/png")

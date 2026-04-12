@@ -55,7 +55,7 @@ class StoreAssetTest {
                                     },
                                 )
                                 append(
-                                    "file",
+                                    "asset",
                                     image,
                                     Headers.build {
                                         append(HttpHeaders.ContentType, "image/png")
