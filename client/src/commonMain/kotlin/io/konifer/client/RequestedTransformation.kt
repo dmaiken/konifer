@@ -2,6 +2,7 @@ package io.konifer.client
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
@@ -18,15 +19,18 @@ class RequestedTransformation private constructor(
     val gravity: Gravity?,
     val rotate: Rotate?,
     val filter: Filter?,
+    val flip: Flip?,
     val blur: Int?,
     val quality: Int?,
     val pad: Int?,
     val padColor: String?,
+    val profile: String?,
 ) {
     companion object {
         @JvmField
         val OriginalVariant: RequestedTransformation = Builder().build()
     }
+
     // Traditional Builder for Java interoperability
     class Builder {
         private var width: Int? = null
@@ -57,6 +61,10 @@ class RequestedTransformation private constructor(
 
         fun filter(filter: Filter) = apply { this.filter = filter }
 
+        private var flip: Flip? = null
+
+        fun flip(flip: Flip) = apply { this.flip = flip }
+
         private var blur: Int? = null
 
         fun blur(blur: Int) = apply { this.blur = blur }
@@ -73,6 +81,10 @@ class RequestedTransformation private constructor(
 
         fun padColor(padColor: String) = apply { this.padColor = padColor }
 
+        private var profile: String? = null
+
+        fun profile(profile: String) = apply { this.profile = profile }
+
         fun build() =
             RequestedTransformation(
                 width = width,
@@ -82,10 +94,12 @@ class RequestedTransformation private constructor(
                 gravity = gravity,
                 rotate = rotate,
                 filter = filter,
+                flip = flip,
                 blur = blur,
                 quality = quality,
                 pad = pad,
                 padColor = padColor,
+                profile = profile,
             )
     }
 }

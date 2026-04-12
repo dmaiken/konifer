@@ -1,10 +1,12 @@
 package io.konifer.common.image
 
-enum class Filter {
-    NONE,
-    BLACK_WHITE,
-    GREYSCALE,
-    SEPIA,
+enum class Filter(
+    override val queryParameterValue: String,
+) : Manipulation {
+    NONE(""),
+    BLACK_WHITE("black_white"),
+    GREYSCALE("greyscale"),
+    SEPIA("sepia"),
     ;
 
     companion object Factory {

@@ -4,7 +4,8 @@ enum class ImageFormat(
     val format: String,
     val mimeType: String,
     val extension: String,
-) {
+    override val queryParameterValue: String = format,
+) : Manipulation {
     JPEG(
         format = "jpg",
         mimeType = "image/jpeg",
