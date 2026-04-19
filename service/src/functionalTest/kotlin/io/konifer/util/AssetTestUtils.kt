@@ -1,6 +1,5 @@
 package io.konifer.util
 
-import io.konifer.BaseTestcontainerTest.Companion.BOUNDARY
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
@@ -42,6 +41,8 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
+
+const val BOUNDARY = "boundary"
 
 suspend inline fun <reified T> storeAssetMultipartSource(
     client: HttpClient,
