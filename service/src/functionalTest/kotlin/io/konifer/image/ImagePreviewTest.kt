@@ -1,9 +1,9 @@
 package io.konifer.image
 
 import io.konifer.byteArrayToImage
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink

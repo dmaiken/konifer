@@ -7,9 +7,9 @@ import app.photofox.vipsffm.enums.VipsAccess
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.konifer.PHash
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Gravity
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT

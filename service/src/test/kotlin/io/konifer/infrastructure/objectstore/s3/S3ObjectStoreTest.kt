@@ -29,7 +29,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @JvmStatic
         @Container
         private val localstack =
-            LocalStackContainer(DockerImageName.parse("localstack/localstack:s3-latest"))
+            LocalStackContainer(DockerImageName.parse("localstack/localstack:4.14"))
                 .withEnv("LOCALSTACK_DISABLE_CHECKSUM_VALIDATION", "1") // Localstack does not like performing a checksum
                 .withServices("s3")
 

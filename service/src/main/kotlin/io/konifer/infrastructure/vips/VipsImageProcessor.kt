@@ -3,10 +3,11 @@ package io.konifer.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Gravity
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
+import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs

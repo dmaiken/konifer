@@ -1,8 +1,8 @@
 package io.konifer.asset
 
+import io.konifer.common.asset.AssetClass
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.domain.asset.AssetClass
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource

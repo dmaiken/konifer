@@ -6,6 +6,9 @@ changelog:
       exclude:
         labels:
           - dependencies
+    - title: Client
+      labels:
+        - client
     - title: Dependencies
       labels:
         - dependencies

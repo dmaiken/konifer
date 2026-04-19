@@ -1,6 +1,6 @@
 package io.konifer.domain.ports
 
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs

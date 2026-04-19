@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore
 
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.Fit
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import org.junit.jupiter.api.Named.named
 

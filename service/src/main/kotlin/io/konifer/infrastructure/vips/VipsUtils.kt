@@ -2,7 +2,8 @@ package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
-import io.konifer.domain.image.ImageFormat
+import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.vipsProperties
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.jvm.nio.toByteReadChannel

@@ -1,5 +1,7 @@
 package io.konifer.service.context.selector
 
+import io.konifer.common.selector.Order
+import io.konifer.common.selector.ReturnFormat
 import io.konifer.service.context.InvalidQuerySelectorsException
 
 val DEFAULT_RETURN_FORMAT = ReturnFormat.LINK

@@ -3,9 +3,9 @@ package io.konifer.infrastructure.vips
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
+import io.konifer.common.image.Fit
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation

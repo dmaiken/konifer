@@ -1,5 +1,8 @@
 package io.konifer.infrastructure.http.route
 
+import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.MAX_BYTES_DEFAULT
@@ -7,21 +10,20 @@ import io.konifer.domain.workflow.DeleteAssetWorkflow
 import io.konifer.domain.workflow.FetchAssetHandler
 import io.konifer.domain.workflow.StoreNewAssetWorkflow
 import io.konifer.domain.workflow.UpdateAssetWorkflow
-import io.konifer.infrastructure.StoreAssetRequest
-import io.konifer.infrastructure.http.AssetResponse
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.konifer.infrastructure.http.RequestContextPlugin
 import io.konifer.infrastructure.http.cache.AssetCacheControlPlugin
+import io.konifer.infrastructure.http.fromAsset
+import io.konifer.infrastructure.http.fromAssetData
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getContentDispositionHeader
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
 import io.konifer.infrastructure.tryGetConfig
-import io.konifer.service.context.selector.ReturnFormat
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -43,12 +45,15 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.asSink
 import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.core.copyTo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.let
 
 private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.AssetRouting")
@@ -200,6 +205,9 @@ suspend fun storeNewAsset(
             logger.info("Received multipart request to store a new asset")
             val assetData = CompletableDeferred<StoreAssetRequest>()
             val assetContentChannel = ByteChannel(true)
+
+            var assetReceived = false
+
             val deferredResponse =
                 async {
                     storeNewAssetWorkflow.handleFromUpload(
@@ -208,31 +216,60 @@ suspend fun storeNewAsset(
                         uriPath = call.request.path(),
                     )
                 }
+
             val multipart = call.receiveMultipart()
             multipart.forEachPart { part ->
-                when (part) {
-                    is PartData.FormItem -> {
-                        if (part.name == "metadata") {
+                when (part.name) {
+                    "metadata" ->
+                        if (part is PartData.FormItem) {
                             assetData.complete(Json.decodeFromString(part.value))
                         }
-                        part.dispose()
-                    }
 
-                    is PartData.FileItem -> {
-                        try {
-                            part.provider().copyTo(assetContentChannel)
-                        } finally {
-                            assetContentChannel.close()
-                            part.dispose()
+                    "asset" -> {
+                        assetReceived = true
+                        when (part) {
+                            is PartData.FileItem ->
+                                try {
+                                    part.provider().copyTo(assetContentChannel)
+                                } finally {
+                                    assetContentChannel.close()
+                                    part.dispose()
+                                }
+                            is PartData.BinaryChannelItem ->
+                                try {
+                                    part.provider().copyTo(assetContentChannel)
+                                } finally {
+                                    assetContentChannel.close()
+                                    part.dispose()
+                                }
+                            is PartData.BinaryItem ->
+                                try {
+                                    part.provider().transferTo(assetContentChannel.asSink())
+                                } finally {
+                                    assetContentChannel.close()
+                                    part.dispose()
+                                }
+                            else -> part.dispose()
                         }
                     }
-
                     else -> part.dispose()
                 }
             }
+
             if (!assetData.isCompleted) {
-                throw IllegalArgumentException("No asset metadata supplied")
+                assetContentChannel.cancel(CancellationException("Missing metadata"))
+                deferredResponse.cancel()
+                call.respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
+                return@coroutineScope
             }
+
+            if (!assetReceived) {
+                assetContentChannel.cancel(CancellationException("Missing asset payload"))
+                deferredResponse.cancel()
+                call.respond(HttpStatusCode.BadRequest, "No asset payload supplied")
+                return@coroutineScope
+            }
+
             deferredAsset.complete(deferredResponse.await())
         }
         ContentType.Application.Json -> {

@@ -1,10 +1,11 @@
 package io.konifer.domain.variant
 
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Gravity
-import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.Rotate
+import io.konifer.domain.image.vipsProperties
 import kotlin.collections.emptyList
 
 data class Transformation(
@@ -16,7 +17,7 @@ data class Transformation(
     val canUpscale: Boolean = true,
     val format: ImageFormat,
     /**
-     * Ignored if [rotate] is [io.konifer.domain.image.Rotate.AUTO]
+     * Ignored if [rotate] is [Rotate.AUTO]
      */
     val rotate: Rotate = Rotate.default,
     val horizontalFlip: Boolean = false,

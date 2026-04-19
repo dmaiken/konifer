@@ -3,6 +3,7 @@ package io.konifer.infrastructure.vips.transformation
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
+import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND

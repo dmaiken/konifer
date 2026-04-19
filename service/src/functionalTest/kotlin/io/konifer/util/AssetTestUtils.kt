@@ -1,13 +1,13 @@
 package io.konifer.util
 
-import io.konifer.BaseTestcontainerTest.Companion.BOUNDARY
-import io.konifer.domain.image.ImageFormat
-import io.konifer.infrastructure.StoreAssetRequest
+import io.konifer.common.http.AssetLinkResponse
+import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.selector.Order
+import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.image.fromFormat
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
-import io.konifer.infrastructure.http.AssetLinkResponse
-import io.konifer.infrastructure.http.AssetResponse
-import io.konifer.service.context.selector.Order
-import io.konifer.service.context.selector.ReturnFormat
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.date.shouldBeAfter
@@ -38,8 +38,11 @@ import io.ktor.http.contentType
 import io.ktor.http.fullPath
 import io.ktor.http.path
 import io.ktor.utils.io.readRemaining
+import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
+
+const val BOUNDARY = "boundary"
 
 suspend inline fun <reified T> storeAssetMultipartSource(
     client: HttpClient,
@@ -63,7 +66,7 @@ suspend inline fun <reified T> storeAssetMultipartSource(
                             },
                         )
                         append(
-                            "file",
+                            "asset",
                             asset,
                             Headers.build {
                                 append(HttpHeaders.ContentType, "image/png")
@@ -90,7 +93,7 @@ suspend inline fun <reified T> storeAssetMultipartSource(
                     response.body<AssetResponse>().apply {
                         entryId shouldBeGreaterThan -1
                         variants shouldHaveSize 1 // original variant
-                        modifiedAt shouldBeAfter createdAt
+                        modifiedAt.toJavaLocalDateTime() shouldBeAfter createdAt.toJavaLocalDateTime()
                     }
                 } else {
                     null
@@ -122,7 +125,7 @@ suspend fun storeAssetUrlSource(
                 responseBody.apply {
                     entryId shouldBeGreaterThan -1
                     variants shouldHaveSize 1 // original variant
-                    modifiedAt shouldBeAfter createdAt
+                    modifiedAt.toJavaLocalDateTime() shouldBeAfter createdAt.toJavaLocalDateTime()
                 }
             } else {
                 null

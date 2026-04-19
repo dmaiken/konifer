@@ -2,11 +2,13 @@ package io.konifer.domain.workflow
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetAndLocation
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.domain.image.ImageFormat
 import io.konifer.domain.image.InvalidImageException
+import io.konifer.domain.image.fromMimeType
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.MimeTypeDetector
@@ -18,7 +20,6 @@ import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.RequestContextFactory

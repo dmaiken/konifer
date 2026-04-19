@@ -15,7 +15,7 @@ define their own hierarchical structure for image storage and retrieval.
 - Those who wish to retain digital sovereignty of their data in a time where sovereignty's value is being demonstrated
 
 ## Documentation
-To learn more about Konifer please visit the [documentation](https://dmaiken.github.io/konifer-docs/).
+To learn more about Konifer please visit the [documentation](https://konifer.io/).
 
 ## Features
 

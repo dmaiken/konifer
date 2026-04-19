@@ -1,16 +1,17 @@
 package io.konifer.service.transformation
 
 import io.konifer.BaseUnitTest
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.ManipulationParameters
+import io.konifer.common.image.Rotate
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ExifOrientations
-import io.konifer.domain.image.Filter
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Flip
-import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
+import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.RequestedTransformation
-import io.konifer.service.context.selector.ManipulationParameters
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne

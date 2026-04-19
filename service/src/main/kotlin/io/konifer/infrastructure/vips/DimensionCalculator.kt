@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
-import io.konifer.domain.image.Fit
+import io.konifer.common.image.Fit
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 

@@ -1,7 +1,7 @@
 package io.konifer.asset
 
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
@@ -13,6 +13,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.datetime.toJavaLocalDateTime
 import org.junit.jupiter.api.Test
 
 class UpdateAssetTest {
@@ -51,7 +52,7 @@ class UpdateAssetTest {
             updateResponse.tags shouldContainExactly updateRequest.tags
             updateResponse.alt shouldBe updateRequest.alt
             updateResponse.createdAt shouldBe storeAssetResponse.createdAt
-            updateResponse.modifiedAt shouldBeAfter storeAssetResponse.modifiedAt
+            updateResponse.modifiedAt.toJavaLocalDateTime() shouldBeAfter storeAssetResponse.modifiedAt.toJavaLocalDateTime()
 
             fetchAssetMetadata(client, path = "profile") shouldBe updateResponse
         }

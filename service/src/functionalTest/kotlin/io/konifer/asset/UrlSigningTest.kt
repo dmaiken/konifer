@@ -1,7 +1,7 @@
 package io.konifer.asset
 
+import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.infrastructure.StoreAssetRequest
 import io.konifer.infrastructure.http.signature.HmacSigningAlgorithm
 import io.konifer.infrastructure.http.signature.UrlSigner
 import io.konifer.util.createJsonClient

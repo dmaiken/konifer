@@ -5,7 +5,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: ghcr.io/dmaiken/konifer:0.1.0
+    image: ghcr.io/dmaiken/konifer:latest
     ports:
       - "8080:8080"
     volumes:

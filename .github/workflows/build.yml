@@ -23,34 +23,48 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - runner: ubuntu-latest
-            platform: linux/amd64
-            arch: amd64
-          - runner: ubuntu-24.04-arm
-            platform: linux/arm64
-            arch: arm64
-
-    runs-on: ${{ matrix.runner }}
-    permissions:
-      contents: write
-      packages: write
-
+  compile-and-lint:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v5
-
-      - name: Set up JDK
-        uses: actions/setup-java@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'graalvm'
+      - uses: gradle/actions/setup-gradle@v5
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Compile Code and Run Linters
+        run: ./gradlew detekt ktlintCheck classes testClasses
+
+  test-client:
+    needs: compile-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Run Client Tests
+        run: ./gradlew :client:allTests --no-parallel
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+  build-service:
+    needs: compile-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+      - uses: gradle/actions/setup-gradle@v5
 
       - name: Install System Dependencies
         run: |
@@ -69,7 +83,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/vips-prefix
-          key: ${{ runner.os }}-${{ matrix.arch }}-vips-${{ hashFiles('scripts/install-vips.sh') }}
+          key: ${{ runner.os }}-amd64-vips-${{ hashFiles('scripts/install-vips.sh') }}
 
       - name: Compile libvips
         if: steps.cache-vips.outputs.cache-hit != 'true'
@@ -82,11 +96,41 @@ jobs:
           sudo cp -a ~/vips-prefix/* /usr/local/
           sudo ldconfig
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Test and Build Service
+        # Runs service tests, then builds the fat JAR
+        run: ./gradlew :service:check :service:shadowJar --no-parallel
 
-      - name: Build and Test with Gradle
-        run: ./gradlew build :service:shadowJar
+      - name: Upload Shadow JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-shadow-jar
+          path: service/build/libs/*-all.jar
+          retention-days: 1
+
+  docker-build:
+    needs: [ test-client, build-service ]
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download Shadow JAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: service-shadow-jar
+          # Places the downloaded JAR right where your Dockerfile expects it
+          path: service/build/libs/
 
       - name: Log in to the Container registry
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -111,7 +155,7 @@ jobs:
 
   merge:
     runs-on: ubuntu-latest
-    needs: build
+    needs: docker-build
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       packages: write
@@ -131,11 +175,9 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+          tags: type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Create Multi-Arch Manifest
-        # Docker Imagetools pulls the two temporary tags and maps them to 'latest'
         run: |
           docker buildx imagetools create \
             -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \

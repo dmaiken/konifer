@@ -1,16 +1,17 @@
 package io.konifer.service.transformation
 
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.ManipulationParameters
+import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ExifOrientations
-import io.konifer.domain.image.Fit
-import io.konifer.domain.image.Flip
-import io.konifer.domain.image.ImageFormat
-import io.konifer.domain.image.Rotate
+import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.RequestedTransformation
-import io.konifer.service.context.selector.ManipulationParameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
