@@ -25,7 +25,6 @@ kotlin {
     js {
         outputModuleName = "konifer-client"
         generateTypeScriptDefinitions()
-        browser()
         nodejs()
     }
 
@@ -49,6 +48,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
+            implementation(libs.logback.classic)
         }
 
         jsMain.dependencies {
@@ -56,7 +56,3 @@ kotlin {
         }
     }
 }
-
-// tasks.withType<Test>().configureEach {
-//    useJUnitPlatform()
-// }

@@ -1,4 +1,4 @@
-package io.konifer.client
+package io.konifer.client.harness
 
 import io.konifer.common.http.ErrorResponse
 import io.kotest.matchers.shouldBe

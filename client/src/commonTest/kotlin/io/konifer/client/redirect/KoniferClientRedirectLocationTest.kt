@@ -1,4 +1,4 @@
-package io.konifer.client.link
+package io.konifer.client.redirect
 
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
@@ -16,26 +16,27 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 
-class KoniferClientLinkTest :
+class KoniferClientRedirectLocationTest :
     FunSpec({
-        test("should be able to fetch asset link") {
-            val serverResponse = createLinkResponse()
+
+        test("should be able to fetch asset redirect") {
+            val redirectUrl = "https://redirect.io/image.jpg"
             val httpClient =
                 httpClient {
-                    configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/link",
-                        response = serverResponse,
+                    configureMockEngineHappyRedirect(
+                        expectedPath = "/assets/users/123/-/redirect",
+                        redirectLocation = redirectUrl,
                     )
                 }
 
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.getAssetRedirectLocation(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.Success::class
-            (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+            (response as KoniferResponse.Success<*>).body shouldBe redirectUrl
         }
 
         test("should return the error message on a client error") {
@@ -43,7 +44,7 @@ class KoniferClientLinkTest :
             val httpClient =
                 httpClient {
                     configureMockEngineError(
-                        expectedPath = "/assets/users/123/-/link",
+                        expectedPath = "/assets/users/123/-/redirect",
                         response = serverResponse,
                         statusCode = HttpStatusCode.NotFound,
                     )
@@ -52,7 +53,7 @@ class KoniferClientLinkTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.getAssetRedirectLocation(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.HttpError::class
@@ -60,7 +61,7 @@ class KoniferClientLinkTest :
         }
 
         test("should properly translate requested transformation into query parameters") {
-            val serverResponse = createLinkResponse()
+            val redirectUrl = "https://redirect.io/image.jpg"
             val requestedTransformation =
                 requestedTransformation {
                     height(10)
@@ -79,21 +80,20 @@ class KoniferClientLinkTest :
                 }
             val httpClient =
                 httpClient {
-                    configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/link",
-                        response = serverResponse,
-                        requestedTransformation = requestedTransformation,
+                    configureMockEngineHappyRedirect(
+                        expectedPath = "/assets/users/123/-/redirect",
+                        redirectLocation = redirectUrl,
                     )
                 }
 
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.getAssetRedirectLocation(
                     path = "/users/123",
                     requestedTransformation = requestedTransformation,
                 )
             response::class shouldBe KoniferResponse.Success::class
-            (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+            (response as KoniferResponse.Success<*>).body shouldBe redirectUrl
         }
     })

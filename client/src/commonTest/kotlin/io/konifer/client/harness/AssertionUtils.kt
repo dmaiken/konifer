@@ -1,5 +1,6 @@
-package io.konifer.client
+package io.konifer.client.harness
 
+import io.konifer.client.RequestedTransformation
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 

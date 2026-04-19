@@ -3,16 +3,13 @@ package io.konifer.client.metadata
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.QuerySelectors
-import io.konifer.client.configureMockEngineError
-import io.konifer.client.createErrorResponse
+import io.konifer.client.harness.configureMockEngineError
+import io.konifer.client.harness.createErrorResponse
+import io.konifer.client.harness.httpClient
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 
 class KoniferClientLimitMetadataTest :
     FunSpec({
@@ -23,16 +20,12 @@ class KoniferClientLimitMetadataTest :
                     createMetadataResponse(),
                     createMetadataResponse(),
                 )
-            val mockEngine =
-                configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata",
-                    response = serverResponse,
-                )
             val httpClient =
-                HttpClient(mockEngine) {
-                    install(ContentNegotiation) {
-                        json(Json)
-                    }
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/metadata",
+                        response = serverResponse,
+                    )
                 }
 
             val koniferClient = KoniferClient(httpClient)
@@ -52,16 +45,12 @@ class KoniferClientLimitMetadataTest :
                     createMetadataResponse(),
                     createMetadataResponse(),
                 )
-            val mockEngine =
-                configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata/new",
-                    response = serverResponse,
-                )
             val httpClient =
-                HttpClient(mockEngine) {
-                    install(ContentNegotiation) {
-                        json(Json)
-                    }
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/metadata/new",
+                        response = serverResponse,
+                    )
                 }
 
             val koniferClient = KoniferClient(httpClient)
@@ -82,16 +71,12 @@ class KoniferClientLimitMetadataTest :
                     createMetadataResponse(),
                     createMetadataResponse(),
                 )
-            val mockEngine =
-                configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata/entry/1",
-                    response = serverResponse,
-                )
             val httpClient =
-                HttpClient(mockEngine) {
-                    install(ContentNegotiation) {
-                        json(Json)
-                    }
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/metadata/entry/1",
+                        response = serverResponse,
+                    )
                 }
 
             val koniferClient = KoniferClient(httpClient)
@@ -108,17 +93,13 @@ class KoniferClientLimitMetadataTest :
 
         test("should return the error message on a client error") {
             val serverResponse = createErrorResponse("not found")
-            val mockEngine =
-                configureMockEngineError(
-                    expectedPath = "/assets/users/123/-/metadata",
-                    response = serverResponse,
-                    statusCode = HttpStatusCode.NotFound,
-                )
             val httpClient =
-                HttpClient(mockEngine) {
-                    install(ContentNegotiation) {
-                        json(Json)
-                    }
+                httpClient {
+                    configureMockEngineError(
+                        expectedPath = "/assets/users/123/-/metadata",
+                        response = serverResponse,
+                        statusCode = HttpStatusCode.NotFound,
+                    )
                 }
 
             val koniferClient = KoniferClient(httpClient)

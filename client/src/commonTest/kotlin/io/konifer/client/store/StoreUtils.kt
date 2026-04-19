@@ -12,14 +12,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
-import io.ktor.http.headers
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.toByteArray
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @OptIn(InternalAPI::class)
-fun configureMockEngineHappy(
+fun configureMockMultipartEngineHappy(
     expectedPath: String,
     request: StoreAssetRequest,
     assetBytes: ByteArray,
@@ -47,6 +48,27 @@ fun configureMockEngineHappy(
             is PartData.BinaryChannelItem -> filePart.provider().toByteArray()
             else -> throw AssertionError("Asset part is not a FileItem or BinaryItem but is $filePart")
         } shouldBe assetBytes
+
+        respond(
+            content = Json.encodeToString(response),
+            status = statusCode,
+            headers = headersOf(HttpHeaders.ContentType, "application/json"),
+        )
+    }
+
+@OptIn(InternalAPI::class)
+fun configureMockUrlEngineHappy(
+    expectedPath: String,
+    request: StoreAssetRequest,
+    response: AssetResponse,
+    statusCode: HttpStatusCode = HttpStatusCode.OK,
+): MockEngine =
+    MockEngine { httpRequest ->
+        httpRequest.url.encodedPath shouldBe expectedPath
+        httpRequest.method shouldBe HttpMethod.Post
+
+        val body = httpRequest.body.shouldBeInstanceOf<TextContent>()
+        Json.decodeFromString<StoreAssetRequest>(body.text) shouldBe request
 
         respond(
             content = Json.encodeToString(response),
