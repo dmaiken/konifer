@@ -1,6 +1,11 @@
 package integration
 
-class FormatIntegrationTest {
+import org.junit.jupiter.api.Test
 
+class FormatIntegrationTest : BaseIntegrationTest() {
 
+    @Test
+    fun `can fire up`() {
+
+    }
 }

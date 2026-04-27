@@ -38,6 +38,7 @@ fun Application.module() {
 }
 
 fun Application.configureRouting(objectStoreProvider: ObjectStoreProvider) {
+    configureHealthRouting()
     configureAssetRouting()
 
     if (objectStoreProvider == ObjectStoreProvider.IN_MEMORY) {
