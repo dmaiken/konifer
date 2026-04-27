@@ -3,8 +3,8 @@ package io.konifer.infrastructure.vips.pipeline
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.transformation.AlphaState
-import io.konifer.infrastructure.vips.transformation.VipsTransformer
+import io.konifer.infrastructure.vips.transformer.AlphaState
+import io.konifer.infrastructure.vips.transformer.VipsTransformer
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -387,6 +387,7 @@ class VipsPipelineTest {
                 arena = arena,
                 source = source,
                 transformation = transformation,
+                appliedTransformations = any(),
             )
         } returns true
         every { mock.name } returns name
@@ -404,6 +405,7 @@ class VipsPipelineTest {
                 arena = arena,
                 source = source,
                 transformation = transformation,
+                appliedTransformations = any(),
             )
         } returns false
         every {

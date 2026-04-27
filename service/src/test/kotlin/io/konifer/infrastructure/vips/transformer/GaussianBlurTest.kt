@@ -7,7 +7,6 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.transformation.GaussianBlur
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
@@ -173,6 +172,7 @@ class GaussianBlurTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, image),
                     transformation = blurTransformation(0),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -186,6 +186,7 @@ class GaussianBlurTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, image),
                     transformation = blurTransformation(1),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }

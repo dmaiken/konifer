@@ -9,7 +9,6 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
-import io.konifer.infrastructure.vips.transformation.CropFirstPage
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
@@ -87,7 +86,7 @@ class CropFirstPageTest {
                         width = source.width,
                         format = format,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation) shouldBe false
+                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
             }
         }
 
@@ -112,7 +111,7 @@ class CropFirstPageTest {
                         width = source.width,
                         format = format,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation) shouldBe false
+                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
             }
         }
 
@@ -137,7 +136,7 @@ class CropFirstPageTest {
                         width = source.width,
                         format = format,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation) shouldBe true
+                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe true
             }
         }
     }

@@ -1,12 +1,13 @@
 package io.konifer.infrastructure.vips.pipeline
 
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
-import io.konifer.infrastructure.vips.transformation.ColorFilter
-import io.konifer.infrastructure.vips.transformation.CropFirstPage
-import io.konifer.infrastructure.vips.transformation.GaussianBlur
-import io.konifer.infrastructure.vips.transformation.Pad
-import io.konifer.infrastructure.vips.transformation.Resize
-import io.konifer.infrastructure.vips.transformation.RotateFlip
+import io.konifer.infrastructure.vips.transformer.ColorFilter
+import io.konifer.infrastructure.vips.transformer.CropFirstPage
+import io.konifer.infrastructure.vips.transformer.GaussianBlur
+import io.konifer.infrastructure.vips.transformer.Pad
+import io.konifer.infrastructure.vips.transformer.RemoveThumbnailExif
+import io.konifer.infrastructure.vips.transformer.Resize
+import io.konifer.infrastructure.vips.transformer.RotateFlip
 
 object VipsPipelines {
     val lqipVariantPipeline =
@@ -22,6 +23,7 @@ object VipsPipelines {
             add(ColorFilter)
             add(GaussianBlur)
             add(Pad)
+            add(RemoveThumbnailExif)
         }.build()
 
     /**

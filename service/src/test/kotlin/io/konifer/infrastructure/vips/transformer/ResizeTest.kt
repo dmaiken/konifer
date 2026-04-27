@@ -16,7 +16,6 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.aspectRatio
-import io.konifer.infrastructure.vips.transformation.Resize
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
@@ -657,6 +656,7 @@ class ResizeTest {
                             width = source.width,
                             height = source.height,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -677,6 +677,7 @@ class ResizeTest {
                             width = source.width + 1,
                             height = source.height,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }
@@ -697,6 +698,7 @@ class ResizeTest {
                             width = source.width,
                             height = source.height + 1,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }

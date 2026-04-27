@@ -13,12 +13,11 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.transformation.ColorFilter
-import io.konifer.infrastructure.vips.transformation.ColorFilter.blackWhiteThreshold
-import io.konifer.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix3x3
-import io.konifer.infrastructure.vips.transformation.ColorFilter.greyscaleMatrix4x4
-import io.konifer.infrastructure.vips.transformation.ColorFilter.sepiaMatrix3x3
-import io.konifer.infrastructure.vips.transformation.ColorFilter.sepiaMatrix4x4
+import io.konifer.infrastructure.vips.transformer.ColorFilter.blackWhiteThreshold
+import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix3x3
+import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix4x4
+import io.konifer.infrastructure.vips.transformer.ColorFilter.sepiaMatrix3x3
+import io.konifer.infrastructure.vips.transformer.ColorFilter.sepiaMatrix4x4
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
@@ -378,6 +377,7 @@ class ColorFilterTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, image),
                     transformation = colorFilterTransformation(Filter.NONE),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -392,6 +392,7 @@ class ColorFilterTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, image),
                     transformation = colorFilterTransformation(filter),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }

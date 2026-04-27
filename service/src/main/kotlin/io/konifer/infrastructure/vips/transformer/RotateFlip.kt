@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips.transformation
+package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.enums.VipsAngle
@@ -6,6 +6,7 @@ import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
+import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -17,6 +18,7 @@ object RotateFlip : VipsTransformer {
         arena: Arena,
         source: VImage,
         transformation: Transformation,
+        appliedTransformations: List<AppliedTransformation>,
     ): Boolean = transformation.rotate != Rotate.ZERO || transformation.horizontalFlip
 
     override fun transform(
