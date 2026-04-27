@@ -7,7 +7,6 @@ import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.transformation.RotateFlip
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -111,6 +110,7 @@ class RotateFlipTest {
                             rotate = Rotate.ZERO,
                             horizontalFlip = false,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -132,6 +132,7 @@ class RotateFlipTest {
                             rotate = rotate,
                             horizontalFlip = false,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }
@@ -152,6 +153,7 @@ class RotateFlipTest {
                             rotate = Rotate.ZERO,
                             horizontalFlip = true,
                         ),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }

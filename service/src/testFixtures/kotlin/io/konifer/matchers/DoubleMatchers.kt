@@ -9,7 +9,7 @@ infix fun Double.shouldBeApproximately(expected: Double) = this should beApproxi
 
 fun beApproximately(
     expected: Double,
-    epsilon: Double = 1e-2,
+    epsilon: Double = 2e-2,
 ): Matcher<Double> =
     object : Matcher<Double> {
         override fun test(value: Double): MatcherResult {

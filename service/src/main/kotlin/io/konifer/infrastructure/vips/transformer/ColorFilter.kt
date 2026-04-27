@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips.transformation
+package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VSource
@@ -10,6 +10,7 @@ import io.konifer.common.image.Filter
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N
+import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -73,6 +74,7 @@ object ColorFilter : VipsTransformer {
         arena: Arena,
         source: VImage,
         transformation: Transformation,
+        appliedTransformations: List<AppliedTransformation>,
     ): Boolean = transformation.filter != Filter.NONE
 
     override fun transform(

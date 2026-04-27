@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips.transformation
+package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
@@ -13,6 +13,7 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pageSafeHeight
+import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -32,6 +33,7 @@ object Resize : VipsTransformer {
         arena: Arena,
         source: VImage,
         transformation: Transformation,
+        appliedTransformations: List<AppliedTransformation>,
     ): Boolean = transformation.width != source.width || transformation.height != source.height
 
     override fun transform(

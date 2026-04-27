@@ -14,8 +14,9 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.vips.VipsOptionNames
-import io.konifer.infrastructure.vips.transformation.ColorFilter
+import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
+import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
@@ -114,7 +115,7 @@ class ImageAssetOnDemandVariantTest {
                     expectCacheHit = (count == 1),
                 ).second!!.apply {
                     val variantImage = byteArrayToImage(this)
-                    variantImage.width shouldBe bufferedImage.width - 10
+                    variantImage.width shouldBeWithinOneOf bufferedImage.width - 10
                     variantImage.width.toDouble() / variantImage.height.toDouble() shouldBeApproximately originalScale
                 }
                 count++

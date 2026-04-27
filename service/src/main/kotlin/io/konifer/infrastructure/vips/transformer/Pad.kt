@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips.transformation
+package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
@@ -7,6 +7,7 @@ import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
+import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -28,6 +29,7 @@ object Pad : VipsTransformer {
         arena: Arena,
         source: VImage,
         transformation: Transformation,
+        appliedTransformations: List<AppliedTransformation>,
     ): Boolean = transformation.padding.amount > 0 && transformation.padding.color.isNotEmpty()
 
     override fun transform(

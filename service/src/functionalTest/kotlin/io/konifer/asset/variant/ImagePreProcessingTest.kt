@@ -1,15 +1,20 @@
 package io.konifer.asset.variant
 
+import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.Vips
 import io.konifer.byteArrayToImage
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
 import io.konifer.matchers.shouldBeApproximately
+import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotStartWith
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
@@ -366,5 +371,69 @@ class ImagePreProcessingTest {
             val fetchedAsset =
                 fetchAssetContent(client, path = "users/123/profile", entryId = storedAssetInfo.entryId).second
             Tika().detect(fetchedAsset) shouldBe "image/png"
+        }
+
+    @Test
+    fun `exif thumbnail data is removed if image is preprocessed`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    preprocessing {
+                        enabled = true
+                        image {
+                            max-height = 50
+                        }
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request = StoreAssetRequest()
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
+
+            val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo!!.entryId).second!!
+            Vips.run { arena ->
+                val image = VImage.newFromBytes(arena, fetchedAsset)
+                image.fields.forAll { it shouldNotStartWith "exif-ifd1" }
+            }
+        }
+
+    /**
+     * Test the ByteChannel buffers within Konifer
+     */
+    @Test
+    fun `can preprocess large image`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    preprocessing {
+                        enabled = true
+                        image {
+                            max-width = 3000
+                            format = png
+                        }
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/large/joshua-tree.jpeg")!!.readBytes()
+            val request = StoreAssetRequest()
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
+
+            val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo!!.entryId).second!!
+
+            Tika().detect(fetchedAsset) shouldBe "image/png"
+            Vips.run { arena ->
+                val image = VImage.newFromBytes(arena, fetchedAsset)
+                image.width shouldBeWithinOneOf 3000
+            }
         }
 }

@@ -10,7 +10,6 @@ import io.konifer.domain.variant.Padding
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
-import io.konifer.infrastructure.vips.transformation.Pad
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.comparables.shouldBeLessThan
@@ -264,6 +263,7 @@ class PadTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, imageBytes),
                     transformation = padTransformation(0, listOf(200, 45, 0)),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -276,6 +276,7 @@ class PadTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, imageBytes),
                     transformation = padTransformation(10, emptyList()),
+                    appliedTransformations = emptyList(),
                 ) shouldBe false
             }
         }
@@ -288,6 +289,7 @@ class PadTest {
                     arena = arena,
                     source = VImage.newFromBytes(arena, imageBytes),
                     transformation = padTransformation(1, listOf(200, 45, 0)),
+                    appliedTransformations = emptyList(),
                 ) shouldBe true
             }
         }

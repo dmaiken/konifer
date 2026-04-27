@@ -3,8 +3,8 @@ package io.konifer.infrastructure.vips.pipeline
 import app.photofox.vipsffm.VImage
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.premultiplyIfNecessary
-import io.konifer.infrastructure.vips.transformation.AlphaState
-import io.konifer.infrastructure.vips.transformation.VipsTransformer
+import io.konifer.infrastructure.vips.transformer.AlphaState
+import io.konifer.infrastructure.vips.transformer.VipsTransformer
 import io.konifer.infrastructure.vips.unPremultiplyIfNecessary
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -48,22 +48,16 @@ class VipsPipeline(
                     arena = arena,
                     source = processed.processed,
                     transformation = transformation,
+                    appliedTransformations = appliedTransformations,
                 )
             ) {
                 val source =
-                    when (transformer.requiresAlphaState) {
-                        AlphaState.PREMULTIPLIED -> {
-                            processed.processed.premultiplyIfNecessary(isAlphaPremultiplied).let {
-                                isAlphaPremultiplied = it.second
-                                it.first
-                            }
-                        }
-                        AlphaState.UN_PREMULTIPLIED -> {
-                            processed.processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
-                                isAlphaPremultiplied = false
-                            }
-                        }
-                    }
+                    prepareForNextTransformation(
+                        transformer = transformer,
+                        processed = processed.processed,
+                        isAlphaPremultiplied = isAlphaPremultiplied,
+                    ).also { isAlphaPremultiplied = it.second }.first
+
                 try {
                     processed =
                         transformer.transform(
@@ -101,6 +95,30 @@ class VipsPipeline(
             requiresLqipRegeneration = requiresLqipRegeneration,
             appliedTransformations = appliedTransformations,
         )
+    }
+
+    private fun prepareForNextTransformation(
+        transformer: VipsTransformer,
+        processed: VImage,
+        isAlphaPremultiplied: Boolean,
+    ): Pair<VImage, Boolean> {
+        var newAlphaState = isAlphaPremultiplied
+        return when (transformer.requiresAlphaState) {
+            AlphaState.PREMULTIPLIED -> {
+                processed.premultiplyIfNecessary(isAlphaPremultiplied).let {
+                    newAlphaState = it.second
+                    it.first
+                }
+            }
+            AlphaState.UN_PREMULTIPLIED -> {
+                processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
+                    newAlphaState = false
+                }
+            }
+            AlphaState.EITHER -> processed
+        }.let {
+            Pair(it, newAlphaState)
+        }
     }
 }
 
