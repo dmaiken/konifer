@@ -74,7 +74,7 @@ fun createMetadataResponse() =
                             metadata =
                                 MetadataResponse(
                                     strip = listOf(MetadataType.EXIF, MetadataType.IPTC),
-                                )
+                                ),
                         ),
                     lqip =
                         LQIPResponse(
