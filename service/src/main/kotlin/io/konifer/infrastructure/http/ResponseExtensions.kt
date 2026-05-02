@@ -4,6 +4,7 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse
+import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
 import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
@@ -100,6 +101,10 @@ fun TransformationResponse.Factory.fromTransformation(transformation: Transforma
             PaddingResponse(
                 amount = transformation.padding.amount,
                 color = transformation.padding.color,
+            ),
+        metadata =
+            MetadataResponse(
+                strip = transformation.metadata.strip.toList(),
             ),
     )
 

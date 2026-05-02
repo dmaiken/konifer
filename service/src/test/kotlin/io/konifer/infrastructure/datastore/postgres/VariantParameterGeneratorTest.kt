@@ -4,20 +4,23 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.Padding
+import io.konifer.domain.variant.MetadataTransformation
+import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
+import java.util.TreeSet
 
 class VariantParameterGeneratorTest {
     @Test
     fun `can generate variant attributes`() {
         val expectedAttributes =
-            Json.Default.encodeToString(
+            Json.encodeToString(
                 ImageVariantAttributes(
                     width = 100,
                     height = 100,
@@ -74,7 +77,7 @@ class VariantParameterGeneratorTest {
                         blur = 10,
                         quality = 30,
                         padding =
-                            Padding(
+                            PaddingTransformation(
                                 amount = 10,
                                 color = listOf(100, 100, 50, 10),
                             ),
@@ -95,7 +98,7 @@ class VariantParameterGeneratorTest {
                         blur = 10,
                         quality = 30,
                         padding =
-                            Padding(
+                            PaddingTransformation(
                                 amount = 10,
                                 color = listOf(100, 100, 50, 10),
                             ),
@@ -118,6 +121,37 @@ class VariantParameterGeneratorTest {
                 height = 100,
                 width = 150,
                 format = ImageFormat.JPEG,
+            )
+
+        VariantParameterGenerator.generateImageVariantTransformations(transformation) shouldBe Json.encodeToString(expected)
+    }
+
+    @Test
+    fun `metadata strip field is sorted alphabetically when serializing`() {
+        val transformation =
+            Transformation(
+                height = 100,
+                width = 150,
+                format = ImageFormat.JPEG,
+                metadata =
+                    MetadataTransformation(
+                        strip =
+                            TreeSet<MetadataType>().apply {
+                                add(MetadataType.XMP)
+                                add(MetadataType.EXIF)
+                                add(MetadataType.IPTC)
+                            },
+                    ),
+            )
+        val expected =
+            ImageVariantTransformation(
+                height = 100,
+                width = 150,
+                format = ImageFormat.JPEG,
+                metadata =
+                    ImageVariantMetadata(
+                        strip = listOf(MetadataType.EXIF, MetadataType.IPTC, MetadataType.XMP),
+                    ),
             )
 
         VariantParameterGenerator.generateImageVariantTransformations(transformation) shouldBe Json.encodeToString(expected)

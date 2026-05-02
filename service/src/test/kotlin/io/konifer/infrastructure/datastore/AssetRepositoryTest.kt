@@ -5,6 +5,7 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
@@ -12,7 +13,8 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.Padding
+import io.konifer.domain.variant.MetadataTransformation
+import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -1576,7 +1578,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         padding =
-                            Padding(
+                            PaddingTransformation(
                                 amount = 10,
                                 color = emptyList(),
                             ),
@@ -1605,7 +1607,7 @@ abstract class AssetRepositoryTest {
                         transformation =
                             transformation.copy(
                                 padding =
-                                    Padding(
+                                    PaddingTransformation(
                                         amount = 50,
                                         color = emptyList(),
                                     ),
@@ -1627,7 +1629,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         padding =
-                            Padding(
+                            PaddingTransformation(
                                 amount = 0,
                                 color = listOf(255, 255, 255, 255),
                             ),
@@ -1656,9 +1658,58 @@ abstract class AssetRepositoryTest {
                         transformation =
                             transformation.copy(
                                 padding =
-                                    Padding(
+                                    PaddingTransformation(
                                         amount = 0,
                                         color = listOf(240, 255, 255, 255),
+                                    ),
+                            ),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
+        fun `can fetch variant by metadata transformation`() =
+            runTest {
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                repository.markReady(persisted.markReady(LocalDateTime.now()))
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        metadata =
+                            MetadataTransformation(
+                                strip = setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC),
+                            ),
+                    )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
+                val persistedVariant = repository.storeNewVariant(pendingVariant)
+
+                val fetchedAsset =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = transformation,
+                    )
+                fetchedAsset shouldNotBe null
+                fetchedAsset!!.variants shouldHaveSize 1
+                fetchedAsset.variants.first().id shouldBe persistedVariant.id
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation =
+                            transformation.copy(
+                                metadata =
+                                    MetadataTransformation(
+                                        strip = setOf(MetadataType.EXIF, MetadataType.XMP),
                                     ),
                             ),
                     )
@@ -1684,9 +1735,13 @@ abstract class AssetRepositoryTest {
                         gravity = Gravity.ENTROPY,
                         quality = 50,
                         padding =
-                            Padding(
+                            PaddingTransformation(
                                 amount = 10,
                                 color = listOf(100, 50, 34, 100),
+                            ),
+                        metadata =
+                            MetadataTransformation(
+                                strip = setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC),
                             ),
                     )
                 val pendingVariant =

@@ -12,6 +12,7 @@ import io.konifer.common.image.ManipulationParameters.PAD
 import io.konifer.common.image.ManipulationParameters.PAD_COLOR
 import io.konifer.common.image.ManipulationParameters.QUALITY
 import io.konifer.common.image.ManipulationParameters.ROTATE
+import io.konifer.common.image.ManipulationParameters.STRIP
 import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.selector.ReturnFormat
@@ -70,4 +71,8 @@ fun URLBuilder.appendTransformationParameters(requestedTransformation: Requested
     requestedTransformation.pad?.let { pad -> parameters.append(PAD, pad.toString()) }
     requestedTransformation.padColor?.let { padColor -> parameters.append(PAD_COLOR, padColor) }
     requestedTransformation.profile?.let { profile -> parameters.append(VARIANT_PROFILE, profile) }
+    requestedTransformation.strip
+        .joinToString(",") { it.name.lowercase() }
+        .takeIf { it.isNotBlank() }
+        ?.let { strip -> parameters.append(STRIP, strip) }
 }

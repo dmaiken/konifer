@@ -10,7 +10,7 @@ import java.lang.foreign.Arena
  * The IFD1 group of EXIF metadata contains thumbnail data. This data is a misprepresentation of the backing image
  * if the image has been manipulated.
  */
-object RemoveThumbnailExif : VipsTransformer {
+object StripThumbnailExif : VipsTransformer {
     private const val EXIF_TAG_PREFIX = "exif-ifd1"
     private const val THUMBNAIL_DATA_FIELD = "jpeg-thumbnail-data"
 
@@ -43,5 +43,7 @@ object RemoveThumbnailExif : VipsTransformer {
         source: VImage,
         transformation: Transformation,
         appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = appliedTransformations.isNotEmpty()
+    ): Boolean =
+        appliedTransformations.isNotEmpty() &&
+            !(appliedTransformations.size == 1 && appliedTransformations.first().name == StripMetadata.name)
 }

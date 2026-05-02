@@ -22,5 +22,14 @@ fun assertRequestedTransformation(
         requested.pad?.let { parameters["pad"] shouldBe it.toString() }
         requested.padColor?.let { parameters["pad-c"] shouldBe it }
         requested.profile?.let { parameters["profile"] shouldBe it }
+        val strip =
+            requested.strip
+                .joinToString(",") { it.name.lowercase() }
+                .takeIf { it.isNotBlank() }
+        if (strip != null) {
+            parameters["strip"] shouldBe strip
+        } else {
+            parameters["strip"] shouldBe null
+        }
     }
 }

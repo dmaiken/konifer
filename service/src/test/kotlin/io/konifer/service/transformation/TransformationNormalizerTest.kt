@@ -6,6 +6,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ExifOrientations
@@ -15,6 +16,7 @@ import io.konifer.service.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
@@ -22,7 +24,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -33,25 +35,42 @@ class TransformationNormalizerTest : BaseUnitTest() {
         fun rotateFlipSource() =
             listOf(
                 // 1
-                Arguments.arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false),
+                arguments(Rotate.ZERO, Flip.NONE, Rotate.ZERO, false),
                 // 2
-                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true),
-                Arguments.arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.H, Rotate.ONE_HUNDRED_EIGHTY, true),
+                arguments(Rotate.ZERO, Flip.V, Rotate.ONE_HUNDRED_EIGHTY, true),
                 // 3
-                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.NONE, Rotate.ONE_HUNDRED_EIGHTY, false),
                 // 4
-                Arguments.arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true),
-                Arguments.arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true),
+                arguments(Rotate.ZERO, Flip.H, Rotate.ZERO, true),
+                arguments(Rotate.ONE_HUNDRED_EIGHTY, Flip.V, Rotate.ZERO, true),
                 // 5
-                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true),
-                Arguments.arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.H, Rotate.TWO_HUNDRED_SEVENTY, true),
+                arguments(Rotate.NINETY, Flip.V, Rotate.TWO_HUNDRED_SEVENTY, true),
                 // 6
-                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.NONE, Rotate.TWO_HUNDRED_SEVENTY, false),
                 // 7
-                Arguments.arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true),
-                Arguments.arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true),
+                arguments(Rotate.NINETY, Flip.H, Rotate.NINETY, true),
+                arguments(Rotate.TWO_HUNDRED_SEVENTY, Flip.V, Rotate.NINETY, true),
                 // 8
-                Arguments.arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false),
+                arguments(Rotate.NINETY, Flip.NONE, Rotate.NINETY, false),
+            )
+
+        @JvmStatic
+        fun stripMetadataSource() =
+            listOf(
+                arguments("exif", setOf(MetadataType.EXIF)),
+                arguments("xmp", setOf(MetadataType.XMP)),
+                arguments("iptc", setOf(MetadataType.IPTC)),
+                arguments("exif,xmp", setOf(MetadataType.EXIF, MetadataType.XMP)),
+                arguments("exif,xmp,iptc", setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)),
+                arguments(" exif , xmp , iptc ", setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)),
+                arguments(" eXiF , xMp , iPtC ", setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)),
+                arguments("exif,,,xmp,iptc", setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)),
+                arguments("", emptySet<MetadataType>()),
+                arguments(" ", emptySet<MetadataType>()),
+                arguments(" ,, ", emptySet<MetadataType>()),
+                arguments(null, emptySet<MetadataType>()),
             )
     }
 
@@ -807,5 +826,29 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     }
                 exception.message shouldBe "Invalid hex string: $badBackground"
             }
+    }
+
+    @Nested
+    inner class NormalizeMetadataTests {
+        @ParameterizedTest
+        @MethodSource("io.konifer.service.transformation.TransformationNormalizerTest#stripMetadataSource")
+        fun `normalized strip metadata when supplied`(
+            requested: String?,
+            expected: Set<MetadataType>,
+        ) = runTest {
+            val asset = storePersistedAsset()
+            val requested =
+                createRequestedImageTransformation(
+                    strip = requested,
+                    format = ImageFormat.PNG,
+                )
+            val normalized =
+                transformationNormalizer.normalize(
+                    treePath = asset.path,
+                    entryId = asset.entryId,
+                    requested = requested,
+                )
+            normalized.metadata.strip shouldContainExactly expected
+        }
     }
 }

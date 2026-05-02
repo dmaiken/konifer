@@ -4,12 +4,14 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.Padding
+import io.konifer.domain.variant.MetadataTransformation
+import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import io.konifer.service.context.RequestedTransformation
 import io.ktor.util.logging.KtorSimpleLogger
@@ -118,10 +120,11 @@ class TransformationNormalizer(
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
             padding =
-                Padding(
+                PaddingTransformation(
                     amount = requested.pad ?: 0,
                     color = normalizeBackground(requested, format),
                 ),
+            metadata = formatMetadata(requested),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -208,5 +211,19 @@ class TransformationNormalizer(
         }
 
         return ColorConverter.toRgba(requested.padColor)
+    }
+
+    private fun formatMetadata(requested: RequestedTransformation): MetadataTransformation {
+        val parsed =
+            requested.stripMetadata
+                ?.split(",")
+                ?.filter { it.isNotBlank() }
+                ?.map { MetadataType.valueOf(it.trim().uppercase()) }
+                ?.toSet()
+                ?: emptySet()
+
+        return MetadataTransformation(
+            strip = parsed,
+        )
     }
 }

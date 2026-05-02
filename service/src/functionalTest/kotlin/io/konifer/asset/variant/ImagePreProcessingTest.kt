@@ -13,6 +13,7 @@ import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotStartWith
 import org.apache.tika.Tika
@@ -399,6 +400,38 @@ class ImagePreProcessingTest {
             Vips.run { arena ->
                 val image = VImage.newFromBytes(arena, fetchedAsset)
                 image.fields.forAll { it shouldNotStartWith "exif-ifd1" }
+            }
+        }
+
+    @Test
+    fun `metadata is removed if configured`() =
+        testInMemory(
+            """
+            paths = [
+                {
+                    path = "/**"
+                    preprocessing {
+                        enabled = true
+                        image {
+                            strip = [ exif, xmp, iptc ]
+                        }
+                    }
+                }
+            ]
+            """.trimIndent(),
+        ) {
+            val client = createJsonClient(followRedirects = false)
+            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+            val request = StoreAssetRequest()
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
+
+            val fetchedAsset = fetchAssetContent(client, entryId = storedAssetInfo!!.entryId).second!!
+            Vips.run { arena ->
+                val image = VImage.newFromBytes(arena, fetchedAsset)
+                // Cannot really test absence of exif-data since encoder will naturally add back some
+                image.fields shouldNotContain "jpeg-thumbnail-data"
+                image.fields shouldNotContain "xmp-data"
+                image.fields shouldNotContain "iptc-data"
             }
         }
 

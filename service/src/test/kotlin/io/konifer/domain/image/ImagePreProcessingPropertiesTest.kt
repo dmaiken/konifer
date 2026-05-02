@@ -103,6 +103,7 @@ class ImagePreProcessingPropertiesTest {
         default.gravity shouldBe Gravity.default
         default.pad shouldBe null
         default.padColor shouldBe null
+        default.strip shouldBe emptySet()
     }
 
     @Test

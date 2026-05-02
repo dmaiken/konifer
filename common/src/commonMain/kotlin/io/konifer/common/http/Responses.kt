@@ -6,6 +6,7 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.serializer.AssetClassSerializer
 import io.konifer.common.serializer.AssetSourceSerializer
@@ -14,6 +15,7 @@ import io.konifer.common.serializer.FitSerializer
 import io.konifer.common.serializer.FlipSerializer
 import io.konifer.common.serializer.GravitySerializer
 import io.konifer.common.serializer.LocalDateTimeSerializer
+import io.konifer.common.serializer.MetadataCollectionTypeSerializer
 import io.konifer.common.serializer.RotateSerializer
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -79,6 +81,7 @@ data class TransformationResponse(
     val blur: Int,
     val quality: Int,
     val padding: PaddingResponse,
+    val metadata: MetadataResponse,
 ) {
     companion object Factory
 }
@@ -102,4 +105,10 @@ data class AssetLinkResponse(
 data class PaddingResponse(
     val amount: Int,
     val color: List<Int>,
+)
+
+@Serializable
+data class MetadataResponse(
+    @Serializable(with = MetadataCollectionTypeSerializer::class)
+    val strip: List<MetadataType>,
 )

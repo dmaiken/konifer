@@ -4,10 +4,12 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.Padding
+import io.konifer.domain.variant.MetadataTransformation
+import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import kotlinx.serialization.Serializable
 
@@ -27,6 +29,7 @@ data class ImageVariantTransformation(
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
     val padding: ImageVariantPadding = ImageVariantPadding.default,
+    val metadata: ImageVariantMetadata = ImageVariantMetadata.default,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -41,11 +44,8 @@ data class ImageVariantTransformation(
                 filter = Filter.default,
                 blur = 0,
                 quality = attributes.format.vipsProperties.defaultQuality,
-                padding =
-                    ImageVariantPadding(
-                        amount = 0,
-                        color = emptyList(),
-                    ),
+                padding = ImageVariantPadding.default,
+                metadata = ImageVariantMetadata.default,
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -60,11 +60,8 @@ data class ImageVariantTransformation(
                 filter = transformation.filter,
                 blur = transformation.blur,
                 quality = transformation.quality,
-                padding =
-                    ImageVariantPadding(
-                        amount = transformation.padding.amount,
-                        color = transformation.padding.color,
-                    ),
+                padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
+                metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
             )
     }
 
@@ -81,7 +78,7 @@ data class ImageVariantTransformation(
             blur = this.blur,
             quality = this.quality,
             padding =
-                Padding(
+                PaddingTransformation(
                     amount = this.padding.amount,
                     color = this.padding.color,
                 ),
@@ -98,6 +95,30 @@ data class ImageVariantPadding(
             ImageVariantPadding(
                 amount = 0,
                 color = emptyList(),
+            )
+
+        fun fromPaddingTransformation(transformation: PaddingTransformation): ImageVariantPadding =
+            ImageVariantPadding(
+                amount = transformation.amount,
+                color = transformation.color,
+            )
+    }
+}
+
+@Serializable
+data class ImageVariantMetadata(
+    val strip: List<MetadataType>,
+) {
+    companion object Factory {
+        val default =
+            ImageVariantMetadata(
+                strip = emptyList(),
+            )
+
+        fun fromMetadataTransformation(transformation: MetadataTransformation): ImageVariantMetadata =
+            // IMPORTANT: this must be sorted alphabetically to ensure proper variant querying!!
+            ImageVariantMetadata(
+                strip = transformation.strip.toList().sortedBy { it.name },
             )
     }
 }
