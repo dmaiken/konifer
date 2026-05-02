@@ -5,6 +5,7 @@ import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse
+import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
 import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
@@ -12,6 +13,7 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
@@ -69,6 +71,10 @@ fun createMetadataResponse() =
                                     amount = 20,
                                     color = listOf(10, 10, 10),
                                 ),
+                            metadata =
+                                MetadataResponse(
+                                    strip = listOf(MetadataType.EXIF, MetadataType.IPTC),
+                                )
                         ),
                     lqip =
                         LQIPResponse(
