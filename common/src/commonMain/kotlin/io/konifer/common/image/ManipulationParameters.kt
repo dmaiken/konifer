@@ -13,6 +13,7 @@ object ManipulationParameters {
     const val QUALITY = "q"
     const val PAD = "pad"
     const val PAD_COLOR = "pad-c"
+    const val STRIP = "strip"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -34,5 +35,6 @@ object ManipulationParameters {
             QUALITY,
             PAD,
             PAD_COLOR,
+            STRIP,
         )
 }

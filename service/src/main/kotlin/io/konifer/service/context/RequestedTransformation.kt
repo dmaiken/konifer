@@ -27,6 +27,7 @@ data class RequestedTransformation(
     val quality: Int?,
     val pad: Int?,
     val padColor: String?,
+    val stripMetadata: String? = null,
 ) {
     init {
         validate()
@@ -48,6 +49,7 @@ data class RequestedTransformation(
                 quality = null,
                 pad = null,
                 padColor = null,
+                stripMetadata = null,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedTransformation =
@@ -65,6 +67,7 @@ data class RequestedTransformation(
                 quality = applicationConfig.tryGetString(ManipulationParameters.QUALITY)?.toInt(),
                 pad = applicationConfig.tryGetString(ManipulationParameters.PAD)?.toInt(),
                 padColor = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
+                stripMetadata = applicationConfig.tryGetString(ManipulationParameters.STRIP),
             ).apply {
                 validate()
             }

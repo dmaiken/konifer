@@ -11,6 +11,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -75,6 +76,7 @@ class KoniferClientLinkTest :
                     quality(55)
                     pad(25)
                     padColor("#123456")
+                    strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
                     profile("profile")
                 }
             val httpClient =

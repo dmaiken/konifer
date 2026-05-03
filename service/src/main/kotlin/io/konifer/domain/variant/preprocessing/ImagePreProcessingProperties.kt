@@ -13,6 +13,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathProperty
 import io.konifer.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
+import io.ktor.server.config.tryGetStringList
 
 data class ImagePreProcessingProperties(
     val maxWidth: Int?,
@@ -29,6 +30,7 @@ data class ImagePreProcessingProperties(
     val quality: Int?,
     val pad: Int?,
     val padColor: String?,
+    val strip: Set<String>,
 ) {
     init {
         validate()
@@ -51,6 +53,7 @@ data class ImagePreProcessingProperties(
                 quality = null,
                 pad = null,
                 padColor = null,
+                strip = emptySet(),
             )
 
         fun create(
@@ -68,6 +71,7 @@ data class ImagePreProcessingProperties(
             quality: Int?,
             pad: Int?,
             padColor: String?,
+            strip: Set<String>,
         ) = ImagePreProcessingProperties(
             maxWidth = maxWidth,
             maxHeight = maxHeight,
@@ -83,6 +87,7 @@ data class ImagePreProcessingProperties(
             quality = quality,
             pad = pad,
             padColor = padColor,
+            strip = strip,
         )
 
         fun create(
@@ -156,6 +161,12 @@ data class ImagePreProcessingProperties(
             padColor =
                 applicationConfig?.tryGetString(ManipulationParameters.PAD_COLOR)
                     ?: parent?.padColor,
+            strip =
+                applicationConfig
+                    ?.tryGetStringList(ManipulationParameters.STRIP)
+                    ?.toSet()
+                    ?: parent?.strip
+                    ?: emptySet(),
         )
     }
 
@@ -176,6 +187,7 @@ data class ImagePreProcessingProperties(
             quality = quality,
             pad = pad,
             padColor = padColor,
+            stripMetadata = strip.joinToString(","),
         )
 
     private fun validate() {

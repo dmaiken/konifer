@@ -5,6 +5,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import kotlin.jvm.JvmField
 
@@ -25,6 +26,7 @@ class RequestedTransformation private constructor(
     val pad: Int?,
     val padColor: String?,
     val profile: String?,
+    val strip: Set<MetadataType>,
 ) {
     companion object {
         @JvmField
@@ -85,6 +87,10 @@ class RequestedTransformation private constructor(
 
         fun profile(profile: String) = apply { this.profile = profile }
 
+        private val strip = mutableSetOf<MetadataType>()
+
+        fun strip(vararg types: MetadataType) = apply { strip.addAll(types) }
+
         fun build() =
             RequestedTransformation(
                 width = width,
@@ -100,6 +106,7 @@ class RequestedTransformation private constructor(
                 pad = pad,
                 padColor = padColor,
                 profile = profile,
+                strip = strip,
             )
     }
 }

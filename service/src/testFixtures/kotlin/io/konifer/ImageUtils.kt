@@ -172,6 +172,7 @@ fun createRequestedImageTransformation(
     quality: Int? = null,
     pad: Int? = null,
     padColor: String? = null,
+    strip: String? = null,
 ): RequestedTransformation =
     RequestedTransformation(
         width = width,
@@ -187,6 +188,7 @@ fun createRequestedImageTransformation(
         quality = quality,
         pad = pad,
         padColor = padColor,
+        stripMetadata = strip,
     )
 
 fun createImagePreProcessingProperties(
@@ -204,6 +206,7 @@ fun createImagePreProcessingProperties(
     quality: Int? = null,
     pad: Int? = null,
     padColor: String? = null,
+    strip: Set<String> = emptySet(),
 ): ImagePreProcessingProperties =
     ImagePreProcessingProperties.create(
         maxWidth = maxWidth,
@@ -220,6 +223,7 @@ fun createImagePreProcessingProperties(
         quality = quality,
         pad = pad,
         padColor = padColor,
+        strip = strip,
     )
 
 /**

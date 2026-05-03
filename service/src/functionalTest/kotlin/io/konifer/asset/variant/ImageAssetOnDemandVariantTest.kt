@@ -23,6 +23,7 @@ import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldBeSameSizeAs
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -335,7 +336,7 @@ class ImageAssetOnDemandVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            // Should hit the first time since the image is oriented correctly and auto rotation does nothing
+            // Should hit the first time since the image is oriented correctly and autorotation does nothing
             val result = fetchAssetContent(client, rotate = "auto", expectCacheHit = true).second!!
             Vips.run { arena ->
                 val expected =
@@ -749,6 +750,48 @@ class ImageAssetOnDemandVariantTest {
     }
 
     @Nested
+    inner class StripMetadataTests {
+        @Test
+        fun `can fetch with metadata stripped`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        strip = "exif,xmp,iptc",
+                        expectCacheHit = false,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+
+                    // Cannot really test absence of exif-data since encoder will naturally add back some
+                    source.fields shouldNotContain "jpeg-thumbnail-data"
+                    source.fields shouldNotContain "xmp-data"
+                    source.fields shouldNotContain "iptc-data"
+                }
+
+                // Verify different order is cache hit
+                fetchAssetContent(
+                    client,
+                    strip = "xmp,iptc,exif",
+                    expectCacheHit = true,
+                ).second!!
+
+                // Verify different strip is cache miss
+                fetchAssetContent(
+                    client,
+                    strip = "xmp,exif",
+                    expectCacheHit = false,
+                ).second!!
+            }
+    }
+
+    @Nested
     inner class InvalidVariantRequestTests {
         @ParameterizedTest
         @ValueSource(ints = [0, -1])
@@ -761,7 +804,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     height = height,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -776,7 +819,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     width = width,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -790,7 +833,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     fit = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -804,7 +847,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     rotate = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -818,7 +861,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     flip = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -832,7 +875,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     filter = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -846,7 +889,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     filter = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -861,7 +904,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     blur = blurAmount,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -875,7 +918,7 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     pad = -1,
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 
@@ -889,7 +932,21 @@ class ImageAssetOnDemandVariantTest {
                     client,
                     padColor = "bad",
                     expectCacheHit = false,
-                    expectedStatusCode = HttpStatusCode.Companion.BadRequest,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
+                )
+            }
+
+        @Test
+        fun `cannot request an image with invalid strip`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(
+                    client,
+                    strip = "bad",
+                    expectCacheHit = false,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
                 )
             }
 

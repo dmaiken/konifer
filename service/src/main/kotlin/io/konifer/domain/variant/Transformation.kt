@@ -4,6 +4,7 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.vipsProperties
 import kotlin.collections.emptyList
@@ -24,7 +25,8 @@ data class Transformation(
     val filter: Filter = Filter.default,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
-    val padding: Padding = Padding.default,
+    val padding: PaddingTransformation = PaddingTransformation.default,
+    val metadata: MetadataTransformation = MetadataTransformation.default,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -50,7 +52,8 @@ data class Transformation(
                 filter == it.filter &&
                 blur == it.blur &&
                 quality == it.quality &&
-                padding == it.padding
+                padding == it.padding &&
+                metadata == it.metadata
         }
     }
 
@@ -68,19 +71,31 @@ data class Transformation(
         result = 31 * result + rotate.hashCode()
         result = 31 * result + filter.hashCode()
         result = 31 * result + padding.hashCode()
+        result = 31 * result + metadata.hashCode()
         return result
     }
 }
 
-data class Padding(
+data class PaddingTransformation(
     val amount: Int,
     val color: List<Int>,
 ) {
     companion object Factory {
         val default =
-            Padding(
+            PaddingTransformation(
                 amount = 0,
                 color = emptyList(),
+            )
+    }
+}
+
+data class MetadataTransformation(
+    val strip: Set<MetadataType>,
+) {
+    companion object Factory {
+        val default =
+            MetadataTransformation(
+                strip = emptySet(),
             )
     }
 }

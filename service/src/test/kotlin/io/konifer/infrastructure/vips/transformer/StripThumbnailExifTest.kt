@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class RemoveThumbnailExifTest {
+class StripThumbnailExifTest {
     @Nested
     inner class TransformTests {
         @Test
@@ -30,7 +30,7 @@ class RemoveThumbnailExifTest {
                 val nonThumbnailTags = source.fields.filterNot(thumbnailPredicate)
 
                 val result =
-                    RemoveThumbnailExif.transform(
+                    StripThumbnailExif.transform(
                         arena = arena,
                         source = source,
                         // Transformation doesn't matter here
@@ -60,7 +60,7 @@ class RemoveThumbnailExifTest {
 
                 val result =
                     shouldNotThrowAny {
-                        RemoveThumbnailExif.transform(
+                        StripThumbnailExif.transform(
                             arena = arena,
                             source = source,
                             // Transformation doesn't matter here
@@ -84,7 +84,7 @@ class RemoveThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                RemoveThumbnailExif.requiresTransformation(
+                StripThumbnailExif.requiresTransformation(
                     arena = arena,
                     source = source,
                     transformation = Transformation.ORIGINAL_VARIANT,
@@ -108,12 +108,64 @@ class RemoveThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                RemoveThumbnailExif.requiresTransformation(
+                StripThumbnailExif.requiresTransformation(
                     arena = arena,
                     source = source,
                     transformation = Transformation.ORIGINAL_VARIANT,
                     appliedTransformations = emptyList(),
                 ) shouldBe false
+            }
+        }
+
+        @Test
+        fun `does not require transformation if only applied transformation is metadata stripping`() {
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                    it.readBytes()
+                }
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+
+                StripThumbnailExif.requiresTransformation(
+                    arena = arena,
+                    source = source,
+                    transformation = Transformation.ORIGINAL_VARIANT,
+                    appliedTransformations =
+                        listOf(
+                            AppliedTransformation(
+                                name = StripMetadata.name,
+                                exceptionMessage = null,
+                            ),
+                        ),
+                ) shouldBe false
+            }
+        }
+
+        @Test
+        fun `requires transformation if applied transformations are metadata stripping and something else`() {
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                    it.readBytes()
+                }
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+
+                StripThumbnailExif.requiresTransformation(
+                    arena = arena,
+                    source = source,
+                    transformation = Transformation.ORIGINAL_VARIANT,
+                    appliedTransformations =
+                        listOf(
+                            AppliedTransformation(
+                                name = StripMetadata.name,
+                                exceptionMessage = null,
+                            ),
+                            AppliedTransformation(
+                                name = Resize.name,
+                                exceptionMessage = null,
+                            ),
+                        ),
+                ) shouldBe true
             }
         }
     }

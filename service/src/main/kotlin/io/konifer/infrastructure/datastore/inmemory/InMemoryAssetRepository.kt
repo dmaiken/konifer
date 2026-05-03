@@ -297,7 +297,7 @@ class InMemoryAssetRepository : AssetRepository {
             }?.sortedWith(
                 when (order) {
                     Order.NEW -> compareByDescending<AssetData> { it.createdAt }
-                    Order.MODIFIED -> compareByDescending<AssetData> { it.modifiedAt }
+                    Order.MODIFIED -> compareByDescending { it.modifiedAt }
                 }.let {
                     it.thenByDescending { comparator -> comparator.entryId }
                 },

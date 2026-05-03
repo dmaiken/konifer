@@ -6,8 +6,10 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -34,6 +36,25 @@ class LowercaseEnumSerializer<T : Enum<T>>(
     }
 }
 
+class SortedLowercaseEnumSetSerializer<T : Enum<T>>(
+    enumValues: EnumEntries<T>,
+) : KSerializer<List<T>> {
+    private val delegateSerializer = ListSerializer(LowercaseEnumSerializer(enumValues))
+
+    override val descriptor: SerialDescriptor = delegateSerializer.descriptor
+
+    override fun serialize(
+        encoder: Encoder,
+        value: List<T>,
+    ) {
+        val sortedList = value.sortedBy { it.name }
+
+        delegateSerializer.serialize(encoder, sortedList)
+    }
+
+    override fun deserialize(decoder: Decoder): List<T> = delegateSerializer.deserialize(decoder)
+}
+
 class AssetSourceSerializer : KSerializer<AssetSource> by LowercaseEnumSerializer(AssetSource.entries)
 
 class AssetClassSerializer : KSerializer<AssetClass> by LowercaseEnumSerializer(AssetClass.entries)
@@ -47,3 +68,5 @@ class RotateSerializer : KSerializer<Rotate> by LowercaseEnumSerializer(Rotate.e
 class FlipSerializer : KSerializer<Flip> by LowercaseEnumSerializer(Flip.entries)
 
 class FilterSerializer : KSerializer<Filter> by LowercaseEnumSerializer(Filter.entries)
+
+class MetadataCollectionTypeSerializer : KSerializer<List<MetadataType>> by SortedLowercaseEnumSetSerializer(MetadataType.entries)

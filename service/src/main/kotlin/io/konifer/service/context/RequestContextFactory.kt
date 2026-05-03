@@ -17,6 +17,7 @@ import io.konifer.common.image.ManipulationParameters.PAD
 import io.konifer.common.image.ManipulationParameters.PAD_COLOR
 import io.konifer.common.image.ManipulationParameters.QUALITY
 import io.konifer.common.image.ManipulationParameters.ROTATE
+import io.konifer.common.image.ManipulationParameters.STRIP
 import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.image.Rotate
@@ -213,6 +214,7 @@ class RequestContextFactory(
                 quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
                 pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
                 padColor = parameters[PAD_COLOR] ?: variantProfile?.padColor,
+                stripMetadata = parameters[STRIP] ?: variantProfile?.stripMetadata,
             )
         }
     }
