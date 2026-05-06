@@ -421,7 +421,7 @@ class ImagePreProcessingTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
             val request = StoreAssetRequest()
             val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
 

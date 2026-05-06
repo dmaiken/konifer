@@ -2,7 +2,7 @@ package io.konifer.domain.workflow
 
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.asset.AssetMetadata
+import io.konifer.domain.asset.AssetInformation
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.variant.Transformation
@@ -13,7 +13,6 @@ import io.konifer.service.TemporaryFileFactory
 import io.konifer.service.context.ContentTypeNotPermittedException
 import io.konifer.service.context.QueryRequestContext
 import io.konifer.service.variant.VariantService
-import io.ktor.util.cio.use
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -76,7 +75,7 @@ class FetchAssetHandler(
     suspend fun fetchMetadataByPath(
         context: QueryRequestContext,
         generateVariant: Boolean,
-    ): AssetMetadata? {
+    ): AssetInformation? {
         val assetData =
             assetRepository.fetchByPath(
                 path = context.path,
@@ -86,7 +85,7 @@ class FetchAssetHandler(
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
-            return AssetMetadata(assetData, true)
+            return AssetInformation(assetData, true)
         }
 
         return if (assetData.variants.isEmpty()) {
@@ -97,7 +96,7 @@ class FetchAssetHandler(
                 context = context,
             )
 
-            AssetMetadata(
+            AssetInformation(
                 asset =
                     assetRepository.fetchByPath(
                         path = context.path,
@@ -110,7 +109,7 @@ class FetchAssetHandler(
             )
         } else {
             logger.info("Variant found for asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
-            AssetMetadata(assetData, true)
+            AssetInformation(assetData, true)
         }
     }
 

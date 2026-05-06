@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
@@ -25,6 +26,7 @@ class VariantParameterGeneratorTest {
                     width = 100,
                     height = 100,
                     format = ImageFormat.JPEG,
+                    colorSpace = ColorSpace.SRGB,
                 ),
             )
         val attributes =
@@ -34,6 +36,7 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         height = 100,
                         format = ImageFormat.JPEG,
+                        colorSpace = ColorSpace.SRGB,
                     ),
             )
 

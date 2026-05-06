@@ -81,6 +81,7 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
         height = attributes.height,
         width = attributes.width,
         format = attributes.format.format,
+        colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
         loop = attributes.loop,
     )

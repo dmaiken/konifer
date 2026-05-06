@@ -20,7 +20,7 @@ class StripMetadataTest {
         @Test
         fun `removes exif tags if exif is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -56,7 +56,7 @@ class StripMetadataTest {
         @Test
         fun `removes xmp tags if xmp is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -89,7 +89,7 @@ class StripMetadataTest {
         @Test
         fun `removes iptc tags if iptc is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -122,7 +122,7 @@ class StripMetadataTest {
         @Test
         fun `does not throw if nothing to remove`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -159,7 +159,7 @@ class StripMetadataTest {
         @Test
         fun `does nothing if nothing is to be removed`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->

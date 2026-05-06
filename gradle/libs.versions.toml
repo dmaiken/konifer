@@ -31,6 +31,7 @@ aws-crt-sdk-version = "0.43.3"
 hipparchus-version = "4.0.3"
 google-devtools-ksp-version = "2.3.6"
 kotlinx-datetime-version = "0.7.1"
+metadata-extractor-version = "2.20.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -96,6 +97,7 @@ junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref 
 
 libvips-ffm = { module = "app.photofox.vips-ffm:vips-ffm-core", version.ref = "photofix-libvips-version" }
 blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash-version" }
+metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadata-extractor-version" }
 
 # Scheduling
 postresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }

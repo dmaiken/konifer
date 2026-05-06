@@ -15,4 +15,5 @@ object VipsOptionNames {
     const val OPTION_N = "n"
     const val OPTION_ORIENTATION = "orientation"
     const val OPTION_LOOP = "loop"
+    const val OPTION_INTERPRETATION = "interpretation"
 }

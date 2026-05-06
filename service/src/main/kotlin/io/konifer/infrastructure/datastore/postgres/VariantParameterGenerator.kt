@@ -39,6 +39,9 @@ object VariantParameterGenerator {
                 width = imageAttributes.width,
                 height = imageAttributes.height,
                 format = imageAttributes.format,
+                colorSpace = imageAttributes.colorSpace,
+                pageCount = imageAttributes.pageCount,
+                loop = imageAttributes.loop,
             ),
         )
 }

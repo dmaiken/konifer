@@ -124,6 +124,7 @@ dependencies {
 
     implementation(libs.libvips.ffm)
     implementation(libs.tika.core)
+    implementation(libs.metadata.extractor)
 
     implementation(libs.blurhash)
 

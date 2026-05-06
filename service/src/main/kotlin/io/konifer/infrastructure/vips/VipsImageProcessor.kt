@@ -71,6 +71,7 @@ class VipsImageProcessor {
 
             transformationDataContainer.attributes.complete(
                 Attributes.createAttributes(
+                    arena = arena,
                     image = preProcessed.processed,
                     sourceFormat = sourceFormat,
                     destinationFormat = transformation.format,
@@ -141,6 +142,7 @@ class VipsImageProcessor {
                 }
                 container.attributes.complete(
                     Attributes.createAttributes(
+                        arena = arena,
                         image = variantResult.processed,
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,

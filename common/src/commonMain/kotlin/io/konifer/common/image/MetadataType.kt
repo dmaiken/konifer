@@ -4,4 +4,5 @@ enum class MetadataType {
     EXIF,
     XMP,
     IPTC,
+    ICC,
 }

@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
@@ -161,6 +162,9 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
+                        pageCount = 5,
+                        loop = 0,
                     )
 
                 val variantTransformation =
@@ -187,6 +191,9 @@ abstract class AssetRepositoryTest {
                     this.attributes.height shouldBe attributes.height
                     this.attributes.width shouldBe attributes.width
                     this.attributes.format shouldBe attributes.format
+                    this.attributes.colorSpace shouldBe attributes.colorSpace
+                    this.attributes.pageCount shouldBe attributes.pageCount
+                    this.attributes.loop shouldBe attributes.loop
                     this.transformation shouldBe variantTransformation
                     this.objectStoreBucket shouldBe bucket
                     this.objectStoreKey shouldBe key
@@ -233,6 +240,7 @@ abstract class AssetRepositoryTest {
                         width = 50,
                         height = 100,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
                     )
 
                 val transformation =

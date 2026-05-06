@@ -57,6 +57,7 @@ data class AttributeResponse(
     val height: Int,
     val width: Int,
     val format: String,
+    val colorSpace: String,
     val pageCount: Int?,
     val loop: Int?,
 ) {

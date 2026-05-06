@@ -1,6 +1,6 @@
 package io.konifer.domain.asset
 
-data class AssetMetadata(
+data class AssetInformation(
     val asset: AssetData,
     val cacheHit: Boolean,
 )

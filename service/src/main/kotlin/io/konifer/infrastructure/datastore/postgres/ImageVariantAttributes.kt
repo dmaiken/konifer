@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Attributes
 import kotlinx.serialization.Serializable
@@ -9,6 +10,8 @@ data class ImageVariantAttributes(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
+    @Serializable(with = ColorSpaceSerializer::class)
+    val colorSpace: ColorSpace,
     val pageCount: Int? = null,
     val loop: Int? = null,
 ) {
@@ -18,11 +21,11 @@ data class ImageVariantAttributes(
                 width = attributes.width,
                 height = attributes.height,
                 format = attributes.format,
+                colorSpace = attributes.colorSpace,
+                pageCount = attributes.pageCount,
+                loop = attributes.loop,
             )
     }
-
-    val aspectRatio: Double
-        get() = width.toDouble() / height
 
     fun toAttributes(): Attributes =
         Attributes(
@@ -31,5 +34,6 @@ data class ImageVariantAttributes(
             format = this.format,
             pageCount = this.pageCount,
             loop = this.loop,
+            colorSpace = this.colorSpace,
         )
 }

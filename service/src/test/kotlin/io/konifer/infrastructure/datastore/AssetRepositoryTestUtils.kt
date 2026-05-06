@@ -2,6 +2,7 @@ package io.konifer.infrastructure.datastore
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
@@ -35,6 +36,7 @@ fun createPendingAsset(
             width = 100,
             height = 100,
             format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
         ),
     objectStoreBucket: String = "bucket",
     objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
@@ -70,6 +72,7 @@ fun createPendingVariant(
             width = 150,
             height = 100,
             format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
         ),
     objectStoreBucket: String = "bucket",
     transformation: Transformation,

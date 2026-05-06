@@ -755,7 +755,7 @@ class ImageAssetOnDemandVariantTest {
         fun `can fetch with metadata stripped`() =
             testInMemory {
                 val client = createJsonClient(followRedirects = false)
-                val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+                val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
 
                 val request = StoreAssetRequest()
                 storeAssetMultipartSource(client, image, request)

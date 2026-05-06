@@ -9,6 +9,7 @@ import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
 import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
@@ -53,6 +54,7 @@ fun createMetadataResponse() =
                             format = "jpeg",
                             pageCount = 1,
                             loop = 2,
+                            colorSpace = ColorSpace.SRGB.name,
                         ),
                     transformation =
                         TransformationResponse(

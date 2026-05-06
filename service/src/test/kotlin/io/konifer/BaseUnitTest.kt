@@ -2,6 +2,7 @@ package io.konifer
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.variant.Attributes
@@ -45,6 +46,7 @@ abstract class BaseUnitTest {
                                             width = width,
                                             format = format,
                                             orientation = orientation,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                     objectStoreBucket = objectStoreBucket,
                                     objectStoreKey = objectStoreKey,
