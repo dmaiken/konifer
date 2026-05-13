@@ -13,6 +13,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -78,6 +79,7 @@ class KoniferClientRedirectLocationTest :
                     pad(25)
                     padColor("#123456")
                     strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
+                    colorSpace(TransformableColorSpace.P3)
                     profile("profile")
                 }
             val httpClient =

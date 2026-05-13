@@ -2,6 +2,7 @@ package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformer.AlphaState
 import io.konifer.infrastructure.vips.transformer.VipsTransformer
@@ -21,6 +22,7 @@ class VipsPipelineTest {
             width = 100,
             height = 200,
             format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
         )
 
     @Test

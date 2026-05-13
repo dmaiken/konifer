@@ -7,6 +7,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromString
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys
@@ -31,6 +32,7 @@ data class ImagePreProcessingProperties(
     val pad: Int?,
     val padColor: String?,
     val strip: Set<String>,
+    val colorSpace: TransformableColorSpace,
 ) {
     init {
         validate()
@@ -54,6 +56,7 @@ data class ImagePreProcessingProperties(
                 pad = null,
                 padColor = null,
                 strip = emptySet(),
+                colorSpace = TransformableColorSpace.default,
             )
 
         fun create(
@@ -72,6 +75,7 @@ data class ImagePreProcessingProperties(
             pad: Int?,
             padColor: String?,
             strip: Set<String>,
+            colorSpace: TransformableColorSpace,
         ) = ImagePreProcessingProperties(
             maxWidth = maxWidth,
             maxHeight = maxHeight,
@@ -88,6 +92,7 @@ data class ImagePreProcessingProperties(
             pad = pad,
             padColor = padColor,
             strip = strip,
+            colorSpace = colorSpace,
         )
 
         fun create(
@@ -167,6 +172,11 @@ data class ImagePreProcessingProperties(
                     ?.toSet()
                     ?: parent?.strip
                     ?: emptySet(),
+            colorSpace =
+                applicationConfig
+                    ?.tryGetString(ManipulationParameters.COLOR_SPACE)
+                    ?.let { TransformableColorSpace.fromString(it) }
+                    ?: parent?.colorSpace ?: TransformableColorSpace.default,
         )
     }
 
@@ -188,6 +198,7 @@ data class ImagePreProcessingProperties(
             pad = pad,
             padColor = padColor,
             stripMetadata = strip.joinToString(","),
+            colorSpace = colorSpace,
         )
 
     private fun validate() {

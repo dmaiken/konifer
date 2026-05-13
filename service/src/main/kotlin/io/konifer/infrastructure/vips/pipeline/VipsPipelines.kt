@@ -9,6 +9,7 @@ import io.konifer.infrastructure.vips.transformer.Resize
 import io.konifer.infrastructure.vips.transformer.RotateFlip
 import io.konifer.infrastructure.vips.transformer.StripMetadata
 import io.konifer.infrastructure.vips.transformer.StripThumbnailExif
+import io.konifer.infrastructure.vips.transformer.TransformColorSpace
 
 object VipsPipelines {
     val lqipVariantPipeline =
@@ -19,11 +20,18 @@ object VipsPipelines {
 
     val preProcessingPipeline =
         vipsPipeline {
+            // Structural reduction
             add(Resize)
             add(RotateFlip)
+
+            // Color standardization
+            add(TransformColorSpace)
+
+            // Color-sensitive manipulations
             add(ColorFilter)
             add(GaussianBlur)
             add(Pad)
+            add(TransformColorSpace)
             add(StripMetadata)
             add(StripThumbnailExif)
         }.build()

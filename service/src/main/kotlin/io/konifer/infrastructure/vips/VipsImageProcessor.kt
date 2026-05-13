@@ -6,6 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
@@ -44,6 +45,7 @@ class VipsImageProcessor {
                 format = ImageFormat.PNG,
                 fit = Fit.FIT,
                 gravity = Gravity.CENTER,
+                colorSpace = ColorSpace.SRGB,
             )
     }
 
@@ -71,7 +73,6 @@ class VipsImageProcessor {
 
             transformationDataContainer.attributes.complete(
                 Attributes.createAttributes(
-                    arena = arena,
                     image = preProcessed.processed,
                     sourceFormat = sourceFormat,
                     destinationFormat = transformation.format,
@@ -142,7 +143,6 @@ class VipsImageProcessor {
                 }
                 container.attributes.complete(
                     Attributes.createAttributes(
-                        arena = arena,
                         image = variantResult.processed,
                         sourceFormat = sourceFormat,
                         destinationFormat = transformation.format,

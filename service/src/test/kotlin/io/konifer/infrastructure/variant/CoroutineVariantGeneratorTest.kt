@@ -3,6 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
@@ -83,6 +84,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                             width = 200,
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                     output = output,
                                 ),
@@ -116,6 +118,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                             width = 200,
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                     output = output1,
                                 ),
@@ -126,6 +129,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                             width = 100,
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                     output = output2,
                                 ),
@@ -181,6 +185,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                                             width = 200,
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                     output = output,
                                 ),

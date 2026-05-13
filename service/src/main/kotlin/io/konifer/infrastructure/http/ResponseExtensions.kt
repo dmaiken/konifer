@@ -107,6 +107,7 @@ fun TransformationResponse.Factory.fromTransformation(transformation: Transforma
             MetadataResponse(
                 strip = transformation.metadata.strip.toList(),
             ),
+        colorSpace = transformation.colorSpace.name,
     )
 
 fun LQIPResponse.Factory.fromLqips(lqips: LQIPs): LQIPResponse =

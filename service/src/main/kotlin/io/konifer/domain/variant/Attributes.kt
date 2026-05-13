@@ -2,14 +2,13 @@ package io.konifer.domain.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.pageSafeHeight
-import java.lang.foreign.Arena
 import java.nio.file.Path
 
 data class Attributes(
@@ -23,7 +22,6 @@ data class Attributes(
 ) {
     companion object Factory {
         fun createAttributes(
-            arena: Arena,
             image: VImage,
             sourceFormat: ImageFormat,
             destinationFormat: ImageFormat,
@@ -41,7 +39,7 @@ data class Attributes(
                 width = image.width,
                 height = height,
                 format = destinationFormat,
-                colorSpace = ImageColorSpaceExtractor.extract(arena, image),
+                colorSpace = ImageColorSpaceExtractor.extract(image),
                 orientation = image.getInt(VipsOptionNames.OPTION_ORIENTATION) ?: 1,
                 pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else null,
                 loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,
@@ -67,7 +65,6 @@ data class Attributes(
 
                 attributes =
                     createAttributes(
-                        arena = arena,
                         image = sourceImage,
                         sourceFormat = format,
                         destinationFormat = format,

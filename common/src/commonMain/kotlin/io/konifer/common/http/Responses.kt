@@ -83,6 +83,7 @@ data class TransformationResponse(
     val quality: Int,
     val padding: PaddingResponse,
     val metadata: MetadataResponse,
+    val colorSpace: String,
 ) {
     companion object Factory
 }

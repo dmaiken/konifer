@@ -435,6 +435,25 @@ class ImagePreProcessingTest {
             }
         }
 
+    @Test
+    fun `color space can be transformed if configured`() =
+        testInMemory(
+            """
+            paths = [
+            {
+                path = "/**"
+                preprocessing {
+                    enabled = true
+                    image {
+                        cs = srgb
+                    }
+                }
+            }
+            ]
+            """.trimIndent(),
+        ) {
+        }
+
     /**
      * Test the ByteChannel buffers within Konifer
      */

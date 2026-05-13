@@ -10,6 +10,7 @@ import io.konifer.common.image.Rotate.NINETY
 import io.konifer.common.image.Rotate.ONE_HUNDRED_EIGHTY
 import io.konifer.common.image.Rotate.TWO_HUNDRED_SEVENTY
 import io.konifer.common.image.Rotate.ZERO
+import io.konifer.common.image.TransformableColorSpace
 import io.ktor.http.Parameters
 
 fun Filter.Factory.fromQueryParameters(
@@ -81,3 +82,13 @@ private fun toRotate(value: String): Rotate =
             else -> throw IllegalArgumentException("Invalid rotation: $value. Must be increments of 90")
         }
     } ?: Rotate.valueOf(value.uppercase())
+
+fun TransformableColorSpace.Factory.fromString(string: String?): TransformableColorSpace =
+    string?.let {
+        TransformableColorSpace.valueOf(it.uppercase())
+    } ?: default
+
+fun TransformableColorSpace.Factory.fromQueryParameters(
+    parameters: Parameters,
+    parameterName: String,
+): TransformableColorSpace? = parameters[parameterName]?.let { TransformableColorSpace.valueOf(it.uppercase()) }

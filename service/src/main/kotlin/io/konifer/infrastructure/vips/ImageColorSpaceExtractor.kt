@@ -6,8 +6,8 @@ import com.drew.lang.ByteArrayReader
 import com.drew.metadata.Metadata
 import com.drew.metadata.icc.IccDirectory
 import com.drew.metadata.icc.IccReader
-import io.konifer.common.image.ColorSpace
-import java.lang.foreign.Arena
+import io.konifer.domain.image.ColorSpace
+import io.ktor.util.moveToByteArray
 
 object ImageColorSpaceExtractor {
     /**
@@ -17,13 +17,10 @@ object ImageColorSpaceExtractor {
     private const val ICC_PROFILE_KEY = "icc-profile-data"
     private val iccReader = IccReader()
 
-    fun extract(
-        arena: Arena,
-        image: VImage,
-    ): ColorSpace =
-        image.getBlobBytes(arena, ICC_PROFILE_KEY)?.let { iccBytes ->
+    fun extract(image: VImage): ColorSpace =
+        image.getBlob(ICC_PROFILE_KEY)?.let { iccBytes ->
             val metadata = Metadata()
-            iccReader.extract(ByteArrayReader(iccBytes), metadata)
+            iccReader.extract(ByteArrayReader(iccBytes.asArenaScopedByteBuffer().moveToByteArray()), metadata)
             val iccDirectory = metadata.getFirstDirectoryOfType(IccDirectory::class.java)
 
             extractProfileName(iccDirectory)
@@ -35,7 +32,7 @@ object ImageColorSpaceExtractor {
 
         return if (cleanName != null) {
             when {
-                "display p3" in cleanName || "apple rgb" in cleanName -> ColorSpace.P3
+                "display p3" in cleanName || "apple rgb" in cleanName || "sp3c" in cleanName -> ColorSpace.P3
                 "adobe rgb" in cleanName -> ColorSpace.AdobeRGB
                 "srgb" in cleanName -> ColorSpace.SRGB
                 "cmyk" in cleanName -> ColorSpace.CMYK

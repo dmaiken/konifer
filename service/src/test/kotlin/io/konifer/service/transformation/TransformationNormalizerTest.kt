@@ -8,7 +8,9 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
@@ -71,6 +73,14 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 arguments(" ", emptySet<MetadataType>()),
                 arguments(" ,, ", emptySet<MetadataType>()),
                 arguments(null, emptySet<MetadataType>()),
+            )
+
+        @JvmStatic
+        fun colorSpaceSource() =
+            listOf(
+                arguments(TransformableColorSpace.ORIGIN, ColorSpace.SRGB),
+                arguments(TransformableColorSpace.SRGB, ColorSpace.SRGB),
+                arguments(TransformableColorSpace.P3, ColorSpace.P3),
             )
     }
 
@@ -832,7 +842,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
     inner class NormalizeMetadataTests {
         @ParameterizedTest
         @MethodSource("io.konifer.service.transformation.TransformationNormalizerTest#stripMetadataSource")
-        fun `normalized strip metadata when supplied`(
+        fun `normalizes strip metadata when supplied`(
             requested: String?,
             expected: Set<MetadataType>,
         ) = runTest {
@@ -849,6 +859,30 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     requested = requested,
                 )
             normalized.metadata.strip shouldContainExactly expected
+        }
+    }
+
+    @Nested
+    inner class NormalizeColorSpaceTests {
+        @ParameterizedTest
+        @MethodSource("io.konifer.service.transformation.TransformationNormalizerTest#colorSpaceSource")
+        fun `normalizes strip metadata when supplied`(
+            requested: TransformableColorSpace,
+            expected: ColorSpace,
+        ) = runTest {
+            val asset = storePersistedAsset()
+            val requested =
+                createRequestedImageTransformation(
+                    colorSpace = requested,
+                    format = ImageFormat.PNG,
+                )
+            val normalized =
+                transformationNormalizer.normalize(
+                    treePath = asset.path,
+                    entryId = asset.entryId,
+                    requested = requested,
+                )
+            normalized.colorSpace shouldBe expected
         }
     }
 }

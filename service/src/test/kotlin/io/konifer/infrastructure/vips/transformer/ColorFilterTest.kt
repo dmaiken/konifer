@@ -12,6 +12,7 @@ import io.konifer.PHash
 import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformer.ColorFilter.blackWhiteThreshold
 import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix3x3
@@ -404,5 +405,6 @@ class ColorFilterTest {
             width = 10,
             format = ImageFormat.PNG,
             filter = filter,
+            colorSpace = ColorSpace.SRGB,
         )
 }

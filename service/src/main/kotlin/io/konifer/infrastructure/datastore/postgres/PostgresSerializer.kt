@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import io.konifer.common.image.ColorSpace
-import io.konifer.common.image.ColorSpaceNames
+import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.image.toColorSpace
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -32,17 +32,5 @@ class ColorSpaceSerializer : KSerializer<ColorSpace> {
         encoder.encodeString(value.name.lowercase())
     }
 
-    override fun deserialize(decoder: Decoder): ColorSpace {
-        val name = decoder.decodeString().lowercase()
-        return when (name.lowercase()) {
-            ColorSpaceNames.SRGB -> ColorSpace.SRGB
-            ColorSpaceNames.P3 -> ColorSpace.P3
-            ColorSpaceNames.ADOBE_RGB -> ColorSpace.AdobeRGB
-            ColorSpaceNames.CYMK -> ColorSpace.CMYK
-            ColorSpaceNames.GRAYSCALE -> ColorSpace.Grayscale
-            ColorSpaceNames.UNKNOWN -> ColorSpace.Unknown
-            // If it doesn't match our known enums, wrap it in the Custom class
-            else -> ColorSpace.Custom(name)
-        }
-    }
+    override fun deserialize(decoder: Decoder): ColorSpace = decoder.decodeString().toColorSpace()
 }

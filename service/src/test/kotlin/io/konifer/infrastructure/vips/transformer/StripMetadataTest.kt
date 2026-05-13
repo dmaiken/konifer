@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.MetadataTransformation
 import io.konifer.domain.variant.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -44,6 +45,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.EXIF),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -77,6 +79,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.XMP),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -110,6 +113,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.IPTC),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -148,6 +152,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.XMP, MetadataType.IPTC, MetadataType.EXIF),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                         )
                     }
@@ -178,6 +183,7 @@ class StripMetadataTest {
                                 MetadataTransformation(
                                     strip = emptySet(),
                                 ),
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     )
 

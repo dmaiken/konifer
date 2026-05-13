@@ -319,7 +319,6 @@ class StoreNewAssetWorkflow(
                             requested = requestedTransformation,
                             originalVariantAttributes =
                                 Attributes.createAttributes(
-                                    arena = arena,
                                     image = image,
                                     sourceFormat = sourceFormat,
                                     destinationFormat = destinationFormat,

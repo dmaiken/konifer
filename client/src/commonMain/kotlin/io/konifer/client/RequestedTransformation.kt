@@ -7,6 +7,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import kotlin.jvm.JvmField
 
 inline fun requestedTransformation(block: RequestedTransformation.Builder.() -> Unit): RequestedTransformation =
@@ -27,6 +28,7 @@ class RequestedTransformation private constructor(
     val padColor: String?,
     val profile: String?,
     val strip: Set<MetadataType>,
+    val colorSpace: TransformableColorSpace?,
 ) {
     companion object {
         @JvmField
@@ -91,6 +93,10 @@ class RequestedTransformation private constructor(
 
         fun strip(vararg types: MetadataType) = apply { strip.addAll(types) }
 
+        private var colorSpace: TransformableColorSpace? = null
+
+        fun colorSpace(colorSpace: TransformableColorSpace) = apply { this.colorSpace = colorSpace }
+
         fun build() =
             RequestedTransformation(
                 width = width,
@@ -107,6 +113,7 @@ class RequestedTransformation private constructor(
                 padColor = padColor,
                 profile = profile,
                 strip = strip,
+                colorSpace = colorSpace,
             )
     }
 }

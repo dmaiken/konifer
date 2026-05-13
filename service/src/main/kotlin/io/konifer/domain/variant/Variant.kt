@@ -58,6 +58,7 @@ sealed interface Variant {
                             width = attributes.width,
                             format = attributes.format,
                             originalVariant = true,
+                            colorSpace = attributes.colorSpace,
                         ),
                     lqips = lqip,
                     createdAt = LocalDateTime.now(),

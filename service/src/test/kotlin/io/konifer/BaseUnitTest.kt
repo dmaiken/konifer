@@ -2,9 +2,9 @@ package io.konifer
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant

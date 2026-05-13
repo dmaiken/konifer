@@ -13,6 +13,8 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
+import io.konifer.domain.image.toColorSpace
+import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
@@ -20,9 +22,13 @@ import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
+import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldBeSameSizeAs
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -792,6 +798,83 @@ class ImageAssetOnDemandVariantTest {
     }
 
     @Nested
+    inner class ColorSpaceTests {
+        @ParameterizedTest
+        @ValueSource(strings = ["srgb", "p3"])
+        fun `can fetch original variant with supported color space`(colorSpaceName: String) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val filePath =
+                    when (colorSpaceName) {
+                        "srgb" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        "p3" -> "/images/metadata/iphone-p3.jpg"
+                        else -> throw IllegalArgumentException()
+                    }
+                val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = colorSpaceName,
+                        expectCacheHit = true,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    source.fields shouldContain "icc-profile-data"
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe colorSpaceName.toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 1
+            }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["srgb", "p3"])
+        fun `can fetch new variant with supported color space`(colorSpaceName: String) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val filePath =
+                    when (colorSpaceName) {
+                        "srgb" -> "/images/metadata/iphone-p3.jpg"
+                        "p3" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        else -> throw IllegalArgumentException()
+                    }
+                val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = colorSpaceName,
+                        expectCacheHit = false,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    source.fields shouldContain "icc-profile-data"
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe colorSpaceName.toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 2
+                variants.forExactly(1) {
+                    it.transformation?.colorSpace shouldBe colorSpaceName
+                    it.attributes.colorSpace shouldBe colorSpaceName
+                }
+            }
+    }
+
+    @Nested
     inner class InvalidVariantRequestTests {
         @ParameterizedTest
         @ValueSource(ints = [0, -1])
@@ -945,6 +1028,20 @@ class ImageAssetOnDemandVariantTest {
                 fetchAssetViaRedirect(
                     client,
                     strip = "bad",
+                    expectCacheHit = false,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
+                )
+            }
+
+        @Test
+        fun `cannot request an image with invalid colorSpace`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(
+                    client,
+                    colorSpace = "bad",
                     expectCacheHit = false,
                     expectedStatusCode = HttpStatusCode.BadRequest,
                 )

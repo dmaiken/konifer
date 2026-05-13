@@ -6,6 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
@@ -308,5 +309,6 @@ class PadTest {
                 amount = pad,
                 color = color,
             ),
+        colorSpace = ColorSpace.SRGB,
     )
 }

@@ -12,13 +12,13 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.konifer.service.context.RequestedTransformation
 import org.hipparchus.transform.DctNormalization
 import org.hipparchus.transform.FastCosineTransformer
 import org.hipparchus.transform.TransformType
 import java.awt.Transparency
-import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
 import java.awt.image.ComponentColorModel
 import java.awt.image.DataBuffer
@@ -27,6 +27,7 @@ import java.awt.image.Raster
 import java.io.ByteArrayInputStream
 import java.lang.foreign.ValueLayout
 import javax.imageio.ImageIO
+import java.awt.color.ColorSpace as AwtColorSpace
 
 /**
  * Converts an RGBA byte array to a BufferedImage.
@@ -47,7 +48,7 @@ fun ByteArray.toBufferedImage(
 
     val colorModel =
         ComponentColorModel(
-            ColorSpace.getInstance(ColorSpace.CS_sRGB),
+            AwtColorSpace.getInstance(AwtColorSpace.CS_sRGB),
             true,
             isAlphaPremultiplied,
             Transparency.TRANSLUCENT,
@@ -173,6 +174,7 @@ fun createRequestedImageTransformation(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ): RequestedTransformation =
     RequestedTransformation(
         width = width,
@@ -189,6 +191,7 @@ fun createRequestedImageTransformation(
         pad = pad,
         padColor = padColor,
         stripMetadata = strip,
+        colorSpace = colorSpace,
     )
 
 fun createImagePreProcessingProperties(
@@ -207,6 +210,7 @@ fun createImagePreProcessingProperties(
     pad: Int? = null,
     padColor: String? = null,
     strip: Set<String> = emptySet(),
+    colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ): ImagePreProcessingProperties =
     ImagePreProcessingProperties.create(
         maxWidth = maxWidth,
@@ -224,6 +228,7 @@ fun createImagePreProcessingProperties(
         pad = pad,
         padColor = padColor,
         strip = strip,
+        colorSpace = colorSpace,
     )
 
 /**

@@ -6,6 +6,8 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
@@ -124,7 +126,8 @@ class TransformationNormalizer(
                     amount = requested.pad ?: 0,
                     color = normalizeBackground(requested, format),
                 ),
-            metadata = formatMetadata(requested),
+            metadata = normalizeMetadata(requested),
+            colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -213,7 +216,7 @@ class TransformationNormalizer(
         return ColorConverter.toRgba(requested.padColor)
     }
 
-    private fun formatMetadata(requested: RequestedTransformation): MetadataTransformation {
+    private fun normalizeMetadata(requested: RequestedTransformation): MetadataTransformation {
         val parsed =
             requested.stripMetadata
                 ?.split(",")
@@ -226,4 +229,14 @@ class TransformationNormalizer(
             strip = parsed,
         )
     }
+
+    private suspend fun normalizeColorSpace(
+        requested: RequestedTransformation,
+        originalAttributesDeferred: Deferred<Attributes>,
+    ): ColorSpace =
+        when (requested.colorSpace) {
+            TransformableColorSpace.ORIGIN -> originalAttributesDeferred.await().colorSpace
+            TransformableColorSpace.P3 -> ColorSpace.P3
+            TransformableColorSpace.SRGB -> ColorSpace.SRGB
+        }
 }

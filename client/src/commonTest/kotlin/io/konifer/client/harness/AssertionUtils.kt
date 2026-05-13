@@ -31,5 +31,6 @@ fun assertRequestedTransformation(
         } else {
             parameters["strip"] shouldBe null
         }
+        requested.colorSpace?.let { parameters["cs"] shouldBe it.queryParameterValue }
     }
 }

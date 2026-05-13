@@ -27,7 +27,6 @@ class AttributesTest {
 
             val attributes =
                 Attributes.createAttributes(
-                    arena = arena,
                     image = vImage,
                     sourceFormat = format,
                     destinationFormat = destinationFormat,
@@ -62,7 +61,6 @@ class AttributesTest {
 
             val attributes =
                 Attributes.createAttributes(
-                    arena = arena,
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,
@@ -96,7 +94,6 @@ class AttributesTest {
 
             val attributes =
                 Attributes.createAttributes(
-                    arena = arena,
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,

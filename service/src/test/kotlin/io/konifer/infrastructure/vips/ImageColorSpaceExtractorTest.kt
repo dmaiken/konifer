@@ -2,7 +2,7 @@ package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.konifer.common.image.ColorSpace
+import io.konifer.domain.image.ColorSpace
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
@@ -31,7 +31,7 @@ class ImageColorSpaceExtractorTest {
             val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
             val source = VImage.newFromBytes(arena, image)
 
-            val metadata = ImageColorSpaceExtractor.extract(arena, source)
+            val metadata = ImageColorSpaceExtractor.extract(source)
 
             metadata shouldBe colorspace
         }
@@ -43,7 +43,7 @@ class ImageColorSpaceExtractorTest {
             val image = javaClass.getResourceAsStream("/images/metadata/stripped-all.jpg")!!.readBytes()
             val source = VImage.newFromBytes(arena, image)
 
-            val metadata = ImageColorSpaceExtractor.extract(arena, source)
+            val metadata = ImageColorSpaceExtractor.extract(source)
 
             metadata shouldBe ColorSpace.SRGB
         }

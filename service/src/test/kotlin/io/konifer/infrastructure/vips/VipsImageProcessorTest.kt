@@ -6,6 +6,7 @@ import com.vanniktech.blurhash.BlurHash
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
@@ -31,7 +32,6 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
 import java.util.Base64
 import javax.imageio.ImageIO
-import kotlin.io.path.readBytes
 
 class VipsImageProcessorTest {
     private val vipsImageProcessor = VipsImageProcessor()
@@ -64,6 +64,7 @@ class VipsImageProcessorTest {
                                             width = sourceImage.width,
                                             height = sourceImage.height,
                                             format = ImageFormat.PNG,
+                                            colorSpace = ColorSpace.SRGB,
                                         ),
                                 )
                             launch {
@@ -151,6 +152,7 @@ class VipsImageProcessorTest {
                                         width = 200,
                                         height = 200,
                                         format = ImageFormat.JPEG,
+                                        colorSpace = ColorSpace.SRGB,
                                     )
                                 } else {
                                     Transformation.ORIGINAL_VARIANT
@@ -200,6 +202,7 @@ class VipsImageProcessorTest {
                                     width = 200,
                                     height = 200,
                                     format = ImageFormat.JPEG,
+                                    colorSpace = ColorSpace.SRGB,
                                 )
                             } else {
                                 var transformation = Transformation.ORIGINAL_VARIANT
@@ -210,6 +213,7 @@ class VipsImageProcessorTest {
                                             width = sourceImage.width,
                                             height = sourceImage.height,
                                             format = ImageFormat.JPEG,
+                                            colorSpace = ColorSpace.SRGB,
                                         )
                                 }
                                 transformation
@@ -267,6 +271,7 @@ class VipsImageProcessorTest {
                                 height = 100,
                                 fit = Fit.FILL,
                                 format = to,
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
                 vipsImageProcessor.preprocess(

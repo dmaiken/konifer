@@ -3,9 +3,11 @@ package io.konifer.service.context
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.ObjectStoreProperties
@@ -466,6 +468,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         height = 20,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     ),
                 ),
                 arguments(
@@ -479,6 +482,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         height = 20,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     ),
                 ),
                 arguments(
@@ -491,6 +495,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         height = 10,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     ),
                 ),
                 arguments(
@@ -503,6 +508,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         height = 100,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     ),
                 ),
             )
@@ -569,6 +575,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
+                        colorSpace = TransformableColorSpace.P3,
                     )
                 every {
                     variantProfileRepository.fetch(profileName)
@@ -592,6 +599,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         width = variantConfig.width!!,
                         format = variantConfig.format!!,
                         fit = variantConfig.fit,
+                        colorSpace = ColorSpace.P3,
                     )
                 context.labels shouldBe emptyMap()
             }
@@ -599,6 +607,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `specified image attributes override variant profile if supplied`() =
             runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/user/",
+                )
                 val profileName = "small"
                 every {
                     variantProfileRepository.fetch(profileName)
@@ -982,6 +996,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `variant profile format overwrites accept header`() =
             runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
                 val profileName = "small"
                 val variantConfig =
                     createRequestedImageTransformation(

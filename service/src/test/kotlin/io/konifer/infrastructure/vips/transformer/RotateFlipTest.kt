@@ -6,6 +6,7 @@ import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.shouldBe
@@ -56,6 +57,7 @@ class RotateFlipTest {
                             format = ImageFormat.PNG,
                             rotate = rotate,
                             horizontalFlip = horizontalFlip,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                 )
 
@@ -109,6 +111,7 @@ class RotateFlipTest {
                             format = ImageFormat.PNG,
                             rotate = Rotate.ZERO,
                             horizontalFlip = false,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     appliedTransformations = emptyList(),
                 ) shouldBe false
@@ -131,6 +134,7 @@ class RotateFlipTest {
                             format = ImageFormat.PNG,
                             rotate = rotate,
                             horizontalFlip = false,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     appliedTransformations = emptyList(),
                 ) shouldBe true
@@ -152,6 +156,7 @@ class RotateFlipTest {
                             format = ImageFormat.PNG,
                             rotate = Rotate.ZERO,
                             horizontalFlip = true,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     appliedTransformations = emptyList(),
                 ) shouldBe true

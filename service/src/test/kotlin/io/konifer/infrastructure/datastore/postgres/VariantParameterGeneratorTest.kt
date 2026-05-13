@@ -1,12 +1,12 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import io.konifer.common.image.ColorSpace
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.MetadataTransformation
 import io.konifer.domain.variant.PaddingTransformation
@@ -26,7 +26,7 @@ class VariantParameterGeneratorTest {
                     width = 100,
                     height = 100,
                     format = ImageFormat.JPEG,
-                    colorSpace = ColorSpace.SRGB,
+                    colorSpace = ColorSpace.P3,
                 ),
             )
         val attributes =
@@ -36,7 +36,7 @@ class VariantParameterGeneratorTest {
                         width = 100,
                         height = 100,
                         format = ImageFormat.JPEG,
-                        colorSpace = ColorSpace.SRGB,
+                        colorSpace = ColorSpace.P3,
                     ),
             )
 
@@ -45,7 +45,7 @@ class VariantParameterGeneratorTest {
 
     @Test
     fun `the same transformations generated based on the same parameters`() {
-        val expectedAttributes =
+        val expectedTransformation =
             Json.encodeToString(
                 ImageVariantTransformation(
                     width = 100,
@@ -63,6 +63,11 @@ class VariantParameterGeneratorTest {
                             amount = 10,
                             color = listOf(100, 100, 50, 10),
                         ),
+                    metadata =
+                        ImageVariantMetadata(
+                            strip = listOf(MetadataType.IPTC, MetadataType.XMP),
+                        ),
+                    colorSpace = ColorSpace.P3,
                 ),
             )
         val transformations1 =
@@ -84,6 +89,11 @@ class VariantParameterGeneratorTest {
                                 amount = 10,
                                 color = listOf(100, 100, 50, 10),
                             ),
+                        metadata =
+                            MetadataTransformation(
+                                strip = setOf(MetadataType.XMP, MetadataType.IPTC),
+                            ),
+                        colorSpace = ColorSpace.P3,
                     ),
             )
         val transformations2 =
@@ -105,10 +115,15 @@ class VariantParameterGeneratorTest {
                                 amount = 10,
                                 color = listOf(100, 100, 50, 10),
                             ),
+                        metadata =
+                            MetadataTransformation(
+                                strip = setOf(MetadataType.IPTC, MetadataType.XMP),
+                            ),
+                        colorSpace = ColorSpace.P3,
                     ),
             )
 
-        transformations1 shouldBe transformations2 shouldBe expectedAttributes
+        transformations1 shouldBe transformations2 shouldBe expectedTransformation
     }
 
     @Test
@@ -118,12 +133,14 @@ class VariantParameterGeneratorTest {
                 height = 100,
                 width = 150,
                 format = ImageFormat.JPEG,
+                colorSpace = ColorSpace.SRGB,
             )
         val expected =
             RequiredTransformationFields(
                 height = 100,
                 width = 150,
                 format = ImageFormat.JPEG,
+                colorSpace = ColorSpace.SRGB,
             )
 
         VariantParameterGenerator.generateImageVariantTransformations(transformation) shouldBe Json.encodeToString(expected)
@@ -145,6 +162,7 @@ class VariantParameterGeneratorTest {
                                 add(MetadataType.IPTC)
                             },
                     ),
+                colorSpace = ColorSpace.SRGB,
             )
         val expected =
             ImageVariantTransformation(
@@ -155,6 +173,7 @@ class VariantParameterGeneratorTest {
                     ImageVariantMetadata(
                         strip = listOf(MetadataType.EXIF, MetadataType.IPTC, MetadataType.XMP),
                     ),
+                colorSpace = ColorSpace.SRGB,
             )
 
         VariantParameterGenerator.generateImageVariantTransformations(transformation) shouldBe Json.encodeToString(expected)
@@ -165,5 +184,7 @@ class VariantParameterGeneratorTest {
         val width: Int,
         val height: Int,
         val format: ImageFormat,
+        @Serializable(with = ColorSpaceSerializer::class)
+        val colorSpace: ColorSpace = ColorSpace.SRGB,
     )
 }
