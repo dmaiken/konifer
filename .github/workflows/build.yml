@@ -83,7 +83,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/vips-prefix
-          key: ${{ runner.os }}-amd64-vips-${{ hashFiles('scripts/install-vips.sh') }}
+          key: ${{ runner.os }}-amd64-vips-${{ hashFiles('scripts/install-vips.sh', '.github/workflows/*.yml') }}
 
       - name: Compile libvips
         if: steps.cache-vips.outputs.cache-hit != 'true'
@@ -99,6 +99,9 @@ jobs:
       - name: Test and Build Service
         # Runs service tests, then builds the fat JAR
         run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
+        env:
+          # Explicitly tell libheif where to find the dynamic x265 and aom decoders
+          LIBHEIF_PLUGIN_PATH: /usr/lib/x86_64-linux-gnu/libheif
 
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v4
