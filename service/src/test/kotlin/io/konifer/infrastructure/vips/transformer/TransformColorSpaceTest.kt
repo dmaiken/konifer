@@ -23,7 +23,6 @@ class TransformColorSpaceTest {
             listOf(
                 arguments(ColorSpace.AdobeRGB),
                 arguments(ColorSpace.CMYK),
-                arguments(ColorSpace.Grayscale),
                 arguments(ColorSpace.Unknown),
                 arguments(ColorSpace.Custom("custom_profile")),
             )
@@ -40,7 +39,7 @@ class TransformColorSpaceTest {
     @Nested
     inner class TransformTests {
         @ParameterizedTest
-        @ValueSource(strings = ["srgb", "p3"])
+        @ValueSource(strings = ["srgb", "p3", "grayscale"])
         fun `transforms to supported color space`(colorSpaceName: String) {
             val colorSpace = colorSpaceName.toColorSpace()
             val transformation =
@@ -104,7 +103,7 @@ class TransformColorSpaceTest {
     @Nested
     inner class RequiresTransformationTests {
         @ParameterizedTest
-        @ValueSource(strings = ["srgb", "p3"])
+        @ValueSource(strings = ["srgb", "p3", "grayscale"])
         fun `requires transformation if color space is different from interpreted color space`(colorSpaceName: String) {
             val transformation =
                 Transformation(

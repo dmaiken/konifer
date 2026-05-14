@@ -5,7 +5,7 @@ enum class Filter(
 ) : Manipulation {
     NONE(""),
     BLACK_WHITE("black_white"),
-    GREYSCALE("greyscale"),
+    GRAYSCALE("grayscale"),
     SEPIA("sepia"),
     ;
 

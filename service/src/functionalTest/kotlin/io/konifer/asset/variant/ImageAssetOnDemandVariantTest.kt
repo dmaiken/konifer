@@ -16,6 +16,7 @@ import io.konifer.config.testInMemory
 import io.konifer.domain.image.toColorSpace
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
@@ -371,10 +372,10 @@ class ImageAssetOnDemandVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            fetchAssetContent(client, filter = "greyscale", expectCacheHit = false).second!!.apply {
+            fetchAssetContent(client, filter = "sepia", expectCacheHit = false).second!!.apply {
                 Tika().detect(this) shouldBe "image/png"
             }
-            val result = fetchAssetContent(client, filter = "greyscale", expectCacheHit = true).second!!
+            val result = fetchAssetContent(client, filter = "sepia", expectCacheHit = true).second!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 val linear =
@@ -382,7 +383,7 @@ class ImageAssetOnDemandVariantTest {
                         .newFromBytes(arena, image)
                         .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                 val matrixImage =
-                    VImage.matrixloadSource(arena, VSource.newFromBytes(arena, ColorFilter.greyscaleMatrix3x3))
+                    VImage.matrixloadSource(arena, VSource.newFromBytes(arena, ColorFilter.sepiaMatrix3x3))
 
                 linear
                     .recomb(matrixImage)
@@ -835,7 +836,7 @@ class ImageAssetOnDemandVariantTest {
             }
 
         @ParameterizedTest
-        @ValueSource(strings = ["srgb", "p3"])
+        @ValueSource(strings = ["srgb", "p3", "grayscale"])
         fun `can fetch new variant with supported color space`(colorSpaceName: String) =
             testInMemory {
                 val client = createJsonClient(followRedirects = false)
@@ -843,7 +844,8 @@ class ImageAssetOnDemandVariantTest {
                     when (colorSpaceName) {
                         "srgb" -> "/images/metadata/iphone-p3.jpg"
                         "p3" -> "/images/metadata/exif-xmp-iptc.jpg"
-                        else -> throw IllegalArgumentException()
+                        "grayscale" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        else -> throw IllegalArgumentException("Which image do you want in the test?!")
                     }
                 val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
 
@@ -858,7 +860,11 @@ class ImageAssetOnDemandVariantTest {
                     ).second!!
                 Vips.run { arena ->
                     val source = VImage.newFromBytes(arena, result)
-                    source.fields shouldContain "icc-profile-data"
+                    if (colorSpaceName == "grayscale") {
+                        source.fields shouldNotContain "icc-profile-data"
+                    } else {
+                        source.fields shouldContain "icc-profile-data"
+                    }
 
                     ImageColorSpaceExtractor.extract(
                         image = source,
@@ -870,6 +876,41 @@ class ImageAssetOnDemandVariantTest {
                 variants.forExactly(1) {
                     it.transformation?.colorSpace shouldBe colorSpaceName
                     it.attributes.colorSpace shouldBe colorSpaceName
+                }
+            }
+
+        @Test
+        fun `can fetch greyscale color space with color padding and image remains single channel`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/metadata/iphone-p3.jpg")!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = "grayscale",
+                        pad = 20,
+                        padColor = "#3333",
+                        expectCacheHit = false,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    source.fields shouldNotContain "icc-profile-data"
+                    source.getInt(OPTION_BANDS) shouldBe 1
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe "grayscale".toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 2
+                variants.forExactly(1) {
+                    it.transformation?.colorSpace shouldBe "grayscale"
+                    it.attributes.colorSpace shouldBe "grayscale"
                 }
             }
     }

@@ -48,4 +48,16 @@ class ImageColorSpaceExtractorTest {
             metadata shouldBe ColorSpace.SRGB
         }
     }
+
+    @Test
+    fun `returns greyscale if image is grayscale`() {
+        Vips.run { arena ->
+            val image = javaClass.getResourceAsStream("/images/colorspace/gray.jpeg")!!.readBytes()
+            val source = VImage.newFromBytes(arena, image)
+
+            val metadata = ImageColorSpaceExtractor.extract(source)
+
+            metadata shouldBe ColorSpace.Grayscale
+        }
+    }
 }

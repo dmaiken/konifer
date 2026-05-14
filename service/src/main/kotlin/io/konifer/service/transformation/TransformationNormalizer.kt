@@ -1,5 +1,6 @@
 package io.konifer.service.transformation
 
+import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
@@ -118,7 +119,7 @@ class TransformationNormalizer(
             format = format,
             rotate = rotate,
             horizontalFlip = horizontalFlip,
-            filter = requested.filter,
+            filter = normalizeFilter(requested),
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
             padding =
@@ -128,6 +129,7 @@ class TransformationNormalizer(
                 ),
             metadata = normalizeMetadata(requested),
             colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
+            isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -198,6 +200,17 @@ class TransformationNormalizer(
         return requested.quality ?: normalizedFormat.vipsProperties.defaultQuality
     }
 
+    fun normalizeFilter(requested: RequestedTransformation): Filter {
+        if ((requested.filter == Filter.GRAYSCALE || requested.filter == Filter.SEPIA) &&
+            requested.colorSpace == TransformableColorSpace.GRAYSCALE
+        ) {
+            // Skip the filter since the color space will make this filter useless
+            return Filter.NONE
+        }
+
+        return requested.filter
+    }
+
     /**
      * Normalizes to a list of elements representing rgba or empty if no background at all.
      */
@@ -238,5 +251,6 @@ class TransformationNormalizer(
             TransformableColorSpace.ORIGIN -> originalAttributesDeferred.await().colorSpace
             TransformableColorSpace.P3 -> ColorSpace.P3
             TransformableColorSpace.SRGB -> ColorSpace.SRGB
+            TransformableColorSpace.GRAYSCALE -> ColorSpace.Grayscale
         }
 }

@@ -265,7 +265,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         height = 100,
                         width = 100,
                         format = ImageFormat.PNG,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                     )
                 val normalized =
                     transformationNormalizer.normalize(
@@ -274,7 +274,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.filter shouldBe Filter.GREYSCALE
+                normalized.filter shouldBe Filter.SEPIA
 
                 coVerify(exactly = 0) {
                     assetRepository.fetchByPath(
@@ -283,6 +283,54 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         Transformation.ORIGINAL_VARIANT,
                     )
                 }
+            }
+    }
+
+    @Nested
+    inner class NormalizeFilterTests {
+        @ParameterizedTest
+        @EnumSource(Filter::class)
+        fun `can normalize filter`(filter: Filter) =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        filter = filter,
+                    )
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.filter shouldBe filter
+            }
+
+        @ParameterizedTest
+        @EnumSource(Filter::class, names = ["GRAYSCALE", "SEPIA"])
+        fun `grayscale filter is ignored if requested color space is grayscale`(filter: Filter) =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        filter = filter,
+                        colorSpace = TransformableColorSpace.GRAYSCALE,
+                    )
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.filter shouldBe Filter.NONE
             }
     }
 

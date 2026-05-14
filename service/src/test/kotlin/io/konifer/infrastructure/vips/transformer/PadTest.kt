@@ -10,6 +10,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.assertions.throwables.shouldThrow
@@ -41,7 +42,6 @@ class PadTest {
                     )
                 transformed.processed.writeToStream(actualStream, ".jpeg")
                 val actualImage = ImageIO.read(ByteArrayInputStream(actualStream.toByteArray()))
-
                 val image = VImage.newFromBytes(arena, imageBytes)
                 image
                     .embed(
@@ -183,6 +183,64 @@ class PadTest {
         }
 
         @Test
+        fun `can pad an image with color that is single channel grayscale`() {
+            val padding = 40
+            val background = listOf(200, 45, 55)
+            val imageBytes = javaClass.getResourceAsStream("/images/colorspace/gray.jpeg")!!.readAllBytes()
+
+            val actualStream = ByteArrayOutputStream()
+            val expectedBytes =
+                javaClass
+                    .getResourceAsStream(
+                        "/images/expected/transform_pad_40_bg_200_45_45_0_gray.jpeg",
+                    )!!
+                    .readAllBytes()
+            Vips.run { arena ->
+                val transformed =
+                    Pad.transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, imageBytes),
+                        transformation = padTransformation(padding, background),
+                    )
+                transformed.processed.writeToStream(actualStream, ".jpeg")
+
+                // Assert only one channel
+                transformed.processed.getInt(OPTION_BANDS) shouldBe 3
+
+                PHash.hammingDistance(expectedBytes, actualStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
+            }
+        }
+
+        @Test
+        fun `padding is not colorized if greyscale colorspace is specified`() {
+            val padding = 40
+            val background = listOf(200, 45, 55)
+            val imageBytes = javaClass.getResourceAsStream("/images/colorspace/gray.jpeg")!!.readAllBytes()
+
+            val actualStream = ByteArrayOutputStream()
+            val expectedBytes =
+                javaClass
+                    .getResourceAsStream(
+                        "/images/expected/transform_pad_40_bg_200_45_45_0_gray.jpeg",
+                    )!!
+                    .readAllBytes()
+            Vips.run { arena ->
+                val transformed =
+                    Pad.transform(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, imageBytes),
+                        transformation = padTransformation(padding, background, colorSpace = ColorSpace.Grayscale),
+                    )
+                transformed.processed.writeToStream(actualStream, ".jpeg")
+
+                // Assert only one channel
+                transformed.processed.getInt(OPTION_BANDS) shouldBe 1
+
+                PHash.hammingDistance(expectedBytes, actualStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
+            }
+        }
+
+        @Test
         fun `throws if background is empty`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
@@ -300,6 +358,7 @@ class PadTest {
         pad: Int,
         color: List<Int>,
         format: ImageFormat = ImageFormat.PNG,
+        colorSpace: ColorSpace? = null,
     ) = Transformation(
         height = 10,
         width = 10,
@@ -309,6 +368,7 @@ class PadTest {
                 amount = pad,
                 color = color,
             ),
-        colorSpace = ColorSpace.SRGB,
+        colorSpace = colorSpace ?: ColorSpace.SRGB,
+        isColorSpaceLocked = colorSpace != null,
     )
 }

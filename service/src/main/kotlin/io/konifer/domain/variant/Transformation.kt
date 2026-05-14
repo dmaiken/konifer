@@ -27,6 +27,11 @@ data class Transformation(
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
     val colorSpace: ColorSpace,
+    /**
+     * Whether the customer explicitly requested this color space or if it was derived from the
+     * source image's attributes
+     */
+    val isColorSpaceLocked: Boolean = false,
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
 ) {
@@ -38,6 +43,7 @@ data class Transformation(
                 height = 1,
                 format = ImageFormat.PNG,
                 colorSpace = ColorSpace.SRGB,
+                isColorSpaceLocked = false,
             )
     }
 

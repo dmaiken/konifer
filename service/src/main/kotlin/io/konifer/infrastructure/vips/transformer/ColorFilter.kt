@@ -85,7 +85,7 @@ object ColorFilter : VipsTransformer {
         val processed =
             when (transformation.filter) {
                 Filter.NONE -> source
-                Filter.GREYSCALE -> applyMatrix(arena, source, greyscaleMatrix3x3, greyscaleMatrix4x4)
+                Filter.GRAYSCALE -> applyMatrix(arena, source, greyscaleMatrix3x3, greyscaleMatrix4x4)
                 Filter.BLACK_WHITE -> applyBlackWhiteFilter(arena, source)
                 Filter.SEPIA -> applyMatrix(arena, source, sepiaMatrix3x3, sepiaMatrix4x4)
             }

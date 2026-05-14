@@ -9,6 +9,7 @@ enum class TransformableColorSpace(
     ORIGIN("origin"),
     SRGB("srgb"),
     P3("p3"),
+    GRAYSCALE("grayscale"),
     ;
 
     companion object Factory {

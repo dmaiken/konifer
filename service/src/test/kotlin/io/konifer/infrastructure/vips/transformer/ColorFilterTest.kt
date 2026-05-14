@@ -77,7 +77,7 @@ class ColorFilterTest {
                             ColorFilter.transform(
                                 arena = arena,
                                 source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
-                                transformation = colorFilterTransformation(Filter.GREYSCALE),
+                                transformation = colorFilterTransformation(Filter.GRAYSCALE),
                             )
                         transformed.processed.writeToStream(actualStream, format.extension)
 
@@ -120,7 +120,7 @@ class ColorFilterTest {
                                 VipsOption.Int("n", -1),
                                 VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                             ),
-                        transformation = colorFilterTransformation(Filter.GREYSCALE),
+                        transformation = colorFilterTransformation(Filter.GRAYSCALE),
                     )
                 transformed.processed.writeToStream(actualStream, format.extension)
 

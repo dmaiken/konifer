@@ -27,6 +27,12 @@ object ImageColorSpaceExtractor {
         } ?: extractColorspaceInterpretation(image)
 
     private fun extractProfileName(iccDirectory: IccDirectory): ColorSpace {
+        // Check for grayscale first
+        val colorSpaceSignature = iccDirectory.getString(IccDirectory.TAG_COLOR_SPACE)?.trim()
+        if (colorSpaceSignature == "GRAY") {
+            return ColorSpace.Grayscale
+        }
+
         val rawDescription = iccDirectory.getDescription(IccDirectory.TAG_TAG_desc)
         val cleanName = cleanProfileDescription(rawDescription)
 

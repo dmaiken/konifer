@@ -1805,7 +1805,7 @@ abstract class AssetRepositoryTest {
                         horizontalFlip = true,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         fit = Fit.STRETCH,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                         gravity = Gravity.ENTROPY,
                         quality = 50,
                         padding =

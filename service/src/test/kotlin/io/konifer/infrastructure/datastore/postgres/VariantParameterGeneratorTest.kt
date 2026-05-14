@@ -55,7 +55,7 @@ class VariantParameterGeneratorTest {
                     gravity = Gravity.ENTROPY,
                     rotate = Rotate.ONE_HUNDRED_EIGHTY,
                     horizontalFlip = true,
-                    filter = Filter.GREYSCALE,
+                    filter = Filter.SEPIA,
                     blur = 10,
                     quality = 30,
                     padding =
@@ -81,7 +81,7 @@ class VariantParameterGeneratorTest {
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                         blur = 10,
                         quality = 30,
                         padding =
@@ -107,7 +107,7 @@ class VariantParameterGeneratorTest {
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                         blur = 10,
                         quality = 30,
                         padding =

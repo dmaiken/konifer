@@ -128,7 +128,7 @@ class VariantProfileRepositoryTest {
                             h = 10
                             fit = stretch
                             r = auto
-                            filter = greyscale
+                            filter = sepia
                         },
                         {
                             name = medium
@@ -148,7 +148,7 @@ class VariantProfileRepositoryTest {
                                 height = 10,
                                 fit = Fit.STRETCH,
                                 rotate = Rotate.AUTO,
-                                filter = Filter.GREYSCALE,
+                                filter = Filter.SEPIA,
                             ),
                         "medium" to
                             createRequestedImageTransformation(
