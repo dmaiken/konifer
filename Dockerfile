@@ -113,5 +113,4 @@ ENV LD_PRELOAD="libjemalloc.so.2"
 ENV JAVA_OPTS=""
 EXPOSE 8080
 
-# Dynamically resolve the architecture at startup to set the correct HEIF plugin path
-ENTRYPOINT ["/usr/bin/tini", "--", "sh", "-c", "export LIBHEIF_PLUGIN_PATH=/usr/lib/$(uname -m)-linux-gnu/libheif && exec java --enable-native-access=ALL-UNNAMED -XX:+UseCompactObjectHeaders -Djava.io.tmpdir=/app/tmp $JAVA_OPTS -jar konifer.jar -config=application.conf -config=/app/config/konifer.conf"]
+ENTRYPOINT ["/usr/bin/tini", "--", "sh", "-c", "exec java --enable-native-access=ALL-UNNAMED -XX:+UseCompactObjectHeaders -Djava.io.tmpdir=/app/tmp $JAVA_OPTS -jar konifer.jar -config=application.conf -config=/app/config/konifer.conf"]

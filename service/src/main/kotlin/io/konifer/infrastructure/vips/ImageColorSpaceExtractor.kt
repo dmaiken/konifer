@@ -36,11 +36,12 @@ object ImageColorSpaceExtractor {
         val rawDescription = iccDirectory.getDescription(IccDirectory.TAG_TAG_desc)
         val cleanName = cleanProfileDescription(rawDescription)
 
+        // TODO create a better method of detecting these profiles. Can I look at the profile math instead??
         return if (cleanName != null) {
             when {
                 "display p3" in cleanName || "apple rgb" in cleanName || "sp3c" in cleanName -> ColorSpace.P3
                 "adobe rgb" in cleanName -> ColorSpace.AdobeRGB
-                "srgb" in cleanName -> ColorSpace.SRGB
+                "srgb" in cleanName || cleanName.endsWith("_srg") -> ColorSpace.SRGB
                 "cmyk" in cleanName -> ColorSpace.CMYK
                 else -> ColorSpace.Custom(cleanName)
             }

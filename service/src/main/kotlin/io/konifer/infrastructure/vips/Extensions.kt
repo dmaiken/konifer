@@ -2,6 +2,7 @@ package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsHelper
+import app.photofox.vipsffm.enums.VipsBandFormat
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 
 fun VImage.aspectRatio(): Double = this.width.toDouble() / this.height.toDouble()
@@ -23,3 +24,8 @@ fun VImage.premultiplyIfNecessary(isAlphaPremultiplied: Boolean): Pair<VImage, B
     }
 
 fun VImage.interpretation(): Int = VipsHelper.image_get_interpretation(this.unsafeStructAddress)
+
+fun VImage.format(): VipsBandFormat? =
+    VipsHelper.image_get_format(this.unsafeStructAddress).let { raw ->
+        VipsBandFormat.entries.find { it.rawValue == raw }
+    }
