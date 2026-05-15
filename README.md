@@ -1,7 +1,7 @@
 # Konifer - Self-Hosted Digital Asset Management
 
 ```bash
-docker pull ghcr.io/dmaiken/konifer:0.1
+docker pull ghcr.io/dmaiken/konifer:latest
 ````
 
 Konifer is a self-hosted high-performance, non-blocking REST API for managing digital assets such as images.
