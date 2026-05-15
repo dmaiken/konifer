@@ -8,6 +8,7 @@ import com.drew.metadata.icc.IccDirectory
 import com.drew.metadata.icc.IccReader
 import io.konifer.domain.image.ColorSpace
 import io.ktor.util.moveToByteArray
+import kotlin.math.abs
 
 object ImageColorSpaceExtractor {
     /**
@@ -23,31 +24,36 @@ object ImageColorSpaceExtractor {
             iccReader.extract(ByteArrayReader(iccBytes.asArenaScopedByteBuffer().moveToByteArray()), metadata)
             val iccDirectory = metadata.getFirstDirectoryOfType(IccDirectory::class.java)
 
-            extractProfileName(iccDirectory)
+            extract(iccDirectory)
         } ?: extractColorspaceInterpretation(image)
 
-    private fun extractProfileName(iccDirectory: IccDirectory): ColorSpace {
-        // Check for grayscale first
+    fun extract(iccDirectory: IccDirectory): ColorSpace {
+        // Check for Grayscale / CMYK first
         val colorSpaceSignature = iccDirectory.getString(IccDirectory.TAG_COLOR_SPACE)?.trim()
-        if (colorSpaceSignature == "GRAY") {
-            return ColorSpace.Grayscale
+        if (colorSpaceSignature == "GRAY") return ColorSpace.Grayscale
+        if (colorSpaceSignature == "CMYK") return ColorSpace.CMYK
+
+        // Extract the mathematical colorants
+        val redXyz = readXyzNumber(iccDirectory, IccDirectory.TAG_TAG_rXYZ)
+        val greenXyz = readXyzNumber(iccDirectory, IccDirectory.TAG_TAG_gXYZ)
+
+        if (redXyz == null || greenXyz == null) {
+            return ColorSpace.Custom("Missing Math Coordinates")
         }
 
-        val rawDescription = iccDirectory.getDescription(IccDirectory.TAG_TAG_desc)
-        val cleanName = cleanProfileDescription(rawDescription)
+        // Match the fingerprints using a tolerance
+        // We only really need to check the 'X' coordinate of Red and Green
+        // to uniquely identify the major spaces.
+        return when {
+            isClose(redXyz[0], 0.515) && isClose(greenXyz[0], 0.292) -> ColorSpace.P3
+            isClose(redXyz[0], 0.609) && isClose(greenXyz[0], 0.205) -> ColorSpace.AdobeRGB
+            isClose(redXyz[0], 0.436) && isClose(greenXyz[0], 0.385) -> ColorSpace.SRGB
 
-        // TODO create a better method of detecting these profiles. Can I look at the profile math instead??
-        return if (cleanName != null) {
-            when {
-                "display p3" in cleanName || "apple rgb" in cleanName || "sp3c" in cleanName -> ColorSpace.P3
-                "adobe rgb" in cleanName -> ColorSpace.AdobeRGB
-                "srgb" in cleanName || cleanName.endsWith("_srg") -> ColorSpace.SRGB
-                "cmyk" in cleanName -> ColorSpace.CMYK
-                else -> ColorSpace.Custom(cleanName)
+            else -> {
+                val rawDescription = iccDirectory.getDescription(IccDirectory.TAG_TAG_desc)
+                val cleanName = cleanProfileDescription(rawDescription)
+                cleanName?.let { ColorSpace.Custom(it) } ?: ColorSpace.Unknown
             }
-        } else {
-            // Empty tag
-            ColorSpace.Custom("Unknown Embedded Profile")
         }
     }
 
@@ -76,6 +82,47 @@ object ImageColorSpaceExtractor {
                 rawDescription // Fallback if it's an older v2 profile without mluc formatting
             }
 
-        return extractedName.trim().lowercase()
+        return extractedName.trim().take(50).lowercase()
     }
+
+    /**
+     * Decodes the ICC s15Fixed16Number format into an array of 3 Doubles (X, Y, Z).
+     */
+    private fun readXyzNumber(
+        directory: IccDirectory,
+        tag: Int,
+    ): DoubleArray? {
+        val bytes = directory.getByteArray(tag) ?: return null
+
+        // An XYZ tag data block is 20 bytes total:
+        // 0-3: Type Signature ("XYZ ")
+        // 4-7: Reserved (00 00 00 00)
+        // 8-11: X coordinate (s15Fixed16) <--- START HERE
+        // 12-15: Y coordinate
+        // 16-19: Z coordinate
+        if (bytes.size < 20) return null
+
+        fun readInt(offset: Int): Int =
+            (bytes[offset].toInt() and 0xFF shl 24) or
+                (bytes[offset + 1].toInt() and 0xFF shl 16) or
+                (bytes[offset + 2].toInt() and 0xFF shl 8) or
+                (bytes[offset + 3].toInt() and 0xFF)
+
+        // Skip the first 8 bytes of header
+        val x = readInt(8) / 65536.0
+        val y = readInt(12) / 65536.0
+        val z = readInt(16) / 65536.0
+
+        return doubleArrayOf(x, y, z)
+    }
+
+    /**
+     * Tolerance matching. Different LittleCMS versions might round
+     * 0.4360 to 0.4361, so we use a safe delta of 0.01.
+     */
+    private fun isClose(
+        actual: Double,
+        target: Double,
+        tolerance: Double = 0.01,
+    ): Boolean = abs(actual - target) <= tolerance
 }
