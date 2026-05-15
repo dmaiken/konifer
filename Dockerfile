@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libaom3 \
     libcgif0 \
+    libdav1d7 \
     libde265-0 \
     libexif12 \
     libexpat1 \
@@ -41,7 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgirepository-2.0-0 \
     libglib2.0-0t64 \
     libheif1 \
-    libheif-plugin-aomenc \
+    libheif-plugin-dav1d \
+    libheif-plugin-libde265 \
+    libheif-plugin-svtenc \
     libheif-plugin-x265 \
     libimagequant0 \
     libjemalloc2 \
@@ -53,6 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpangoft2-1.0-0 \
     libpangoxft-1.0-0 \
     libpng16-16t64 \
+    libsvtav1enc1d1 \
     libwebp7 \
     libwebpdecoder3 \
     libwebpdemux2 \

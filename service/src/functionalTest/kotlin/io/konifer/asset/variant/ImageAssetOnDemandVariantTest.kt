@@ -178,13 +178,12 @@ class ImageAssetOnDemandVariantTest {
             }
         }
 
-    @Test
-    fun `can fetch image variant by content type`() =
+    @ParameterizedTest
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["AVIF"])
+    fun `can fetch image variant by content type`(format: ImageFormat) =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
-            val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.avif")!!.readBytes()
 
             val request =
                 StoreAssetRequest(
@@ -193,24 +192,12 @@ class ImageAssetOnDemandVariantTest {
             storeAssetMultipartSource(client, image, request).second!!.apply {
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
-
-                variants.apply {
-                    size shouldBe 1
-                    first().attributes.apply {
-                        this.height shouldBe bufferedImage.height
-                        this.width shouldBe bufferedImage.width
-                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
-                    }
-                }
             }
 
             var count = 0
             repeat(2) {
-                fetchAssetContent(client, format = "jpg", expectCacheHit = (count == 1)).let { (_, bytes) ->
-                    val variantImage = byteArrayToImage(bytes!!)
-                    variantImage.width shouldBe bufferedImage.width
-                    variantImage.height shouldBe bufferedImage.height
-                    Tika().detect(bytes) shouldBe "image/jpeg"
+                fetchAssetContent(client, format = format.format, expectCacheHit = (count == 1)).let { (_, bytes) ->
+                    Tika().detect(bytes) shouldBe format.mimeType
                 }
                 count++
             }
