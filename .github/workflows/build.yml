@@ -76,9 +76,7 @@ jobs:
             libpango1.0-dev libpng-dev \
             libwebp-dev libheif-dev libde265-dev \
             libjxl-dev libgif-dev libcgif-dev libaom-dev \
-            libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev \
-            libavif-dev
-
+            libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
       - name: Cache libvips
         id: cache-vips
         uses: actions/cache@v5
@@ -101,6 +99,8 @@ jobs:
         # Runs service tests, then builds the fat JAR
         run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
         env:
+          # Restrict libvips to prevent thread/memory starvation on GH runners
+          VIPS_CONCURRENCY: 1
           # Explicitly tell libheif where to find the dynamic x265 and aom decoders
           LIBHEIF_PLUGIN_PATH: /usr/lib/x86_64-linux-gnu/libheif
 
