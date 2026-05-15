@@ -99,11 +99,6 @@ jobs:
       - name: Test and Build Service
         # Runs service tests, then builds the fat JAR
         run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
-        env:
-          # Restrict libvips to prevent thread/memory starvation on GH runners
-          VIPS_CONCURRENCY: 1
-          # Explicitly tell libheif where to find the dynamic x265 and aom decoders
-          LIBHEIF_PLUGIN_PATH: /usr/lib/x86_64-linux-gnu/libheif
 
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v4
