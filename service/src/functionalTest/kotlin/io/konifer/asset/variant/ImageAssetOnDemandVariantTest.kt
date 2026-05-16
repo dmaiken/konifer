@@ -6,6 +6,8 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
+import app.photofox.vipsffm.enums.VipsForeignHeifEncoder
+import app.photofox.vipsffm.enums.VipsForeignSubsample
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.byteArrayToImage
@@ -13,16 +15,25 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
+import io.konifer.domain.image.toColorSpace
+import io.konifer.domain.image.vipsProperties
+import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
+import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldBeSameSizeAs
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -39,6 +50,7 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlin.math.min
 
 class ImageAssetOnDemandVariantTest {
     @Test
@@ -171,13 +183,12 @@ class ImageAssetOnDemandVariantTest {
             }
         }
 
-    @Test
-    fun `can fetch image variant by content type`() =
+    @ParameterizedTest
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["AVIF"])
+    fun `can fetch image variant by content type`(format: ImageFormat) =
         testInMemory {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
-            val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.avif")!!.readBytes()
 
             val request =
                 StoreAssetRequest(
@@ -186,24 +197,12 @@ class ImageAssetOnDemandVariantTest {
             storeAssetMultipartSource(client, image, request).second!!.apply {
                 alt shouldBe "an image"
                 `class` shouldBe AssetClass.IMAGE
-
-                variants.apply {
-                    size shouldBe 1
-                    first().attributes.apply {
-                        this.height shouldBe bufferedImage.height
-                        this.width shouldBe bufferedImage.width
-                        this.width.toDouble() / this.height.toDouble() shouldBe originalScale
-                    }
-                }
             }
 
             var count = 0
             repeat(2) {
-                fetchAssetContent(client, format = "jpg", expectCacheHit = (count == 1)).let { (_, bytes) ->
-                    val variantImage = byteArrayToImage(bytes!!)
-                    variantImage.width shouldBe bufferedImage.width
-                    variantImage.height shouldBe bufferedImage.height
-                    Tika().detect(bytes) shouldBe "image/jpeg"
+                fetchAssetContent(client, format = format.format, expectCacheHit = (count == 1)).let { (_, bytes) ->
+                    Tika().detect(bytes) shouldBe format.mimeType
                 }
                 count++
             }
@@ -365,10 +364,10 @@ class ImageAssetOnDemandVariantTest {
                 )
             storeAssetMultipartSource(client, image, request)
 
-            fetchAssetContent(client, filter = "greyscale", expectCacheHit = false).second!!.apply {
+            fetchAssetContent(client, filter = "sepia", expectCacheHit = false).second!!.apply {
                 Tika().detect(this) shouldBe "image/png"
             }
-            val result = fetchAssetContent(client, filter = "greyscale", expectCacheHit = true).second!!
+            val result = fetchAssetContent(client, filter = "sepia", expectCacheHit = true).second!!
             val expectedStream = ByteArrayOutputStream()
             Vips.run { arena ->
                 val linear =
@@ -376,7 +375,7 @@ class ImageAssetOnDemandVariantTest {
                         .newFromBytes(arena, image)
                         .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                 val matrixImage =
-                    VImage.matrixloadSource(arena, VSource.newFromBytes(arena, ColorFilter.greyscaleMatrix3x3))
+                    VImage.matrixloadSource(arena, VSource.newFromBytes(arena, ColorFilter.sepiaMatrix3x3))
 
                 linear
                     .recomb(matrixImage)
@@ -581,13 +580,21 @@ class ImageAssetOnDemandVariantTest {
                     expectCacheHit = false,
                 ).second!!
             val expectedStream = ByteArrayOutputStream()
+            val options =
+                buildList<VipsOption> {
+                    add(VipsOption.Int(OPTION_QUALITY, min(quality, variantFormat.vipsProperties.maxQuality)))
+                    if (variantFormat == ImageFormat.AVIF) {
+                        add(VipsOption.Enum("subsample_mode", VipsForeignSubsample.FOREIGN_SUBSAMPLE_ON))
+                        add(VipsOption.Enum("encoder", VipsForeignHeifEncoder.FOREIGN_HEIF_ENCODER_SVT))
+                    }
+                }.toTypedArray()
             Vips.run { arena ->
                 VImage
                     .newFromBytes(arena, image)
                     .writeToStream(
                         expectedStream,
                         variantFormat.extension,
-                        VipsOption.Int(VipsOptionNames.OPTION_QUALITY, quality),
+                        *options,
                     )
 
                 result shouldBeSameSizeAs expectedStream.toByteArray()
@@ -755,7 +762,7 @@ class ImageAssetOnDemandVariantTest {
         fun `can fetch with metadata stripped`() =
             testInMemory {
                 val client = createJsonClient(followRedirects = false)
-                val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+                val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
 
                 val request = StoreAssetRequest()
                 storeAssetMultipartSource(client, image, request)
@@ -788,6 +795,123 @@ class ImageAssetOnDemandVariantTest {
                     strip = "xmp,exif",
                     expectCacheHit = false,
                 ).second!!
+            }
+    }
+
+    @Nested
+    inner class ColorSpaceTests {
+        @ParameterizedTest
+        @ValueSource(strings = ["srgb", "p3"])
+        fun `can fetch original variant with supported color space`(colorSpaceName: String) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val filePath =
+                    when (colorSpaceName) {
+                        "srgb" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        "p3" -> "/images/metadata/iphone-p3.jpg"
+                        else -> throw IllegalArgumentException()
+                    }
+                val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = colorSpaceName,
+                        expectCacheHit = true,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    source.fields shouldContain "icc-profile-data"
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe colorSpaceName.toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 1
+            }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["srgb", "p3", "grayscale"])
+        fun `can fetch new variant with supported color space`(colorSpaceName: String) =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val filePath =
+                    when (colorSpaceName) {
+                        "srgb" -> "/images/metadata/iphone-p3.jpg"
+                        "p3" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        "grayscale" -> "/images/metadata/exif-xmp-iptc.jpg"
+                        else -> throw IllegalArgumentException("Which image do you want in the test?!")
+                    }
+                val image = javaClass.getResourceAsStream(filePath)!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = colorSpaceName,
+                        expectCacheHit = false,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    if (colorSpaceName == "grayscale") {
+                        source.fields shouldNotContain "icc-profile-data"
+                    } else {
+                        source.fields shouldContain "icc-profile-data"
+                    }
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe colorSpaceName.toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 2
+                variants.forExactly(1) {
+                    it.transformation?.colorSpace shouldBe colorSpaceName
+                    it.attributes.colorSpace shouldBe colorSpaceName
+                }
+            }
+
+        @Test
+        fun `can fetch greyscale color space with color padding and image remains single channel`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                val image = javaClass.getResourceAsStream("/images/metadata/iphone-p3.jpg")!!.readBytes()
+
+                val request = StoreAssetRequest()
+                storeAssetMultipartSource(client, image, request)
+
+                val result =
+                    fetchAssetContent(
+                        client,
+                        colorSpace = "grayscale",
+                        pad = 20,
+                        padColor = "#3333",
+                        expectCacheHit = false,
+                    ).second!!
+                Vips.run { arena ->
+                    val source = VImage.newFromBytes(arena, result)
+                    source.fields shouldNotContain "icc-profile-data"
+                    source.getInt(OPTION_BANDS) shouldBe 1
+
+                    ImageColorSpaceExtractor.extract(
+                        image = source,
+                    ) shouldBe "grayscale".toColorSpace()
+                }
+
+                val variants = fetchAssetMetadata(client)!!.variants
+                variants shouldHaveSize 2
+                variants.forExactly(1) {
+                    it.transformation?.colorSpace shouldBe "grayscale"
+                    it.attributes.colorSpace shouldBe "grayscale"
+                }
             }
     }
 
@@ -945,6 +1069,20 @@ class ImageAssetOnDemandVariantTest {
                 fetchAssetViaRedirect(
                     client,
                     strip = "bad",
+                    expectCacheHit = false,
+                    expectedStatusCode = HttpStatusCode.BadRequest,
+                )
+            }
+
+        @Test
+        fun `cannot request an image with invalid colorSpace`() =
+            testInMemory {
+                val client = createJsonClient(followRedirects = false)
+                storeAsset(client)
+
+                fetchAssetViaRedirect(
+                    client,
+                    colorSpace = "bad",
                     expectCacheHit = false,
                     expectedStatusCode = HttpStatusCode.BadRequest,
                 )

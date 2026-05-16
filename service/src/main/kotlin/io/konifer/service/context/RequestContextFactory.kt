@@ -7,6 +7,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
 import io.konifer.common.image.ManipulationParameters.BLUR
+import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
 import io.konifer.common.image.ManipulationParameters.FILTER
 import io.konifer.common.image.ManipulationParameters.FIT
 import io.konifer.common.image.ManipulationParameters.FLIP
@@ -21,6 +22,7 @@ import io.konifer.common.image.ManipulationParameters.STRIP
 import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
@@ -215,6 +217,10 @@ class RequestContextFactory(
                 pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
                 padColor = parameters[PAD_COLOR] ?: variantProfile?.padColor,
                 stripMetadata = parameters[STRIP] ?: variantProfile?.stripMetadata,
+                colorSpace =
+                    TransformableColorSpace.fromQueryParameters(parameters, COLOR_SPACE)
+                        ?: variantProfile?.colorSpace
+                        ?: TransformableColorSpace.default,
             )
         }
     }

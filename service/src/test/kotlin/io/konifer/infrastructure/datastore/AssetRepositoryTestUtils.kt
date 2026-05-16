@@ -6,6 +6,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
@@ -35,6 +36,7 @@ fun createPendingAsset(
             width = 100,
             height = 100,
             format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
         ),
     objectStoreBucket: String = "bucket",
     objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
@@ -70,6 +72,7 @@ fun createPendingVariant(
             width = 150,
             height = 100,
             format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
         ),
     objectStoreBucket: String = "bucket",
     transformation: Transformation,

@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libaom3 \
     libcgif0 \
+    libdav1d7 \
     libde265-0 \
     libexif12 \
     libexpat1 \
@@ -41,7 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgirepository-2.0-0 \
     libglib2.0-0t64 \
     libheif1 \
-    libheif-plugin-aomenc \
+    libheif-plugin-dav1d \
+    libheif-plugin-libde265 \
+    libheif-plugin-svtenc \
     libheif-plugin-x265 \
     libimagequant0 \
     libjemalloc2 \
@@ -53,6 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpangoft2-1.0-0 \
     libpangoxft-1.0-0 \
     libpng16-16t64 \
+    libsvtav1enc1d1 \
     libwebp7 \
     libwebpdecoder3 \
     libwebpdemux2 \
@@ -103,9 +107,13 @@ RUN chown -R konifer:konifer /app
 
 USER konifer
 
-## Necessary for jemalloc
+# Necessary for jemalloc
 ENV LD_PRELOAD="libjemalloc.so.2"
+
+# Disable AVIF encoder logging except for error
+ENV SVT_LOG=1
 
 ENV JAVA_OPTS=""
 EXPOSE 8080
+
 ENTRYPOINT ["/usr/bin/tini", "--", "sh", "-c", "exec java --enable-native-access=ALL-UNNAMED -XX:+UseCompactObjectHeaders -Djava.io.tmpdir=/app/tmp $JAVA_OPTS -jar konifer.jar -config=application.conf -config=/app/config/konifer.conf"]

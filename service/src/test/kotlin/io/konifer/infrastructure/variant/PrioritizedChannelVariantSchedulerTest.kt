@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.variant
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
@@ -42,6 +43,7 @@ class PrioritizedChannelVariantSchedulerTest {
                     height = 100,
                     width = 100,
                     format = ImageFormat.JPEG,
+                    colorSpace = ColorSpace.SRGB,
                 )
             val source =
                 TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
@@ -81,6 +83,7 @@ class PrioritizedChannelVariantSchedulerTest {
                             height = 100,
                             width = 100,
                             format = ImageFormat.JPEG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     output = ByteChannel(),
                 )
@@ -113,6 +116,7 @@ class PrioritizedChannelVariantSchedulerTest {
                             height = 100,
                             width = 100,
                             format = ImageFormat.JPEG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     output = ByteChannel(),
                 )

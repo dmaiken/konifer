@@ -19,7 +19,9 @@ DEV_PACKAGES=(
   "libcgif-dev"
   "libaom-dev"
   "libheif-plugin-x265"
-  "libheif-plugin-aomenc"
+  "libheif-plugin-svtenc"
+  "libheif-plugin-libde265"
+  "libheif-plugin-dav1d"
   "libjemalloc-dev"
 )
 
@@ -33,7 +35,7 @@ echo "Resolving Runtime Libraries for Ubuntu $(cat /etc/os-release | grep VERSIO
 echo "----------------------------------------------------------------"
 
 # 3. Loop through and find the runtime dependency
-RUNTIME_LIST="wget ca-certificates tini libheif-plugin-aomenc libheif-plugin-x265"
+RUNTIME_LIST="wget ca-certificates tini libheif-plugin-x265 libheif-plugin-dav1d libheif-plugin-libde265 libheif-plugin-svtenc"
 
 for pkg in "${DEV_PACKAGES[@]}"; do
     # Get dependencies, filter for "Depends:", clean up lines

@@ -57,6 +57,7 @@ data class AttributeResponse(
     val height: Int,
     val width: Int,
     val format: String,
+    val colorSpace: String,
     val pageCount: Int?,
     val loop: Int?,
 ) {
@@ -82,6 +83,7 @@ data class TransformationResponse(
     val quality: Int,
     val padding: PaddingResponse,
     val metadata: MetadataResponse,
+    val colorSpace: String,
 ) {
     companion object Factory
 }

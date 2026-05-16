@@ -81,6 +81,7 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
         height = attributes.height,
         width = attributes.width,
         format = attributes.format.format,
+        colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
         loop = attributes.loop,
     )
@@ -106,6 +107,7 @@ fun TransformationResponse.Factory.fromTransformation(transformation: Transforma
             MetadataResponse(
                 strip = transformation.metadata.strip.toList(),
             ),
+        colorSpace = transformation.colorSpace.name,
     )
 
 fun LQIPResponse.Factory.fromLqips(lqips: LQIPs): LQIPResponse =

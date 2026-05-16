@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.MetadataTransformation
 import io.konifer.domain.variant.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -20,7 +21,7 @@ class StripMetadataTest {
         @Test
         fun `removes exif tags if exif is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -44,6 +45,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.EXIF),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -56,7 +58,7 @@ class StripMetadataTest {
         @Test
         fun `removes xmp tags if xmp is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -77,6 +79,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.XMP),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -89,7 +92,7 @@ class StripMetadataTest {
         @Test
         fun `removes iptc tags if iptc is to be stripped`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -110,6 +113,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.IPTC),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -122,7 +126,7 @@ class StripMetadataTest {
         @Test
         fun `does not throw if nothing to remove`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -148,6 +152,7 @@ class StripMetadataTest {
                                     MetadataTransformation(
                                         strip = setOf(MetadataType.XMP, MetadataType.IPTC, MetadataType.EXIF),
                                     ),
+                                colorSpace = ColorSpace.SRGB,
                             ),
                         )
                     }
@@ -159,7 +164,7 @@ class StripMetadataTest {
         @Test
         fun `does nothing if nothing is to be removed`() {
             val image =
-                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.use {
+                javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.use {
                     it.readBytes()
                 }
             Vips.run { arena ->
@@ -178,6 +183,7 @@ class StripMetadataTest {
                                 MetadataTransformation(
                                     strip = emptySet(),
                                 ),
+                            colorSpace = ColorSpace.SRGB,
                         ),
                     )
 

@@ -9,6 +9,7 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Attributes
@@ -161,6 +162,9 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         height = 10,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
+                        pageCount = 5,
+                        loop = 0,
                     )
 
                 val variantTransformation =
@@ -169,6 +173,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val bucket = "bucket"
                 val key = UuidCreator.getRandomBasedFast().toString()
@@ -187,6 +192,9 @@ abstract class AssetRepositoryTest {
                     this.attributes.height shouldBe attributes.height
                     this.attributes.width shouldBe attributes.width
                     this.attributes.format shouldBe attributes.format
+                    this.attributes.colorSpace shouldBe attributes.colorSpace
+                    this.attributes.pageCount shouldBe attributes.pageCount
+                    this.attributes.loop shouldBe attributes.loop
                     this.transformation shouldBe variantTransformation
                     this.objectStoreBucket shouldBe bucket
                     this.objectStoreKey shouldBe key
@@ -217,6 +225,7 @@ abstract class AssetRepositoryTest {
                                     height = 100,
                                     width = 100,
                                     format = ImageFormat.PNG,
+                                    colorSpace = ColorSpace.SRGB,
                                 ),
                         ),
                     )
@@ -233,6 +242,7 @@ abstract class AssetRepositoryTest {
                         width = 50,
                         height = 100,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
                     )
 
                 val transformation =
@@ -240,6 +250,7 @@ abstract class AssetRepositoryTest {
                         height = 50,
                         width = 100,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -356,6 +367,7 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val variant =
                     createPendingVariant(
@@ -388,6 +400,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -429,6 +442,7 @@ abstract class AssetRepositoryTest {
                                 .first()
                                 .attributes.format,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     )
 
                 val assetData =
@@ -735,6 +749,7 @@ abstract class AssetRepositoryTest {
                                     height = 10,
                                     width = 10,
                                     format = ImageFormat.PNG,
+                                    colorSpace = ColorSpace.SRGB,
                                 ),
                         )
 
@@ -746,6 +761,7 @@ abstract class AssetRepositoryTest {
                         height = 5,
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
+                        colorSpace = ColorSpace.SRGB,
                     )
 
                 val fetched = repository.fetchAllByPath("/users/123", transformation, limit = 10)
@@ -771,6 +787,7 @@ abstract class AssetRepositoryTest {
                                     height = 10,
                                     width = 10,
                                     format = ImageFormat.PNG,
+                                    colorSpace = ColorSpace.SRGB,
                                 ),
                         )
                     repository.storeNewVariant(pendingVariant)
@@ -783,6 +800,7 @@ abstract class AssetRepositoryTest {
                             height = 10,
                             width = 10,
                             format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                         limit = 10,
                     )
@@ -813,6 +831,7 @@ abstract class AssetRepositoryTest {
                                     height = 10,
                                     width = 10,
                                     format = ImageFormat.PNG,
+                                    colorSpace = ColorSpace.SRGB,
                                 ),
                         )
                     repository.storeNewVariant(pendingVariant)
@@ -1248,6 +1267,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         fit = fit,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1288,6 +1308,7 @@ abstract class AssetRepositoryTest {
                         height = 10,
                         width = 10,
                         format = format,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1297,6 +1318,7 @@ abstract class AssetRepositoryTest {
                                 height = 10,
                                 width = 10,
                                 format = format,
+                                colorSpace = ColorSpace.SRGB,
                             ),
                     )
 
@@ -1335,6 +1357,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         rotate = rotate,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1376,6 +1399,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         horizontalFlip = horizontalFlip,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1417,6 +1441,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         filter = filter,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1458,6 +1483,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         gravity = gravity,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1498,6 +1524,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         quality = 10,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1538,6 +1565,7 @@ abstract class AssetRepositoryTest {
                         width = 10,
                         format = ImageFormat.PNG,
                         blur = 10,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1582,6 +1610,7 @@ abstract class AssetRepositoryTest {
                                 amount = 10,
                                 color = emptyList(),
                             ),
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1633,6 +1662,7 @@ abstract class AssetRepositoryTest {
                                 amount = 0,
                                 color = listOf(255, 255, 255, 255),
                             ),
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1683,6 +1713,7 @@ abstract class AssetRepositoryTest {
                             MetadataTransformation(
                                 strip = setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC),
                             ),
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1718,6 +1749,49 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `can fetch variant by color space`() =
+            runTest {
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+                repository.markReady(persisted.markReady(LocalDateTime.now()))
+                val transformation =
+                    Transformation(
+                        height = 10,
+                        width = 10,
+                        format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.P3,
+                    )
+                val pendingVariant =
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation = transformation,
+                    )
+                val persistedVariant = repository.storeNewVariant(pendingVariant)
+
+                val fetchedAsset =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = transformation,
+                    )
+                fetchedAsset shouldNotBe null
+                fetchedAsset!!.variants shouldHaveSize 1
+                fetchedAsset.variants.first().id shouldBe persistedVariant.id
+
+                val noVariant =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation =
+                            transformation.copy(
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                    )
+                noVariant shouldNotBe null
+                noVariant!!.variants shouldHaveSize 0
+            }
+
+        @Test
         fun `can fetch variant by all transformations at once`() =
             runTest {
                 val pending = createPendingAsset()
@@ -1731,7 +1805,7 @@ abstract class AssetRepositoryTest {
                         horizontalFlip = true,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         fit = Fit.STRETCH,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                         gravity = Gravity.ENTROPY,
                         quality = 50,
                         padding =
@@ -1743,6 +1817,7 @@ abstract class AssetRepositoryTest {
                             MetadataTransformation(
                                 strip = setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC),
                             ),
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
                     createPendingVariant(
@@ -1850,6 +1925,7 @@ abstract class AssetRepositoryTest {
                         format = ImageFormat.HEIC,
                         height = 400,
                         width = 400,
+                        colorSpace = ColorSpace.SRGB,
                     )
 
                 val pendingVariant =

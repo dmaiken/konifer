@@ -3,9 +3,12 @@ package io.konifer.infrastructure.vips.transformer
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsExtend
+import app.photofox.vipsffm.enums.VipsInterpretation
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
@@ -42,12 +45,27 @@ object Pad : VipsTransformer {
             throw IllegalArgumentException("Illegal background definition: ${transformation.padding.color}")
         }
 
-        val preprocessedBackground = addOrRemoveAlphaIfNeeded(source, transformation)
+        // Check canvas state and padding intent
+        val bands = source.getInt(OPTION_BANDS)
+        val isGrayscaleCanvas = bands == 1 || (bands == 2 && source.hasAlpha())
+        val isColorfulPadding = color[0] != color[1] || color[1] != color[2]
+
+        val isGrayscaleRequested = transformation.colorSpace == ColorSpace.Grayscale && transformation.isColorSpaceLocked
+
+        // Only inflate to 3-band if they asked for color padding AND didn't explicitly lock the space to Grayscale
+        val workingSource =
+            if (isGrayscaleCanvas && isColorfulPadding && !isGrayscaleRequested) {
+                logger.debug { "Grayscale canvas but colorful padding requested. Re-inflating canvas to sRGB." }
+                source.colourspace(VipsInterpretation.INTERPRETATION_sRGB)
+            } else {
+                source
+            }
+
+        val preprocessedBackground = addOrRemoveAlphaIfNeeded(workingSource, transformation)
         val preprocessedSource =
             addAlphaBandToImageIfNeeded(
-                source = source,
+                source = workingSource,
                 requiresAlpha = preprocessedBackground.size == 4,
-                backgroundColor = color,
             )
 
         val processed =
@@ -71,31 +89,54 @@ object Pad : VipsTransformer {
         transformation: Transformation,
     ): List<Double> {
         val color = transformation.padding.color
-        if (!transformation.format.vipsProperties.supportsAlpha) {
+        val formatSupportsAlpha = transformation.format.vipsProperties.supportsAlpha
+        val bands = source.getInt(OPTION_BANDS)
+
+        // Determine Base Color (Luminance vs RGB)
+        // Grayscale images are 1 band (or 2 if they already have alpha)
+        val isGrayscale = bands == 1 || (bands == 2 && source.hasAlpha())
+
+        val baseColor =
+            if (isGrayscale) {
+                logger.debug { "Source is grayscale. Crushing RGB padding color to luminance." }
+                listOf(calculateLuminance(color))
+            } else {
+                color.take(3).map { it.toDouble() }
+            }
+
+        if (!formatSupportsAlpha) {
             logger.debug { "Format ${transformation.format} does not support alpha, stripping alpha from background" }
-            return color.take(3).map { it.toDouble() }
+            return baseColor // Returns 1 or 3 bands
         }
-        return if (source.hasAlpha() && color.size == 3) {
-            // Add alpha band to background
-            logger.debug { "Source has an alpha band and background does not, adding opaque alpha band (255)" }
-            listOf(color[0], color[1], color[2], 255)
+
+        // The image needs an alpha channel if it already has one,
+        // OR if the user explicitly requested a transparent padding color.
+        val requestedAlpha = if (color.size == 4) color[3].toDouble() else 255.0
+        val needsAlpha = source.hasAlpha() || requestedAlpha < 255.0
+
+        return if (needsAlpha) {
+            baseColor + requestedAlpha // Returns 2 or 4 bands
         } else {
-            color
-        }.map { it.toDouble() }
+            baseColor // Returns 1 or 3 bands
+        }
     }
 
     private fun addAlphaBandToImageIfNeeded(
         source: VImage,
         requiresAlpha: Boolean,
-        backgroundColor: List<Int>,
     ): VImage {
         if (requiresAlpha && source.hasAlpha()) {
             return source
         }
         if (requiresAlpha) {
-            logger.debug { "Source does not have an alpha band but one is required for color: $backgroundColor, adding opaque alpha band" }
+            logger.debug { "Source lacks alpha but padding requires it. Adding opaque alpha band." }
             return source.bandjoinConst(alphaBand)
         }
         return source
+    }
+
+    private fun calculateLuminance(color: List<Int>): Double {
+        // Standard Rec. 709 luminance matching the Grayscale matrix
+        return (color[0] * 0.2126) + (color[1] * 0.7152) + (color[2] * 0.0722)
     }
 }

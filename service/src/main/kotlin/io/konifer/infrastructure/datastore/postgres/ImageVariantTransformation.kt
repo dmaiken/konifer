@@ -6,6 +6,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.MetadataTransformation
@@ -30,6 +31,8 @@ data class ImageVariantTransformation(
     val quality: Int = format.vipsProperties.defaultQuality,
     val padding: ImageVariantPadding = ImageVariantPadding.default,
     val metadata: ImageVariantMetadata = ImageVariantMetadata.default,
+    @Serializable(with = ColorSpaceSerializer::class)
+    val colorSpace: ColorSpace = ColorSpace.SRGB,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -46,6 +49,7 @@ data class ImageVariantTransformation(
                 quality = attributes.format.vipsProperties.defaultQuality,
                 padding = ImageVariantPadding.default,
                 metadata = ImageVariantMetadata.default,
+                colorSpace = attributes.colorSpace,
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -62,6 +66,7 @@ data class ImageVariantTransformation(
                 quality = transformation.quality,
                 padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
                 metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
+                colorSpace = transformation.colorSpace,
             )
     }
 
@@ -82,6 +87,11 @@ data class ImageVariantTransformation(
                     amount = this.padding.amount,
                     color = this.padding.color,
                 ),
+            metadata =
+                MetadataTransformation(
+                    strip = this.metadata.strip.toSet(),
+                ),
+            colorSpace = this.colorSpace,
         )
 }
 

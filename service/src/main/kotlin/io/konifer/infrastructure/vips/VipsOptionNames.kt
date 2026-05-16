@@ -15,4 +15,8 @@ object VipsOptionNames {
     const val OPTION_N = "n"
     const val OPTION_ORIENTATION = "orientation"
     const val OPTION_LOOP = "loop"
+    const val OPTION_BLACK_POINT_COMPENSATION = "black-point-compensation"
+    const val OPTION_INTENT = "intent"
+    const val OPTION_SUBSAMPLE_MODE = "subsample_mode"
+    const val OPTION_ENCODER = "encoder"
 }

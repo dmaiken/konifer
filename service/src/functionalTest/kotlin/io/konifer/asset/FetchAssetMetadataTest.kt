@@ -91,12 +91,13 @@ class FetchAssetMetadataTest {
                 gravity = "attention",
                 rotate = "90",
                 flip = "v",
-                filter = "greyscale",
+                filter = "sepia",
                 blur = 10,
                 quality = 90,
                 pad = 10,
                 padColor = "#123456",
                 strip = "xmp,exif",
+                colorSpace = "p3",
                 expectCacheHit = false,
             )
 
@@ -114,12 +115,13 @@ class FetchAssetMetadataTest {
                         gravity shouldBe Gravity.ATTENTION
                         rotate shouldBe Rotate.TWO_HUNDRED_SEVENTY
                         flip shouldBe Flip.H
-                        filter shouldBe Filter.GREYSCALE
+                        filter shouldBe Filter.SEPIA
                         blur shouldBe 10
                         quality shouldBe 90
                         padding.amount shouldBe 10
                         padding.color shouldBe listOf(18, 52, 86, 255)
                         metadata.strip shouldBe listOf(MetadataType.EXIF, MetadataType.XMP)
+                        colorSpace shouldBe "p3"
                     }
                 }
             }

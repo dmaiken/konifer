@@ -7,6 +7,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -31,6 +32,7 @@ class RequestedTransformationTest :
                     padColor("#123456")
                     profile("profile")
                     strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
+                    colorSpace(TransformableColorSpace.P3)
                 }
 
             val createdByBuilder =
@@ -50,6 +52,7 @@ class RequestedTransformationTest :
                     .padColor("#123456")
                     .profile("profile")
                     .strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
+                    .colorSpace(TransformableColorSpace.P3)
                     .build()
 
             createdByDsl.height shouldNotBe null shouldBe createdByBuilder.height
@@ -66,5 +69,6 @@ class RequestedTransformationTest :
             createdByDsl.padColor shouldNotBe null shouldBe createdByBuilder.padColor
             createdByDsl.profile shouldNotBe null shouldBe createdByBuilder.profile
             createdByDsl.strip shouldNotBe null shouldBe createdByBuilder.strip
+            createdByDsl.colorSpace shouldNotBe null shouldBe createdByBuilder.colorSpace
         }
     })

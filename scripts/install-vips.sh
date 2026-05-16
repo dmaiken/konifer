@@ -46,7 +46,8 @@ if [ "$INSTALL_DEPS" = true ]; then
       libpango1.0-dev libpng-dev \
       libwebp-dev libheif-dev libde265-dev \
       libjxl-dev libgif-dev libcgif-dev libaom-dev \
-      libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
+      libheif-plugin-x265 libheif-plugin-svtenc libheif-plugin-libde265 \
+      libheif-plugin-dav1d libjemalloc-dev
   fi
 fi
 

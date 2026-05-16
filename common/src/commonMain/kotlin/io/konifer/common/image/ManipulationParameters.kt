@@ -14,6 +14,7 @@ object ManipulationParameters {
     const val PAD = "pad"
     const val PAD_COLOR = "pad-c"
     const val STRIP = "strip"
+    const val COLOR_SPACE = "cs"
 
     const val VARIANT_PROFILE = "profile"
 
@@ -36,5 +37,6 @@ object ManipulationParameters {
             PAD,
             PAD_COLOR,
             STRIP,
+            COLOR_SPACE,
         )
 }

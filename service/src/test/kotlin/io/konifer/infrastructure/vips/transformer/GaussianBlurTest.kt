@@ -6,6 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
@@ -198,5 +199,6 @@ class GaussianBlurTest {
             width = 10,
             format = ImageFormat.PNG,
             blur = blur,
+            colorSpace = ColorSpace.SRGB,
         )
 }

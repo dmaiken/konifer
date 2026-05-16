@@ -421,7 +421,7 @@ class ImagePreProcessingTest {
             """.trimIndent(),
         ) {
             val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpeg")!!.readBytes()
+            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
             val request = StoreAssetRequest()
             val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
 
@@ -433,6 +433,25 @@ class ImagePreProcessingTest {
                 image.fields shouldNotContain "xmp-data"
                 image.fields shouldNotContain "iptc-data"
             }
+        }
+
+    @Test
+    fun `color space can be transformed if configured`() =
+        testInMemory(
+            """
+            paths = [
+            {
+                path = "/**"
+                preprocessing {
+                    enabled = true
+                    image {
+                        cs = srgb
+                    }
+                }
+            }
+            ]
+            """.trimIndent(),
+        ) {
         }
 
     /**

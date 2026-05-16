@@ -8,7 +8,9 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.variant.Transformation
@@ -71,6 +73,14 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 arguments(" ", emptySet<MetadataType>()),
                 arguments(" ,, ", emptySet<MetadataType>()),
                 arguments(null, emptySet<MetadataType>()),
+            )
+
+        @JvmStatic
+        fun colorSpaceSource() =
+            listOf(
+                arguments(TransformableColorSpace.ORIGIN, ColorSpace.SRGB),
+                arguments(TransformableColorSpace.SRGB, ColorSpace.SRGB),
+                arguments(TransformableColorSpace.P3, ColorSpace.P3),
             )
     }
 
@@ -255,7 +265,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         height = 100,
                         width = 100,
                         format = ImageFormat.PNG,
-                        filter = Filter.GREYSCALE,
+                        filter = Filter.SEPIA,
                     )
                 val normalized =
                     transformationNormalizer.normalize(
@@ -264,7 +274,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.filter shouldBe Filter.GREYSCALE
+                normalized.filter shouldBe Filter.SEPIA
 
                 coVerify(exactly = 0) {
                     assetRepository.fetchByPath(
@@ -273,6 +283,54 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         Transformation.ORIGINAL_VARIANT,
                     )
                 }
+            }
+    }
+
+    @Nested
+    inner class NormalizeFilterTests {
+        @ParameterizedTest
+        @EnumSource(Filter::class)
+        fun `can normalize filter`(filter: Filter) =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        filter = filter,
+                    )
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.filter shouldBe filter
+            }
+
+        @ParameterizedTest
+        @EnumSource(Filter::class, names = ["GRAYSCALE", "SEPIA"])
+        fun `grayscale filter is ignored if requested color space is grayscale`(filter: Filter) =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 100,
+                        width = 100,
+                        format = ImageFormat.PNG,
+                        filter = filter,
+                        colorSpace = TransformableColorSpace.GRAYSCALE,
+                    )
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.filter shouldBe Filter.NONE
             }
     }
 
@@ -667,6 +725,27 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe ImageFormat.JPEG
             }
 
+        @Test
+        fun `avif quality is capped at 99`() =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.AVIF,
+                        quality = 100,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        transformationNormalizer.normalize(
+                            treePath = asset.path,
+                            entryId = asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.quality shouldBe 99
+                normalized.format shouldBe ImageFormat.AVIF
+            }
+
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
         fun `if quality is not supplied then format-specific default is used`(format: ImageFormat) =
@@ -832,7 +911,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
     inner class NormalizeMetadataTests {
         @ParameterizedTest
         @MethodSource("io.konifer.service.transformation.TransformationNormalizerTest#stripMetadataSource")
-        fun `normalized strip metadata when supplied`(
+        fun `normalizes strip metadata when supplied`(
             requested: String?,
             expected: Set<MetadataType>,
         ) = runTest {
@@ -849,6 +928,30 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     requested = requested,
                 )
             normalized.metadata.strip shouldContainExactly expected
+        }
+    }
+
+    @Nested
+    inner class NormalizeColorSpaceTests {
+        @ParameterizedTest
+        @MethodSource("io.konifer.service.transformation.TransformationNormalizerTest#colorSpaceSource")
+        fun `normalizes strip metadata when supplied`(
+            requested: TransformableColorSpace,
+            expected: ColorSpace,
+        ) = runTest {
+            val asset = storePersistedAsset()
+            val requested =
+                createRequestedImageTransformation(
+                    colorSpace = requested,
+                    format = ImageFormat.PNG,
+                )
+            val normalized =
+                transformationNormalizer.normalize(
+                    treePath = asset.path,
+                    entryId = asset.entryId,
+                    requested = requested,
+                )
+            normalized.colorSpace shouldBe expected
         }
     }
 }

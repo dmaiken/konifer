@@ -76,14 +76,14 @@ jobs:
             libpango1.0-dev libpng-dev \
             libwebp-dev libheif-dev libde265-dev \
             libjxl-dev libgif-dev libcgif-dev libaom-dev \
-            libheif-plugin-x265 libheif-plugin-aomenc libjemalloc-dev
-
+            libheif-plugin-x265 libheif-plugin-svtenc libheif-plugin-libde265 \
+            libheif-plugin-dav1d libjemalloc-dev
       - name: Cache libvips
         id: cache-vips
         uses: actions/cache@v5
         with:
           path: ~/vips-prefix
-          key: ${{ runner.os }}-amd64-vips-${{ hashFiles('scripts/install-vips.sh') }}
+          key: ${{ runner.os }}-amd64-vips-${{ hashFiles('scripts/install-vips.sh', '.github/workflows/*.yml') }}
 
       - name: Compile libvips
         if: steps.cache-vips.outputs.cache-hit != 'true'
@@ -98,7 +98,10 @@ jobs:
 
       - name: Test and Build Service
         # Runs service tests, then builds the fat JAR
-        run: ./gradlew :service:check :service:shadowJar --no-parallel
+        run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
+        env:
+          # Disable AVIF encoder logging except for error
+          SVT_LOG: 1
 
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v4

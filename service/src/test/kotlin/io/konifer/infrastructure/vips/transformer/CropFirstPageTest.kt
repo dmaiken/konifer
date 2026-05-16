@@ -6,6 +6,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
@@ -39,6 +40,7 @@ class CropFirstPageTest {
                         height = source.height,
                         width = source.width,
                         format = format,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 val processed = CropFirstPage.transform(arena, source, transformation)
 
@@ -85,6 +87,7 @@ class CropFirstPageTest {
                         height = source.height,
                         width = source.width,
                         format = format,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
             }
@@ -110,6 +113,7 @@ class CropFirstPageTest {
                         height = source.height,
                         width = source.width,
                         format = format,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
             }
@@ -135,6 +139,7 @@ class CropFirstPageTest {
                         height = source.height,
                         width = source.width,
                         format = format,
+                        colorSpace = ColorSpace.SRGB,
                     )
                 CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe true
             }

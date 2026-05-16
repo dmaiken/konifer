@@ -151,6 +151,7 @@ suspend fun fetchAssetViaRedirect(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: String? = null,
     expectCacheHit: Boolean? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.TemporaryRedirect,
 ): ByteArray? {
@@ -177,6 +178,7 @@ suspend fun fetchAssetViaRedirect(
         pad,
         padColor,
         strip,
+        colorSpace,
     )
     val url = urlBuilder.build()
     val fetchResponse =
@@ -227,6 +229,7 @@ suspend fun fetchAssetContent(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -254,6 +257,7 @@ suspend fun fetchAssetContent(
         pad,
         padColor,
         strip,
+        colorSpace,
     )
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
@@ -309,6 +313,7 @@ suspend fun fetchAssetContentDownload(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: String? = null,
     expectCacheHit: Boolean? = null,
     expectedMimeType: String? = null,
     expectedStatusCode: HttpStatusCode = HttpStatusCode.OK,
@@ -336,6 +341,7 @@ suspend fun fetchAssetContentDownload(
         pad,
         padColor,
         strip,
+        colorSpace,
     )
     val url = urlBuilder.build()
     client.get(url.fullPath).apply {
@@ -390,6 +396,7 @@ suspend fun fetchAssetLink(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: String? = null,
     expectCacheHit: Boolean? = null,
     signature: String? = null,
     labels: Map<String, String> = emptyMap(),
@@ -421,6 +428,7 @@ suspend fun fetchAssetLink(
         pad,
         padColor,
         strip,
+        colorSpace,
     )
     signature?.let {
         urlBuilder.parameters["s"] = signature
@@ -470,7 +478,7 @@ suspend fun assertAssetDoesNotExist(
 
 suspend fun fetchAssetMetadata(
     client: HttpClient,
-    path: String,
+    path: String = "profile",
     entryId: Long? = null,
     order: Order? = null, // CREATED by default
     labels: Map<String, String> = emptyMap(),
@@ -611,6 +619,7 @@ private fun attachVariantModifiers(
     pad: Int? = null,
     padColor: String? = null,
     strip: String? = null,
+    colorSpace: String? = null,
 ) {
     if (profile != null) {
         urlBuilder.parameters.append("profile", profile)
@@ -653,5 +662,8 @@ private fun attachVariantModifiers(
     }
     if (strip != null) {
         urlBuilder.parameters.append("strip", strip)
+    }
+    if (colorSpace != null) {
+        urlBuilder.parameters.append("cs", colorSpace)
     }
 }

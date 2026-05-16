@@ -53,6 +53,7 @@ fun createMetadataResponse() =
                             format = "jpeg",
                             pageCount = 1,
                             loop = 2,
+                            colorSpace = "srgb",
                         ),
                     transformation =
                         TransformationResponse(
@@ -63,7 +64,7 @@ fun createMetadataResponse() =
                             format = "jpeg",
                             rotate = Rotate.ONE_HUNDRED_EIGHTY,
                             flip = Flip.H,
-                            filter = Filter.GREYSCALE,
+                            filter = Filter.SEPIA,
                             blur = 100,
                             quality = 90,
                             padding =
@@ -75,6 +76,7 @@ fun createMetadataResponse() =
                                 MetadataResponse(
                                     strip = listOf(MetadataType.EXIF, MetadataType.IPTC),
                                 ),
+                            colorSpace = "srgb",
                         ),
                     lqip =
                         LQIPResponse(

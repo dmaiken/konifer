@@ -2,6 +2,7 @@ package io.konifer.client
 
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.image.ManipulationParameters.BLUR
+import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
 import io.konifer.common.image.ManipulationParameters.FILTER
 import io.konifer.common.image.ManipulationParameters.FIT
 import io.konifer.common.image.ManipulationParameters.FLIP
@@ -75,4 +76,5 @@ fun URLBuilder.appendTransformationParameters(requestedTransformation: Requested
         .joinToString(",") { it.name.lowercase() }
         .takeIf { it.isNotBlank() }
         ?.let { strip -> parameters.append(STRIP, strip) }
+    requestedTransformation.colorSpace?.let { colorSpace -> parameters.append(COLOR_SPACE, colorSpace.queryParameterValue) }
 }

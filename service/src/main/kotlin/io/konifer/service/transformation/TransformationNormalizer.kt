@@ -1,11 +1,14 @@
 package io.konifer.service.transformation
 
+import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
@@ -20,6 +23,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class TransformationNormalizer(
@@ -116,7 +120,7 @@ class TransformationNormalizer(
             format = format,
             rotate = rotate,
             horizontalFlip = horizontalFlip,
-            filter = requested.filter,
+            filter = normalizeFilter(requested),
             blur = requested.blur ?: 0,
             quality = normalizeQuality(requested, format),
             padding =
@@ -124,7 +128,9 @@ class TransformationNormalizer(
                     amount = requested.pad ?: 0,
                     color = normalizeBackground(requested, format),
                 ),
-            metadata = formatMetadata(requested),
+            metadata = normalizeMetadata(requested),
+            colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
+            isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -192,7 +198,18 @@ class TransformationNormalizer(
             return normalizedFormat.vipsProperties.defaultQuality
         }
 
-        return requested.quality ?: normalizedFormat.vipsProperties.defaultQuality
+        return min(requested.quality ?: normalizedFormat.vipsProperties.defaultQuality, normalizedFormat.vipsProperties.maxQuality)
+    }
+
+    fun normalizeFilter(requested: RequestedTransformation): Filter {
+        if ((requested.filter == Filter.GRAYSCALE || requested.filter == Filter.SEPIA) &&
+            requested.colorSpace == TransformableColorSpace.GRAYSCALE
+        ) {
+            // Skip the filter since the color space will make this filter useless
+            return Filter.NONE
+        }
+
+        return requested.filter
     }
 
     /**
@@ -213,7 +230,7 @@ class TransformationNormalizer(
         return ColorConverter.toRgba(requested.padColor)
     }
 
-    private fun formatMetadata(requested: RequestedTransformation): MetadataTransformation {
+    private fun normalizeMetadata(requested: RequestedTransformation): MetadataTransformation {
         val parsed =
             requested.stripMetadata
                 ?.split(",")
@@ -226,4 +243,15 @@ class TransformationNormalizer(
             strip = parsed,
         )
     }
+
+    private suspend fun normalizeColorSpace(
+        requested: RequestedTransformation,
+        originalAttributesDeferred: Deferred<Attributes>,
+    ): ColorSpace =
+        when (requested.colorSpace) {
+            TransformableColorSpace.ORIGIN -> originalAttributesDeferred.await().colorSpace
+            TransformableColorSpace.P3 -> ColorSpace.P3
+            TransformableColorSpace.SRGB -> ColorSpace.SRGB
+            TransformableColorSpace.GRAYSCALE -> ColorSpace.Grayscale
+        }
 }

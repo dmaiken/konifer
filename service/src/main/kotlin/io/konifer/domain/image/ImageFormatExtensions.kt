@@ -53,6 +53,10 @@ val ImageFormat.vipsProperties: VipsProperties
                     defaultQuality = 50,
                     supportsAlpha = true,
                     supportsPaging = false,
+                    /**
+                     * 100 for SVT1 encoder means lossless compression which is not supported
+                     */
+                    maxQuality = 99,
                 )
             ImageFormat.JPEG_XL ->
                 VipsProperties(

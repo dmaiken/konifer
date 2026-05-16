@@ -12,6 +12,7 @@ import io.konifer.PHash
 import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.transformer.ColorFilter.blackWhiteThreshold
 import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix3x3
@@ -76,7 +77,7 @@ class ColorFilterTest {
                             ColorFilter.transform(
                                 arena = arena,
                                 source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
-                                transformation = colorFilterTransformation(Filter.GREYSCALE),
+                                transformation = colorFilterTransformation(Filter.GRAYSCALE),
                             )
                         transformed.processed.writeToStream(actualStream, format.extension)
 
@@ -119,7 +120,7 @@ class ColorFilterTest {
                                 VipsOption.Int("n", -1),
                                 VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                             ),
-                        transformation = colorFilterTransformation(Filter.GREYSCALE),
+                        transformation = colorFilterTransformation(Filter.GRAYSCALE),
                     )
                 transformed.processed.writeToStream(actualStream, format.extension)
 
@@ -404,5 +405,6 @@ class ColorFilterTest {
             width = 10,
             format = ImageFormat.PNG,
             filter = filter,
+            colorSpace = ColorSpace.SRGB,
         )
 }

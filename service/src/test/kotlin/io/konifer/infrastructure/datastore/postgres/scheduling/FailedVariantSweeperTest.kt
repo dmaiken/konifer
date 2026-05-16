@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.datastore.createPendingAsset
@@ -71,6 +72,7 @@ class FailedVariantSweeperTest {
                             height = 500,
                             width = 100,
                             format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                 ).let {
                     assetRepository.storeNewVariant(it)
@@ -103,6 +105,7 @@ class FailedVariantSweeperTest {
                     height = 500,
                     width = 100,
                     format = ImageFormat.PNG,
+                    colorSpace = ColorSpace.SRGB,
                 )
             val readyVariant =
                 createPendingVariant(
@@ -148,6 +151,7 @@ class FailedVariantSweeperTest {
                             height = 500,
                             width = 100,
                             format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                 ).let {
                     assetRepository.storeNewVariant(it)
@@ -182,6 +186,7 @@ class FailedVariantSweeperTest {
                             height = 500,
                             width = 100,
                             format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                 ).let {
                     assetRepository.storeNewVariant(it)
@@ -199,6 +204,7 @@ class FailedVariantSweeperTest {
                             height = 500,
                             width = 100,
                             format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
                         ),
                 ).let {
                     assetRepository.storeNewVariant(it)

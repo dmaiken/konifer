@@ -7,6 +7,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromString
 import io.ktor.server.config.ApplicationConfig
@@ -27,7 +28,8 @@ data class RequestedTransformation(
     val quality: Int?,
     val pad: Int?,
     val padColor: String?,
-    val stripMetadata: String? = null,
+    val stripMetadata: String?,
+    val colorSpace: TransformableColorSpace,
 ) {
     init {
         validate()
@@ -50,6 +52,7 @@ data class RequestedTransformation(
                 pad = null,
                 padColor = null,
                 stripMetadata = null,
+                colorSpace = TransformableColorSpace.default,
             )
 
         fun create(applicationConfig: ApplicationConfig): RequestedTransformation =
@@ -68,6 +71,7 @@ data class RequestedTransformation(
                 pad = applicationConfig.tryGetString(ManipulationParameters.PAD)?.toInt(),
                 padColor = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
                 stripMetadata = applicationConfig.tryGetString(ManipulationParameters.STRIP),
+                colorSpace = TransformableColorSpace.fromString(applicationConfig.tryGetString(ManipulationParameters.COLOR_SPACE)),
             ).apply {
                 validate()
             }

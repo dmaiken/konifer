@@ -3,7 +3,9 @@ package io.konifer.domain.variant
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
+import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.pageSafeHeight
@@ -14,10 +16,11 @@ data class Attributes(
     val height: Int,
     val format: ImageFormat,
     val orientation: Int = 1,
+    val colorSpace: ColorSpace,
     val pageCount: Int? = null,
     val loop: Int? = null,
 ) {
-    companion object AttributesFactory {
+    companion object Factory {
         fun createAttributes(
             image: VImage,
             sourceFormat: ImageFormat,
@@ -36,6 +39,7 @@ data class Attributes(
                 width = image.width,
                 height = height,
                 format = destinationFormat,
+                colorSpace = ImageColorSpaceExtractor.extract(image),
                 orientation = image.getInt(VipsOptionNames.OPTION_ORIENTATION) ?: 1,
                 pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else null,
                 loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,

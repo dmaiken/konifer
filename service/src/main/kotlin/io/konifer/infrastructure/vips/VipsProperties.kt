@@ -5,4 +5,5 @@ data class VipsProperties(
     val defaultQuality: Int,
     val supportsAlpha: Boolean,
     val supportsPaging: Boolean,
+    val maxQuality: Int = 100,
 )

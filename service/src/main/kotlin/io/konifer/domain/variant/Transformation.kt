@@ -6,6 +6,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import kotlin.collections.emptyList
 
@@ -25,6 +26,12 @@ data class Transformation(
     val filter: Filter = Filter.default,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
+    val colorSpace: ColorSpace,
+    /**
+     * Whether the customer explicitly requested this color space or if it was derived from the
+     * source image's attributes
+     */
+    val isColorSpaceLocked: Boolean = false,
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
 ) {
@@ -35,6 +42,8 @@ data class Transformation(
                 width = 1,
                 height = 1,
                 format = ImageFormat.PNG,
+                colorSpace = ColorSpace.SRGB,
+                isColorSpaceLocked = false,
             )
     }
 
@@ -53,7 +62,8 @@ data class Transformation(
                 blur == it.blur &&
                 quality == it.quality &&
                 padding == it.padding &&
-                metadata == it.metadata
+                metadata == it.metadata &&
+                colorSpace == it.colorSpace
         }
     }
 
