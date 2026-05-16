@@ -1,14 +1,35 @@
 changelog:
+  exclude:
+    labels:
+      - duplicate
+      - question
+      - invalid
+    authors:
+      - github-actions[bot]
+      - dependabot[bot]
+
   categories:
-    - title: Features
+    - title: "🚀 Features"
       labels:
-        - '*'
-      exclude:
-        labels:
-          - dependencies
-    - title: Client
+        - feature
+        - enhancement
+    - title: "🐛 Bug Fixes"
       labels:
-        - client
-    - title: Dependencies
+        - bug
+        - fix
+    - title: "📦 Dependencies"
       labels:
         - dependencies
+    - title: "💻 Client"
+      labels:
+        - client
+    - title: "📝 Documentation"
+      labels:
+        - documentation
+    - title: "🏠 Housekeeping"
+      labels:
+        - chore
+        - refactor
+    - title: "🔄 Other Changes"
+      labels:
+        - "*"
