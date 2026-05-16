@@ -14,6 +14,7 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
 import io.konifer.domain.image.toColorSpace
+import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
@@ -46,6 +47,7 @@ import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlin.math.min
 
 class ImageAssetOnDemandVariantTest {
     @Test
@@ -581,7 +583,7 @@ class ImageAssetOnDemandVariantTest {
                     .writeToStream(
                         expectedStream,
                         variantFormat.extension,
-                        VipsOption.Int(VipsOptionNames.OPTION_QUALITY, quality),
+                        VipsOption.Int(VipsOptionNames.OPTION_QUALITY, min(quality, variantFormat.vipsProperties.maxQuality)),
                     )
 
                 result shouldBeSameSizeAs expectedStream.toByteArray()

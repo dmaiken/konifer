@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class TransformationNormalizer(
@@ -197,7 +198,7 @@ class TransformationNormalizer(
             return normalizedFormat.vipsProperties.defaultQuality
         }
 
-        return requested.quality ?: normalizedFormat.vipsProperties.defaultQuality
+        return min(requested.quality ?: normalizedFormat.vipsProperties.defaultQuality, normalizedFormat.vipsProperties.maxQuality)
     }
 
     fun normalizeFilter(requested: RequestedTransformation): Filter {

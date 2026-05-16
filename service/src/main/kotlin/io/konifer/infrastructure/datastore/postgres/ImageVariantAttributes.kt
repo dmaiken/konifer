@@ -10,8 +10,11 @@ data class ImageVariantAttributes(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
+    /**
+     * Unknown is the default because existing images may not have this persisted
+     */
     @Serializable(with = ColorSpaceSerializer::class)
-    val colorSpace: ColorSpace,
+    val colorSpace: ColorSpace = ColorSpace.Unknown,
     val pageCount: Int? = null,
     val loop: Int? = null,
 ) {

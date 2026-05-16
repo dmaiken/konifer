@@ -99,6 +99,9 @@ jobs:
       - name: Test and Build Service
         # Runs service tests, then builds the fat JAR
         run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
+        env:
+          # Disable AVIF encoder logging except for error
+          SVT_LOG: 1
 
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v4

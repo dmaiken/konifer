@@ -107,8 +107,11 @@ RUN chown -R konifer:konifer /app
 
 USER konifer
 
-## Necessary for jemalloc
+# Necessary for jemalloc
 ENV LD_PRELOAD="libjemalloc.so.2"
+
+# Disable AVIF encoder logging except for error
+SVT_LOG=1
 
 ENV JAVA_OPTS=""
 EXPOSE 8080

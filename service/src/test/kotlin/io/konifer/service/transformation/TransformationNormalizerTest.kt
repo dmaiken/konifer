@@ -725,6 +725,27 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.format shouldBe ImageFormat.JPEG
             }
 
+        @Test
+        fun `avif quality is capped at 99`() =
+            runTest {
+                val asset = storePersistedAsset()
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.AVIF,
+                        quality = 100,
+                    )
+                val normalized =
+                    shouldNotThrowAny {
+                        transformationNormalizer.normalize(
+                            treePath = asset.path,
+                            entryId = asset.entryId,
+                            requested = requested,
+                        )
+                    }
+                normalized.quality shouldBe 99
+                normalized.format shouldBe ImageFormat.AVIF
+            }
+
         @ParameterizedTest
         @EnumSource(ImageFormat::class)
         fun `if quality is not supplied then format-specific default is used`(format: ImageFormat) =

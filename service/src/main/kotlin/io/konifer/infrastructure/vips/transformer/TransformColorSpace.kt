@@ -9,18 +9,14 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BLACK_POINT_COMPENSATION
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTENT
-import io.konifer.infrastructure.vips.format
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.konifer.infrastructure.vips.transformer.TransformColorSpace.ProfileNames.DISPLAY_P3
 import io.konifer.infrastructure.vips.transformer.TransformColorSpace.ProfileNames.GRAYSCALE
 import io.konifer.infrastructure.vips.transformer.TransformColorSpace.ProfileNames.SRGB
-import io.ktor.util.logging.KtorSimpleLogger
 import java.lang.foreign.Arena
 
 object TransformColorSpace : VipsTransformer {
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-
     object ProfileNames {
         const val SRGB = "srgb"
         const val DISPLAY_P3 = "p3"
@@ -55,7 +51,6 @@ object TransformColorSpace : VipsTransformer {
                 )
             }
 
-        logger.info("Colorspace transformation: format is: ${source.format()}")
         return VipsTransformationResult(
             processed = transformed,
             requiresLqipRegeneration = true,
