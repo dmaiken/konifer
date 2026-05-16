@@ -21,6 +21,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
 jobs:
   compile-and-lint:
@@ -51,7 +52,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Run Client Tests
-        run: ./gradlew :client:allTests --no-parallel
+        run: ./gradlew :client:allTests
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
 
@@ -96,12 +97,22 @@ jobs:
           sudo cp -a ~/vips-prefix/* /usr/local/
           sudo ldconfig
 
-      - name: Test and Build Service
-        # Runs service tests, then builds the fat JAR
-        run: ./gradlew :service:check :service:shadowJar -x detekt -x ktlintCheck --no-parallel
+      - name: Run Unified Tests & Coverage
+        run: ./gradlew koverHtmlReport koverXmlReport -x detekt -x ktlintCheck
         env:
-          # Disable AVIF encoder logging except for error
           SVT_LOG: 1
+
+      - name: Build Service Fat JAR
+        run: ./gradlew :service:shadowJar -x test -x detekt -x ktlintCheck
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/reports/kover/report.xml
+          name: codecov-umbrella
+          flags: tests
+          fail_ci_if_error: true
 
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v4

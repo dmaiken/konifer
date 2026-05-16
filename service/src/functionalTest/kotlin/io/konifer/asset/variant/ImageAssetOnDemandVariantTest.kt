@@ -542,12 +542,19 @@ class ImageAssetOnDemandVariantTest {
                     ).second!!
                 val expectedStream = ByteArrayOutputStream()
                 Vips.run { arena ->
+                    val options =
+                        buildList<VipsOption> {
+                            add(VipsOption.Int(OPTION_QUALITY, min(quality, variantFormat.vipsProperties.maxQuality)))
+                            if (variantFormat == ImageFormat.AVIF) {
+                                add(VipsOption.Enum("encoder", VipsForeignHeifEncoder.FOREIGN_HEIF_ENCODER_SVT))
+                            }
+                        }.toTypedArray()
                     VImage
                         .newFromBytes(arena, image)
                         .writeToStream(
                             expectedStream,
                             variantFormat.extension,
-                            VipsOption.Int(VipsOptionNames.OPTION_QUALITY, quality),
+                            *options,
                         )
 
                     // Cannot use BufferedImage since AVIF is not supported

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotest)
     alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.kover)
 }
 
 group = "io.konifer"
