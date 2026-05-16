@@ -58,6 +58,11 @@ fun URLBuilder.appendQuerySelectors(
     }
 }
 
+fun URLBuilder.appendEntryId(entryId: Long) {
+    appendPathSegments(PATH_SEPARATOR)
+    appendPathSegments("entry", entryId.toString())
+}
+
 fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
     requestedTransformation.width?.let { width -> parameters.append(WIDTH, width.toString()) }
     requestedTransformation.height?.let { height -> parameters.append(HEIGHT, height.toString()) }

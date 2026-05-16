@@ -15,6 +15,7 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
@@ -260,6 +261,24 @@ class KoniferClient internal constructor(
             request = request,
             channel = ByteReadChannel(bytes),
         )
+
+    suspend fun updateAsset(
+        path: String,
+        entryId: Long,
+        request: StoreAssetRequest,
+    ): KoniferResponse<AssetResponse> =
+        safeApiCall {
+            httpClient
+                .put {
+                    url {
+                        appendPathSegments(ASSETS_BASE_PATH)
+                        appendPathSegments(path.splitPath())
+                        appendEntryId(entryId)
+                    }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }.toKoniferResponse()
+        }
 
     fun close() {
         httpClient.close()
