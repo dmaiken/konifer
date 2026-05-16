@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.license)
+    alias(libs.plugins.kover)
 }
 
 group = "io.konifer"
@@ -80,4 +81,35 @@ subprojects {
 }
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    // Opt-in
+    kover(project(":service"))
+    kover(project(":client"))
+    kover(project(":common"))
+}
+
+kover {
+    reports {
+        verify {
+            rule("Maintain 85% Line Coverage") {
+                // Total line coverage
+                bound {
+                    minValue = 85
+                }
+            }
+        }
+        filters {
+            excludes {
+                // This drops all jOOQ generated records, tables, and routines from the coverage calculation.
+                classes(
+                    "konifer.jooq.*",
+                )
+            }
+        }
+    }
+}
+
+tasks.koverXmlReport {
+    // Enable for Codecov
+    enabled = true
 }

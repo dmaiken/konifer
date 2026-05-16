@@ -32,6 +32,7 @@ hipparchus-version = "4.0.3"
 google-devtools-ksp-version = "2.3.6"
 kotlinx-datetime-version = "0.7.1"
 metadata-extractor-version = "2.20.0"
+kover-version = "0.9.8"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -106,7 +107,6 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
@@ -114,3 +114,4 @@ detekt = { id = "dev.detekt", version.ref = "detekt-version" }
 license = { id = "com.github.jk1.dependency-license-report", version.ref = "license-version" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "google-devtools-ksp-version" }
 kotest = { id = "io.kotest", version.ref = "kotest-version" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover-version" }

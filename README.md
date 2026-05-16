@@ -1,5 +1,11 @@
 # Konifer - Self-Hosted Digital Asset Management
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmaiken/konifer/build.yml)
+![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
+
+
 ```bash
 docker pull ghcr.io/dmaiken/konifer:latest
 ````

@@ -1,0 +1,9 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 85%
+    patch: false
+
+ignore:
+  - "**/generated/**"
