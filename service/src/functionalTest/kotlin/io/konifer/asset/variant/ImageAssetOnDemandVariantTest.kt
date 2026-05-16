@@ -6,6 +6,8 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAngle
 import app.photofox.vipsffm.enums.VipsDirection
+import app.photofox.vipsffm.enums.VipsForeignHeifEncoder
+import app.photofox.vipsffm.enums.VipsForeignSubsample
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.byteArrayToImage
@@ -18,6 +20,7 @@ import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
@@ -577,13 +580,21 @@ class ImageAssetOnDemandVariantTest {
                     expectCacheHit = false,
                 ).second!!
             val expectedStream = ByteArrayOutputStream()
+            val options =
+                buildList<VipsOption> {
+                    add(VipsOption.Int(OPTION_QUALITY, min(quality, variantFormat.vipsProperties.maxQuality)))
+                    if (variantFormat == ImageFormat.AVIF) {
+                        add(VipsOption.Enum("subsample_mode", VipsForeignSubsample.FOREIGN_SUBSAMPLE_ON))
+                        add(VipsOption.Enum("encoder", VipsForeignHeifEncoder.FOREIGN_HEIF_ENCODER_SVT))
+                    }
+                }.toTypedArray()
             Vips.run { arena ->
                 VImage
                     .newFromBytes(arena, image)
                     .writeToStream(
                         expectedStream,
                         variantFormat.extension,
-                        VipsOption.Int(VipsOptionNames.OPTION_QUALITY, min(quality, variantFormat.vipsProperties.maxQuality)),
+                        *options,
                     )
 
                 result shouldBeSameSizeAs expectedStream.toByteArray()
