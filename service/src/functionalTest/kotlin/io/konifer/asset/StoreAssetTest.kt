@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import io.konifer.client.ContentFetchMode
 import io.konifer.client.KoniferInternalTestApi
 import io.konifer.client.KoniferResponse
 import io.konifer.common.asset.AssetClass
@@ -142,7 +143,7 @@ class StoreAssetTest {
             konifer.getAssetContent(
                 path = "users/123/profile",
                 byteChannel = byteChannel,
-                requestRedirect = false,
+                fetchMode = ContentFetchMode.CONTENT,
             )
 
             response::class shouldBe KoniferResponse.Success::class
