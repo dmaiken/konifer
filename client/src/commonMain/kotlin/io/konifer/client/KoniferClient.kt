@@ -25,7 +25,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
@@ -33,7 +32,6 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.json.Json
-import kotlin.jvm.JvmOverloads
 
 class KoniferClient internal constructor(
     private val httpClient: HttpClient,
@@ -69,7 +67,6 @@ class KoniferClient internal constructor(
             followRedirects = false
         }
 
-    @JvmOverloads
     suspend fun getAssetMetadata(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
@@ -86,7 +83,6 @@ class KoniferClient internal constructor(
                 }.toKoniferResponse()
         }
 
-    @JvmOverloads
     suspend fun getAssetMetadata(
         path: String,
         limit: Int,
@@ -110,7 +106,7 @@ class KoniferClient internal constructor(
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         byteChannel: ByteChannel,
-        requestRedirect: Boolean,
+        fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
     ): KoniferResponse<Unit> =
         safeApiCall {
             httpClient
@@ -118,10 +114,9 @@ class KoniferClient internal constructor(
                     url {
                         appendPathSegments(ASSETS_BASE_PATH)
                         appendPathSegments(path.splitPath())
-                        if (requestRedirect) {
-                            appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
-                        } else {
-                            appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                        when (fetchMode) {
+                            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
                         }
                         appendTransformationParameters(requestedTransformation)
                     }
@@ -140,7 +135,7 @@ class KoniferClient internal constructor(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
-        requestRedirect: Boolean = false,
+        fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
     ): KoniferResponse<ByteArray> =
         safeApiCall {
             httpClient
@@ -148,10 +143,9 @@ class KoniferClient internal constructor(
                     url {
                         appendPathSegments(ASSETS_BASE_PATH)
                         appendPathSegments(path.splitPath())
-                        if (requestRedirect) {
-                            appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
-                        } else {
-                            appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                        when (fetchMode) {
+                            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
                         }
                         appendTransformationParameters(requestedTransformation)
                     }

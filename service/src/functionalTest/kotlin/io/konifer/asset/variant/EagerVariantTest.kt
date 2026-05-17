@@ -26,20 +26,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.junit.JUnitAsserter.fail
 
 class EagerVariantTest {
-    //    fun test() {
-//        val (image, attributes) = testImage()
-//        konifer.storeAsset(
-//            path = "users/123",
-//            format = attributes.format,
-//            request = StoreAssetRequest(),
-//            bytes = image,
-//        ).fold (
-//            onSuccess = { storeResponse ->
-//
-//            },
-//            onError = { _, _, _ -> fail("Request failed") }
-//        )
-//    }
     @Test
     fun `can store asset and eager variants are generated`() =
         testInMemory(

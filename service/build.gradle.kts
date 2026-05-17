@@ -187,6 +187,15 @@ tasks.register<Test>("functionalTest") {
     shouldRunAfter(tasks.test)
 }
 
+kover {
+    currentProject {
+        sources {
+            // Exclude functionalTest source set from coverage calculation
+            excludedSourceSets.add("functionalTest")
+        }
+    }
+}
+
 tasks.named<ProcessResources>("processFunctionalTestResources") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

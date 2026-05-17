@@ -1,5 +1,6 @@
 package io.konifer.client.content
 
+import io.konifer.client.ContentFetchMode
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.QuerySelectors
@@ -39,7 +40,7 @@ class KoniferClientContentTest :
                 koniferClient.getAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
@@ -107,7 +108,7 @@ class KoniferClientContentTest :
                 koniferClient.getAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
@@ -128,7 +129,7 @@ class KoniferClientContentTest :
             val response =
                 koniferClient.getAssetContentBytes(
                     path = "/users/123",
-                    requestRedirect = true,
+                    fetchMode = ContentFetchMode.REDIRECT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe imageBytes
@@ -156,7 +157,7 @@ class KoniferClientContentTest :
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.EntryId(1),
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
@@ -184,7 +185,7 @@ class KoniferClientContentTest :
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.OrderBy(Order.MODIFIED),
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
@@ -209,7 +210,7 @@ class KoniferClientContentTest :
                     path = "/users/123",
                     byteChannel = byteChannel,
                     requestedTransformation = requestedTransformation {},
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
@@ -268,7 +269,7 @@ class KoniferClientContentTest :
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.None(),
                     requestedTransformation = allTransformationsDsl,
-                    requestRedirect = false,
+                    fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
