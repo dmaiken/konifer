@@ -2,21 +2,21 @@ package io.konifer.asset.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.ImageFactory.testImage
+import io.konifer.client.KoniferResponse
+import io.konifer.client.fold
+import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
+import io.konifer.matchers.shouldBeFormat
 import io.konifer.matchers.shouldBeWithinOneOf
-import io.konifer.util.createJsonClient
-import io.konifer.util.fetchAssetContent
-import io.konifer.util.fetchAssetMetadata
-import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotStartWith
-import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
+import kotlin.test.junit.JUnitAsserter.fail
 
 class FetchAssetVariantTest {
     @Test
@@ -39,50 +39,76 @@ class FetchAssetVariantTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { it },
+                    onError = { _, _, _ -> fail("Request failed") },
                 )
-            storeAssetMultipartSource(client, image, request, path = "users/123")
 
-            // "create" the variant by requesting it
-            fetchAssetContent(client, path = "users/123", expectedMimeType = "image/png", height = 100, width = 100)
+            val response =
+                konifer.getAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            height = 100
+                            width = 100
+                        },
+                ) as KoniferResponse.Success
+            response.body shouldBeFormat ImageFormat.JPEG
 
-            fetchAssetMetadata(client, path = "users/123")!!.apply {
-                variants shouldHaveSize 2
-                variants.forAll {
-                    it.storeBucket shouldBe "correct-bucket"
-                }
-            }
+            konifer
+                .getAssetMetadata(
+                    path = "users/123",
+                ).fold(
+                    onSuccess = { response ->
+                        response.variants shouldHaveSize 2
+                        response.variants.forAll {
+                            it.storeBucket shouldBe "correct-bucket"
+                        }
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
         }
 
     @Test
     fun `fetched variant contains no thumbnail exif metadata`() =
         testInMemory {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request = StoreAssetRequest()
-            storeAssetMultipartSource(client, image, request, path = "users/123")
-
-            // "create" the variant by requesting it
-            val variantContent =
-                fetchAssetContent(
-                    client = client,
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
                     path = "users/123",
-                    expectedMimeType = "image/png",
-                    height = 100,
-                    width = 100,
-                ).apply {
-                    first.status shouldBe HttpStatusCode.OK
-                    second shouldNotBe null
-                }.second!!
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
 
-            Vips.run { arena ->
-                val image = VImage.newFromBytes(arena, variantContent)
-                image.fields.forAll { it shouldNotStartWith "exif-ifd1" }
-            }
+            konifer
+                .getAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            height = 100
+                            width = 100
+                        },
+                ).fold(
+                    onSuccess = { bytes ->
+                        bytes shouldBeFormat ImageFormat.JPEG
+                        Vips.run { arena ->
+                            val image = VImage.newFromBytes(arena, bytes)
+                            image.fields.forAll { it shouldNotStartWith "exif-ifd1" }
+                        }
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
         }
 
     /**
@@ -91,27 +117,35 @@ class FetchAssetVariantTest {
     @Test
     fun `can fetch variant of large image`() =
         testInMemory {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/large/joshua-tree.jpeg")!!.readBytes()
-            val request = StoreAssetRequest()
-            storeAssetMultipartSource(client, image, request, path = "users/123")
-
-            val variantContent =
-                fetchAssetContent(
-                    client = client,
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
                     path = "users/123",
-                    expectedMimeType = ImageFormat.PNG.mimeType,
-                    blur = 10,
-                    width = 3000,
-                    format = ImageFormat.PNG.format,
-                ).apply {
-                    first.status shouldBe HttpStatusCode.OK
-                    second shouldNotBe null
-                }.second!!
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
 
-            Vips.run { arena ->
-                val image = VImage.newFromBytes(arena, variantContent)
-                image.width shouldBeWithinOneOf 3000
-            }
+            konifer
+                .getAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            blur = 10
+                            width = 3000
+                        },
+                ).fold(
+                    onSuccess = { bytes ->
+                        bytes shouldBeFormat ImageFormat.JPEG
+                        Vips.run { arena ->
+                            val image = VImage.newFromBytes(arena, bytes)
+                            image.width shouldBeWithinOneOf 3000
+                        }
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
         }
 }

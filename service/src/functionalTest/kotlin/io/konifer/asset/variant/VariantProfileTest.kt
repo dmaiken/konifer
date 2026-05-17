@@ -3,7 +3,6 @@ package io.konifer.asset.variant
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource
@@ -26,7 +25,6 @@ class VariantProfileTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -50,7 +48,6 @@ class VariantProfileTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -80,7 +77,6 @@ class VariantProfileTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -100,7 +96,6 @@ class VariantProfileTest {
     @Test
     fun `no variant profiles are okay`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

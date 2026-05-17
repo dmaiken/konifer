@@ -10,10 +10,52 @@ import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import kotlin.jvm.JvmField
 
-inline fun requestedTransformation(block: RequestedTransformation.Builder.() -> Unit): RequestedTransformation =
-    RequestedTransformation.Builder().apply(block).build()
+inline fun requestedTransformation(block: RequestedTransformationDsl.() -> Unit): RequestedTransformation =
+    RequestedTransformationDsl().apply(block).build()
 
-class RequestedTransformation private constructor(
+class RequestedTransformationDsl {
+    var width: Int? = null
+    var height: Int? = null
+    var format: ImageFormat? = null
+    var fit: Fit? = null
+    var gravity: Gravity? = null
+    var rotate: Rotate? = null
+    var filter: Filter? = null
+    var flip: Flip? = null
+    var blur: Int? = null
+    var quality: Int? = null
+    var pad: Int? = null
+    var padColor: String? = null
+    var profile: String? = null
+    var colorSpace: TransformableColorSpace? = null
+
+    private val strip = mutableSetOf<MetadataType>()
+
+    fun strip(vararg types: MetadataType) {
+        strip += types
+    }
+
+    fun build() =
+        RequestedTransformation(
+            width = width,
+            height = height,
+            format = format,
+            fit = fit,
+            gravity = gravity,
+            rotate = rotate,
+            filter = filter,
+            flip = flip,
+            blur = blur,
+            quality = quality,
+            pad = pad,
+            padColor = padColor,
+            profile = profile,
+            strip = strip,
+            colorSpace = colorSpace,
+        )
+}
+
+class RequestedTransformation internal constructor(
     val width: Int?,
     val height: Int?,
     val format: ImageFormat?,

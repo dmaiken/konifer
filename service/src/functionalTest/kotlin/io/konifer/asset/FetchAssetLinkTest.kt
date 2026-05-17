@@ -6,7 +6,6 @@ import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -27,14 +26,12 @@ class FetchAssetLinkTest {
     @Test
     fun `fetching asset that does not exist returns not found`() =
         testInMemory {
-            val client = createJsonClient()
             fetchAssetLink(client, path = UuidCreator.getRandomBasedFast().toString(), expectedStatusCode = HttpStatusCode.NotFound)
         }
 
     @Test
     fun `can fetch asset and render`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -81,7 +78,6 @@ class FetchAssetLinkTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -123,7 +119,6 @@ class FetchAssetLinkTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -174,7 +169,6 @@ class FetchAssetLinkTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val labels =

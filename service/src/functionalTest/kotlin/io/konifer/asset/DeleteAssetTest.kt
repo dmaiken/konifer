@@ -5,7 +5,6 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.konifer.config.testInMemory
 import io.konifer.util.assertAssetDoesNotExist
-import io.konifer.util.createJsonClient
 import io.konifer.util.deleteAsset
 import io.konifer.util.deleteAssetsAtPath
 import io.konifer.util.deleteAssetsRecursivelyAtPath
@@ -22,7 +21,6 @@ class DeleteAssetTest {
     @Test
     fun `deleting asset that does not exist returns no content`() =
         testInMemory {
-            val client = createJsonClient()
             client
                 .delete("/assets/${UuidCreator.getRandomBasedFast()}")
                 .apply {
@@ -34,7 +32,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete asset by path`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -50,7 +47,6 @@ class DeleteAssetTest {
     @Test
     fun `deleting asset by path causes next oldest asset to be returned when fetching by path`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -71,7 +67,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete asset by path and entryId`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -96,7 +91,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete assets by path and order`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -121,7 +115,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete assets by path and order and limit`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -153,21 +146,18 @@ class DeleteAssetTest {
     @Test
     fun `cannot supply invalid entryId when deleting asset`() =
         testInMemory {
-            val client = createJsonClient()
             client.delete("/assets/profile/-/entry/notANumber").status shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
     fun `cannot supply negative entryId when deleting asset`() =
         testInMemory {
-            val client = createJsonClient()
             client.delete("/assets/profile/-/entry/-1").status shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
     fun `can delete assets at path but not recursively`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -193,7 +183,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete assets at path recursively`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -220,7 +209,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete assets at path by labels`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val requestWithLabels =
                 StoreAssetRequest(
@@ -252,7 +240,6 @@ class DeleteAssetTest {
     @Test
     fun `can delete assets recursively at path by labels`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val requestWithLabels =
                 StoreAssetRequest(

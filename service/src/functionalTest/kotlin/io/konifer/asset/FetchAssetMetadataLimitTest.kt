@@ -2,7 +2,6 @@ package io.konifer.asset
 
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldHaveSize
@@ -13,7 +12,6 @@ class FetchAssetMetadataLimitTest {
     @Test
     fun `limit is respected when fetching asset`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -49,7 +47,6 @@ class FetchAssetMetadataLimitTest {
     @Test
     fun `can have limit greater than amount at path`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -79,7 +76,6 @@ class FetchAssetMetadataLimitTest {
     @Test
     fun `can fetch all at path using all modifier`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(

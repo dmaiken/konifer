@@ -1,13 +1,16 @@
 package io.konifer.asset.variant
 
+import io.konifer.ImageFactory.testImage
 import io.konifer.PHash
+import io.konifer.client.KoniferResponse
+import io.konifer.client.fold
+import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.Rotate
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
-import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
@@ -20,10 +23,23 @@ import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
+import kotlin.test.junit.JUnitAsserter.fail
 
 class EagerVariantTest {
+    //    fun test() {
+//        val (image, attributes) = testImage()
+//        konifer.storeAsset(
+//            path = "users/123",
+//            format = attributes.format,
+//            request = StoreAssetRequest(),
+//            bytes = image,
+//        ).fold (
+//            onSuccess = { storeResponse ->
+//
+//            },
+//            onError = { _, _, _ -> fail("Request failed") }
+//        )
+//    }
     @Test
     fun `can store asset and eager variants are generated`() =
         testInMemory(
@@ -46,37 +62,48 @@ class EagerVariantTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = ImageIO.read(ByteArrayInputStream(image))
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { storeResponse ->
+                        // eager variants should not be in this list
+                        storeResponse.variants shouldHaveSize 1
+
+                        await().untilCallTo {
+                            runBlocking {
+                                val response =
+                                    konifer.getAssetMetadata(
+                                        path = "users/123",
+                                    )
+                                (response as KoniferResponse.Success).body.variants.size
+                            }
+                        } matches { count -> count == 3 }
+
+                        val response =
+                            konifer.getAssetMetadata(
+                                path = "users/123",
+                            )
+                        val variants = (response as KoniferResponse.Success).body.variants
+                        variants.forExactly(1) {
+                            it.attributes.height shouldBe 15
+                            it.attributes.width shouldNotBe 15
+                        }
+                        variants.forExactly(1) {
+                            it.attributes.height shouldNotBe 15
+                            it.attributes.width shouldBe 15
+                        }
+                        variants.forAtLeast(1) {
+                            it.attributes.height shouldBe attributes.height
+                            it.attributes.width shouldBe attributes.width
+                        }
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
                 )
-            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
-
-            // eager variants should not be in this list
-            storeResponse!!.variants shouldHaveSize 1
-
-            await().untilCallTo {
-                runBlocking {
-                    fetchAssetMetadata(client, "users/123")!!.variants.size
-                }
-            } matches { count -> count == 3 }
-
-            val variants = fetchAssetMetadata(client, "users/123")!!.variants
-            variants.forExactly(1) {
-                it.attributes.height shouldBe 15
-                it.attributes.width shouldNotBe 15
-            }
-            variants.forExactly(1) {
-                it.attributes.height shouldNotBe 15
-                it.attributes.width shouldBe 15
-            }
-            variants.forAtLeast(1) {
-                it.attributes.height shouldBe bufferedImage.height
-                it.attributes.width shouldBe bufferedImage.width
-            }
         }
 
     @Test
@@ -110,27 +137,31 @@ class EagerVariantTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { storeResponse ->
+                        // eager variants should not be in this list
+                        storeResponse.variants shouldHaveSize 1
+
+                        await().untilCallTo {
+                            runBlocking {
+                                fetchAssetMetadata(client, "users/123")!!.variants.size
+                            }
+                        } matches { count -> count == 3 }
+
+                        val variants = fetchAssetMetadata(client, "users/123")!!.variants
+                        variants.forAll {
+                            it.storeBucket shouldBe "correct-bucket"
+                        }
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
                 )
-            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
-
-            // eager variants should not be in this list
-            storeResponse!!.variants shouldHaveSize 1
-
-            await().untilCallTo {
-                runBlocking {
-                    fetchAssetMetadata(client, "users/123")!!.variants.size
-                }
-            } matches { count -> count == 3 }
-
-            val variants = fetchAssetMetadata(client, "users/123")!!.variants
-            variants.forAll {
-                it.storeBucket shouldBe "correct-bucket"
-            }
         }
 
     @Test
@@ -157,30 +188,53 @@ class EagerVariantTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request = StoreAssetRequest()
-            val storeResponse = storeAssetMultipartSource(client, image, request, path = "users/123").second
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { storeResponse ->
+                        // eager variants should not be in this list
+                        storeResponse.variants shouldHaveSize 1
+                        storeResponse.variants.forAll {
+                            it.isOriginalVariant shouldBe true
+                        }
 
-            // eager variants should not be in this list
-            storeResponse!!.variants shouldHaveSize 1
-            storeResponse.variants.forAll {
-                it.isOriginalVariant shouldBe true
-            }
+                        await().untilCallTo {
+                            runBlocking {
+                                fetchAssetMetadata(client, "users/123")!!.variants.size
+                            }
+                        } matches { count -> count == 2 }
 
-            await().untilCallTo {
-                runBlocking {
-                    fetchAssetMetadata(client, "users/123")!!.variants.size
-                }
-            } matches { count -> count == 2 }
+                        val actualContent = fetchAssetContent(client, path = "users/123", profile = "small").second!!
 
-            val actualContent = fetchAssetContent(client, path = "users/123", profile = "small").second!!
-
-            // Store same asset without preprocessing and fetch r = 180 + small variant profile
-            storeAssetMultipartSource(client, image, request, path = "apple/123").second shouldNotBe null
-            val expectedContent = fetchAssetContent(client, path = "apple/123", rotate = "180", profile = "small").second!!
-
-            PHash.hammingDistance(actualContent, expectedContent) shouldBeLessThanOrEqual
-                HAMMING_DISTANCE_IDENTICAL
+                        // Store same asset without preprocessing and fetch r = 180 + small variant profile
+                        konifer.storeAsset(
+                            path = "apple/123",
+                            format = attributes.format,
+                            request = StoreAssetRequest(),
+                            bytes = image,
+                        )::class shouldBe KoniferResponse.Success::class
+                        konifer
+                            .getAssetContentBytes(
+                                path = "apple/123",
+                                requestedTransformation =
+                                    requestedTransformation {
+                                        rotate = Rotate.ONE_HUNDRED_EIGHTY
+                                        profile = "small"
+                                    },
+                            ).fold(
+                                onSuccess = { response ->
+                                    PHash.hammingDistance(actualContent, response) shouldBeLessThanOrEqual
+                                        HAMMING_DISTANCE_IDENTICAL
+                                },
+                                onError = { _, _, _ -> fail("Request failed") },
+                            )
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
         }
 }

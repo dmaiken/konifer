@@ -6,7 +6,6 @@ import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
 import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContentDownload
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -34,7 +33,6 @@ class FetchAssetDownloadTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -73,7 +71,6 @@ class FetchAssetDownloadTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request = StoreAssetRequest()

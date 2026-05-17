@@ -7,7 +7,6 @@ import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
 import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -20,7 +19,6 @@ class FetchAssetContentTest {
     @Test
     fun `fetching asset content that does not exist returns not found`() =
         testInMemory {
-            val client = createJsonClient()
             fetchAssetContent(client, path = UuidCreator.getRandomBasedFast().toString(), expectedStatusCode = HttpStatusCode.NotFound)
         }
 
@@ -38,7 +36,6 @@ class FetchAssetContentTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =

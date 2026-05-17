@@ -3,7 +3,6 @@ package io.konifer.asset
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldContainExactly
@@ -17,8 +16,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `can fetch asset with labels`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -54,8 +51,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `can fetch asset with labels and entryId`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -94,8 +89,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `can fetch asset with namespaced labels`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -131,8 +124,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `can fetch asset with namespaced labels overloading variant transformation parameters`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -168,8 +159,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `can fetch asset with subset of labels`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -205,8 +194,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `fetching with label values that do not apply to assets returns nothing`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -235,8 +222,6 @@ class FetchAssetWithLabelsTest {
     @Test
     fun `fetching with label keys that do not apply to assets returns nothing`() =
         testInMemory {
-            val client = createJsonClient()
-
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(

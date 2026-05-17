@@ -4,7 +4,6 @@ import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetMetadata
@@ -35,7 +34,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
                 StoreAssetRequest()
@@ -56,7 +54,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
                 StoreAssetRequest()
@@ -77,7 +74,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
                 StoreAssetRequest()
@@ -98,7 +94,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
                 StoreAssetRequest()
@@ -117,7 +112,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val request =
                 StoreAssetRequest()
@@ -138,7 +132,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -178,7 +171,6 @@ class ImagePreviewTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =

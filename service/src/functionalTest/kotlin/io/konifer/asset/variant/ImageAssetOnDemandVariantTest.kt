@@ -25,7 +25,6 @@ import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.fetchAssetViaRedirect
@@ -56,7 +55,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch image variant by height`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -97,7 +95,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch image variant by width`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -138,7 +135,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch image variant by height and width with scale fit and the aspect ratio is respected`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -187,7 +183,6 @@ class ImageAssetOnDemandVariantTest {
     @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["AVIF"])
     fun `can fetch image variant by content type`(format: ImageFormat) =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.avif")!!.readBytes()
 
             val request =
@@ -211,7 +206,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch image with fit mode of fill`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -255,7 +249,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can fetch original variant by height and width`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -294,7 +287,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `variant can be fetched that is rotated and flipped`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =
@@ -326,7 +318,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `can request image with auto rotate`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =
@@ -355,7 +346,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `variant can be fetched that is has a filter applied`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =
@@ -392,7 +382,6 @@ class ImageAssetOnDemandVariantTest {
     @Test
     fun `variant can be fetched that is has a crop with gravity applied`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =
@@ -442,7 +431,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `variant can be fetched that is has a blur applied`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -477,7 +465,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `original variant is fetched if requesting blur of 0`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -509,7 +496,6 @@ class ImageAssetOnDemandVariantTest {
         fun `variant can be fetched that is has quality applied`(variantFormat: ImageFormat) =
             testInMemory {
                 val quality = 40
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -570,7 +556,6 @@ class ImageAssetOnDemandVariantTest {
                 ImageFormat,
             @CartesianTest.Values(ints = [1, 100]) quality: Int,
         ) = testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
             val request =
@@ -611,7 +596,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `png encoding is not affected by quality parameter`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -655,7 +639,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `can fetch variant with padding`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -685,7 +668,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `fetching variant with 255 alpha background will return variant with no alpha 255 in background`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -713,7 +695,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `fetching variant without 255 alpha background will return variant with alpha 255 in background`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -741,7 +722,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `fetching with no padding will fetch the original variant`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
 
                 val request =
@@ -768,7 +748,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `can fetch with metadata stripped`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
 
                 val request = StoreAssetRequest()
@@ -811,7 +790,6 @@ class ImageAssetOnDemandVariantTest {
         @ValueSource(strings = ["srgb", "p3"])
         fun `can fetch original variant with supported color space`(colorSpaceName: String) =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val filePath =
                     when (colorSpaceName) {
                         "srgb" -> "/images/metadata/exif-xmp-iptc.jpg"
@@ -846,7 +824,6 @@ class ImageAssetOnDemandVariantTest {
         @ValueSource(strings = ["srgb", "p3", "grayscale"])
         fun `can fetch new variant with supported color space`(colorSpaceName: String) =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val filePath =
                     when (colorSpaceName) {
                         "srgb" -> "/images/metadata/iphone-p3.jpg"
@@ -889,7 +866,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `can fetch greyscale color space with color padding and image remains single channel`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 val image = javaClass.getResourceAsStream("/images/metadata/iphone-p3.jpg")!!.readBytes()
 
                 val request = StoreAssetRequest()
@@ -928,7 +904,6 @@ class ImageAssetOnDemandVariantTest {
         @ValueSource(ints = [0, -1])
         fun `cannot request an image with invalid height`(height: Int) =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -943,7 +918,6 @@ class ImageAssetOnDemandVariantTest {
         @ValueSource(ints = [0, -1])
         fun `cannot request an image with invalid width`(width: Int) =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -957,7 +931,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid fit`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -971,7 +944,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid rotate`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -985,7 +957,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid flip`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -999,7 +970,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid filter`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1013,7 +983,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid gravity`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1028,7 +997,6 @@ class ImageAssetOnDemandVariantTest {
         @ValueSource(ints = [-1, 151])
         fun `cannot request an image with invalid blur`(blurAmount: Int) =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1042,7 +1010,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid pad`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1056,7 +1023,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid background`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1070,7 +1036,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid strip`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(
@@ -1084,7 +1049,6 @@ class ImageAssetOnDemandVariantTest {
         @Test
         fun `cannot request an image with invalid colorSpace`() =
             testInMemory {
-                val client = createJsonClient(followRedirects = false)
                 storeAsset(client)
 
                 fetchAssetViaRedirect(

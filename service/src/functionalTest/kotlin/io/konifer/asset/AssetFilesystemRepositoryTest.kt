@@ -1,9 +1,9 @@
 package io.konifer.asset
 
+import io.konifer.ImageFactory.testImage
+import io.konifer.client.fold
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
-import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
@@ -14,6 +14,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
+import kotlin.test.junit.JUnitAsserter.fail
 
 class AssetFilesystemRepositoryTest {
     val mountPath: Path =
@@ -61,13 +62,17 @@ class AssetFilesystemRepositoryTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
+            val (image, attributes) = testImage()
+            konifer
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { },
+                    onError = { _, _, _ -> fail("Request failed") },
                 )
-            storeAssetMultipartSource(client, image, request, path = "profile").second
 
             client.get("/assets/profile/-/redirect").apply {
                 status shouldBe HttpStatusCode.OK

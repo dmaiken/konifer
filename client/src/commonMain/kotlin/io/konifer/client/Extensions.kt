@@ -36,7 +36,7 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
                     "An unexpected server error occurred: ${status.description}"
                 }
             KoniferResponse.HttpError(
-                code = status.value,
+                httpStatusCode = status,
                 message = errorMessage,
             )
         }
