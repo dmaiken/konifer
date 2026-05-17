@@ -4,7 +4,6 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -15,7 +14,6 @@ class VariantAttributesTest {
     @Test
     fun `height and width are populated when image is stored`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request = StoreAssetRequest()
             val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
@@ -48,7 +46,6 @@ class VariantAttributesTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request = StoreAssetRequest()
             val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
@@ -62,7 +59,6 @@ class VariantAttributesTest {
     @Test
     fun `page count and loop is populated when image is stored`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/kermit/kermit.gif")!!.readBytes()
             val request = StoreAssetRequest()
             val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
@@ -78,7 +74,6 @@ class VariantAttributesTest {
     @Test
     fun `colorspace attribute is populated when image contains icc profile`() =
         testInMemory {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/metadata/iphone-p3.jpg")!!.readBytes()
             val request = StoreAssetRequest()
             val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!

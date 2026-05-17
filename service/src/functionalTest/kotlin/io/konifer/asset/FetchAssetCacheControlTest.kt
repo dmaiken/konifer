@@ -2,7 +2,6 @@ package io.konifer.asset
 
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -52,7 +51,6 @@ class FetchAssetCacheControlTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

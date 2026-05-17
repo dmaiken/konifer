@@ -17,6 +17,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.prepareGet
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
@@ -58,6 +59,9 @@ class KoniferClient internal constructor(
                 }
             return KoniferClient(httpClient)
         }
+
+        @KoniferInternalTestApi
+        fun buildForTesting(testClient: HttpClient): KoniferClient = KoniferClient(testClient)
     }
 
     private val noRedirectClient =
@@ -127,6 +131,34 @@ class KoniferClient internal constructor(
                         KoniferResponse.Success(Unit)
                     } else {
                         byteChannel.cancel()
+                        response.toKoniferResponse()
+                    }
+                }
+        }
+
+    suspend fun getAssetContentBytes(
+        path: String,
+        querySelectors: QuerySelectors = QuerySelectors.None(),
+        requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
+        requestRedirect: Boolean = false,
+    ): KoniferResponse<ByteArray> =
+        safeApiCall {
+            httpClient
+                .prepareGet {
+                    url {
+                        appendPathSegments(ASSETS_BASE_PATH)
+                        appendPathSegments(path.splitPath())
+                        if (requestRedirect) {
+                            appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
+                        } else {
+                            appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                        }
+                        appendTransformationParameters(requestedTransformation)
+                    }
+                }.execute { response ->
+                    if (response.status.isSuccess()) {
+                        KoniferResponse.Success(response.bodyAsBytes())
+                    } else {
                         response.toKoniferResponse()
                     }
                 }

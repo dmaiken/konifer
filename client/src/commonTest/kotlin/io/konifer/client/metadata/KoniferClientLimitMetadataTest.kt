@@ -110,6 +110,9 @@ class KoniferClientLimitMetadataTest :
                     limit = 2,
                 )
             response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).message shouldBe serverResponse.message
+            with(response as KoniferResponse.HttpError) {
+                message shouldBe serverResponse.message
+                httpStatusCode shouldBe HttpStatusCode.NotFound
+            }
         }
     })

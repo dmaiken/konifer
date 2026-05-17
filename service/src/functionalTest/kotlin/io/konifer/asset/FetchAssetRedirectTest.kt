@@ -5,7 +5,6 @@ import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -22,7 +21,7 @@ class FetchAssetRedirectTest {
     @Test
     fun `fetching asset that does not exist returns not found`() =
         testInMemory {
-            val client = createJsonClient()
+            configureClient { followRedirects = false }
             fetchAssetViaRedirect(
                 client,
                 path = UuidCreator.getRandomBasedFast().toString(),
@@ -49,7 +48,7 @@ class FetchAssetRedirectTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
+            configureClient { followRedirects = false }
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -83,7 +82,7 @@ class FetchAssetRedirectTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
+            configureClient { followRedirects = false }
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

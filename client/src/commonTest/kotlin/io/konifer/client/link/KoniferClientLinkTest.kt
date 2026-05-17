@@ -2,18 +2,11 @@ package io.konifer.client.link
 
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
+import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
 import io.konifer.client.requestedTransformation
-import io.konifer.common.image.Filter
-import io.konifer.common.image.Fit
-import io.konifer.common.image.Flip
-import io.konifer.common.image.Gravity
-import io.konifer.common.image.ImageFormat
-import io.konifer.common.image.MetadataType
-import io.konifer.common.image.Rotate
-import io.konifer.common.image.TransformableColorSpace
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -63,30 +56,12 @@ class KoniferClientLinkTest :
 
         test("should properly translate requested transformation into query parameters") {
             val serverResponse = createLinkResponse()
-            val requestedTransformation =
-                requestedTransformation {
-                    height(10)
-                    width(5)
-                    fit(Fit.FIT)
-                    filter(Filter.BLACK_WHITE)
-                    flip(Flip.H)
-                    blur(100)
-                    gravity(Gravity.CENTER)
-                    format(ImageFormat.GIF)
-                    rotate(Rotate.NINETY)
-                    quality(55)
-                    pad(25)
-                    padColor("#123456")
-                    strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
-                    colorSpace(TransformableColorSpace.P3)
-                    profile("profile")
-                }
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
                         expectedPath = "/assets/users/123/-/link",
                         response = serverResponse,
-                        requestedTransformation = requestedTransformation,
+                        requestedTransformation = allTransformationsDsl,
                     )
                 }
 
@@ -95,7 +70,7 @@ class KoniferClientLinkTest :
             val response =
                 koniferClient.getAssetLink(
                     path = "/users/123",
-                    requestedTransformation = requestedTransformation,
+                    requestedTransformation = allTransformationsDsl,
                 )
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse

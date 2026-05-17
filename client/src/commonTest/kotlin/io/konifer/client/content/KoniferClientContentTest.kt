@@ -3,18 +3,11 @@ package io.konifer.client.content
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.QuerySelectors
+import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
 import io.konifer.client.requestedTransformation
-import io.konifer.common.image.Filter
-import io.konifer.common.image.Fit
-import io.konifer.common.image.Flip
-import io.konifer.common.image.Gravity
-import io.konifer.common.image.ImageFormat
-import io.konifer.common.image.MetadataType
-import io.konifer.common.image.Rotate
-import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -52,6 +45,47 @@ class KoniferClientContentTest :
             actualBytes.await() shouldBe imageBytes
         }
 
+        test("should be able to fetch content bytes") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.getAssetContentBytes(
+                    path = "/users/123",
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe imageBytes
+        }
+
+        // Ensure ByteChannel works when content exceeds buffer size
+        test("should be able to fetch large content bytes") {
+            val imageBytes = readResourceBytes("/large/joshua-tree.jpeg")
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.getAssetContentBytes(
+                    path = "/users/123",
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe imageBytes
+        }
+
         test("should be able to fetch content as redirect") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val httpClient =
@@ -77,6 +111,27 @@ class KoniferClientContentTest :
                 )
             response::class shouldBe KoniferResponse.Success::class
             actualBytes.await() shouldBe imageBytes
+        }
+
+        test("should be able to fetch content bytes as redirect") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappyRedirect(
+                        expectedPath = "/assets/users/123/-/redirect",
+                        bytes = imageBytes,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.getAssetContentBytes(
+                    path = "/users/123",
+                    requestRedirect = true,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe imageBytes
         }
 
         test("should be able to fetch content with entryId selector") {
@@ -157,36 +212,46 @@ class KoniferClientContentTest :
                     requestRedirect = false,
                 )
             response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).message shouldBe serverResponse.message
+            with(response as KoniferResponse.HttpError) {
+                message shouldBe serverResponse.message
+                httpStatusCode shouldBe HttpStatusCode.NotFound
+            }
             byteChannel.isClosedForWrite shouldBe true
+        }
+
+        test("should return the error message when fetching content bytes on a client error") {
+            val serverResponse = createErrorResponse("not found")
+            val httpClient =
+                httpClient {
+                    configureMockEngineError(
+                        expectedPath = "/assets/users/123/-/content",
+                        response = serverResponse,
+                        statusCode = HttpStatusCode.NotFound,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.getAssetContentBytes(
+                    path = "/users/123",
+                    requestedTransformation = requestedTransformation {},
+                )
+            response::class shouldBe KoniferResponse.HttpError::class
+            with(response as KoniferResponse.HttpError) {
+                message shouldBe serverResponse.message
+                httpStatusCode shouldBe HttpStatusCode.NotFound
+            }
         }
 
         test("should properly translate requested transformation into query parameters") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
-            val requestedTransformation =
-                requestedTransformation {
-                    height(10)
-                    width(5)
-                    fit(Fit.FIT)
-                    filter(Filter.BLACK_WHITE)
-                    flip(Flip.H)
-                    blur(100)
-                    gravity(Gravity.CENTER)
-                    format(ImageFormat.GIF)
-                    rotate(Rotate.NINETY)
-                    quality(55)
-                    pad(25)
-                    padColor("#123456")
-                    strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
-                    colorSpace(TransformableColorSpace.P3)
-                    profile("profile")
-                }
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
                         expectedPath = "/assets/users/123/-/content",
                         bytes = imageBytes,
-                        requestedTransformation = requestedTransformation,
+                        requestedTransformation = allTransformationsDsl,
                     )
                 }
 
@@ -202,7 +267,7 @@ class KoniferClientContentTest :
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.None(),
-                    requestedTransformation = requestedTransformation,
+                    requestedTransformation = allTransformationsDsl,
                     requestRedirect = false,
                 )
             response::class shouldBe KoniferResponse.Success::class

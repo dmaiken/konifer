@@ -12,7 +12,6 @@ import io.konifer.config.testInMemory
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldBeOneOf
@@ -30,7 +29,6 @@ class AssetLifecycleTest {
     @EnumSource(ImageFormat::class)
     fun `can create and get still image`(format: ImageFormat) =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readBytes()
             val labels =
                 mapOf(
@@ -71,7 +69,6 @@ class AssetLifecycleTest {
     @Test
     fun `can create and get an image that is multi-paged`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/kermit/kermit.gif")!!.readBytes()
             val labels =
                 mapOf(
@@ -123,7 +120,6 @@ class AssetLifecycleTest {
     @Test
     fun `creating asset on same path results in most recent being fetched`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

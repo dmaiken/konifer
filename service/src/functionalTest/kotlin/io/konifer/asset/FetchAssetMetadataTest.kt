@@ -11,7 +11,6 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetMetadata
@@ -29,7 +28,6 @@ class FetchAssetMetadataTest {
     @Test
     fun `getting all asset info with path returns all info`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -76,7 +74,6 @@ class FetchAssetMetadataTest {
     @Test
     fun `variant transformation data is returned in metadata`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request = StoreAssetRequest()
             storeAssetMultipartSource(client, image, request, path = "profile")
@@ -130,14 +127,12 @@ class FetchAssetMetadataTest {
     @Test
     fun `fetching info of asset that does not exist returns not found`() =
         testInMemory {
-            val client = createJsonClient()
             fetchAssetMetadata(client, UuidCreator.getRandomBasedFast().toString(), expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
     fun `fetching info of asset path that does not contain any assets returns not found`() =
         testInMemory {
-            val client = createJsonClient()
             fetchAllAssetMetadata(client, UuidCreator.getRandomBasedFast().toString(), limit = 10) shouldHaveSize 0
         }
 }

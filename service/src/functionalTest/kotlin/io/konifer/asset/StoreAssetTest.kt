@@ -1,75 +1,49 @@
 package io.konifer.asset
 
-import io.konifer.byteArrayToImage
+import io.konifer.client.KoniferInternalTestApi
+import io.konifer.client.KoniferResponse
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
-import io.konifer.util.BOUNDARY
 import io.konifer.util.UnValidatedStoreAssetRequest
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.storeAssetUrlSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import kotlinx.serialization.json.Json
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.toByteArray
+import kotlinx.coroutines.async
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 
+@OptIn(KoniferInternalTestApi::class)
 class StoreAssetTest {
     @Test
     fun `uploading something not an image will return bad request`() =
         testInMemory {
-            val client = createJsonClient()
             val image = "I am not an image".toByteArray()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            client
-                .post("/assets") {
-                    contentType(ContentType.MultiPart.FormData)
-                    setBody(
-                        MultiPartFormDataContent(
-                            formData {
-                                append(
-                                    "metadata",
-                                    Json.encodeToString<StoreAssetRequest>(request),
-                                    Headers.build {
-                                        append(HttpHeaders.ContentType, "application/json")
-                                    },
-                                )
-                                append(
-                                    "asset",
-                                    image,
-                                    Headers.build {
-                                        append(HttpHeaders.ContentType, "image/png")
-                                        append(HttpHeaders.ContentDisposition, "filename=\"ktor_logo.png\"")
-                                    },
-                                )
-                            },
-                            BOUNDARY,
-                            ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-                        ),
-                    )
-                }.apply {
-                    status shouldBe HttpStatusCode.BadRequest
-                }
+
+            val response =
+                konifer.storeAsset(
+                    path = "",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.HttpError::class
+            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
@@ -86,13 +60,21 @@ class StoreAssetTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+
+            val response =
+                konifer.storeAsset(
+                    path = "users/123/profile",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.HttpError::class
+            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.Forbidden
         }
 
     @Test
@@ -107,13 +89,21 @@ class StoreAssetTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.Forbidden)
+
+            val response =
+                konifer.storeAsset(
+                    path = "users/123/profile",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.HttpError::class
+            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.Forbidden
         }
 
     @Test
@@ -127,21 +117,36 @@ class StoreAssetTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
-            fetchAssetContent(client, path = "users/123/profile", expectedMimeType = "image/png").second!!.let { imageBytes ->
-                val rendered = byteArrayToImage(imageBytes)
-                rendered.width shouldBe bufferedImage.width
-                rendered.height shouldBe bufferedImage.height
-                Tika().detect(imageBytes) shouldBe "image/png"
-            }
+            val response =
+                konifer.storeAsset(
+                    path = "users/123/profile",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+
+            val byteChannel = ByteChannel()
+            val content =
+                async {
+                    byteChannel.toByteArray().also {
+                        byteChannel.close()
+                    }
+                }
+            konifer.getAssetContent(
+                path = "users/123/profile",
+                byteChannel = byteChannel,
+                requestRedirect = false,
+            )
+
+            response::class shouldBe KoniferResponse.Success::class
+            Tika().detect(content.await()) shouldBe ImageFormat.PNG.mimeType
         }
 
     @Test
@@ -164,12 +169,17 @@ class StoreAssetTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
+            konifer.storeAsset(
+                path = "users/123/profile",
+                format = ImageFormat.PNG,
+                request = request,
+                bytes = image,
+            )
             storeAssetMultipartSource(client, image, request, path = "users/123/profile")
 
             fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
@@ -197,7 +207,6 @@ class StoreAssetTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -227,7 +236,6 @@ class StoreAssetTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             // Come up with a better way to not rely on the internet
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
@@ -269,7 +277,6 @@ class StoreAssetTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             // Come up with a better way to not rely on the internet
             val request =
                 StoreAssetRequest(
@@ -291,7 +298,6 @@ class StoreAssetTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             // Come up with a better way to not rely on the internet
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
@@ -316,7 +322,6 @@ class StoreAssetTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             // Come up with a better way to not rely on the internet
             val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
             val request =
@@ -340,7 +345,6 @@ class StoreAssetTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -354,7 +358,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with no upload or url source`() =
         testInMemory {
-            val client = createJsonClient()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
@@ -367,7 +370,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with alt exceeding length limit`() =
         testInMemory {
-            val client = createJsonClient()
             val request =
                 UnValidatedStoreAssetRequest(
                     alt = "a".repeat(126),
@@ -381,7 +383,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with tags exceeding length limit`() =
         testInMemory {
-            val client = createJsonClient()
             val request =
                 UnValidatedStoreAssetRequest(
                     tags = setOf("tag1", "a".repeat(257)),
@@ -395,7 +396,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with label key exceeding length limit`() =
         testInMemory {
-            val client = createJsonClient()
             val request =
                 UnValidatedStoreAssetRequest(
                     labels =
@@ -413,7 +413,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with label value exceeding length limit`() =
         testInMemory {
-            val client = createJsonClient()
             val request =
                 UnValidatedStoreAssetRequest(
                     labels =
@@ -431,7 +430,6 @@ class StoreAssetTest {
     @Test
     fun `cannot store asset with too many labels`() =
         testInMemory {
-            val client = createJsonClient()
             val labels =
                 buildMap {
                     repeat(51) { idx ->

@@ -99,6 +99,9 @@ class KoniferClientSingleMetadataTest :
 
             val response = koniferClient.getAssetMetadata("/users/123")
             response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).message shouldBe serverResponse.message
+            with(response as KoniferResponse.HttpError) {
+                message shouldBe serverResponse.message
+                httpStatusCode shouldBe HttpStatusCode.NotFound
+            }
         }
     })

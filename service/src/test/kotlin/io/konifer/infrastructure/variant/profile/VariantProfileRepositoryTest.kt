@@ -1,22 +1,21 @@
-package io.konifer.asset.variant
+package io.konifer.infrastructure.variant.profile
 
+import com.typesafe.config.ConfigFactory
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
-import io.konifer.config.testInMemory
 import io.konifer.createRequestedImageTransformation
-import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.konifer.service.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Named.named
+import io.ktor.server.config.HoconApplicationConfig
+import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -25,7 +24,7 @@ class VariantProfileRepositoryTest {
         @JvmStatic
         fun validProfilesSource(): List<Arguments> =
             listOf(
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -45,7 +44,7 @@ class VariantProfileRepositoryTest {
                             ),
                     ),
                 ),
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -63,7 +62,7 @@ class VariantProfileRepositoryTest {
                             ),
                     ),
                 ),
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -79,7 +78,7 @@ class VariantProfileRepositoryTest {
                             ),
                     ),
                 ),
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -95,7 +94,7 @@ class VariantProfileRepositoryTest {
                             ),
                     ),
                 ),
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -119,7 +118,7 @@ class VariantProfileRepositoryTest {
                             ),
                     ),
                 ),
-                arguments(
+                Arguments.arguments(
                     """
                     variant-profiles = [
                         {
@@ -166,7 +165,7 @@ class VariantProfileRepositoryTest {
         @JvmStatic
         fun invalidVariantProfileNameSource(): List<Arguments> =
             listOf(
-                arguments(
+                Arguments.arguments(
                     "sma%ll",
                     """
                     variant-profiles = [
@@ -177,7 +176,7 @@ class VariantProfileRepositoryTest {
                     ]
                     """.trimIndent(),
                 ),
-                arguments(
+                Arguments.arguments(
                     "sma/ll",
                     """
                     variant-profiles = [
@@ -188,7 +187,7 @@ class VariantProfileRepositoryTest {
                     ]
                     """.trimIndent(),
                 ),
-                arguments(
+                Arguments.arguments(
                     "sma+ll",
                     """
                     variant-profiles = [
@@ -199,7 +198,7 @@ class VariantProfileRepositoryTest {
                     ]
                     """.trimIndent(),
                 ),
-                arguments(
+                Arguments.arguments(
                     "sma=ll",
                     """
                     variant-profiles = [
@@ -210,7 +209,7 @@ class VariantProfileRepositoryTest {
                     ]
                     """.trimIndent(),
                 ),
-                arguments(
+                Arguments.arguments(
                     "sma^ll",
                     """
                     variant-profiles = [
@@ -221,7 +220,7 @@ class VariantProfileRepositoryTest {
                     ]
                     """.trimIndent(),
                 ),
-                arguments(
+                Arguments.arguments(
                     "sma&ll",
                     """
                     variant-profiles = [
@@ -237,8 +236,8 @@ class VariantProfileRepositoryTest {
         @JvmStatic
         fun invalidProfileSource() =
             listOf(
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad width",
                         """
                         variant-profiles = [
@@ -250,8 +249,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad height",
                         """
                         variant-profiles = [
@@ -263,8 +262,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad format",
                         """
                         variant-profiles = [
@@ -276,8 +275,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad fit",
                         """
                         variant-profiles = [
@@ -289,8 +288,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad rotate",
                         """
                         variant-profiles = [
@@ -302,8 +301,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad flip",
                         """
                         variant-profiles = [
@@ -315,8 +314,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad filter",
                         """
                         variant-profiles = [
@@ -328,8 +327,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad gravity",
                         """
                         variant-profiles = [
@@ -344,8 +343,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad pad",
                         """
                         variant-profiles = [
@@ -357,8 +356,8 @@ class VariantProfileRepositoryTest {
                         """.trimIndent(),
                     ),
                 ),
-                arguments(
-                    named(
+                Arguments.arguments(
+                    Named.named(
                         "bad pad-color",
                         """
                         variant-profiles = [
@@ -378,39 +377,38 @@ class VariantProfileRepositoryTest {
     fun `can populate variant profiles`(
         config: String,
         expectedProfiles: Map<String, RequestedTransformation>,
-    ) = testInMemory(config) {
-        application {
-            val repository = ConfigurationVariantProfileRepository(environment.config)
+    ) {
+        val repository =
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
 
-            expectedProfiles.forEach { (name, profile) ->
-                repository.fetch(name) shouldBe profile
-            }
+        expectedProfiles.forEach { (name, profile) ->
+            repository.fetch(name) shouldBe profile
         }
     }
 
     @Test
-    fun `variant profile must have a name`() =
-        testInMemory(
+    fun `variant profile must have a name`() {
+        val config =
             """
             variant-profiles = [
                 {
                     w = 15
                 }
             ]
-            """.trimIndent(),
-        ) {
-            application {
-                val exception =
-                    shouldThrow<IllegalArgumentException> {
-                        ConfigurationVariantProfileRepository(environment.config)
-                    }
-                exception.message shouldBe "All variant profiles must have a name"
-            }
-        }
+            """.trimIndent()
+
+        shouldThrow<IllegalArgumentException> {
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        }.message shouldBe "All variant profiles must have a name"
+    }
 
     @Test
-    fun `null is returned when variant profile cannot be found`() =
-        testInMemory(
+    fun `null is returned when variant profile cannot be found`() {
+        val config =
             """
             variant-profiles = [
                 {
@@ -418,17 +416,17 @@ class VariantProfileRepositoryTest {
                     w = 15
                 }
             ]
-            """.trimIndent(),
-        ) {
-            application {
-                val repository = ConfigurationVariantProfileRepository(environment.config)
-                val exception =
-                    shouldThrow<IllegalArgumentException> {
-                        repository.fetch("medium")
-                    }
-                exception.message shouldBe "Variant profile: 'medium' not found"
+            """.trimIndent()
+        val repository =
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        val exception =
+            shouldThrow<IllegalArgumentException> {
+                repository.fetch("medium")
             }
-        }
+        exception.message shouldBe "Variant profile: 'medium' not found"
+    }
 
     @ParameterizedTest
     @ValueSource(
@@ -437,33 +435,30 @@ class VariantProfileRepositoryTest {
             "",
         ],
     )
-    fun `does not throw when no variant profiles defined in config`(config: String) =
-        testInMemory(config) {
-            application {
-                shouldNotThrowAny {
-                    ConfigurationVariantProfileRepository(environment.config)
-                }
-            }
+    fun `does not throw when no variant profiles defined in config`(config: String) {
+        shouldNotThrowAny {
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
         }
+    }
 
     @ParameterizedTest
     @MethodSource("invalidVariantProfileNameSource")
     fun `cannot have invalid profile names`(
         profileName: String,
         config: String,
-    ) = testInMemory(config) {
-        application {
-            val exception =
-                shouldThrow<IllegalArgumentException> {
-                    ConfigurationVariantProfileRepository(environment.config)
-                }
-            exception.message shouldBe "Profile name: '$profileName' is not valid"
-        }
+    ) {
+        shouldThrow<IllegalArgumentException> {
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        }.message shouldBe "Profile name: '$profileName' is not valid"
     }
 
     @Test
-    fun `cannot have duplicate profile names`() =
-        testInMemory(
+    fun `cannot have duplicate profile names`() {
+        val config =
             """
             variant-profiles = [
                 {
@@ -475,25 +470,21 @@ class VariantProfileRepositoryTest {
                     h = 15
                 }
             ]
-            """.trimIndent(),
-        ) {
-            application {
-                val exception =
-                    shouldThrow<IllegalArgumentException> {
-                        ConfigurationVariantProfileRepository(environment.config)
-                    }
-                exception.message shouldBe "Profile name: 'small' already exists"
-            }
-        }
+            """.trimIndent()
+        shouldThrow<IllegalArgumentException> {
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        }.message shouldBe "Profile name: 'small' already exists"
+    }
 
     @ParameterizedTest
     @MethodSource("invalidProfileSource")
-    fun `cannot have invalid variant profile definitions`(config: String) =
-        testInMemory(config) {
-            application {
-                shouldThrow<IllegalArgumentException> {
-                    ConfigurationVariantProfileRepository(environment.config)
-                }
-            }
+    fun `cannot have invalid variant profile definitions`(config: String) {
+        shouldThrow<IllegalArgumentException> {
+            ConfigurationVariantProfileRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
         }
+    }
 }

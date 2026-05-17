@@ -3,7 +3,6 @@ package io.konifer.asset
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
@@ -17,7 +16,6 @@ class FetchAssetOrderByTest {
     @Test
     fun `can fetch asset metadata and order by created at`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(
@@ -66,7 +64,6 @@ class FetchAssetOrderByTest {
     @Test
     fun `can fetch asset metadata and order by modified at`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
                 mapOf(

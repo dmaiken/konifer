@@ -2,7 +2,6 @@ package io.konifer.asset
 
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
@@ -20,7 +19,6 @@ class UpdateAssetTest {
     @Test
     fun `can update asset metadata`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -60,7 +58,6 @@ class UpdateAssetTest {
     @Test
     fun `can update asset metadata to remove fields`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -98,7 +95,6 @@ class UpdateAssetTest {
     @Test
     fun `updating asset that does not exists returns not found`() =
         testInMemory {
-            val client = createJsonClient()
             val updateRequest =
                 StoreAssetRequest(
                     tags = setOf(),
@@ -116,7 +112,6 @@ class UpdateAssetTest {
     @Test
     fun `cannot update asset without entryId`() =
         testInMemory {
-            val client = createJsonClient()
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

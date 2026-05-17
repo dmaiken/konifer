@@ -4,7 +4,6 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.signature.HmacSigningAlgorithm
 import io.konifer.infrastructure.http.signature.UrlSigner
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource
 import io.ktor.http.HttpStatusCode
@@ -23,7 +22,6 @@ class UrlSigningTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -46,7 +44,6 @@ class UrlSigningTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
@@ -82,7 +79,6 @@ class UrlSigningTest {
             }
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(

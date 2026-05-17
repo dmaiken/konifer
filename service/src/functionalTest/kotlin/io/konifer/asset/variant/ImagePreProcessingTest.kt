@@ -9,7 +9,6 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.config.testInMemory
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
-import io.konifer.util.createJsonClient
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
@@ -60,7 +59,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -105,7 +103,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -155,7 +152,6 @@ class ImagePreProcessingTest {
         ]
         """.trimIndent(),
     ) {
-        val client = createJsonClient(followRedirects = false)
         val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
         val bufferedImage = byteArrayToImage(image)
         val request =
@@ -203,7 +199,6 @@ class ImagePreProcessingTest {
         ]
         """.trimIndent(),
     ) {
-        val client = createJsonClient(followRedirects = false)
         val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
         val bufferedImage = byteArrayToImage(image)
         val request =
@@ -255,7 +250,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val originalScale = bufferedImage.width.toDouble() / bufferedImage.height.toDouble()
@@ -301,7 +295,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -351,7 +344,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val bufferedImage = byteArrayToImage(image)
             val request =
@@ -391,7 +383,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request = StoreAssetRequest()
             val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
@@ -420,7 +411,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
             val request = StoreAssetRequest()
             val storedAssetInfo = storeAssetMultipartSource(client, image, request).second
@@ -475,7 +465,6 @@ class ImagePreProcessingTest {
             ]
             """.trimIndent(),
         ) {
-            val client = createJsonClient(followRedirects = false)
             val image = javaClass.getResourceAsStream("/images/large/joshua-tree.jpeg")!!.readBytes()
             val request = StoreAssetRequest()
             val storedAssetInfo = storeAssetMultipartSource(client, image, request).second

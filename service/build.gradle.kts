@@ -140,6 +140,7 @@ dependencies {
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))
+    "functionalTestImplementation"(project(":client"))
 }
 
 /**
