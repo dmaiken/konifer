@@ -134,6 +134,7 @@ jobs:
           path: service/build/libs/
 
       - name: Log in to the Container registry
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}

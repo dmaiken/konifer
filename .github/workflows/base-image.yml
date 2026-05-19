@@ -9,6 +9,13 @@ on:
       - "scripts/install-vips.sh"
       - "scripts/query-runtime-deps.sh"
       - ".github/workflows/base-image.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "Dockerfile.base"
+      - "scripts/install-vips.sh"
+      - "scripts/query-runtime-deps.sh"
+      - ".github/workflows/base-image.yml"
 
 env:
   REGISTRY: ghcr.io
@@ -38,6 +45,7 @@ jobs:
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
