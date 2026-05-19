@@ -1,0 +1,164 @@
+# syntax=docker/dockerfile:1
+
+ARG UBUNTU_VERSION=24.04
+ARG GRAAL_VERSION=25.0.0
+
+# ==========================================
+# Build libvips
+# ==========================================
+FROM ubuntu:${UBUNTU_VERSION} AS vips-build
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    glib2.0-dev \
+    libaom-dev \
+    libcgif-dev \
+    libde265-dev \
+    libexif-dev \
+    libexpat1-dev \
+    libfftw3-dev \
+    libgif-dev \
+    libheif-dev \
+    libheif-plugin-dav1d \
+    libheif-plugin-libde265 \
+    libheif-plugin-svtenc \
+    libheif-plugin-x265 \
+    libimagequant-dev \
+    libjemalloc-dev \
+    libjpeg-turbo8-dev \
+    libjxl-dev \
+    liblcms2-dev \
+    libpango1.0-dev \
+    libpng-dev \
+    libwebp-dev \
+    meson \
+    ninja-build \
+    pkg-config \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/install-vips.sh /usr/local/bin/install-vips.sh
+
+RUN chmod +x /usr/local/bin/install-vips.sh \
+    && /usr/local/bin/install-vips.sh --cleanup
+
+# ==========================================
+# Build GraalVM
+# ==========================================
+FROM ubuntu:${UBUNTU_VERSION} AS graal-build
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
+ARG GRAAL_VERSION
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    gzip \
+    tar \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install GraalVM 25 manually so the runtime and CI images use the same JDK.
+RUN if [ "$TARGETARCH" = "arm64" ]; then GRAAL_ARCH="aarch64"; else GRAAL_ARCH="x64"; fi && \
+    GRAAL_URL="https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-${GRAAL_VERSION}/graalvm-community-jdk-${GRAAL_VERSION}_linux-${GRAAL_ARCH}_bin.tar.gz" && \
+    wget -q "$GRAAL_URL" -O graal.tar.gz \
+    && mkdir -p /opt/java/graalvm \
+    && tar -xzf graal.tar.gz -C /opt/java/graalvm --strip-components=1 \
+    && rm graal.tar.gz \
+    && rm -f /opt/java/graalvm/lib/src.zip \
+    && rm -rf /opt/java/graalvm/man \
+    && rm -rf /opt/java/graalvm/jmods
+
+# ==========================================
+# Shared Runtime Base
+# ==========================================
+FROM ubuntu:${UBUNTU_VERSION} AS runtime
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
+
+## Generated from scripts/query-runtime-deps.sh.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libaom3 \
+    libcgif0 \
+    libdav1d7 \
+    libde265-0 \
+    libexif12 \
+    libexpat1 \
+    libffi8 \
+    libfftw3-double3 \
+    libfftw3-single3 \
+    libgif7 \
+    libgirepository-2.0-0 \
+    libglib2.0-0t64 \
+    libheif1 \
+    libheif-plugin-dav1d \
+    libheif-plugin-libde265 \
+    libheif-plugin-svtenc \
+    libheif-plugin-x265 \
+    libimagequant0 \
+    libjemalloc2 \
+    libjpeg-turbo8 \
+    libjxl0.7 \
+    liblcms2-2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0 \
+    libpangoxft-1.0-0 \
+    libpng16-16t64 \
+    libsvtav1enc1d1 \
+    libwebp7 \
+    libwebpdecoder3 \
+    libwebpdemux2 \
+    libwebpmux3 \
+    libx265-199 \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Tell JVM FFM consumers how to find GLib.
+RUN if [ "$TARGETARCH" = "arm64" ]; then GNU_ARCH="aarch64-linux-gnu"; else GNU_ARCH="x86_64-linux-gnu"; fi && \
+    cd /usr/lib/$GNU_ARCH && \
+    ln -s libglib-2.0.so.0 libglib-2.0.so && \
+    ln -s libgobject-2.0.so.0 libgobject-2.0.so && \
+    ln -s libgmodule-2.0.so.0 libgmodule-2.0.so
+
+ENV JAVA_HOME=/opt/java/graalvm
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+COPY --from=graal-build /opt/java/graalvm /opt/java/graalvm
+COPY --from=vips-build /usr/local /usr/local
+RUN ldconfig
+
+ENV LD_PRELOAD="libjemalloc.so.2"
+ENV SVT_LOG=1
+
+# ==========================================
+# CI Base
+# ==========================================
+FROM runtime AS ci
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    curl \
+    git \
+    gzip \
+    openssh-client \
+    tar \
+    unzip \
+    wget \
+    xz-utils \
+    zip \
+    gpg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+# Keep plain `docker build -f Dockerfile.base .` focused on the deployable runtime image.
+FROM runtime AS default

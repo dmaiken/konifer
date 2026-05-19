@@ -160,7 +160,8 @@ configurations.all {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("kotest.extensions.autoscan.disable", "true")
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    // Disable NUMA to prevent set_mempolicy errors in GitHub Actions
+    jvmArgs("--enable-native-access=ALL-UNNAMED", "-XX:-UseNUMA")
 
     // Tell libvips where to find jemalloc
     environment("LD_PRELOAD", "libjemalloc.so.2")
