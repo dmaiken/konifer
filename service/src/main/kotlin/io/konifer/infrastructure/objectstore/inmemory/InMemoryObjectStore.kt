@@ -5,6 +5,7 @@ import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.ktor.util.cio.readChannel
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
@@ -14,6 +15,11 @@ import java.time.LocalDateTime
 
 class InMemoryObjectStore : ObjectStore {
     private val store = mutableMapOf<String, MutableMap<String, ByteArray>>()
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
+    init {
+        logger.warn("The in-memory object store provider is enabled. This should NOT be used in production!")
+    }
 
     override suspend fun persist(
         bucket: String,

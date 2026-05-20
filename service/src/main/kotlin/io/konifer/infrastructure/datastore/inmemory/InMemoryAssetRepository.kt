@@ -21,6 +21,10 @@ class InMemoryAssetRepository : AssetRepository {
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
 
+    init {
+        logger.warn("The in-memory data store provider is enabled. This should NOT be used in production!")
+    }
+
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         storeMutex.withLock {
             val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)

@@ -160,7 +160,14 @@ configurations.all {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     systemProperty("kotest.extensions.autoscan.disable", "true")
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    // Open JDK internals to allow JUnit Pioneer to modify environment variables
+    jvmArgs(
+        "--add-opens",
+        "java.base/java.util=ALL-UNNAMED",
+        "--add-opens",
+        "java.base/java.lang=ALL-UNNAMED",
+        "--enable-native-access=ALL-UNNAMED",
+    )
 
     // Tell libvips where to find jemalloc
     environment("LD_PRELOAD", "libjemalloc.so.2")

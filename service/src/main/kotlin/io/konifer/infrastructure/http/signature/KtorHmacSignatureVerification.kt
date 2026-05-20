@@ -1,10 +1,12 @@
 package io.konifer.infrastructure.http.signature
 
+import io.konifer.infrastructure.EnvironmentVariable
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.URL_SIGNING
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.ALGORITHM
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.ENABLED
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.UrlSigningConfigurationPropertyKeys.SECRET_KEY
 import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.tryGetStringWithEnvironmentVariableOverride
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.tryGetString
@@ -28,8 +30,10 @@ fun Application.configureSignatureVerification() {
         val configuredSecretKey =
             environment.config
                 .tryGetConfig(URL_SIGNING)
-                ?.tryGetString(SECRET_KEY)
-                ?: throw IllegalArgumentException("URL signing secret key not found - one must be configured if enabled")
+                ?.tryGetStringWithEnvironmentVariableOverride(
+                    key = SECRET_KEY,
+                    environmentVariable = EnvironmentVariable.URL_SIGNING_SECRET_KEY,
+                ) ?: throw IllegalArgumentException("URL signing secret key not found - one must be configured if enabled")
 
         install(HmacSignatureVerification) {
             algorithm = configuredAlgorithm
