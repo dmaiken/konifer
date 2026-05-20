@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.objectstore
 
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.infrastructure.EnvironmentVariable
 import io.konifer.infrastructure.objectstore.filesystem.FileSystemObjectStore
 import io.konifer.infrastructure.objectstore.filesystem.FileSystemProperties
 import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
@@ -19,6 +20,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectReposi
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.REGION
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectRepositoryPropertyKeys.S3PropertyKeys.SECRET_KEY
 import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.tryGetStringWithEnvironmentVariableOverride
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
@@ -37,7 +39,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
         logger.info("Using object store provider: $provider")
         when (provider) {
             ObjectStoreProvider.IN_MEMORY -> {
-                single<ObjectStore> {
+                single<ObjectStore>(createdAtStart = true) {
                     InMemoryObjectStore()
                 }
             }
@@ -47,7 +49,11 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                     S3ClientProperties(
                         endpointUrl = s3ConfigurationProperties?.tryGetString(ENDPOINT_URL),
                         accessKey = s3ConfigurationProperties?.tryGetString(ACCESS_KEY),
-                        secretKey = s3ConfigurationProperties?.tryGetString(SECRET_KEY),
+                        secretKey =
+                            s3ConfigurationProperties?.tryGetStringWithEnvironmentVariableOverride(
+                                key = SECRET_KEY,
+                                environmentVariable = EnvironmentVariable.S3_SECRET_KEY,
+                            ),
                         region = s3ConfigurationProperties?.tryGetString(REGION),
                         forcePathStyle = s3ConfigurationProperties?.tryGetString(FORCE_PATH_STYLE)?.toBoolean() ?: false,
                     )

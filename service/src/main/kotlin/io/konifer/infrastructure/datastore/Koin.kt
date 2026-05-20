@@ -6,11 +6,8 @@ import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
 import io.konifer.infrastructure.datastore.postgres.postgres
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduling
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DATASTORE
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PROVIDER
-import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.getDataStoreProvider
 import io.ktor.server.application.Application
-import io.ktor.server.config.tryGetString
 import io.r2dbc.spi.ConnectionFactory
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrate
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrateProperties
@@ -25,16 +22,10 @@ import org.koin.dsl.module
 
 fun Application.assetRepositoryModule(): Module =
     module {
-        val datastoreProvider =
-            environment.config
-                .tryGetConfig(DATASTORE)
-                ?.tryGetString(PROVIDER)
-                ?.let {
-                    DataStoreProvider.fromConfig(it)
-                } ?: DataStoreProvider.default
+        val datastoreProvider = environment.config.getDataStoreProvider()
         when (datastoreProvider) {
             DataStoreProvider.IN_MEMORY -> {
-                single<AssetRepository> {
+                single<AssetRepository>(createdAtStart = true) {
                     InMemoryAssetRepository()
                 }
             }

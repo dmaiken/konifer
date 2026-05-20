@@ -5,9 +5,9 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
-
+## Try it
 ```bash
-docker pull ghcr.io/dmaiken/konifer:latest
+docker run -e IN_MEMORY=true -p 8080:8080 ghcr.io/dmaiken/konifer:latest
 ````
 
 Konifer is a self-hosted high-performance, non-blocking REST API for managing digital assets such as images.

@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.infrastructure.EnvironmentVariable
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DATASTORE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.POSTGRES
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.DATABASE
@@ -9,6 +10,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePro
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.SSL_MODE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.USER
 import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.tryGetStringWithEnvironmentVariableOverride
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 
@@ -28,8 +30,10 @@ fun Application.createPostgresProperties(): PostgresProperties {
             ?.tryGetConfig(POSTGRES)
     val password =
         postgresProperties
-            ?.tryGetString(PASSWORD)
-            ?: ""
+            ?.tryGetStringWithEnvironmentVariableOverride(
+                key = PASSWORD,
+                environmentVariable = EnvironmentVariable.PG_PASSWORD,
+            ) ?: ""
     val host =
         postgresProperties
             ?.tryGetString(HOST)
@@ -45,8 +49,10 @@ fun Application.createPostgresProperties(): PostgresProperties {
             ?: 5432
     val user =
         postgresProperties
-            ?.tryGetString(USER)
-            ?: "postgres"
+            ?.tryGetStringWithEnvironmentVariableOverride(
+                key = USER,
+                environmentVariable = EnvironmentVariable.PG_USER,
+            ) ?: "postgres"
     val sslMode =
         postgresProperties
             ?.tryGetString(SSL_MODE)
