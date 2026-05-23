@@ -1,5 +1,6 @@
 package io.konifer.asset.variant
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.PHash
 import io.konifer.client.KoniferResponse
@@ -7,8 +8,8 @@ import io.konifer.client.fold
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
 import io.kotest.inspectors.forAll
@@ -25,7 +26,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import kotlin.test.junit.JUnitAsserter.fail
 
-class EagerVariantTest {
+class EagerVariantTest : BaseFunctionalTest() {
     @Test
     fun `can store asset and eager variants are generated`() =
         testInMemory(

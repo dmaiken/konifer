@@ -4,14 +4,15 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldBeOneOf
@@ -24,7 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
-class AssetLifecycleTest {
+class AssetLifecycleTest : BaseFunctionalTest() {
     @ParameterizedTest
     @EnumSource(ImageFormat::class)
     fun `can create and get still image`(format: ImageFormat) =

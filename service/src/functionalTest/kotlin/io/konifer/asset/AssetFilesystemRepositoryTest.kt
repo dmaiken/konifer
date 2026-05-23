@@ -1,9 +1,10 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.client.fold
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
@@ -16,7 +17,7 @@ import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 import kotlin.test.junit.JUnitAsserter.fail
 
-class AssetFilesystemRepositoryTest {
+class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
     val mountPath: Path =
         Paths
             .get(System.getProperty("java.io.tmpdir"))

@@ -1,6 +1,7 @@
 package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Filter
@@ -10,7 +11,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetMetadata
@@ -24,7 +25,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 
-class FetchAssetMetadataTest {
+class FetchAssetMetadataTest : BaseFunctionalTest() {
     @Test
     fun `getting all asset info with path returns all info`() =
         testInMemory {

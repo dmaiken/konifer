@@ -28,7 +28,12 @@ class InMemoryObjectStore : ObjectStore {
     ): LocalDateTime {
         store.computeIfAbsent(bucket) { mutableMapOf() }
 
-        store[bucket]?.put(key, channel.toByteArray())
+        store[bucket]?.put(
+            key,
+            channel.toByteArray().also {
+                logger.info("TESTING: file size is: ${it.size}")
+            },
+        )
 
         return LocalDateTime.now()
     }

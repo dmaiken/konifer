@@ -1,5 +1,6 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.client.ContentFetchMode
 import io.konifer.client.KoniferInternalTestApi
 import io.konifer.client.KoniferResponse
@@ -7,7 +8,7 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.UnValidatedStoreAssetRequest
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
@@ -26,7 +27,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 
 @OptIn(KoniferInternalTestApi::class)
-class StoreAssetTest {
+class StoreAssetTest : BaseFunctionalTest() {
     @Test
     fun `uploading something not an image will return bad request`() =
         testInMemory {

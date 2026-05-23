@@ -7,9 +7,9 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
+import io.konifer.infrastructure.TemporaryFileFactory
+import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
 import io.konifer.infrastructure.vips.VipsImageProcessor
-import io.konifer.service.TemporaryFileFactory
-import io.konifer.service.TemporaryFileFactory.createProcessedVariantTempFile
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray

@@ -11,12 +11,12 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.MetadataTransformation
 import io.konifer.domain.variant.PaddingTransformation
 import io.konifer.domain.variant.Transformation
+import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll

@@ -1,9 +1,10 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.signature.HmacSigningAlgorithm
 import io.konifer.infrastructure.http.signature.UrlSigner
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource
 import io.ktor.http.HttpStatusCode
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
-class UrlSigningTest {
+class UrlSigningTest : BaseFunctionalTest() {
     @Test
     fun `signature is required when url-signing is enabled`() =
         testInMemory(

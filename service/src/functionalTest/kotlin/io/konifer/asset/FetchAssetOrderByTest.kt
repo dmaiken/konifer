@@ -1,8 +1,9 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
@@ -12,7 +13,7 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpHeaders
 import org.junit.jupiter.api.Test
 
-class FetchAssetOrderByTest {
+class FetchAssetOrderByTest : BaseFunctionalTest() {
     @Test
     fun `can fetch asset metadata and order by created at`() =
         testInMemory {

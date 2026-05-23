@@ -1,12 +1,12 @@
 package io.konifer
 
+import io.konifer.entrypoint.configureAssetRouting
+import io.konifer.entrypoint.configureInMemoryObjectStoreRouting
 import io.konifer.infrastructure.configureKoin
 import io.konifer.infrastructure.getObjectStoreProvider
 import io.konifer.infrastructure.http.cache.configureConditionalHeaders
 import io.konifer.infrastructure.http.configureCompression
 import io.konifer.infrastructure.http.exception.configureStatusPages
-import io.konifer.infrastructure.http.route.configureAssetRouting
-import io.konifer.infrastructure.http.route.configureInMemoryObjectStoreRouting
 import io.konifer.infrastructure.http.serialization.configureContentNegotiation
 import io.konifer.infrastructure.http.signature.configureSignatureVerification
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider

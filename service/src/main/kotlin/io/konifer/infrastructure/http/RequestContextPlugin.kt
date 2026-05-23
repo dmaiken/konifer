@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.domain.context.RequestContextFactory
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
-import io.konifer.service.context.RequestContextFactory
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.request.httpMethod

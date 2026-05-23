@@ -1,7 +1,8 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
@@ -15,7 +16,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.toJavaLocalDateTime
 import org.junit.jupiter.api.Test
 
-class UpdateAssetTest {
+class UpdateAssetTest : BaseFunctionalTest() {
     @Test
     fun `can update asset metadata`() =
         testInMemory {

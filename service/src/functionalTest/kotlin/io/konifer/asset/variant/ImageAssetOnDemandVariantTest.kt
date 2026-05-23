@@ -10,11 +10,11 @@ import app.photofox.vipsffm.enums.VipsForeignHeifEncoder
 import app.photofox.vipsffm.enums.VipsForeignSubsample
 import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsInterpretation
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.config.testInMemory
 import io.konifer.domain.image.toColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
@@ -25,6 +25,7 @@ import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.fetchAssetViaRedirect
@@ -51,7 +52,7 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import kotlin.math.min
 
-class ImageAssetOnDemandVariantTest {
+class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
     @Test
     fun `can fetch image variant by height`() =
         testInMemory {

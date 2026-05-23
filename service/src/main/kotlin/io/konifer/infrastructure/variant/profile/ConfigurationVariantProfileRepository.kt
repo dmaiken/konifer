@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.variant.profile
 
+import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.konifer.infrastructure.tryGetConfigList
-import io.konifer.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 
