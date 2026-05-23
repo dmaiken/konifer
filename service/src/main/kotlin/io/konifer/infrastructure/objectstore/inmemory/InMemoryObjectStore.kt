@@ -30,9 +30,7 @@ class InMemoryObjectStore : ObjectStore {
 
         store[bucket]?.put(
             key,
-            channel.toByteArray().also {
-                logger.info("TESTING: file size is: ${it.size}")
-            },
+            channel.toByteArray(),
         )
 
         return LocalDateTime.now()

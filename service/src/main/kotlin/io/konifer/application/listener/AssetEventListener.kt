@@ -10,7 +10,6 @@ import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.fileSize
 
 class AssetEventListener(
     private val bus: EventBus,
@@ -51,7 +50,6 @@ class AssetEventListener(
                     ?: return
             logger.info("Creating ${eagerVariantTransformations.size} eager variants for asset: ${event.originalVariant.assetId.value}")
 
-            logger.info("TESTING: Eager variant file size is: ${event.originalVariantFile?.fileSize()}")
             variantService.createEagerVariants(
                 originalVariantFile =
                     checkNotNull(event.originalVariantFile) {
@@ -65,7 +63,6 @@ class AssetEventListener(
                 bucket = event.pathConfiguration.objectStore.bucket,
             )
         } finally {
-            logger.info("TESTING: deleting temp file")
             event.originalVariantFile?.deleteIfExists()
         }
     }
