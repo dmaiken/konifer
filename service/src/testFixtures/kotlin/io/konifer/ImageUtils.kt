@@ -13,8 +13,8 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
-import io.konifer.service.context.RequestedTransformation
 import org.hipparchus.transform.DctNormalization
 import org.hipparchus.transform.FastCosineTransformer
 import org.hipparchus.transform.TransformType

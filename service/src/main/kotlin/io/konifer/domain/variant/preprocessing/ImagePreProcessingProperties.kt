@@ -8,10 +8,10 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromString
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys
-import io.konifer.service.context.RequestedTransformation
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.server.config.tryGetStringList

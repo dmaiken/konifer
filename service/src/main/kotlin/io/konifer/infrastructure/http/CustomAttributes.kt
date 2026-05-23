@@ -1,8 +1,8 @@
 package io.konifer.infrastructure.http
 
-import io.konifer.service.context.DeleteRequestContext
-import io.konifer.service.context.QueryRequestContext
-import io.konifer.service.context.UpdateRequestContext
+import io.konifer.domain.context.DeleteRequestContext
+import io.konifer.domain.context.QueryRequestContext
+import io.konifer.domain.context.UpdateRequestContext
 import io.ktor.util.AttributeKey
 import java.time.LocalDateTime
 

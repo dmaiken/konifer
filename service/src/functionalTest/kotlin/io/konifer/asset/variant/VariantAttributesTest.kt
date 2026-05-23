@@ -2,15 +2,16 @@ package io.konifer.asset.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 
-class VariantAttributesTest {
+class VariantAttributesTest : BaseFunctionalTest() {
     @Test
     fun `height and width are populated when image is stored`() =
         testInMemory {

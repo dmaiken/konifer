@@ -28,7 +28,10 @@ class InMemoryObjectStore : ObjectStore {
     ): LocalDateTime {
         store.computeIfAbsent(bucket) { mutableMapOf() }
 
-        store[bucket]?.put(key, channel.toByteArray())
+        store[bucket]?.put(
+            key,
+            channel.toByteArray(),
+        )
 
         return LocalDateTime.now()
     }

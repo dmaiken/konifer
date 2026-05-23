@@ -1,12 +1,13 @@
 package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
 import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -15,7 +16,7 @@ import io.ktor.http.HttpStatusCode
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
-class FetchAssetContentTest {
+class FetchAssetContentTest : BaseFunctionalTest() {
     @Test
     fun `fetching asset content that does not exist returns not found`() =
         testInMemory {

@@ -1,11 +1,12 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
 import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContentDownload
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -18,7 +19,7 @@ import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import java.net.URLDecoder
 
-class FetchAssetDownloadTest {
+class FetchAssetDownloadTest : BaseFunctionalTest() {
     @Test
     fun `can fetch asset and render with return format of download`() =
         testInMemory(

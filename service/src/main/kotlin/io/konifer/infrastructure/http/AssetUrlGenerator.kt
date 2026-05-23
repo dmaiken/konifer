@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.domain.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.konifer.infrastructure.HttpProperties
-import io.konifer.service.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.ktor.http.Parameters
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments

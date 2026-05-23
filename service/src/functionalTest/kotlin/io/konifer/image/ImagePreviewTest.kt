@@ -1,9 +1,10 @@
 package io.konifer.image
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
 import io.konifer.domain.image.LQIPImplementation
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.fetchAssetMetadata
@@ -15,7 +16,7 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.client.HttpClient
 import org.junit.jupiter.api.Test
 
-class ImagePreviewTest {
+class ImagePreviewTest : BaseFunctionalTest() {
     companion object {
         const val PATH = "profile"
     }

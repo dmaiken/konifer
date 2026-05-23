@@ -2,9 +2,9 @@ package io.konifer.infrastructure.http.exception
 
 import io.konifer.common.http.ErrorResponse
 import io.konifer.domain.asset.AssetNotFoundException
+import io.konifer.domain.context.ContentTypeNotPermittedException
+import io.konifer.domain.context.InvalidPathException
 import io.konifer.domain.image.InvalidImageException
-import io.konifer.service.context.ContentTypeNotPermittedException
-import io.konifer.service.context.InvalidPathException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

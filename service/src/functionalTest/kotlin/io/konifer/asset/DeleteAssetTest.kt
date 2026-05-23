@@ -1,9 +1,10 @@
 package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.assertAssetDoesNotExist
 import io.konifer.util.deleteAsset
 import io.konifer.util.deleteAssetsAtPath
@@ -17,7 +18,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 
-class DeleteAssetTest {
+class DeleteAssetTest : BaseFunctionalTest() {
     @Test
     fun `deleting asset that does not exist returns no content`() =
         testInMemory {

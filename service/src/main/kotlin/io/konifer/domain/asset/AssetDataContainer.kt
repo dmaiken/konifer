@@ -1,6 +1,6 @@
 package io.konifer.domain.asset
 
-import io.konifer.service.TemporaryFileFactory.createUploadTempFile
+import io.konifer.infrastructure.TemporaryFileFactory.createUploadTempFile
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import io.ktor.utils.io.ByteReadChannel
@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import java.nio.channels.FileChannel
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 
 /**
@@ -24,9 +25,9 @@ class AssetDataContainer(
 ) : AutoCloseable {
     companion object {
         private const val TOO_LARGE_MESSAGE = "Asset exceeds the maximum allowed size"
+        private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     }
 
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private var tempFile: Path? = null
 
     /**
@@ -73,12 +74,8 @@ class AssetDataContainer(
     override fun close() {
         if (tempFile != null) {
             logger.debug { "Deleting temporary file: ${tempFile?.pathString}" }
-            tempFile?.toFile()?.delete()
+            tempFile?.deleteIfExists()
         }
-        closeChannel()
-    }
-
-    fun closeChannel() {
         if (!channel.isClosedForRead) channel.cancel(null)
     }
 }

@@ -1,14 +1,15 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpHeaders
 import org.junit.jupiter.api.Test
 
-class FetchAssetCacheControlTest {
+class FetchAssetCacheControlTest : BaseFunctionalTest() {
     @Test
     fun `can fetch assets with cache-control header configured`() =
         testInMemory(

@@ -2,15 +2,16 @@ package io.konifer.asset.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.client.KoniferResponse
 import io.konifer.client.fold
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.config.testInMemory
 import io.konifer.matchers.shouldBeFormat
 import io.konifer.matchers.shouldBeWithinOneOf
+import io.konifer.testInMemory
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -18,7 +19,7 @@ import io.kotest.matchers.string.shouldNotStartWith
 import org.junit.jupiter.api.Test
 import kotlin.test.junit.JUnitAsserter.fail
 
-class FetchAssetVariantTest {
+class FetchAssetVariantTest : BaseFunctionalTest() {
     @Test
     fun `requested asset variants are persisted in configured bucket`() =
         testInMemory(

@@ -6,9 +6,9 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.VariantAlreadyExistsException
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ

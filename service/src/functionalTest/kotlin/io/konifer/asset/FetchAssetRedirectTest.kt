@@ -1,10 +1,11 @@
 package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
 import io.konifer.infrastructure.http.APP_ALT
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
@@ -17,7 +18,7 @@ import io.ktor.http.Url
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
-class FetchAssetRedirectTest {
+class FetchAssetRedirectTest : BaseFunctionalTest() {
     @Test
     fun `fetching asset that does not exist returns not found`() =
         testInMemory {

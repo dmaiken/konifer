@@ -1,14 +1,15 @@
 package io.konifer.asset
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAllAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 
-class FetchAssetMetadataLimitTest {
+class FetchAssetMetadataLimitTest : BaseFunctionalTest() {
     @Test
     fun `limit is respected when fetching asset`() =
         testInMemory {

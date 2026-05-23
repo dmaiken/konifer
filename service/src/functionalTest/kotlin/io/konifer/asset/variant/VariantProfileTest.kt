@@ -1,8 +1,9 @@
 package io.konifer.asset.variant
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.config.testInMemory
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetLink
 import io.konifer.util.storeAssetMultipartSource
@@ -12,7 +13,7 @@ import io.ktor.http.HttpStatusCode
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
-class VariantProfileTest {
+class VariantProfileTest : BaseFunctionalTest() {
     @Test
     fun `bad request returned when fetching asset variant with non-existent variant profile`() =
         testInMemory(

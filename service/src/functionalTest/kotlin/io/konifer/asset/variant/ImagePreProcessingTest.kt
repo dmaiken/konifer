@@ -2,13 +2,14 @@ package io.konifer.asset.variant
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.config.testInMemory
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
+import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
@@ -23,7 +24,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
-class ImagePreProcessingTest {
+class ImagePreProcessingTest : BaseFunctionalTest() {
     companion object {
         @JvmStatic
         fun scalingNotNeededSource(): Stream<Arguments> =
