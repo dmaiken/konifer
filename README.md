@@ -63,7 +63,7 @@ Multiple images can still live at the same path. Each stored image receives an `
 GET /assets/organizations/acme/users/123/avatar/-/entry/4/content
 ```
 
-## Who It Is For
+## Who Konifer Is For
 
 Konifer is intended for developers and platform teams who want:
 
