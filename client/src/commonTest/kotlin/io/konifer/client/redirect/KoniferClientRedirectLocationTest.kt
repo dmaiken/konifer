@@ -57,6 +57,33 @@ class KoniferClientRedirectLocationTest :
             }
         }
 
+        test("should be able to fetch asset redirect with labels") {
+            val redirectUrl = "https://redirect.io/image.jpg"
+            val labels =
+                mapOf(
+                    "Camera" to "iphone",
+                    "s" to "true",
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappyRedirect(
+                        expectedPath = "/assets/users/123/-/redirect",
+                        redirectLocation = redirectUrl,
+                        labels = labels,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetRedirectLocation(
+                    path = "/users/123",
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe redirectUrl
+        }
+
         test("should properly translate requested transformation into query parameters") {
             val redirectUrl = "https://redirect.io/image.jpg"
             val httpClient =

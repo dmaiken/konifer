@@ -53,6 +53,33 @@ class KoniferClientLinkTest :
             (response as KoniferResponse.HttpError).message shouldBe serverResponse.message
         }
 
+        test("should be able to fetch asset link with labels") {
+            val serverResponse = createLinkResponse()
+            val labels =
+                mapOf(
+                    "Camera" to "iphone",
+                    "format" to "display",
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/link",
+                        response = serverResponse,
+                        labels = labels,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetLink(
+                    path = "/users/123",
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+        }
+
         test("should properly translate requested transformation into query parameters") {
             val serverResponse = createLinkResponse()
             val httpClient =

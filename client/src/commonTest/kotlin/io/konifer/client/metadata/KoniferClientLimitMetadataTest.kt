@@ -91,6 +91,38 @@ class KoniferClientLimitMetadataTest :
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
+        test("should be able to fetch asset metadata with limit and labels") {
+            val serverResponse =
+                listOf(
+                    createMetadataResponse(),
+                    createMetadataResponse(),
+                )
+            val labels =
+                mapOf(
+                    "Album" to "vacation",
+                    "limit" to "important",
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/metadata",
+                        response = serverResponse,
+                        labels = labels,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetMetadata(
+                    path = "/users/123",
+                    limit = 2,
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+        }
+
         test("should return the error message on a client error") {
             val serverResponse = createErrorResponse("not found")
             val httpClient =

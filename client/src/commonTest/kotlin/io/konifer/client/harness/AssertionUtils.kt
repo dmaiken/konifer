@@ -1,6 +1,7 @@
 package io.konifer.client.harness
 
 import io.konifer.client.RequestedTransformation
+import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 
@@ -32,5 +33,22 @@ fun assertRequestedTransformation(
             parameters["strip"] shouldBe null
         }
         requested.colorSpace?.let { parameters["cs"] shouldBe it.queryParameterValue }
+    }
+}
+
+fun assertLabels(
+    parameters: Parameters,
+    labels: Map<String, String>,
+) {
+    labels.forEach { (key, value) ->
+        val labelKey = key.lowercase()
+        val expectedParameterName =
+            if (labelKey in ALL_RESERVED_PARAMETERS) {
+                "label:$labelKey"
+            } else {
+                labelKey
+            }
+
+        parameters[expectedParameterName] shouldBe value
     }
 }

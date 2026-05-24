@@ -1,11 +1,13 @@
 package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory
+import io.konifer.client.KoniferResponse
+import io.konifer.client.QuerySelectors
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetMetadata
-import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
@@ -17,7 +19,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
     @Test
     fun `can fetch asset with labels`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -35,24 +37,49 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            val response =
+                konifer.storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
 
-            fetchAssetMetadata(client, "profile", labels = labels)!!.apply {
-                tags shouldContainExactly tags
-                labels shouldContainExactly labels
-                alt shouldBe request.alt
-                variants shouldHaveSize 1
-                `class` shouldBe AssetClass.IMAGE
-                entryId shouldBe response.entryId
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = labels,
+                )
+            metadata::class shouldBe KoniferResponse.Success::class
+            with((metadata as KoniferResponse.Success).body) {
+                this.tags shouldContainExactly tags
+                this.labels shouldContainExactly labels
+                this.alt shouldBe request.alt
+                this.variants shouldHaveSize 1
+                this.`class` shouldBe AssetClass.IMAGE
+                this.entryId shouldBe entryIdWithLabels
             }
         }
 
     @Test
     fun `can fetch asset with labels and entryId`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -70,27 +97,60 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            val response =
+                konifer.storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
 
-            fetchAssetMetadata(client, "profile", entryId = response.entryId, labels = labels)!!.apply {
-                tags shouldContainExactly tags
-                labels shouldContainExactly labels
-                alt shouldBe request.alt
-                variants shouldHaveSize 1
-                `class` shouldBe AssetClass.IMAGE
-                entryId shouldBe response.entryId
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    querySelectors = QuerySelectors.EntryId(entryIdWithLabels),
+                    labels = labels,
+                )
+            metadata::class shouldBe KoniferResponse.Success::class
+            with((metadata as KoniferResponse.Success).body) {
+                this.tags shouldContainExactly tags
+                this.labels shouldContainExactly labels
+                this.alt shouldBe request.alt
+                this.variants shouldHaveSize 1
+                this.`class` shouldBe AssetClass.IMAGE
+                this.entryId shouldBe entryIdWithLabels
             }
 
             // Verify wrong entryId with right labels returns NotFound
-            fetchAssetMetadata(client, "profile", entryId = response.entryId + 1, labels = labels, expectedStatus = HttpStatusCode.NotFound)
+            val notFoundResponse =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    querySelectors = QuerySelectors.EntryId(entryIdWithLabels + 1),
+                    labels = labels,
+                )
+            notFoundResponse::class shouldBe KoniferResponse.HttpError::class
+            (notFoundResponse as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.NotFound
         }
 
     @Test
     fun `can fetch asset with namespaced labels`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -108,24 +168,49 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            val response =
+                konifer.storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
 
-            fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
-                tags shouldContainExactly tags
-                labels shouldContainExactly labels
-                alt shouldBe request.alt
-                variants shouldHaveSize 1
-                `class` shouldBe AssetClass.IMAGE
-                entryId shouldBe response.entryId
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = labels.mapKeys { "label:${it.key}" },
+                )
+            metadata::class shouldBe KoniferResponse.Success::class
+            with((metadata as KoniferResponse.Success).body) {
+                this.tags shouldContainExactly tags
+                this.labels shouldContainExactly labels
+                this.alt shouldBe request.alt
+                this.variants shouldHaveSize 1
+                this.`class` shouldBe AssetClass.IMAGE
+                this.entryId shouldBe entryIdWithLabels
             }
         }
 
     @Test
     fun `can fetch asset with namespaced labels overloading variant transformation parameters`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "bg" to "iphone",
@@ -143,24 +228,49 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            val response =
+                konifer.storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
 
-            fetchAssetMetadata(client, "profile", labels = labels.mapKeys { "label:${it.key}" })!!.apply {
-                tags shouldContainExactly tags
-                labels shouldContainExactly labels
-                alt shouldBe request.alt
-                variants shouldHaveSize 1
-                `class` shouldBe AssetClass.IMAGE
-                entryId shouldBe response.entryId
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = labels,
+                )
+            metadata::class shouldBe KoniferResponse.Success::class
+            with((metadata as KoniferResponse.Success).body) {
+                this.tags shouldContainExactly tags
+                this.labels shouldContainExactly labels
+                this.alt shouldBe request.alt
+                this.variants shouldHaveSize 1
+                this.`class` shouldBe AssetClass.IMAGE
+                this.entryId shouldBe entryIdWithLabels
             }
         }
 
     @Test
     fun `can fetch asset with subset of labels`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -178,24 +288,49 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            val response = storeAssetMultipartSource(client, image, request, path = "profile").second!!
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            val response =
+                konifer.storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
 
-            fetchAssetMetadata(client, "profile", labels = mapOf("phone" to "iphone"))!!.apply {
-                tags shouldContainExactly tags
-                labels shouldContainExactly labels
-                alt shouldBe request.alt
-                variants shouldHaveSize 1
-                `class` shouldBe AssetClass.IMAGE
-                entryId shouldBe response.entryId
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = mapOf("phone" to "iphone"),
+                )
+            metadata::class shouldBe KoniferResponse.Success::class
+            with((metadata as KoniferResponse.Success).body) {
+                this.tags shouldContainExactly tags
+                this.labels shouldContainExactly labels
+                this.alt shouldBe request.alt
+                this.variants shouldHaveSize 1
+                this.`class` shouldBe AssetClass.IMAGE
+                this.entryId shouldBe entryIdWithLabels
             }
         }
 
     @Test
     fun `fetching with label values that do not apply to assets returns nothing`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -213,17 +348,38 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            storeAssetMultipartSource(client, image, request, path = "profile")
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = request,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
 
-            fetchAssetMetadata(client, "profile", labels = mapOf("phone" to "android"), expectedStatus = HttpStatusCode.NotFound)
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = mapOf("phone" to "android"),
+                )
+            metadata::class shouldBe KoniferResponse.HttpError::class
+            (metadata as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.NotFound
         }
 
     @Test
     fun `fetching with label keys that do not apply to assets returns nothing`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -241,10 +397,31 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
-            storeAssetMultipartSource(client, image, request, path = "profile")
-            storeAssetMultipartSource(client, image, requestWithoutLabels, path = "profile")
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = request,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
+            konifer.storeAsset(
+                path = "profile",
+                format = attributes.format,
+                request = requestWithoutLabels,
+                bytes = image,
+            )::class shouldBe KoniferResponse.Success::class
 
-            fetchAssetMetadata(client, "profile", labels = mapOf("tablet" to "iphone"), expectedStatus = HttpStatusCode.NotFound)
+            val metadata =
+                konifer.fetchAssetMetadata(
+                    path = "profile",
+                    labels = mapOf("tablet" to "iphone"),
+                )
+            metadata::class shouldBe KoniferResponse.HttpError::class
+            (metadata as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.NotFound
         }
 }

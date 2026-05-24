@@ -135,6 +135,67 @@ class KoniferClientContentTest :
             (response as KoniferResponse.Success<*>).body shouldBe imageBytes
         }
 
+        test("should be able to fetch content with labels") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val labels =
+                mapOf(
+                    "Camera" to "iphone",
+                    "w" to "wide",
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                        labels = labels,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val responseChannel = ByteChannel()
+            val actualBytes =
+                async {
+                    responseChannel.toByteArray()
+                }
+            val response =
+                koniferClient.fetchAssetContent(
+                    path = "/users/123",
+                    labels = labels,
+                    byteChannel = responseChannel,
+                    fetchMode = ContentFetchMode.CONTENT,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            actualBytes.await() shouldBe imageBytes
+        }
+
+        test("should be able to fetch content bytes with labels") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val labels =
+                mapOf(
+                    "Tag" to "featured",
+                    "profile" to "thumbnail",
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                        labels = labels,
+                    )
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetContentBytes(
+                    path = "/users/123",
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe imageBytes
+        }
+
         test("should be able to fetch content with entryId selector") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val httpClient =

@@ -4,6 +4,7 @@ import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -39,7 +40,6 @@ class KoniferClient internal constructor(
 ) {
     companion object {
         private const val ASSETS_BASE_PATH = "assets"
-        private const val LIMIT_PARAMETER = "limit"
         private const val BOUNDARY = "boundary"
 
         fun build(baseUrl: String): KoniferClient {
@@ -71,6 +71,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetMetadata(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         safeApiCall {
             httpClient
@@ -79,6 +80,7 @@ class KoniferClient internal constructor(
                         appendPathSegments(ASSETS_BASE_PATH)
                         appendPathSegments(path.splitPath())
                         appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
+                        appendLabels(labels)
                     }
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
@@ -88,6 +90,7 @@ class KoniferClient internal constructor(
         path: String,
         limit: Int,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         safeApiCall {
             httpClient
@@ -97,6 +100,7 @@ class KoniferClient internal constructor(
                         appendPathSegments(path.splitPath())
                         appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
                         parameters.append(LIMIT_PARAMETER, limit.toString())
+                        appendLabels(labels)
                     }
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
@@ -105,6 +109,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetContent(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         byteChannel: ByteChannel,
         fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
@@ -115,6 +120,7 @@ class KoniferClient internal constructor(
                     fetchContentUrl(
                         path = path,
                         querySelectors = querySelectors,
+                        labels = labels,
                         requestedTransformation = requestedTransformation,
                         fetchMode = fetchMode,
                     )
@@ -132,6 +138,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetContentBytes(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
     ): KoniferResponse<ByteArray> =
@@ -141,6 +148,7 @@ class KoniferClient internal constructor(
                     fetchContentUrl(
                         path = path,
                         querySelectors = querySelectors,
+                        labels = labels,
                         requestedTransformation = requestedTransformation,
                         fetchMode = fetchMode,
                     )
@@ -156,6 +164,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetRedirectLocation(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
         safeApiCall {
@@ -166,6 +175,7 @@ class KoniferClient internal constructor(
                         appendPathSegments(path.splitPath())
                         appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
                         appendTransformationParameters(requestedTransformation)
+                        appendLabels(labels)
                     }
                 }.execute { response ->
                     if (response.status.value in 300..399) {
@@ -183,6 +193,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetLink(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
         safeApiCall {
@@ -193,6 +204,7 @@ class KoniferClient internal constructor(
                         appendPathSegments(path.splitPath())
                         appendQuerySelectors(ReturnFormat.LINK, querySelectors)
                         appendTransformationParameters(requestedTransformation)
+                        appendLabels(labels)
                     }
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
@@ -326,6 +338,7 @@ class KoniferClient internal constructor(
     private fun HttpRequestBuilder.fetchContentUrl(
         path: String,
         querySelectors: QuerySelectors,
+        labels: Map<String, String>,
         requestedTransformation: RequestedTransformation,
         fetchMode: ContentFetchMode,
     ) = url {
@@ -336,5 +349,6 @@ class KoniferClient internal constructor(
             ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
         }
         appendTransformationParameters(requestedTransformation)
+        appendLabels(labels)
     }
 }

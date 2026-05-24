@@ -1,12 +1,12 @@
 package io.konifer.domain.context
 
+import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.RequestContextFactory.Companion.ENTRY_ID_MODIFIER
 import io.konifer.domain.context.RequestContextFactory.Companion.RECURSIVE_MODIFIER
 import io.konifer.domain.context.selector.DEFAULT_LIMIT
 import io.konifer.domain.context.selector.DeleteModifiers
-import io.konifer.domain.context.selector.LIMIT_PARAMETER
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.ktor.http.Parameters

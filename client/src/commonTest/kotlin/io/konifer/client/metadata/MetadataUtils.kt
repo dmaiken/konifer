@@ -1,5 +1,6 @@
 package io.konifer.client.metadata
 
+import io.konifer.client.harness.assertLabels
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
@@ -93,9 +94,14 @@ fun configureMockEngineHappy(
     expectedPath: String,
     response: AssetResponse,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
+    labels: Map<String, String> = emptyMap(),
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
+        assertLabels(
+            parameters = request.url.parameters,
+            labels = labels,
+        )
 
         respond(
             content = Json.encodeToString(response),
@@ -108,11 +114,16 @@ fun configureMockEngineHappy(
     expectedPath: String,
     response: List<AssetResponse>,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
+    labels: Map<String, String> = emptyMap(),
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
         request.method shouldBe HttpMethod.Get
         request.url.parameters["limit"] shouldBe response.size.toString()
+        assertLabels(
+            parameters = request.url.parameters,
+            labels = labels,
+        )
 
         respond(
             content = Json.encodeToString(response),

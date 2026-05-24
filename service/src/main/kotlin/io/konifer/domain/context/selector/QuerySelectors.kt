@@ -7,7 +7,6 @@ import io.konifer.domain.context.InvalidQuerySelectorsException
 val DEFAULT_RETURN_FORMAT = ReturnFormat.LINK
 val DEFAULT_ORDER_BY = Order.NEW
 const val DEFAULT_LIMIT = 1
-const val LIMIT_PARAMETER = "limit"
 
 data class QuerySelectors(
     val returnFormat: ReturnFormat = DEFAULT_RETURN_FORMAT,
