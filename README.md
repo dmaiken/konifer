@@ -1,383 +1,281 @@
-# Konifer - Self-Hosted Digital Asset Management
+<p align="center">
+  <img src="https://konifer.io/img/konifer-small.png" alt="Konifer logo" width="200"/>
+</p>
+
+# Konifer
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmaiken/konifer/build.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
-## Try it
+Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
+
+It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads, or metadata from a single HTTP API. The core idea is simple: Konifer's URLs can follow your domain model.
+
+```http
+POST /assets/users/123/profile-picture
+GET  /assets/users/123/profile-picture/-/content?w=256&format=webp
+GET  /assets/users/123/profile-picture/-/metadata
+```
+
+Instead of storing `imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a` in your user service, you can address the image where it naturally belongs: `/assets/users/123/profile-picture`.
+
+## Try It
+
 ```bash
 docker run -e IN_MEMORY=true -p 8080:8080 ghcr.io/dmaiken/konifer:latest
-````
-
-Konifer is a self-hosted high-performance, non-blocking REST API for managing digital assets such as images.
-Built with Kotlin on the Ktor framework, it provides a flexible, path-driven design that allows clients to 
-define their own hierarchical structure for image storage and retrieval.
-
-## Who should use this?
-- Those who never want to think about or pay for a usage "token" again
-- Companies who want to avoid vendor lock-in
-- Companies who want to scale their image processing in a way cloud processors simply don't accommodate (without a nice, expensive contract of course)
-- Those who wish to retain digital sovereignty of their data in a time where sovereignty's value is being demonstrated
-
-## Documentation
-To learn more about Konifer, please visit the [documentation](https://konifer.io/).
-
-## Features
-
-### Composable URL Structure
-You define the path you want, limiting the need to store an identifier for an image. Fetching user 123's profile picture
-no longer requires you to store "imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a" in your User service's DB. Instead,
-define your path semantically:
-```
-GET /assets/user/123/profile
-```
-Konifer doesn't try to enforce any particular structure for assets, but it does provide a
-simple way to define your own.
-
-The way that Konifer stores and references the asset tree means there is no performance penalty for any path structure you
-choose. If you wish to retain an "image ID", you can do so:
-``` 
-GET /assets/{imageId}
 ```
 
-#### Multiple Images Within the Same Path
-Konifer's path structure supports multiple images within the same path. When images are uploaded to a path, they are assigned an `entryId`,
-an always-increasing value that uniquely identifies the image relative to the path.
+Then upload an image:
 
-For example, lets create an album for a ski trip (multipart upload omitted) with 2 pictures:
-``` 
-POST /assets/users/{userId}/ski-trip
-```
-Response:
-```json
-{
-  "class": "image",   
-  "entryId": 0,
-  "labels": {},
-  "tags": [],
-  "source": "upload",
-  "variants": [
-    {
-      "isOriginalVariant": true,
-	  "storeBucket": "assets",
-      "storeKey": "513b9a74-0d78-40a3-9582-12bcb226fe1d.webp",
-      "attributes": {
-        "height": 1752,
-        "width": 2560,
-        "mimeType": "image/webp"
-      },
-      "lqip": {}
-    }
-  ],
-  "createdAt": "2025-12-26T23:02:43.042568",
-  "modifiedAt": "2025-12-26T23:02:43.95746582"
-}
-```
-```
-POST /assets/users/{userId}/ski-trip
-```
-Response:
-```json
-{
-  "class": "image",
-  "entryId": 1,
-  "labels": {},
-  "tags": [],
-  "source": "upload",
-  "variants": [
-    {
-      "isOriginalVariant": true,
-      "storeBucket": "assets",
-      "storeKey": "2a09d243-82f8-42e2-ab64-16ec2adec793.webp",
-      "attributes": {
-        "height": 1600,
-        "width": 2410,
-        "mimeType": "image/webp"
-      },
-      "lqip": {}
-    }
-  ],
-  "createdAt": "2025-12-26T23:03:48.934689",
-  "modifiedAt": "2025-12-26T23:03:48.934689"
-}
-```
-You can access each image in the album by supplying the `entryId`:
-``` 
-GET /assets/users/{userId}/ski-trip/-/entry/1
+```bash
+curl --request POST \
+  --url 'http://localhost:8080/assets/my-images/' \
+  --header 'Content-Type: multipart/form-data' \
+  --form 'metadata={"alt":"moon"}' \
+  --form file=/path/to/your/image.png
 ```
 
-### Variants (Transformations)
+Fetch it back, transformed on demand:
 
-Konifer provides many ways to transform your images:
-- Transformation of the original image content at upload-time
-- Generate variants eagerly at upload-time for well-known transformations e.g. thumbnails
-- On-demand variant generation for on-the-fly variant generation 
-
-### Multiple Return Formats
-You can specify your image data or metadata in any format you need:
-
-#### Metadata
-Fetch the metadata of your image, including generated variants
-```
-GET /assets/user/123/profile/-/metadata
-```
-```json
-{
-  "class": "image",
-  "alt": "The alt text for an image",
-  "entryId": 1049,
-  "labels": {
-    "label-key": "label-value",
-    "phone": "Android"
-  },
-  "tags": [ "cold", "verified" ],
-  "source": "url",
-  "sourceUrl": "https://yoururl.com/image.jpeg",
-  "variants": [
-    {
-      "isOriginalVariant": true,
-      "storeBucket": "assets",
-      "storeKey": "d905170f-defd-47e4-b606-d01993ba7b42",
-      "imageAttributes": {
-        "height": 100,
-        "width": 200,
-        "mimeType": "image/jpeg"
-      },
-      "lqip": {
-        "blurhash": "BASE64",
-        "thumbhash": "BASE64"
-      }
-    },
-    {
-      "isOriginalVariant": false,
-      "storeBucket": "assets",
-      "storeKey": "64fffa7e-85d2-42db-a081-354c91ec7ef9.webp",
-      "attributes": {
-        "height": 2560,
-        "width": 1752,
-        "format": "webp",
-        "pageCount": 1,
-        "loop": 0
-      },
-      "transformation": {
-        "width": 2560,
-        "height": 1752,
-        "fit": "fit",
-        "gravity": "center",
-        "format": "webp",
-        "rotate": "ninety",
-        "flip": "none",
-        "filter": "none",
-        "blur": 0,
-        "quality": 80,
-        "padding": {
-          "amount": 0,
-          "color": []
-        }
-      },
-      "lqip": {}
-    }
-  ],
-  "createdAt": "2025-11-12T01:20:55"
-}
-```
-#### Redirect
-Request a 307 Redirect of your image's object repository's (e.g. S3) URL. Presigned URLs can be enabled for object repositories
-that support it.
-```
-GET /assets/user/123/profile/-/redirect
-GET /assets/user/123/profile/-/entry/1/redirect
-```
-```hocon 
-paths = [
-  {
-    path = "/**" # See Path Configuration in the documentation
-    return-format {
-      redirect {
-        strategy = presigned
-        presigned {
-          ttl = 1h
-        }
-      }
-    }
-  }
-]
+```bash
+curl --request GET \
+  --url 'http://localhost:8080/assets/my-images/-/content?w=800&format=webp'
 ```
 
-#### Content
-Return the content bytes directly from Konifer. Your `alt` and any LQIP implementations are included as response headers.
-```
-GET /assets/user/123/profile/-/content
-GET /assets/user/123/profile/-/entry/1/content
+The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus S3-compatible or filesystem storage.
+
+## Why Konifer Exists
+
+Most hosted image platforms solve the hard parts of image delivery, but they also tend to introduce a new source of truth. Your application uploads a file, receives an opaque identifier, stores that identifier somewhere, then uses it later to ask the image service what to do.
+
+Konifer is built around a zero-state integration model. Your application does not need to persist Konifer-specific IDs just to render an image later. If your product already knows the user, post, organization, tenant, or document that owns an image, that knowledge is enough to construct the image URL.
+
+```http
+POST /assets/organizations/acme/users/123/avatar
+GET  /assets/organizations/acme/users/123/avatar/-/content
 ```
 
-#### Download
-Return the content bytes just like `content`, but include a `Content-Disposition` header so browsers trigger a "Save As" dialog.
-```
-GET /assets/user/123/profile/-/download
-GET /assets/user/123/profile/-/entry/1/download
+Multiple images can still live at the same path. Each stored image receives an `entryId` that is unique within that path, so the path can represent the domain concept while `entryId` can represent a specific version or historical item.
+
+```http
+GET /assets/organizations/acme/users/123/avatar/-/entry/4/content
 ```
 
-#### Link
-Return a JSON containing the object repository link as well as other parameters necessary to properly render the image.
-``` 
-GET /assets/user/123/profile/-/link
-GET /assets/user/123/profile/-/entry/1/link
-```
-```json
-{
-  "url": "https://assets.s3.us-east-2.amazonaws.com/d905170f-defd-47e4-b606-d01993ba7b42", // Or presigned if enabled
-  "lqip": { // Empty if LQIPs are disabled
-    "blurhash": "BASE64",
-    "thumbhash": "BASE64"
-  },
-  "alt": "Your alt"
-}
+## Who It Is For
+
+Konifer is intended for developers and platform teams who want:
+
+- A self-hosted image pipeline with predictable infrastructure costs.
+- Image transformation and delivery without sending image processing through a third-party API.
+- S3-compatible storage, local filesystem storage, or in-memory storage for development.
+- A path-based API that fits an existing domain model instead of forcing a separate image identity model.
+- Control over when variants are generated, where they are stored, and how they are returned.
+- CDN-friendly behavior, including redirects, cache headers, ETags, and signed URLs.
+
+It is especially useful for products where images already belong to clear domain resources: user avatars, organization logos, marketplace listings, CMS images, documents, galleries, generated media, and user-uploaded content.
+
+## What Konifer Does
+
+Konifer handles the image lifecycle behind an HTTP API:
+
+- Store images from multipart uploads or URLs.
+- Store metadata such as `alt`, labels, and tags.
+- Fetch the newest image at a path, a specific `entryId`, or multiple matching images.
+- Return images as direct content, object-store links, redirects, downloads, or JSON metadata.
+- Generate transformed variants on demand and cache them in the configured object store.
+- Generate common variants eagerly after upload using named variant profiles.
+- Apply per-path rules for storage, validation, preprocessing, eager variants, redirects, caching, and LQIPs.
+- Generate low-quality image placeholders using BlurHash and ThumbHash.
+- Sign fetch URLs with HMAC to protect public transformation endpoints.
+
+Supported formats include JPEG, PNG, WebP, AVIF, JPEG XL, HEIC, and GIF, with support for animated WebP and GIF.
+
+## The Path Model
+
+Konifer paths are intentionally application-defined. The API does not care whether your hierarchy is user-based, tenant-based, CMS-based, or something else.
+
+```http
+POST /assets/users/123/profile-picture
+POST /assets/users/123/background
+POST /assets/blog/42/posts/5/hero
+POST /assets/products/sku-123/gallery
 ```
 
-### Ordering
-You can apply an ordering to the image(s) you're fetching:
-- `created` (default): order by last-created
-- `modified`: order by last-modified
+Query selectors live after the `/-/` separator. They let you choose the response shape, ordering, limit, or exact entry without making those controls part of your domain path.
 
-To fetch the latest image in the path:
-``` 
-GET /assets/user/123/profile/-/created
-```
-These allow you to use the `entryId` as a Version identifier.
-
-### Limit
-If requesting the `metadata` return format, you can also specify how many images you want returned.
-``` 
-GET /assets/user/123/profile/-/created?limit=10
-```
-To fetch all images within the path:
-```
-GET /assets/user/123/profile/-/created?limit=-1
+```http
+GET /assets/users/123/profile-picture/-/link
+GET /assets/users/123/profile-picture/-/content
+GET /assets/users/123/profile-picture/-/redirect
+GET /assets/users/123/profile-picture/-/download
+GET /assets/users/123/profile-picture/-/metadata
+GET /assets/users/123/profile-picture/-/entry/4/content
 ```
 
-### Named Transformations
-For common transformations, simply configure a Variant Profile. Instead of specifying all parameters like this:
+By default, Konifer returns a `link` response for the newest image at a path.
+
+## Transformations And Variants
+
+A variant is a transformed version of the original image. Konifer can resize, crop, rotate, flip, blur, pad, change formats, adjust quality, strip metadata, and manage color space.
+
+On-demand variants are generated when requested, stored, and reused on later requests:
+
+```http
+GET /assets/users/123/profile-picture/-/content?w=300&h=300&fit=crop&g=attention&format=webp
 ```
-GET /assets/user/123/profile?w=300&blur=10&r=auto
-```
-With this configuration:
+
+Variant profiles let you name transformations that your application uses often:
+
 ```hocon
 variant-profiles = [
   {
     name = thumbnail
-    w = 300
-    blur = 10
+    w = 128
+    fit = fill
     r = auto
   }
 ]
 ```
-Supply the profile name:
-``` 
-GET /assets/user/123/profile?profile=thumbnail
+
+```http
+GET /assets/users/123/profile-picture/-/content?profile=thumbnail
 ```
 
-## Building & Running
+Profiles can also be used for eager variants, where Konifer starts background generation after upload. If an eager variant is not ready when requested, it can still be generated on demand.
 
-To build or run the project, use one of the following tasks:
+## Path Configuration
 
-| Task                              | Description                                                                 |
-|-----------------------------------|-----------------------------------------------------------------------------|
-| `./gradlew test`                  | Run the tests                                                               |
-| `./gradlew build`                 | Build everything                                                            |
-| `./gradlew :service:shadowJar`    | Build an executable JAR of the server with all dependencies included        |
-| `./gradlew run`                   | Run the server                                                              |
-| `./gradlew ktlintFormat detekt`   | Lint the codebase                                                           |
-| `./gradlew generateJooq`          | Generate JOOQ schema (required for any DB change or JOOQ dependency upgrade |
-| `./gradlew generateLicenseReport` | Generate OSS license report                                                 |
+Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in `konifer.conf` and apply them with wildcard matching and inheritance.
 
-If the server starts successfully, you'll see the following output:
-
-```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
-
-## Running Locally
-Before you run this locally, you must install libvips. You may have it already, however, installing it from source
-ensures you're developing against the same version that Konifer will use within Docker. 
-
-To install:
-```shell
-chmod +x ./scripts/install-vips.sh && ./scripts/install-vips.sh --with-deps
-```
-
-> **macOS:** If you get a `Compiler cc cannot compile programs` error, you need to install Xcode Command Line Tools first:
-> ```shell
-> xcode-select --install
-> ```
-
-## Docker
-
-To build the docker image for this (highly recommended since it will contain all libraries needed by VIPS), first build the JAR, then build the image:
-```shell
-./gradlew :service:shadowJar && docker build . -t konifer:latest
+```hocon
+paths = [
+  {
+    path = "/public/avatars/**"
+    eager-variants = [ thumbnail ]
+    image {
+      lqip = [ blurhash, thumbhash ]
+    }
+    preprocessing {
+      enabled = true
+      image {
+        max-width = 1024
+        max-height = 1024
+        fit = fit
+      }
+    }
+    cache-control {
+      enabled = true
+      visibility = public
+      max-age = 31536000
+      immutable = true
+    }
+  }
+]
 ```
 
-> **macOS:** If you get `Unable to locate a Java Runtime`, install GraalVM (used by the project) via Homebrew:
-> ```shell
-> brew install --cask graalvm-jdk@25
-> ```
-> If you still get a `JAVA_HOME` error after installing, run:
-> ```shell
-> export JAVA_HOME=$(/usr/libexec/java_home)
-> ```
-Then, to run, mount a file to `/app/config/konifer.conf`:
-```shell
-docker run -v path/to/your/conf/file:/app/config/konifer.conf -p 8080:8080 konifer
+This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and generated media can share the same service while using different buckets, validation rules, preprocessing, cache behavior, redirect strategies, and eager variants.
+
+## Storage And Architecture
+
+Konifer uses a dual-store architecture:
+
+- Object storage holds image bytes and generated variants.
+- PostgreSQL stores metadata, path hierarchy, labels, tags, and variant records.
+
+Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or in-memory storage for development. PostgreSQL is the production metadata store and uses the `ltree` extension for hierarchical path queries.
+
+The server is built with Kotlin and Ktor, and image processing is powered by libvips. Konifer avoids buffering entire assets in application memory where possible, uses temporary files during processing, and runs variant generation through bounded workers so expensive transformations do not overwhelm the service.
+
+## Documentation
+
+The full documentation is available at [konifer.io](https://konifer.io/).
+
+Useful starting points:
+
+- Getting started
+- Asset storage and retrieval concepts
+- Path configuration
+- Image transformation reference
+- Storage configuration
+- URL signing
+- HTTP caching
+
+## Running With Docker Compose
+
+The included Compose file runs Konifer with PostgreSQL and MinIO. It expects a `konifer.conf` file at the repository root.
+
+Build the local image first:
+
+```bash
+./gradlew :service:shadowJar
+docker build . -t konifer:latest
 ```
-Example:
-```shell
-docker run -v ~/konifer-test/config.conf:/app/config/konifer.conf -p 8080:8080 konifer
-```
 
-### Docker Compose
+Then start the stack:
 
-Docker Compose is the easiest way to run Konifer along with its dependencies (Postgres and MinIO). A `konifer.conf` must exist in the repo root before starting.
-
-```shell
+```bash
 docker compose up
 ```
 
-By default, Compose pulls the pre-built image from `ghcr.io`. If you want to run your locally built image instead, edit `docker-compose.yml` and replace the `image:` line with the `build:` block:
+The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the `konifer-assets` MinIO bucket.
 
-```yaml
-# image: ghcr.io/dmaiken/konifer:0.1.0
-build:
-  context: .
-  dockerfile: Dockerfile
+## Acknowledgments
+
+A huge thank-you to these amazing open-source projects:
+
+- **[libvips](https://github.com/libvips/libvips)**: The cutting-edge, demand-driven image processor for high-performance image processing.
+- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the libvips API.
+- **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
+- **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
+
+## Development
+
+For normal use, run Konifer in Docker. Local development requires libvips to be installed in a way that matches the container environment as closely as possible.
+
+```bash
+chmod +x ./scripts/install-vips.sh
+./scripts/install-vips.sh --with-deps
 ```
 
-> **macOS (Apple Silicon):** The pre-built image is `amd64` only. Use the local `build:` block above to build a native `arm64` image instead.
+Common Gradle tasks:
 
-### JOOQ
-This project used [JOOQ](https://www.jooq.org/) as it's interface to the database. JOOQ generates the code based on the database schema.
-This is done within the `codegen` module. Running the code generator will:
-1. Spin up a Postgres testcontainer
-2. Run r2dbc-migrate against the database to apply the schema
-3. Run the code generator against the constructed schema
-4. Dump generated code into the `jooq-generated` module
+| Task                              | Description                                                          |
+|-----------------------------------|----------------------------------------------------------------------|
+| `./gradlew test`                  | Run tests                                                            |
+| `./gradlew build`                 | Build the project                                                    |
+| `./gradlew :service:shadowJar`    | Build the executable server JAR used by the Docker image             |
+| `./gradlew run`                   | Run the server locally                                               |
+| `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
+| `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
+| `./gradlew generateLicenseReport` | Generate the OSS license report                                      |
 
-To run this (which must be done if you make a schema change or update the JOOQ dependency):
+If you change the database schema or update JOOQ, run:
 
-```shell
+```bash
 ./gradlew generateJooq
 ```
-**Note**: Linting is disabled for the `jooq-generated` module.
 
-We do not want JOOQ to generate code for tables that the application will not interact with (e.g. db-scheduler tables).
-Code generation for these tables can be skipped within the generator configuration file `CodeGen.kt` like so:
+The generator starts a PostgreSQL testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes generated code into the `jooq-generated` module.
 
-```kotlin
-database = Database().apply {
-    name = "org.jooq.meta.postgres.PostgresDatabase"
-    inputSchema = "public"
-    excludes = "migrations|scheduled_tasks|path_entry_counter" // regex for excluded tables
-}
+## macOS Notes
+
+If the libvips installer fails with `Compiler cc cannot compile programs`, install Xcode Command Line Tools:
+
+```bash
+xcode-select --install
 ```
+
+If Gradle or Docker image builds fail because Java cannot be found, install GraalVM and set `JAVA_HOME`:
+
+```bash
+brew install --cask graalvm-jdk@25
+export JAVA_HOME=$(/usr/libexec/java_home)
+```
+
+On Apple Silicon, build the Docker image locally to get a native `arm64` image.
+
+## License
+
+Konifer is released under the license in [LICENSE](LICENSE).
