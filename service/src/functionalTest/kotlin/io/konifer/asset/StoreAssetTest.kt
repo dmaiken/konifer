@@ -141,7 +141,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                         byteChannel.close()
                     }
                 }
-            konifer.getAssetContent(
+            konifer.fetchAssetContent(
                 path = "users/123/profile",
                 byteChannel = byteChannel,
                 fetchMode = ContentFetchMode.CONTENT,

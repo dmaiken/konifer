@@ -37,7 +37,7 @@ class KoniferClientContentTest :
                     responseChannel.toByteArray()
                 }
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
                     fetchMode = ContentFetchMode.CONTENT,
@@ -59,7 +59,7 @@ class KoniferClientContentTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetContentBytes(
+                koniferClient.fetchAssetContentBytes(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -80,7 +80,7 @@ class KoniferClientContentTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetContentBytes(
+                koniferClient.fetchAssetContentBytes(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -105,7 +105,7 @@ class KoniferClientContentTest :
                     responseChannel.toByteArray()
                 }
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
                     fetchMode = ContentFetchMode.CONTENT,
@@ -127,7 +127,7 @@ class KoniferClientContentTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetContentBytes(
+                koniferClient.fetchAssetContentBytes(
                     path = "/users/123",
                     fetchMode = ContentFetchMode.REDIRECT,
                 )
@@ -140,7 +140,7 @@ class KoniferClientContentTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/content/entry/1",
+                        expectedPath = "/assets/users/123/-/entry/1/content",
                         bytes = imageBytes,
                     )
                 }
@@ -153,7 +153,7 @@ class KoniferClientContentTest :
                     responseChannel.toByteArray()
                 }
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.EntryId(1),
@@ -168,7 +168,7 @@ class KoniferClientContentTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/content/modified",
+                        expectedPath = "/assets/users/123/-/modified/content",
                         bytes = imageBytes,
                     )
                 }
@@ -181,7 +181,7 @@ class KoniferClientContentTest :
                     responseChannel.toByteArray()
                 }
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.OrderBy(Order.MODIFIED),
@@ -206,7 +206,7 @@ class KoniferClientContentTest :
 
             val byteChannel = ByteChannel()
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = byteChannel,
                     requestedTransformation = requestedTransformation {},
@@ -234,7 +234,7 @@ class KoniferClientContentTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetContentBytes(
+                koniferClient.fetchAssetContentBytes(
                     path = "/users/123",
                     requestedTransformation = requestedTransformation {},
                 )
@@ -264,7 +264,7 @@ class KoniferClientContentTest :
                     responseChannel.toByteArray()
                 }
             val response =
-                koniferClient.getAssetContent(
+                koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
                     querySelectors = QuerySelectors.None(),

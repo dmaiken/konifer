@@ -43,10 +43,10 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
     }
 
 fun URLBuilder.appendQuerySelectors(
-    returnFormat: ReturnFormat,
+    returnFormat: ReturnFormat?,
     querySelectors: QuerySelectors,
 ) {
-    appendPathSegments(PATH_SEPARATOR, returnFormat.name.lowercase())
+    appendPathSegments(PATH_SEPARATOR)
     when (querySelectors) {
         is QuerySelectors.EntryId -> {
             appendPathSegments("entry", querySelectors.entryId.toString())
@@ -56,11 +56,9 @@ fun URLBuilder.appendQuerySelectors(
         }
         is QuerySelectors.None -> { } // Nothing
     }
-}
-
-fun URLBuilder.appendEntryId(entryId: Long) {
-    appendPathSegments(PATH_SEPARATOR)
-    appendPathSegments("entry", entryId.toString())
+    returnFormat?.let {
+        appendPathSegments(it.name.lowercase())
+    }
 }
 
 fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {

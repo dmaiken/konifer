@@ -31,7 +31,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetMetadata(
+                koniferClient.fetchAssetMetadata(
                     path = "/users/123",
                     limit = 2,
                 )
@@ -48,7 +48,7 @@ class KoniferClientLimitMetadataTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata/new",
+                        expectedPath = "/assets/users/123/-/new/metadata",
                         response = serverResponse,
                     )
                 }
@@ -56,7 +56,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetMetadata(
+                koniferClient.fetchAssetMetadata(
                     path = "/users/123",
                     querySelectors = QuerySelectors.OrderBy(Order.NEW),
                     limit = 2,
@@ -74,7 +74,7 @@ class KoniferClientLimitMetadataTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata/entry/1",
+                        expectedPath = "/assets/users/123/-/entry/1/metadata",
                         response = serverResponse,
                     )
                 }
@@ -82,7 +82,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetMetadata(
+                koniferClient.fetchAssetMetadata(
                     path = "/users/123",
                     querySelectors = QuerySelectors.EntryId(1),
                     limit = 2,
@@ -105,7 +105,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetMetadata(
+                koniferClient.fetchAssetMetadata(
                     path = "/users/123",
                     limit = 2,
                 )

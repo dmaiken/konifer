@@ -37,7 +37,7 @@ class KoniferBlockingClientTest :
             val httpClient =
                 httpClient {
                     configureMockMetadataEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata/modified",
+                        expectedPath = "/assets/users/123/-/modified/metadata",
                         response = expectedResponse,
                     )
                 }
@@ -87,7 +87,7 @@ class KoniferBlockingClientTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappyRedirect(
-                        expectedPath = "/assets/users/123/-/redirect/entry/1",
+                        expectedPath = "/assets/users/123/-/entry/1/redirect",
                         bytes = imageBytes,
                         requestedTransformation = requestedTransformation,
                     )
@@ -144,7 +144,7 @@ class KoniferBlockingClientTest :
             val httpClient =
                 httpClient {
                     configureMockRedirectLocationEngineHappy(
-                        expectedPath = "/assets/users/123/-/redirect/entry/7",
+                        expectedPath = "/assets/users/123/-/entry/7/redirect",
                         redirectLocation = redirectLocation,
                         requestedTransformation = requestedTransformation,
                     )

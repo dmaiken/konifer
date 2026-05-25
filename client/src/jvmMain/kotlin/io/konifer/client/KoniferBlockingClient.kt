@@ -21,7 +21,7 @@ class KoniferBlockingClient(
         querySelectors: QuerySelectors = QuerySelectors.None(),
     ): KoniferResponse<AssetResponse> =
         runBlocking {
-            client.getAssetMetadata(
+            client.fetchAssetMetadata(
                 path = path,
                 querySelectors = querySelectors,
             )
@@ -33,7 +33,7 @@ class KoniferBlockingClient(
         querySelectors: QuerySelectors = QuerySelectors.None(),
     ): KoniferResponse<List<AssetResponse>> =
         runBlocking {
-            client.getAssetMetadata(
+            client.fetchAssetMetadata(
                 path = path,
                 limit = limit,
                 querySelectors = querySelectors,
@@ -52,7 +52,7 @@ class KoniferBlockingClient(
                     byteChannel.copyTo(outputStream)
                 }
             val response =
-                client.getAssetContent(
+                client.fetchAssetContent(
                     path = path,
                     querySelectors = options.querySelectors,
                     requestedTransformation = options.requestedTransformation,
@@ -74,7 +74,7 @@ class KoniferBlockingClient(
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
         runBlocking {
-            client.getAssetRedirectLocation(
+            client.fetchAssetRedirectLocation(
                 path = path,
                 querySelectors = querySelectors,
                 requestedTransformation = requestedTransformation,
@@ -86,7 +86,7 @@ class KoniferBlockingClient(
         options: AssetContentRequestOptions,
     ): KoniferResponse<ByteArray> =
         runBlocking {
-            client.getAssetContentBytes(
+            client.fetchAssetContentBytes(
                 path = path,
                 querySelectors = options.querySelectors,
                 requestedTransformation = options.requestedTransformation,
@@ -100,7 +100,7 @@ class KoniferBlockingClient(
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
         runBlocking {
-            client.getAssetLink(
+            client.fetchAssetLink(
                 path = path,
                 querySelectors = querySelectors,
                 requestedTransformation = requestedTransformation,

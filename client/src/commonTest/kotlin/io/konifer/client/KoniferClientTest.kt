@@ -1,5 +1,6 @@
 package io.konifer.client
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.ktor.client.HttpClient
@@ -17,7 +18,7 @@ class KoniferClientTest :
             client.close()
 
             shouldThrow<CancellationException> {
-                client.getAssetLink(
+                client.fetchAssetLink(
                     path = "/users/123",
                 )
             }
@@ -30,9 +31,16 @@ class KoniferClientTest :
             client.close()
 
             shouldThrow<CancellationException> {
-                client.getAssetRedirectLocation(
+                client.fetchAssetRedirectLocation(
                     path = "/users/123",
                 )
+            }
+        }
+
+        test("Can build the client") {
+            val baseUrl = "http://localhost:8080"
+            shouldNotThrowAny {
+                KoniferClient.build(baseUrl)
             }
         }
     })

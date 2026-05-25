@@ -64,7 +64,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         await().untilCallTo {
                             runBlocking {
                                 val response =
-                                    konifer.getAssetMetadata(
+                                    konifer.fetchAssetMetadata(
                                         path = "users/123",
                                     )
                                 (response as KoniferResponse.Success).body.variants.size
@@ -72,7 +72,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         } matches { count -> count == 3 }
 
                         val response =
-                            konifer.getAssetMetadata(
+                            konifer.fetchAssetMetadata(
                                 path = "users/123",
                             )
                         val variants = (response as KoniferResponse.Success).body.variants
@@ -206,7 +206,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                             bytes = image,
                         )::class shouldBe KoniferResponse.Success::class
                         konifer
-                            .getAssetContentBytes(
+                            .fetchAssetContentBytes(
                                 path = "apple/123",
                                 requestedTransformation =
                                     requestedTransformation {
