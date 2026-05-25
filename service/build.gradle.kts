@@ -200,6 +200,7 @@ kover {
         sources {
             // Exclude functionalTest source set from coverage calculation
             excludedSourceSets.add("functionalTest")
+            excludedSourceSets.add("testFixtures")
         }
     }
 }
