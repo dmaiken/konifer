@@ -1,9 +1,11 @@
 package io.konifer.client.content
 
 import io.konifer.client.ContentFetchMode
+import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.QuerySelectors
+import io.konifer.client.None
+import io.konifer.client.OrderBy
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
@@ -217,7 +219,7 @@ class KoniferClientContentTest :
                 koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    querySelectors = QuerySelectors.EntryId(1),
+                    querySelectors = EntryId(1),
                     fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -245,7 +247,7 @@ class KoniferClientContentTest :
                 koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    querySelectors = QuerySelectors.OrderBy(Order.MODIFIED),
+                    querySelectors = OrderBy(Order.MODIFIED),
                     fetchMode = ContentFetchMode.CONTENT,
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -276,7 +278,7 @@ class KoniferClientContentTest :
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
             }
             byteChannel.isClosedForWrite shouldBe true
         }
@@ -302,7 +304,7 @@ class KoniferClientContentTest :
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
             }
         }
 
@@ -328,7 +330,7 @@ class KoniferClientContentTest :
                 koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    querySelectors = QuerySelectors.None(),
+                    querySelectors = None(),
                     requestedTransformation = allTransformationsDsl,
                     fetchMode = ContentFetchMode.CONTENT,
                 )

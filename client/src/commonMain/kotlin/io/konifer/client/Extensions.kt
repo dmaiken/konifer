@@ -2,6 +2,7 @@ package io.konifer.client
 
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.image.ALL_RESERVED_PARAMETERS
+import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.image.ManipulationParameters.BLUR
 import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
 import io.konifer.common.image.ManipulationParameters.FILTER
@@ -37,7 +38,7 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
                     "An unexpected server error occurred: ${status.description}"
                 }
             KoniferResponse.HttpError(
-                httpStatusCode = status,
+                httpStatusCode = status.value,
                 message = errorMessage,
             )
         }
@@ -45,21 +46,37 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
 
 fun URLBuilder.appendQuerySelectors(
     returnFormat: ReturnFormat?,
-    querySelectors: QuerySelectors,
+    querySelectors: QuerySelector,
 ) {
-    appendPathSegments(PATH_SEPARATOR)
+    var pathSeparatorAppended = false
     when (querySelectors) {
-        is QuerySelectors.EntryId -> {
+        is EntryId -> {
+            appendPathSegments(PATH_SEPARATOR)
+            pathSeparatorAppended = true
             appendPathSegments("entry", querySelectors.entryId.toString())
         }
-        is QuerySelectors.OrderBy -> {
+        is OrderBy -> {
+            appendPathSegments(PATH_SEPARATOR)
+            pathSeparatorAppended = true
             appendPathSegments(querySelectors.orderBy.name.lowercase())
         }
-        is QuerySelectors.None -> { } // Nothing
+        is Recursive -> {
+            appendPathSegments(PATH_SEPARATOR)
+            pathSeparatorAppended = true
+            appendPathSegments("recursive")
+        }
+        is None -> { } // Nothing
     }
     returnFormat?.let {
+        if (!pathSeparatorAppended) {
+            appendPathSegments(PATH_SEPARATOR)
+        }
         appendPathSegments(it.name.lowercase())
     }
+}
+
+fun URLBuilder.appendLimit(limit: Int) {
+    parameters.append(LIMIT_PARAMETER, limit.toString())
 }
 
 fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {

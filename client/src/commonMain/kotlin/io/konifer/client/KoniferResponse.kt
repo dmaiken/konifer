@@ -1,14 +1,12 @@
 package io.konifer.client
 
-import io.ktor.http.HttpStatusCode
-
 sealed class KoniferResponse<out T> {
     data class Success<out T>(
         val body: T,
     ) : KoniferResponse<T>()
 
     data class HttpError(
-        val httpStatusCode: HttpStatusCode,
+        val httpStatusCode: Int,
         val message: String?,
     ) : KoniferResponse<Nothing>()
 
@@ -19,7 +17,7 @@ sealed class KoniferResponse<out T> {
 
 inline fun <T, R> KoniferResponse<T>.fold(
     onSuccess: (T) -> R,
-    onError: (code: HttpStatusCode?, message: String?, exception: Throwable?) -> R,
+    onError: (code: Int?, message: String?, exception: Throwable?) -> R,
 ): R =
     when (this) {
         is KoniferResponse.Success -> onSuccess(body)

@@ -52,3 +52,14 @@ fun assertLabels(
         parameters[expectedParameterName] shouldBe value
     }
 }
+
+fun assertLimit(
+    parameters: Parameters,
+    expectedLimit: Int = 1,
+) {
+    if (expectedLimit == 1) {
+        (parameters["limit"] ?: "1") shouldBe "1"
+    } else {
+        parameters["limit"] shouldBe expectedLimit.toString()
+    }
+}

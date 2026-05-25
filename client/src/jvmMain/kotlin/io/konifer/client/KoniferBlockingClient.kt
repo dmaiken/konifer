@@ -16,31 +16,35 @@ import java.io.OutputStream
 class KoniferBlockingClient(
     private val client: KoniferClient,
 ) {
-    fun getAssetMetadata(
+    fun fetchAssetMetadata(
         path: String,
-        querySelectors: QuerySelectors = QuerySelectors.None(),
+        querySelectors: FetchQuerySelector = None(),
+        labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         runBlocking {
             client.fetchAssetMetadata(
                 path = path,
                 querySelectors = querySelectors,
+                labels = labels,
             )
         }
 
-    fun getAssetMetadata(
+    fun fetchAssetMetadata(
         path: String,
         limit: Int,
-        querySelectors: QuerySelectors = QuerySelectors.None(),
+        querySelectors: FetchQuerySelector = None(),
+        labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         runBlocking {
             client.fetchAssetMetadata(
                 path = path,
                 limit = limit,
                 querySelectors = querySelectors,
+                labels = labels,
             )
         }
 
-    fun getAssetContent(
+    fun fetchAssetContent(
         path: String,
         outputStream: OutputStream,
         options: AssetContentRequestOptions,
@@ -57,6 +61,7 @@ class KoniferBlockingClient(
                     querySelectors = options.querySelectors,
                     requestedTransformation = options.requestedTransformation,
                     fetchMode = options.fetchMode,
+                    labels = options.labels,
                     byteChannel = byteChannel,
                 )
             if (response is KoniferResponse.Success) {
@@ -68,20 +73,22 @@ class KoniferBlockingClient(
             response
         }
 
-    fun getAssetRedirectLocation(
+    fun fetchAssetRedirectLocation(
         path: String,
-        querySelectors: QuerySelectors = QuerySelectors.None(),
+        querySelectors: FetchQuerySelector = None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
         runBlocking {
             client.fetchAssetRedirectLocation(
                 path = path,
                 querySelectors = querySelectors,
+                labels = labels,
                 requestedTransformation = requestedTransformation,
             )
         }
 
-    fun getAssetContentBytes(
+    fun fetchAssetContentBytes(
         path: String,
         options: AssetContentRequestOptions,
     ): KoniferResponse<ByteArray> =
@@ -91,12 +98,14 @@ class KoniferBlockingClient(
                 querySelectors = options.querySelectors,
                 requestedTransformation = options.requestedTransformation,
                 fetchMode = options.fetchMode,
+                labels = options.labels,
             )
         }
 
-    fun getAssetLink(
+    fun fetchAssetLink(
         path: String,
-        querySelectors: QuerySelectors = QuerySelectors.None(),
+        querySelectors: FetchQuerySelector = None(),
+        labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
         runBlocking {
@@ -104,6 +113,7 @@ class KoniferBlockingClient(
                 path = path,
                 querySelectors = querySelectors,
                 requestedTransformation = requestedTransformation,
+                labels = labels,
             )
         }
 
@@ -156,6 +166,21 @@ class KoniferBlockingClient(
                 path = path,
                 entryId = entryId,
                 request = request,
+            )
+        }
+
+    fun deleteAsset(
+        path: String,
+        querySelectors: DeleteQuerySelector = None(),
+        labels: Map<String, String> = emptyMap(),
+        limit: Int = 1,
+    ): KoniferResponse<Unit> =
+        runBlocking {
+            client.deleteAsset(
+                path = path,
+                querySelectors = querySelectors,
+                labels = labels,
+                limit = limit,
             )
         }
 

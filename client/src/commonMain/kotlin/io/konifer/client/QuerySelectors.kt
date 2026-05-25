@@ -2,14 +2,24 @@ package io.konifer.client
 
 import io.konifer.common.selector.Order
 
-sealed interface QuerySelectors {
-    class OrderBy(
-        val orderBy: Order,
-    ) : QuerySelectors
+sealed interface QuerySelector
 
-    class EntryId(
-        val entryId: Long,
-    ) : QuerySelectors
+sealed interface FetchQuerySelector : QuerySelector
 
-    class None : QuerySelectors
-}
+sealed interface DeleteQuerySelector : QuerySelector
+
+class OrderBy(
+    val orderBy: Order,
+) : FetchQuerySelector,
+    DeleteQuerySelector
+
+class EntryId(
+    val entryId: Long,
+) : FetchQuerySelector,
+    DeleteQuerySelector
+
+class None :
+    FetchQuerySelector,
+    DeleteQuerySelector
+
+class Recursive : DeleteQuerySelector

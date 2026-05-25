@@ -2,18 +2,19 @@ package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory
+import io.konifer.client.EntryId
+import io.konifer.client.OrderBy
+import io.konifer.client.Recursive
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
+import io.konifer.matchers.shouldBeSuccessful
+import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.assertAssetDoesNotExist
 import io.konifer.util.deleteAsset
-import io.konifer.util.deleteAssetsAtPath
-import io.konifer.util.deleteAssetsRecursivelyAtPath
 import io.konifer.util.fetchAssetMetadata
-import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
-import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
@@ -28,120 +29,243 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText() shouldBe ""
                 }
+            konifer
+                .deleteAsset(
+                    path = UuidCreator.getRandomBasedFast().toString(),
+                ).shouldBeSuccessful()
         }
 
     @Test
     fun `can delete asset by path`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            storeAssetMultipartSource(client, image, request, path = "profile")
-            fetchAssetMetadata(client, path = "profile")
-            deleteAsset(client, path = "profile")
-            assertAssetDoesNotExist(client, path = "profile")
-            deleteAsset(client, path = "profile")
+            val (image, attributes) = ImageFactory.testImage()
+            konifer.storeAsset(
+                path = "profile",
+                bytes = image,
+                format = attributes.format,
+                request =
+                    StoreAssetRequest(
+                        alt = "an image",
+                    ),
+            )
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                ).shouldBeSuccessful()
+            konifer.fetchAssetMetadata(
+                path = "profile",
+            ) shouldHaveHttpError 404
+
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                ).shouldBeSuccessful()
         }
 
     @Test
     fun `deleting asset by path causes next oldest asset to be returned when fetching by path`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val (image, attributes) = ImageFactory.testImage()
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
 
             fetchAssetMetadata(client, path = "profile")!!.apply {
-                entryId shouldBe secondAsset?.entryId
+                entryId shouldBe secondAsset.entryId
             }
-            deleteAsset(client, path = "profile")
-            fetchAssetMetadata(client, path = "profile")!!.apply {
-                entryId shouldBe firstAsset?.entryId
-            }
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+                .body.entryId shouldBe firstAsset.entryId
         }
 
     @Test
     fun `can delete asset by path and entryId`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val (image, attributes) = ImageFactory.testImage()
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
 
-            deleteAsset(client, path = "profile", entryId = firstAsset!!.entryId)
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                    querySelectors = EntryId(firstAsset.entryId),
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, path = "profile")!!.apply {
-                entryId shouldBe secondAsset?.entryId
-            }
-            fetchAssetMetadata(
-                client,
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+                .body.entryId shouldBe secondAsset.entryId
+            konifer.fetchAssetMetadata(
                 path = "profile",
-                entryId = firstAsset.entryId,
-                expectedStatus = HttpStatusCode.NotFound,
-            )
+                querySelectors = EntryId(firstAsset.entryId),
+            ) shouldHaveHttpError 404
         }
 
     @Test
     fun `can delete assets by path and order`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val (image, attributes) = ImageFactory.testImage()
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
 
-            deleteAssetsAtPath(client, path = "profile", order = Order.NEW, limit = 1)
-
-            fetchAssetMetadata(client, path = "profile")!!.apply {
-                entryId shouldBe firstAsset?.entryId
-            }
-            fetchAssetMetadata(
-                client,
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                    limit = 1,
+                    querySelectors = OrderBy(Order.NEW),
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+                .body.entryId shouldBe firstAsset.entryId
+            konifer.fetchAssetMetadata(
                 path = "profile",
-                entryId = secondAsset!!.entryId,
-                expectedStatus = HttpStatusCode.NotFound,
-            )
+                querySelectors = EntryId(secondAsset.entryId),
+            ) shouldHaveHttpError 404
         }
 
     @Test
     fun `can delete assets by path and order and limit`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
-            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "profile").second
+            val (image, attributes) = ImageFactory.testImage()
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val thirdAsset =
+                konifer
+                    .storeAsset(
+                        path = "profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
 
-            deleteAssetsAtPath(client, path = "profile", order = Order.NEW, limit = 2)
+            konifer
+                .deleteAsset(
+                    path = "profile",
+                    querySelectors = OrderBy(Order.NEW),
+                    limit = 2,
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, path = "profile")!!.apply {
-                entryId shouldBe firstAsset?.entryId
-            }
-            fetchAssetMetadata(
-                client,
+            konifer
+                .fetchAssetMetadata(
+                    path = "profile",
+                ).shouldBeSuccessful()
+                .body.entryId shouldBe firstAsset.entryId
+            konifer.fetchAssetMetadata(
                 path = "profile",
-                entryId = secondAsset!!.entryId,
-                expectedStatus = HttpStatusCode.NotFound,
-            )
-            fetchAssetMetadata(
-                client,
+                querySelectors = EntryId(secondAsset.entryId),
+            ) shouldHaveHttpError 404
+            konifer.fetchAssetMetadata(
                 path = "profile",
-                entryId = thirdAsset!!.entryId,
-                expectedStatus = HttpStatusCode.NotFound,
-            )
+                querySelectors = EntryId(thirdAsset.entryId),
+            ) shouldHaveHttpError 404
         }
 
     @Test
@@ -159,58 +283,164 @@ class DeleteAssetTest : BaseFunctionalTest() {
     @Test
     fun `can delete assets at path but not recursively`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
-            val assetToNotDelete = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
+            val (image, attributes) = ImageFactory.testImage()
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
+            val assetToNotDelete =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request =
+                            StoreAssetRequest(
+                                alt = "an image",
+                            ),
+                    ).shouldBeSuccessful()
+                    .body
 
-            client
-                .delete("/assets/user/123") {
-                    parameter("limit", "-1")
-                }.status shouldBe HttpStatusCode.NoContent
+            konifer
+                .deleteAsset(
+                    path = "user/123",
+                    limit = -1,
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+                querySelectors = EntryId(firstAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+                querySelectors = EntryId(secondAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
-            fetchAssetMetadata(client, "user/123/profile", assetToNotDelete!!.entryId)
-            fetchAssetMetadata(client, "user/123/profile")
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123/profile",
+                    querySelectors = EntryId(assetToNotDelete.entryId),
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123/profile",
+                ).shouldBeSuccessful()
         }
 
     @Test
     fun `can delete assets at path recursively`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            val control = storeAssetMultipartSource(client, image, request, path = "user").second
-            val firstAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
-            val secondAsset = storeAssetMultipartSource(client, image, request, path = "user/123").second
-            val thirdAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile").second
-            val fourthAsset = storeAssetMultipartSource(client, image, request, path = "user/123/profile/other").second
+            val (image, attributes) = ImageFactory.testImage()
+            val control =
+                konifer
+                    .storeAsset(
+                        path = "user",
+                        bytes = image,
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+                    .body
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+                    .body
+            val thirdAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+                    .body
+            val fourthAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile/other",
+                        bytes = image,
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+                    .body
 
-            client.delete("/assets/user/123/-/recursive").status shouldBe HttpStatusCode.NoContent
+            konifer
+                .deleteAsset(
+                    path = "user/123",
+                    querySelectors = Recursive(),
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, "user/123", entryId = null, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123/profile", thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123/profile/other", fourthAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+                querySelectors = EntryId(firstAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+                querySelectors = EntryId(secondAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123/profile",
+                querySelectors = EntryId(thirdAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer.fetchAssetMetadata(
+                path = "user/123/profile/other",
+                querySelectors = EntryId(fourthAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
-            fetchAssetMetadata(client, "user")
-            fetchAssetMetadata(client, "user", entryId = control!!.entryId)
+            konifer
+                .fetchAssetMetadata(
+                    path = "user",
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "user",
+                    querySelectors = EntryId(control.entryId),
+                ).shouldBeSuccessful()
         }
 
     @Test
     fun `can delete assets at path by labels`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val requestWithLabels =
                 StoreAssetRequest(
                     alt = "an image",
@@ -220,53 +450,152 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            val firstAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123").second
-            val secondAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123").second
-            val control = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123/profile").second
+            val control =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithoutLabels,
+                    ).shouldBeSuccessful()
+                    .body
 
-            deleteAssetsAtPath(
-                client = client,
+            konifer.deleteAsset(
                 path = "user/123",
                 limit = -1,
                 labels = mapOf("phone" to "iphone"),
             )
 
-            fetchAssetMetadata(client, "user/123", firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", secondAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
+            konifer.fetchAssetMetadata(
+                path = "user/123",
+                querySelectors = EntryId(firstAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123",
+                    querySelectors = EntryId(secondAsset.entryId),
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, "user/123/profile", control!!.entryId)
-            fetchAssetMetadata(client, "user/123/profile")
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123/profile",
+                    querySelectors = EntryId(control.entryId),
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123/profile",
+                ).shouldBeSuccessful()
         }
 
     @Test
     fun `can delete assets recursively at path by labels`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val requestWithLabels =
                 StoreAssetRequest(
                     alt = "an image",
                     labels = mapOf("phone" to "iphone"),
                 )
             val requestWithoutLabels = StoreAssetRequest()
-            val control = storeAssetMultipartSource(client, image, requestWithLabels, path = "user").second
-            val firstAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123").second
-            val secondAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123").second
-            val thirdAsset = storeAssetMultipartSource(client, image, requestWithLabels, path = "user/123/profile").second
-            val fourthAsset = storeAssetMultipartSource(client, image, requestWithoutLabels, path = "user/123/profile/other").second
+            val control =
+                konifer
+                    .storeAsset(
+                        path = "user",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val firstAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val secondAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithoutLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val thirdAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithLabels,
+                    ).shouldBeSuccessful()
+                    .body
+            val fourthAsset =
+                konifer
+                    .storeAsset(
+                        path = "user/123/profile/other",
+                        bytes = image,
+                        format = attributes.format,
+                        request = requestWithoutLabels,
+                    ).shouldBeSuccessful()
+                    .body
 
-            deleteAssetsRecursivelyAtPath(
-                client = client,
+            konifer
+                .deleteAsset(
+                    path = "user/123",
+                    labels = mapOf("phone" to "iphone"),
+                    querySelectors = Recursive(),
+                ).shouldBeSuccessful()
+
+            konifer.fetchAssetMetadata(
                 path = "user/123",
-                labels = mapOf("phone" to "iphone"),
-            )
+                querySelectors = EntryId(firstAsset.entryId),
+            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123",
+                    querySelectors = EntryId(secondAsset.entryId),
+                ).shouldBeSuccessful()
+            konifer.fetchAssetMetadata(
+                path = "user/123/profile",
+                querySelectors = EntryId(thirdAsset.entryId),
+            ) shouldHaveHttpError 404
+            konifer
+                .fetchAssetMetadata(
+                    path = "user/123/profile/other",
+                    querySelectors = EntryId(fourthAsset.entryId),
+                ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, "user/123", entryId = firstAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123", entryId = secondAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
-            fetchAssetMetadata(client, "user/123/profile", entryId = thirdAsset!!.entryId, expectedStatus = HttpStatusCode.NotFound)
-            fetchAssetMetadata(client, "user/123/profile/other", entryId = fourthAsset!!.entryId, expectedStatus = HttpStatusCode.OK)
-
-            fetchAssetMetadata(client, "user")
-            fetchAssetMetadata(client, "user", entryId = control!!.entryId)
+            konifer
+                .fetchAssetMetadata(
+                    path = "user",
+                    querySelectors = EntryId(control.entryId),
+                ).shouldBeSuccessful()
+            konifer
+                .fetchAssetMetadata(
+                    path = "user",
+                ).shouldBeSuccessful()
         }
 
     @Test

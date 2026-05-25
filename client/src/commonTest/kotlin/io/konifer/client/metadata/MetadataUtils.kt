@@ -1,6 +1,7 @@
 package io.konifer.client.metadata
 
 import io.konifer.client.harness.assertLabels
+import io.konifer.client.harness.assertLimit
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
@@ -98,6 +99,7 @@ fun configureMockEngineHappy(
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
+        request.method shouldBe HttpMethod.Get
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,
@@ -119,7 +121,10 @@ fun configureMockEngineHappy(
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
         request.method shouldBe HttpMethod.Get
-        request.url.parameters["limit"] shouldBe response.size.toString()
+        assertLimit(
+            parameters = request.url.parameters,
+            expectedLimit = response.size,
+        )
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,

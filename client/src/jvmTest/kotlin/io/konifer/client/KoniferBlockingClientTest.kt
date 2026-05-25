@@ -25,6 +25,7 @@ import io.ktor.http.HttpStatusCode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.cancellation.CancellationException
+import io.konifer.client.delete.configureMockEngineHappy as configureMockDeleteEngineHappy
 import io.konifer.client.link.configureMockEngineHappy as configureMockLinkEngineHappy
 import io.konifer.client.metadata.configureMockEngineHappy as configureMockMetadataEngineHappy
 import io.konifer.client.redirect.configureMockEngineHappyRedirect as configureMockRedirectLocationEngineHappy
@@ -34,19 +35,22 @@ class KoniferBlockingClientTest :
     FunSpec({
         test("should fetch single asset metadata") {
             val expectedResponse = createMetadataResponse()
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockMetadataEngineHappy(
                         expectedPath = "/assets/users/123/-/modified/metadata",
                         response = expectedResponse,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
 
             val response =
-                blockingClient.getAssetMetadata(
+                blockingClient.fetchAssetMetadata(
                     path = "/users/123",
-                    querySelectors = QuerySelectors.OrderBy(Order.MODIFIED),
+                    querySelectors = OrderBy(Order.MODIFIED),
+                    labels = labels,
                 )
 
             response::class shouldBe KoniferResponse.Success::class
@@ -55,19 +59,22 @@ class KoniferBlockingClientTest :
 
         test("should fetch limited asset metadata") {
             val expectedResponse = listOf(createMetadataResponse(), createMetadataResponse())
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockMetadataEngineHappy(
                         expectedPath = "/assets/users/123/-/metadata",
                         response = expectedResponse,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
 
             val response =
-                blockingClient.getAssetMetadata(
+                blockingClient.fetchAssetMetadata(
                     path = "/users/123",
                     limit = expectedResponse.size,
+                    labels = labels,
                 )
 
             response::class shouldBe KoniferResponse.Success::class
@@ -84,25 +91,28 @@ class KoniferBlockingClientTest :
                     .fit(Fit.FIT)
                     .filter(Filter.BLACK_WHITE)
                     .build()
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockEngineHappyRedirect(
                         expectedPath = "/assets/users/123/-/entry/1/redirect",
                         bytes = imageBytes,
                         requestedTransformation = requestedTransformation,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
             val options =
                 AssetContentRequestOptions
                     .Builder()
-                    .querySelectors(QuerySelectors.EntryId(1))
+                    .querySelectors(EntryId(1))
                     .requestedTransformation(requestedTransformation)
                     .fetchMode(ContentFetchMode.REDIRECT)
+                    .labels(labels)
                     .build()
 
             val response =
-                blockingClient.getAssetContentBytes(
+                blockingClient.fetchAssetContentBytes(
                     path = "/users/123",
                     options = options,
                 )
@@ -113,21 +123,23 @@ class KoniferBlockingClientTest :
 
         test("should write content to output stream") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
                         expectedPath = "/assets/users/123/-/content",
                         bytes = imageBytes,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
             val outputStream = ByteArrayOutputStream()
 
             val response =
-                blockingClient.getAssetContent(
+                blockingClient.fetchAssetContent(
                     path = "/users/123",
                     outputStream = outputStream,
-                    options = AssetContentRequestOptions.Builder().build(),
+                    options = AssetContentRequestOptions.Builder().labels(labels).build(),
                 )
 
             response::class shouldBe KoniferResponse.Success::class
@@ -136,6 +148,7 @@ class KoniferBlockingClientTest :
 
         test("should fetch redirect location") {
             val redirectLocation = "https://cdn.konifer.io/assets/users/123.png"
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val requestedTransformation =
                 RequestedTransformation
                     .Builder()
@@ -147,15 +160,17 @@ class KoniferBlockingClientTest :
                         expectedPath = "/assets/users/123/-/entry/7/redirect",
                         redirectLocation = redirectLocation,
                         requestedTransformation = requestedTransformation,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
 
             val response =
-                blockingClient.getAssetRedirectLocation(
+                blockingClient.fetchAssetRedirectLocation(
                     path = "/users/123",
-                    querySelectors = QuerySelectors.EntryId(7),
+                    querySelectors = EntryId(7),
                     requestedTransformation = requestedTransformation,
+                    labels = labels,
                 )
 
             response::class shouldBe KoniferResponse.Success::class
@@ -164,6 +179,7 @@ class KoniferBlockingClientTest :
 
         test("should fetch asset link") {
             val expectedResponse = createLinkResponse()
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
             val requestedTransformation =
                 RequestedTransformation
                     .Builder()
@@ -175,14 +191,16 @@ class KoniferBlockingClientTest :
                         expectedPath = "/assets/users/123/-/link",
                         response = expectedResponse,
                         requestedTransformation = requestedTransformation,
+                        labels = labels,
                     )
                 }
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
 
             val response =
-                blockingClient.getAssetLink(
+                blockingClient.fetchAssetLink(
                     path = "/users/123",
                     requestedTransformation = requestedTransformation,
+                    labels = labels,
                 )
 
             response::class shouldBe KoniferResponse.Success::class
@@ -295,6 +313,28 @@ class KoniferBlockingClientTest :
             (response as KoniferResponse.Success<*>).body shouldBe expectedResponse
         }
 
+        test("should delete assets") {
+            val labels = mapOf("key1" to "value1", "key2" to "value2")
+            val httpClient =
+                httpClient {
+                    configureMockDeleteEngineHappy(
+                        expectedPath = "/assets/users/123/-/modified",
+                        limit = 10,
+                        labels = labels,
+                    )
+                }
+            val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
+
+            val response =
+                blockingClient.deleteAsset(
+                    path = "/users/123",
+                    querySelectors = OrderBy(Order.MODIFIED),
+                    limit = 10,
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+        }
+
         test("should return errors from delegated client calls") {
             val serverResponse = createErrorResponse("not found")
             val httpClient =
@@ -308,14 +348,14 @@ class KoniferBlockingClientTest :
             val blockingClient = KoniferBlockingClient(KoniferClient(httpClient))
 
             val response =
-                blockingClient.getAssetContentBytes(
+                blockingClient.fetchAssetContentBytes(
                     path = "/users/123",
                     options = AssetContentRequestOptions.Builder().build(),
                 )
 
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
                 message shouldBe serverResponse.message
             }
         }
@@ -327,7 +367,7 @@ class KoniferBlockingClientTest :
             client.close()
 
             shouldThrow<CancellationException> {
-                client.getAssetLink(
+                client.fetchAssetLink(
                     path = "/users/123",
                 )
             }
@@ -340,7 +380,7 @@ class KoniferBlockingClientTest :
             client.close()
 
             shouldThrow<CancellationException> {
-                client.getAssetRedirectLocation(
+                client.fetchAssetRedirectLocation(
                     path = "/users/123",
                 )
             }

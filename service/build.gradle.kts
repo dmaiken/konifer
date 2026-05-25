@@ -137,6 +137,7 @@ dependencies {
     testFixturesImplementation(libs.kotest.assertions)
     testFixturesImplementation(libs.libvips.ffm)
     testFixturesImplementation(libs.hipparchus.fft)
+    testFixturesImplementation(project(":client"))
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))
