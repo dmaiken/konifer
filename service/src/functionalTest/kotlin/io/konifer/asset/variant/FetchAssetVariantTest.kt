@@ -53,7 +53,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 )
 
             val response =
-                konifer.getAssetContentBytes(
+                konifer.fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {
@@ -64,7 +64,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
             response.body shouldBeFormat ImageFormat.JPEG
 
             konifer
-                .getAssetMetadata(
+                .fetchAssetMetadata(
                     path = "users/123",
                 ).fold(
                     onSuccess = { response ->
@@ -93,7 +93,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 )
 
             konifer
-                .getAssetContentBytes(
+                .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {
@@ -131,7 +131,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 )
 
             konifer
-                .getAssetContentBytes(
+                .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {

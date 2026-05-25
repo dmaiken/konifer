@@ -8,6 +8,7 @@ import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -67,7 +68,7 @@ class KoniferClient internal constructor(
             followRedirects = false
         }
 
-    suspend fun getAssetMetadata(
+    suspend fun fetchAssetMetadata(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
     ): KoniferResponse<AssetResponse> =
@@ -83,7 +84,7 @@ class KoniferClient internal constructor(
                 }.toKoniferResponse()
         }
 
-    suspend fun getAssetMetadata(
+    suspend fun fetchAssetMetadata(
         path: String,
         limit: Int,
         querySelectors: QuerySelectors = QuerySelectors.None(),
@@ -101,7 +102,7 @@ class KoniferClient internal constructor(
                 }.toKoniferResponse()
         }
 
-    suspend fun getAssetContent(
+    suspend fun fetchAssetContent(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
@@ -111,15 +112,12 @@ class KoniferClient internal constructor(
         safeApiCall {
             httpClient
                 .prepareGet {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        when (fetchMode) {
-                            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
-                            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
-                        }
-                        appendTransformationParameters(requestedTransformation)
-                    }
+                    fetchContentUrl(
+                        path = path,
+                        querySelectors = querySelectors,
+                        requestedTransformation = requestedTransformation,
+                        fetchMode = fetchMode,
+                    )
                 }.execute { response ->
                     if (response.status.isSuccess()) {
                         response.bodyAsChannel().copyAndClose(byteChannel)
@@ -131,7 +129,7 @@ class KoniferClient internal constructor(
                 }
         }
 
-    suspend fun getAssetContentBytes(
+    suspend fun fetchAssetContentBytes(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
@@ -140,15 +138,12 @@ class KoniferClient internal constructor(
         safeApiCall {
             httpClient
                 .prepareGet {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        when (fetchMode) {
-                            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
-                            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
-                        }
-                        appendTransformationParameters(requestedTransformation)
-                    }
+                    fetchContentUrl(
+                        path = path,
+                        querySelectors = querySelectors,
+                        requestedTransformation = requestedTransformation,
+                        fetchMode = fetchMode,
+                    )
                 }.execute { response ->
                     if (response.status.isSuccess()) {
                         KoniferResponse.Success(response.bodyAsBytes())
@@ -158,7 +153,7 @@ class KoniferClient internal constructor(
                 }
         }
 
-    suspend fun getAssetRedirectLocation(
+    suspend fun fetchAssetRedirectLocation(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
@@ -185,7 +180,7 @@ class KoniferClient internal constructor(
                 }
         }
 
-    suspend fun getAssetLink(
+    suspend fun fetchAssetLink(
         path: String,
         querySelectors: QuerySelectors = QuerySelectors.None(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
@@ -299,7 +294,10 @@ class KoniferClient internal constructor(
                     url {
                         appendPathSegments(ASSETS_BASE_PATH)
                         appendPathSegments(path.splitPath())
-                        appendEntryId(entryId)
+                        appendQuerySelectors(
+                            returnFormat = null,
+                            querySelectors = QuerySelectors.EntryId(entryId),
+                        )
                     }
                     contentType(ContentType.Application.Json)
                     setBody(request)
@@ -324,4 +322,19 @@ class KoniferClient internal constructor(
         } catch (e: Exception) {
             KoniferResponse.NetworkError(e)
         }
+
+    private fun HttpRequestBuilder.fetchContentUrl(
+        path: String,
+        querySelectors: QuerySelectors,
+        requestedTransformation: RequestedTransformation,
+        fetchMode: ContentFetchMode,
+    ) = url {
+        appendPathSegments(ASSETS_BASE_PATH)
+        appendPathSegments(path.splitPath())
+        when (fetchMode) {
+            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
+        }
+        appendTransformationParameters(requestedTransformation)
+    }
 }

@@ -6,7 +6,6 @@ import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.client.requestedTransformation
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -26,7 +25,7 @@ class KoniferClientLinkTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.fetchAssetLink(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -47,7 +46,7 @@ class KoniferClientLinkTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.fetchAssetLink(
                     path = "/users/123",
                 )
             response::class shouldBe KoniferResponse.HttpError::class
@@ -68,7 +67,7 @@ class KoniferClientLinkTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.getAssetLink(
+                koniferClient.fetchAssetLink(
                     path = "/users/123",
                     requestedTransformation = allTransformationsDsl,
                 )

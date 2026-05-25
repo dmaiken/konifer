@@ -33,7 +33,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.getAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetMetadata("/users/123")
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
@@ -42,7 +42,7 @@ class KoniferClientSingleMetadataTest :
             val serverResponse = createMetadataResponse()
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata/new",
+                    expectedPath = "/assets/users/123/-/new/metadata",
                     response = serverResponse,
                 )
             val httpClient =
@@ -54,7 +54,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.getAssetMetadata("/users/123", QuerySelectors.OrderBy(Order.NEW))
+            val response = koniferClient.fetchAssetMetadata("/users/123", QuerySelectors.OrderBy(Order.NEW))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
@@ -63,7 +63,7 @@ class KoniferClientSingleMetadataTest :
             val serverResponse = createMetadataResponse()
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata/entry/1",
+                    expectedPath = "/assets/users/123/-/entry/1/metadata",
                     response = serverResponse,
                 )
             val httpClient =
@@ -75,7 +75,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.getAssetMetadata("/users/123", QuerySelectors.EntryId(1))
+            val response = koniferClient.fetchAssetMetadata("/users/123", QuerySelectors.EntryId(1))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
@@ -97,7 +97,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.getAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetMetadata("/users/123")
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
