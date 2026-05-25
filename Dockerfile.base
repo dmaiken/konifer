@@ -156,6 +156,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     zip \
     gpg \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
