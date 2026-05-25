@@ -80,6 +80,37 @@ class KoniferClientSingleMetadataTest :
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
+        test("should be able to fetch asset metadata with labels") {
+            val serverResponse = createMetadataResponse()
+            val labels =
+                mapOf(
+                    "Camera" to "iphone",
+                    "fit" to "profile",
+                )
+            val mockEngine =
+                configureMockEngineHappy(
+                    expectedPath = "/assets/users/123/-/metadata",
+                    response = serverResponse,
+                    labels = labels,
+                )
+            val httpClient =
+                HttpClient(mockEngine) {
+                    install(ContentNegotiation) {
+                        json(Json)
+                    }
+                }
+
+            val koniferClient = KoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetMetadata(
+                    path = "/users/123",
+                    labels = labels,
+                )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+        }
+
         test("should return the error message on a client error") {
             val serverResponse = createErrorResponse("not found")
             val mockEngine =

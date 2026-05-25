@@ -1,6 +1,7 @@
 package io.konifer.client
 
 import io.konifer.common.http.ErrorResponse
+import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.ManipulationParameters.BLUR
 import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
 import io.konifer.common.image.ManipulationParameters.FILTER
@@ -80,4 +81,19 @@ fun URLBuilder.appendTransformationParameters(requestedTransformation: Requested
         .takeIf { it.isNotBlank() }
         ?.let { strip -> parameters.append(STRIP, strip) }
     requestedTransformation.colorSpace?.let { colorSpace -> parameters.append(COLOR_SPACE, colorSpace.queryParameterValue) }
+}
+
+fun URLBuilder.appendLabels(labels: Map<String, String>) {
+    labels
+        .map { (key, value) -> Pair(key.lowercase(), value) }
+        .forEach { (key, value) ->
+            val prefixedKey =
+                if (key in ALL_RESERVED_PARAMETERS) {
+                    "label:$key"
+                } else {
+                    key
+                }
+
+            parameters.append(prefixedKey, value)
+        }
 }

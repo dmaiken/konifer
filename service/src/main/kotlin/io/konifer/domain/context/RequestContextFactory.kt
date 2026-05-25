@@ -1,5 +1,6 @@
 package io.konifer.domain.context
 
+import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
@@ -26,7 +27,6 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
-import io.konifer.domain.context.selector.LIMIT_PARAMETER
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
@@ -49,7 +49,6 @@ class RequestContextFactory(
         const val ASSET_PATH_PREFIX = "/assets"
         const val ENTRY_ID_MODIFIER = "ENTRY"
         const val RECURSIVE_MODIFIER = "RECURSIVE"
-        private val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + VARIANT_PROFILE + "s" + LIMIT_PARAMETER
     }
 
     fun fromStoreRequest(
