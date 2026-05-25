@@ -113,3 +113,40 @@ tasks.koverXmlReport {
     // Enable for Codecov
     enabled = true
 }
+
+val koniferBaseImage =
+    providers
+        .gradleProperty("konifer.baseImage")
+        .orElse("konifer-base:latest")
+
+tasks.register<Exec>("buildKoniferDockerImage") {
+    description = "Builds the Konifer Docker image used by integration tests."
+    group = "build"
+
+    dependsOn(":service:shadowJar")
+
+    commandLine(
+        "docker",
+        "build",
+        "--build-arg",
+        "BASE_IMAGE=${koniferBaseImage.get()}",
+        "-t",
+        "ghcr.io/dmaiken/konifer:latest",
+        rootDir.absolutePath,
+    )
+}
+
+tasks.register("integrationTest") {
+    description = "Runs Docker-based integration tests against a built Konifer image."
+    group = "verification"
+
+    dependsOn(":integration-test:integrationTest")
+}
+
+tasks.register("dockerIntegrationTest") {
+    description = "Builds the Konifer Docker image locally and runs Docker-based integration tests."
+    group = "verification"
+
+    dependsOn("buildKoniferDockerImage")
+    dependsOn("integrationTest")
+}

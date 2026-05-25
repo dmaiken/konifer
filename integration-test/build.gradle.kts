@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
 }
@@ -8,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(project(":client"))
+    testImplementation(project(":common"))
     testImplementation(libs.junit.params)
     testRuntimeOnly(libs.junit.engine)
     testImplementation(libs.kotlin.test.junit)
@@ -20,12 +24,39 @@ dependencies {
     testImplementation(libs.postresql)
 
     testImplementation(libs.logback.classic)
+
+    testImplementation(libs.libvips.ffm)
+    testImplementation(libs.tika.core)
 }
 
 tasks.test {
     useJUnitPlatform()
 
+    description = "Runs Docker-based integration tests against a built Konifer image."
+    group = "verification"
+
+    mustRunAfter(rootProject.tasks.named("buildKoniferDockerImage"))
+
     testLogging {
-        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+            )
+        showStackTraces = true
+        showCauses = true
     }
+
+    // Tell libvips where to find jemalloc
+    environment("LD_PRELOAD", "libjemalloc.so.2")
+}
+
+tasks.register("integrationTest") {
+    description = "Runs Docker-based integration tests against a built Konifer image."
+    group = "verification"
+
+    dependsOn(tasks.test)
 }

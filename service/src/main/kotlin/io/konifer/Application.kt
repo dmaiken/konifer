@@ -1,6 +1,7 @@
 package io.konifer
 
 import io.konifer.entrypoint.configureAssetRouting
+import io.konifer.entrypoint.configureHealthRouting
 import io.konifer.entrypoint.configureInMemoryObjectStoreRouting
 import io.konifer.infrastructure.configureKoin
 import io.konifer.infrastructure.getObjectStoreProvider
@@ -38,8 +39,8 @@ fun Application.module() {
 }
 
 fun Application.configureRouting(objectStoreProvider: ObjectStoreProvider) {
-    configureHealthRouting()
     configureAssetRouting()
+    configureHealthRouting()
 
     if (objectStoreProvider == ObjectStoreProvider.IN_MEMORY) {
         configureInMemoryObjectStoreRouting()

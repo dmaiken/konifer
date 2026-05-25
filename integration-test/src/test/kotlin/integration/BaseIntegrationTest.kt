@@ -1,20 +1,22 @@
 package integration
 
+import io.konifer.client.KoniferClient
 import io.kotest.engine.runBlocking
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
+import org.testcontainers.containers.output.OutputFrame
+import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy
 import org.testcontainers.containers.wait.strategy.Wait
-import org.testcontainers.images.builder.ImageFromDockerfile
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.time.Duration
 
 abstract class BaseIntegrationTest {
 
@@ -25,7 +27,7 @@ abstract class BaseIntegrationTest {
         @JvmStatic
         val postgres: PostgreSQLContainer = PostgreSQLContainer(DockerImageName.parse("postgres:17-alpine"))
             .withNetwork(network)
-            .withNetworkAliases("db")
+            .withNetworkAliases("postgres")
             .withDatabaseName("konifer")
             .withUsername("konifer_user")
             .withPassword("konifer_password")
@@ -42,16 +44,28 @@ abstract class BaseIntegrationTest {
             .withExposedPorts(9000)
             .waitingFor(Wait.forHttp("/minio/health/live").forStatusCode(200))
 
-        val projectRoot: Path = Paths.get(System.getProperty("user.dir")).let { currentDir ->
-            if (currentDir.endsWith("integration-test")) currentDir.parent else currentDir
-        }
+        @Container
+        @JvmStatic
+        val createBuckets: GenericContainer<*> = GenericContainer(DockerImageName.parse("minio/mc:latest"))
+            .withNetwork(network)
+            .dependsOn(minio)
+            .withNetworkAliases("createbuckets")
+            .withCreateContainerCmdModifier { cmd ->
+                cmd.withEntrypoint(
+                    "/bin/sh",
+                    "-c",
+                    "mc alias set myminio http://minio:9000 minio_admin minio_secret_key && mc mb myminio/assets && mc anonymous set public myminio/assets"
+                )
+            }
+            .withStartupCheckStrategy(
+                OneShotStartupCheckStrategy().withTimeout(Duration.ofSeconds(15))
+            )
+            .withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
 
         @Container
         @JvmStatic
         val konifer: GenericContainer<*> = GenericContainer(
-            ImageFromDockerfile("konifer-integration-test", false)
-                .withDockerfile(projectRoot.resolve("Dockerfile"))
-                .withFileFromPath(".", projectRoot)
+            DockerImageName.parse("ghcr.io/dmaiken/konifer:latest")
         )
             .withNetwork(network)
             .withExposedPorts(8080)
@@ -62,14 +76,20 @@ abstract class BaseIntegrationTest {
             .withEnv("PG_PASSWORD", "konifer_password")
             .withEnv("S3_SECRET_KEY", "minio_secret_key")
             .dependsOn(postgres, minio)
+            .withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
             .waitingFor(Wait.forHttp("/health").forStatusCode(200))
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
             postgres.start()
+
             minio.start()
+            createBuckets.start()
+
             konifer.start()
         }
     }
+
+    protected val client = KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
 }
