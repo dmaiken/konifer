@@ -137,6 +137,7 @@ dependencies {
     testFixturesImplementation(libs.kotest.assertions)
     testFixturesImplementation(libs.libvips.ffm)
     testFixturesImplementation(libs.hipparchus.fft)
+    testFixturesImplementation(project(":client"))
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))
@@ -199,6 +200,7 @@ kover {
         sources {
             // Exclude functionalTest source set from coverage calculation
             excludedSourceSets.add("functionalTest")
+            excludedSourceSets.add("testFixtures")
         }
     }
 }

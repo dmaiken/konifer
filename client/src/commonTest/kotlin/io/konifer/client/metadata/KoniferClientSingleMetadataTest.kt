@@ -1,8 +1,9 @@
 package io.konifer.client.metadata
 
+import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.QuerySelectors
+import io.konifer.client.OrderBy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.common.selector.Order
@@ -54,7 +55,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123", QuerySelectors.OrderBy(Order.NEW))
+            val response = koniferClient.fetchAssetMetadata("/users/123", OrderBy(Order.NEW))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
@@ -75,7 +76,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123", QuerySelectors.EntryId(1))
+            val response = koniferClient.fetchAssetMetadata("/users/123", EntryId(1))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
@@ -132,7 +133,7 @@ class KoniferClientSingleMetadataTest :
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
             }
         }
     })

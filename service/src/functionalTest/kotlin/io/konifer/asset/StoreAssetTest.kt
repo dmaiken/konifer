@@ -8,6 +8,8 @@ import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
+import io.konifer.matchers.shouldBeSuccessful
+import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.konifer.util.UnValidatedStoreAssetRequest
 import io.konifer.util.fetchAssetContent
@@ -37,15 +39,12 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            val response =
-                konifer.storeAsset(
-                    path = "",
-                    format = ImageFormat.PNG,
-                    request = request,
-                    bytes = image,
-                )
-            response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.BadRequest
+            konifer.storeAsset(
+                path = "",
+                format = ImageFormat.PNG,
+                request = request,
+                bytes = image,
+            ) shouldHaveHttpError HttpStatusCode.BadRequest.value
         }
 
     @Test
@@ -68,15 +67,12 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            val response =
-                konifer.storeAsset(
-                    path = "users/123/profile",
-                    format = ImageFormat.PNG,
-                    request = request,
-                    bytes = image,
-                )
-            response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.Forbidden
+            konifer.storeAsset(
+                path = "users/123/profile",
+                format = ImageFormat.PNG,
+                request = request,
+                bytes = image,
+            ) shouldHaveHttpError HttpStatusCode.Forbidden.value
         }
 
     @Test
@@ -97,15 +93,12 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            val response =
-                konifer.storeAsset(
-                    path = "users/123/profile",
-                    format = ImageFormat.PNG,
-                    request = request,
-                    bytes = image,
-                )
-            response::class shouldBe KoniferResponse.HttpError::class
-            (response as KoniferResponse.HttpError).httpStatusCode shouldBe HttpStatusCode.Forbidden
+            konifer.storeAsset(
+                path = "users/123/profile",
+                format = ImageFormat.PNG,
+                request = request,
+                bytes = image,
+            ) shouldHaveHttpError HttpStatusCode.Forbidden.value
         }
 
     @Test
@@ -141,13 +134,13 @@ class StoreAssetTest : BaseFunctionalTest() {
                         byteChannel.close()
                     }
                 }
-            konifer.fetchAssetContent(
-                path = "users/123/profile",
-                byteChannel = byteChannel,
-                fetchMode = ContentFetchMode.CONTENT,
-            )
+            konifer
+                .fetchAssetContent(
+                    path = "users/123/profile",
+                    byteChannel = byteChannel,
+                    fetchMode = ContentFetchMode.CONTENT,
+                ).shouldBeSuccessful()
 
-            response::class shouldBe KoniferResponse.Success::class
             Tika().detect(content.await()) shouldBe ImageFormat.PNG.mimeType
         }
 
@@ -176,13 +169,13 @@ class StoreAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            konifer.storeAsset(
-                path = "users/123/profile",
-                format = ImageFormat.PNG,
-                request = request,
-                bytes = image,
-            )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile")
+            konifer
+                .storeAsset(
+                    path = "users/123/profile",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
             fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {

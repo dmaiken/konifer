@@ -1,8 +1,9 @@
 package io.konifer.client.metadata
 
+import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.QuerySelectors
+import io.konifer.client.OrderBy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
@@ -58,7 +59,7 @@ class KoniferClientLimitMetadataTest :
             val response =
                 koniferClient.fetchAssetMetadata(
                     path = "/users/123",
-                    querySelectors = QuerySelectors.OrderBy(Order.NEW),
+                    querySelectors = OrderBy(Order.NEW),
                     limit = 2,
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -84,7 +85,7 @@ class KoniferClientLimitMetadataTest :
             val response =
                 koniferClient.fetchAssetMetadata(
                     path = "/users/123",
-                    querySelectors = QuerySelectors.EntryId(1),
+                    querySelectors = EntryId(1),
                     limit = 2,
                 )
             response::class shouldBe KoniferResponse.Success::class
@@ -144,7 +145,7 @@ class KoniferClientLimitMetadataTest :
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
             }
         }
     })

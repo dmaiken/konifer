@@ -53,7 +53,7 @@ class KoniferClientRedirectLocationTest :
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message
-                httpStatusCode shouldBe HttpStatusCode.NotFound
+                httpStatusCode shouldBe HttpStatusCode.NotFound.value
             }
         }
 
