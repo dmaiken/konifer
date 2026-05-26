@@ -49,6 +49,7 @@ class KoniferClient internal constructor(
                         json(
                             Json {
                                 ignoreUnknownKeys = true
+                                explicitNulls = false
                             },
                         )
                     }

@@ -60,6 +60,7 @@ private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.AssetRouti
 const val ASSET_PATH_PREFIX = "/assets"
 
 fun Application.configureAssetRouting() {
+    logger.info("Configuring asset routes")
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetUseCase by inject<DeleteAssetUseCase>()
     val updateAssetUseCase by inject<UpdateAssetUseCase>()

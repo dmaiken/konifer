@@ -14,24 +14,22 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import java.util.UUID
 
-class FormatIntegrationTest : BaseIntegrationTest() {
+class QualityIntegrationTest : BaseIntegrationTest() {
 
     @TestFactory
-    fun `can request asset in supported formats`(): List<DynamicTest> {
+    fun `can request variant in specified qualities`(): List<DynamicTest> {
         val tests = mutableListOf<DynamicTest>()
-        for (sourceFormat in ImageFormat.entries) {
-            for (destinationFormat in ImageFormat.entries) {
-                if (sourceFormat == destinationFormat) continue
-
+        for (format in ImageFormat.entries) {
+            listOf(1, 100).forEach { quality ->
                 tests.add(
-                    dynamicTest("Converts ${sourceFormat.name} to ${destinationFormat.name}") {
+                    dynamicTest("can request ${format.name} with quality $quality") {
                         runBlocking {
                             val path = UUID.randomUUID().toString()
-                            val (image, attributes) = ImageFactory.testImage(sourceFormat)
+                            val (image, attributes) = ImageFactory.testImage(format)
                             val storeResponse = runBlocking {
                                 client.storeAsset(
                                     path = path,
-                                    format = sourceFormat,
+                                    format = format,
                                     bytes = image,
                                     request = StoreAssetRequest(
                                         alt = "image",
@@ -41,16 +39,15 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                                 )
                             }
                             storeResponse::class shouldBe KoniferResponse.Success::class
-
                             val fetchResponse = client.fetchAssetContentBytes(
                                 path = path,
                                 requestedTransformation = requestedTransformation {
-                                    format = destinationFormat
+                                    this.quality = quality
                                 }
                             )
                             fetchResponse::class shouldBe KoniferResponse.Success::class
                             val content = (fetchResponse as KoniferResponse.Success).body
-                            Tika().detect(content) shouldBe destinationFormat.mimeType
+                            Tika().detect(content) shouldBe format.mimeType
 
                             Vips.run { arena ->
                                 val vImage = VImage.newFromBytes(arena, content)
@@ -61,6 +58,7 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                     }
                 )
             }
+
         }
         return tests
     }

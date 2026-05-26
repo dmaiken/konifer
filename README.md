@@ -210,7 +210,7 @@ Build the local image first:
 
 ```bash
 ./gradlew :service:shadowJar
-docker build . -t konifer:latest
+docker build . -t ghcr.io/dmaiken/konifer:latest
 ```
 
 Then start the stack:
@@ -225,7 +225,7 @@ The default sample configuration in `konifer.conf` targets the Compose services 
 
 A huge thank-you to these amazing open-source projects:
 
-- **[libvips](https://github.com/libvips/libvips)**: The cutting-edge, demand-driven image processor for high-performance image processing.
+- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for high-performance image processing.
 - **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the libvips API.
 - **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
 - **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.

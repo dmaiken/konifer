@@ -113,6 +113,7 @@ jobs:
   docker-build:
     needs: [ test-client, build-service ]
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runner: ubuntu-latest
@@ -158,9 +159,63 @@ jobs:
           cache-from: type=gha,scope=build-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }}
 
+      - name: Build Image Artifact for Integration Tests
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: ghcr.io/dmaiken/konifer:latest
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:latest
+          cache-from: type=gha,scope=build-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }}
+
+      - name: Save Image Artifact
+        run: docker save ghcr.io/dmaiken/konifer:latest --output /tmp/konifer-image-${{ matrix.arch }}.tar
+
+      - name: Upload Image Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: konifer-${{ matrix.arch }}-image
+          path: /tmp/konifer-image-${{ matrix.arch }}.tar
+          retention-days: 1
+
+  integration-test:
+    needs: docker-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Download Image Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: konifer-${{ matrix.arch }}-image
+          path: /tmp
+
+      - name: Load Konifer Docker Image
+        run: docker load --input /tmp/konifer-image-${{ matrix.arch }}.tar
+
+      - name: Run Docker Integration Tests
+        run: ./gradlew integrationTest -x detekt -x ktlintCheck
+
   merge:
     runs-on: ubuntu-latest
-    needs: docker-build
+    needs: [ docker-build, integration-test ]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       packages: write

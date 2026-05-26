@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -61,7 +62,13 @@ class S3ObjectStore(
                             .key(key)
                     }.requestBody(requestBody)
                     .build()
-            s3TransferManager.upload(uploadRequest).completionFuture().await()
+            runCatching {
+                s3TransferManager.upload(uploadRequest).completionFuture().await()
+            }.onFailure { e ->
+                if (e is NoSuchBucketException) {
+                    logger.error("S3 bucket does not exist: $bucket, key: $key", e)
+                }
+            }.getOrThrow()
 
             LocalDateTime.now()
         }
