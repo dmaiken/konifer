@@ -136,13 +136,6 @@ tasks.register<Exec>("buildKoniferDockerImage") {
     )
 }
 
-tasks.register("integrationTest") {
-    description = "Runs Docker-based integration tests against a built Konifer image."
-    group = "verification"
-
-    dependsOn(":integration-test:integrationTest")
-}
-
 tasks.register("dockerIntegrationTest") {
     description = "Builds the Konifer Docker image locally and runs Docker-based integration tests."
     group = "verification"

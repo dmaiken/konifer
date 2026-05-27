@@ -32,8 +32,6 @@ env:
   BASE_IMAGE_NAME: ${{ github.repository }}-base
   BASE_CI_IMAGE_NAME: ${{ github.repository }}-base-ci
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
-  # Globally disable NUMA to prevent set_mempolicy spam in containers
-  JAVA_TOOL_OPTIONS: "-XX:-UseNUMA"
 
 permissions:
   contents: read
@@ -211,7 +209,7 @@ jobs:
         run: docker load --input /tmp/konifer-image-${{ matrix.arch }}.tar
 
       - name: Run Docker Integration Tests
-        run: ./gradlew integrationTest -x detekt -x ktlintCheck
+        run: ./gradlew :integration-test:cleanTest :integration-test:integrationTest -x detekt -x ktlintCheck
 
   merge:
     runs-on: ubuntu-latest

@@ -28,10 +28,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    module(additionalModules = emptyList())
+    serviceModule(additionalModules = emptyList())
 }
 
-fun Application.module(additionalModules: List<Module>) {
+fun Application.serviceModule(additionalModules: List<Module>) {
     val objectStoreProvider = environment.config.getObjectStoreProvider()
 
     configureKoin(objectStoreProvider, additionalModules)

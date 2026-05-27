@@ -92,7 +92,7 @@ fun testInMemory(
                     }
         }
         application {
-            module(additionalModules = modules)
+            serviceModule(additionalModules = modules)
         }
         coroutineScope {
             KoniferTestScope(this@testApplication, this).testBody()
