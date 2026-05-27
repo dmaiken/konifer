@@ -14,6 +14,7 @@ import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.ktor.server.application.Application
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.logging.KtorSimpleLogger
+import org.koin.core.module.Module
 
 private val logger = KtorSimpleLogger("io.konifer.Application")
 
@@ -27,9 +28,13 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    module(additionalModules = emptyList())
+}
+
+fun Application.module(additionalModules: List<Module>) {
     val objectStoreProvider = environment.config.getObjectStoreProvider()
 
-    configureKoin(objectStoreProvider)
+    configureKoin(objectStoreProvider, additionalModules)
     configureContentNegotiation()
     configureRouting(objectStoreProvider)
     configureStatusPages()

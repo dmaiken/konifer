@@ -19,8 +19,8 @@ class PrioritizedChannelVariantScheduler(
         lqipImplementations: Set<LQIPImplementation>,
         source: Path,
         transformationDataContainer: TransformationDataContainer,
-    ): CompletableDeferred<Boolean> {
-        val deferred = CompletableDeferred<Boolean>()
+    ): CompletableDeferred<Unit> {
+        val deferred = CompletableDeferred<Unit>()
         highPriorityChannel.send(
             PreProcessJob(
                 sourceFormat = sourceFormat,
@@ -38,14 +38,14 @@ class PrioritizedChannelVariantScheduler(
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
-    ): CompletableDeferred<Boolean> {
+    ): CompletableDeferred<Unit> {
         if (transformationDataContainers.isEmpty()) {
-            return CompletableDeferred(true)
+            return CompletableDeferred(Unit)
         }
         if (transformationDataContainers.all { it.transformation == Transformation.ORIGINAL_VARIANT }) {
             throw IllegalArgumentException("Cannot create variant using original variant transformation")
         }
-        val deferred = CompletableDeferred<Boolean>()
+        val deferred = CompletableDeferred<Unit>()
         val job =
             GenerateVariantsJob(
                 source = source,

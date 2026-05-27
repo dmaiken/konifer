@@ -8,6 +8,7 @@ import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.TemporaryFileFactory
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -155,7 +156,7 @@ class PrioritizedChannelVariantSchedulerTest {
 
             highPriorityChannel.shouldBeEmpty()
             backgroundChannel.shouldBeEmpty()
-            deferred.await() shouldBe true
+            shouldNotThrowAny { deferred.await() }
         }
 
     @ParameterizedTest

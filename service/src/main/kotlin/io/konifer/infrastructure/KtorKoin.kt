@@ -33,7 +33,10 @@ import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
-fun Application.configureKoin(objectStoreProvider: ObjectStoreProvider) {
+fun Application.configureKoin(
+    objectStoreProvider: ObjectStoreProvider,
+    additionalModules: List<Module> = emptyList(),
+) {
     install(Koin) {
         slf4jLogger()
         modules(
@@ -48,6 +51,7 @@ fun Application.configureKoin(objectStoreProvider: ObjectStoreProvider) {
             objectStoreModule(objectStoreProvider),
             pathModule(),
             vipsModule(),
+            *additionalModules.toTypedArray(),
         )
     }
 }

@@ -10,14 +10,14 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.VariantService
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.http.AssetUrlGenerator
+import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import kotlinx.coroutines.Dispatchers
+import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlin.io.path.deleteIfExists
 
 class FetchAssetHandler(
     private val assetRepository: AssetRepository,
@@ -161,11 +161,7 @@ class FetchAssetHandler(
                             channel.close()
                         }
                     }
-                withContext(Dispatchers.IO) {
-                    originalVariantFile.toFile().outputStream().buffered().use { fileStream ->
-                        channel.toInputStream().copyTo(fileStream)
-                    }
-                }
+                channel.copyAndClose(originalVariantFile.toFile().writeChannel())
                 fetchJob.join()
                 variantService.generateOnDemandVariant(
                     originalVariantFile = originalVariantFile,
@@ -176,9 +172,7 @@ class FetchAssetHandler(
                     bucket = context.pathConfiguration.objectStore.bucket,
                 )
             } finally {
-                withContext(Dispatchers.IO) {
-                    originalVariantFile.toFile().delete()
-                }
+                originalVariantFile.deleteIfExists()
             }
         }
 }

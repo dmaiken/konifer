@@ -92,46 +92,48 @@ class VariantService(
                         variantType = variantType,
                     )
 
-            transformationDataContainers
-                .map { container ->
-                    launch {
-                        val attributes = container.attributes.await()
-                        val newVariant =
-                            Variant.Pending.newVariant(
-                                assetId = assetId,
-                                attributes = attributes,
-                                transformation = container.transformation,
-                                objectStoreBucket = bucket,
-                                objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
-                                lqip = container.lqips.await() ?: originalVariantLQIPs,
-                            )
-                        // Start upload
-                        val uploadJob =
-                            async {
-                                objectStore.persist(
-                                    bucket = newVariant.objectStoreBucket,
-                                    key = newVariant.objectStoreKey,
-                                    channel = container.output,
+            val variantGenerationJobs =
+                transformationDataContainers
+                    .map { container ->
+                        launch {
+                            val attributes = container.attributes.await()
+                            val newVariant =
+                                Variant.Pending.newVariant(
+                                    assetId = assetId,
+                                    attributes = attributes,
+                                    transformation = container.transformation,
+                                    objectStoreBucket = bucket,
+                                    objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
+                                    lqip = container.lqips.await() ?: originalVariantLQIPs,
                                 )
-                            }
+                            // Start upload
+                            val uploadJob =
+                                async {
+                                    objectStore.persist(
+                                        bucket = newVariant.objectStoreBucket,
+                                        key = newVariant.objectStoreKey,
+                                        channel = container.output,
+                                    )
+                                }
 
-                        val pendingVariant =
-                            try {
-                                assetRepository.storeNewVariant(newVariant)
-                            } catch (_: VariantAlreadyExistsException) {
-                                logger.info("Variant already exists for assetId: ${assetId.value}")
-                                uploadJob.cancel()
-                                return@launch
-                            }
+                            val pendingVariant =
+                                try {
+                                    assetRepository.storeNewVariant(newVariant)
+                                } catch (_: VariantAlreadyExistsException) {
+                                    logger.info("Variant already exists for assetId: ${assetId.value}")
+                                    uploadJob.cancel()
+                                    return@launch
+                                }
 
-                        val uploadedAt = uploadJob.await()
-                        assetRepository.markUploaded(
-                            variant = pendingVariant.markReady(uploadJob.await()),
-                        )
-                        logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
+                            val uploadedAt = uploadJob.await()
+                            assetRepository.markUploaded(
+                                variant = pendingVariant.markReady(uploadJob.await()),
+                            )
+                            logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
+                        }
                     }
-                }.joinAll()
             generationJob.await()
+            variantGenerationJobs.joinAll()
         }
 
     private fun createTransformationDataContainers(transformations: List<Transformation>): List<TransformationDataContainer> =

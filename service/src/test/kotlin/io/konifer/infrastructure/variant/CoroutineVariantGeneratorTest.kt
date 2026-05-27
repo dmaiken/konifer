@@ -10,6 +10,8 @@ import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
 import io.konifer.infrastructure.vips.VipsImageProcessor
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray
@@ -71,7 +73,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         fun `can generate variant from channel`() =
             runTest {
                 val output = ByteChannel()
-                val result = CompletableDeferred<Boolean>()
+                val result = CompletableDeferred<Unit>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
@@ -105,7 +107,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
             runTest {
                 val output1 = ByteChannel()
                 val output2 = ByteChannel()
-                val result = CompletableDeferred<Boolean>()
+                val result = CompletableDeferred<Unit>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
@@ -155,7 +157,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     createProcessedVariantTempFile(ImageFormat.PNG.extension).apply {
                         deleteOnExit(this)
                     }
-                val result = CompletableDeferred<Boolean>()
+                val result = CompletableDeferred<Unit>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
@@ -172,7 +174,7 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
         fun `if variant fails to generate then channel is still live`() =
             runTest {
                 val output = ByteChannel()
-                val result = CompletableDeferred<Boolean>()
+                val result = CompletableDeferred<Unit>()
                 val variantGenerationJob =
                     GenerateVariantsJob(
                         source = source,
@@ -204,11 +206,11 @@ class CoroutineVariantGeneratorTest : BaseUnitTest() {
                     .coAndThen { callOriginal() }
 
                 channel.send(variantGenerationJob)
-                result.await() shouldBe false
+                shouldThrow<RuntimeException> { result.await() }
 
-                val newResult = CompletableDeferred<Boolean>()
+                val newResult = CompletableDeferred<Unit>()
                 channel.send(variantGenerationJob.copy(deferredResult = newResult))
-                newResult.await() shouldBe true
+                shouldNotThrowAny { newResult.await() }
             }
     }
 }

@@ -15,12 +15,12 @@ data class PreProcessJob(
     val sourceFormat: ImageFormat,
     val lqipImplementations: Set<LQIPImplementation>,
     val transformationDataContainer: TransformationDataContainer,
-    override val deferredResult: CompletableDeferred<Boolean>,
-) : ImageProcessingJob<Boolean>
+    override val deferredResult: CompletableDeferred<Unit>,
+) : ImageProcessingJob<Unit>
 
 data class GenerateVariantsJob(
     val source: Path,
     val transformationDataContainers: List<TransformationDataContainer>,
     val lqipImplementations: Set<LQIPImplementation>,
-    override val deferredResult: CompletableDeferred<Boolean>,
-) : ImageProcessingJob<Boolean>
+    override val deferredResult: CompletableDeferred<Unit>,
+) : ImageProcessingJob<Unit>

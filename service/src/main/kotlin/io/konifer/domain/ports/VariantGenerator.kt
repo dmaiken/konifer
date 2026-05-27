@@ -15,14 +15,14 @@ interface VariantGenerator {
         lqipImplementations: Set<LQIPImplementation>,
         source: Path,
         transformationDataContainer: TransformationDataContainer,
-    ): CompletableDeferred<Boolean>
+    ): CompletableDeferred<Unit>
 
     suspend fun generateVariantsFromSource(
         source: Path,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
-    ): CompletableDeferred<Boolean>
+    ): CompletableDeferred<Unit>
 }
 
 enum class VariantType {

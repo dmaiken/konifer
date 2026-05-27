@@ -141,7 +141,7 @@ class VariantProcessorPipeline(
             }
 
         // Since there is no preprocessing required here, we just stream the original file back to the caller
-        val passthroughProcess: Deferred<Boolean> =
+        val passthroughProcess: Deferred<Unit> =
             scope.async {
                 runCatching {
                     teeStream(
@@ -149,7 +149,6 @@ class VariantProcessorPipeline(
                         firstChannel = objectStoreChannel,
                         secondChannel = null,
                     )
-                    true
                 }.onFailure { e ->
                     objectStoreChannel.close(e)
                 }.getOrThrow()

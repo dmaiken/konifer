@@ -18,6 +18,7 @@ import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
+import org.koin.core.module.Module
 
 class KoniferTestScope(
     private val builder: ApplicationTestBuilder,
@@ -54,6 +55,7 @@ class KoniferTestScope(
 
 fun testInMemory(
     configuration: String? = null,
+    modules: List<Module> = emptyList(),
     testBody: suspend KoniferTestScope.() -> Unit,
 ) {
     testApplication {
@@ -67,6 +69,11 @@ fun testInMemory(
             val inMemoryConfig =
                 ConfigFactory.parseString(
                     """
+                    ktor {
+                        application {
+                            modules = []
+                        }
+                    }
                     object-store {
                         provider = in-memory
                     }
@@ -83,6 +90,9 @@ fun testInMemory(
                             cfg.mergeWith(HoconApplicationConfig(ConfigFactory.parseString(it)))
                         } ?: cfg
                     }
+        }
+        application {
+            module(additionalModules = modules)
         }
         coroutineScope {
             KoniferTestScope(this@testApplication, this).testBody()
