@@ -8,6 +8,6 @@ data class ProcessingPipeline(
     val attributes: Deferred<Attributes>,
     val outputChannel: ByteChannel,
     val eagerVariantFile: Path?, // Null if eager variants aren't needed
-    val processDeferred: Deferred<Boolean>,
+    val processDeferred: Deferred<Unit>,
     val lqips: Deferred<LQIPs?>,
 )

@@ -93,6 +93,7 @@ class StoreNewAssetUseCase(
                         key = objectStoreKey,
                         channel = pipeline.outputChannel,
                     )
+                pipeline.processDeferred.await()
 
                 logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
                 val readyAsset =
@@ -102,7 +103,6 @@ class StoreNewAssetUseCase(
 
                 return@coroutineScope AssetAndLocation(readyAsset, context.path).also {
                     logger.info("Publishing asset ready event")
-                    pipeline.processDeferred.await()
                     eventPublisher.publish(
                         AssetReadyEvent(
                             pathConfiguration = context.pathConfiguration,
