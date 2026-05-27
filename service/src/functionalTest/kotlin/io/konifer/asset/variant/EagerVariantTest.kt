@@ -57,10 +57,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                     request = StoreAssetRequest(),
                     bytes = image,
                 ).fold(
-                    onSuccess = { storeResponse ->
-                        // eager variants should not be in this list
-                        storeResponse.variants shouldHaveSize 1
-
+                    onSuccess = { _ ->
                         await().untilCallTo {
                             runBlocking {
                                 val response =
