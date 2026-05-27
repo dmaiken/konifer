@@ -1,5 +1,6 @@
 package io.konifer.asset.variant
 
+import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.client.EntryId
 import io.konifer.client.requestedTransformation
@@ -15,7 +16,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.koin.dsl.module
 
-class VariantGenerationFailedTest {
+class VariantGenerationFailedTest : BaseFunctionalTest() {
     @Test
     fun `failure during preprocessing results in server error`() {
         val imageProcessor =
