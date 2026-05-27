@@ -85,7 +85,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
 
       - name: Run Unified Tests & Coverage
-        run: ./gradlew koverHtmlReport koverXmlReport -x detekt -x ktlintCheck
+        run: ./gradlew koverXmlReport -x detekt -x ktlintCheck
         env:
           SVT_LOG: 1
 
@@ -131,7 +131,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: service-shadow-jar
-          # Places the downloaded JAR right where your Dockerfile expects it
+          # Places the downloaded JAR right where the Dockerfile expects it
           path: service/build/libs/
 
       - name: Log in to the Container registry
