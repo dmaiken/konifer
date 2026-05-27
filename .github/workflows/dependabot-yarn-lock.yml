@@ -1,0 +1,38 @@
+name: Update KMP Yarn Lock
+
+on:
+  pull_request:
+    paths:
+      - 'gradle/libs.versions.toml'
+      - '**/*.gradle.kts'
+
+jobs:
+  update-yarn-lock:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.CI_PAT }}
+
+      - name: Set up GraalVM CE for Java 25
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Update Yarn Lock
+        run: ./gradlew kotlinUpgradeYarnLock
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: update KMP yarn.lock"
+          file_pattern: 'kotlin-js-store/yarn.lock'
