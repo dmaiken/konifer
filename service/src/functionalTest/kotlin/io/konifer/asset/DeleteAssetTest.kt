@@ -11,7 +11,6 @@ import io.konifer.common.selector.Order
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.deleteAsset
 import io.konifer.util.fetchAssetMetadata
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete

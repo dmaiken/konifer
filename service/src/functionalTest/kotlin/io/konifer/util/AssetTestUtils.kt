@@ -5,7 +5,6 @@ import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.Order
-import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.image.fromFormat
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
 import io.kotest.matchers.collections.shouldHaveSize
@@ -17,7 +16,6 @@ import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.delete
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
@@ -439,7 +437,7 @@ suspend fun fetchAssetLink(
         headers[HttpHeaders.Location] shouldBe null
         headers[HttpHeaders.ETag] shouldBe null
         return if (expectedStatusCode == HttpStatusCode.OK) {
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            contentType()?.contentType shouldBe ContentType.Application.Json.contentType
 
             if (expectCacheHit == true) {
                 headers[APP_CACHE_STATUS] shouldBeEqualIgnoringCase "hit"
@@ -453,25 +451,6 @@ suspend fun fetchAssetLink(
             }
         } else {
             null
-        }
-    }
-}
-
-suspend fun assertAssetDoesNotExist(
-    client: HttpClient,
-    path: String = "profile",
-    entryId: Long? = null,
-) {
-    ReturnFormat.entries.forEach { format ->
-        val urlBuilder = URLBuilder()
-        if (entryId != null) {
-            urlBuilder.path("/assets/$path/-/${format.name}/entry/$entryId")
-        } else {
-            urlBuilder.path("/assets/$path/-/${format.name}")
-        }
-        client.get(urlBuilder.build()).apply {
-            status shouldBe HttpStatusCode.NotFound
-            headers.contains(HttpHeaders.Location) shouldBe false
         }
     }
 }
@@ -535,50 +514,6 @@ suspend fun fetchAllAssetMetadata(
     } else {
         response.body<List<AssetResponse>>()
     }
-}
-
-suspend fun deleteAsset(
-    client: HttpClient,
-    path: String = "profile",
-    entryId: Long? = null,
-    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
-) {
-    if (entryId != null) {
-        client.delete("/assets/$path/-/entry/$entryId").status shouldBe expectedStatusCode
-    } else {
-        client.delete("/assets/$path").status shouldBe expectedStatusCode
-    }
-}
-
-suspend fun deleteAssetsAtPath(
-    client: HttpClient,
-    path: String = "profile",
-    labels: Map<String, String> = emptyMap(),
-    order: Order = Order.NEW,
-    limit: Int = 1,
-    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
-) {
-    val urlBuilder = URLBuilder()
-    urlBuilder.path("/assets/$path/-/$order")
-    labels.forEach { label ->
-        urlBuilder.parameters.append(label.key, label.value)
-    }
-    urlBuilder.parameters.append("limit", limit.toString())
-    client.delete(urlBuilder.build()).status shouldBe expectedStatusCode
-}
-
-suspend fun deleteAssetsRecursivelyAtPath(
-    client: HttpClient,
-    path: String = "profile",
-    labels: Map<String, String> = emptyMap(),
-    expectedStatusCode: HttpStatusCode = HttpStatusCode.NoContent,
-) {
-    val urlBuilder = URLBuilder()
-    urlBuilder.path("/assets/$path/-/recursive")
-    labels.forEach { label ->
-        urlBuilder.parameters.append(label.key, label.value)
-    }
-    client.delete(urlBuilder.build()).status shouldBe expectedStatusCode
 }
 
 suspend fun updateAsset(
