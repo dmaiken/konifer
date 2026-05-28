@@ -5,6 +5,7 @@ import io.konifer.domain.path.PathConfiguration
 data class PathTrieNode(
     val segment: String,
     var config: PathConfiguration,
+    var hasExplicitConfiguration: Boolean = false,
     val children: MutableMap<String, PathTrieNode> = mutableMapOf(),
 ) {
     fun getOrCreateChild(

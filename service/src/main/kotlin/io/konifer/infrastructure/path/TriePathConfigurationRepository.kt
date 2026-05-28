@@ -78,6 +78,7 @@ class TriePathConfigurationRepository(
             current = current.getOrCreateChild(segment, current.config)
         }
         current.config = PathConfiguration.create(applicationConfig, current.config)
+        current.hasExplicitConfiguration = true
     }
 
     private fun matchRecursive(
@@ -87,6 +88,21 @@ class TriePathConfigurationRepository(
     ): MatchResult {
         // Base case
         if (segments.isEmpty()) {
+            if (node.hasExplicitConfiguration) {
+                return MatchResult(node, depth)
+            }
+
+            val candidates = mutableListOf<MatchResult>()
+
+            node.children[WILDCARD_SEGMENT]?.let { wildcard ->
+                candidates += matchRecursive(wildcard, emptyList(), depth + 1)
+            }
+
+            node.children[GREEDY_WILDCARD_SEGMENT]?.let { greedy ->
+                candidates += matchRecursive(greedy, emptyList(), depth + 1)
+            }
+
+            candidates.maxByOrNull { it.depth }?.let { return it }
             return MatchResult(node, depth)
         }
 

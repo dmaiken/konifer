@@ -359,4 +359,204 @@ class TriePathConfigurationRepositoryTest {
         val pathConfiguration = pathConfigurationRepository.fetch("/profile/123")
         pathConfiguration.eagerVariants shouldBe listOf("large")
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/", "/profile/", "/profile/123/"])
+    fun `configuration under wildcard is applied at the root of the path`(path: String) {
+        val config =
+            """
+            paths = [
+              {
+                path = "$path*"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+        val pathConfigurationRepository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        val pathConfiguration = pathConfigurationRepository.fetch(path)
+        pathConfiguration.eagerVariants shouldBe listOf("large")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/", "/profile/", "/profile/123/"])
+    fun `configuration under greedy wildcard is applied at the root of the path`(path: String) {
+        val config =
+            """
+            paths = [
+              {
+                path = "$path**"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+        val pathConfigurationRepository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        val pathConfiguration = pathConfigurationRepository.fetch(path)
+        pathConfiguration.eagerVariants shouldBe listOf("large")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["/profile", "/profile/123"])
+    fun `wildcard wins over greedy wildcard specified on same path`(path: String) {
+        val config =
+            """
+            paths = [
+              {
+                path = "/profile/*"
+                eager-variants = [medium]
+              }
+              {
+                path = "/profile/**"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+        val pathConfigurationRepository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+        val pathConfiguration = pathConfigurationRepository.fetch(path)
+        pathConfiguration.eagerVariants shouldBe listOf("medium")
+    }
+
+    @Test
+    fun `exact path wins over wildcard on same path`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "/profile/123"
+                eager-variants = [small]
+              },
+              {
+                path = "/profile/*"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
+    }
+
+    @Test
+    fun `exact path wins over greedy wildcard on same path`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "/profile/123"
+                eager-variants = [small]
+              },
+              {
+                path = "/profile/**"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
+    }
+
+    @Test
+    fun `explicit parent path wins over wildcard child when fetching parent path`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "/profile"
+                eager-variants = [small]
+              },
+              {
+                path = "/profile/*"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/profile").eagerVariants shouldBe listOf("small")
+    }
+
+    @Test
+    fun `greedy wildcard can consume zero segments before matching following segment`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "/users/**/profile"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/users/profile").eagerVariants shouldBe listOf("large")
+    }
+
+    @Test
+    fun `deeper greedy wildcard match wins over shallower greedy wildcard match`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "/users/**"
+                eager-variants = [small]
+              },
+              {
+                path = "/users/**/profile"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/users/123/profile").eagerVariants shouldBe listOf("large")
+    }
+
+    @Test
+    fun `configured path is stripped of blank and empty path segments`() {
+        val config =
+            """
+            paths = [
+              {
+                path = "//profile//*/"
+                eager-variants = [large]
+              }
+            ]
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                HoconApplicationConfig(ConfigFactory.parseString(config)),
+            )
+
+        repository.fetch("/profile/123").eagerVariants shouldBe listOf("large")
+    }
 }
