@@ -6,8 +6,8 @@ import io.konifer.client.KoniferResponse
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.kotest.engine.runBlocking
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import org.apache.tika.Tika
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.TestFactory
 import java.util.UUID
 
 class FormatIntegrationTest : BaseIntegrationTest() {
-
     @TestFactory
     fun `can request asset in supported formats`(): List<DynamicTest> {
         val tests = mutableListOf<DynamicTest>()
@@ -28,26 +27,28 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                         runBlocking {
                             val path = UUID.randomUUID().toString()
                             val (image, attributes) = ImageFactory.testImage(sourceFormat)
-                            val storeResponse = runBlocking {
+                            val storeResponse =
                                 client.storeAsset(
                                     path = path,
                                     format = sourceFormat,
                                     bytes = image,
-                                    request = StoreAssetRequest(
-                                        alt = "image",
-                                        tags = setOf("tag1", "tag2"),
-                                        labels = mapOf("key1" to "value1", "key2" to "value2")
-                                    )
+                                    request =
+                                        StoreAssetRequest(
+                                            alt = "image",
+                                            tags = setOf("tag1", "tag2"),
+                                            labels = mapOf("key1" to "value1", "key2" to "value2"),
+                                        ),
                                 )
-                            }
                             storeResponse::class shouldBe KoniferResponse.Success::class
 
-                            val fetchResponse = client.fetchAssetContentBytes(
-                                path = path,
-                                requestedTransformation = requestedTransformation {
-                                    format = destinationFormat
-                                }
-                            )
+                            val fetchResponse =
+                                client.fetchAssetContentBytes(
+                                    path = path,
+                                    requestedTransformation =
+                                        requestedTransformation {
+                                            format = destinationFormat
+                                        },
+                                )
                             fetchResponse::class shouldBe KoniferResponse.Success::class
                             val content = (fetchResponse as KoniferResponse.Success).body
                             Tika().detect(content) shouldBe destinationFormat.mimeType
@@ -58,7 +59,7 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                                 vImage.width shouldBe attributes.width
                             }
                         }
-                    }
+                    },
                 )
             }
         }
