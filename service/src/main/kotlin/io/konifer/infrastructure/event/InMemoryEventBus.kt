@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.e
+package io.konifer.infrastructure.event
 
 import io.konifer.domain.event.DomainEvent
 import io.konifer.domain.ports.EventBus

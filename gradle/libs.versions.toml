@@ -1,6 +1,7 @@
 [versions]
 jooq-version = "3.21.4"
 koin-version = "4.2.1"
+koin-plugin-version = "1.0.0"
 kotlin-version = "2.3.21"
 ktlint-version = "14.2.0"
 ktor-version = "3.5.0"
@@ -21,7 +22,6 @@ kotlin-coroutine-reactive-version = "1.10.2"
 db-scheduler-version = "16.7.1"
 hikari-version = "7.0.2"
 uuid-creator-version = "6.1.1"
-bytebuddy-version = "1.18.3"
 commons-codec-version = "1.22.0"
 detekt-version = "2.0.0-alpha.2"
 license-version = "3.1.2"
@@ -115,3 +115,4 @@ license = { id = "com.github.jk1.dependency-license-report", version.ref = "lice
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "google-devtools-ksp-version" }
 kotest = { id = "io.kotest", version.ref = "kotest-version" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover-version" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin-version" }

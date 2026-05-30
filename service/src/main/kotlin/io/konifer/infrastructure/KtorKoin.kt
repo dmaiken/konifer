@@ -14,7 +14,7 @@ import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.VariantService
 import io.konifer.infrastructure.asset.assetContainerFactoryModule
 import io.konifer.infrastructure.datastore.assetRepositoryModule
-import io.konifer.infrastructure.e.InMemoryEventBus
+import io.konifer.infrastructure.event.InMemoryEventBus
 import io.konifer.infrastructure.http.httpClientModule
 import io.konifer.infrastructure.http.httpModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
@@ -29,9 +29,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
+import org.koin.plugin.module.dsl.single
 
 fun Application.configureKoin(
     objectStoreProvider: ObjectStoreProvider,
@@ -58,48 +63,25 @@ fun Application.configureKoin(
 
 fun domainModule(): Module =
     module {
-        single<RequestContextFactory> {
-            RequestContextFactory(get(), get(), get())
+        single<RequestContextFactory>()
+        single<TransformationNormalizer>()
+        single<VariantService>()
+        singleOf(::InMemoryEventBus) {
+            bind<EventPublisher>()
+            bind<EventBus>()
         }
-        single<TransformationNormalizer> {
-            TransformationNormalizer(get())
-        }
-        single<VariantService> {
-            VariantService(get(), get(), get(), get())
-        }
-
-        val eventBus = InMemoryEventBus()
-        single<EventPublisher> {
-            eventBus
-        }
-        single<EventBus> {
-            eventBus
-        }
-
-        single<FormatValidator> {
-            FormatValidator(get())
-        }
+        single<FormatValidator>()
     }
 
 fun appModule(): Module =
     module {
-        single<FetchAssetHandler> {
-            FetchAssetHandler(get(), get(), get(), get())
-        }
-        single<DeleteAssetUseCase> {
-            DeleteAssetUseCase(get())
-        }
-        single<UpdateAssetUseCase> {
-            UpdateAssetUseCase(get())
-        }
-        single<StoreNewAssetUseCase> {
-            StoreNewAssetUseCase(get(), get(), get(), get(), get(), get(), get())
-        }
-        single<VariantProcessorPipeline> {
-            VariantProcessorPipeline(get(), get())
-        }
+        single<FetchAssetHandler>()
+        single<DeleteAssetUseCase>()
+        single<UpdateAssetUseCase>()
+        single<StoreNewAssetUseCase>()
+        single<VariantProcessorPipeline>()
         single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-        single<AssetEventListener>(createdAtStart = true) {
-            AssetEventListener(get(), get(), get(), get())
+        single<AssetEventListener>() withOptions {
+            createdAtStart()
         }
     }

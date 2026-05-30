@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.license)
     alias(libs.plugins.kover)
+    alias(libs.plugins.koin.compiler)
 }
 
 group = "io.konifer"

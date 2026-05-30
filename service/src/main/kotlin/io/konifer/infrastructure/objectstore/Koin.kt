@@ -25,7 +25,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.transfer.s3.S3TransferManager
@@ -39,9 +43,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
         logger.info("Using object store provider: $provider")
         when (provider) {
             ObjectStoreProvider.IN_MEMORY -> {
-                single<ObjectStore>(createdAtStart = true) {
-                    InMemoryObjectStore()
-                }
+                single<InMemoryObjectStore>() bind ObjectStore::class
             }
             ObjectStoreProvider.S3 -> {
                 val s3ConfigurationProperties = objectStoreConfig?.tryGetConfig(S3)
@@ -57,18 +59,20 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                         region = s3ConfigurationProperties?.tryGetString(REGION),
                         forcePathStyle = s3ConfigurationProperties?.tryGetString(FORCE_PATH_STYLE)?.toBoolean() ?: false,
                     )
-                single<S3AsyncClient>(createdAtStart = true) {
+                single<S3AsyncClient> {
                     s3Client(s3ClientProperties)
+                } withOptions {
+                    createdAtStart()
                 }
-                single<S3TransferManager>(createdAtStart = true) {
+                single<S3TransferManager> {
                     s3TransferManager(get())
+                } withOptions {
+                    createdAtStart()
                 }
                 single<S3Presigner> {
                     s3Presigner(s3ClientProperties)
                 }
-                single<ObjectStore> {
-                    S3ObjectStore(get(), get(), get())
-                }
+                single<S3ObjectStore>() bind ObjectStore::class
             }
             ObjectStoreProvider.FILESYSTEM -> {
                 val fileSystemProperties = objectStoreConfig?.tryGetConfig(FILESYSTEM)

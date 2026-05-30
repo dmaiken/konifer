@@ -14,6 +14,7 @@ import io.ktor.server.config.tryGetString
 import okhttp3.ConnectionPool
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 import java.util.concurrent.TimeUnit
 
 fun httpClientModule(): Module =
@@ -60,7 +61,5 @@ fun Application.httpModule(): Module =
             )
         }
 
-        single<AssetUrlGenerator> {
-            AssetUrlGenerator(get())
-        }
+        single<AssetUrlGenerator>()
     }

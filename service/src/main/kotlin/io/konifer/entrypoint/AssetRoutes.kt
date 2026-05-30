@@ -233,26 +233,26 @@ suspend fun storeNewAsset(
                                     part.provider().copyTo(assetContentChannel)
                                 } finally {
                                     assetContentChannel.close()
-                                    part.dispose()
+                                    part.release()
                                 }
                             is PartData.BinaryChannelItem ->
                                 try {
                                     part.provider().copyTo(assetContentChannel)
                                 } finally {
                                     assetContentChannel.close()
-                                    part.dispose()
+                                    part.release()
                                 }
                             is PartData.BinaryItem ->
                                 try {
                                     part.provider().transferTo(assetContentChannel.asSink())
                                 } finally {
                                     assetContentChannel.close()
-                                    part.dispose()
+                                    part.release()
                                 }
-                            else -> part.dispose()
+                            else -> part.release()
                         }
                     }
-                    else -> part.dispose()
+                    else -> part.release()
                 }
             }
 

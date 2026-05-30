@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)
+    alias(libs.plugins.koin.compiler)
     `java-test-fixtures`
 }
 
@@ -142,20 +143,6 @@ dependencies {
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))
     "functionalTestImplementation"(project(":client"))
-}
-
-/**
- * Necessary for Java 25 support - hopefully this can go away when ktor BOM supports Java 25
- */
-configurations.all {
-    resolutionStrategy {
-        val bytebuddyVersion =
-            libs.versions.bytebuddy.version
-                .get()
-
-        force("net.bytebuddy:byte-buddy:$bytebuddyVersion")
-        force("net.bytebuddy:byte-buddy-agent:$bytebuddyVersion")
-    }
 }
 
 tasks.withType<Test>().configureEach {

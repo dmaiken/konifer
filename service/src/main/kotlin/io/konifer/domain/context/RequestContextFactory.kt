@@ -83,26 +83,27 @@ class RequestContextFactory(
                 path = segments.getOrNull(1),
                 parameters = queryParameters,
             )
-        val requestedImageAttributes =
+        val requestedTransformation =
             extractRequestedImageTransformation(
                 querySelectors = querySelectors,
                 headers = headers,
                 parameters = queryParameters,
             )
+        val pathConfiguration = pathConfigurationRepository.fetch(segments.first())
         if (
             querySelectors.returnFormat == ReturnFormat.METADATA &&
-            requestedImageAttributes != null &&
-            !requestedImageAttributes.originalVariant
+            requestedTransformation != null &&
+            !requestedTransformation.originalVariant
         ) {
             throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
         }
 
         return QueryRequestContext(
             path = segments.first(),
-            pathConfiguration = pathConfigurationRepository.fetch(segments[0]),
+            pathConfiguration = pathConfiguration,
             selectors = querySelectors,
             transformation =
-                requestedImageAttributes?.let {
+                requestedTransformation?.let {
                     transformationNormalizer.normalize(
                         treePath = segments.first(),
                         entryId = querySelectors.entryId,
