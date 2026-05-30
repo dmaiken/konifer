@@ -2,7 +2,6 @@ package io.konifer.infrastructure.datastore
 
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
-import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
 import io.konifer.infrastructure.datastore.postgres.postgres
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduling
@@ -18,16 +17,18 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.tools.LoggerListener
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.withOptions
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 
 fun Application.assetRepositoryModule(): Module =
     module {
         val datastoreProvider = environment.config.getDataStoreProvider()
         when (datastoreProvider) {
             DataStoreProvider.IN_MEMORY -> {
-                single<AssetRepository>(createdAtStart = true) {
-                    InMemoryAssetRepository()
-                }
+                single<InMemoryAssetRepository>() bind AssetRepository::class
             }
             DataStoreProvider.POSTGRES -> {
                 val properties = createPostgresProperties()
@@ -35,14 +36,10 @@ fun Application.assetRepositoryModule(): Module =
                 migrateSchema(connectionFactory)
                 val dslContext = configureR2dbcJOOQ(connectionFactory)
                 configureScheduling(properties, dslContext)
-                single<ConnectionFactory> {
-                    connectionFactory
-                }
-                single<DSLContext>(createdAtStart = true) {
-                    dslContext
-                }
-                single<AssetRepository> {
-                    PostgresAssetRepository(get())
+                single<AssetRepository>()
+                single<ConnectionFactory>()
+                single<DSLContext>() withOptions {
+                    createdAtStart()
                 }
             }
         }
