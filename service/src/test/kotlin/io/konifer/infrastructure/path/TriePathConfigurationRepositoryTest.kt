@@ -3,7 +3,6 @@ package io.konifer.infrastructure.path
 import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.ktor.server.config.HoconApplicationConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -31,7 +30,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -59,7 +58,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         listOf(
             "/users/123/profile",
@@ -86,7 +85,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -108,7 +107,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -137,7 +136,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
             allowedContentTypes shouldBe null
@@ -167,7 +166,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration =
             pathConfigurationRepository.fetch("/users/lastName/firstName/profile/last")
@@ -204,7 +203,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
@@ -232,7 +231,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/recipe/123")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -268,7 +267,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
@@ -292,7 +291,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("// //123")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -313,7 +312,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         shouldThrow<IllegalArgumentException> {
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         }.message shouldBe "Path configuration must be supplied"
     }
@@ -331,7 +330,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile")
         pathConfiguration.eagerVariants shouldBe listOf("small", "large")
@@ -354,7 +353,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile/123")
         pathConfiguration.eagerVariants shouldBe listOf("large")
@@ -374,7 +373,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.eagerVariants shouldBe listOf("large")
@@ -394,7 +393,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.eagerVariants shouldBe listOf("large")
@@ -418,7 +417,7 @@ class TriePathConfigurationRepositoryTest {
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.eagerVariants shouldBe listOf("medium")
@@ -442,7 +441,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
@@ -466,7 +465,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
@@ -490,7 +489,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/profile").eagerVariants shouldBe listOf("small")
@@ -510,7 +509,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/users/profile").eagerVariants shouldBe listOf("large")
@@ -534,7 +533,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/users/123/profile").eagerVariants shouldBe listOf("large")
@@ -554,7 +553,7 @@ class TriePathConfigurationRepositoryTest {
 
         val repository =
             TriePathConfigurationRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         repository.fetch("/profile/123").eagerVariants shouldBe listOf("large")

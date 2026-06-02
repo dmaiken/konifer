@@ -1,17 +1,20 @@
 package io.konifer.infrastructure.path
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
+import com.typesafe.config.ConfigFactory
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.PATH
-import io.konifer.infrastructure.tryGetConfigList
-import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.util.logging.debug
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.hocon.Hocon
+import kotlinx.serialization.hocon.decodeFromConfig
 
 class TriePathConfigurationRepository(
-    applicationConfig: ApplicationConfig,
+    rawConfig: Config,
 ) : PathConfigurationRepository {
     companion object {
         private const val WILDCARD_SEGMENT = "*"
@@ -19,11 +22,11 @@ class TriePathConfigurationRepository(
         private const val DEFAULT_PATH = "/$GREEDY_WILDCARD_SEGMENT"
     }
 
-    private val root = initializeTrieWithDefault(applicationConfig)
+    private val root = initializeTrieWithDefault()
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     init {
-        constructPathConfigurationTrie(applicationConfig)
+        constructPathConfigurationTrie(rawConfig)
     }
 
     override fun fetch(path: String): PathConfiguration {
@@ -34,38 +37,61 @@ class TriePathConfigurationRepository(
                 .split('/')
                 .filter { it.isNotBlank() }
 
-        return matchRecursive(root, segments).node.config
+        return matchRecursive(root, segments).node.parsedConfig
     }
 
-    private fun initializeTrieWithDefault(applicationConfig: ApplicationConfig): PathTrieNode {
-        val defaultConfig =
-            applicationConfig
-                .tryGetConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
-                .firstOrNull { it.tryGetString(PATH) == DEFAULT_PATH }
-        return PathTrieNode(
-            segment = GREEDY_WILDCARD_SEGMENT,
-            config = PathConfiguration.create(defaultConfig),
+    private fun initializeTrieWithDefault(): PathTrieNode =
+        PathTrieNode(
+            segment = "", // The root conceptually represents the base '/'
+            rawConfig = ConfigFactory.empty(),
+            parsedConfig = PathConfiguration.default,
         )
-    }
 
-    private fun constructPathConfigurationTrie(applicationConfig: ApplicationConfig) {
-        applicationConfig
-            .tryGetConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
-            .filter { it.tryGetString(PATH) != DEFAULT_PATH } // skip the default that we already populated
-            .forEach { pathConfig ->
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun constructPathConfigurationTrie(config: Config) {
+        val pathConfigs =
+            if (config.hasPath(ConfigurationPropertyKeys.PATH_CONFIGURATION)) {
+                config.getConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
+            } else {
+                emptyList()
+            }
+
+        val rootHoconConfig =
+            pathConfigs.firstOrNull {
+                it.tryGetString(PATH)?.trim() == DEFAULT_PATH
+            }
+
+        if (rootHoconConfig != null) {
+            val cleanRootConfig = rootHoconConfig.withoutPath(PATH)
+            root.rawConfig = cleanRootConfig
+            root.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(cleanRootConfig)
+            root.hasExplicitConfiguration = true
+            logger.info("Applied base configuration to root node from $DEFAULT_PATH")
+        }
+
+        pathConfigs.forEach { pathConfig ->
+            val pathString =
+                try {
+                    pathConfig.getString(PATH).trim()
+                } catch (_: ConfigException.Missing) {
+                    throw IllegalArgumentException("Path configuration must be supplied")
+                }
+
+            if (pathString != DEFAULT_PATH) {
+                logger.info("Parsing config for specific path: $pathString")
                 insertPath(
-                    path =
-                        pathConfig.tryGetString(PATH)?.trim()
-                            ?: throw IllegalArgumentException("Path configuration must be supplied"),
-                    applicationConfig = pathConfig,
+                    path = pathString,
+                    nodeConfig = pathConfig,
                 )
             }
-        logger.debug { "Populated config trie: $root" }
+        }
+        logger.info("Populated config trie: $root")
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun insertPath(
         path: String,
-        applicationConfig: ApplicationConfig,
+        nodeConfig: Config,
     ) {
         val segments =
             path
@@ -73,11 +99,20 @@ class TriePathConfigurationRepository(
                 .lowercase()
                 .split("/")
                 .filter { it.isNotBlank() }
+
         var current = root
+
         segments.forEach { segment ->
-            current = current.getOrCreateChild(segment, current.config)
+            current = current.getOrCreateChild(segment, current.rawConfig, current.parsedConfig)
         }
-        current.config = PathConfiguration.create(applicationConfig, current.config)
+
+        val mergedRawConfig = nodeConfig.withFallback(current.rawConfig)
+
+        // Remove the "path" key so the Serializer doesn't complain about an unknown key
+        val cleanConfigForParsing = mergedRawConfig.withoutPath(PATH)
+
+        current.rawConfig = mergedRawConfig
+        current.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(cleanConfigForParsing)
         current.hasExplicitConfiguration = true
     }
 

@@ -4,18 +4,25 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
-import io.konifer.infrastructure.tryGetConfig
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetStringList
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PathConfiguration(
-    val allowedContentTypes: List<String>?,
-    val preProcessing: PreProcessingProperties,
-    val image: ImageProperties,
-    val eagerVariants: List<String>,
-    val objectStore: ObjectStoreProperties,
-    val returnFormat: ReturnFormatProperties,
-    val cacheControl: CacheControlProperties,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.ALLOWED_CONTENT_TYPES)
+    val allowedContentTypes: List<String>? = null,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.PREPROCESSING)
+    val preProcessing: PreProcessingProperties = PreProcessingProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.IMAGE)
+    val image: ImageProperties = ImageProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.EAGER_VARIANTS)
+    val eagerVariants: List<String> = emptyList(),
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE)
+    val objectStore: ObjectStoreProperties = ObjectStoreProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.RETURN_FORMAT)
+    val returnFormat: ReturnFormatProperties = ReturnFormatProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL)
+    val cacheControl: CacheControlProperties = CacheControlProperties.default,
 ) {
     init {
         validate()
@@ -32,48 +39,6 @@ data class PathConfiguration(
                 returnFormat = ReturnFormatProperties.default,
                 cacheControl = CacheControlProperties.default,
             )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: PathConfiguration? = null,
-        ): PathConfiguration {
-            if (applicationConfig == null) {
-                return default
-            }
-            return PathConfiguration(
-                allowedContentTypes =
-                    applicationConfig.tryGetStringList(ConfigurationPropertyKeys.PathPropertyKeys.ALLOWED_CONTENT_TYPES)
-                        ?: parent?.allowedContentTypes,
-                preProcessing =
-                    PreProcessingProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.PREPROCESSING),
-                        parent = parent?.preProcessing,
-                    ),
-                image =
-                    ImageProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.IMAGE),
-                        parent = parent?.image,
-                    ),
-                eagerVariants =
-                    applicationConfig.tryGetStringList(ConfigurationPropertyKeys.PathPropertyKeys.EAGER_VARIANTS)
-                        ?: parent?.eagerVariants ?: emptyList(),
-                objectStore =
-                    ObjectStoreProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE),
-                        parent = parent?.objectStore,
-                    ),
-                returnFormat =
-                    ReturnFormatProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.RETURN_FORMAT),
-                        parent = parent?.returnFormat,
-                    ),
-                cacheControl =
-                    CacheControlProperties.create(
-                        applicationConfig = applicationConfig.tryGetConfig(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL),
-                        parent = parent?.cacheControl,
-                    ),
-            )
-        }
     }
 
     private fun validate() {

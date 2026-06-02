@@ -1,27 +1,42 @@
 package io.konifer.common.image
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+private object FitParameterValues {
+    const val FIT = "fit"
+    const val FILL = "fill"
+    const val STRETCH = "stretch"
+    const val CROP = "crop"
+}
+
+@Serializable
 enum class Fit(
     override val queryParameterValue: String,
 ) : Manipulation {
     /**
-     * fit within box, preserve aspect ratio, may leave empty padding. Identical to CSS contain.
+     * Fit within a box, preserve the aspect ratio, may leave empty padding. Identical to CSS contain.
      */
-    FIT("fit"),
+    @SerialName(FitParameterValues.FIT)
+    FIT(FitParameterValues.FIT),
 
     /**
-     * fill box, crop overflow. Identical to CSS cover.
+     * Fill box, crop overflow. Identical to CSS cover.
      */
-    FILL("fill"),
+    @SerialName(FitParameterValues.FILL)
+    FILL(FitParameterValues.FILL),
 
     /**
-     * stretch to fit exactly, ignores aspect ratio.
+     * Stretch to fit exactly, ignores the aspect ratio.
      */
-    STRETCH("stretch"),
+    @SerialName(FitParameterValues.STRETCH)
+    STRETCH(FitParameterValues.STRETCH),
 
     /**
-     * using gravity value, crop image to height and width specified
+     * Using gravity value, crop the image to the height and width specified
      */
-    CROP("crop"),
+    @SerialName(FitParameterValues.CROP)
+    CROP(FitParameterValues.CROP),
     ;
 
     companion object Factory {

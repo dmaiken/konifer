@@ -11,25 +11,8 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SUBSAMPLE_MODE
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
-import java.nio.file.Path
-import kotlin.io.path.pathString
 
 object VipsEncoder {
-    fun writeToFile(
-        source: VImage,
-        file: Path,
-        format: ImageFormat,
-        quality: Int?,
-    ) {
-        val options =
-            constructEncoderOptions(
-                format = format,
-                quality = quality,
-            )
-        file.toFile().createNewFile()
-        source.writeToFile(file.pathString, *options)
-    }
-
     fun writeToStream(
         source: VImage,
         format: ImageFormat,

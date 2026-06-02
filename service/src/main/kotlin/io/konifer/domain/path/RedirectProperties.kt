@@ -1,16 +1,19 @@
 package io.konifer.domain.path
 
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys
-import io.konifer.infrastructure.tryGetConfig
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
+@Serializable
 data class RedirectProperties(
+    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.STRATEGY)
     val strategy: RedirectStrategy = RedirectStrategy.default,
+    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.PRESIGNED)
     val preSigned: PreSignedProperties = PreSignedProperties.default,
+    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.TEMPLATE)
     val template: TemplateProperties = TemplateProperties.default,
 ) {
     init {
@@ -31,62 +34,23 @@ data class RedirectProperties(
                 preSigned = PreSignedProperties.default,
                 template = TemplateProperties.default,
             )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: RedirectProperties?,
-        ): RedirectProperties =
-            RedirectProperties(
-                strategy =
-                    applicationConfig
-                        ?.tryGetString(ObjectStorePropertyKeys.RedirectPropertyKeys.STRATEGY)
-                        ?.let { RedirectStrategy.fromConfig(it) }
-                        ?: parent?.strategy
-                        ?: RedirectStrategy.default,
-                preSigned =
-                    PreSignedProperties.create(
-                        applicationConfig =
-                            applicationConfig?.tryGetConfig(
-                                ObjectStorePropertyKeys.RedirectPropertyKeys.PRESIGNED,
-                            ),
-                        parent = parent?.preSigned,
-                    ),
-                template =
-                    TemplateProperties.create(
-                        applicationConfig =
-                            applicationConfig?.tryGetConfig(
-                                ObjectStorePropertyKeys.RedirectPropertyKeys.TEMPLATE,
-                            ),
-                        parent = parent?.template,
-                    ),
-            )
     }
 }
 
+@Serializable
 data class PreSignedProperties(
+    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.PreSignedPropertyKeys.TTL)
     val ttl: Duration = DEFAULT_TTL,
 ) {
     companion object Factory {
         val DEFAULT_TTL = 30.minutes
         val default = PreSignedProperties()
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: PreSignedProperties?,
-        ): PreSignedProperties =
-            PreSignedProperties(
-                ttl =
-                    applicationConfig
-                        ?.tryGetString(
-                            ObjectStorePropertyKeys.RedirectPropertyKeys.PreSignedPropertyKeys.TTL,
-                        )?.let { Duration.parse(it) }
-                        ?: parent?.ttl
-                        ?: DEFAULT_TTL,
-            )
     }
 }
 
+@Serializable
 data class TemplateProperties(
+    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.TemplatePropertyKeys.STRING)
     val string: String,
 ) {
     init {
@@ -108,17 +72,6 @@ data class TemplateProperties(
         val default =
             TemplateProperties(
                 string = DEFAULT_STRING,
-            )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: TemplateProperties?,
-        ): TemplateProperties =
-            TemplateProperties(
-                string =
-                    applicationConfig?.tryGetString(ObjectStorePropertyKeys.RedirectPropertyKeys.TemplatePropertyKeys.STRING)
-                        ?: parent?.string
-                        ?: DEFAULT_STRING,
             )
     }
 

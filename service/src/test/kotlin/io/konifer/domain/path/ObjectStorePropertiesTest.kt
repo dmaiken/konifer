@@ -1,9 +1,7 @@
 package io.konifer.domain.path
 
-import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.ktor.server.config.HoconApplicationConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -17,66 +15,6 @@ class ObjectStorePropertiesTest {
             )
 
         properties.bucket shouldBe "test-bucket"
-    }
-
-    @Test
-    fun `can create S3Properties with defaults`() {
-        val properties = ObjectStoreProperties()
-
-        properties.bucket shouldBe "assets"
-    }
-
-    @Test
-    fun `can create S3Properties with parent`() {
-        val parent =
-            ObjectStoreProperties(
-                bucket = "test-bucket",
-            )
-        val properties =
-            ObjectStoreProperties.create(
-                applicationConfig = null,
-                parent = parent,
-            )
-
-        properties.bucket shouldBe parent.bucket
-    }
-
-    @Test
-    fun `can create S3Properties with application config`() {
-        val config =
-            ConfigFactory.parseString(
-                """
-                bucket = my-bucket
-                """.trimIndent(),
-            )
-        val properties =
-            ObjectStoreProperties.create(
-                applicationConfig = HoconApplicationConfig(config),
-                parent = null,
-            )
-
-        properties.bucket shouldBe "my-bucket"
-    }
-
-    @Test
-    fun `can create S3Properties with application config and parent`() {
-        val parent =
-            ObjectStoreProperties(
-                bucket = "test-bucket",
-            )
-        val config =
-            ConfigFactory.parseString(
-                """
-                bucket = my-bucket
-                """.trimIndent(),
-            )
-        val properties =
-            ObjectStoreProperties.create(
-                applicationConfig = HoconApplicationConfig(config),
-                parent = parent,
-            )
-
-        properties.bucket shouldBe "my-bucket"
     }
 
     /**

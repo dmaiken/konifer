@@ -4,11 +4,6 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.vipsProperties
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.copyTo
-import io.ktor.utils.io.jvm.nio.toByteReadChannel
-import kotlinx.coroutines.runBlocking
-import java.nio.channels.FileChannel
 
 val NO_OPTIONS = emptyArray<VipsOption>()
 
@@ -34,14 +29,3 @@ fun createDecoderOptions(
     }
     return NO_OPTIONS
 }
-
-/**
- * This blocks!!
- */
-fun copyFileToByteChannel(
-    fileChannel: FileChannel,
-    byteChannel: ByteChannel,
-): Unit =
-    runBlocking {
-        fileChannel.toByteReadChannel().copyTo(byteChannel)
-    }

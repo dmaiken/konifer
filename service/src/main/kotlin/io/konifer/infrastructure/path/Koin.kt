@@ -1,13 +1,12 @@
 package io.konifer.infrastructure.path
 
 import io.konifer.domain.ports.PathConfigurationRepository
-import io.ktor.server.application.Application
 import org.koin.core.module.Module
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 
-fun Application.pathModule(): Module =
+fun pathModule(): Module =
     module {
-        single<PathConfigurationRepository> {
-            TriePathConfigurationRepository(environment.config)
-        }
+        single<TriePathConfigurationRepository>() bind PathConfigurationRepository::class
     }

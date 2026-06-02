@@ -1,28 +1,18 @@
 package io.konifer.domain.image
 
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.LQIP
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetStringList
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ImageProperties(
-    val previews: Set<LQIPImplementation>,
+    @SerialName(LQIP)
+    val previews: Set<LQIPImplementation> = emptySet(),
 ) {
     companion object Factory {
         val default =
             ImageProperties(
                 previews = setOf(),
-            )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: ImageProperties?,
-        ): ImageProperties =
-            ImageProperties(
-                previews =
-                    applicationConfig
-                        ?.tryGetStringList(LQIP)
-                        ?.map { LQIPImplementation.valueOf(it.uppercase()) }
-                        ?.toSet() ?: parent?.previews ?: setOf(),
             )
     }
 }

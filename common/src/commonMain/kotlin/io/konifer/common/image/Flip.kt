@@ -1,19 +1,32 @@
 package io.konifer.common.image
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+private object FlipParameterValues {
+    const val NONE = ""
+    const val HORIZONTAL = "h"
+    const val VERTICAL = "v"
+}
+
+@Serializable
 enum class Flip(
     override val queryParameterValue: String,
 ) : Manipulation {
     /**
      * Horizontal
      */
-    H("h"),
+    @SerialName(FlipParameterValues.HORIZONTAL)
+    H(FlipParameterValues.HORIZONTAL),
 
     /**
      * Vertical
      */
-    V("v"),
+    @SerialName(FlipParameterValues.VERTICAL)
+    V(FlipParameterValues.VERTICAL),
 
-    NONE(""),
+    @SerialName(FlipParameterValues.NONE)
+    NONE(FlipParameterValues.NONE),
 
     ;
 

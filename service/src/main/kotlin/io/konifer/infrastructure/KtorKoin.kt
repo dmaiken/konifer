@@ -1,5 +1,6 @@
 package io.konifer.infrastructure
 
+import com.typesafe.config.Config
 import io.konifer.application.listener.AssetEventListener
 import io.konifer.application.service.VariantProcessorPipeline
 import io.konifer.application.usecase.delete.DeleteAssetUseCase
@@ -19,6 +20,7 @@ import io.konifer.infrastructure.http.httpClientModule
 import io.konifer.infrastructure.http.httpModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
+import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.path.pathModule
 import io.konifer.infrastructure.tika.mimeTypeDetectorModule
 import io.konifer.infrastructure.variant.variantModule
@@ -45,6 +47,7 @@ fun Application.configureKoin(
     install(Koin) {
         slf4jLogger()
         modules(
+            configModule(),
             httpClientModule(),
             httpModule(),
             domainModule(),
@@ -60,6 +63,13 @@ fun Application.configureKoin(
         )
     }
 }
+
+fun Application.configModule(): Module =
+    module {
+        single<Config> {
+            environment.config.extractRawHocon() ?: throw IllegalStateException("Config could not be loaded")
+        }
+    }
 
 fun domainModule(): Module =
     module {

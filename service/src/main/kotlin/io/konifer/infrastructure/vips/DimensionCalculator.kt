@@ -2,7 +2,6 @@ package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.Fit
-import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
 object DimensionCalculator {
@@ -15,20 +14,6 @@ object DimensionCalculator {
         calculateDimensions(
             sourceWidth = image.width,
             sourceHeight = image.pageSafeHeight(),
-            width = width,
-            height = height,
-            fit = fit,
-        )
-
-    fun calculateDimensions(
-        bufferedImage: BufferedImage,
-        width: Int?,
-        height: Int?,
-        fit: Fit,
-    ): Pair<Int, Int> =
-        calculateDimensions(
-            sourceWidth = bufferedImage.width,
-            sourceHeight = bufferedImage.height,
             width = width,
             height = height,
             fit = fit,

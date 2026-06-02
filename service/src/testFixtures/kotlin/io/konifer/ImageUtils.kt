@@ -212,7 +212,7 @@ fun createImagePreProcessingProperties(
     strip: Set<String> = emptySet(),
     colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ): ImagePreProcessingProperties =
-    ImagePreProcessingProperties.create(
+    ImagePreProcessingProperties(
         maxWidth = maxWidth,
         maxHeight = maxHeight,
         width = width,

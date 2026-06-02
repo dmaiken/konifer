@@ -9,30 +9,44 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.context.RequestedTransformation
-import io.konifer.domain.image.fromFormat
-import io.konifer.domain.image.fromString
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ImagePropertyKeys.PreProcessingPropertyKeys
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
-import io.ktor.server.config.tryGetStringList
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ImagePreProcessingProperties(
-    val maxWidth: Int?,
-    val maxHeight: Int?,
-    val width: Int?,
-    val height: Int?,
-    val format: ImageFormat?,
-    val fit: Fit,
-    val gravity: Gravity,
-    val rotate: Rotate,
-    val flip: Flip,
-    val filter: Filter,
-    val blur: Int?,
-    val quality: Int?,
-    val pad: Int?,
-    val padColor: String?,
-    val strip: Set<String>,
-    val colorSpace: TransformableColorSpace,
+    @SerialName(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH)
+    val maxWidth: Int? = null,
+    @SerialName(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT)
+    val maxHeight: Int? = null,
+    @SerialName(ManipulationParameters.WIDTH)
+    val width: Int? = null,
+    @SerialName(ManipulationParameters.HEIGHT)
+    val height: Int? = null,
+    @SerialName(ManipulationParameters.FORMAT)
+    val format: ImageFormat? = null,
+    @SerialName(ManipulationParameters.FIT)
+    val fit: Fit = Fit.default,
+    @SerialName(ManipulationParameters.GRAVITY)
+    val gravity: Gravity = Gravity.default,
+    @SerialName(ManipulationParameters.ROTATE)
+    val rotate: Rotate = Rotate.default,
+    @SerialName(ManipulationParameters.FLIP)
+    val flip: Flip = Flip.default,
+    @SerialName(ManipulationParameters.FILTER)
+    val filter: Filter = Filter.default,
+    @SerialName(ManipulationParameters.BLUR)
+    val blur: Int? = null,
+    @SerialName(ManipulationParameters.QUALITY)
+    val quality: Int? = null,
+    @SerialName(ManipulationParameters.PAD)
+    val pad: Int? = null,
+    @SerialName(ManipulationParameters.PAD_COLOR)
+    val padColor: String? = null,
+    @SerialName(ManipulationParameters.STRIP)
+    val strip: Set<String> = emptySet(),
+    @SerialName(ManipulationParameters.COLOR_SPACE)
+    val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ) {
     init {
         validate()
@@ -58,126 +72,6 @@ data class ImagePreProcessingProperties(
                 strip = emptySet(),
                 colorSpace = TransformableColorSpace.default,
             )
-
-        fun create(
-            maxWidth: Int?,
-            maxHeight: Int?,
-            width: Int?,
-            height: Int?,
-            format: ImageFormat?,
-            fit: Fit,
-            gravity: Gravity,
-            rotate: Rotate,
-            flip: Flip,
-            filter: Filter,
-            blur: Int?,
-            quality: Int?,
-            pad: Int?,
-            padColor: String?,
-            strip: Set<String>,
-            colorSpace: TransformableColorSpace,
-        ) = ImagePreProcessingProperties(
-            maxWidth = maxWidth,
-            maxHeight = maxHeight,
-            width = width,
-            height = height,
-            format = format,
-            fit = fit,
-            gravity = gravity,
-            rotate = rotate,
-            flip = flip,
-            filter = filter,
-            blur = blur,
-            quality = quality,
-            pad = pad,
-            padColor = padColor,
-            strip = strip,
-            colorSpace = colorSpace,
-        )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: ImagePreProcessingProperties?,
-        ) = create(
-            maxWidth =
-                applicationConfig
-                    ?.tryGetString(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH)
-                    ?.toInt() ?: parent?.maxWidth,
-            maxHeight =
-                applicationConfig
-                    ?.tryGetString(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT)
-                    ?.toInt() ?: parent?.maxHeight,
-            width =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.WIDTH)
-                    ?.toInt() ?: parent?.width,
-            height =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.HEIGHT)
-                    ?.toInt() ?: parent?.height,
-            format =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.FORMAT)
-                    ?.let {
-                        ImageFormat.fromFormat(it)
-                    } ?: parent?.format,
-            fit =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.FIT)
-                    ?.let {
-                        Fit.fromString(it)
-                    } ?: parent?.fit ?: Fit.default,
-            gravity =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.GRAVITY)
-                    ?.let {
-                        Gravity.fromString(it)
-                    } ?: parent?.gravity ?: Gravity.default,
-            rotate =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.ROTATE)
-                    ?.let {
-                        Rotate.fromString(it)
-                    } ?: parent?.rotate ?: Rotate.default,
-            flip =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.FLIP)
-                    ?.let {
-                        Flip.fromString(it)
-                    } ?: parent?.flip ?: Flip.default,
-            filter =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.FILTER)
-                    ?.let {
-                        Filter.fromString(it)
-                    } ?: parent?.filter ?: Filter.default,
-            blur =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.BLUR)
-                    ?.toInt() ?: parent?.blur,
-            quality =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.QUALITY)
-                    ?.toInt() ?: parent?.quality,
-            pad =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.PAD)
-                    ?.toInt() ?: parent?.pad,
-            padColor =
-                applicationConfig?.tryGetString(ManipulationParameters.PAD_COLOR)
-                    ?: parent?.padColor,
-            strip =
-                applicationConfig
-                    ?.tryGetStringList(ManipulationParameters.STRIP)
-                    ?.toSet()
-                    ?: parent?.strip
-                    ?: emptySet(),
-            colorSpace =
-                applicationConfig
-                    ?.tryGetString(ManipulationParameters.COLOR_SPACE)
-                    ?.let { TransformableColorSpace.fromString(it) }
-                    ?: parent?.colorSpace ?: TransformableColorSpace.default,
-        )
     }
 
     val requestedImageTransformation by lazy { toRequestedImageTransformation() }
