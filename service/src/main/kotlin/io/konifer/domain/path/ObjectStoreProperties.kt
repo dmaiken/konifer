@@ -1,10 +1,12 @@
 package io.konifer.domain.path
 
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ObjectStoreProperties(
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.BUCKET)
     val bucket: String = DEFAULT_BUCKET,
 ) {
     init {
@@ -22,17 +24,6 @@ data class ObjectStoreProperties(
             )
         private const val DEFAULT_BUCKET = "assets"
         val default = ObjectStoreProperties()
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: ObjectStoreProperties?,
-        ): ObjectStoreProperties =
-            ObjectStoreProperties(
-                bucket =
-                    applicationConfig?.tryGetString(ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys.BUCKET)
-                        ?: parent?.bucket
-                        ?: DEFAULT_BUCKET,
-            )
     }
 
     private fun validate() {

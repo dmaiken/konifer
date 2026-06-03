@@ -1,5 +1,6 @@
 package io.konifer.domain.path
 
+import io.konifer.common.serializer.LowercaseEnumSerializer
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.ENABLED
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.IMMUTABLE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.MAX_AGE
@@ -8,43 +9,58 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathProperty
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.STALE_IF_ERROR
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.STALE_WHILE_REVALIDATE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.CacheControlPropertyKeys.VISIBILITY
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable(with = CacheControlVisibilitySerializer::class)
 enum class CacheControlVisibility(
     val value: String,
 ) {
     PUBLIC("public"),
     PRIVATE("private"),
-    ;
-
-    companion object Factory {
-        fun fromConfig(value: String?): CacheControlVisibility = entries.first { it.value == value }
-    }
 }
 
+class CacheControlVisibilitySerializer : KSerializer<CacheControlVisibility> by LowercaseEnumSerializer(CacheControlVisibility.entries)
+
+private object CacheControlRevalidationValues {
+    const val MUST_REVALIDATE = "must-revalidate"
+    const val PROXY_REVALIDATE = "proxy-revalidate"
+    const val NO_CACHE = "no-cache"
+}
+
+@Serializable
 enum class CacheControlRevalidate(
     val value: String,
 ) {
-    MUST_REVALIDATE("must-revalidate"),
-    PROXY_REVALIDATE("proxy-revalidate"),
-    NO_CACHE("no-cache"),
-    ;
+    @SerialName(CacheControlRevalidationValues.MUST_REVALIDATE)
+    MUST_REVALIDATE(CacheControlRevalidationValues.MUST_REVALIDATE),
 
-    companion object Factory {
-        fun fromConfig(value: String?): CacheControlRevalidate = CacheControlRevalidate.entries.first { it.value == value }
-    }
+    @SerialName(CacheControlRevalidationValues.PROXY_REVALIDATE)
+    PROXY_REVALIDATE(CacheControlRevalidationValues.PROXY_REVALIDATE),
+
+    @SerialName(CacheControlRevalidationValues.NO_CACHE)
+    NO_CACHE(CacheControlRevalidationValues.NO_CACHE),
 }
 
+@Serializable
 data class CacheControlProperties(
-    val enabled: Boolean,
-    val maxAge: Long?,
-    val sharedMaxAge: Long?,
-    val visibility: CacheControlVisibility?,
-    val revalidate: CacheControlRevalidate?,
-    val staleWhileRevalidate: Long?,
-    val staleIfError: Long?,
-    val immutable: Boolean?,
+    @SerialName(ENABLED)
+    val enabled: Boolean = false,
+    @SerialName(MAX_AGE)
+    val maxAge: Long? = null,
+    @SerialName(SHARED_MAX_AGE)
+    val sharedMaxAge: Long? = null,
+    @SerialName(VISIBILITY)
+    val visibility: CacheControlVisibility? = null,
+    @SerialName(REVALIDATE)
+    val revalidate: CacheControlRevalidate? = null,
+    @SerialName(STALE_WHILE_REVALIDATE)
+    val staleWhileRevalidate: Long? = null,
+    @SerialName(STALE_IF_ERROR)
+    val staleIfError: Long? = null,
+    @SerialName(IMMUTABLE)
+    val immutable: Boolean? = null,
 ) {
     init {
         maxAge?.let {
@@ -72,33 +88,6 @@ data class CacheControlProperties(
                 staleWhileRevalidate = null,
                 staleIfError = null,
                 immutable = null,
-            )
-
-        fun create(
-            applicationConfig: ApplicationConfig?,
-            parent: CacheControlProperties?,
-        ): CacheControlProperties =
-            CacheControlProperties(
-                enabled = applicationConfig?.tryGetString(ENABLED)?.toBoolean() ?: parent?.enabled ?: false,
-                maxAge = applicationConfig?.tryGetString(MAX_AGE)?.toLong() ?: parent?.maxAge,
-                sharedMaxAge = applicationConfig?.tryGetString(SHARED_MAX_AGE)?.toLong() ?: parent?.sharedMaxAge,
-                visibility =
-                    applicationConfig
-                        ?.tryGetString(VISIBILITY)
-                        ?.let { CacheControlVisibility.fromConfig(it) }
-                        ?: parent?.visibility,
-                revalidate =
-                    applicationConfig
-                        ?.tryGetString(REVALIDATE)
-                        ?.let { CacheControlRevalidate.fromConfig(it) }
-                        ?: parent?.revalidate,
-                staleWhileRevalidate =
-                    applicationConfig
-                        ?.tryGetString(
-                            STALE_WHILE_REVALIDATE,
-                        )?.toLong() ?: parent?.staleWhileRevalidate,
-                staleIfError = applicationConfig?.tryGetString(STALE_IF_ERROR)?.toLong() ?: parent?.staleIfError,
-                immutable = applicationConfig?.tryGetString(IMMUTABLE)?.toBoolean() ?: parent?.immutable,
             )
     }
 }

@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
 
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.hocon)
 
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.s3.transfermanager)

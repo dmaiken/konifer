@@ -8,27 +8,18 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
-import io.konifer.common.serializer.AssetClassSerializer
-import io.konifer.common.serializer.AssetSourceSerializer
-import io.konifer.common.serializer.FilterSerializer
-import io.konifer.common.serializer.FitSerializer
-import io.konifer.common.serializer.FlipSerializer
-import io.konifer.common.serializer.GravitySerializer
+import io.konifer.common.image.SortedMetadataTypeSerializer
 import io.konifer.common.serializer.LocalDateTimeSerializer
-import io.konifer.common.serializer.MetadataCollectionTypeSerializer
-import io.konifer.common.serializer.RotateSerializer
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class AssetResponse(
-    @Serializable(with = AssetClassSerializer::class)
     val `class`: AssetClass,
     val alt: String?,
     val entryId: Long,
     val labels: Map<String, String>,
     val tags: Set<String>,
-    @Serializable(with = AssetSourceSerializer::class)
     val source: AssetSource,
     val sourceUrl: String?,
     val variants: List<VariantResponse>,
@@ -68,16 +59,11 @@ data class AttributeResponse(
 data class TransformationResponse(
     val width: Int,
     val height: Int,
-    @Serializable(with = FitSerializer::class)
     val fit: Fit,
-    @Serializable(with = GravitySerializer::class)
     val gravity: Gravity,
     val format: String,
-    @Serializable(with = RotateSerializer::class)
     val rotate: Rotate,
-    @Serializable(with = FlipSerializer::class)
     val flip: Flip,
-    @Serializable(with = FilterSerializer::class)
     val filter: Filter,
     val blur: Int,
     val quality: Int,
@@ -111,6 +97,6 @@ data class PaddingResponse(
 
 @Serializable
 data class MetadataResponse(
-    @Serializable(with = MetadataCollectionTypeSerializer::class)
+    @Serializable(with = SortedMetadataTypeSerializer::class)
     val strip: List<MetadataType>,
 )
