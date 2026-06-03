@@ -34,19 +34,18 @@ class FetchAssetRedirectTest : BaseFunctionalTest() {
     fun `can fetch asset and render when redirect mode is template`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 return-format {
                   redirect {
                     strategy = template
                     template {
                       string = "https://{bucket}.domain.com/{key}"
                     }
-                  }                
+                  }
                 }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             configureClient { followRedirects = false }
@@ -71,16 +70,15 @@ class FetchAssetRedirectTest : BaseFunctionalTest() {
     fun `returns content without redirect when redirect strategy is none`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 return-format {
                   redirect {
                     strategy = none
                   }
                 }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             configureClient { followRedirects = false }

@@ -34,15 +34,14 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
         testInMemory(
             configuration =
                 """
-                paths = [
-                  {
-                    path = "/**"
+                paths {
+                  "/**" {
                     preprocessing {
                       enabled = true
                       w = 100
                     }
                   }
-                ]
+                }
                 """.trimIndent(),
             modules =
                 listOf(

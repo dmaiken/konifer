@@ -1,13 +1,11 @@
 package io.konifer.infrastructure.path
 
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigObject
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.PATH
-import io.ktor.server.config.tryGetString
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
@@ -49,39 +47,41 @@ class TriePathConfigurationRepository(
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun constructPathConfigurationTrie(config: Config) {
-        val pathConfigs =
-            if (config.hasPath(ConfigurationPropertyKeys.PATH_CONFIGURATION)) {
-                config.getConfigList(ConfigurationPropertyKeys.PATH_CONFIGURATION)
-            } else {
-                emptyList()
-            }
+        if (!config.hasPath(ConfigurationPropertyKeys.PATH_CONFIGURATION)) {
+            logger.info("No explicit paths configuration found, using defaults.")
+            return
+        }
 
-        val rootHoconConfig =
-            pathConfigs.firstOrNull {
-                it.tryGetString(PATH)?.trim() == DEFAULT_PATH
-            }
+        val pathsConfig = config.getConfig(ConfigurationPropertyKeys.PATH_CONFIGURATION)
+        val pathsMap = pathsConfig.root()
 
-        if (rootHoconConfig != null) {
-            val cleanRootConfig = rootHoconConfig.withoutPath(PATH)
-            root.rawConfig = cleanRootConfig
-            root.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(cleanRootConfig)
+        // Handle the root/default path first so everything else can inherit from it
+        val rootValue = pathsMap[DEFAULT_PATH]
+        if (rootValue != null) {
+            val rootNodeConfig =
+                (rootValue as? ConfigObject)?.toConfig()
+                    ?: throw IllegalArgumentException("Configuration for $DEFAULT_PATH must be an object")
+
+            root.rawConfig = rootNodeConfig
+            root.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(rootNodeConfig)
             root.hasExplicitConfiguration = true
             logger.info("Applied base configuration to root node from $DEFAULT_PATH")
         }
 
-        pathConfigs.forEach { pathConfig ->
-            val pathString =
-                try {
-                    pathConfig.getString(PATH).trim()
-                } catch (_: ConfigException.Missing) {
-                    throw IllegalArgumentException("Path configuration must be supplied")
-                }
+        // Iterate over the remaining map entries
+        pathsMap.forEach { (pathKey, configValue) ->
+            if (pathKey.isBlank()) {
+                throw IllegalArgumentException("Path key cannot be blank")
+            }
+            if (pathKey != DEFAULT_PATH) {
+                val nodeConfig =
+                    (configValue as? ConfigObject)?.toConfig()
+                        ?: throw IllegalArgumentException("Configuration for path '$pathKey' must be an object")
 
-            if (pathString != DEFAULT_PATH) {
-                logger.info("Parsing config for specific path: $pathString")
+                logger.info("Parsing config for specific path: $pathKey")
                 insertPath(
-                    path = pathString,
-                    nodeConfig = pathConfig,
+                    path = pathKey,
+                    nodeConfig = nodeConfig,
                 )
             }
         }
@@ -106,13 +106,11 @@ class TriePathConfigurationRepository(
             current = current.getOrCreateChild(segment, current.rawConfig, current.parsedConfig)
         }
 
+        // Merge the explicit configuration with the inherited configuration
         val mergedRawConfig = nodeConfig.withFallback(current.rawConfig)
 
-        // Remove the "path" key so the Serializer doesn't complain about an unknown key
-        val cleanConfigForParsing = mergedRawConfig.withoutPath(PATH)
-
         current.rawConfig = mergedRawConfig
-        current.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(cleanConfigForParsing)
+        current.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(mergedRawConfig)
         current.hasExplicitConfiguration = true
     }
 

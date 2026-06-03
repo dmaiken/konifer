@@ -24,20 +24,18 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
     fun `requested asset variants are persisted in configured bucket`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    object-store {
-                      bucket = default-bucket
-                    }
+            paths {
+              "/**" {
+                object-store {
+                  bucket = default-bucket
                 }
-                {
-                    path = "/users/**"
-                    object-store {
-                      bucket = correct-bucket
-                    }
+              }
+              "/users/**" {
+                object-store {
+                  bucket = correct-bucket
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()

@@ -51,14 +51,13 @@ class StoreAssetTest : BaseFunctionalTest() {
     fun `cannot store asset that is a disallowed content type`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/users/*/profile"
+            paths {
+              "/users/*/profile" {
                 allowed-content-types = [
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -79,12 +78,11 @@ class StoreAssetTest : BaseFunctionalTest() {
     fun `cannot store asset if no content type is allowed`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/users/*/profile"
+            paths {
+              "/users/*/profile" {
                 allowed-content-types = [ ]
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -105,11 +103,10 @@ class StoreAssetTest : BaseFunctionalTest() {
     fun `can store asset if allowed-content-types is not defined for path`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/users/*/profile"
+            paths {
+              "/users/*/profile" {
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -148,20 +145,18 @@ class StoreAssetTest : BaseFunctionalTest() {
     fun `object is stored in configured bucket`() =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 object-store {
                   bucket = default-bucket
                 }
               }
-              {
-                path = "/users/*/profile"
+              "/users/*/profile" {
                 object-store {
                   bucket = correct-bucket
                 }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -189,9 +184,8 @@ class StoreAssetTest : BaseFunctionalTest() {
     fun `can preprocess image to any every supported type`(format: ImageFormat) =
         testInMemory(
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 preprocessing {
                   enabled = true
                   image {
@@ -199,7 +193,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                   }
                 }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

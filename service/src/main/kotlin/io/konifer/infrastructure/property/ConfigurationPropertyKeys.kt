@@ -74,7 +74,6 @@ object ConfigurationPropertyKeys {
 
     object PathPropertyKeys {
         const val IMAGE = "image"
-        const val PATH = "path"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val EAGER_VARIANTS = "eager-variants"
         const val OBJECT_STORE = "object-store"

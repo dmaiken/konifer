@@ -24,14 +24,13 @@ class FetchAssetDownloadTest : BaseFunctionalTest() {
     fun `can fetch asset and render with return format of download`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -62,14 +61,13 @@ class FetchAssetDownloadTest : BaseFunctionalTest() {
     fun `path is used as filename if alt is not supplied`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
