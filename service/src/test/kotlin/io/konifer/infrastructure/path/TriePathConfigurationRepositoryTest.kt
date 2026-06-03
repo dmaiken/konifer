@@ -12,21 +12,19 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matches exactly`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/123/profile"
+            paths {
+              "/users/123/profile" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
-              },
-              {
-                path = "/users/456/profile"
+              }
+              "/users/456/profile" {
                 allowed-content-types = [
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -40,21 +38,19 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matches exactly but case does not`() {
         val config =
             """
-            paths = [
-              {
-                path = "/Users/123/Profile"
+            paths = {
+              "/Users/123/Profile" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
-              },
-              {
-                path = "/users/456/profile"
+              }
+              "/users/456/profile" {
                 allowed-content-types = [
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -73,15 +69,14 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matcher has single wildcard`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/*/profile"
+            paths {
+              "/users/*/profile" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -95,15 +90,14 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch returns a path configuration when the path matcher has double wildcard`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/**"
+            paths {
+              "/users/**" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -124,15 +118,14 @@ class TriePathConfigurationRepositoryTest {
     fun `fetch does not return a path configuration when the path matcher does not match`(path: String) {
         val config =
             """
-            paths = [
-              {
-                path = "$path"
+            paths {
+              "$path" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -154,15 +147,14 @@ class TriePathConfigurationRepositoryTest {
     fun `greedy wildcard matching works`(path: String) {
         val config =
             """
-            paths = [
-              {
-                path = "$path"
+            paths {
+              "$path" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -177,9 +169,8 @@ class TriePathConfigurationRepositoryTest {
     fun `path configuration is inherited if not supplied`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/*"
+            paths {
+              "/users/*" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
@@ -189,17 +180,16 @@ class TriePathConfigurationRepositoryTest {
                     max-height = 10
                   }
                 }
-              },
-              {
-                path = "/users/*/profile"
+              }
+              "/users/*/profile" {
                 allowed-content-types = [ ]
                 preprocessing = {
                   image {
                     max-width = 10
                   }
                 }
-              },
-            ]
+              }
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -215,19 +205,17 @@ class TriePathConfigurationRepositoryTest {
     fun `default path is used when none suffice`() {
         val config =
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
-              },
-              {
-                path = "/users/**"
+              }
+              "/users/**" {
                 allowed-content-types = [ ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -241,9 +229,8 @@ class TriePathConfigurationRepositoryTest {
     fun `default path configuration is inherited`() {
         val config =
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
@@ -253,17 +240,16 @@ class TriePathConfigurationRepositoryTest {
                     max-height = 10
                   }
                 }
-              },
-              {
-                path = "/users/*/profile"
+              }
+              "/users/*/profile" {
                 allowed-content-types = [ ]
                 preprocessing = {
                   image {
                     max-width = 10
                   }
                 }
-              },
-            ]
+              }
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -279,15 +265,14 @@ class TriePathConfigurationRepositoryTest {
     fun `path is stripped of blank and empty path segments`() {
         val config =
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -301,32 +286,31 @@ class TriePathConfigurationRepositoryTest {
     fun `path must be supplied`() {
         val config =
             """
-            paths = [
-              {
+            paths {
+              "" {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
                 ]
               }
-            ]
+            }
             """.trimIndent()
         shouldThrow<IllegalArgumentException> {
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
             )
-        }.message shouldBe "Path configuration must be supplied"
+        }.message shouldBe "Path key cannot be blank"
     }
 
     @Test
     fun `eager variants are parsed`() {
         val config =
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 eager-variants = [small, large]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -340,16 +324,14 @@ class TriePathConfigurationRepositoryTest {
     fun `eager variants override parent paths`() {
         val config =
             """
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 eager-variants = [small, large]
-              },
-              {
-                path = "/profile/*"
+              }
+              "/profile/*" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -364,12 +346,11 @@ class TriePathConfigurationRepositoryTest {
     fun `configuration under wildcard is applied at the root of the path`(path: String) {
         val config =
             """
-            paths = [
-              {
-                path = "$path*"
+            paths {
+              "$path*" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -384,12 +365,11 @@ class TriePathConfigurationRepositoryTest {
     fun `configuration under greedy wildcard is applied at the root of the path`(path: String) {
         val config =
             """
-            paths = [
-              {
-                path = "$path**"
+            paths {
+              "$path**" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -404,16 +384,14 @@ class TriePathConfigurationRepositoryTest {
     fun `wildcard wins over greedy wildcard specified on same path`(path: String) {
         val config =
             """
-            paths = [
-              {
-                path = "/profile/*"
+            paths {
+              "/profile/*" {
                 eager-variants = [medium]
               }
-              {
-                path = "/profile/**"
+              "/profile/**" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
@@ -427,16 +405,14 @@ class TriePathConfigurationRepositoryTest {
     fun `exact path wins over wildcard on same path`() {
         val config =
             """
-            paths = [
-              {
-                path = "/profile/123"
+            paths {
+              "/profile/123" {
                 eager-variants = [small]
-              },
-              {
-                path = "/profile/*"
+              }
+              "/profile/*" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =
@@ -451,16 +427,14 @@ class TriePathConfigurationRepositoryTest {
     fun `exact path wins over greedy wildcard on same path`() {
         val config =
             """
-            paths = [
-              {
-                path = "/profile/123"
+            paths {
+              "/profile/123" {
                 eager-variants = [small]
-              },
-              {
-                path = "/profile/**"
+              }
+              "/profile/**" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =
@@ -475,16 +449,14 @@ class TriePathConfigurationRepositoryTest {
     fun `explicit parent path wins over wildcard child when fetching parent path`() {
         val config =
             """
-            paths = [
-              {
-                path = "/profile"
+            paths {
+              "/profile" {
                 eager-variants = [small]
-              },
-              {
-                path = "/profile/*"
+              }
+              "/profile/*" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =
@@ -499,12 +471,11 @@ class TriePathConfigurationRepositoryTest {
     fun `greedy wildcard can consume zero segments before matching following segment`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/**/profile"
+            paths {
+              "/users/**/profile" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =
@@ -519,16 +490,14 @@ class TriePathConfigurationRepositoryTest {
     fun `deeper greedy wildcard match wins over shallower greedy wildcard match`() {
         val config =
             """
-            paths = [
-              {
-                path = "/users/**"
+            paths {
+              "/users/**" {
                 eager-variants = [small]
-              },
-              {
-                path = "/users/**/profile"
+              }
+              "/users/**/profile" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =
@@ -543,12 +512,11 @@ class TriePathConfigurationRepositoryTest {
     fun `configured path is stripped of blank and empty path segments`() {
         val config =
             """
-            paths = [
-              {
-                path = "//profile//*/"
+            paths {
+              "//profile//*/" {
                 eager-variants = [large]
               }
-            ]
+            }
             """.trimIndent()
 
         val repository =

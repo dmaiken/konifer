@@ -41,12 +41,11 @@ class EagerVariantTest : BaseFunctionalTest() {
                     h = 15
                 }
             ]
-            paths = [
-                {
-                    path = "/users/**"
-                    eager-variants = [small, medium]
-                }
-            ]
+            paths {
+              "/users/**" {
+                eager-variants = [small, medium]
+              }
+            }
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
@@ -104,21 +103,19 @@ class EagerVariantTest : BaseFunctionalTest() {
                     h = 15
                 }
             ]
-            paths = [
-                {
-                    path = "/**"
-                    object-store {
-                      bucket = default-bucket
-                    }
+            paths {
+              "/**" {
+                object-store {
+                  bucket = default-bucket
                 }
-                {
-                    path = "/users/**"
-                    eager-variants = [small, medium]
-                    object-store {
-                      bucket = correct-bucket
-                    }
+              }
+              "/users/**" {
+                eager-variants = [small, medium]
+                object-store {
+                  bucket = correct-bucket
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
@@ -158,18 +155,17 @@ class EagerVariantTest : BaseFunctionalTest() {
                 w = 50
               }
             ]
-            paths = [
-              {
-                path = "/users/**"
+            paths {
+              "/users/**" {
                 eager-variants = [small]
                 preprocessing {
                   enabled = true
                   image {
                     r = 180
                   }
-                }      
+                }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()

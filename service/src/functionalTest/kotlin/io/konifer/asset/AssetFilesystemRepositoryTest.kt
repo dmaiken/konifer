@@ -50,9 +50,8 @@ class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
             http {
               public-url = "https://localhost:9000"
             }
-            paths = [
-              {
-                path = "/**"
+            paths {
+              "/**" {
                 image {
                   lqip = [ "thumbhash", "blurhash" ]
                 }
@@ -60,7 +59,7 @@ class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
                   bucket = correct-bucket
                 }
               }
-            ]
+            }
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()

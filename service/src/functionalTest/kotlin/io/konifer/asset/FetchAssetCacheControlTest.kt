@@ -14,42 +14,38 @@ class FetchAssetCacheControlTest : BaseFunctionalTest() {
     fun `can fetch assets with cache-control header configured`() =
         testInMemory(
             """
-                paths = [
-                {
-                    path = "/**"
-                    cache-control {
-                        enabled = true
-                        max-age = 50000
-                        visibility = private
-                        immutable = false
-                    }
+            paths {
+              "/**" {
+                cache-control {
+                  enabled = true
+                  max-age = 50000
+                  visibility = private
+                  immutable = false
                 }
-                {
-                    path = "/users/456/*"
-                    cache-control {
-                        revalidate = no-cache
-                    }
+              }
+              "/users/456/*" {
+                cache-control {
+                  revalidate = no-cache
                 }
-                {
-                    path = "/users/123/profile"
-                    cache-control {
-                        enabled = true
-                        max-age = 120000
-                        s-maxage = 230000
-                        visibility = public
-                        revalidate = proxy-revalidate
-                        stale-while-revalidate = 10000
-                        stale-if-error = 300
-                        immutable = true
-                    }
+              }
+              "/users/123/profile" {
+                cache-control {
+                  enabled = true
+                  max-age = 120000
+                  s-maxage = 230000
+                  visibility = public
+                  revalidate = proxy-revalidate
+                  stale-while-revalidate = 10000
+                  stale-if-error = 300
+                  immutable = true
                 }
-                {
-                    path = "/users/999/profile"
-                    cache-control {
-                        enabled = false
-                    }
+              }
+              "/users/999/profile" {
+                cache-control {
+                  enabled = false
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

@@ -27,14 +27,13 @@ class FetchAssetContentTest : BaseFunctionalTest() {
     fun `can fetch asset and render`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

@@ -69,14 +69,13 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
     fun `can fetch asset and render with lqip`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -110,14 +109,13 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
     fun `can fetch variant link and render`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -160,14 +158,13 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
     fun `link preserves all query parameters from original request`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

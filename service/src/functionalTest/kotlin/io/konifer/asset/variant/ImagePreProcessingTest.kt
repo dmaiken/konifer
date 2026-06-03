@@ -47,17 +47,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `image width is resized when it is too large`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            max-width = 100
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    max-width = 100
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -91,17 +90,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `image height is resized when it is too large`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            max-height = 50
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    max-height = 50
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -140,17 +138,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         maxHeight: Int?,
     ) = testInMemory(
         """
-        paths = [
-            {
-                path = "/**"
-                preprocessing {
-                    image {
-                        ${maxHeight?.let { "max-height = $it" } ?: ""}
-                        ${maxWidth?.let { "max-width = $it" } ?: ""}
-                    }
-                }
+        paths {
+          "/**" {
+            preprocessing {
+              image {
+                ${maxHeight?.let { "max-height = $it" } ?: ""}
+                ${maxWidth?.let { "max-width = $it" } ?: ""}
+              }
             }
-        ]
+          }
+        }
         """.trimIndent(),
     ) {
         val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -187,17 +184,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         expectedType: String,
     ) = testInMemory(
         """
-        paths = [
-            {
-                path = "/**"
-                preprocessing {
-                    enabled = true
-                    image {
-                        format = $imageFormat
-                    }
-                }
+        paths {
+          "/**" {
+            preprocessing {
+              enabled = true
+              image {
+                format = $imageFormat
+              }
             }
-        ]
+          }
+        }
         """.trimIndent(),
     ) {
         val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -228,27 +224,25 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `image preprocessing is available per route`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            format = jpg
-                            max-height = 55
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    format = jpg
+                    max-height = 55
+                  }
                 }
-                {
-                    path = "/Users/*/Profile"
-                    preprocessing {
-                        image {
-                            format = webp
-                            max-height = 50
-                        }
-                    }
+              }
+              "/Users/*/Profile" {
+                preprocessing {
+                  image {
+                    format = webp
+                    max-height = 50
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -282,18 +276,17 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `image is not preprocessed if preprocessing is disabled`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = false
-                        image {
-                            format = jpg
-                            max-height = 55
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = false
+                  image {
+                    format = jpg
+                    max-height = 55
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -322,27 +315,25 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `image is not preprocessed if preprocessing is disabled in parent path and not defined in current`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = false
-                        image {
-                            format = jpg
-                            max-height = 55
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = false
+                  image {
+                    format = jpg
+                    max-height = 55
+                  }
                 }
-                {
-                    path = "/Users/*/Profile"
-                    preprocessing {
-                        image {
-                            format = webp
-                            max-height = 50
-                        }
-                    }
+              }
+              "/Users/*/Profile" {
+                preprocessing {
+                  image {
+                    format = webp
+                    max-height = 50
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -371,17 +362,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `exif thumbnail data is removed if image is preprocessed`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            max-height = 50
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    max-height = 50
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
@@ -399,17 +389,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `metadata is removed if configured`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            strip = [ exif, xmp, iptc ]
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    strip = [ exif, xmp, iptc ]
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
@@ -430,17 +419,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `color space can be transformed if configured`() =
         testInMemory(
             """
-            paths = [
-            {
-                path = "/**"
+            paths {
+              "/**" {
                 preprocessing {
-                    enabled = true
-                    image {
-                        cs = srgb
-                    }
+                  enabled = true
+                  image {
+                    cs = srgb
+                  }
                 }
+              }
             }
-            ]
             """.trimIndent(),
         ) {
         }
@@ -452,18 +440,17 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
     fun `can preprocess large image`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            max-width = 3000
-                            format = png
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    max-width = 3000
+                    format = png
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/large/joshua-tree.jpeg")!!.readBytes()

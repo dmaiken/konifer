@@ -25,14 +25,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `blurhash is generated and returned when storing an asset`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -45,14 +44,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `thumbhash is generated and returned when storing an asset`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -65,14 +63,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `blurhash and thumbhash are generated and returned when storing an asset`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -85,14 +82,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `no lqip is generated when storing an asset if none specified`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -105,12 +101,11 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `no lqip is generated when storing an asset if not enabled`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image { }
-                }
-            ]
+            paths {
+              "/**" {
+                image { }
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -123,14 +118,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `requesting a variant gives back the same LQIPs if only resizing is done`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/lqip/lqip-test-1.png")!!.readBytes()
@@ -162,14 +156,13 @@ class ImagePreviewTest : BaseFunctionalTest() {
     fun `lqips are not regenerated when requesting variant with blur`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    image {
-                        lqip = [ "thumbhash", "blurhash" ]
-                    }
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()

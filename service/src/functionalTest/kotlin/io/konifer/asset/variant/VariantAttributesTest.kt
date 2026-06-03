@@ -32,19 +32,18 @@ class VariantAttributesTest : BaseFunctionalTest() {
     fun `height and width are populated when image is stored and preprocessed`() =
         testInMemory(
             """
-            paths = [
-                {
-                    path = "/**"
-                    preprocessing {
-                        enabled = true
-                        image {
-                            w = 200
-                            h = 200
-                            fit = stretch
-                        }
-                    }
+            paths {
+              "/**" {
+                preprocessing {
+                  enabled = true
+                  image {
+                    w = 200
+                    h = 200
+                    fit = stretch
+                  }
                 }
-            ]
+              }
+            }
             """.trimIndent(),
         ) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
