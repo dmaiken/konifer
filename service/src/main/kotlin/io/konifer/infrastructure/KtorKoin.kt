@@ -67,7 +67,7 @@ fun Application.configureKoin(
 fun Application.configModule(): Module =
     module {
         single<Config> {
-            environment.config.extractRawHocon() ?: throw IllegalStateException("Config could not be loaded")
+            environment.config.extractRawHocon()
         }
     }
 
