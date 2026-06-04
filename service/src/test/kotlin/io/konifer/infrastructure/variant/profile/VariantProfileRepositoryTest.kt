@@ -11,7 +11,6 @@ import io.konifer.domain.context.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.ktor.server.config.HoconApplicationConfig
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -26,14 +25,13 @@ class VariantProfileRepositoryTest {
             listOf(
                 Arguments.arguments(
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             h = 10
                             w = 15
                             format = png
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -45,14 +43,14 @@ class VariantProfileRepositoryTest {
                     ),
                 ),
                 Arguments.arguments(
+                    // ...arguments =
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             h = 10
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -64,12 +62,11 @@ class VariantProfileRepositoryTest {
                 ),
                 Arguments.arguments(
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             h = 10
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -80,12 +77,11 @@ class VariantProfileRepositoryTest {
                 ),
                 Arguments.arguments(
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -96,16 +92,14 @@ class VariantProfileRepositoryTest {
                 ),
                 Arguments.arguments(
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             w = 15
-                        },
-                        {
-                            name = medium
+                        }
+                        medium {
                             h = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -120,17 +114,15 @@ class VariantProfileRepositoryTest {
                 ),
                 Arguments.arguments(
                     """
-                    variant-profiles = [
-                        {
-                            name = small
+                    variant-profiles {
+                        small {
                             w = 15
                             h = 10
                             fit = stretch
                             r = auto
                             filter = sepia
-                        },
-                        {
-                            name = medium
+                        }
+                        medium {
                             w = 15
                             h = 10
                             fit = fill
@@ -138,7 +130,7 @@ class VariantProfileRepositoryTest {
                             f = v
                             filter = black_white
                         }
-                    ]
+                    }
                     """.trimIndent(),
                     mapOf(
                         "small" to
@@ -168,67 +160,61 @@ class VariantProfileRepositoryTest {
                 Arguments.arguments(
                     "sma%ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma%ll"
+                    variant-profiles {
+                        "sma%ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
                 Arguments.arguments(
                     "sma/ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma/ll"
+                    variant-profiles {
+                        "sma/ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
                 Arguments.arguments(
                     "sma+ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma+ll"
+                    variant-profiles {
+                        "sma+ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
                 Arguments.arguments(
                     "sma=ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma=ll"
+                    variant-profiles {
+                        "sma=ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
                 Arguments.arguments(
                     "sma^ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma^ll"
+                    variant-profiles {
+                        "sma^ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
                 Arguments.arguments(
                     "sma&ll",
                     """
-                    variant-profiles = [
-                        {
-                            name = "sma&ll"
+                    variant-profiles {
+                        "sma&ll" {
                             w = 15
                         }
-                    ]
+                    }
                     """.trimIndent(),
                 ),
             )
@@ -240,12 +226,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad width",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 w = 0
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -253,12 +238,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad height",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 h = 0
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -266,12 +250,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad format",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 format = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -279,12 +262,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad fit",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 fit = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -292,12 +274,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad rotate",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 r = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -305,12 +286,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad flip",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 f = "bad"
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -318,12 +298,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad filter",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 filter = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -331,15 +310,14 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad gravity",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 h = 10
                                 w = 10
                                 fit = crop
                                 g = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -347,12 +325,11 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad pad",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 pad = bad
                             }
-                        ]
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -360,12 +337,35 @@ class VariantProfileRepositoryTest {
                     Named.named(
                         "bad pad-color",
                         """
-                        variant-profiles = [
-                            {
-                                name = small
+                        variant-profiles {
+                            small {
                                 pad-c = bad
                             }
-                        ]
+                        }
+                        """.trimIndent(),
+                    ),
+                ),
+                Arguments.arguments(
+                    Named.named(
+                        "bad strip",
+                        """
+                        variant-profiles {
+                            small {
+                                strip = bad
+                            }
+                        }
+                        """.trimIndent(),
+                    ),
+                ),
+                Arguments.arguments(
+                    Named.named(
+                        "bad cs",
+                        """
+                        variant-profiles {
+                            small {
+                                cs = bad
+                            }
+                        }
                         """.trimIndent(),
                     ),
                 ),
@@ -380,7 +380,7 @@ class VariantProfileRepositoryTest {
     ) {
         val repository =
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
 
         expectedProfiles.forEach { (name, profile) ->
@@ -392,34 +392,33 @@ class VariantProfileRepositoryTest {
     fun `variant profile must have a name`() {
         val config =
             """
-            variant-profiles = [
-                {
+            variant-profiles {
+                bad(name) {
                     w = 15
                 }
-            ]
+            }
             """.trimIndent()
 
         shouldThrow<IllegalArgumentException> {
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
-        }.message shouldBe "All variant profiles must have a name"
+        }.message shouldBe "Profile name: 'bad(name)' is not valid"
     }
 
     @Test
     fun `null is returned when variant profile cannot be found`() {
         val config =
             """
-            variant-profiles = [
-                {
-                    name = small
+            variant-profiles {
+                small {
                     w = 15
                 }
-            ]
+            }
             """.trimIndent()
         val repository =
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         val exception =
             shouldThrow<IllegalArgumentException> {
@@ -431,14 +430,14 @@ class VariantProfileRepositoryTest {
     @ParameterizedTest
     @ValueSource(
         strings = [
-            "variant-profiles = [ ]",
+            "variant-profiles { }",
             "",
         ],
     )
     fun `does not throw when no variant profiles defined in config`(config: String) {
         shouldNotThrowAny {
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         }
     }
@@ -451,31 +450,9 @@ class VariantProfileRepositoryTest {
     ) {
         shouldThrow<IllegalArgumentException> {
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         }.message shouldBe "Profile name: '$profileName' is not valid"
-    }
-
-    @Test
-    fun `cannot have duplicate profile names`() {
-        val config =
-            """
-            variant-profiles = [
-                {
-                    name = small
-                    w = 15
-                },
-                {
-                    name = small
-                    h = 15
-                }
-            ]
-            """.trimIndent()
-        shouldThrow<IllegalArgumentException> {
-            ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
-            )
-        }.message shouldBe "Profile name: 'small' already exists"
     }
 
     @ParameterizedTest
@@ -483,7 +460,7 @@ class VariantProfileRepositoryTest {
     fun `cannot have invalid variant profile definitions`(config: String) {
         shouldThrow<IllegalArgumentException> {
             ConfigurationVariantProfileRepository(
-                HoconApplicationConfig(ConfigFactory.parseString(config)),
+                ConfigFactory.parseString(config),
             )
         }
     }

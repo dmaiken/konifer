@@ -13,6 +13,7 @@ import io.ktor.server.config.tryGetString
 import kotlinx.coroutines.channels.Channel
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
 
@@ -64,7 +65,5 @@ fun Application.variantModule(): Module =
             )
         }
 
-        single<VariantProfileRepository> {
-            ConfigurationVariantProfileRepository(environment.config)
-        }
+        single<ConfigurationVariantProfileRepository>() bind VariantProfileRepository::class
     }

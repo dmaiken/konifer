@@ -18,11 +18,6 @@ fun Filter.Factory.fromQueryParameters(
     parameterName: String,
 ): Filter? = parameters[parameterName]?.let { valueOf(it.uppercase()) }
 
-fun Filter.Factory.fromString(string: String?): Filter =
-    string?.let {
-        valueOf(it.uppercase())
-    } ?: Filter.default
-
 fun Fit.Factory.fromQueryParameters(
     parameters: Parameters,
     parameterName: String,
@@ -31,20 +26,10 @@ fun Fit.Factory.fromQueryParameters(
         Fit.valueOf(it.uppercase())
     }
 
-fun Fit.Factory.fromString(string: String?): Fit =
-    string?.let {
-        Fit.valueOf(string.uppercase())
-    } ?: default
-
 fun Flip.Factory.fromQueryParameters(
     parameters: Parameters,
     parameterName: String,
 ): Flip? = parameters[parameterName]?.let { Flip.valueOf(it.uppercase()) }
-
-fun Flip.Factory.fromString(string: String?): Flip =
-    string?.let {
-        Flip.valueOf(it.uppercase())
-    } ?: default
 
 fun Gravity.Factory.fromQueryParameters(
     parameters: Parameters,
@@ -54,11 +39,6 @@ fun Gravity.Factory.fromQueryParameters(
         Gravity.valueOf(it.uppercase())
     }
 
-fun Gravity.Factory.fromString(string: String?): Gravity =
-    string?.let {
-        Gravity.valueOf(string.uppercase())
-    } ?: default
-
 fun Rotate.Factory.fromQueryParameters(
     parameters: Parameters,
     parameterName: String,
@@ -66,11 +46,6 @@ fun Rotate.Factory.fromQueryParameters(
     parameters[parameterName]?.let {
         toRotate(it)
     }
-
-fun Rotate.Factory.fromString(string: String?): Rotate =
-    string?.let {
-        toRotate(it)
-    } ?: default
 
 private fun toRotate(value: String): Rotate =
     value.toIntOrNull()?.let {
@@ -82,11 +57,6 @@ private fun toRotate(value: String): Rotate =
             else -> throw IllegalArgumentException("Invalid rotation: $value. Must be increments of 90")
         }
     } ?: Rotate.valueOf(value.uppercase())
-
-fun TransformableColorSpace.Factory.fromString(string: String?): TransformableColorSpace =
-    string?.let {
-        TransformableColorSpace.valueOf(it.uppercase())
-    } ?: default
 
 fun TransformableColorSpace.Factory.fromQueryParameters(
     parameters: Parameters,

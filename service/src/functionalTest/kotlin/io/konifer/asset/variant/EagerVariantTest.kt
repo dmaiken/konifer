@@ -31,16 +31,14 @@ class EagerVariantTest : BaseFunctionalTest() {
     fun `can store asset and eager variants are generated`() =
         testInMemory(
             """
-            variant-profiles = [
-                {
-                    name = small
-                    w = 15
-                },
-                {
-                    name = medium
-                    h = 15
-                }
-            ]
+            variant-profiles {
+              small {
+                w = 15
+              }
+              medium {
+                h = 15
+              }
+            }
             paths {
               "/users/**" {
                 eager-variants = [small, medium]
@@ -93,16 +91,14 @@ class EagerVariantTest : BaseFunctionalTest() {
     fun `eager variants are added to the configured bucket in path configuration`() =
         testInMemory(
             """
-            variant-profiles = [
-                {
-                    name = small
-                    w = 15
-                },
-                {
-                    name = medium
-                    h = 15
-                }
-            ]
+            variant-profiles {
+              small {
+                w = 15
+              }
+              medium {
+                h = 15
+              }
+            }
             paths {
               "/**" {
                 object-store {
@@ -149,12 +145,11 @@ class EagerVariantTest : BaseFunctionalTest() {
     fun `eager variants are generated from preprocessed content`() =
         testInMemory(
             """
-            variant-profiles = [
-              {
-                name = small
+            variant-profiles {
+              small {
                 w = 50
               }
-            ]
+            }
             paths {
               "/users/**" {
                 eager-variants = [small]

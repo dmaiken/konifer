@@ -228,7 +228,7 @@ class RequestContextFactory(
     /**
      * Extract any labels supplied to filter against. Check query parameters for:
      * 1. Namespaced labels - labels starting with "label:"
-     * 2. Check for any query parameter not already reserved as a currently used param (e.g. bg, h, w, etc)
+     * 2. Check for any query parameter not already reserved as a currently used param (e.g. bg, h, w, etc.)
      */
     private fun extractLabels(parameters: Parameters): Map<String, String> =
         parameters
@@ -241,8 +241,8 @@ class RequestContextFactory(
     /**
      * Determine the requested format in this order:
      * 1. [FORMAT] query parameter
-     * 2. format defined in variant profile (if any profile)
-     * 3. parsing the accept header
+     * 2. Format defined in variant profile (if any profile)
+     * 3. Parsing the `accept` header
      */
     private fun determineRequestedFormat(
         headers: Headers,
