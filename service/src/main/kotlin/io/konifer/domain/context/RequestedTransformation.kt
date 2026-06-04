@@ -73,6 +73,10 @@ data class RequestedTransformation(
             )
     }
 
+    /**
+     * This gives us validation of eager variants at startup. There may be duplication between this and the
+     * validation logic in the [io.konifer.domain.transformation.TransformationNormalizer].
+     */
     private fun validate() {
         if (originalVariant) {
             return
@@ -121,7 +125,7 @@ data class RequestedTransformation(
                 .split(",")
                 .filter { it.isNotBlank() }
                 .forEach { value ->
-                    require(value.uppercase() in validMetadata) {
+                    require(value.trim().uppercase() in validMetadata) {
                         "Invalid metadata type: $value. Valid types are: ${validMetadata.joinToString(", ")}"
                     }
                 }
