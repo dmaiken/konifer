@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.path
 
 import com.typesafe.config.ConfigFactory
+import io.konifer.domain.path.PathConfiguration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -525,5 +526,16 @@ class TriePathConfigurationRepositoryTest {
             )
 
         repository.fetch("/profile/123").eagerVariants shouldBe listOf("large")
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", "paths { }"])
+    fun `default is configured when no paths are specified`(config: String) {
+        val repository =
+            TriePathConfigurationRepository(
+                ConfigFactory.parseString(config),
+            )
+
+        repository.fetch("/users/123/profile") shouldBe PathConfiguration.default
     }
 }

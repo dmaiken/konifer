@@ -129,14 +129,13 @@ GET /assets/users/123/profile-picture/-/content?w=300&h=300&fit=crop&g=attention
 Variant profiles let you name transformations that your application uses often:
 
 ```hocon
-variant-profiles = [
-  {
-    name = thumbnail
+variant-profiles {
+  thumbnail {
     w = 128
     fit = fill
     r = auto
   }
-]
+}
 ```
 
 ```http
@@ -150,12 +149,11 @@ Profiles can also be used for eager variants, where Konifer starts background ge
 Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in `konifer.conf` and apply them with wildcard matching and inheritance.
 
 ```hocon
-paths = [
-  {
-    path = "/public/avatars/**"
-    eager-variants = [ thumbnail ]
+paths {
+  "/public/avatars/**" {
+    eager-variants = [thumbnail]
     image {
-      lqip = [ blurhash, thumbhash ]
+      lqip = [blurhash, thumbhash]
     }
     preprocessing {
       enabled = true
@@ -172,7 +170,7 @@ paths = [
       immutable = true
     }
   }
-]
+}
 ```
 
 This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and generated media can share the same service while using different buckets, validation rules, preprocessing, cache behavior, redirect strategies, and eager variants.

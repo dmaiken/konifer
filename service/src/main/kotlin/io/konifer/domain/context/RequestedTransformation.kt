@@ -6,30 +6,47 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
+import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.image.fromFormat
-import io.konifer.domain.image.fromString
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
+@Serializable
 data class RequestedTransformation(
+    @Transient
     val originalVariant: Boolean = false,
-    val width: Int?,
-    val height: Int?,
-    val format: ImageFormat?,
-    val fit: Fit,
-    val gravity: Gravity,
-    val rotate: Rotate,
-    val flip: Flip,
+    @SerialName(ManipulationParameters.WIDTH)
+    val width: Int? = null,
+    @SerialName(ManipulationParameters.HEIGHT)
+    val height: Int? = null,
+    @SerialName(ManipulationParameters.FORMAT)
+    val format: ImageFormat? = null,
+    @SerialName(ManipulationParameters.FIT)
+    val fit: Fit = Fit.default,
+    @SerialName(ManipulationParameters.GRAVITY)
+    val gravity: Gravity = Gravity.default,
+    @SerialName(ManipulationParameters.ROTATE)
+    val rotate: Rotate = Rotate.default,
+    @SerialName(ManipulationParameters.FLIP)
+    val flip: Flip = Flip.default,
+    @Transient
     val canUpscale: Boolean = true,
-    val filter: Filter,
-    val blur: Int?,
-    val quality: Int?,
-    val pad: Int?,
-    val padColor: String?,
-    val stripMetadata: String?,
-    val colorSpace: TransformableColorSpace,
+    @SerialName(ManipulationParameters.FILTER)
+    val filter: Filter = Filter.default,
+    @SerialName(ManipulationParameters.BLUR)
+    val blur: Int? = null,
+    @SerialName(ManipulationParameters.QUALITY)
+    val quality: Int? = null,
+    @SerialName(ManipulationParameters.PAD)
+    val pad: Int? = null,
+    @SerialName(ManipulationParameters.PAD_COLOR)
+    val padColor: String? = null,
+    @SerialName(ManipulationParameters.STRIP)
+    val stripMetadata: String? = null,
+    @SerialName(ManipulationParameters.COLOR_SPACE)
+    val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ) {
     init {
         validate()
@@ -54,29 +71,12 @@ data class RequestedTransformation(
                 stripMetadata = null,
                 colorSpace = TransformableColorSpace.default,
             )
-
-        fun create(applicationConfig: ApplicationConfig): RequestedTransformation =
-            RequestedTransformation(
-                originalVariant = false,
-                width = applicationConfig.tryGetString(ManipulationParameters.WIDTH)?.toInt(),
-                height = applicationConfig.tryGetString(ManipulationParameters.HEIGHT)?.toInt(),
-                format = applicationConfig.tryGetString(ManipulationParameters.FORMAT)?.let { ImageFormat.fromFormat(it) },
-                fit = Fit.fromString(applicationConfig.tryGetString(ManipulationParameters.FIT)),
-                gravity = Gravity.fromString(applicationConfig.tryGetString(ManipulationParameters.GRAVITY)),
-                rotate = Rotate.fromString(applicationConfig.tryGetString(ManipulationParameters.ROTATE)),
-                flip = Flip.fromString(applicationConfig.tryGetString(ManipulationParameters.FLIP)),
-                filter = Filter.fromString(applicationConfig.tryGetString(ManipulationParameters.FILTER)),
-                blur = applicationConfig.tryGetString(ManipulationParameters.BLUR)?.toInt(),
-                quality = applicationConfig.tryGetString(ManipulationParameters.QUALITY)?.toInt(),
-                pad = applicationConfig.tryGetString(ManipulationParameters.PAD)?.toInt(),
-                padColor = applicationConfig.tryGetString(ManipulationParameters.PAD_COLOR),
-                stripMetadata = applicationConfig.tryGetString(ManipulationParameters.STRIP),
-                colorSpace = TransformableColorSpace.fromString(applicationConfig.tryGetString(ManipulationParameters.COLOR_SPACE)),
-            ).apply {
-                validate()
-            }
     }
 
+    /**
+     * This gives us validation of eager variants at startup. There may be duplication between this and the
+     * validation logic in the [io.konifer.domain.transformation.TransformationNormalizer].
+     */
     private fun validate() {
         if (originalVariant) {
             return
@@ -118,6 +118,17 @@ data class RequestedTransformation(
             require(padColor.startsWith('#') && padColor.drop(1).toLongOrNull(16) != null) {
                 "Pad color must be a hex value starting with '#'"
             }
+        }
+        if (stripMetadata != null) {
+            val validMetadata = MetadataType.entries.map { it.name }
+            stripMetadata
+                .split(",")
+                .filter { it.isNotBlank() }
+                .forEach { value ->
+                    require(value.trim().uppercase() in validMetadata) {
+                        "Invalid metadata type: $value. Valid types are: ${validMetadata.joinToString(", ")}"
+                    }
+                }
         }
     }
 }

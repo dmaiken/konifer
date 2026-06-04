@@ -26,15 +26,6 @@ class RotateTest {
 
     @ParameterizedTest
     @MethodSource("validSource")
-    fun `fromString valid arguments are accepted`(
-        argument: String,
-        rotation: Rotate,
-    ) {
-        Rotate.fromString(argument) shouldBe rotation
-    }
-
-    @ParameterizedTest
-    @MethodSource("validSource")
     fun `fromParameters valid arguments are accepted`(
         argument: String,
         rotation: Rotate,
@@ -60,16 +51,6 @@ class RotateTest {
         val exception =
             shouldThrow<IllegalArgumentException> {
                 Rotate.fromQueryParameters(parameters, ROTATE)
-            }
-        exception.message shouldBe "Invalid rotation: $invalid. Must be increments of 90"
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = ["-90", "91", "-180", "-270", "1"])
-    fun `fromString invalid rotation angle is rejected`(invalid: String) {
-        val exception =
-            shouldThrow<IllegalArgumentException> {
-                Rotate.fromString(invalid)
             }
         exception.message shouldBe "Invalid rotation: $invalid. Must be increments of 90"
     }
