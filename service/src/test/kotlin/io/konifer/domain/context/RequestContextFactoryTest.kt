@@ -18,7 +18,6 @@ import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.Transformation
-import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -1195,9 +1194,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 PathConfiguration(
                     allowedContentTypes = listOf("image/png"),
                     image = ImageProperties.default,
-                    eagerVariants = listOf(),
                     objectStore = ObjectStoreProperties.default,
-                    preProcessing = PreProcessingProperties.default,
                     cacheControl = CacheControlProperties.default,
                     returnFormat = ReturnFormatProperties.default,
                 )
@@ -1226,9 +1223,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 PathConfiguration(
                     allowedContentTypes = listOf("image/jpeg"),
                     image = ImageProperties.default,
-                    eagerVariants = listOf(),
                     objectStore = ObjectStoreProperties.default,
-                    preProcessing = PreProcessingProperties.default,
                     cacheControl = CacheControlProperties.default,
                     returnFormat = ReturnFormatProperties.default,
                 )

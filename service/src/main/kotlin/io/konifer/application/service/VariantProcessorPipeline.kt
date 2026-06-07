@@ -41,7 +41,9 @@ class VariantProcessorPipeline(
         format: ImageFormat,
     ): ProcessingPipeline {
         container.toTemporaryFile(format.extension)
-        val hasEagerVariants = context.pathConfiguration.eagerVariants.isNotEmpty()
+        val hasEagerVariants =
+            context.pathConfiguration.transform.eagerVariants
+                .isNotEmpty()
 
         return if (context.requiresPreProcessing()) {
             buildPreProcessingPipeline(
@@ -178,12 +180,12 @@ class VariantProcessorPipeline(
     ): Transformation =
         withContext(Dispatchers.IO) {
             val requestedTransformation =
-                context.pathConfiguration.preProcessing.image.requestedImageTransformation
+                context.pathConfiguration.transform.preProcessing.image.requestedImageTransformation
             var transformation: Transformation? = null
 
             Vips.run { arena ->
                 val destinationFormat =
-                    context.pathConfiguration.preProcessing.image.format
+                    context.pathConfiguration.transform.preProcessing.image.format
                         ?: sourceFormat
                 // Even if this image is paged, just need to load one frame to get height/width
                 // So don't specify "n" as an option

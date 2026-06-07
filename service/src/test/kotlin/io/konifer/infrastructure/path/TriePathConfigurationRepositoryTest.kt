@@ -175,18 +175,22 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
-                ],
-                preprocessing = {
-                  image {
-                    max-height = 10
+                ]
+                transform {
+                  preprocessing = {
+                    image {
+                      max-height = 10
+                    }
                   }
                 }
               }
               "/users/*/profile" {
                 allowed-content-types = [ ]
-                preprocessing = {
-                  image {
-                    max-width = 10
+                transform {
+                  preprocessing = {
+                    image {
+                      max-width = 10
+                    }
                   }
                 }
               }
@@ -198,8 +202,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.preProcessing.image.maxWidth shouldBe 10
-        pathConfiguration.preProcessing.image.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.image.maxWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.image.maxHeight shouldBe 10
     }
 
     @Test
@@ -235,18 +239,22 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [
                   "image/png",
                   "image/jpeg"
-                ],
-                preprocessing = {
-                  image {
-                    max-height = 10
+                ]
+                transform {
+                  preprocessing = {
+                    image {
+                      max-height = 10
+                    }
                   }
                 }
               }
               "/users/*/profile" {
                 allowed-content-types = [ ]
-                preprocessing = {
-                  image {
-                    max-width = 10
+                transform {
+                  preprocessing = {
+                    image {
+                      max-width = 10
+                    }
                   }
                 }
               }
@@ -258,8 +266,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.preProcessing.image.maxWidth shouldBe 10
-        pathConfiguration.preProcessing.image.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.image.maxWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.image.maxHeight shouldBe 10
     }
 
     @Test
@@ -309,7 +317,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/**" {
-                eager-variants = [small, large]
+                transform {
+                  eager-variants = [small, large]
+                }
               }
             }
             """.trimIndent()
@@ -318,7 +328,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile")
-        pathConfiguration.eagerVariants shouldBe listOf("small", "large")
+        pathConfiguration.transform.eagerVariants shouldBe listOf("small", "large")
     }
 
     @Test
@@ -327,10 +337,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/**" {
-                eager-variants = [small, large]
+                transform {
+                  eager-variants = [small, large]
+                }
               }
               "/profile/*" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -339,7 +353,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile/123")
-        pathConfiguration.eagerVariants shouldBe listOf("large")
+        pathConfiguration.transform.eagerVariants shouldBe listOf("large")
     }
 
     @ParameterizedTest
@@ -349,7 +363,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "$path*" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -358,7 +374,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
-        pathConfiguration.eagerVariants shouldBe listOf("large")
+        pathConfiguration.transform.eagerVariants shouldBe listOf("large")
     }
 
     @ParameterizedTest
@@ -368,7 +384,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "$path**" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -377,7 +395,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
-        pathConfiguration.eagerVariants shouldBe listOf("large")
+        pathConfiguration.transform.eagerVariants shouldBe listOf("large")
     }
 
     @ParameterizedTest
@@ -387,10 +405,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/profile/*" {
-                eager-variants = [medium]
+                transform {
+                  eager-variants = [medium]
+                }
               }
               "/profile/**" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -399,7 +421,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
-        pathConfiguration.eagerVariants shouldBe listOf("medium")
+        pathConfiguration.transform.eagerVariants shouldBe listOf("medium")
     }
 
     @Test
@@ -408,10 +430,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/profile/123" {
-                eager-variants = [small]
+                transform {
+                  eager-variants = [small]
+                }
               }
               "/profile/*" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -421,7 +447,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
+        repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("small")
     }
 
     @Test
@@ -430,10 +456,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/profile/123" {
-                eager-variants = [small]
+                transform {
+                  eager-variants = [small]
+                }
               }
               "/profile/**" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -443,7 +473,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/profile/123").eagerVariants shouldBe listOf("small")
+        repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("small")
     }
 
     @Test
@@ -452,10 +482,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/profile" {
-                eager-variants = [small]
+                transform {
+                  eager-variants = [small]
+                }
               }
               "/profile/*" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -465,7 +499,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/profile").eagerVariants shouldBe listOf("small")
+        repository.fetch("/profile").transform.eagerVariants shouldBe listOf("small")
     }
 
     @Test
@@ -474,7 +508,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/**/profile" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -484,7 +520,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/users/profile").eagerVariants shouldBe listOf("large")
+        repository.fetch("/users/profile").transform.eagerVariants shouldBe listOf("large")
     }
 
     @Test
@@ -493,10 +529,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/**" {
-                eager-variants = [small]
+                transform {
+                  eager-variants = [small]
+                }
               }
               "/users/**/profile" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -506,7 +546,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/users/123/profile").eagerVariants shouldBe listOf("large")
+        repository.fetch("/users/123/profile").transform.eagerVariants shouldBe listOf("large")
     }
 
     @Test
@@ -515,7 +555,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "//profile//*/" {
-                eager-variants = [large]
+                transform {
+                  eager-variants = [large]
+                }
               }
             }
             """.trimIndent()
@@ -525,7 +567,7 @@ class TriePathConfigurationRepositoryTest {
                 ConfigFactory.parseString(config),
             )
 
-        repository.fetch("/profile/123").eagerVariants shouldBe listOf("large")
+        repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("large")
     }
 
     @ParameterizedTest

@@ -149,19 +149,27 @@ Profiles can also be used for eager variants, where Konifer starts background ge
 Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in `konifer.conf` and apply them with wildcard matching and inheritance.
 
 ```hocon
+variant-profiles {
+  thumbnail {
+    w = 256
+    fit = fill
+  }
+}
 paths {
   "/public/avatars/**" {
-    eager-variants = [thumbnail]
+    transform {
+      eager-variants = [thumbnail]
+      preprocessing {
+        enabled = true
+        image {
+          max-width = 1024
+          max-height = 1024
+          fit = fit
+        }
+      }
+    }
     image {
       lqip = [blurhash, thumbhash]
-    }
-    preprocessing {
-      enabled = true
-      image {
-        max-width = 1024
-        max-height = 1024
-        fit = fit
-      }
     }
     cache-control {
       enabled = true

@@ -1,0 +1,18 @@
+package io.konifer.domain.variant
+
+import io.konifer.domain.variant.preprocessing.PreProcessingProperties
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class TransformProperties(
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PREPROCESSING)
+    val preProcessing: PreProcessingProperties = PreProcessingProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.EAGER_VARIANTS)
+    val eagerVariants: List<String> = emptyList(),
+) {
+    companion object Factory {
+        val default = TransformProperties()
+    }
+}

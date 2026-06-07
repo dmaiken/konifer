@@ -41,7 +41,9 @@ class EagerVariantTest : BaseFunctionalTest() {
             }
             paths {
               "/users/**" {
-                eager-variants = [small, medium]
+                transform {
+                  eager-variants = [small, medium]
+                }
               }
             }
             """.trimIndent(),
@@ -106,7 +108,9 @@ class EagerVariantTest : BaseFunctionalTest() {
                 }
               }
               "/users/**" {
-                eager-variants = [small, medium]
+                transform {
+                  eager-variants = [small, medium]
+                }
                 object-store {
                   bucket = correct-bucket
                 }
@@ -152,11 +156,13 @@ class EagerVariantTest : BaseFunctionalTest() {
             }
             paths {
               "/users/**" {
-                eager-variants = [small]
-                preprocessing {
-                  enabled = true
-                  image {
-                    r = 180
+                transform {
+                  eager-variants = [small]
+                  preprocessing {
+                    enabled = true
+                    image {
+                      r = 180
+                    }
                   }
                 }
               }

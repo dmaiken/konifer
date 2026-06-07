@@ -36,9 +36,11 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                 """
                 paths {
                   "/**" {
-                    preprocessing {
-                      enabled = true
-                      w = 100
+                    transform {
+                      preprocessing {
+                        enabled = true
+                        w = 100
+                      }
                     }
                   }
                 }

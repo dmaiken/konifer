@@ -186,10 +186,12 @@ class StoreAssetTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    format = ${format.format}
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      format = ${format.format}
+                    }
                   }
                 }
               }

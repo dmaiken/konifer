@@ -5,7 +5,6 @@ import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
-import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -21,9 +20,7 @@ class PathConfigurationTest {
                         ImageProperties(
                             previews = setOf(),
                         ),
-                    eagerVariants = emptyList(),
                     objectStore = ObjectStoreProperties.default,
-                    preProcessing = PreProcessingProperties.default,
                     cacheControl = CacheControlProperties.default,
                     returnFormat = ReturnFormatProperties.default,
                 )

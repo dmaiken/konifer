@@ -75,14 +75,18 @@ object ConfigurationPropertyKeys {
     object PathPropertyKeys {
         const val IMAGE = "image"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
-        const val EAGER_VARIANTS = "eager-variants"
         const val OBJECT_STORE = "object-store"
         const val RETURN_FORMAT = "return-format"
-        const val PREPROCESSING = "preprocessing"
+        const val TRANSFORM = "transform"
         const val CACHE_CONTROL = "cache-control"
 
         object ImagePropertyKeys {
             const val LQIP = "lqip"
+        }
+
+        object TransformPropertyKeys {
+            const val PREPROCESSING = "preprocessing"
+            const val EAGER_VARIANTS = "eager-variants"
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
@@ -93,10 +97,6 @@ object ConfigurationPropertyKeys {
                     const val MAX_WIDTH = "max-width"
                 }
             }
-        }
-
-        object VariantProfilePropertyKeys {
-            const val NAME = "name"
         }
 
         object ObjectStorePropertyKeys {
