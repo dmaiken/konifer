@@ -43,7 +43,7 @@ class AssetEventListener(
     suspend fun handle(event: AssetReadyEvent) {
         try {
             val eagerVariantTransformations =
-                event.pathConfiguration.eagerVariants
+                event.pathConfiguration.transform.eagerVariants
                     .map { profileName ->
                         variantProfileRepository.fetch(profileName)
                     }.takeIf { it.isNotEmpty() }

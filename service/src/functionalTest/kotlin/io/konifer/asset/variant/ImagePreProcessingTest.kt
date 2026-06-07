@@ -49,10 +49,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    max-width = 100
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      max-width = 100
+                    }
                   }
                 }
               }
@@ -92,10 +94,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    max-height = 50
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      max-height = 50
+                    }
                   }
                 }
               }
@@ -140,10 +144,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         """
         paths {
           "/**" {
-            preprocessing {
-              image {
-                ${maxHeight?.let { "max-height = $it" } ?: ""}
-                ${maxWidth?.let { "max-width = $it" } ?: ""}
+            transform {
+              preprocessing {
+                image {
+                  ${maxHeight?.let { "max-height = $it" } ?: ""}
+                  ${maxWidth?.let { "max-width = $it" } ?: ""}
+                }
               }
             }
           }
@@ -186,10 +192,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         """
         paths {
           "/**" {
-            preprocessing {
-              enabled = true
-              image {
-                format = $imageFormat
+            transform {
+              preprocessing {
+                enabled = true
+                image {
+                  format = $imageFormat
+                }
               }
             }
           }
@@ -226,19 +234,23 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    format = jpg
-                    max-height = 55
-                  }
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      format = jpg
+                      max-height = 55
+                    }
+                  }  
                 }
               }
               "/Users/*/Profile" {
-                preprocessing {
-                  image {
-                    format = webp
-                    max-height = 50
+                transform {
+                  preprocessing {
+                    image {
+                      format = webp
+                      max-height = 50
+                    }
                   }
                 }
               }
@@ -278,11 +290,13 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = false
-                  image {
-                    format = jpg
-                    max-height = 55
+                transform {
+                  preprocessing {
+                    enabled = false
+                    image {
+                      format = jpg
+                      max-height = 55
+                    }
                   }
                 }
               }
@@ -317,19 +331,23 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = false
-                  image {
-                    format = jpg
-                    max-height = 55
+                transform {
+                  preprocessing {
+                    enabled = false
+                    image {
+                      format = jpg
+                      max-height = 55
+                    }
                   }
                 }
               }
               "/Users/*/Profile" {
-                preprocessing {
-                  image {
-                    format = webp
-                    max-height = 50
+                transform {
+                  preprocessing {
+                    image {
+                      format = webp
+                      max-height = 50
+                    }
                   }
                 }
               }
@@ -364,10 +382,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    max-height = 50
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      max-height = 50
+                    }
                   }
                 }
               }
@@ -391,10 +411,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    strip = [ exif, xmp, iptc ]
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      strip = [ exif, xmp, iptc ]
+                    }
                   }
                 }
               }
@@ -421,10 +443,12 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    cs = srgb
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      cs = srgb
+                    }
                   }
                 }
               }
@@ -442,11 +466,13 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                preprocessing {
-                  enabled = true
-                  image {
-                    max-width = 3000
-                    format = png
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      max-width = 3000
+                      format = png
+                    }
                   }
                 }
               }

@@ -10,5 +10,6 @@ data class StoreRequestContext(
      * Does the asset require preprocessing? This is false only when processing is disabled within
      * path configuration and there are no lqips to generate.
      */
-    fun requiresPreProcessing(): Boolean = pathConfiguration.preProcessing.enabled || pathConfiguration.image.previews.isNotEmpty()
+    fun requiresPreProcessing(): Boolean =
+        pathConfiguration.transform.preProcessing.enabled || pathConfiguration.image.previews.isNotEmpty()
 }
