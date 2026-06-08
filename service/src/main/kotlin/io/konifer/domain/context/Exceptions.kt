@@ -19,3 +19,7 @@ class ContentTypeNotPermittedException(
     msg: String,
     e: Throwable? = null,
 ) : RuntimeException(msg, e)
+
+class IllegalRequestedTransformationException(
+    msg: String,
+) : RuntimeException(msg)

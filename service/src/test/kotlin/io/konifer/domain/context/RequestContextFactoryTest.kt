@@ -17,6 +17,9 @@ import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.variant.OnDemandVariantMode
+import io.konifer.domain.variant.OnDemandVariantProperties
+import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
@@ -509,6 +512,83 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
                     ),
+                ),
+            )
+
+        @JvmStatic
+        fun restrictedTransformationSource(): List<Arguments> =
+            listOf(
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("h", "100")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("w", "100")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("fit", "fit")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("g", "center")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("r", "90")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("f", "v")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("filter", "sepia")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("blur", "100")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("q", "100")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("pad", "100")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("strip", "exif")
+                        }.build(),
+                ),
+                arguments(
+                    ParametersBuilder(1)
+                        .apply {
+                            append("cs", "srgb")
+                        }.build(),
                 ),
             )
     }
@@ -1056,6 +1136,103 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
                 context.transformation?.format shouldNotBe null
                 context.transformation?.format shouldBe ImageFormat.HEIC
+            }
+
+        @ParameterizedTest
+        @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#restrictedTransformationSource")
+        fun `when on-demand variant mode is profile_only then no transformations are allowed`(parameters: Parameters) =
+            runTest {
+                every {
+                    pathConfigurationRepository.fetch(path = any())
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                onDemandVariant =
+                                    OnDemandVariantProperties(
+                                        mode = OnDemandVariantMode.PROFILE_ONLY,
+                                    ),
+                            ),
+                    )
+                shouldThrow<IllegalRequestedTransformationException> {
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/content/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters = parameters,
+                    )
+                }
+            }
+
+        @ParameterizedTest
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+        fun `profile_only mode applies to all return formats that support variants`(returnFormat: ReturnFormat) =
+            runTest {
+                every {
+                    pathConfigurationRepository.fetch(path = any())
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                onDemandVariant =
+                                    OnDemandVariantProperties(
+                                        mode = OnDemandVariantMode.PROFILE_ONLY,
+                                    ),
+                            ),
+                    )
+                shouldThrow<IllegalRequestedTransformationException> {
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder()
+                                .apply {
+                                    append("w", "100")
+                                }.build(),
+                    )
+                }
+            }
+
+        @ParameterizedTest
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+        fun `can specify profile with profile_only mode`(returnFormat: ReturnFormat) =
+            runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                every {
+                    pathConfigurationRepository.fetch(path = any())
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                onDemandVariant =
+                                    OnDemandVariantProperties(
+                                        mode = OnDemandVariantMode.PROFILE_ONLY,
+                                    ),
+                            ),
+                    )
+                every {
+                    variantProfileRepository.fetch(profileName = "thumbnail")
+                } returns
+                    RequestedTransformation(
+                        width = 100,
+                        height = 100,
+                        format = ImageFormat.JPEG,
+                    )
+                shouldNotThrowAny {
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters =
+                            ParametersBuilder()
+                                .apply {
+                                    append("profile", "thumbnail")
+                                }.build(),
+                    )
+                }
             }
     }
 

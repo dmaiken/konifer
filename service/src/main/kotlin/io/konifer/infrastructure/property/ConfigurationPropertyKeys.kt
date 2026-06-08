@@ -87,6 +87,7 @@ object ConfigurationPropertyKeys {
         object TransformPropertyKeys {
             const val PREPROCESSING = "preprocessing"
             const val EAGER_VARIANTS = "eager-variants"
+            const val ON_DEMAND_VARIANT = "on-demand-variant"
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
@@ -96,6 +97,10 @@ object ConfigurationPropertyKeys {
                     const val MAX_HEIGHT = "max-height"
                     const val MAX_WIDTH = "max-width"
                 }
+            }
+
+            object OnDemandVariantsPropertyKeys {
+                const val MODE = "mode"
             }
         }
 

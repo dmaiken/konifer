@@ -56,20 +56,6 @@ data class RequestedTransformation(
         val ORIGINAL_VARIANT =
             RequestedTransformation(
                 originalVariant = true,
-                width = null,
-                height = null,
-                format = null,
-                fit = Fit.default,
-                gravity = Gravity.default,
-                rotate = Rotate.default,
-                flip = Flip.default,
-                filter = Filter.default,
-                blur = null,
-                quality = null,
-                pad = null,
-                padColor = null,
-                stripMetadata = null,
-                colorSpace = TransformableColorSpace.default,
             )
     }
 

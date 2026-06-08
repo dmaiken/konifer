@@ -11,6 +11,8 @@ data class TransformProperties(
     val preProcessing: PreProcessingProperties = PreProcessingProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.EAGER_VARIANTS)
     val eagerVariants: List<String> = emptyList(),
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.ON_DEMAND_VARIANT)
+    val onDemandVariant: OnDemandVariantProperties = OnDemandVariantProperties.default,
 ) {
     companion object Factory {
         val default = TransformProperties()

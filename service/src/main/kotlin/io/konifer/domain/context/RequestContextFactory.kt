@@ -90,13 +90,12 @@ class RequestContextFactory(
                 parameters = queryParameters,
             )
         val pathConfiguration = pathConfigurationRepository.fetch(segments.first())
-        if (
-            querySelectors.returnFormat == ReturnFormat.METADATA &&
-            requestedTransformation != null &&
-            !requestedTransformation.originalVariant
-        ) {
-            throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
-        }
+        RequestContextValidator.validateGetRequest(
+            querySelectors = querySelectors,
+            pathConfiguration = pathConfiguration,
+            requestedTransformation = requestedTransformation,
+            queryParameters = queryParameters,
+        )
 
         return QueryRequestContext(
             path = segments.first(),
