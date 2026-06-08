@@ -3,6 +3,7 @@ package io.konifer.infrastructure.http.exception
 import io.konifer.common.http.ErrorResponse
 import io.konifer.domain.asset.AssetNotFoundException
 import io.konifer.domain.context.ContentTypeNotPermittedException
+import io.konifer.domain.context.IllegalRequestedTransformationException
 import io.konifer.domain.context.InvalidPathException
 import io.konifer.domain.image.InvalidImageException
 import io.ktor.http.HttpStatusCode
@@ -35,5 +36,9 @@ fun Application.configureStatusPages() =
         exception<AssetNotFoundException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.NotFound} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message))
+        }
+        exception<IllegalRequestedTransformationException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
     }
