@@ -1234,6 +1234,37 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
                 }
             }
+
+        @ParameterizedTest
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+        fun `can specify original variant with profile_only mode`(returnFormat: ReturnFormat) =
+            runTest {
+                storePersistedAsset(
+                    height = 100,
+                    width = 100,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                every {
+                    pathConfigurationRepository.fetch(path = any())
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                onDemandVariant =
+                                    OnDemandVariantProperties(
+                                        mode = OnDemandVariantMode.PROFILE_ONLY,
+                                    ),
+                            ),
+                    )
+                shouldNotThrowAny {
+                    requestContextFactory.fromGetRequest(
+                        path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
+                        headers = HeadersBuilder().build(),
+                        queryParameters = ParametersBuilder().build(),
+                    )
+                }
+            }
     }
 
     @Nested

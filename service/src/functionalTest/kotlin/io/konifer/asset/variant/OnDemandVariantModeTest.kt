@@ -116,4 +116,37 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                         },
                 ).shouldBeSuccessful()
         }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["mode = enabled"])
+    @EmptySource
+    fun `with enabled mode set then original variant can be specified`(config: String) =
+        testInMemory(
+            """
+            paths {
+              "/**" {
+                transform {
+                  on-demand-variant {
+                    $config
+                  }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).shouldBeSuccessful()
+
+            konifer
+                .fetchAssetContentBytes(
+                    path = "users/123",
+                ).shouldBeSuccessful()
+        }
 }
