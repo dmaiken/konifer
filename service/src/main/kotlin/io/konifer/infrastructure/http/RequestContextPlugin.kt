@@ -23,7 +23,7 @@ val RequestContextPlugin =
             when (call.request.httpMethod) {
                 HttpMethod.Get -> {
                     call.attributes[queryRequestContextKey] =
-                        requestContextFactory.fromGetRequest(
+                        requestContextFactory.fromFetchRequest(
                             path = call.request.path(),
                             headers = call.request.headers,
                             queryParameters = call.parameters,

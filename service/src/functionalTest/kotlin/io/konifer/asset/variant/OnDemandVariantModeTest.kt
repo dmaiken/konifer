@@ -118,9 +118,9 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         }
 
     @ParameterizedTest
-    @ValueSource(strings = ["mode = enabled"])
+    @ValueSource(strings = ["mode = enabled", "mode = profile_only", "mode = disabled"])
     @EmptySource
-    fun `with enabled mode set then original variant can be specified`(config: String) =
+    fun `with any mode set then original variant can be specified`(config: String) =
         testInMemory(
             """
             paths {
@@ -148,5 +148,136 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                 .fetchAssetContentBytes(
                     path = "users/123",
                 ).shouldBeSuccessful()
+        }
+
+    @Test
+    fun `on-demand variants cannot be generated when disabled`() =
+        testInMemory(
+            """
+            paths {
+              "/**" {
+                transform {
+                  on-demand-variant {
+                    mode = disabled
+                  }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).shouldBeSuccessful()
+
+            val errorResponse =
+                konifer.fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            width = 10
+                        },
+                ) shouldHaveHttpError 400
+
+            errorResponse.message shouldBe "Transformation not allowed"
+        }
+
+    @Test
+    fun `eager variant can be requested when on-demand variants are disabled`() =
+        testInMemory(
+            """
+            variant-profiles {
+              thumbnail {
+                w = 10
+              }
+            }
+            paths {
+              "/**" {
+                transform {
+                  on-demand-variant {
+                    mode = disabled
+                  }
+                  eager-variants = [thumbnail]
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).shouldBeSuccessful()
+
+            konifer
+                .fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            profile = "thumbnail"
+                        },
+                ).shouldBeSuccessful()
+
+            // Transformation matches the profile definition
+            konifer
+                .fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            width = 10
+                        },
+                ).shouldBeSuccessful()
+        }
+
+    @Test
+    fun `profile must be listed as eager-variant to use when on-demand variants are disabled`() =
+        testInMemory(
+            """
+            variant-profiles {
+              thumbnail {
+                w = 10
+              }
+            }
+            paths {
+              "/**" {
+                transform {
+                  on-demand-variant {
+                    mode = disabled
+                  }
+                  eager-variants = []
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).shouldBeSuccessful()
+
+            val errorResponse =
+                konifer.fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            profile = "thumbnail"
+                        },
+                ) shouldHaveHttpError 400
+
+            errorResponse.message shouldBe "Transformation not allowed"
         }
 }

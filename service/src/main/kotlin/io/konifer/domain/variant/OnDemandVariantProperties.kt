@@ -20,6 +20,7 @@ data class OnDemandVariantProperties(
 enum class OnDemandVariantMode {
     ENABLED,
     PROFILE_ONLY,
+    DISABLED,
     ;
 
     companion object Factory {

@@ -47,6 +47,7 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.junitpioneer.jupiter.cartesian.CartesianTest
 
 class RequestContextFactoryTest : BaseUnitTest() {
     companion object {
@@ -596,8 +597,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
     private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
     private val variantProfileRepository = mockk<ConfigurationVariantProfileRepository>()
     private val transformationNormalizer = TransformationNormalizer(assetRepository)
+    private val requestContextValidator = RequestContextValidator(variantProfileRepository)
     private val requestContextFactory =
-        RequestContextFactory(pathConfigurationRepository, variantProfileRepository, transformationNormalizer)
+        RequestContextFactory(pathConfigurationRepository, variantProfileRepository, transformationNormalizer, requestContextValidator)
 
     @BeforeEach
     fun beforeEach() {
@@ -607,7 +609,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
     }
 
     @Nested
-    inner class GetRequestContextTests {
+    inner class FetchRequestContextTests {
         @ParameterizedTest
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#queryModifierSource")
         fun `can fetch GET request context with query modifiers`(
@@ -616,7 +618,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             expectedQuerySelectors: QuerySelectors,
         ) = runTest {
             val context =
-                requestContextFactory.fromGetRequest(
+                requestContextFactory.fromFetchRequest(
                     path = path,
                     headers = HeadersBuilder().build(),
                     queryParameters = queryParameters,
@@ -634,7 +636,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             expectedQuerySelectors: QuerySelectors,
         ) = runTest {
             val context =
-                requestContextFactory.fromGetRequest(
+                requestContextFactory.fromFetchRequest(
                     path = path,
                     headers = HeadersBuilder().build(),
                     queryParameters = Parameters.Empty,
@@ -661,7 +663,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 } returns variantConfig
 
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/user/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -702,7 +704,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         format = ImageFormat.PNG,
                     )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/user/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -741,7 +743,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `throws when GET query modifiers are invalid`(path: String) =
             runTest {
                 shouldThrow<InvalidQuerySelectorsException> {
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
                         queryParameters = Parameters.Empty,
@@ -761,7 +763,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `entryId must be positive when fetching GET request context`(path: String) =
             runTest {
                 shouldThrow<InvalidQuerySelectorsException> {
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
                         queryParameters = Parameters.Empty,
@@ -775,7 +777,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val exception =
                     shouldThrow<InvalidQuerySelectorsException> {
-                        requestContextFactory.fromGetRequest(
+                        requestContextFactory.fromFetchRequest(
                             path = "/assets/profile/user/123/-/$returnFormat",
                             headers = HeadersBuilder().build(),
                             queryParameters =
@@ -795,7 +797,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val path = "/assets/profile/-/-/metadata/new/10/"
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest(
+                        requestContextFactory.fromFetchRequest(
                             path = path,
                             headers = HeadersBuilder().build(),
                             queryParameters = Parameters.Empty,
@@ -818,7 +820,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 path = "/profile/",
             )
             val context =
-                requestContextFactory.fromGetRequest(
+                requestContextFactory.fromFetchRequest(
                     path = path,
                     headers = HeadersBuilder().build(),
                     queryParameters = parameters,
@@ -840,7 +842,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest(
+                        requestContextFactory.fromFetchRequest(
                             path = "/assets/profile/-/new/metadata/",
                             headers = HeadersBuilder().build(),
                             queryParameters = parameters,
@@ -853,7 +855,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `can parse GET asset path from the uri request path`() =
             runTest {
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/123/-/metadata/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -879,7 +881,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val exception =
                     shouldThrow<InvalidPathException> {
-                        requestContextFactory.fromGetRequest(
+                        requestContextFactory.fromFetchRequest(
                             path = path,
                             headers = HeadersBuilder().build(),
                             queryParameters = Parameters.Empty,
@@ -900,7 +902,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -937,7 +939,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -971,7 +973,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = path,
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -1004,7 +1006,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers =
                             HeadersBuilder()
@@ -1027,7 +1029,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers =
                             HeadersBuilder()
@@ -1056,7 +1058,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         path = "/profile/",
                     )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers =
                             HeadersBuilder()
@@ -1092,7 +1094,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     variantProfileRepository.fetch(profileName)
                 } returns variantConfig
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers =
                             HeadersBuilder()
@@ -1120,7 +1122,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     path = "/profile/",
                 )
                 val context =
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers =
                             HeadersBuilder()
@@ -1155,7 +1157,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             ),
                     )
                 shouldThrow<IllegalRequestedTransformationException> {
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers = HeadersBuilder().build(),
                         queryParameters = parameters,
@@ -1180,7 +1182,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             ),
                     )
                 shouldThrow<IllegalRequestedTransformationException> {
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -1223,7 +1225,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         format = ImageFormat.JPEG,
                     )
                 shouldNotThrowAny {
-                    requestContextFactory.fromGetRequest(
+                    requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
@@ -1235,36 +1237,37 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 }
             }
 
-        @ParameterizedTest
-        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
-        fun `can specify original variant with profile_only mode`(returnFormat: ReturnFormat) =
-            runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
+        @CartesianTest
+        fun `can specify original variant with on-demand variant profile modes`(
+            @CartesianTest.Enum(ReturnFormat::class) returnFormat: ReturnFormat,
+            @CartesianTest.Enum(OnDemandVariantMode::class) mode: OnDemandVariantMode,
+        ) = runTest {
+            storePersistedAsset(
+                height = 100,
+                width = 100,
+                format = ImageFormat.PNG,
+                path = "/profile/",
+            )
+            every {
+                pathConfigurationRepository.fetch(path = any())
+            } returns
+                PathConfiguration(
+                    transform =
+                        TransformProperties(
+                            onDemandVariant =
+                                OnDemandVariantProperties(
+                                    mode = mode,
+                                ),
+                        ),
                 )
-                every {
-                    pathConfigurationRepository.fetch(path = any())
-                } returns
-                    PathConfiguration(
-                        transform =
-                            TransformProperties(
-                                onDemandVariant =
-                                    OnDemandVariantProperties(
-                                        mode = OnDemandVariantMode.PROFILE_ONLY,
-                                    ),
-                            ),
-                    )
-                shouldNotThrowAny {
-                    requestContextFactory.fromGetRequest(
-                        path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
-                        headers = HeadersBuilder().build(),
-                        queryParameters = ParametersBuilder().build(),
-                    )
-                }
+            shouldNotThrowAny {
+                requestContextFactory.fromFetchRequest(
+                    path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
+                    headers = HeadersBuilder().build(),
+                    queryParameters = ParametersBuilder().build(),
+                )
             }
+        }
     }
 
     @Nested
