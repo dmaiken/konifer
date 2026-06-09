@@ -9,6 +9,7 @@ import io.konifer.application.usecase.store.StoreNewAssetUseCase
 import io.konifer.application.usecase.update.UpdateAssetUseCase
 import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
+import io.konifer.domain.context.RequestContextValidator
 import io.konifer.domain.ports.EventBus
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.transformation.TransformationNormalizer
@@ -74,6 +75,7 @@ fun Application.configModule(): Module =
 fun domainModule(): Module =
     module {
         single<RequestContextFactory>()
+        single<RequestContextValidator>()
         single<TransformationNormalizer>()
         single<VariantService>()
         singleOf(::InMemoryEventBus) {

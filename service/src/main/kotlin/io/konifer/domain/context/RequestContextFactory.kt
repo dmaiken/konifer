@@ -43,6 +43,7 @@ class RequestContextFactory(
     private val pathConfigurationRepository: PathConfigurationRepository,
     private val variantProfileRepository: VariantProfileRepository,
     private val transformationNormalizer: TransformationNormalizer,
+    private val requestContextValidator: RequestContextValidator,
 ) {
     companion object {
         const val PATH_NAMESPACE_SEPARATOR = "-"
@@ -72,7 +73,7 @@ class RequestContextFactory(
         )
     }
 
-    suspend fun fromGetRequest(
+    suspend fun fromFetchRequest(
         path: String,
         headers: Headers,
         queryParameters: Parameters,
@@ -90,7 +91,7 @@ class RequestContextFactory(
                 parameters = queryParameters,
             )
         val pathConfiguration = pathConfigurationRepository.fetch(segments.first())
-        RequestContextValidator.validateGetRequest(
+        requestContextValidator.validateFetchRequest(
             querySelectors = querySelectors,
             pathConfiguration = pathConfiguration,
             requestedTransformation = requestedTransformation,
