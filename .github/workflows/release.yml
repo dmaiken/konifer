@@ -9,7 +9,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   BASE_IMAGE_NAME: ${{ github.repository }}-base
-  BASE_CI_IMAGE_NAME: ${{ github.repository }}-base-ci
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
 jobs:
@@ -24,7 +23,7 @@ jobs:
             platform: linux/arm64
             arch: arm64
     container:
-      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}

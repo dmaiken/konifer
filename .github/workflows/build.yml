@@ -30,7 +30,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   BASE_IMAGE_NAME: ${{ github.repository }}-base
-  BASE_CI_IMAGE_NAME: ${{ github.repository }}-base-ci
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
 permissions:
@@ -41,7 +40,7 @@ jobs:
   compile-and-lint:
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -59,7 +58,7 @@ jobs:
     needs: compile-and-lint
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -76,7 +75,7 @@ jobs:
     needs: compile-and-lint
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -191,7 +190,7 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.runner }}
     container:
-      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
