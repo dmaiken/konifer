@@ -23,6 +23,11 @@ jobs:
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
             arch: arm64
+    container:
+      image: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     runs-on: ${{ matrix.runner }}
     permissions:
@@ -43,16 +48,8 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Test with Gradle
-        run: |
-          docker run --rm \
-            -e GRADLE_OPTS="${GRADLE_OPTS}" \
-            -e LD_PRELOAD=libjemalloc.so.2 \
-            -e SVT_LOG=1 \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace \
-            ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:latest \
-            ./gradlew :service:build :service:shadowJar
+      - name: Build and Test
+        run: ./gradlew :service:build :service:shadowJar
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
