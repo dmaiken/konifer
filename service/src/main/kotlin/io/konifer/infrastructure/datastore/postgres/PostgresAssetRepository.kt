@@ -470,6 +470,7 @@ class PostgresAssetRepository(
                 .select(*ASSET_VARIANT.fields())
                 .from(ASSET_VARIANT)
                 .where(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
+                .and(ASSET_VARIANT.UPLOADED_AT.isNotNull)
                 .and(
                     transformation?.let {
                         calculateJoinVariantConditions(it)
