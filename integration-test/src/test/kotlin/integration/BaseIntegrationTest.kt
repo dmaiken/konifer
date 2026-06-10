@@ -1,6 +1,7 @@
 package integration
 
 import io.konifer.client.KoniferClient
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -85,5 +86,7 @@ abstract class BaseIntegrationTest {
         }
     }
 
-    protected val client = KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
+    protected val client = runBlocking {
+        KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
+    }
 }
