@@ -39,7 +39,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -51,7 +51,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 )
 
             val response =
-                konifer.fetchAssetContentBytes(
+                konifer().fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {
@@ -61,7 +61,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 ) as KoniferResponse.Success
             response.body shouldBeFormat ImageFormat.JPEG
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "users/123",
                 ).fold(
@@ -79,7 +79,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
     fun `fetched variant contains no thumbnail exif metadata`() =
         testInMemory {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -90,7 +90,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                     onError = { _, _, _ -> fail("Request failed") },
                 )
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -117,7 +117,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
     fun `can fetch variant of large image`() =
         testInMemory {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -128,7 +128,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                     onError = { _, _, _ -> fail("Request failed") },
                 )
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =

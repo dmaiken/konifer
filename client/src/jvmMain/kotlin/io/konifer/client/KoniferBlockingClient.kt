@@ -13,9 +13,31 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.OutputStream
 
-class KoniferBlockingClient(
+class KoniferBlockingClient internal constructor(
     private val client: KoniferClient,
 ) {
+    companion object {
+        /**
+         * Synchronously builds a KoniferBlockingClient.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun build(
+            baseUrl: String,
+            hmacKey: String? = null,
+            hmacSigningAlgorithm: HmacSigningAlgorithm = HmacSigningAlgorithm.HMAC_SHA256,
+        ): KoniferBlockingClient =
+            runBlocking {
+                val asyncClient =
+                    KoniferClient.build(
+                        baseUrl = baseUrl,
+                        hmacKey = hmacKey,
+                        hmacSigningAlgorithm = hmacSigningAlgorithm,
+                    )
+                KoniferBlockingClient(asyncClient)
+            }
+    }
+
     fun fetchAssetMetadata(
         path: String,
         querySelectors: FetchQuerySelector = None(),

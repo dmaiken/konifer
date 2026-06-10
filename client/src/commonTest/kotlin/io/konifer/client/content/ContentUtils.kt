@@ -3,6 +3,7 @@ package io.konifer.client.content
 import io.konifer.client.RequestedTransformation
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertRequestedTransformation
+import io.konifer.client.harness.assertSignatureParameter
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -20,6 +21,7 @@ fun configureMockEngineHappy(
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     requestedTransformation: RequestedTransformation? = null,
     labels: Map<String, String> = emptyMap(),
+    expectSignature: Boolean = false,
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
@@ -31,6 +33,10 @@ fun configureMockEngineHappy(
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,
+        )
+        assertSignatureParameter(
+            parameters = request.url.parameters,
+            expectSignature = expectSignature,
         )
 
         respond(
@@ -47,6 +53,7 @@ fun configureMockEngineHappyRedirect(
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     requestedTransformation: RequestedTransformation? = null,
     labels: Map<String, String> = emptyMap(),
+    expectSignature: Boolean = false,
 ): MockEngine =
     MockEngine { request ->
         request.method shouldBe HttpMethod.Get
@@ -61,6 +68,10 @@ fun configureMockEngineHappyRedirect(
                 assertLabels(
                     parameters = request.url.parameters,
                     labels = labels,
+                )
+                assertSignatureParameter(
+                    parameters = request.url.parameters,
+                    expectSignature = expectSignature,
                 )
                 respond(
                     content = "",

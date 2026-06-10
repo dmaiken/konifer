@@ -3,7 +3,6 @@ package io.konifer.asset
 import io.konifer.BaseFunctionalTest
 import io.konifer.client.ContentFetchMode
 import io.konifer.client.KoniferInternalTestApi
-import io.konifer.client.KoniferResponse
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
@@ -39,7 +38,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            konifer.storeAsset(
+            konifer().storeAsset(
                 path = "",
                 format = ImageFormat.PNG,
                 request = request,
@@ -66,7 +65,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            konifer.storeAsset(
+            konifer().storeAsset(
                 path = "users/123/profile",
                 format = ImageFormat.PNG,
                 request = request,
@@ -91,7 +90,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            konifer.storeAsset(
+            konifer().storeAsset(
                 path = "users/123/profile",
                 format = ImageFormat.PNG,
                 request = request,
@@ -115,14 +114,13 @@ class StoreAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
 
-            val response =
-                konifer.storeAsset(
+            konifer()
+                .storeAsset(
                     path = "users/123/profile",
                     format = ImageFormat.PNG,
                     request = request,
                     bytes = image,
-                )
-            response::class shouldBe KoniferResponse.Success::class
+                ).shouldBeSuccessful()
 
             val byteChannel = ByteChannel()
             val content =
@@ -131,7 +129,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                         byteChannel.close()
                     }
                 }
-            konifer
+            konifer()
                 .fetchAssetContent(
                     path = "users/123/profile",
                     byteChannel = byteChannel,
@@ -164,7 +162,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123/profile",
                     format = ImageFormat.PNG,

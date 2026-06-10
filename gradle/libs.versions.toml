@@ -34,6 +34,7 @@ google-devtools-ksp-version = "2.3.9"
 kotlinx-datetime-version = "0.8.0"
 metadata-extractor-version = "2.20.0"
 kover-version = "0.9.8"
+cryptography-kotlin-version = "0.6.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -105,6 +106,9 @@ metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref
 postresql = { module = "org.postgresql:postgresql", version.ref = "postgres-version" }
 db-scheduler = { module = "com.github.kagkarlsson:db-scheduler", version.ref = "db-scheduler-version" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
+
+cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography-kotlin-version" }
+cryptography-provider-optimal = { module = "dev.whyoleg.cryptography:cryptography-provider-optimal", version.ref = "cryptography-kotlin-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

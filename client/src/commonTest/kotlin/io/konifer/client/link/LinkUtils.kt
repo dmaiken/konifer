@@ -3,6 +3,7 @@ package io.konifer.client.link
 import io.konifer.client.RequestedTransformation
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertRequestedTransformation
+import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.LQIPResponse
 import io.kotest.matchers.shouldBe
@@ -31,6 +32,7 @@ fun configureMockEngineHappy(
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     requestedTransformation: RequestedTransformation? = null,
     labels: Map<String, String> = emptyMap(),
+    expectSignature: Boolean = false,
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
@@ -42,6 +44,10 @@ fun configureMockEngineHappy(
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,
+        )
+        assertSignatureParameter(
+            parameters = request.url.parameters,
+            expectSignature = expectSignature,
         )
 
         respond(

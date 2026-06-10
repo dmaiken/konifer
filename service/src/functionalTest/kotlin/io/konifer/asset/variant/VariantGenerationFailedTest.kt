@@ -54,14 +54,14 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer.storeAsset(
+            konifer().storeAsset(
                 path = "profile",
                 format = attributes.format,
                 request = StoreAssetRequest(),
                 bytes = image,
             ) shouldHaveHttpError HttpStatusCode.InternalServerError.value
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                     limit = 10,
@@ -94,7 +94,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
             val (image, attributes) = ImageFactory.testImage()
 
             val asset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         format = attributes.format,
@@ -103,7 +103,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer.fetchAssetContentBytes(
+            konifer().fetchAssetContentBytes(
                 path = "profile",
                 requestedTransformation =
                     requestedTransformation {
@@ -111,7 +111,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                     },
             ) shouldHaveHttpError HttpStatusCode.InternalServerError.value
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                     querySelectors = EntryId(asset.entryId),

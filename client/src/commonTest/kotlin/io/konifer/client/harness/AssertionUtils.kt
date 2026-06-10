@@ -63,3 +63,14 @@ fun assertLimit(
         parameters["limit"] shouldBe expectedLimit.toString()
     }
 }
+
+fun assertSignatureParameter(
+    parameters: Parameters,
+    expectSignature: Boolean,
+) {
+    if (expectSignature) {
+        (parameters["s"]?.isNotBlank() == true) shouldBe true
+    } else {
+        parameters["s"] shouldBe null
+    }
+}

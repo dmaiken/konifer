@@ -28,7 +28,7 @@ class VariantProfileTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = ImageFactory.testImage(format = ImageFormat.PNG)
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -36,7 +36,7 @@ class VariantProfileTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetLink(
+            konifer().fetchAssetLink(
                 path = "profile",
                 requestedTransformation =
                     requestedTransformation {
@@ -59,7 +59,7 @@ class VariantProfileTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage(format = ImageFormat.PNG)
             val bufferedImage = byteArrayToImage(image)
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -68,7 +68,7 @@ class VariantProfileTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val variant =
-                konifer
+                konifer()
                     .fetchAssetContentBytes(
                         path = "profile",
                         requestedTransformation =
@@ -98,7 +98,7 @@ class VariantProfileTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage(format = ImageFormat.PNG)
             val bufferedImage = byteArrayToImage(image)
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -107,7 +107,7 @@ class VariantProfileTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val variant =
-                konifer
+                konifer()
                     .fetchAssetContentBytes(
                         path = "profile",
                         requestedTransformation =
@@ -128,7 +128,7 @@ class VariantProfileTest : BaseFunctionalTest() {
     fun `no variant profiles are okay`() =
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -136,7 +136,7 @@ class VariantProfileTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetLink(
+            konifer().fetchAssetLink(
                 path = "profile",
                 requestedTransformation =
                     requestedTransformation {
@@ -171,7 +171,7 @@ class VariantProfileTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -179,7 +179,7 @@ class VariantProfileTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetLink(
                     path = "profile",
                     requestedTransformation =

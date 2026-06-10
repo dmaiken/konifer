@@ -3,7 +3,6 @@ package io.konifer.asset
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.client.EntryId
-import io.konifer.client.KoniferResponse
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
@@ -38,36 +37,38 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer.storeAsset(
-                path = "profile",
-                format = attributes.format,
-                request = requestWithoutLabels,
-                bytes = image,
-            )::class shouldBe KoniferResponse.Success::class
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = requestWithoutLabels,
+                    bytes = image,
+                ).shouldBeSuccessful()
             val response =
-                konifer.storeAsset(
+                konifer().storeAsset(
                     path = "profile",
                     format = attributes.format,
                     request = request,
                     bytes = image,
                 )
-            response::class shouldBe KoniferResponse.Success::class
-            val entryIdWithLabels = (response as KoniferResponse.Success).body.entryId
+            response.shouldBeSuccessful()
+            val entryIdWithLabels = response.body.entryId
 
-            konifer.storeAsset(
-                path = "profile",
-                format = attributes.format,
-                request = requestWithoutLabels,
-                bytes = image,
-            )::class shouldBe KoniferResponse.Success::class
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = requestWithoutLabels,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
             val metadata =
-                konifer.fetchAssetMetadata(
+                konifer().fetchAssetMetadata(
                     path = "profile",
                     labels = labels,
                 )
-            metadata::class shouldBe KoniferResponse.Success::class
-            with((metadata as KoniferResponse.Success).body) {
+            metadata.shouldBeSuccessful()
+            with(metadata.body) {
                 this.tags shouldContainExactly tags
                 this.labels shouldContainExactly labels
                 this.alt shouldBe request.alt
@@ -98,7 +99,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -106,7 +107,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
             val response =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         format = attributes.format,
@@ -116,15 +117,16 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     .body
             val entryIdWithLabels = response.entryId
 
-            konifer.storeAsset(
-                path = "profile",
-                format = attributes.format,
-                request = requestWithoutLabels,
-                bytes = image,
-            )::class shouldBe KoniferResponse.Success::class
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = requestWithoutLabels,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
             val metadata =
-                konifer
+                konifer()
                     .fetchAssetMetadata(
                         path = "profile",
                         querySelectors = EntryId(entryIdWithLabels),
@@ -141,7 +143,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
             }
 
             // Verify wrong entryId with right labels returns NotFound
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 querySelectors = EntryId(entryIdWithLabels + 1),
                 labels = labels,
@@ -169,7 +171,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -177,7 +179,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
             val response =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         format = attributes.format,
@@ -187,7 +189,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     .body
             val entryIdWithLabels = response.entryId
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -196,7 +198,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val metadata =
-                konifer
+                konifer()
                     .fetchAssetMetadata(
                         path = "profile",
                         labels = labels.mapKeys { "label:${it.key}" },
@@ -233,7 +235,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -241,7 +243,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
             val response =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         format = attributes.format,
@@ -251,7 +253,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     .body
             val entryIdWithLabels = response.entryId
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -260,7 +262,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val metadata =
-                konifer
+                konifer()
                     .fetchAssetMetadata(
                         path = "profile",
                         labels = labels,
@@ -297,7 +299,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -305,7 +307,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
             val response =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         format = attributes.format,
@@ -315,7 +317,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     .body
             val entryIdWithLabels = response.entryId
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -324,7 +326,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val metadata =
-                konifer
+                konifer()
                     .fetchAssetMetadata(
                         path = "profile",
                         labels = mapOf("phone" to "iphone"),
@@ -361,21 +363,21 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
                     request = requestWithoutLabels,
                     bytes = image,
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
                     request = request,
                     bytes = image,
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -383,7 +385,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 labels = mapOf("phone" to "android"),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
@@ -410,21 +412,21 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     alt = "an image",
                     tags = tags,
                 )
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
                     request = requestWithoutLabels,
                     bytes = image,
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
                     request = request,
                     bytes = image,
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
@@ -432,7 +434,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 labels = mapOf("tablet" to "iphone"),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value

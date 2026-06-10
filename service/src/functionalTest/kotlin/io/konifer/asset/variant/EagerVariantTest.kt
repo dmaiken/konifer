@@ -49,7 +49,7 @@ class EagerVariantTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -60,7 +60,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         await().untilCallTo {
                             runBlocking {
                                 val response =
-                                    konifer.fetchAssetMetadata(
+                                    konifer().fetchAssetMetadata(
                                         path = "users/123",
                                     )
                                 (response as KoniferResponse.Success).body.variants.size
@@ -68,7 +68,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         } matches { count -> count == 3 }
 
                         val response =
-                            konifer.fetchAssetMetadata(
+                            konifer().fetchAssetMetadata(
                                 path = "users/123",
                             )
                         val variants = (response as KoniferResponse.Success).body.variants
@@ -119,7 +119,7 @@ class EagerVariantTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -170,7 +170,7 @@ class EagerVariantTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -193,13 +193,13 @@ class EagerVariantTest : BaseFunctionalTest() {
                         val actualContent = fetchAssetContent(client, path = "users/123", profile = "small").second!!
 
                         // Store same asset without preprocessing and fetch r = 180 + small variant profile
-                        konifer.storeAsset(
+                        konifer().storeAsset(
                             path = "apple/123",
                             format = attributes.format,
                             request = StoreAssetRequest(),
                             bytes = image,
                         )::class shouldBe KoniferResponse.Success::class
-                        konifer
+                        konifer()
                             .fetchAssetContentBytes(
                                 path = "apple/123",
                                 requestedTransformation =

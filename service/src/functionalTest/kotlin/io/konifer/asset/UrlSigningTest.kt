@@ -1,13 +1,13 @@
 package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory
+import io.konifer.client.HmacSigningAlgorithm
+import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.infrastructure.http.signature.HmacSigningAlgorithm
-import io.konifer.infrastructure.http.signature.UrlSigner
+import io.konifer.matchers.shouldBeSuccessful
+import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetLink
-import io.konifer.util.storeAssetMultipartSource
-import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -23,14 +23,20 @@ class UrlSigningTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "profile", verifyLocationHeader = false)
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
-            fetchAssetLink(client, path = "profile", expectedStatusCode = HttpStatusCode.Forbidden)
+            konifer().fetchAssetLink(path = "profile") shouldHaveHttpError 403
         }
 
     @ParameterizedTest
@@ -45,27 +51,32 @@ class UrlSigningTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            configureKoniferHmacSigning(
+                hmacKey = "secret",
+                hmacSigningAlgorithm = algorithm,
+            )
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "profile", verifyLocationHeader = false)
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
-            val path = "/assets/profile/-/link"
-            val paramMap =
-                mapOf(
-                    "h" to "100",
-                    "w" to "200",
-                )
-            val signature =
-                UrlSigner.sign(
-                    path = path,
-                    params = paramMap,
-                    secretKey = "secret",
-                    algorithm = algorithm,
-                )
-            fetchAssetLink(client, path = "profile", height = 100, width = 200, signature = signature)
+            konifer()
+                .fetchAssetLink(
+                    path = "profile",
+                    requestedTransformation =
+                        requestedTransformation {
+                            height = 100
+                            width = 200
+                        },
+                ).shouldBeSuccessful()
         }
 
     @ParameterizedTest
@@ -80,33 +91,30 @@ class UrlSigningTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            configureKoniferHmacSigning(
+                hmacKey = "secretttt",
+                hmacSigningAlgorithm = algorithm,
+            )
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "profile", verifyLocationHeader = false)
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                ).shouldBeSuccessful()
 
-            val path = "/assets/profile/-/link"
-            val paramMap =
-                mapOf(
-                    "h" to "100",
-                    "w" to "200",
-                )
-            val signature =
-                UrlSigner.sign(
-                    path = path,
-                    params = paramMap,
-                    secretKey = "secretttt",
-                    algorithm = algorithm,
-                )
-            fetchAssetLink(
-                client,
+            konifer().fetchAssetLink(
                 path = "profile",
-                height = 100,
-                width = 200,
-                signature = signature,
-                expectedStatusCode = HttpStatusCode.Forbidden,
-            )
+                requestedTransformation =
+                    requestedTransformation {
+                        height = 100
+                        width = 200
+                    },
+            ) shouldHaveHttpError 403
         }
 }

@@ -7,6 +7,7 @@ import io.konifer.client.OrderBy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.client.harness.signedKoniferClient
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -38,6 +39,32 @@ class KoniferClientLimitMetadataTest :
                 )
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+        }
+
+        test("should add signature parameter when fetching asset metadata with limit with a signed client") {
+            val serverResponse =
+                listOf(
+                    createMetadataResponse(),
+                    createMetadataResponse(),
+                )
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/metadata",
+                        response = serverResponse,
+                        expectSignature = true,
+                    )
+                }
+
+            val koniferClient = signedKoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetMetadata(
+                    path = "/users/123",
+                    limit = 2,
+                )
+
+            response::class shouldBe KoniferResponse.Success::class
         }
 
         test("should be able to fetch asset metadata with order selector") {
