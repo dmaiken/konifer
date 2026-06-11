@@ -44,13 +44,13 @@ class KoniferClientLimitInfoTest :
         test("should add signature parameter when fetching asset info with limit with a signed client") {
             val serverResponse =
                 listOf(
-                    createMetadataResponse(),
-                    createMetadataResponse(),
+                    createInfoResponse(),
+                    createInfoResponse(),
                 )
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                         expectSignature = true,
                     )
@@ -59,7 +59,7 @@ class KoniferClientLimitInfoTest :
             val koniferClient = signedKoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     limit = 2,
                 )

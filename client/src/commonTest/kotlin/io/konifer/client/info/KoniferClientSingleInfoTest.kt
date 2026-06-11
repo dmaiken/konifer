@@ -46,7 +46,7 @@ class KoniferClientSingleInfoTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                         expectSignature = true,
                     )
@@ -54,7 +54,7 @@ class KoniferClientSingleInfoTest :
 
             val koniferClient = signedKoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetInfo("/users/123")
 
             response::class shouldBe KoniferResponse.Success::class
         }

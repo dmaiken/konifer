@@ -230,7 +230,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                     runBlocking {
                         val variants =
                             konifer()
-                                .fetchAssetMetadata(
+                                .fetchAssetInfo(
                                     path = "users/123",
                                 ).shouldBeSuccessful()
                                 .body.variants
