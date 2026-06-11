@@ -11,7 +11,7 @@ import io.konifer.common.image.Rotate
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
@@ -60,7 +60,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         await().untilCallTo {
                             runBlocking {
                                 val response =
-                                    konifer().fetchAssetMetadata(
+                                    konifer().fetchAssetInfo(
                                         path = "users/123",
                                     )
                                 (response as KoniferResponse.Success).body.variants.size
@@ -68,7 +68,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                         } matches { count -> count == 3 }
 
                         val response =
-                            konifer().fetchAssetMetadata(
+                            konifer().fetchAssetInfo(
                                 path = "users/123",
                             )
                         val variants = (response as KoniferResponse.Success).body.variants
@@ -132,11 +132,11 @@ class EagerVariantTest : BaseFunctionalTest() {
 
                         await().untilCallTo {
                             runBlocking {
-                                fetchAssetMetadata(client, "users/123")!!.variants.size
+                                fetchAssetInfo(client, "users/123")!!.variants.size
                             }
                         } matches { count -> count == 3 }
 
-                        val variants = fetchAssetMetadata(client, "users/123")!!.variants
+                        val variants = fetchAssetInfo(client, "users/123")!!.variants
                         variants.forAll {
                             it.storeBucket shouldBe "correct-bucket"
                         }
@@ -186,7 +186,7 @@ class EagerVariantTest : BaseFunctionalTest() {
 
                         await().untilCallTo {
                             runBlocking {
-                                fetchAssetMetadata(client, "users/123")!!.variants.size
+                                fetchAssetInfo(client, "users/123")!!.variants.size
                             }
                         } matches { count -> count == 2 }
 

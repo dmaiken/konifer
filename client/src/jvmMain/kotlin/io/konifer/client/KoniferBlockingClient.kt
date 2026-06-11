@@ -44,7 +44,7 @@ class KoniferBlockingClient internal constructor(
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         runBlocking {
-            client.fetchAssetMetadata(
+            client.fetchAssetInfo(
                 path = path,
                 querySelectors = querySelectors,
                 labels = labels,
@@ -58,7 +58,7 @@ class KoniferBlockingClient internal constructor(
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         runBlocking {
-            client.fetchAssetMetadata(
+            client.fetchAssetInfo(
                 path = path,
                 limit = limit,
                 querySelectors = querySelectors,

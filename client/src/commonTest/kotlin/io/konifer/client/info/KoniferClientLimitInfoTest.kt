@@ -1,4 +1,4 @@
-package io.konifer.client.metadata
+package io.konifer.client.info
 
 import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
@@ -13,19 +13,19 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 
-class KoniferClientLimitMetadataTest :
+class KoniferClientLimitInfoTest :
     FunSpec({
 
-        test("should be able to fetch asset metadata with limit") {
+        test("should be able to fetch asset info with limit") {
             val serverResponse =
                 listOf(
-                    createMetadataResponse(),
-                    createMetadataResponse(),
+                    createInfoResponse(),
+                    createInfoResponse(),
                 )
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                     )
                 }
@@ -33,7 +33,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     limit = 2,
                 )
@@ -41,7 +41,7 @@ class KoniferClientLimitMetadataTest :
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should add signature parameter when fetching asset metadata with limit with a signed client") {
+        test("should add signature parameter when fetching asset info with limit with a signed client") {
             val serverResponse =
                 listOf(
                     createMetadataResponse(),
@@ -67,16 +67,16 @@ class KoniferClientLimitMetadataTest :
             response::class shouldBe KoniferResponse.Success::class
         }
 
-        test("should be able to fetch asset metadata with order selector") {
+        test("should be able to fetch asset info with order selector") {
             val serverResponse =
                 listOf(
-                    createMetadataResponse(),
-                    createMetadataResponse(),
+                    createInfoResponse(),
+                    createInfoResponse(),
                 )
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/new/metadata",
+                        expectedPath = "/assets/users/123/-/new/info",
                         response = serverResponse,
                     )
                 }
@@ -84,7 +84,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     querySelectors = OrderBy(Order.NEW),
                     limit = 2,
@@ -93,16 +93,16 @@ class KoniferClientLimitMetadataTest :
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should be able to fetch asset metadata with entryId selector") {
+        test("should be able to fetch asset info with entryId selector") {
             val serverResponse =
                 listOf(
-                    createMetadataResponse(),
-                    createMetadataResponse(),
+                    createInfoResponse(),
+                    createInfoResponse(),
                 )
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/entry/1/metadata",
+                        expectedPath = "/assets/users/123/-/entry/1/info",
                         response = serverResponse,
                     )
                 }
@@ -110,7 +110,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     querySelectors = EntryId(1),
                     limit = 2,
@@ -119,11 +119,11 @@ class KoniferClientLimitMetadataTest :
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should be able to fetch asset metadata with limit and labels") {
+        test("should be able to fetch asset info with limit and labels") {
             val serverResponse =
                 listOf(
-                    createMetadataResponse(),
-                    createMetadataResponse(),
+                    createInfoResponse(),
+                    createInfoResponse(),
                 )
             val labels =
                 mapOf(
@@ -133,7 +133,7 @@ class KoniferClientLimitMetadataTest :
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                         labels = labels,
                     )
@@ -142,7 +142,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     limit = 2,
                     labels = labels,
@@ -156,7 +156,7 @@ class KoniferClientLimitMetadataTest :
             val httpClient =
                 httpClient {
                     configureMockEngineError(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                         statusCode = HttpStatusCode.NotFound,
                     )
@@ -165,7 +165,7 @@ class KoniferClientLimitMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     limit = 2,
                 )

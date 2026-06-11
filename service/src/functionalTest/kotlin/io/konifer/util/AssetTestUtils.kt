@@ -455,7 +455,7 @@ suspend fun fetchAssetLink(
     }
 }
 
-suspend fun fetchAssetMetadata(
+suspend fun fetchAssetInfo(
     client: HttpClient,
     path: String = "profile",
     entryId: Long? = null,
@@ -465,15 +465,15 @@ suspend fun fetchAssetMetadata(
 ): AssetResponse? {
     when {
         entryId != null -> {
-            "/assets/$path/-/entry/$entryId/metadata"
+            "/assets/$path/-/entry/$entryId/info"
         }
 
         order != null -> {
-            "/assets/$path/-/${order.name.lowercase()}/metadata"
+            "/assets/$path/-/${order.name.lowercase()}/info"
         }
 
         else -> {
-            "/assets/$path/-/metadata"
+            "/assets/$path/-/info"
         }
     }.let { requestPath ->
         val urlBuilder = URLBuilder()
@@ -502,7 +502,7 @@ suspend fun fetchAllAssetMetadata(
     limit: Int = 1,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
-    val requestPath = "/assets/$path/-/${order.name.lowercase()}/metadata/"
+    val requestPath = "/assets/$path/-/${order.name.lowercase()}/info/"
     val response =
         client.get(requestPath) {
             parameter("limit", limit.toString())

@@ -13,8 +13,8 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.testInMemory
 import io.konifer.util.fetchAllAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.fetchAssetLink
-import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forExactly
@@ -49,7 +49,7 @@ class FetchAssetMetadataTest : BaseFunctionalTest() {
                 }
             }
             entryIds shouldHaveSize 2
-            fetchAssetMetadata(client, "profile")!!.apply {
+            fetchAssetInfo(client, "profile")!!.apply {
                 entryId shouldBe entryIds[1]
                 tags shouldContainExactly tags
                 labels shouldContainExactly labels
@@ -73,7 +73,7 @@ class FetchAssetMetadataTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `variant transformation data is returned in metadata`() =
+    fun `variant transformation data is returned in info`() =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request = StoreAssetRequest()
@@ -99,7 +99,7 @@ class FetchAssetMetadataTest : BaseFunctionalTest() {
                 expectCacheHit = false,
             )
 
-            fetchAssetMetadata(client, path = "profile")!!.apply {
+            fetchAssetInfo(client, path = "profile")!!.apply {
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.isOriginalVariant shouldBe true
@@ -128,7 +128,7 @@ class FetchAssetMetadataTest : BaseFunctionalTest() {
     @Test
     fun `fetching info of asset that does not exist returns not found`() =
         testInMemory {
-            fetchAssetMetadata(client, UuidCreator.getRandomBasedFast().toString(), expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, UuidCreator.getRandomBasedFast().toString(), expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test

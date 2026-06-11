@@ -6,8 +6,8 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.fetchAssetLink
-import io.konifer.util.fetchAssetMetadata
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldHaveSize
@@ -141,7 +141,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
                 expectCacheHit = false,
             )
 
-            fetchAssetMetadata(client, PATH)!!.apply {
+            fetchAssetInfo(client, PATH)!!.apply {
                 variants shouldHaveSize 2
                 variants.forAll {
                     it.lqip.blurhash shouldNotBe null
@@ -210,7 +210,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
                 }
             }
         }
-        fetchAssetMetadata(client, PATH)!!.apply {
+        fetchAssetInfo(client, PATH)!!.apply {
             variants.apply {
                 size shouldBe 1
                 if (lqips.contains(LQIPImplementation.BLURHASH)) {

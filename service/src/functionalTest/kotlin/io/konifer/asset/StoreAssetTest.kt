@@ -12,7 +12,7 @@ import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.konifer.util.UnValidatedStoreAssetRequest
 import io.konifer.util.fetchAssetContent
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.storeAssetUrlSource
 import io.kotest.inspectors.forAll
@@ -170,7 +170,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            fetchAssetMetadata(client, path = "users/123/profile")!!.let { metadata ->
+            fetchAssetInfo(client, path = "users/123/profile")!!.let { metadata ->
                 metadata.variants.forAll {
                     it.storeBucket shouldBe "correct-bucket"
                 }
@@ -242,7 +242,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.source shouldBe AssetSource.URL
             storeAssetResponse.sourceUrl shouldBe url
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @ParameterizedTest
@@ -273,7 +273,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                     url = badUrl,
                 )
             storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -296,7 +296,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 )
 
             storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -320,7 +320,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 )
 
             storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
-            fetchAssetMetadata(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -341,7 +341,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 )
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -353,7 +353,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 )
             storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -366,7 +366,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -379,7 +379,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -396,7 +396,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -413,7 +413,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test
@@ -432,6 +432,6 @@ class StoreAssetTest : BaseFunctionalTest() {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
+            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 }

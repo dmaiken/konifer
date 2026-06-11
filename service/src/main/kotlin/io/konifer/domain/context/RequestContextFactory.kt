@@ -198,7 +198,7 @@ class RequestContextFactory(
                     parameters.contains(it)
                 } &&
                 variantProfile == null
-        return if (querySelectors.returnFormat == ReturnFormat.METADATA && requestedOriginalVariant) {
+        return if (querySelectors.returnFormat == ReturnFormat.INFO && requestedOriginalVariant) {
             null
         } else if (requestedOriginalVariant) {
             RequestedTransformation.ORIGINAL_VARIANT

@@ -3,7 +3,7 @@ package io.konifer.client.store
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.client.metadata.createMetadataResponse
+import io.konifer.client.info.createInfoResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -18,7 +18,7 @@ class KoniferClientUrlStoreTest :
                 StoreAssetRequest(
                     url = "https://localhost/image.jpg",
                 )
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockUrlEngineHappy(
@@ -51,7 +51,7 @@ class KoniferClientUrlStoreTest :
                     configureMockUrlEngineHappy(
                         expectedPath = "/assets/users/123",
                         request = request,
-                        response = createMetadataResponse(),
+                        response = createInfoResponse(),
                     )
                 }
             val koniferClient = KoniferClient(httpClient)

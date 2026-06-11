@@ -3,7 +3,7 @@ package io.konifer.asset
 import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
 import io.kotest.matchers.collections.shouldContainExactly
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 
 class UpdateAssetTest : BaseFunctionalTest() {
     @Test
-    fun `can update asset metadata`() =
+    fun `can update asset info`() =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
@@ -36,7 +36,7 @@ class UpdateAssetTest : BaseFunctionalTest() {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.labels shouldContainExactly request.labels
             storeAssetResponse.tags shouldContainExactly request.tags
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
 
             val updateRequest =
                 StoreAssetRequest(
@@ -53,11 +53,11 @@ class UpdateAssetTest : BaseFunctionalTest() {
             updateResponse.createdAt shouldBe storeAssetResponse.createdAt
             updateResponse.modifiedAt.toJavaLocalDateTime() shouldBeAfter storeAssetResponse.modifiedAt.toJavaLocalDateTime()
 
-            fetchAssetMetadata(client, path = "profile") shouldBe updateResponse
+            fetchAssetInfo(client, path = "profile") shouldBe updateResponse
         }
 
     @Test
-    fun `can update asset metadata to remove fields`() =
+    fun `can update asset info to remove fields`() =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
@@ -75,7 +75,7 @@ class UpdateAssetTest : BaseFunctionalTest() {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.labels shouldContainExactly request.labels
             storeAssetResponse.tags shouldContainExactly request.tags
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
 
             val updateRequest =
                 StoreAssetRequest(
@@ -90,7 +90,7 @@ class UpdateAssetTest : BaseFunctionalTest() {
             updateResponse.tags shouldContainExactly updateRequest.tags
             updateResponse.alt shouldBe updateRequest.alt
 
-            fetchAssetMetadata(client, path = "profile") shouldBe updateResponse
+            fetchAssetInfo(client, path = "profile") shouldBe updateResponse
         }
 
     @Test
@@ -129,7 +129,7 @@ class UpdateAssetTest : BaseFunctionalTest() {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.labels shouldContainExactly request.labels
             storeAssetResponse.tags shouldContainExactly request.tags
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
 
             val updateRequest =
                 StoreAssetRequest(
@@ -140,6 +140,6 @@ class UpdateAssetTest : BaseFunctionalTest() {
             val locationWithoutEntryId = storeResponseHeaders[HttpHeaders.Location]!!.removeSuffix("/entry/${storeAssetResponse.entryId}")
             updateAsset(client, locationWithoutEntryId, updateRequest, expectedStatusCode = HttpStatusCode.BadRequest)
 
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 }

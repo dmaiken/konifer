@@ -62,7 +62,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
             ) shouldHaveHttpError HttpStatusCode.InternalServerError.value
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                     limit = 10,
                 ).shouldBeSuccessful()
@@ -112,7 +112,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
             ) shouldHaveHttpError HttpStatusCode.InternalServerError.value
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                     querySelectors = EntryId(asset.entryId),
                 ).shouldBeSuccessful()

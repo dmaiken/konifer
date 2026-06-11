@@ -4,7 +4,7 @@ import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.content.readResourceBytes
 import io.konifer.client.harness.httpClient
-import io.konifer.client.metadata.createMetadataResponse
+import io.konifer.client.info.createInfoResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.assertions.throwables.shouldThrow
@@ -18,7 +18,7 @@ class KoniferClientMultipartStoreTest :
         test("should be able to upload an asset supplied as a channel") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request = StoreAssetRequest()
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockMultipartEngineHappy(
@@ -44,7 +44,7 @@ class KoniferClientMultipartStoreTest :
         test("should be able to upload an asset supplied as a bytearray") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request = StoreAssetRequest()
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockMultipartEngineHappy(
@@ -73,7 +73,7 @@ class KoniferClientMultipartStoreTest :
                 StoreAssetRequest(
                     url = "https://localhost/image.jpg",
                 )
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockMultipartEngineHappy(

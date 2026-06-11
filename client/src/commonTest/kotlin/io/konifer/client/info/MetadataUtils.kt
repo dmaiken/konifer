@@ -1,4 +1,4 @@
-package io.konifer.client.metadata
+package io.konifer.client.info
 
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertLimit
@@ -30,7 +30,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 
-fun createMetadataResponse() =
+fun createInfoResponse() =
     AssetResponse(
         `class` = AssetClass.IMAGE,
         alt = "an image",

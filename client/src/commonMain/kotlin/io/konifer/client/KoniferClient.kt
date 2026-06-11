@@ -102,7 +102,7 @@ class KoniferClient internal constructor(
             followRedirects = false
         }
 
-    suspend fun fetchAssetMetadata(
+    suspend fun fetchAssetInfo(
         path: String,
         querySelectors: FetchQuerySelector = None(),
         labels: Map<String, String> = emptyMap(),
@@ -112,7 +112,7 @@ class KoniferClient internal constructor(
                 signedUrl {
                     appendPathSegments(ASSETS_BASE_PATH)
                     appendPathSegments(path.splitPath())
-                    appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
+                    appendQuerySelectors(ReturnFormat.INFO, querySelectors)
                     appendLabels(labels)
                 }
             httpClient
@@ -122,7 +122,7 @@ class KoniferClient internal constructor(
                 }.toKoniferResponse()
         }
 
-    suspend fun fetchAssetMetadata(
+    suspend fun fetchAssetInfo(
         path: String,
         limit: Int,
         querySelectors: FetchQuerySelector = None(),
@@ -133,7 +133,7 @@ class KoniferClient internal constructor(
                 signedUrl {
                     appendPathSegments(ASSETS_BASE_PATH)
                     appendPathSegments(path.splitPath())
-                    appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
+                    appendQuerySelectors(ReturnFormat.INFO, querySelectors)
                     appendLimit(limit)
                     appendLabels(labels)
                 }

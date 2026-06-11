@@ -62,7 +62,7 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
             response.body shouldBeFormat ImageFormat.JPEG
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "users/123",
                 ).fold(
                     onSuccess = { response ->

@@ -16,7 +16,7 @@ data class QuerySelectors(
     val specifiedModifiers: SpecifiedInRequest = SpecifiedInRequest(),
 ) {
     init {
-        if (returnFormat != ReturnFormat.METADATA && limit > 1) {
+        if (returnFormat != ReturnFormat.INFO && limit > 1) {
             throw InvalidQuerySelectorsException(
                 "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}",
             )

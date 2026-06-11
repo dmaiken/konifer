@@ -6,8 +6,8 @@ import io.konifer.client.content.readResourceBytes
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.client.info.createInfoResponse
 import io.konifer.client.link.createLinkResponse
-import io.konifer.client.metadata.createMetadataResponse
 import io.konifer.client.store.configureMockMultipartEngineHappy
 import io.konifer.client.store.configureMockUrlEngineHappy
 import io.konifer.common.http.StoreAssetRequest
@@ -26,20 +26,20 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.cancellation.CancellationException
 import io.konifer.client.delete.configureMockEngineHappy as configureMockDeleteEngineHappy
+import io.konifer.client.info.configureMockEngineHappy as configureMockMetadataEngineHappy
 import io.konifer.client.link.configureMockEngineHappy as configureMockLinkEngineHappy
-import io.konifer.client.metadata.configureMockEngineHappy as configureMockMetadataEngineHappy
 import io.konifer.client.redirect.configureMockEngineHappyRedirect as configureMockRedirectLocationEngineHappy
 import io.konifer.client.update.configureMockEngineHappy as configureMockUpdateEngineHappy
 
 class KoniferBlockingClientTest :
     FunSpec({
-        test("should fetch single asset metadata") {
-            val expectedResponse = createMetadataResponse()
+        test("should fetch single asset info") {
+            val expectedResponse = createInfoResponse()
             val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockMetadataEngineHappy(
-                        expectedPath = "/assets/users/123/-/modified/metadata",
+                        expectedPath = "/assets/users/123/-/modified/info",
                         response = expectedResponse,
                         labels = labels,
                     )
@@ -57,13 +57,13 @@ class KoniferBlockingClientTest :
             (response as KoniferResponse.Success<*>).body shouldBe expectedResponse
         }
 
-        test("should fetch limited asset metadata") {
-            val expectedResponse = listOf(createMetadataResponse(), createMetadataResponse())
+        test("should fetch limited asset info") {
+            val expectedResponse = listOf(createInfoResponse(), createInfoResponse())
             val labels = mapOf("key1" to "value1", "key2" to "value2")
             val httpClient =
                 httpClient {
                     configureMockMetadataEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = expectedResponse,
                         labels = labels,
                     )
@@ -210,7 +210,7 @@ class KoniferBlockingClientTest :
         test("should store asset from input stream") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request = StoreAssetRequest(alt = "an image")
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockMultipartEngineHappy(
@@ -237,7 +237,7 @@ class KoniferBlockingClientTest :
         test("should store asset from bytes") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request = StoreAssetRequest(alt = "an image")
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockMultipartEngineHappy(
@@ -263,7 +263,7 @@ class KoniferBlockingClientTest :
 
         test("should store asset from url request") {
             val request = StoreAssetRequest(url = "https://localhost/image.jpg")
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockUrlEngineHappy(
@@ -291,7 +291,7 @@ class KoniferBlockingClientTest :
                     labels = mapOf("test" to "test"),
                     alt = "alt",
                 )
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockUpdateEngineHappy(
