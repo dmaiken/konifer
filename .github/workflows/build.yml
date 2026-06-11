@@ -92,7 +92,7 @@ jobs:
         run: ./gradlew :service:shadowJar -x test -x detekt -x ktlintCheck
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/reports/kover/report.xml
