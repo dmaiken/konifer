@@ -8,7 +8,6 @@ import io.konifer.common.selector.ReturnFormat
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.ChannelProvider
@@ -24,9 +23,11 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
@@ -37,12 +38,17 @@ import kotlinx.serialization.json.Json
 
 class KoniferClient internal constructor(
     private val httpClient: HttpClient,
+    private val urlSigner: KoniferUrlSigner? = null,
 ) {
     companion object {
         private const val ASSETS_BASE_PATH = "assets"
         private const val BOUNDARY = "boundary"
 
-        fun build(baseUrl: String): KoniferClient {
+        suspend fun build(
+            baseUrl: String,
+            hmacKey: String? = null,
+            hmacSigningAlgorithm: HmacSigningAlgorithm = HmacSigningAlgorithm.HMAC_SHA256,
+        ): KoniferClient {
             val httpClient =
                 HttpClient {
                     install(ContentNegotiation) {
@@ -57,11 +63,38 @@ class KoniferClient internal constructor(
                         url(baseUrl)
                     }
                 }
-            return KoniferClient(httpClient)
+            return KoniferClient(
+                httpClient = httpClient,
+                urlSigner =
+                    hmacKey?.let {
+                        KoniferUrlSigner.create(
+                            HmacSigningConfig(
+                                secretKey = it,
+                                algorithm = hmacSigningAlgorithm,
+                            ),
+                        )
+                    },
+            )
         }
 
         @KoniferInternalTestApi
-        fun buildForTesting(testClient: HttpClient): KoniferClient = KoniferClient(testClient)
+        suspend fun buildForTesting(
+            testClient: HttpClient,
+            hmacKey: String? = null,
+            hmacSigningAlgorithm: HmacSigningAlgorithm = HmacSigningAlgorithm.HMAC_SHA256,
+        ): KoniferClient =
+            KoniferClient(
+                httpClient = testClient,
+                urlSigner =
+                    hmacKey?.let {
+                        KoniferUrlSigner.create(
+                            HmacSigningConfig(
+                                secretKey = it,
+                                algorithm = hmacSigningAlgorithm,
+                            ),
+                        )
+                    },
+            )
     }
 
     private val noRedirectClient =
@@ -75,14 +108,16 @@ class KoniferClient internal constructor(
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         safeApiCall {
+            val requestUrl =
+                signedUrl {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                    appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
+                    appendLabels(labels)
+                }
             httpClient
                 .get {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
-                        appendLabels(labels)
-                    }
+                    url.takeFrom(requestUrl)
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
         }
@@ -94,15 +129,17 @@ class KoniferClient internal constructor(
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         safeApiCall {
+            val requestUrl =
+                signedUrl {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                    appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
+                    appendLimit(limit)
+                    appendLabels(labels)
+                }
             httpClient
                 .get {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        appendQuerySelectors(ReturnFormat.METADATA, querySelectors)
-                        appendLimit(limit)
-                        appendLabels(labels)
-                    }
+                    url.takeFrom(requestUrl)
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
         }
@@ -116,15 +153,17 @@ class KoniferClient internal constructor(
         fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
     ): KoniferResponse<Unit> =
         safeApiCall {
+            val requestUrl =
+                fetchContentUrl(
+                    path = path,
+                    querySelectors = querySelectors,
+                    labels = labels,
+                    requestedTransformation = requestedTransformation,
+                    fetchMode = fetchMode,
+                )
             httpClient
                 .prepareGet {
-                    fetchContentUrl(
-                        path = path,
-                        querySelectors = querySelectors,
-                        labels = labels,
-                        requestedTransformation = requestedTransformation,
-                        fetchMode = fetchMode,
-                    )
+                    url.takeFrom(requestUrl)
                 }.execute { response ->
                     if (response.status.isSuccess()) {
                         response.bodyAsChannel().copyAndClose(byteChannel)
@@ -144,15 +183,17 @@ class KoniferClient internal constructor(
         fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
     ): KoniferResponse<ByteArray> =
         safeApiCall {
+            val requestUrl =
+                fetchContentUrl(
+                    path = path,
+                    querySelectors = querySelectors,
+                    labels = labels,
+                    requestedTransformation = requestedTransformation,
+                    fetchMode = fetchMode,
+                )
             httpClient
                 .prepareGet {
-                    fetchContentUrl(
-                        path = path,
-                        querySelectors = querySelectors,
-                        labels = labels,
-                        requestedTransformation = requestedTransformation,
-                        fetchMode = fetchMode,
-                    )
+                    url.takeFrom(requestUrl)
                 }.execute { response ->
                     if (response.status.isSuccess()) {
                         KoniferResponse.Success(response.bodyAsBytes())
@@ -169,15 +210,17 @@ class KoniferClient internal constructor(
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
         safeApiCall {
+            val requestUrl =
+                signedUrl {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                    appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
+                    appendTransformationParameters(requestedTransformation)
+                    appendLabels(labels)
+                }
             noRedirectClient
                 .prepareGet {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
-                        appendTransformationParameters(requestedTransformation)
-                        appendLabels(labels)
-                    }
+                    url.takeFrom(requestUrl)
                 }.execute { response ->
                     if (response.status.value in 300..399) {
                         val locationUrl =
@@ -198,15 +241,17 @@ class KoniferClient internal constructor(
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
         safeApiCall {
+            val requestUrl =
+                signedUrl {
+                    appendPathSegments(ASSETS_BASE_PATH)
+                    appendPathSegments(path.splitPath())
+                    appendQuerySelectors(ReturnFormat.LINK, querySelectors)
+                    appendTransformationParameters(requestedTransformation)
+                    appendLabels(labels)
+                }
             httpClient
                 .get {
-                    url {
-                        appendPathSegments(ASSETS_BASE_PATH)
-                        appendPathSegments(path.splitPath())
-                        appendQuerySelectors(ReturnFormat.LINK, querySelectors)
-                        appendTransformationParameters(requestedTransformation)
-                        appendLabels(labels)
-                    }
+                    url.takeFrom(requestUrl)
                     accept(ContentType.Application.Json)
                 }.toKoniferResponse()
         }
@@ -358,20 +403,30 @@ class KoniferClient internal constructor(
             KoniferResponse.NetworkError(e)
         }
 
-    private fun HttpRequestBuilder.fetchContentUrl(
+    private suspend fun fetchContentUrl(
         path: String,
         querySelectors: FetchQuerySelector,
         labels: Map<String, String>,
         requestedTransformation: RequestedTransformation,
         fetchMode: ContentFetchMode,
-    ) = url {
-        appendPathSegments(ASSETS_BASE_PATH)
-        appendPathSegments(path.splitPath())
-        when (fetchMode) {
-            ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
-            ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
+    ): URLBuilder =
+        signedUrl {
+            appendPathSegments(ASSETS_BASE_PATH)
+            appendPathSegments(path.splitPath())
+            when (fetchMode) {
+                ContentFetchMode.CONTENT -> appendQuerySelectors(ReturnFormat.CONTENT, querySelectors)
+                ContentFetchMode.REDIRECT -> appendQuerySelectors(ReturnFormat.REDIRECT, querySelectors)
+            }
+            appendTransformationParameters(requestedTransformation)
+            appendLabels(labels)
         }
-        appendTransformationParameters(requestedTransformation)
-        appendLabels(labels)
-    }
+
+    private suspend fun signedUrl(block: URLBuilder.() -> Unit): URLBuilder =
+        URLBuilder()
+            .apply(block)
+            .apply {
+                urlSigner?.let { signer ->
+                    parameters.append(signer.signatureParameter, signer.sign(this))
+                }
+            }
 }

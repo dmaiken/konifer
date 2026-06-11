@@ -8,11 +8,15 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.concurrent.TimeUnit
 
 class OnDemandVariantModeTest : BaseFunctionalTest() {
     @Test
@@ -37,7 +41,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -45,7 +49,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -55,7 +59,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val errorResponse =
-                konifer.fetchAssetContentBytes(
+                konifer().fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {
@@ -90,7 +94,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -98,7 +102,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -107,7 +111,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                         },
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -136,7 +140,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -144,7 +148,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                 ).shouldBeSuccessful()
@@ -167,7 +171,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -176,7 +180,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val errorResponse =
-                konifer.fetchAssetContentBytes(
+                konifer().fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {
@@ -210,7 +214,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -218,7 +222,23 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer
+            // Await eager variant to reduce test flakiness
+            Awaitility
+                .await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted {
+                    runBlocking {
+                        val variants =
+                            konifer()
+                                .fetchAssetMetadata(
+                                    path = "users/123",
+                                ).shouldBeSuccessful()
+                                .body.variants
+                        variants shouldHaveSize 2
+                    }
+                }
+
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -228,7 +248,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             // Transformation matches the profile definition
-            konifer
+            konifer()
                 .fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
@@ -261,7 +281,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
         ) {
             val (image, attributes) = ImageFactory.testImage()
 
-            konifer
+            konifer()
                 .storeAsset(
                     path = "users/123",
                     format = attributes.format,
@@ -270,7 +290,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             val errorResponse =
-                konifer.fetchAssetContentBytes(
+                konifer().fetchAssetContentBytes(
                     path = "users/123",
                     requestedTransformation =
                         requestedTransformation {

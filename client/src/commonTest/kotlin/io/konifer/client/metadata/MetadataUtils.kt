@@ -2,6 +2,7 @@ package io.konifer.client.metadata
 
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertLimit
+import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
@@ -96,6 +97,7 @@ fun configureMockEngineHappy(
     response: AssetResponse,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     labels: Map<String, String> = emptyMap(),
+    expectSignature: Boolean = false,
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
@@ -103,6 +105,10 @@ fun configureMockEngineHappy(
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,
+        )
+        assertSignatureParameter(
+            parameters = request.url.parameters,
+            expectSignature = expectSignature,
         )
 
         respond(
@@ -117,6 +123,7 @@ fun configureMockEngineHappy(
     response: List<AssetResponse>,
     statusCode: HttpStatusCode = HttpStatusCode.OK,
     labels: Map<String, String> = emptyMap(),
+    expectSignature: Boolean = false,
 ): MockEngine =
     MockEngine { request ->
         request.url.encodedPath shouldBe expectedPath
@@ -128,6 +135,10 @@ fun configureMockEngineHappy(
         assertLabels(
             parameters = request.url.parameters,
             labels = labels,
+        )
+        assertSignatureParameter(
+            parameters = request.url.parameters,
+            expectSignature = expectSignature,
         )
 
         respond(

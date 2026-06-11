@@ -104,18 +104,17 @@ class InMemoryAssetRepository : AssetRepository {
     ): AssetData? {
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
-            if (transformation == null) {
-                asset.variants
-            } else if (transformation.originalVariant) {
-                asset.variants.filter { it.isOriginalVariant }
-            } else {
-                asset.variants
-                    .firstOrNull { variant ->
-                        transformation == variant.transformation
-                    }?.let { matched ->
-                        listOf(matched)
-                    } ?: emptyList()
-            }
+            when {
+                transformation == null -> asset.variants
+                transformation.originalVariant -> asset.variants.filter { it.isOriginalVariant }
+                else ->
+                    asset.variants
+                        .firstOrNull { variant ->
+                            transformation == variant.transformation
+                        }?.let { matched ->
+                            listOf(matched)
+                        } ?: emptyList()
+            }.filter { it.uploadedAt != null }
         return asset.toAssetData(variants)
     }
 

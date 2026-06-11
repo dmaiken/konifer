@@ -6,6 +6,7 @@ import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.client.harness.signedKoniferClient
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -30,6 +31,27 @@ class KoniferClientLinkTest :
                 )
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
+        }
+
+        test("should add signature parameter when fetching asset link with a signed client") {
+            val serverResponse = createLinkResponse()
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/link",
+                        response = serverResponse,
+                        expectSignature = true,
+                    )
+                }
+
+            val koniferClient = signedKoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetLink(
+                    path = "/users/123",
+                )
+
+            response::class shouldBe KoniferResponse.Success::class
         }
 
         test("should return the error message on a client error") {

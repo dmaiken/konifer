@@ -10,6 +10,7 @@ import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.client.harness.signedKoniferClient
 import io.konifer.client.requestedTransformation
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
@@ -48,6 +49,35 @@ class KoniferClientContentTest :
             actualBytes.await() shouldBe imageBytes
         }
 
+        test("should add signature parameter when fetching content with a signed client") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                        expectSignature = true,
+                    )
+                }
+
+            val koniferClient = signedKoniferClient(httpClient)
+
+            val responseChannel = ByteChannel()
+            val actualBytes =
+                async {
+                    responseChannel.toByteArray()
+                }
+            val response =
+                koniferClient.fetchAssetContent(
+                    path = "/users/123",
+                    byteChannel = responseChannel,
+                    fetchMode = ContentFetchMode.CONTENT,
+                )
+
+            response::class shouldBe KoniferResponse.Success::class
+            actualBytes.await() shouldBe imageBytes
+        }
+
         test("should be able to fetch content bytes") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val httpClient =
@@ -64,6 +94,28 @@ class KoniferClientContentTest :
                 koniferClient.fetchAssetContentBytes(
                     path = "/users/123",
                 )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe imageBytes
+        }
+
+        test("should add signature parameter when fetching content bytes with a signed client") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappy(
+                        expectedPath = "/assets/users/123/-/content",
+                        bytes = imageBytes,
+                        expectSignature = true,
+                    )
+                }
+
+            val koniferClient = signedKoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetContentBytes(
+                    path = "/users/123",
+                )
+
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe imageBytes
         }

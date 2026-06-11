@@ -138,7 +138,7 @@ sealed interface Asset {
             ): Pending =
                 Pending(
                     id = new.id,
-                    path = new.path,
+                    path = new.path.removeSuffix("/"),
                     entryId = null,
                     alt = new.alt,
                     labels = new.labels,

@@ -73,6 +73,7 @@ class FetchAssetHandler(
         context: QueryRequestContext,
         generateVariant: Boolean,
     ): AssetInformation? {
+        logger.info("Fetching asset info by path: ${context.path}")
         val assetData =
             assetRepository.fetchByPath(
                 path = context.path,

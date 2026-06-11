@@ -6,6 +6,7 @@ import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.client.harness.signedKoniferClient
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
@@ -29,6 +30,28 @@ class KoniferClientRedirectLocationTest :
                 koniferClient.fetchAssetRedirectLocation(
                     path = "/users/123",
                 )
+            response::class shouldBe KoniferResponse.Success::class
+            (response as KoniferResponse.Success<*>).body shouldBe redirectUrl
+        }
+
+        test("should add signature parameter when fetching asset redirect with a signed client") {
+            val redirectUrl = "https://redirect.io/image.jpg"
+            val httpClient =
+                httpClient {
+                    configureMockEngineHappyRedirect(
+                        expectedPath = "/assets/users/123/-/redirect",
+                        redirectLocation = redirectUrl,
+                        expectSignature = true,
+                    )
+                }
+
+            val koniferClient = signedKoniferClient(httpClient)
+
+            val response =
+                koniferClient.fetchAssetRedirectLocation(
+                    path = "/users/123",
+                )
+
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe redirectUrl
         }

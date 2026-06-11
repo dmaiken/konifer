@@ -10,6 +10,7 @@ import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.mockk.spyk
+import java.time.LocalDateTime
 
 abstract class BaseUnitTest {
     protected val assetRepository = spyk(InMemoryAssetRepository())
@@ -24,35 +25,42 @@ abstract class BaseUnitTest {
         objectStoreBucket: String = "bucket",
         objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${format.extension}",
         orientation: Int = 1,
-    ): Asset.PendingPersisted =
-        assetRepository.storeNew(
-            asset =
-                Asset.New
-                    .fromHttpRequest(
-                        path = path,
-                        request =
-                            StoreAssetRequest(
-                                alt = alt,
-                                url = url,
-                            ),
-                    ).let {
-                        it.markPending(
-                            originalVariant =
-                                Variant.Pending.originalVariant(
-                                    assetId = it.id,
-                                    attributes =
-                                        Attributes(
-                                            height = height,
-                                            width = width,
-                                            format = format,
-                                            orientation = orientation,
-                                            colorSpace = ColorSpace.SRGB,
-                                        ),
-                                    objectStoreBucket = objectStoreBucket,
-                                    objectStoreKey = objectStoreKey,
-                                    lqip = LQIPs.NONE,
-                                ),
-                        )
-                    },
-        )
+    ): Asset.Ready {
+        val newAsset =
+            Asset.New
+                .fromHttpRequest(
+                    path = path,
+                    request =
+                        StoreAssetRequest(
+                            alt = alt,
+                            url = url,
+                        ),
+                )
+        val originalVariant =
+            Variant.Pending.originalVariant(
+                assetId = newAsset.id,
+                attributes =
+                    Attributes(
+                        height = height,
+                        width = width,
+                        format = format,
+                        orientation = orientation,
+                        colorSpace = ColorSpace.SRGB,
+                    ),
+                objectStoreBucket = objectStoreBucket,
+                objectStoreKey = objectStoreKey,
+                lqip = LQIPs.NONE,
+            )
+        val asset =
+            assetRepository
+                .storeNew(
+                    asset =
+                        newAsset.markPending(
+                            originalVariant = originalVariant,
+                        ),
+                ).markReady(LocalDateTime.now())
+//        assetRepository.markUploaded(originalVariant.markReady(LocalDateTime.now()))
+        assetRepository.markReady(asset)
+        return asset
+    }
 }

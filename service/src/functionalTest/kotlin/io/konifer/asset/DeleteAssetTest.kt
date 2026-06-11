@@ -28,7 +28,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText() shouldBe ""
                 }
-            konifer
+            konifer()
                 .deleteAsset(
                     path = UuidCreator.getRandomBasedFast().toString(),
                 ).shouldBeSuccessful()
@@ -38,7 +38,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
     fun `can delete asset by path`() =
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
-            konifer.storeAsset(
+            konifer().storeAsset(
                 path = "profile",
                 bytes = image,
                 format = attributes.format,
@@ -47,19 +47,19 @@ class DeleteAssetTest : BaseFunctionalTest() {
                         alt = "an image",
                     ),
             )
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                 ).shouldBeSuccessful()
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
             ) shouldHaveHttpError 404
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                 ).shouldBeSuccessful()
@@ -70,7 +70,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -82,7 +82,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -97,15 +97,15 @@ class DeleteAssetTest : BaseFunctionalTest() {
             fetchAssetMetadata(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset.entryId
             }
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
@@ -117,7 +117,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -129,7 +129,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -141,18 +141,18 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                     querySelectors = EntryId(firstAsset.entryId),
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe secondAsset.entryId
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError 404
@@ -163,7 +163,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -175,7 +175,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -187,18 +187,18 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                     limit = 1,
                     querySelectors = OrderBy(Order.NEW),
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe firstAsset.entryId
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError 404
@@ -209,7 +209,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -221,7 +221,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -233,7 +233,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val thirdAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "profile",
                         bytes = image,
@@ -245,23 +245,23 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "profile",
                     querySelectors = OrderBy(Order.NEW),
                     limit = 2,
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe firstAsset.entryId
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError 404
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError 404
@@ -284,7 +284,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -296,7 +296,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -308,7 +308,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val assetToNotDelete =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile",
                         bytes = image,
@@ -320,30 +320,30 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "user/123",
                     limit = -1,
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123/profile",
                     querySelectors = EntryId(assetToNotDelete.entryId),
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123/profile",
                 ).shouldBeSuccessful()
@@ -354,7 +354,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
         testInMemory {
             val (image, attributes) = ImageFactory.testImage()
             val control =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user",
                         bytes = image,
@@ -363,7 +363,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -372,7 +372,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -381,7 +381,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val thirdAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile",
                         bytes = image,
@@ -390,7 +390,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val fourthAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile/other",
                         bytes = image,
@@ -399,37 +399,37 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "user/123",
                     querySelectors = Recursive(),
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123/profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123/profile/other",
                 querySelectors = EntryId(fourthAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user",
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user",
                     querySelectors = EntryId(control.entryId),
@@ -450,7 +450,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     alt = "an image",
                 )
             val control =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile",
                         bytes = image,
@@ -459,7 +459,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -468,7 +468,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -477,28 +477,28 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer.deleteAsset(
+            konifer().deleteAsset(
                 path = "user/123",
                 limit = -1,
                 labels = mapOf("phone" to "iphone"),
             )
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123",
                     querySelectors = EntryId(secondAsset.entryId),
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123/profile",
                     querySelectors = EntryId(control.entryId),
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123/profile",
                 ).shouldBeSuccessful()
@@ -515,7 +515,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 )
             val requestWithoutLabels = StoreAssetRequest()
             val control =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user",
                         bytes = image,
@@ -524,7 +524,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val firstAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -533,7 +533,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val secondAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123",
                         bytes = image,
@@ -542,7 +542,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val thirdAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile",
                         bytes = image,
@@ -551,7 +551,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
             val fourthAsset =
-                konifer
+                konifer()
                     .storeAsset(
                         path = "user/123/profile/other",
                         bytes = image,
@@ -560,38 +560,38 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            konifer
+            konifer()
                 .deleteAsset(
                     path = "user/123",
                     labels = mapOf("phone" to "iphone"),
                     querySelectors = Recursive(),
                 ).shouldBeSuccessful()
 
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123",
                     querySelectors = EntryId(secondAsset.entryId),
                 ).shouldBeSuccessful()
-            konifer.fetchAssetMetadata(
+            konifer().fetchAssetMetadata(
                 path = "user/123/profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError 404
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user/123/profile/other",
                     querySelectors = EntryId(fourthAsset.entryId),
                 ).shouldBeSuccessful()
 
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user",
                     querySelectors = EntryId(control.entryId),
                 ).shouldBeSuccessful()
-            konifer
+            konifer()
                 .fetchAssetMetadata(
                     path = "user",
                 ).shouldBeSuccessful()

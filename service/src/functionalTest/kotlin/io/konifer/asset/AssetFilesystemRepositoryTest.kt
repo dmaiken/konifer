@@ -63,7 +63,7 @@ class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             val (image, attributes) = testImage()
-            konifer
+            konifer()
                 .storeAsset(
                     path = "profile",
                     format = attributes.format,
