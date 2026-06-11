@@ -11,12 +11,12 @@
 
 Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
 
-It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads, or metadata from a single HTTP API. The core idea is simple: Konifer's URLs can follow your domain model.
+It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads, or asset information from a single HTTP API. The core idea is simple: Konifer's URLs can follow your domain model.
 
 ```http
 POST /assets/users/123/profile-picture
 GET  /assets/users/123/profile-picture/-/content?w=256&format=webp
-GET  /assets/users/123/profile-picture/-/metadata
+GET  /assets/users/123/profile-picture/-/info
 ```
 
 Instead of storing `imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a` in your user service, you can address the image where it naturally belongs: `/assets/users/123/profile-picture`.
@@ -81,9 +81,9 @@ It is especially useful for products where images already belong to clear domain
 Konifer handles the image lifecycle behind an HTTP API:
 
 - Store images from multipart uploads or URLs.
-- Store metadata such as `alt`, labels, and tags.
+- Store information such as `alt`, labels, and tags.
 - Fetch the newest image at a path, a specific `entryId`, or multiple matching images.
-- Return images as direct content, object-store links, redirects, downloads, or JSON metadata.
+- Return images as direct content, object-store links, redirects, downloads, or asset information in JSON.
 - Generate transformed variants on demand and cache them in the configured object store.
 - Generate common variants eagerly after upload using named variant profiles.
 - Apply per-path rules for storage, validation, preprocessing, eager variants, redirects, caching, and LQIPs.
@@ -110,7 +110,7 @@ GET /assets/users/123/profile-picture/-/link
 GET /assets/users/123/profile-picture/-/content
 GET /assets/users/123/profile-picture/-/redirect
 GET /assets/users/123/profile-picture/-/download
-GET /assets/users/123/profile-picture/-/metadata
+GET /assets/users/123/profile-picture/-/info
 GET /assets/users/123/profile-picture/-/entry/4/content
 ```
 
@@ -188,9 +188,9 @@ This is where Konifer becomes more than a transformation endpoint. Public avatar
 Konifer uses a dual-store architecture:
 
 - Object storage holds image bytes and generated variants.
-- PostgreSQL stores metadata, path hierarchy, labels, tags, and variant records.
+- PostgreSQL stores asset information, metadata, path hierarchy, labels, tags, and variant records.
 
-Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or in-memory storage for development. PostgreSQL is the production metadata store and uses the `ltree` extension for hierarchical path queries.
+Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or in-memory storage for development. PostgreSQL is the production data store and uses the `ltree` extension for hierarchical path queries.
 
 The server is built with Kotlin and Ktor, and image processing is powered by libvips. Konifer avoids buffering entire assets in application memory where possible, uses temporary files during processing, and runs variant generation through bounded workers so expensive transformations do not overwhelm the service.
 

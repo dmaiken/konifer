@@ -11,7 +11,7 @@ import io.konifer.common.selector.Order
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.client.statement.bodyAsText
@@ -48,14 +48,14 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ),
             )
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
             konifer()
                 .deleteAsset(
                     path = "profile",
                 ).shouldBeSuccessful()
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "profile",
             ) shouldHaveHttpError 404
 
@@ -94,11 +94,11 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
                     .body
 
-            fetchAssetMetadata(client, path = "profile")!!.apply {
+            fetchAssetInfo(client, path = "profile")!!.apply {
                 entryId shouldBe secondAsset.entryId
             }
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
             konifer()
@@ -106,7 +106,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     path = "profile",
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe firstAsset.entryId
@@ -148,11 +148,11 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe secondAsset.entryId
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "profile",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError 404
@@ -194,11 +194,11 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     querySelectors = OrderBy(Order.NEW),
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe firstAsset.entryId
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "profile",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError 404
@@ -253,15 +253,15 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "profile",
                 ).shouldBeSuccessful()
                 .body.entryId shouldBe firstAsset.entryId
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "profile",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError 404
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError 404
@@ -326,25 +326,25 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     limit = -1,
                 ).shouldBeSuccessful()
 
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123/profile",
                     querySelectors = EntryId(assetToNotDelete.entryId),
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123/profile",
                 ).shouldBeSuccessful()
         }
@@ -405,32 +405,32 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     querySelectors = Recursive(),
                 ).shouldBeSuccessful()
 
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(secondAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123/profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123/profile/other",
                 querySelectors = EntryId(fourthAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user",
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user",
                     querySelectors = EntryId(control.entryId),
                 ).shouldBeSuccessful()
@@ -483,23 +483,23 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 labels = mapOf("phone" to "iphone"),
             )
 
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123",
                     querySelectors = EntryId(secondAsset.entryId),
                 ).shouldBeSuccessful()
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123/profile",
                     querySelectors = EntryId(control.entryId),
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123/profile",
                 ).shouldBeSuccessful()
         }
@@ -567,32 +567,32 @@ class DeleteAssetTest : BaseFunctionalTest() {
                     querySelectors = Recursive(),
                 ).shouldBeSuccessful()
 
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123",
                 querySelectors = EntryId(firstAsset.entryId),
             ) shouldHaveHttpError HttpStatusCode.NotFound.value
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123",
                     querySelectors = EntryId(secondAsset.entryId),
                 ).shouldBeSuccessful()
-            konifer().fetchAssetMetadata(
+            konifer().fetchAssetInfo(
                 path = "user/123/profile",
                 querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError 404
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user/123/profile/other",
                     querySelectors = EntryId(fourthAsset.entryId),
                 ).shouldBeSuccessful()
 
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user",
                     querySelectors = EntryId(control.entryId),
                 ).shouldBeSuccessful()
             konifer()
-                .fetchAssetMetadata(
+                .fetchAssetInfo(
                     path = "user",
                 ).shouldBeSuccessful()
         }

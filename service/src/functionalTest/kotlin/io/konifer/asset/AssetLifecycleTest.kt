@@ -13,7 +13,7 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ACCESS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_PAGE_HEIGHT
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.collections.shouldContainExactly
@@ -64,7 +64,7 @@ class AssetLifecycleTest : BaseFunctionalTest() {
                     attributes.loop shouldBeOneOf listOf(null, 0)
                 }
             }
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @Test
@@ -115,7 +115,7 @@ class AssetLifecycleTest : BaseFunctionalTest() {
                 }
             }
 
-            fetchAssetMetadata(client, path = "profile") shouldBe storeAssetResponse
+            fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 
     @Test
@@ -132,7 +132,7 @@ class AssetLifecycleTest : BaseFunctionalTest() {
                 entryIds.add(response!!.entryId)
             }
             entryIds shouldHaveSize 2
-            fetchAssetMetadata(client, path = "profile")!!.apply {
+            fetchAssetInfo(client, path = "profile")!!.apply {
                 entryId shouldBe entryIds[1]
             }
         }

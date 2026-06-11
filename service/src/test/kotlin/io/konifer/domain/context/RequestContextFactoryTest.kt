@@ -55,13 +55,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun queryModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/new/metadata",
+                    "/assets/profile/-/new/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -73,13 +73,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/modified/metadata",
+                    "/assets/profile/-/modified/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.MODIFIED,
                         limit = 10,
                         specifiedModifiers =
@@ -127,13 +127,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/mEtAData/",
+                    "/assets/profile/-/new/iNfO/",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -145,13 +145,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/metadata",
+                    "/assets/profile/-/new/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
@@ -163,10 +163,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/metadata",
+                    "/assets/profile/-/new/info",
                     Parameters.Empty,
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
@@ -177,13 +177,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata",
+                    "/assets/profile/-/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -194,13 +194,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata",
+                    "/assets/profile/-/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
@@ -227,10 +227,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/metadata",
+                    "/assets/profile/-/info",
                     Parameters.Empty,
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 1,
                         specifiedModifiers =
@@ -293,13 +293,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/metadata",
+                    "/assets/profile/-/new/info",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -405,9 +405,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun getEntryIdSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/entry/10/metadata",
+                    "/assets/profile/-/entry/10/info",
                     QuerySelectors(
-                        returnFormat = ReturnFormat.METADATA,
+                        returnFormat = ReturnFormat.INFO,
                         entryId = 10,
                         specifiedModifiers =
                             SpecifiedInRequest(
@@ -727,17 +727,17 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/new/metadata/10/",
-                "/assets/profile/-/metadataa/new/10/",
-                "/assets/profile/-/metadata/new/-1/",
-                "/assets/profile/-/metadata/neww/10/",
-                "/assets/profile/-/metadata/new/0/",
-                "/assets/profile/-/10/metadata/new/",
-                "/assets/profile/-/metadata/metadata/metadata/",
+                "/assets/profile/-/new/info/10/",
+                "/assets/profile/-/infoo/new/10/",
+                "/assets/profile/-/info/new/-1/",
+                "/assets/profile/-/info/neww/10/",
+                "/assets/profile/-/info/new/0/",
+                "/assets/profile/-/10/info/new/",
+                "/assets/profile/-/info/info/info/",
                 "/assets/profile/-/new/new/new/",
                 "/assets/profile/-/10/10/10/",
-                "/assets/profile/-/metadata/new/10/20",
-                "/assets/profile/-/metadata/link/new/10/",
+                "/assets/profile/-/info/new/10/20",
+                "/assets/profile/-/info/link/new/10/",
             ],
         )
         fun `throws when GET query modifiers are invalid`(path: String) =
@@ -756,8 +756,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
             strings = [
                 "/assets/profile/-/entry/-1",
                 "/assets/profile/-/entry/abc",
-                "/assets/profile/-/metadata/entry/-1",
-                "/assets/profile/-/metadata/entry/abc",
+                "/assets/profile/-/info/entry/-1",
+                "/assets/profile/-/info/entry/abc",
             ],
         )
         fun `entryId must be positive when fetching GET request context`(path: String) =
@@ -794,7 +794,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `path can only have one namespace separator in GET request context`() =
             runTest {
-                val path = "/assets/profile/-/-/metadata/new/10/"
+                val path = "/assets/profile/-/-/info/new/10/"
                 val exception =
                     shouldThrow<InvalidPathException> {
                         requestContextFactory.fromFetchRequest(
@@ -843,7 +843,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val exception =
                     shouldThrow<InvalidPathException> {
                         requestContextFactory.fromFetchRequest(
-                            path = "/assets/profile/-/new/metadata/",
+                            path = "/assets/profile/-/new/info/",
                             headers = HeadersBuilder().build(),
                             queryParameters = parameters,
                         )
@@ -856,7 +856,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val context =
                     requestContextFactory.fromFetchRequest(
-                        path = "/assets/profile/123/-/metadata/",
+                        path = "/assets/profile/123/-/info/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
                             ParametersBuilder()
@@ -1166,7 +1166,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             }
 
         @ParameterizedTest
-        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
         fun `profile_only mode applies to all return formats that support variants`(returnFormat: ReturnFormat) =
             runTest {
                 every {
@@ -1195,7 +1195,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             }
 
         @ParameterizedTest
-        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
         fun `can specify profile with profile_only mode`(returnFormat: ReturnFormat) =
             runTest {
                 storePersistedAsset(
@@ -1463,7 +1463,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
         @Test
         fun `cannot specify return format`() {
-            val path = "/assets/profile/123/-/entry/1/metadata"
+            val path = "/assets/profile/123/-/entry/1/info"
 
             val exception =
                 shouldThrow<InvalidPathException> {

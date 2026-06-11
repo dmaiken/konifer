@@ -5,7 +5,7 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.konifer.testInMemory
 import io.konifer.util.fetchAllAssetMetadata
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
 import io.kotest.matchers.shouldBe
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class FetchAssetOrderByTest : BaseFunctionalTest() {
     @Test
-    fun `can fetch asset metadata and order by created at`() =
+    fun `can fetch asset info and order by created at`() =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
@@ -50,7 +50,7 @@ class FetchAssetOrderByTest : BaseFunctionalTest() {
             ).second.apply {
                 this shouldNotBe null
             }!!
-            fetchAssetMetadata(client, "profile", order = Order.NEW)!!.apply {
+            fetchAssetInfo(client, "profile", order = Order.NEW)!!.apply {
                 entryId shouldBe response3.entryId
             }
 
@@ -63,7 +63,7 @@ class FetchAssetOrderByTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `can fetch asset metadata and order by modified at`() =
+    fun `can fetch asset info and order by modified at`() =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val labels =
@@ -99,7 +99,7 @@ class FetchAssetOrderByTest : BaseFunctionalTest() {
                 ).second.apply {
                     this shouldNotBe null
                 }!!
-            fetchAssetMetadata(client, "profile", order = Order.MODIFIED)!!.apply {
+            fetchAssetInfo(client, "profile", order = Order.MODIFIED)!!.apply {
                 entryId shouldBe updated.entryId
             }
 

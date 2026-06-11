@@ -3,7 +3,6 @@ package io.konifer.domain.context.selector
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.InvalidQuerySelectorsException
-import io.konifer.domain.context.selector.QuerySelectors
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -13,7 +12,7 @@ import org.junit.jupiter.params.provider.EnumSource
 
 class QuerySelectorsTest {
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
     fun `limit cannot be greater than one if format is not metadata`(format: ReturnFormat) {
         shouldThrow<InvalidQuerySelectorsException> {
             QuerySelectors(
@@ -27,11 +26,11 @@ class QuerySelectorsTest {
     fun `limit can be greater than one if format is metadata`() {
         shouldNotThrowAny {
             QuerySelectors(
-                returnFormat = ReturnFormat.METADATA,
+                returnFormat = ReturnFormat.INFO,
                 limit = 2,
             ).apply {
                 limit shouldBe 2
-                returnFormat shouldBe ReturnFormat.METADATA
+                returnFormat shouldBe ReturnFormat.INFO
             }
         }
     }

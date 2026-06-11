@@ -27,7 +27,7 @@ import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
-import io.konifer.util.fetchAssetMetadata
+import io.konifer.util.fetchAssetInfo
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forExactly
@@ -817,7 +817,7 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
                     ) shouldBe colorSpaceName.toColorSpace()
                 }
 
-                val variants = fetchAssetMetadata(client)!!.variants
+                val variants = fetchAssetInfo(client)!!.variants
                 variants shouldHaveSize 1
             }
 
@@ -856,7 +856,7 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
                     ) shouldBe colorSpaceName.toColorSpace()
                 }
 
-                val variants = fetchAssetMetadata(client)!!.variants
+                val variants = fetchAssetInfo(client)!!.variants
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.transformation?.colorSpace shouldBe colorSpaceName
@@ -890,7 +890,7 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
                     ) shouldBe "grayscale".toColorSpace()
                 }
 
-                val variants = fetchAssetMetadata(client)!!.variants
+                val variants = fetchAssetInfo(client)!!.variants
                 variants shouldHaveSize 2
                 variants.forExactly(1) {
                     it.transformation?.colorSpace shouldBe "grayscale"

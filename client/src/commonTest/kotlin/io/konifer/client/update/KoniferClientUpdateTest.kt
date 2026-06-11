@@ -3,7 +3,7 @@ package io.konifer.client.update
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.client.metadata.createMetadataResponse
+import io.konifer.client.info.createInfoResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -17,7 +17,7 @@ class KoniferClientUpdateTest :
                     labels = mapOf("test" to "test"),
                     alt = "alt",
                 )
-            val expectedResponse = createMetadataResponse()
+            val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(

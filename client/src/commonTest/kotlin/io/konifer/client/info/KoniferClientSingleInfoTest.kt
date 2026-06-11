@@ -1,4 +1,4 @@
-package io.konifer.client.metadata
+package io.konifer.client.info
 
 import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
@@ -17,14 +17,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class KoniferClientSingleMetadataTest :
+class KoniferClientSingleInfoTest :
     FunSpec({
 
-        test("should be able to fetch asset metadata") {
-            val serverResponse = createMetadataResponse()
+        test("should be able to fetch asset info") {
+            val serverResponse = createInfoResponse()
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata",
+                    expectedPath = "/assets/users/123/-/info",
                     response = serverResponse,
                 )
             val httpClient =
@@ -36,17 +36,17 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetInfo("/users/123")
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should add signature parameter when fetching asset metadata with a signed client") {
-            val serverResponse = createMetadataResponse()
+        test("should add signature parameter when fetching asset info with a signed client") {
+            val serverResponse = createInfoResponse()
             val httpClient =
                 httpClient {
                     configureMockEngineHappy(
-                        expectedPath = "/assets/users/123/-/metadata",
+                        expectedPath = "/assets/users/123/-/info",
                         response = serverResponse,
                         expectSignature = true,
                     )
@@ -54,16 +54,16 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = signedKoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetInfo("/users/123")
 
             response::class shouldBe KoniferResponse.Success::class
         }
 
-        test("should be able to fetch asset metadata with order selector") {
-            val serverResponse = createMetadataResponse()
+        test("should be able to fetch asset info with order selector") {
+            val serverResponse = createInfoResponse()
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/new/metadata",
+                    expectedPath = "/assets/users/123/-/new/info",
                     response = serverResponse,
                 )
             val httpClient =
@@ -75,16 +75,16 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123", OrderBy(Order.NEW))
+            val response = koniferClient.fetchAssetInfo("/users/123", OrderBy(Order.NEW))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should be able to fetch asset metadata with entryId selector") {
-            val serverResponse = createMetadataResponse()
+        test("should be able to fetch asset info with entryId selector") {
+            val serverResponse = createInfoResponse()
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/entry/1/metadata",
+                    expectedPath = "/assets/users/123/-/entry/1/info",
                     response = serverResponse,
                 )
             val httpClient =
@@ -96,13 +96,13 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123", EntryId(1))
+            val response = koniferClient.fetchAssetInfo("/users/123", EntryId(1))
             response::class shouldBe KoniferResponse.Success::class
             (response as KoniferResponse.Success<*>).body shouldBe serverResponse
         }
 
-        test("should be able to fetch asset metadata with labels") {
-            val serverResponse = createMetadataResponse()
+        test("should be able to fetch asset info with labels") {
+            val serverResponse = createInfoResponse()
             val labels =
                 mapOf(
                     "Camera" to "iphone",
@@ -110,7 +110,7 @@ class KoniferClientSingleMetadataTest :
                 )
             val mockEngine =
                 configureMockEngineHappy(
-                    expectedPath = "/assets/users/123/-/metadata",
+                    expectedPath = "/assets/users/123/-/info",
                     response = serverResponse,
                     labels = labels,
                 )
@@ -124,7 +124,7 @@ class KoniferClientSingleMetadataTest :
             val koniferClient = KoniferClient(httpClient)
 
             val response =
-                koniferClient.fetchAssetMetadata(
+                koniferClient.fetchAssetInfo(
                     path = "/users/123",
                     labels = labels,
                 )
@@ -136,7 +136,7 @@ class KoniferClientSingleMetadataTest :
             val serverResponse = createErrorResponse("not found")
             val mockEngine =
                 configureMockEngineError(
-                    expectedPath = "/assets/users/123/-/metadata",
+                    expectedPath = "/assets/users/123/-/info",
                     response = serverResponse,
                     statusCode = HttpStatusCode.NotFound,
                 )
@@ -149,7 +149,7 @@ class KoniferClientSingleMetadataTest :
 
             val koniferClient = KoniferClient(httpClient)
 
-            val response = koniferClient.fetchAssetMetadata("/users/123")
+            val response = koniferClient.fetchAssetInfo("/users/123")
             response::class shouldBe KoniferResponse.HttpError::class
             with(response as KoniferResponse.HttpError) {
                 message shouldBe serverResponse.message

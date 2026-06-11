@@ -19,7 +19,7 @@ class RequestContextValidator(
         queryParameters: Parameters,
     ) {
         when (querySelectors.returnFormat) {
-            ReturnFormat.METADATA -> {
+            ReturnFormat.INFO -> {
                 if (
                     requestedTransformation != null &&
                     !requestedTransformation.originalVariant

@@ -86,7 +86,7 @@ fun Application.configureAssetRouting() {
                     "Fetching asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
                 )
                 when (requestContext.selectors.returnFormat) {
-                    ReturnFormat.METADATA -> {
+                    ReturnFormat.INFO -> {
                         if (requestContext.selectors.limit == 1) {
                             fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
                                 getAppStatusCacheHeader(response.cacheHit).let {

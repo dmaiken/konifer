@@ -31,7 +31,7 @@ class RequestContextValidatorTest {
             shouldThrow<InvalidPathException> {
                 validator.validateFetchRequest(
                     pathConfiguration = pathConfiguration(),
-                    querySelectors = QuerySelectors(returnFormat = ReturnFormat.METADATA),
+                    querySelectors = QuerySelectors(returnFormat = ReturnFormat.INFO),
                     requestedTransformation = createRequestedImageTransformation(width = 100),
                     queryParameters = Parameters.Empty,
                 )
@@ -45,7 +45,7 @@ class RequestContextValidatorTest {
         shouldNotThrowAny {
             validator.validateFetchRequest(
                 pathConfiguration = pathConfiguration(mode = OnDemandVariantMode.DISABLED),
-                querySelectors = QuerySelectors(returnFormat = ReturnFormat.METADATA),
+                querySelectors = QuerySelectors(returnFormat = ReturnFormat.INFO),
                 requestedTransformation = RequestedTransformation.ORIGINAL_VARIANT,
                 queryParameters = Parameters.Empty,
             )
@@ -53,7 +53,7 @@ class RequestContextValidatorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
     fun `non-metadata requests allow omitted transformations`(returnFormat: ReturnFormat) {
         shouldNotThrowAny {
             validator.validateFetchRequest(
@@ -66,7 +66,7 @@ class RequestContextValidatorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["METADATA"])
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
     fun `non-metadata requests allow the original variant`(returnFormat: ReturnFormat) {
         shouldNotThrowAny {
             validator.validateFetchRequest(
