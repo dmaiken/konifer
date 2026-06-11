@@ -284,4 +284,4 @@ On Apple Silicon, build the Docker image locally to get a native `arm64` image.
 
 ## License
 
-Konifer is released under the license in [LICENSE](LICENSE).
+Konifer is released under the AGPL license in [LICENSE](LICENSE).
