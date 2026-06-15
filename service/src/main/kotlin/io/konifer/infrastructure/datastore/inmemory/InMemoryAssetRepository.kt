@@ -176,10 +176,12 @@ class InMemoryAssetRepository : AssetRepository {
                 labels = labels,
                 includeOnlyReady = false,
             )
-        deleteSingle(
-            assetIdsToDelete = assetsToDelete.map { it.id },
-            path = path,
-        )
+        assetsToDelete.map { it.id }.forEach {
+            idReference.remove(it)
+        }
+        store[inMemoryPath]?.let { assets ->
+            assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
+        }
     }
 
     override suspend fun deleteRecursivelyByPath(
@@ -191,10 +193,12 @@ class InMemoryAssetRepository : AssetRepository {
         store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
             val assetAndVariants = store[path] ?: emptyList()
             val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
-            deleteSingle(
-                assetIdsToDelete = assetsToDelete.map { it.id },
-                path = path,
-            )
+            assetsToDelete.map { it.id }.forEach {
+                idReference.remove(it)
+            }
+            store[path]?.let { assets ->
+                assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
+            }
         }
     }
 
@@ -221,18 +225,6 @@ class InMemoryAssetRepository : AssetRepository {
         store[path]?.add(asset)
 
         return asset
-    }
-
-    private fun deleteSingle(
-        assetIdsToDelete: List<AssetId>,
-        path: String,
-    ) {
-        assetIdsToDelete.forEach {
-            idReference.remove(it)
-        }
-        store[path]?.let { assets ->
-            assets.removeIf { asset -> asset.id in assetIdsToDelete }
-        }
     }
 
     private fun getNextEntryId(path: String): Long =
