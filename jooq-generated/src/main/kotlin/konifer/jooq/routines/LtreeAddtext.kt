@@ -27,17 +27,17 @@ open class LtreeAddtext : AbstractRoutine<Ltree>("ltree_addtext", Public.PUBLIC,
         /**
          * The parameter <code>public.ltree_addtext.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public.ltree_addtext._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
 
         /**
          * The parameter <code>public.ltree_addtext._2</code>.
          */
-        val _2: Parameter<String?> = Internal.createParameter("_2", SQLDataType.CLOB, false, true)
+        val _2: Parameter<String?> = Internal.createParameter("_2", SQLDataType.CLOB, true)
     }
 
     init {

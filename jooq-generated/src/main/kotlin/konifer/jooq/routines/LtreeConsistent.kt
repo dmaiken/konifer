@@ -27,26 +27,26 @@ open class LtreeConsistent : AbstractRoutine<Boolean>("ltree_consistent", Public
         /**
          * The parameter <code>public.ltree_consistent.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false)
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val _1: Parameter<Any?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"internal\""), false, true)
+        val _1: Parameter<Any?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"internal\""), true)
 
         /**
          * The parameter <code>public.ltree_consistent._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
 
         /**
          * The parameter <code>public.ltree_consistent._3</code>.
          */
-        val _3: Parameter<Short?> = Internal.createParameter("_3", SQLDataType.SMALLINT, false, true)
+        val _3: Parameter<Short?> = Internal.createParameter("_3", SQLDataType.SMALLINT, true)
 
         /**
          * The parameter <code>public.ltree_consistent._4</code>.
          */
-        val _4: Parameter<Long?> = Internal.createParameter("_4", SQLDataType.BIGINT, false, true)
+        val _4: Parameter<Long?> = Internal.createParameter("_4", SQLDataType.BIGINT, true)
         @Deprecated(message = "Unknown data type. If this is a qualified, user-defined type, it may have been excluded from code generation. If this is a built-in type, you can define an explicit org.jooq.Binding to specify how this type should be handled. Deprecation can be turned off using <deprecationOnUnknownTypes/> in your code generator configuration.")
-        val _5: Parameter<Any?> = Internal.createParameter("_5", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"internal\""), false, true)
+        val _5: Parameter<Any?> = Internal.createParameter("_5", DefaultDataType.getDefaultDataType("\"pg_catalog\".\"internal\""), true)
     }
 
     init {

@@ -27,22 +27,22 @@ open class Subltree : AbstractRoutine<Ltree>("subltree", Public.PUBLIC, DSL.comm
         /**
          * The parameter <code>public.subltree.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public.subltree._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
 
         /**
          * The parameter <code>public.subltree._2</code>.
          */
-        val _2: Parameter<Int?> = Internal.createParameter("_2", SQLDataType.INTEGER, false, true)
+        val _2: Parameter<Int?> = Internal.createParameter("_2", SQLDataType.INTEGER, true)
 
         /**
          * The parameter <code>public.subltree._3</code>.
          */
-        val _3: Parameter<Int?> = Internal.createParameter("_3", SQLDataType.INTEGER, false, true)
+        val _3: Parameter<Int?> = Internal.createParameter("_3", SQLDataType.INTEGER, true)
     }
 
     init {

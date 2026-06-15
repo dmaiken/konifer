@@ -36,10 +36,10 @@ import org.jooq.QueryPart
 import org.jooq.Record
 import org.jooq.SQL
 import org.jooq.Schema
-import org.jooq.Select
 import org.jooq.Stringly
 import org.jooq.Table
 import org.jooq.TableField
+import org.jooq.TableLike
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
@@ -237,7 +237,7 @@ open class AssetTree(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): AssetTree = AssetTree(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): AssetTree = AssetTree(qualifiedName, if (aliased()) this else null, Internal.condition(this, condition))
 
     /**
      * Create an inline derived table from this table
@@ -277,10 +277,10 @@ open class AssetTree(
     /**
      * Create an inline derived table from this table
      */
-    override fun whereExists(select: Select<*>): AssetTree = where(DSL.exists(select))
+    override fun whereExists(select: TableLike<*>): AssetTree = where(DSL.exists(select))
 
     /**
      * Create an inline derived table from this table
      */
-    override fun whereNotExists(select: Select<*>): AssetTree = where(DSL.notExists(select))
+    override fun whereNotExists(select: TableLike<*>): AssetTree = where(DSL.notExists(select))
 }

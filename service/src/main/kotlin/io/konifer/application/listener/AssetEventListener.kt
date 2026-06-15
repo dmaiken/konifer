@@ -61,6 +61,9 @@ class AssetEventListener(
                 lqipImplementations = event.pathConfiguration.image.previews,
                 originalVariantLQIPs = event.originalVariant.lqips,
                 bucket = event.pathConfiguration.objectStore.bucket,
+                expiresAt =
+                    event.pathConfiguration.transform.expire
+                        .expiresAt(),
             )
         } finally {
             event.originalVariantFile?.deleteIfExists()

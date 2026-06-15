@@ -31,6 +31,7 @@ val ASSET_TREE_PATH_GIST_IDX: Index = Internal.createIndex(DSL.name("asset_tree_
 val ASSET_TREE_PATH_IS_READY_IDX: Index = Internal.createIndex(DSL.name("asset_tree_path_is_ready_idx"), AssetTree.ASSET_TREE, arrayOf(AssetTree.ASSET_TREE.PATH, AssetTree.ASSET_TREE.IS_READY), false)
 val ASSET_VARIANT_ASSET_ID_IDX: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_idx"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID), false)
 val ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ: Index = Internal.createIndex(DSL.name("asset_variant_asset_id_original_variant_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID), true)
+val ASSET_VARIANT_EXPIRES_AT_IDX: Index = Internal.createIndex(DSL.name("asset_variant_expires_at_idx"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.EXPIRES_AT), false)
 val ASSET_VARIANT_NOT_UPLOADED: Index = Internal.createIndex(DSL.name("asset_variant_not_uploaded"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ID), false)
 val ASSET_VARIANT_TRANSFORMATION_UQ: Index = Internal.createIndex(DSL.name("asset_variant_transformation_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.TRANSFORMATION), true)
 val OUTBOX_EVENT_TYPE_IDX: Index = Internal.createIndex(DSL.name("outbox_event_type_idx"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.EVENT_TYPE), false)

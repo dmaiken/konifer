@@ -34,6 +34,7 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest
 import software.amazon.awssdk.transfer.s3.model.UploadRequest
 import java.nio.file.Path
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -70,7 +71,7 @@ class S3ObjectStore(
                 }
             }.getOrThrow()
 
-            LocalDateTime.now()
+            LocalDateTime.now(UTC)
         }
 
     override suspend fun persist(
@@ -87,7 +88,7 @@ class S3ObjectStore(
                     .build()
             s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
 
-            LocalDateTime.now()
+            LocalDateTime.now(UTC)
         }
 
     override suspend fun fetch(

@@ -11,6 +11,7 @@ import kotlinx.coroutines.reactive.asFlow
 import org.jooq.DSLContext
 import reactor.core.publisher.Flux
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -35,7 +36,7 @@ object FailedAssetSweeper {
                         .on(ASSET_TREE.ID.eq(ASSET_VARIANT.ASSET_ID))
                         .where(ASSET_TREE.IS_READY.equal(false))
                         .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
-                        .and(ASSET_TREE.CREATED_AT.lessOrEqual(LocalDateTime.now().minusSeconds(olderThan.inWholeSeconds)))
+                        .and(ASSET_TREE.CREATED_AT.lessOrEqual(LocalDateTime.now(UTC).minusSeconds(olderThan.inWholeSeconds)))
                         .orderBy(ASSET_TREE.CREATED_AT),
                 ).asFlow()
                 .map {

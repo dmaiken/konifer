@@ -26,17 +26,17 @@ open class Lca2 : AbstractRoutine<Ltree>("lca", Public.PUBLIC, DSL.comment(""), 
         /**
          * The parameter <code>public.lca.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public.lca._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
 
         /**
          * The parameter <code>public.lca._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
     }
 
     init {

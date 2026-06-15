@@ -28,17 +28,17 @@ open class _LtreeExtractIsparent : AbstractRoutine<Ltree>("_ltree_extract_ispare
          * The parameter
          * <code>public._ltree_extract_isparent.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public._ltree_extract_isparent._1</code>.
          */
-        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), false, true, LtreeArrayBinding())
+        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), true, LtreeArrayBinding())
 
         /**
          * The parameter <code>public._ltree_extract_isparent._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
     }
 
     init {

@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.ZoneOffset.UTC
 
 abstract class ObjectStoreTest {
     abstract fun createObjectStore(): ObjectStore
@@ -60,7 +61,7 @@ abstract class ObjectStoreTest {
                 channel.close()
             }
             val result = store.persist(BUCKET_1, key, channel)
-            result.toLocalDate() shouldBe LocalDate.now()
+            result.toLocalDate() shouldBe LocalDate.now(UTC)
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =

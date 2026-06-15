@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 @Testcontainers
 class PostgresAssetRepositoryTest : AssetRepositoryTest() {
@@ -51,7 +52,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now())
+                        .markReady(LocalDateTime.now(UTC))
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = "/users/123",
@@ -90,7 +91,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now())
+                        .markReady(LocalDateTime.now(UTC))
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = "/users/123",
@@ -113,7 +114,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now())
+                        .markReady(LocalDateTime.now(UTC))
                         .also { repository.markReady(it) }
                 repository.deleteAllByPath(
                     path = "/users/123",
@@ -136,7 +137,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now())
+                        .markReady(LocalDateTime.now(UTC))
                         .also { repository.markReady(it) }
                 repository.deleteRecursivelyByPath(
                     path = "/users/123",

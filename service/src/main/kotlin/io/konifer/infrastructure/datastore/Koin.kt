@@ -3,9 +3,10 @@ package io.konifer.infrastructure.datastore
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
+import io.konifer.infrastructure.datastore.postgres.PostgresVariantRepository
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
 import io.konifer.infrastructure.datastore.postgres.postgres
-import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduling
+import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduledJobs
 import io.konifer.infrastructure.getDataStoreProvider
 import io.ktor.server.application.Application
 import io.r2dbc.spi.ConnectionFactory
@@ -36,12 +37,13 @@ fun Application.assetRepositoryModule(): Module =
                 val connectionFactory = postgres(properties)
                 migrateSchema(connectionFactory)
                 val dslContext = configureR2dbcJOOQ(connectionFactory)
-                configureScheduling(properties, dslContext)
+                configureScheduledJobs(properties, dslContext)
                 single<PostgresAssetRepository>() bind AssetRepository::class
                 single<ConnectionFactory> { connectionFactory }
                 single<DSLContext> { dslContext } withOptions {
                     createdAtStart()
                 }
+                single<PostgresVariantRepository>()
             }
         }
     }

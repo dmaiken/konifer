@@ -12,6 +12,7 @@ import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import java.nio.file.Path
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 class InMemoryObjectStore : ObjectStore {
     private val store = mutableMapOf<String, MutableMap<String, ByteArray>>()
@@ -33,7 +34,7 @@ class InMemoryObjectStore : ObjectStore {
             channel.toByteArray(),
         )
 
-        return LocalDateTime.now()
+        return LocalDateTime.now(UTC)
     }
 
     override suspend fun persist(
@@ -45,7 +46,7 @@ class InMemoryObjectStore : ObjectStore {
 
         store[bucket]?.put(key, file.readChannel().toByteArray())
 
-        return LocalDateTime.now()
+        return LocalDateTime.now(UTC)
     }
 
     override suspend fun fetch(

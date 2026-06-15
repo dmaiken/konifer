@@ -56,6 +56,7 @@ fun AssetVariantRecord.toVariantData(): VariantData =
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = uploadedAt,
+        expiresAt = expiresAt,
     )
 
 fun AssetTreeRecord.toPendingPersisted(
@@ -98,8 +99,7 @@ fun AssetTreeRecord.toReadyAsset(
             variants
                 .map {
                     if (it.modified()) {
-                        // TODO replace with uploadedAt
-                        it.toReadyVariant()
+                        it.toReadyVariant(checkNotNull(it.uploadedAt))
                     } else {
                         it.toPendingVariant()
                     }
@@ -127,9 +127,10 @@ fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = null,
+        expiresAt = expiresAt,
     )
 
-fun AssetVariantRecord.toReadyVariant(): Variant.Ready =
+fun AssetVariantRecord.toReadyVariant(uploadedAt: LocalDateTime): Variant.Ready =
     Variant.Ready(
         id = VariantId(checkNotNull(id)),
         assetId = AssetId(checkNotNull(assetId)),
@@ -148,5 +149,6 @@ fun AssetVariantRecord.toReadyVariant(): Variant.Ready =
                 ).toTransformation(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
-        uploadedAt = LocalDateTime.now(),
+        uploadedAt = uploadedAt,
+        expiresAt = expiresAt,
     )

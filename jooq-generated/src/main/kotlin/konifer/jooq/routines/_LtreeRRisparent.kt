@@ -28,17 +28,17 @@ open class _LtreeRRisparent : AbstractRoutine<Boolean>("_ltree_r_risparent", Pub
         /**
          * The parameter <code>public._ltree_r_risparent.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false)
 
         /**
          * The parameter <code>public._ltree_r_risparent._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
 
         /**
          * The parameter <code>public._ltree_r_risparent._2</code>.
          */
-        val _2: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), false, true, LtreeArrayBinding())
+        val _2: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), true, LtreeArrayBinding())
     }
 
     init {
