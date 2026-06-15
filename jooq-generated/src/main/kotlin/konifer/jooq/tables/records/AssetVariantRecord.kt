@@ -60,6 +60,10 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(9, value)
         get(): LocalDateTime? = get(9) as LocalDateTime?
 
+    open var expiresAt: LocalDateTime?
+        set(value): Unit = set(10, value)
+        get(): LocalDateTime? = get(10) as LocalDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -69,7 +73,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
@@ -80,6 +84,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         this.originalVariant = originalVariant
         this.createdAt = createdAt
         this.uploadedAt = uploadedAt
+        this.expiresAt = expiresAt
         resetTouchedOnNotNull()
     }
 
@@ -98,6 +103,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
             this.originalVariant = value.originalVariant
             this.createdAt = value.createdAt
             this.uploadedAt = value.uploadedAt
+            this.expiresAt = value.expiresAt
             resetTouchedOnNotNull()
         }
     }

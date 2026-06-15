@@ -9,7 +9,7 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
-import io.konifer.infrastructure.datastore.postgres.scheduling.VariantDeletedEvent
+import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
@@ -20,30 +20,23 @@ import konifer.jooq.tables.references.ASSET_LABEL
 import konifer.jooq.tables.references.ASSET_TAG
 import konifer.jooq.tables.references.ASSET_TREE
 import konifer.jooq.tables.references.ASSET_VARIANT
-import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.jooq.CommonTableExpression
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.JSONB
-import org.jooq.Record1
 import org.jooq.SortField
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.currentLocalDateTime
-import org.jooq.impl.DSL.deleteFrom
-import org.jooq.impl.DSL.function
-import org.jooq.impl.DSL.inline
-import org.jooq.impl.DSL.insertInto
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.select
 import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.jooq.postgres.extensions.types.Ltree
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.UUID
 
 class PostgresAssetRepository(
@@ -52,7 +45,7 @@ class PostgresAssetRepository(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.now(UTC)
         val treePath = LtreePathAdapter.toTreePathFromUriPath(asset.path)
         val originalVariant = asset.variants.first()
         val transformations =
@@ -152,7 +145,8 @@ class PostgresAssetRepository(
                         .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
                         .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
                         .set(ASSET_VARIANT.ORIGINAL_VARIANT, false)
-                        .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now())
+                        .set(ASSET_VARIANT.CREATED_AT, LocalDateTime.now(UTC))
+                        .set(ASSET_VARIANT.EXPIRES_AT, variant.expiresAt)
                         .returning()
                         .awaitFirst()
                 } catch (e: IntegrityConstraintViolationException) {
@@ -278,7 +272,7 @@ class PostgresAssetRepository(
                     .forUpdate()
                     .of(ASSET_TREE),
             )
-        deleteAssets(target)
+        deleteAssets(dslContext, target)
     }
 
     override suspend fun deleteAllByPath(
@@ -306,7 +300,7 @@ class PostgresAssetRepository(
                     .of(ASSET_TREE),
             )
 
-        val count = deleteAssets(targets)
+        val count = deleteAssets(dslContext, targets)
 
         logger.info("Deleted $count assets in path: $path")
     }
@@ -328,7 +322,7 @@ class PostgresAssetRepository(
                     ).forUpdate()
                     .of(ASSET_TREE),
             )
-        deleteAssets(target)
+        deleteAssets(dslContext, target)
     }
 
     override suspend fun deleteByAssetId(assetId: AssetId) {
@@ -340,7 +334,7 @@ class PostgresAssetRepository(
                     .forUpdate()
                     .of(ASSET_TREE),
             )
-        deleteAssets(target)
+        deleteAssets(dslContext, target)
     }
 
     override suspend fun update(asset: Asset): Asset {
@@ -541,7 +535,7 @@ class PostgresAssetRepository(
         context: DSLContext,
         assetId: UUID,
         labels: Map<String, String>,
-        dateTime: LocalDateTime = LocalDateTime.now(),
+        dateTime: LocalDateTime = LocalDateTime.now(UTC),
     ): List<AssetLabelRecord> {
         val updated = mutableListOf<AssetLabelRecord>()
         if (labels.isNotEmpty()) {
@@ -566,7 +560,7 @@ class PostgresAssetRepository(
         context: DSLContext,
         assetId: UUID,
         tags: Set<String>,
-        dateTime: LocalDateTime = LocalDateTime.now(),
+        dateTime: LocalDateTime = LocalDateTime.now(UTC),
     ) {
         val updated = mutableListOf<AssetTagRecord>()
         if (tags.isNotEmpty()) {
@@ -594,60 +588,4 @@ class PostgresAssetRepository(
 
         return arrayOf(orderModifierCondition, ASSET_TREE.ENTRY_ID.desc())
     }
-
-    private suspend fun deleteAssets(deleteIdentificationCte: CommonTableExpression<Record1<UUID?>>): Int =
-        dslContext.transactionCoroutine { trx ->
-            // Delete ALL variants belonging to the identified trees.
-            val deletedVariants =
-                name("deleted_variants").`as`(
-                    deleteFrom(ASSET_VARIANT)
-                        .where(
-                            ASSET_VARIANT.ASSET_ID.`in`(
-                                select(deleteIdentificationCte.field(ASSET_TREE.ID)).from(deleteIdentificationCte),
-                            ),
-                        ).returning(
-                            ASSET_VARIANT.ASSET_ID,
-                            ASSET_VARIANT.OBJECT_STORE_BUCKET,
-                            ASSET_VARIANT.OBJECT_STORE_KEY,
-                        ),
-                )
-
-            // Bulk insert the captured data into the outbox.
-            val insertedOutbox =
-                name("inserted_outbox").`as`(
-                    insertInto(OUTBOX)
-                        .columns(OUTBOX.ID, OUTBOX.EVENT_TYPE, OUTBOX.PAYLOAD, OUTBOX.CREATED_AT)
-                        .select(
-                            select(
-                                function("gen_random_uuid", UUID::class.java),
-                                inline(VariantDeletedEvent.TYPE),
-                                VariantDeletedEvent.jsonJooqFunction(deletedVariants),
-                                currentLocalDateTime(),
-                            ).from(deletedVariants),
-                        ).returning(OUTBOX.ID),
-                )
-
-            // Run the logic and return the distinct deleted parentIds
-            val processedParentIds =
-                trx
-                    .dsl()
-                    .with(deleteIdentificationCte)
-                    .with(deletedVariants)
-                    .with(insertedOutbox)
-                    .selectDistinct(deletedVariants.field(ASSET_VARIANT.ASSET_ID))
-                    .from(deletedVariants)
-                    .asFlow()
-                    .map { it.value1() }
-                    .toList()
-
-            processedParentIds
-                .takeIf { it.isNotEmpty() }
-                ?.let { ids ->
-                    trx
-                        .dsl()
-                        .deleteFrom(ASSET_TREE)
-                        .where(ASSET_TREE.ID.`in`(ids))
-                        .awaitFirstOrNull()
-                } ?: 0
-        }
 }

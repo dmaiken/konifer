@@ -28,17 +28,17 @@ open class _LtreeIsparent : AbstractRoutine<Boolean>("_ltree_isparent", Public.P
         /**
          * The parameter <code>public._ltree_isparent.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false, false)
+        val RETURN_VALUE: Parameter<Boolean?> = Internal.createParameter("RETURN_VALUE", SQLDataType.BOOLEAN, false)
 
         /**
          * The parameter <code>public._ltree_isparent._1</code>.
          */
-        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), false, true, LtreeArrayBinding())
+        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), true, LtreeArrayBinding())
 
         /**
          * The parameter <code>public._ltree_isparent._2</code>.
          */
-        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _2: Parameter<Ltree?> = Internal.createParameter("_2", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
     }
 
     init {

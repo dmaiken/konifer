@@ -16,6 +16,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import java.nio.file.Path
+import java.time.LocalDateTime
 
 class VariantService(
     private val assetRepository: AssetRepository,
@@ -33,6 +34,7 @@ class VariantService(
         lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
         bucket: String,
+        expiresAt: LocalDateTime?,
     ) {
         val transformations =
             transformationNormalizer.normalize(
@@ -47,6 +49,7 @@ class VariantService(
             originalVariantLQIPs = originalVariantLQIPs,
             bucket = bucket,
             variantType = VariantType.EAGER,
+            expiresAt = expiresAt,
         )
     }
 
@@ -57,6 +60,7 @@ class VariantService(
         lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
         bucket: String,
+        expiresAt: LocalDateTime?,
     ) {
         generateVariants(
             originalVariantFile = originalVariantFile,
@@ -66,6 +70,7 @@ class VariantService(
             originalVariantLQIPs = originalVariantLQIPs,
             bucket = bucket,
             variantType = VariantType.ON_DEMAND,
+            expiresAt = expiresAt,
         )
     }
 
@@ -77,6 +82,7 @@ class VariantService(
         originalVariantLQIPs: LQIPs,
         bucket: String,
         variantType: VariantType,
+        expiresAt: LocalDateTime?,
     ): Unit =
         coroutineScope {
             val transformationDataContainers =
@@ -105,6 +111,7 @@ class VariantService(
                                     objectStoreBucket = bucket,
                                     objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
                                     lqip = container.lqips.await() ?: originalVariantLQIPs,
+                                    expiresAt = expiresAt,
                                 )
                             // Start upload
                             val uploadJob =

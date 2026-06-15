@@ -10,6 +10,7 @@ import java.util.UUID
 import konifer.jooq.Public
 import konifer.jooq.indexes.ASSET_VARIANT_ASSET_ID_IDX
 import konifer.jooq.indexes.ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ
+import konifer.jooq.indexes.ASSET_VARIANT_EXPIRES_AT_IDX
 import konifer.jooq.indexes.ASSET_VARIANT_NOT_UPLOADED
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT_PKEY
@@ -33,10 +34,10 @@ import org.jooq.QueryPart
 import org.jooq.Record
 import org.jooq.SQL
 import org.jooq.Schema
-import org.jooq.Select
 import org.jooq.Stringly
 import org.jooq.Table
 import org.jooq.TableField
+import org.jooq.TableLike
 import org.jooq.TableOptions
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
@@ -132,6 +133,11 @@ open class AssetVariant(
      */
     val UPLOADED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("uploaded_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
+    /**
+     * The column <code>public.asset_variant.expires_at</code>.
+     */
+    val EXPIRES_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("expires_at"), SQLDataType.LOCALDATETIME(6), this, "")
+
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)
@@ -164,7 +170,7 @@ open class AssetVariant(
         override fun `as`(alias: Table<*>): AssetVariantPath = AssetVariantPath(alias.qualifiedName, this)
     }
     override fun getSchema(): Schema? = if (aliased()) null else Public.PUBLIC
-    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_NOT_UPLOADED, ASSET_VARIANT_TRANSFORMATION_UQ)
+    override fun getIndexes(): List<Index> = listOf(ASSET_VARIANT_ASSET_ID_IDX, ASSET_VARIANT_ASSET_ID_ORIGINAL_VARIANT_UQ, ASSET_VARIANT_EXPIRES_AT_IDX, ASSET_VARIANT_NOT_UPLOADED, ASSET_VARIANT_TRANSFORMATION_UQ)
     override fun getPrimaryKey(): UniqueKey<AssetVariantRecord> = ASSET_VARIANT_PKEY
     override fun getReferences(): List<ForeignKey<AssetVariantRecord, *>> = listOf(ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID)
 
@@ -195,7 +201,7 @@ open class AssetVariant(
     /**
      * Create an inline derived table from this table
      */
-    override fun where(condition: Condition?): AssetVariant = AssetVariant(qualifiedName, if (aliased()) this else null, condition)
+    override fun where(condition: Condition?): AssetVariant = AssetVariant(qualifiedName, if (aliased()) this else null, Internal.condition(this, condition))
 
     /**
      * Create an inline derived table from this table
@@ -235,10 +241,10 @@ open class AssetVariant(
     /**
      * Create an inline derived table from this table
      */
-    override fun whereExists(select: Select<*>): AssetVariant = where(DSL.exists(select))
+    override fun whereExists(select: TableLike<*>): AssetVariant = where(DSL.exists(select))
 
     /**
      * Create an inline derived table from this table
      */
-    override fun whereNotExists(select: Select<*>): AssetVariant = where(DSL.notExists(select))
+    override fun whereNotExists(select: TableLike<*>): AssetVariant = where(DSL.notExists(select))
 }

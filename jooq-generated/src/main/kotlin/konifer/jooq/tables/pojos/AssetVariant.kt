@@ -25,7 +25,8 @@ data class AssetVariant(
     var lqip: JSONB,
     var originalVariant: Boolean,
     var createdAt: LocalDateTime,
-    var uploadedAt: LocalDateTime? = null
+    var uploadedAt: LocalDateTime? = null,
+    var expiresAt: LocalDateTime? = null
 ): Serializable {
 
 
@@ -61,6 +62,12 @@ data class AssetVariant(
         }
         else if (this.uploadedAt != o.uploadedAt)
             return false
+        if (this.expiresAt == null) {
+            if (o.expiresAt != null)
+                return false
+        }
+        else if (this.expiresAt != o.expiresAt)
+            return false
         return true
     }
 
@@ -77,6 +84,7 @@ data class AssetVariant(
         result = prime * result + this.originalVariant.hashCode()
         result = prime * result + this.createdAt.hashCode()
         result = prime * result + (if (this.uploadedAt == null) 0 else this.uploadedAt.hashCode())
+        result = prime * result + (if (this.expiresAt == null) 0 else this.expiresAt.hashCode())
         return result
     }
 
@@ -93,6 +101,7 @@ data class AssetVariant(
         sb.append(", ").append(originalVariant)
         sb.append(", ").append(createdAt)
         sb.append(", ").append(uploadedAt)
+        sb.append(", ").append(expiresAt)
 
         sb.append(")")
         return sb.toString()

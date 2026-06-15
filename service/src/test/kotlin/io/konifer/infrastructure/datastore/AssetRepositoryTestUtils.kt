@@ -15,6 +15,7 @@ import io.konifer.domain.variant.VariantData
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 fun createPendingAsset(
@@ -78,6 +79,7 @@ fun createPendingVariant(
     transformation: Transformation,
     objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
     lqip: LQIPs = LQIPs.NONE,
+    expiresAt: LocalDateTime? = null,
 ): Variant.Pending =
     Variant.Pending.newVariant(
         assetId = assetId,
@@ -86,6 +88,7 @@ fun createPendingVariant(
         objectStoreKey = objectStoreKey,
         lqip = lqip,
         transformation = transformation,
+        expiresAt = expiresAt,
     )
 
 fun assertFetchedAgainstAggregate(
@@ -129,4 +132,5 @@ fun assertFetchedVariantAgainstAggregate(
     fetched.objectStoreKey shouldBe variant.objectStoreKey
     fetched.objectStoreBucket shouldBe variant.objectStoreBucket
     fetched.lqips shouldBe variant.lqips
+    fetched.expiresAt shouldBe variant.expiresAt
 }

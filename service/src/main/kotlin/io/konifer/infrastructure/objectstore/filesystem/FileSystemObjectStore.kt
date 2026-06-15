@@ -17,6 +17,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 class FileSystemObjectStore(
     private val storeProperties: FileSystemProperties,
@@ -36,7 +37,7 @@ class FileSystemObjectStore(
             }
             channel.copyAndClose(target.toFile().writeChannel())
 
-            LocalDateTime.now()
+            LocalDateTime.now(UTC)
         }
 
     override suspend fun persist(
@@ -52,7 +53,7 @@ class FileSystemObjectStore(
             }
             Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING)
 
-            LocalDateTime.now()
+            LocalDateTime.now(UTC)
         }
 
     override suspend fun fetch(

@@ -2,14 +2,9 @@ package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
-import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
-import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
-import io.konifer.infrastructure.datastore.postgres.postgresContainer
-import io.konifer.infrastructure.datastore.postgres.truncateTables
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldBeIn
@@ -18,51 +13,29 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockkStatic
-import io.mockk.spyk
 import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
 import org.jooq.Configuration
-import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 
 @Testcontainers
-class FailedVariantSweeperTest {
-    companion object {
-        @JvmStatic
-        @Container
-        private val postgres = postgresContainer()
-    }
-
-    val dslContext: DSLContext by lazy { spyk(createR2dbcDslContext(postgres)) }
-
-    val assetRepository: AssetRepository by lazy {
-        PostgresAssetRepository(
-            dslContext = dslContext,
-        )
-    }
-
-    @BeforeEach
-    fun clearTables() {
-        truncateTables(postgres)
-    }
-
+class FailedVariantSweeperTest : SchedulerTest() {
     @Test
     fun `deletes failed variants and schedules reaping of variant`() =
         runTest {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
             val pendingVariant =
                 createPendingVariant(
@@ -98,7 +71,7 @@ class FailedVariantSweeperTest {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
             val transformation =
                 Transformation(
@@ -114,7 +87,7 @@ class FailedVariantSweeperTest {
                 ).let {
                     assetRepository.storeNewVariant(it)
                 }.also {
-                    assetRepository.markUploaded(it.markReady(LocalDateTime.now()))
+                    assetRepository.markUploaded(it.markReady(LocalDateTime.now(UTC)))
                 }
 
             FailedVariantSweeper.invoke(dslContext, olderThan = Duration.ZERO)
@@ -141,7 +114,7 @@ class FailedVariantSweeperTest {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
             val pendingVariant =
                 createPendingVariant(
@@ -176,7 +149,7 @@ class FailedVariantSweeperTest {
             val readyAsset1 =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
             val pendingVariant1 =
                 createPendingVariant(
@@ -194,7 +167,7 @@ class FailedVariantSweeperTest {
             val readyAsset2 =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
             val pendingVariant2 =
                 createPendingVariant(

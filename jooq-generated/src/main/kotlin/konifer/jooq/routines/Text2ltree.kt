@@ -27,12 +27,12 @@ open class Text2ltree : AbstractRoutine<Ltree>("text2ltree", Public.PUBLIC, DSL.
         /**
          * The parameter <code>public.text2ltree.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public.text2ltree._1</code>.
          */
-        val _1: Parameter<String?> = Internal.createParameter("_1", SQLDataType.CLOB, false, true)
+        val _1: Parameter<String?> = Internal.createParameter("_1", SQLDataType.CLOB, true)
     }
 
     init {

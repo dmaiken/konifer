@@ -88,6 +88,7 @@ object ConfigurationPropertyKeys {
             const val PREPROCESSING = "preprocessing"
             const val EAGER_VARIANTS = "eager-variants"
             const val ON_DEMAND_VARIANT = "on-demand-variant"
+            const val EXPIRE = "expire"
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
@@ -101,6 +102,11 @@ object ConfigurationPropertyKeys {
 
             object OnDemandVariantsPropertyKeys {
                 const val MODE = "mode"
+            }
+
+            object ExpirePropertyKeys {
+                const val MODE = "mode"
+                const val TTL = "ttl"
             }
         }
 

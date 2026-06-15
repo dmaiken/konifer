@@ -171,6 +171,9 @@ class FetchAssetHandler(
                     lqipImplementations = context.pathConfiguration.image.previews,
                     originalVariantLQIPs = originalVariant.lqips,
                     bucket = context.pathConfiguration.objectStore.bucket,
+                    expiresAt =
+                        context.pathConfiguration.transform.expire
+                            .expiresAt(),
                 )
             } finally {
                 originalVariantFile.deleteIfExists()

@@ -12,4 +12,5 @@ data class VariantData(
     val lqips: LQIPs,
     val createdAt: LocalDateTime,
     val uploadedAt: LocalDateTime?,
+    val expiresAt: LocalDateTime?,
 )

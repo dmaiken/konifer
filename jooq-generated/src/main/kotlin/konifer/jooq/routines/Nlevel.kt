@@ -27,12 +27,12 @@ open class Nlevel : AbstractRoutine<Int>("nlevel", Public.PUBLIC, DSL.comment(""
         /**
          * The parameter <code>public.nlevel.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Int?> = Internal.createParameter("RETURN_VALUE", SQLDataType.INTEGER, false, false)
+        val RETURN_VALUE: Parameter<Int?> = Internal.createParameter("RETURN_VALUE", SQLDataType.INTEGER, false)
 
         /**
          * The parameter <code>public.nlevel._1</code>.
          */
-        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, true, LtreeBinding())
+        val _1: Parameter<Ltree?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), true, LtreeBinding())
     }
 
     init {

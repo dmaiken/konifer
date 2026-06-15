@@ -1,11 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
-import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.createPendingAsset
-import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
-import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
-import io.konifer.infrastructure.datastore.postgres.postgresContainer
-import io.konifer.infrastructure.datastore.postgres.truncateTables
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
@@ -13,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockkStatic
-import io.mockk.spyk
 import konifer.jooq.tables.references.ASSET_TREE
 import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.flow.toList
@@ -21,38 +15,17 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
 import org.jooq.Configuration
-import org.jooq.DSLContext
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
-class FailedAssetSweeperTest {
-    companion object {
-        @JvmStatic
-        @Container
-        private val postgres = postgresContainer()
-    }
-
-    val dslContext: DSLContext by lazy { spyk(createR2dbcDslContext(postgres)) }
-
-    val assetRepository: AssetRepository by lazy {
-        PostgresAssetRepository(
-            dslContext = dslContext,
-        )
-    }
-
-    @BeforeEach
-    fun clearTables() {
-        truncateTables(postgres)
-    }
-
+class FailedAssetSweeperTest : SchedulerTest() {
     @Test
     fun `deletes failed assets and schedules reaping of original variant`() =
         runTest {
@@ -84,7 +57,7 @@ class FailedAssetSweeperTest {
             val ready =
                 assetRepository
                     .storeNew(pending)
-                    .markReady(LocalDateTime.now())
+                    .markReady(LocalDateTime.now(UTC))
                     .also { assetRepository.markReady(it) }
 
             FailedAssetSweeper.invoke(

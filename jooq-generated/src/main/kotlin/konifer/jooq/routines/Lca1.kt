@@ -27,12 +27,12 @@ open class Lca1 : AbstractRoutine<Ltree>("lca", Public.PUBLIC, DSL.comment(""), 
         /**
          * The parameter <code>public.lca.RETURN_VALUE</code>.
          */
-        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, false, LtreeBinding())
+        val RETURN_VALUE: Parameter<Ltree?> = Internal.createParameter("RETURN_VALUE", DefaultDataType.getDefaultDataType("\"public\".\"ltree\""), false, LtreeBinding())
 
         /**
          * The parameter <code>public.lca._1</code>.
          */
-        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), false, true, LtreeArrayBinding())
+        val _1: Parameter<Array<org.jooq.postgres.extensions.types.Ltree?>?> = Internal.createParameter("_1", DefaultDataType.getDefaultDataType("\"public\".\"ltree\"").array(), true, LtreeArrayBinding())
     }
 
     init {

@@ -16,6 +16,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import reactor.core.publisher.Flux
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.UUID
 
 object FailedVariantSweeper {
@@ -38,7 +39,7 @@ object FailedVariantSweeper {
                         .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(false))
                         .and(
                             ASSET_VARIANT.CREATED_AT.lessOrEqual(
-                                LocalDateTime.now().minusSeconds(olderThan.toSeconds()),
+                                LocalDateTime.now(UTC).minusSeconds(olderThan.toSeconds()),
                             ),
                         ).orderBy(ASSET_VARIANT.CREATED_AT),
                 ).asFlow()
@@ -71,7 +72,7 @@ object FailedVariantSweeper {
                         .set(OUTBOX.ID, UuidCreator.getTimeOrderedEpoch())
                         .set(OUTBOX.EVENT_TYPE, event.eventType)
                         .set(OUTBOX.PAYLOAD, JSONB.valueOf(Json.encodeToString(event)))
-                        .set(OUTBOX.CREATED_AT, LocalDateTime.now())
+                        .set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
                         .awaitFirstOrNull()
                 }
             }.onFailure { e ->

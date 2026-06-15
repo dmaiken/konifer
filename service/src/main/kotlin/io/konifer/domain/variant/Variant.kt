@@ -3,6 +3,7 @@ package io.konifer.domain.variant
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.UUID
 
 @JvmInline value class VariantId(
@@ -20,6 +21,7 @@ sealed interface Variant {
     val lqips: LQIPs
     val createdAt: LocalDateTime
     val uploadedAt: LocalDateTime?
+    val expiresAt: LocalDateTime?
 
     class Pending(
         override val id: VariantId,
@@ -31,10 +33,15 @@ sealed interface Variant {
         override val transformation: Transformation,
         override val lqips: LQIPs,
         override val createdAt: LocalDateTime,
-        override val uploadedAt: LocalDateTime?,
+        override val uploadedAt: LocalDateTime? = null,
+        override val expiresAt: LocalDateTime?,
     ) : Variant {
         init {
             check(uploadedAt == null)
+            // Original variant cannot expire
+            if (isOriginalVariant) {
+                check(expiresAt == null)
+            }
         }
 
         companion object {
@@ -61,8 +68,8 @@ sealed interface Variant {
                             colorSpace = attributes.colorSpace,
                         ),
                     lqips = lqip,
-                    createdAt = LocalDateTime.now(),
-                    uploadedAt = null,
+                    createdAt = LocalDateTime.now(UTC),
+                    expiresAt = null,
                 )
 
             fun newVariant(
@@ -72,6 +79,7 @@ sealed interface Variant {
                 objectStoreBucket: String,
                 objectStoreKey: String,
                 lqip: LQIPs,
+                expiresAt: LocalDateTime?,
             ): Pending =
                 Pending(
                     id = VariantId(),
@@ -82,8 +90,8 @@ sealed interface Variant {
                     attributes = attributes,
                     transformation = transformation,
                     lqips = lqip,
-                    createdAt = LocalDateTime.now(),
-                    uploadedAt = null,
+                    createdAt = LocalDateTime.now(UTC),
+                    expiresAt = expiresAt,
                 )
 
             fun from(
@@ -101,6 +109,7 @@ sealed interface Variant {
                     lqips = variantData.lqips,
                     createdAt = variantData.createdAt,
                     uploadedAt = variantData.uploadedAt,
+                    expiresAt = variantData.expiresAt,
                 )
         }
 
@@ -122,6 +131,7 @@ sealed interface Variant {
         override val lqips: LQIPs,
         override val createdAt: LocalDateTime,
         override val uploadedAt: LocalDateTime?,
+        override val expiresAt: LocalDateTime?,
     ) : Variant {
         init {
             checkNotNull(uploadedAt)
@@ -143,6 +153,7 @@ sealed interface Variant {
                     lqips = pending.lqips,
                     createdAt = pending.createdAt,
                     uploadedAt = uploadedAt,
+                    expiresAt = pending.expiresAt,
                 )
 
             fun from(
@@ -160,6 +171,7 @@ sealed interface Variant {
                     lqips = variantData.lqips,
                     createdAt = variantData.createdAt,
                     uploadedAt = variantData.uploadedAt,
+                    expiresAt = variantData.expiresAt,
                 )
         }
     }

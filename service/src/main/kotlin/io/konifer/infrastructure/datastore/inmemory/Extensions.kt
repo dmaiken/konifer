@@ -32,4 +32,5 @@ fun Variant.toVariantData(): VariantData =
         createdAt = createdAt,
         uploadedAt = uploadedAt,
         isOriginalVariant = isOriginalVariant,
+        expiresAt = expiresAt,
     )

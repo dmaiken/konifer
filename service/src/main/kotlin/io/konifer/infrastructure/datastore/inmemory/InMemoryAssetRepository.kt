@@ -11,6 +11,8 @@ import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
@@ -102,6 +104,7 @@ class InMemoryAssetRepository : AssetRepository {
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): AssetData? {
+        val now = LocalDateTime.now(UTC)
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
             when {
@@ -114,7 +117,9 @@ class InMemoryAssetRepository : AssetRepository {
                         }?.let { matched ->
                             listOf(matched)
                         } ?: emptyList()
-            }.filter { it.uploadedAt != null }
+            }.filter {
+                (it.expiresAt == null || it.expiresAt!! > now) && it.uploadedAt != null
+            }
         return asset.toAssetData(variants)
     }
 
@@ -171,12 +176,10 @@ class InMemoryAssetRepository : AssetRepository {
                 labels = labels,
                 includeOnlyReady = false,
             )
-        assetsToDelete.map { it.id }.forEach {
-            idReference.remove(it)
-        }
-        store[inMemoryPath]?.let { assets ->
-            assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
-        }
+        deleteSingle(
+            assetIdsToDelete = assetsToDelete.map { it.id },
+            path = path,
+        )
     }
 
     override suspend fun deleteRecursivelyByPath(
@@ -188,12 +191,10 @@ class InMemoryAssetRepository : AssetRepository {
         store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
             val assetAndVariants = store[path] ?: emptyList()
             val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
-            assetsToDelete.map { it.id }.forEach {
-                idReference.remove(it)
-            }
-            store[path]?.let { assets ->
-                assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
-            }
+            deleteSingle(
+                assetIdsToDelete = assetsToDelete.map { it.id },
+                path = path,
+            )
         }
     }
 
@@ -220,6 +221,18 @@ class InMemoryAssetRepository : AssetRepository {
         store[path]?.add(asset)
 
         return asset
+    }
+
+    private fun deleteSingle(
+        assetIdsToDelete: List<AssetId>,
+        path: String,
+    ) {
+        assetIdsToDelete.forEach {
+            idReference.remove(it)
+        }
+        store[path]?.let { assets ->
+            assets.removeIf { asset -> asset.id in assetIdsToDelete }
+        }
     }
 
     private fun getNextEntryId(path: String): Long =
@@ -272,8 +285,9 @@ class InMemoryAssetRepository : AssetRepository {
         labels: Map<String, String>,
         limit: Int,
         includeOnlyReady: Boolean,
-    ): List<AssetData> =
-        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
+    ): List<AssetData> {
+        val now = LocalDateTime.now(UTC)
+        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.asSequence()
             ?.filter {
                 if (includeOnlyReady) {
@@ -291,7 +305,7 @@ class InMemoryAssetRepository : AssetRepository {
                     } else {
                         asset.variants
                             .firstOrNull { variant ->
-                                transformation == variant.transformation
+                                (variant.expiresAt == null || variant.expiresAt!! > now) && transformation == variant.transformation
                             }?.let { matched ->
                                 listOf(matched)
                             } ?: emptyList()
@@ -311,4 +325,5 @@ class InMemoryAssetRepository : AssetRepository {
                     it
                 }
             }?.toList() ?: emptyList()
+    }
 }

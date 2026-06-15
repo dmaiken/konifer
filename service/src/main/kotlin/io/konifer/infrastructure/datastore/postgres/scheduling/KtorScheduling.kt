@@ -8,6 +8,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.datastore.postgres.PostgresProperties
+import io.konifer.infrastructure.datastore.postgres.PostgresVariantRepository
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
@@ -19,17 +20,13 @@ import org.postgresql.ds.PGSimpleDataSource
 import java.util.concurrent.Executors
 import javax.sql.DataSource
 
-fun Application.configureScheduling(
+fun Application.configureScheduledJobs(
     postgresProperties: PostgresProperties,
     dslContext: DSLContext,
 ) {
     val objectStore by inject<ObjectStore>()
     val assetRepository by inject<AssetRepository>()
-
-    // Tasks
-    // failed asset sweeper - assets with no original variant that has been uploaded (after 5 minutes?) (cron) - delete row and schedule grim reaper in one transaction
-    // failed variant sweeper - variants not uploaded (cron) - delete row and schedule grim reaper in one transaction
-    // grim reaper - delete object from object store
+    val variantRepository by inject<PostgresVariantRepository>()
 
     val failedAssetSweeperTask =
         Tasks
@@ -61,13 +58,23 @@ fun Application.configureScheduling(
                     )
                 }
             }
+    val expiredVariantsSweeperTask =
+        Tasks
+            .recurring(ExpiredVariantSweeper.TASK_NAME, FixedDelay.ofSeconds(30))
+            .execute { _, _ ->
+                runBlocking {
+                    ExpiredVariantSweeper.invoke(
+                        postgresVariantRepository = variantRepository,
+                    )
+                }
+            }
 
     val scheduler =
         Scheduler
             .create(jdbcPostgresDatasource(postgresProperties))
             .executorService(Executors.newVirtualThreadPerTaskExecutor())
             .serializer(KotlinSerializer())
-            .startTasks(failedAssetSweeperTask, failedVariantSweeperTask, variantReaperTask)
+            .startTasks(failedAssetSweeperTask, failedVariantSweeperTask, variantReaperTask, expiredVariantsSweeperTask)
             .build()
 
     monitor.subscribe(ApplicationStarted) {

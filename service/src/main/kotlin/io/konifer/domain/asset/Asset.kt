@@ -5,6 +5,7 @@ import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.variant.Variant
 import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.UUID
 
 @JvmInline value class AssetId(
@@ -69,7 +70,7 @@ sealed interface Asset {
                 path: String,
                 request: StoreAssetRequest,
             ): New {
-                val now = LocalDateTime.now()
+                val now = LocalDateTime.now(UTC)
                 return New(
                     id = AssetId(),
                     path = path,
@@ -221,7 +222,7 @@ sealed interface Asset {
                     source = persisted.source,
                     sourceUrl = persisted.sourceUrl,
                     createdAt = persisted.createdAt,
-                    modifiedAt = LocalDateTime.now(),
+                    modifiedAt = LocalDateTime.now(UTC),
                     isReady = true,
                     variants = mutableListOf(originalVariant),
                 )
@@ -266,7 +267,7 @@ sealed interface Asset {
                 source = source,
                 sourceUrl = sourceUrl,
                 createdAt = createdAt,
-                modifiedAt = LocalDateTime.now(),
+                modifiedAt = LocalDateTime.now(UTC),
                 isReady = isReady,
                 variants = variants,
             )
