@@ -105,7 +105,7 @@ object ConfigurationPropertyKeys {
             }
 
             object ExpirePropertyKeys {
-                const val MODE = "mode"
+                const val STRATEGY = "strategy"
                 const val TTL = "ttl"
             }
         }

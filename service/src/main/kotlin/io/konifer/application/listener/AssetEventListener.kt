@@ -2,7 +2,9 @@ package io.konifer.application.listener
 
 import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.event.DomainEvent
+import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.EventBus
+import io.konifer.domain.ports.VariantMetricsRepository
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.VariantService
 import io.ktor.util.logging.KtorSimpleLogger
@@ -15,6 +17,7 @@ class AssetEventListener(
     private val bus: EventBus,
     private val variantService: VariantService,
     private val variantProfileRepository: VariantProfileRepository,
+    private val variantMetricsRepository: VariantMetricsRepository,
     applicationScope: CoroutineScope,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -37,6 +40,7 @@ class AssetEventListener(
     private suspend fun handle(event: DomainEvent) {
         when (event) {
             is AssetReadyEvent -> handle(event)
+            is VariantAccessedEvent -> handle(event)
         }
     }
 
@@ -68,5 +72,13 @@ class AssetEventListener(
         } finally {
             event.originalVariantFile?.deleteIfExists()
         }
+    }
+
+    suspend fun handle(event: VariantAccessedEvent) {
+        variantMetricsRepository.recordVariantAccess(
+            variantId = event.variantId,
+            accessedAt = event.accessedAt,
+            path = event.path,
+        )
     }
 }

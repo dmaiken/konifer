@@ -1,12 +1,16 @@
 package io.konifer.infrastructure.variant
 
 import io.konifer.domain.ports.VariantGenerator
+import io.konifer.domain.ports.VariantMetricsRepository
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VARIANT_GENERATION
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.QUEUE_SIZE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.SYNCHRONOUS_PRIORITY
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.WORKERS
 import io.konifer.infrastructure.tryGetConfig
+import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
+import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
+import io.konifer.infrastructure.variant.metrics.VariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
@@ -19,6 +23,8 @@ import org.koin.plugin.module.dsl.single
 
 fun Application.variantModule(): Module =
     module {
+        val synchronousChannel = named("synchronousChannel")
+        val backgroundChannel = named("backgroundChannel")
         val queueSize =
             environment.config
                 .tryGetConfig(VARIANT_GENERATION)
@@ -26,11 +32,11 @@ fun Application.variantModule(): Module =
                 ?.toInt()
                 ?: 1000
 
-        single(named("synchronousChannel")) {
+        single(synchronousChannel) {
             Channel<ImageProcessingJob<*>>(capacity = queueSize)
         }
 
-        single(named("backgroundChannel")) {
+        single(backgroundChannel) {
             Channel<ImageProcessingJob<*>>(capacity = queueSize)
         }
 
@@ -52,18 +58,21 @@ fun Application.variantModule(): Module =
                     ?.toInt()
                     ?: 80
             PriorityChannelConsumer(
-                highPriorityChannel = get(named("synchronousChannel")),
-                backgroundChannel = get(named("backgroundChannel")),
+                highPriorityChannel = get(synchronousChannel),
+                backgroundChannel = get(backgroundChannel),
                 highPriorityWeight = synchronousWeight,
             )
         }
 
         single<VariantGenerator> {
             PrioritizedChannelVariantScheduler(
-                get(named("synchronousChannel")),
-                get(named("backgroundChannel")),
+                get(synchronousChannel),
+                get(backgroundChannel),
             )
         }
 
         single<ConfigurationVariantProfileRepository>() bind VariantProfileRepository::class
+
+        single<InMemoryVariantMetricsRepository>() bind VariantMetricsRepository::class
+        single<ChannelVariantMetricsDrainSignal>() bind VariantMetricsDrainSignal::class
     }
