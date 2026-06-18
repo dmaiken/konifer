@@ -1,6 +1,6 @@
 [versions]
 jooq-version = "3.21.6"
-koin-version = "4.2.1"
+koin-version = "4.2.2"
 koin-plugin-version = "1.0.0"
 kotlin-version = "2.3.21"
 kotlinx-serialization-version = "1.11.0"
