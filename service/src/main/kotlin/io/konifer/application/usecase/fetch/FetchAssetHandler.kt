@@ -108,18 +108,11 @@ class FetchAssetHandler(
                         labels = context.labels,
                     ) ?: return null,
                 cacheHit = false,
-            )
+            ).also { publishVariantAccessedEvent(it.asset) }
         } else {
             logger.info("Variant found for asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
             AssetInformation(assetData, true)
-        }.also {
-            eventPublisher.publish(
-                VariantAccessedEvent(
-                    variantId = assetData.variants.first().id,
-                    path = assetData.path,
-                    accessedAt = Instant.now(),
-                ),
-            )
+                .also { publishVariantAccessedEvent(it.asset) }
         }
     }
 
@@ -180,15 +173,21 @@ class FetchAssetHandler(
                     originalVariantFile = originalVariantFile,
                     transformation = checkNotNull(context.transformation),
                     assetId = assetId,
-                    lqipImplementations = context.pathConfiguration.image.previews,
                     originalVariantLQIPs = originalVariant.lqips,
-                    bucket = context.pathConfiguration.objectStore.bucket,
-                    expiresAt =
-                        context.pathConfiguration.transform.expire
-                            .expiresAt(),
+                    pathConfiguration = context.pathConfiguration,
                 )
             } finally {
                 originalVariantFile.deleteIfExists()
             }
         }
+
+    private suspend fun publishVariantAccessedEvent(assetData: AssetData) {
+        eventPublisher.publish(
+            VariantAccessedEvent(
+                variantId = assetData.variants.first().id,
+                path = assetData.path,
+                accessedAt = Instant.now(),
+            ),
+        )
+    }
 }

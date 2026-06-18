@@ -6,6 +6,7 @@ import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.konifer.infrastructure.variant.metrics.VariantAccessedInformation
 import io.konifer.infrastructure.variant.metrics.VariantMetricsDrainSignal
+import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
@@ -32,6 +33,8 @@ class PostgresVariantMetricsWriter(
         private const val INCOMING_IDLE_VARIANT_METRICS = "incoming_idle_variant_metrics"
     }
 
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
     init {
         scope.launch {
             while (isActive) {
@@ -42,8 +45,11 @@ class PostgresVariantMetricsWriter(
     }
 
     private suspend fun flushMetrics() {
-        variantMetricsRepository
-            .drainLastAccessed()
+        val metricsToFlush =
+            variantMetricsRepository
+                .drainLastAccessed()
+        logger.info("Flushing metrics for ${metricsToFlush.size} variants")
+        metricsToFlush
             .entries
             .chunked(CHUNK_SIZE)
             .forEach { chunk ->

@@ -4,6 +4,7 @@ import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.LQIPImplementation
+import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.TransformationDataContainer
@@ -31,10 +32,8 @@ class VariantService(
         requestedTransformations: List<RequestedTransformation>,
         assetId: AssetId,
         originalVariantAttributes: Attributes,
-        lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
-        bucket: String,
-        expiresAt: LocalDateTime?,
+        pathConfiguration: PathConfiguration,
     ) {
         val transformations =
             transformationNormalizer.normalize(
@@ -45,11 +44,17 @@ class VariantService(
             originalVariantFile = originalVariantFile,
             transformations = transformations,
             assetId = assetId,
-            lqipImplementations = lqipImplementations,
+            lqipImplementations = pathConfiguration.image.previews,
             originalVariantLQIPs = originalVariantLQIPs,
-            bucket = bucket,
+            bucket = pathConfiguration.objectStore.bucket,
             variantType = VariantType.EAGER,
-            expiresAt = expiresAt,
+            expiresAt =
+                if (pathConfiguration.transform.expire.strategy == VariantExpirationStrategy.TTL) {
+                    pathConfiguration.transform.expire.expiresAt()
+                } else {
+                    // We don't want to expire if strategy is idle since the variant has not been accessed yet
+                    null
+                },
         )
     }
 
@@ -57,20 +62,18 @@ class VariantService(
         originalVariantFile: Path,
         transformation: Transformation,
         assetId: AssetId,
-        lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
-        bucket: String,
-        expiresAt: LocalDateTime?,
+        pathConfiguration: PathConfiguration,
     ) {
         generateVariants(
             originalVariantFile = originalVariantFile,
             transformations = listOf(transformation),
             assetId = assetId,
-            lqipImplementations = lqipImplementations,
+            lqipImplementations = pathConfiguration.image.previews,
             originalVariantLQIPs = originalVariantLQIPs,
-            bucket = bucket,
+            bucket = pathConfiguration.objectStore.bucket,
             variantType = VariantType.ON_DEMAND,
-            expiresAt = expiresAt,
+            expiresAt = pathConfiguration.transform.expire.expiresAt(),
         )
     }
 

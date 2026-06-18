@@ -62,12 +62,8 @@ class AssetEventListener(
                 requestedTransformations = eagerVariantTransformations,
                 assetId = event.originalVariant.assetId,
                 originalVariantAttributes = event.originalVariant.attributes,
-                lqipImplementations = event.pathConfiguration.image.previews,
                 originalVariantLQIPs = event.originalVariant.lqips,
-                bucket = event.pathConfiguration.objectStore.bucket,
-                expiresAt =
-                    event.pathConfiguration.transform.expire
-                        .expiresAt(),
+                pathConfiguration = event.pathConfiguration,
             )
         } finally {
             event.originalVariantFile?.deleteIfExists()
