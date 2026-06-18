@@ -5,6 +5,8 @@
 package konifer.jooq.routines.references
 
 
+import konifer.jooq.routines.HashLtree
+import konifer.jooq.routines.HashLtreeExtended
 import konifer.jooq.routines.Index1
 import konifer.jooq.routines.Index2
 import konifer.jooq.routines.Lca1
@@ -771,6 +773,88 @@ fun _LtxtqRexec(
     , __2: Field<Array<org.jooq.postgres.extensions.types.Ltree?>?>
 ): Field<Boolean?> {
     val f = _LtxtqRexec()
+    f.set__1(__1)
+    f.set__2(__2)
+
+    return f.asField()
+}
+
+/**
+ * Call <code>public.hash_ltree</code>
+ */
+fun hashLtree(
+      configuration: Configuration
+    , __1: Ltree?
+): Int? {
+    val f = HashLtree()
+    f.set__1(__1)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+/**
+ * Get <code>public.hash_ltree</code> as a field.
+ */
+fun hashLtree(
+      __1: Ltree?
+): Field<Int?> {
+    val f = HashLtree()
+    f.set__1(__1)
+
+    return f.asField()
+}
+
+/**
+ * Get <code>public.hash_ltree</code> as a field.
+ */
+fun hashLtree(
+      __1: Field<Ltree?>
+): Field<Int?> {
+    val f = HashLtree()
+    f.set__1(__1)
+
+    return f.asField()
+}
+
+/**
+ * Call <code>public.hash_ltree_extended</code>
+ */
+fun hashLtreeExtended(
+      configuration: Configuration
+    , __1: Ltree?
+    , __2: Long?
+): Long? {
+    val f = HashLtreeExtended()
+    f.set__1(__1)
+    f.set__2(__2)
+
+    f.execute(configuration)
+    return f.returnValue
+}
+
+/**
+ * Get <code>public.hash_ltree_extended</code> as a field.
+ */
+fun hashLtreeExtended(
+      __1: Ltree?
+    , __2: Long?
+): Field<Long?> {
+    val f = HashLtreeExtended()
+    f.set__1(__1)
+    f.set__2(__2)
+
+    return f.asField()
+}
+
+/**
+ * Get <code>public.hash_ltree_extended</code> as a field.
+ */
+fun hashLtreeExtended(
+      __1: Field<Ltree?>
+    , __2: Field<Long?>
+): Field<Long?> {
+    val f = HashLtreeExtended()
     f.set__1(__1)
     f.set__2(__2)
 
