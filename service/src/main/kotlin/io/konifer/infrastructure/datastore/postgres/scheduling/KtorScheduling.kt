@@ -18,7 +18,6 @@ import org.jooq.DSLContext
 import org.koin.ktor.ext.inject
 import org.postgresql.ds.PGSimpleDataSource
 import java.util.concurrent.Executors
-import javax.sql.DataSource
 import kotlin.time.toJavaDuration
 
 fun Application.configureScheduledJobs(
@@ -75,11 +74,13 @@ fun Application.configureScheduledJobs(
                 }
             }
 
+    val schedulerDataSource = jdbcPostgresDatasource(postgresProperties)
+    val schedulerExecutor = Executors.newVirtualThreadPerTaskExecutor()
     val scheduler =
         Scheduler
-            .create(jdbcPostgresDatasource(postgresProperties))
+            .create(schedulerDataSource)
             .pollingInterval(scheduledJobProperties.jobPollingInterval.toJavaDuration())
-            .executorService(Executors.newVirtualThreadPerTaskExecutor())
+            .executorService(schedulerExecutor)
             .serializer(KotlinSerializer())
             .startTasks(failedAssetSweeperTask, failedVariantSweeperTask, variantReaperTask, expiredVariantsSweeperTask)
             .build()
@@ -92,10 +93,12 @@ fun Application.configureScheduledJobs(
     monitor.subscribe(ApplicationStopping) {
         log.info("Shutting down scheduler...")
         scheduler.stop()
+        schedulerExecutor.shutdown()
+        schedulerDataSource.close()
     }
 }
 
-fun jdbcPostgresDatasource(properties: PostgresProperties): DataSource {
+fun jdbcPostgresDatasource(properties: PostgresProperties): HikariDataSource {
     val dataSource = PGSimpleDataSource()
     dataSource.setServerNames(arrayOf(properties.host))
     dataSource.setPortNumbers(intArrayOf(properties.port))
@@ -106,6 +109,8 @@ fun jdbcPostgresDatasource(properties: PostgresProperties): DataSource {
     return HikariDataSource(
         HikariConfig().apply {
             this.dataSource = dataSource
+            maximumPoolSize = 3
+            minimumIdle = 1
         },
     )
 }
