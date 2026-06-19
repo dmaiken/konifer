@@ -14,7 +14,7 @@ data class TransformProperties(
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.ON_DEMAND_VARIANT)
     val onDemandVariant: OnDemandVariantProperties = OnDemandVariantProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.EXPIRE)
-    val expire: ExpireProperties = ExpireProperties.default,
+    val expire: ExpirationProperties = ExpirationProperties.default,
 ) {
     companion object Factory {
         val default = TransformProperties()

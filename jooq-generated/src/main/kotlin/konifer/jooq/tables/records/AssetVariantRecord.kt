@@ -64,6 +64,10 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(10, value)
         get(): LocalDateTime? = get(10) as LocalDateTime?
 
+    open var lastAccessedAt: LocalDateTime?
+        set(value): Unit = set(11, value)
+        get(): LocalDateTime? = get(11) as LocalDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -73,7 +77,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null, lastAccessedAt: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
@@ -85,6 +89,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         this.createdAt = createdAt
         this.uploadedAt = uploadedAt
         this.expiresAt = expiresAt
+        this.lastAccessedAt = lastAccessedAt
         resetTouchedOnNotNull()
     }
 
@@ -104,6 +109,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
             this.createdAt = value.createdAt
             this.uploadedAt = value.uploadedAt
             this.expiresAt = value.expiresAt
+            this.lastAccessedAt = value.lastAccessedAt
             resetTouchedOnNotNull()
         }
     }

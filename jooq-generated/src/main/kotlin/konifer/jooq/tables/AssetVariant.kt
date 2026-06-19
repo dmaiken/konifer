@@ -138,6 +138,11 @@ open class AssetVariant(
      */
     val EXPIRES_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("expires_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
+    /**
+     * The column <code>public.asset_variant.last_accessed_at</code>.
+     */
+    val LAST_ACCESSED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("last_accessed_at"), SQLDataType.LOCALDATETIME(6), this, "")
+
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

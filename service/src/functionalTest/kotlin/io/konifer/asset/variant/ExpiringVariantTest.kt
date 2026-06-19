@@ -23,7 +23,7 @@ class ExpiringVariantTest : BaseFunctionalTest() {
               "/**" {
                 transform {
                   expire {
-                    mode = ttl
+                    strategy = ttl
                     ttl = 500ms
                   }
                 }
@@ -82,7 +82,7 @@ class ExpiringVariantTest : BaseFunctionalTest() {
               "/**" {
                 transform {
                   expire {
-                    mode = ttl
+                    strategy = ttl
                     ttl = 500ms
                   }
                   eager-variants = [ small ]

@@ -4,10 +4,11 @@ import io.konifer.common.serializer.LowercaseEnumSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
-@Serializable(with = VariantExpirationSerializer::class)
-enum class VariantExpirationMode {
+@Serializable(with = VariantExpirationStrategySerializer::class)
+enum class VariantExpirationStrategy {
     NEVER,
     TTL,
+    IDLE,
     ;
 
     companion object Factory {
@@ -15,4 +16,5 @@ enum class VariantExpirationMode {
     }
 }
 
-class VariantExpirationSerializer : KSerializer<VariantExpirationMode> by LowercaseEnumSerializer(VariantExpirationMode.entries)
+class VariantExpirationStrategySerializer :
+    KSerializer<VariantExpirationStrategy> by LowercaseEnumSerializer(VariantExpirationStrategy.entries)

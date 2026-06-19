@@ -20,8 +20,8 @@ import org.jooq.meta.jaxb.Target
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 fun main() {
-    // 1. Start Postgres container
-    val pg = PostgreSQLContainer("postgres:15").apply {
+    // Start Postgres container
+    val pg = PostgreSQLContainer("postgres:17-alpine").apply {
         start()
         println("PostgreSQL Container started")
     }
@@ -38,7 +38,7 @@ fun main() {
         "CREATE EXTENSION IF NOT EXISTS ltree;",
     )
 
-    // 2. Run migrations with r2dbc-migrate
+    // Run migrations with r2dbc-migrate
     val options = builder()
         .option(DATABASE, pg.databaseName)
         .option(DRIVER, "postgresql")

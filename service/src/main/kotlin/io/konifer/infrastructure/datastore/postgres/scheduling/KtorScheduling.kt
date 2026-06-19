@@ -18,19 +18,22 @@ import org.jooq.DSLContext
 import org.koin.ktor.ext.inject
 import org.postgresql.ds.PGSimpleDataSource
 import java.util.concurrent.Executors
-import javax.sql.DataSource
+import kotlin.time.toJavaDuration
 
 fun Application.configureScheduledJobs(
     postgresProperties: PostgresProperties,
     dslContext: DSLContext,
+    scheduledJobProperties: ScheduledJobProperties,
 ) {
     val objectStore by inject<ObjectStore>()
     val assetRepository by inject<AssetRepository>()
     val variantRepository by inject<PostgresVariantRepository>()
 
+    log.info("Scheduled job time is: $scheduledJobProperties")
+
     val failedAssetSweeperTask =
         Tasks
-            .recurring(FailedAssetSweeper.TASK_NAME, FixedDelay.ofMinutes(1))
+            .recurring(FailedAssetSweeper.TASK_NAME, FixedDelay.of(scheduledJobProperties.failedAssetSweeperInterval.toJavaDuration()))
             .execute { _, _ ->
                 runBlocking {
                     FailedAssetSweeper.invoke(
@@ -41,7 +44,7 @@ fun Application.configureScheduledJobs(
             }
     val failedVariantSweeperTask =
         Tasks
-            .recurring(FailedVariantSweeper.TASK_NAME, FixedDelay.ofMinutes(1))
+            .recurring(FailedVariantSweeper.TASK_NAME, FixedDelay.of(scheduledJobProperties.failedVariantSweeperInterval.toJavaDuration()))
             .execute { _, _ ->
                 runBlocking {
                     FailedVariantSweeper.invoke(dslContext)
@@ -49,7 +52,7 @@ fun Application.configureScheduledJobs(
             }
     val variantReaperTask =
         Tasks
-            .recurring(VariantReaper.TASK_NAME, FixedDelay.ofSeconds(30))
+            .recurring(VariantReaper.TASK_NAME, FixedDelay.of(scheduledJobProperties.variantReaperInterval.toJavaDuration()))
             .execute { _, _ ->
                 runBlocking {
                     VariantReaper.invoke(
@@ -60,8 +63,10 @@ fun Application.configureScheduledJobs(
             }
     val expiredVariantsSweeperTask =
         Tasks
-            .recurring(ExpiredVariantSweeper.TASK_NAME, FixedDelay.ofSeconds(30))
-            .execute { _, _ ->
+            .recurring(
+                ExpiredVariantSweeper.TASK_NAME,
+                FixedDelay.of(scheduledJobProperties.expiredVariantsSweeperInterval.toJavaDuration()),
+            ).execute { _, _ ->
                 runBlocking {
                     ExpiredVariantSweeper.invoke(
                         postgresVariantRepository = variantRepository,
@@ -69,10 +74,13 @@ fun Application.configureScheduledJobs(
                 }
             }
 
+    val schedulerDataSource = jdbcPostgresDatasource(postgresProperties)
+    val schedulerExecutor = Executors.newVirtualThreadPerTaskExecutor()
     val scheduler =
         Scheduler
-            .create(jdbcPostgresDatasource(postgresProperties))
-            .executorService(Executors.newVirtualThreadPerTaskExecutor())
+            .create(schedulerDataSource)
+            .pollingInterval(scheduledJobProperties.jobPollingInterval.toJavaDuration())
+            .executorService(schedulerExecutor)
             .serializer(KotlinSerializer())
             .startTasks(failedAssetSweeperTask, failedVariantSweeperTask, variantReaperTask, expiredVariantsSweeperTask)
             .build()
@@ -85,10 +93,12 @@ fun Application.configureScheduledJobs(
     monitor.subscribe(ApplicationStopping) {
         log.info("Shutting down scheduler...")
         scheduler.stop()
+        schedulerExecutor.shutdown()
+        schedulerDataSource.close()
     }
 }
 
-fun jdbcPostgresDatasource(properties: PostgresProperties): DataSource {
+fun jdbcPostgresDatasource(properties: PostgresProperties): HikariDataSource {
     val dataSource = PGSimpleDataSource()
     dataSource.setServerNames(arrayOf(properties.host))
     dataSource.setPortNumbers(intArrayOf(properties.port))
@@ -99,6 +109,8 @@ fun jdbcPostgresDatasource(properties: PostgresProperties): DataSource {
     return HikariDataSource(
         HikariConfig().apply {
             this.dataSource = dataSource
+            maximumPoolSize = 3
+            minimumIdle = 1
         },
     )
 }

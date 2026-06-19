@@ -4,7 +4,9 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.context.ContentTypeNotPermittedException
 import io.konifer.domain.context.QueryRequestContext
+import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.VariantService
@@ -17,6 +19,7 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.time.Instant
 import kotlin.io.path.deleteIfExists
 
 class FetchAssetHandler(
@@ -24,6 +27,7 @@ class FetchAssetHandler(
     private val objectStore: ObjectStore,
     private val variantService: VariantService,
     private val assetUrlGenerator: AssetUrlGenerator,
+    private val eventPublisher: EventPublisher,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -104,10 +108,11 @@ class FetchAssetHandler(
                         labels = context.labels,
                     ) ?: return null,
                 cacheHit = false,
-            )
+            ).also { publishVariantAccessedEvent(it.asset) }
         } else {
             logger.info("Variant found for asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
             AssetInformation(assetData, true)
+                .also { publishVariantAccessedEvent(it.asset) }
         }
     }
 
@@ -168,15 +173,21 @@ class FetchAssetHandler(
                     originalVariantFile = originalVariantFile,
                     transformation = checkNotNull(context.transformation),
                     assetId = assetId,
-                    lqipImplementations = context.pathConfiguration.image.previews,
                     originalVariantLQIPs = originalVariant.lqips,
-                    bucket = context.pathConfiguration.objectStore.bucket,
-                    expiresAt =
-                        context.pathConfiguration.transform.expire
-                            .expiresAt(),
+                    pathConfiguration = context.pathConfiguration,
                 )
             } finally {
                 originalVariantFile.deleteIfExists()
             }
         }
+
+    private suspend fun publishVariantAccessedEvent(assetData: AssetData) {
+        eventPublisher.publish(
+            VariantAccessedEvent(
+                variantId = assetData.variants.first().id,
+                path = assetData.path,
+                accessedAt = Instant.now(),
+            ),
+        )
+    }
 }

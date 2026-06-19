@@ -26,7 +26,7 @@ fun AssetTreeRecord.toAssetData(
         id = AssetId(checkNotNull(id)),
         path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
         entryId = checkNotNull(entryId),
-        alt = checkNotNull(alt),
+        alt = alt,
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
         tags = tags.mapNotNull { it.tagValue }.toSet(),
         source = AssetSource.valueOf(checkNotNull(source)),

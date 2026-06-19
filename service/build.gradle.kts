@@ -140,6 +140,11 @@ dependencies {
     testFixturesImplementation(libs.libvips.ffm)
     testFixturesImplementation(libs.hipparchus.fft)
     testFixturesImplementation(project(":client"))
+    testFixturesImplementation(libs.testcontainers)
+    testFixturesImplementation(libs.testcontainers.postgresql)
+    testFixturesImplementation(libs.testcontainers.localstack)
+    testFixturesImplementation(libs.testcontainers.jupiter)
+    testFixturesImplementation(libs.jooq)
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))
