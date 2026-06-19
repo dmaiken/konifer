@@ -183,15 +183,19 @@ class PostgresVariantExpirationTest : BaseTestContainersTest() {
                 }
             }
             // Assert not expired yet
-            Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted {
-                runBlocking {
-                    konifer()
-                        .fetchAssetInfo(
-                            path = "users/123",
-                        ).shouldBeSuccessful()
-                        .body.variants shouldHaveSize 2
+            Awaitility
+                .await()
+                .during(2, TimeUnit.SECONDS)
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted {
+                    runBlocking {
+                        konifer()
+                            .fetchAssetInfo(
+                                path = "users/123",
+                            ).shouldBeSuccessful()
+                            .body.variants shouldHaveSize 2
+                    }
                 }
-            }
             konifer().fetchAssetContentBytes(
                 path = "users/123",
                 requestedTransformation = requestedTransformation { profile = "small" },
