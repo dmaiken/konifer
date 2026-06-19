@@ -23,6 +23,7 @@ import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.path.pathModule
+import io.konifer.infrastructure.rules.rulesModule
 import io.konifer.infrastructure.tika.mimeTypeDetectorModule
 import io.konifer.infrastructure.variant.variantModule
 import io.konifer.infrastructure.vips.vipsModule
@@ -60,6 +61,7 @@ fun Application.configureKoin(
             objectStoreModule(objectStoreProvider),
             pathModule(),
             vipsModule(),
+            rulesModule(),
             *additionalModules.toTypedArray(),
         )
     }

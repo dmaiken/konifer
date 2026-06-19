@@ -21,6 +21,7 @@ data class PathConfiguration(
     val returnFormat: ReturnFormatProperties = ReturnFormatProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL)
     val cacheControl: CacheControlProperties = CacheControlProperties.default,
+    val uploadRules: List<String> = emptyList(),
 ) {
     init {
         validate()

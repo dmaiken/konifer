@@ -9,6 +9,7 @@ object ConfigurationPropertyKeys {
     const val URL_SIGNING = "url-signing"
     const val HTTP = "http"
     const val VARIANT_PROFILES = "variant-profiles"
+    const val RULE_DEFINITIONS = "rule-definitions"
 
     object DataStorePropertyKeys {
         const val PROVIDER = "provider"
@@ -70,6 +71,12 @@ object ConfigurationPropertyKeys {
 
     object HttpPropertyKeys {
         const val PUBLIC_URL = "public-url"
+    }
+
+    object RuleDefinitionPropertyKeys {
+        const val PROMPT = "prompt"
+        const val ACTION = "action"
+        const val THRESHOLD = "threshold"
     }
 
     object PathPropertyKeys {
