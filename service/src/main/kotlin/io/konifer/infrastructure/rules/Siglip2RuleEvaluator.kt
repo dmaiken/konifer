@@ -13,7 +13,7 @@ class Siglip2RuleEvaluator(
 
     override suspend fun evaluate(
         ruleDefinitions: List<RuleDefinition>,
-        input: RuleEvaluationInput
+        input: RuleEvaluationInput,
     ): List<RuleEvaluationResult> {
         // TODO
         return emptyList()

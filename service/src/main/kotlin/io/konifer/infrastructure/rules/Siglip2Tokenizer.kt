@@ -7,24 +7,24 @@ import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
  * https://huggingface.co/google/siglip2-base-patch16-224
  */
 class Siglip2Tokenizer {
+    private val tokenizer =
+        HuggingFaceTokenizer
+            .builder()
+            .optTokenizerName("google/siglip2-base-patch16-224")
+            .optAddSpecialTokens(true)
+            .optDoLowerCase(true)
+            .optMaxLength(64)
+            .optPadToMaxLength()
+            .optTruncation(true)
+            .build()
 
-    private val tokenizer = HuggingFaceTokenizer.builder()
-        .optTokenizerName("google/siglip2-base-patch16-224")
-        .optAddSpecialTokens(true)
-        .optDoLowerCase(true)
-        .optMaxLength(64)
-        .optPadToMaxLength()
-        .optTruncation(true)
-        .build()
-
-    fun encode(prompt: String): Siglip2Tokens {
-        return tokenizer.encode(prompt.trim()).let {
+    fun encode(prompt: String): Siglip2Tokens =
+        tokenizer.encode(prompt.trim()).let {
             Siglip2Tokens(
                 inputIds = it.ids,
                 attentionMask = it.attentionMask,
             )
         }
-    }
 }
 
 data class Siglip2Tokens(

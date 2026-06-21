@@ -18,7 +18,9 @@ data class RuleDefinition(
 
 @JvmInline
 @Serializable
-value class RuleDefinitionThreshold(val value: Double) {
+value class RuleDefinitionThreshold(
+    val value: Double,
+) {
     init {
         require(value in 0.0..1.0) { "Rule threshold must be between 0.0 and 1.0" }
     }
@@ -26,7 +28,8 @@ value class RuleDefinitionThreshold(val value: Double) {
 
 @Serializable(with = RuleDefinitionActionSerializer::class)
 enum class RuleDefinitionAction {
-    MATCH, REJECT
+    MATCH,
+    REJECT,
 }
 
 class RuleDefinitionActionSerializer : KSerializer<RuleDefinitionAction> by LowercaseEnumSerializer(RuleDefinitionAction.entries)

@@ -14,7 +14,6 @@ import kotlinx.serialization.hocon.decodeFromConfig
 class ConfigurationRuleDefinitionRepository(
     applicationConfig: Config,
 ) : RuleDefinitionRepository {
-
     private val rules = populateRules(applicationConfig)
 
     override fun fetch(ruleName: RuleName): RuleDefinition =

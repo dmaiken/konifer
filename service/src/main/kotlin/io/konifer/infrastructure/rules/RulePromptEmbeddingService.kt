@@ -4,51 +4,63 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import java.nio.LongBuffer
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.sqrt
+import kotlin.io.path.pathString
 
 class RulePromptEmbeddingService(
     private val tokenizer: Siglip2Tokenizer,
+    private val ortEnvironment: OrtEnvironment,
+    pathToModel: Path,
 ) {
-    private val cache = ConcurrentHashMap<String, FloatArray>()
+    companion object {
+        private const val INPUT_IDS = "input_ids"
+        private const val TEXT_EMBEDS = "text_embeds"
+        private const val POOLER_OUTPUT = "pooler_output"
+    }
 
-    var env = OrtEnvironment.getEnvironment()
-    var session = env.createSession("text_model.onnx", OrtSession.SessionOptions())
+    private val cache = ConcurrentHashMap<String, FloatArray>()
+    private val session = ortEnvironment.createSession(pathToModel.pathString, OrtSession.SessionOptions())
 
     init {
+        session.inputInfo.forEach { (name, info) ->
+            println("Text model input: $name -> $info")
+        }
         session.outputInfo.forEach { (name, info) ->
             println("Text model output: $name -> $info")
         }
     }
 
-    fun generateEmbeddings(prompt: String) = cache.computeIfAbsent(prompt) { generate(prompt) }
+    fun generateEmbeddings(prompt: String): FloatArray = cache.computeIfAbsent(prompt) { generate(prompt) }
 
     private fun generate(prompt: String): FloatArray {
         val encoded = tokenizer.encode(prompt)
 
-        val inputIds = OnnxTensor.createTensor(
-            env,
-            LongBuffer.wrap(encoded.inputIds),
-            longArrayOf(1, encoded.inputIds.size.toLong()),
-        )
-        val attentionMask = OnnxTensor.createTensor(
-            env,
-            LongBuffer.wrap(encoded.attentionMask),
-            longArrayOf(1, encoded.attentionMask.size.toLong()),
-        )
+        val inputIds =
+            OnnxTensor.createTensor(
+                ortEnvironment,
+                LongBuffer.wrap(encoded.inputIds),
+                longArrayOf(1, encoded.inputIds.size.toLong()),
+            )
+        val attentionMask =
+            OnnxTensor.createTensor(
+                ortEnvironment,
+                LongBuffer.wrap(encoded.attentionMask),
+                longArrayOf(1, encoded.attentionMask.size.toLong()),
+            )
 
         inputIds.use {
             attentionMask.use {
-                val outputs = session.run(
-                    mapOf(
-                        "input_ids" to inputIds,
-                        "attention_mask" to attentionMask,
-                    ),
-                )
+                val outputs =
+                    session.run(
+                        mapOf(
+                            INPUT_IDS to inputIds,
+                        ),
+                    )
 
                 outputs.use {
                     val embedding = extractPooledEmbedding(outputs)
-                    return l2Normalize(embedding)
+                    return embedding.l2Normalize()
                 }
             }
         }
@@ -56,13 +68,13 @@ class RulePromptEmbeddingService(
 
     private fun extractPooledEmbedding(outputs: OrtSession.Result): FloatArray {
         val output =
-            outputs["text_embeds"]
+            outputs[TEXT_EMBEDS]
                 .orElseGet {
-                    outputs["pooler_output"]
+                    outputs[POOLER_OUTPUT]
                         .orElseThrow {
                             IllegalStateException(
                                 "Text model did not expose text_embeds or pooler_output. " +
-                                        "Available outputs: ${outputs.map { it.key }}"
+                                    "Available outputs: ${outputs.map { it.key }}",
                             )
                         }
                 }
@@ -73,8 +85,9 @@ class RulePromptEmbeddingService(
 
         return when (val value = tensor.value) {
             is Array<*> -> {
-                val first = value.firstOrNull()
-                    ?: throw IllegalStateException("Pooled text embedding output was empty")
+                val first =
+                    value.firstOrNull()
+                        ?: throw IllegalStateException("Pooled text embedding output was empty")
 
                 when (first) {
                     is FloatArray -> first
@@ -84,7 +97,7 @@ class RulePromptEmbeddingService(
                             ?: throw IllegalStateException("Unsupported nested text embedding shape")
                     }
                     else -> throw IllegalStateException(
-                        "Unsupported pooled text embedding row type: ${first::class.qualifiedName}"
+                        "Unsupported pooled text embedding row type: ${first::class.qualifiedName}",
                     )
                 }
             }
@@ -92,20 +105,8 @@ class RulePromptEmbeddingService(
             is FloatArray -> value
 
             else -> throw IllegalStateException(
-                "Unsupported pooled text embedding output type: ${value::class.qualifiedName}"
+                "Unsupported pooled text embedding output type: ${value::class.qualifiedName}",
             )
         }
-    }
-
-    private fun l2Normalize(values: FloatArray): FloatArray {
-        var sum = 0.0
-        for (value in values) {
-            sum += value * value
-        }
-
-        val norm = sqrt(sum).toFloat()
-        require(norm > 0f) { "Cannot normalize zero-length embedding" }
-
-        return FloatArray(values.size) { index -> values[index] / norm }
     }
 }
