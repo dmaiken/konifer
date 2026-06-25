@@ -75,7 +75,6 @@ object ConfigurationPropertyKeys {
 
     object RuleDefinitionPropertyKeys {
         const val PROMPT = "prompt"
-        const val ACTION = "action"
         const val THRESHOLD = "threshold"
     }
 
@@ -86,6 +85,7 @@ object ConfigurationPropertyKeys {
         const val RETURN_FORMAT = "return-format"
         const val TRANSFORM = "transform"
         const val CACHE_CONTROL = "cache-control"
+        const val UPLOAD_RULESET = "upload-ruleset"
 
         object ImagePropertyKeys {
             const val LQIP = "lqip"
@@ -148,6 +148,12 @@ object ConfigurationPropertyKeys {
             const val STALE_WHILE_REVALIDATE = "stale-while-revalidate"
             const val STALE_IF_ERROR = "stale-if-error"
             const val IMMUTABLE = "immutable"
+        }
+
+        object UploadRulesetPropertyKeys {
+            const val DEFAULT = "default"
+            const val ACCEPT_RULES = "accept-rules"
+            const val REJECT_RULES = "reject-rules"
         }
     }
 }

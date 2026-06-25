@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.rules
+package io.konifer.infrastructure.inference
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

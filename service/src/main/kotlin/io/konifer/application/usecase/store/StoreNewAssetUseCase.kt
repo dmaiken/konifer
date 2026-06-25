@@ -1,6 +1,6 @@
 package io.konifer.application.usecase.store
 
-import io.konifer.application.service.VariantProcessorPipeline
+import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetDataContainer
@@ -22,7 +22,7 @@ class StoreNewAssetUseCase(
     private val assetStreamContainerFactory: AssetContainerFactory,
     private val formatValidator: FormatValidator,
     private val requestContextFactory: RequestContextFactory,
-    private val variantProcessorPipeline: VariantProcessorPipeline,
+    private val originalVariantProcessorPipeline: OriginalVariantProcessorPipeline,
     private val objectStore: ObjectStore,
     private val assetRepository: AssetRepository,
     private val eventPublisher: EventPublisher,
@@ -66,7 +66,7 @@ class StoreNewAssetUseCase(
 
             container.use { container ->
                 val pipeline =
-                    variantProcessorPipeline.prepareForStorage(
+                    originalVariantProcessorPipeline.process(
                         scope = this, // Pass the current scope
                         container = container,
                         context = context,

@@ -24,12 +24,12 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PrioritizedChannelVariantSchedulerTest {
+class PrioritizedChannelVariantGeneratorTest {
     val highPriorityChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
     val backgroundChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
 
     val scheduler: VariantGenerator =
-        PrioritizedChannelVariantScheduler(
+        PrioritizedChannelVariantGenerator(
             highPriorityChannel = highPriorityChannel,
             backgroundChannel = backgroundChannel,
         )

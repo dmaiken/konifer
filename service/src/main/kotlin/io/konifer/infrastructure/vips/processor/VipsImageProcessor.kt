@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips
+package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
@@ -13,6 +13,9 @@ import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.ImagePreviewGenerator
+import io.konifer.infrastructure.vips.VipsEncoder
+import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.vips
+package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips

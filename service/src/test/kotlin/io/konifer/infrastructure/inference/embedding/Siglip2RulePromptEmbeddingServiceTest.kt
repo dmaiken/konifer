@@ -1,6 +1,7 @@
-package io.konifer.infrastructure.rules
+package io.konifer.infrastructure.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
+import io.konifer.infrastructure.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.shouldNotBeNaN
@@ -20,9 +21,9 @@ import kotlin.math.sqrt
  * into memory.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RulePromptEmbeddingServiceTest {
+class Siglip2RulePromptEmbeddingServiceTest {
     private lateinit var tokenizer: Siglip2Tokenizer
-    private lateinit var service: RulePromptEmbeddingService
+    private lateinit var service: Siglip2RulePromptEmbeddingService
 
     private val environment = OrtEnvironment.getEnvironment()
     private val modelPath = Path.of("/home/daniel/imagek/text_model.onnx")
@@ -31,7 +32,7 @@ class RulePromptEmbeddingServiceTest {
     fun beforeAll() {
         tokenizer = spyk(Siglip2Tokenizer())
         service =
-            RulePromptEmbeddingService(
+            Siglip2RulePromptEmbeddingService(
                 tokenizer = tokenizer,
                 ortEnvironment = environment,
                 pathToModel = modelPath,

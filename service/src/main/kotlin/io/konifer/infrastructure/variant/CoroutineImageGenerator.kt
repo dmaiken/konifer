@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.variant
 
-import io.konifer.infrastructure.vips.VipsImageProcessor
+import io.konifer.infrastructure.vips.processor.VipsImageProcessor
+import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CancellationException
@@ -10,8 +11,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class CoroutineVariantGenerator(
+class CoroutineImageGenerator(
     private val imageProcessor: VipsImageProcessor,
+    private val tensorProcessor: VipsTensorProcessor,
     private val consumer: PriorityChannelConsumer<ImageProcessingJob<*>>,
     numberOfWorkers: Int,
 ) {
@@ -41,11 +43,12 @@ class CoroutineVariantGenerator(
         when (job) {
             is PreProcessJob -> handlePreProcessJob(job)
             is GenerateVariantsJob -> handleGenerateVariantsJob(job)
+            is ProcessOriginalVariantContentJob -> handleProcessOriginalVariantContentJob(job)
         }
     }
 
     private suspend fun handlePreProcessJob(job: PreProcessJob) {
-        logger.debug { "Handling preprocessing job: $job" }
+        logger.debug { "Handling PreProcessJob: $job" }
         try {
             imageProcessor.preprocess(
                 sourceFormat = job.sourceFormat,
@@ -64,7 +67,7 @@ class CoroutineVariantGenerator(
     }
 
     private suspend fun handleGenerateVariantsJob(job: GenerateVariantsJob) {
-        logger.debug { "Handling GenerateVariantsJob job: $job" }
+        logger.debug { "Handling GenerateVariantsJob: $job" }
         try {
             imageProcessor.generateVariants(
                 source = job.source,
@@ -79,5 +82,9 @@ class CoroutineVariantGenerator(
             logger.error("Error while generating variant with request: {}", job, e)
             job.deferredResult.completeExceptionally(e)
         }
+    }
+
+    private suspend fun handleProcessOriginalVariantContentJob(job: ProcessOriginalVariantContentJob) {
+        // TODO
     }
 }

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.rules
+package io.konifer.infrastructure.inference
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 

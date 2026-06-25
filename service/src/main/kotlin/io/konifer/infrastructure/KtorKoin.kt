@@ -2,7 +2,7 @@ package io.konifer.infrastructure
 
 import com.typesafe.config.Config
 import io.konifer.application.listener.AssetEventListener
-import io.konifer.application.service.VariantProcessorPipeline
+import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.application.usecase.delete.DeleteAssetUseCase
 import io.konifer.application.usecase.fetch.FetchAssetHandler
 import io.konifer.application.usecase.store.StoreNewAssetUseCase
@@ -93,7 +93,7 @@ fun appModule(): Module =
         single<DeleteAssetUseCase>()
         single<UpdateAssetUseCase>()
         single<StoreNewAssetUseCase>()
-        single<VariantProcessorPipeline>()
+        single<OriginalVariantProcessorPipeline>()
         single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
         single<AssetEventListener>() withOptions {
             createdAtStart()

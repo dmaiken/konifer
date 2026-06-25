@@ -1,6 +1,9 @@
 package io.konifer.domain.rules
 
+import kotlinx.serialization.Serializable
+
 @JvmInline
+@Serializable
 value class RuleName(
     val value: String,
 ) {

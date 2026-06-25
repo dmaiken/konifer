@@ -40,14 +40,14 @@ fun Application.variantModule(): Module =
             Channel<ImageProcessingJob<*>>(capacity = queueSize)
         }
 
-        single<CoroutineVariantGenerator>(createdAtStart = true) {
+        single<CoroutineImageGenerator>(createdAtStart = true) {
             val numberOfWorkers =
                 environment.config
                     .tryGetConfig(VARIANT_GENERATION)
                     ?.tryGetString(WORKERS)
                     ?.toInt()
                     ?: Runtime.getRuntime().availableProcessors()
-            CoroutineVariantGenerator(get(), get(), numberOfWorkers)
+            CoroutineImageGenerator(get(), get(), get(), numberOfWorkers)
         }
 
         single<PriorityChannelConsumer<ImageProcessingJob<*>>> {
@@ -65,7 +65,7 @@ fun Application.variantModule(): Module =
         }
 
         single<VariantGenerator> {
-            PrioritizedChannelVariantScheduler(
+            PrioritizedChannelVariantGenerator(
                 get(synchronousChannel),
                 get(backgroundChannel),
             )

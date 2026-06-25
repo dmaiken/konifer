@@ -9,7 +9,8 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
-import io.konifer.infrastructure.vips.VipsImageProcessor
+import io.konifer.infrastructure.vips.processor.VipsImageProcessor
+import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -32,17 +33,22 @@ import javax.imageio.ImageIO
 import kotlin.io.path.exists
 import kotlin.io.path.writeBytes
 
-class CoroutineVariantGeneratorTest : BaseUnitTest() {
+class CoroutineImageGeneratorTest : BaseUnitTest() {
     private val imageProcessor =
         spyk<VipsImageProcessor>(
             VipsImageProcessor(),
         )
+    private val tensorProcessor =
+        spyk<VipsTensorProcessor>(
+            VipsTensorProcessor(),
+        )
     private val channel = Channel<ImageProcessingJob<*>>()
 
     // This is needed despite what Intellij thinks - it consumes from the scheduler
-    private val coroutineVariantGenerator =
-        CoroutineVariantGenerator(
+    private val coroutineImageGenerator =
+        CoroutineImageGenerator(
             imageProcessor = imageProcessor,
+            tensorProcessor = tensorProcessor,
             consumer =
                 PriorityChannelConsumer(
                     highPriorityChannel = channel,

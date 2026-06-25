@@ -5,27 +5,31 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.vipsProperties
 
-val NO_OPTIONS = emptyArray<VipsOption>()
+val noOptions = emptyArray<VipsOption>()
+
+val supportsPagingOptions: Array<VipsOption> = arrayOf(
+    // Read all frames
+    VipsOption.Int(VipsOptionNames.OPTION_N, -1),
+    // Sequential decoding
+    VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+)
+
+val noPagingOptions: Array<VipsOption> = arrayOf(
+    // Read only first frame
+    VipsOption.Int(VipsOptionNames.OPTION_N, 1),
+    // Sequential decoding
+    VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+)
 
 fun createDecoderOptions(
     sourceFormat: ImageFormat,
     destinationFormat: ImageFormat,
 ): Array<VipsOption> {
     if (sourceFormat.vipsProperties.supportsPaging && destinationFormat.vipsProperties.supportsPaging) {
-        return arrayOf(
-            // Read all frames
-            VipsOption.Int(VipsOptionNames.OPTION_N, -1),
-            // Sequential decoding
-            VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-        )
+        return supportsPagingOptions
     }
     if (sourceFormat.vipsProperties.supportsPaging) {
-        return arrayOf(
-            // Read only first frame
-            VipsOption.Int(VipsOptionNames.OPTION_N, 1),
-            // Sequential decoding
-            VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-        )
+        return noPagingOptions
     }
-    return NO_OPTIONS
+    return noOptions
 }

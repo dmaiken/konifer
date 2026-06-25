@@ -1,18 +1,20 @@
-package io.konifer.infrastructure.rules
+package io.konifer.infrastructure.inference.embedding
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import io.konifer.infrastructure.inference.Siglip2Tokenizer
+import io.konifer.infrastructure.rules.l2Normalize
 import java.nio.LongBuffer
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.pathString
 
-class RulePromptEmbeddingService(
+class Siglip2RulePromptEmbeddingService(
     private val tokenizer: Siglip2Tokenizer,
     private val ortEnvironment: OrtEnvironment,
     pathToModel: Path,
-) {
+): RulePromptEmbeddingService {
     companion object {
         private const val INPUT_IDS = "input_ids"
         private const val TEXT_EMBEDS = "text_embeds"
@@ -31,7 +33,7 @@ class RulePromptEmbeddingService(
         }
     }
 
-    fun generateEmbeddings(prompt: String): FloatArray = cache.computeIfAbsent(prompt) { generate(prompt) }
+    override fun generateEmbeddings(prompt: String): FloatArray = cache.computeIfAbsent(prompt) { generate(prompt) }
 
     private fun generate(prompt: String): FloatArray {
         val encoded = tokenizer.encode(prompt)

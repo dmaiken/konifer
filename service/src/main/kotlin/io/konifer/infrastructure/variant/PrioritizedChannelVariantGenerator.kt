@@ -10,7 +10,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import java.nio.file.Path
 
-class PrioritizedChannelVariantScheduler(
+class PrioritizedChannelVariantGenerator(
     private val highPriorityChannel: Channel<ImageProcessingJob<*>>,
     private val backgroundChannel: Channel<ImageProcessingJob<*>>,
 ) : VariantGenerator {
