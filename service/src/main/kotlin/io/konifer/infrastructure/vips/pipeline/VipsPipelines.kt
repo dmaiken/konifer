@@ -39,6 +39,7 @@ object VipsPipelines {
 
     val tensorProcessingPipeline =
         vipsPipeline {
+            add(CropFirstPage)
             add(RotateFlip)
             add(Resize)
             add(TransformColorSpace)

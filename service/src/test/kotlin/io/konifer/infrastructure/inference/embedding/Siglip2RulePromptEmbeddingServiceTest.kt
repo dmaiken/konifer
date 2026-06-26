@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
 import io.konifer.infrastructure.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.plusOrMinus
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.io.path.pathString
 import kotlin.math.sqrt
 
 /**
@@ -27,6 +29,7 @@ class Siglip2RulePromptEmbeddingServiceTest {
 
     private val environment = OrtEnvironment.getEnvironment()
     private val modelPath = Path.of("/home/daniel/imagek/text_model.onnx")
+    private val ortSession = environment.createSession(modelPath.pathString, OrtSession.SessionOptions())
 
     @BeforeAll
     fun beforeAll() {
@@ -35,7 +38,7 @@ class Siglip2RulePromptEmbeddingServiceTest {
             Siglip2RulePromptEmbeddingService(
                 tokenizer = tokenizer,
                 ortEnvironment = environment,
-                pathToModel = modelPath,
+                ortSession = ortSession,
             )
     }
 
