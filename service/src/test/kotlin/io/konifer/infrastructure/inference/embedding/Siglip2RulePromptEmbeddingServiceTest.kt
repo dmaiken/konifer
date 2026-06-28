@@ -2,19 +2,18 @@ package io.konifer.infrastructure.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.infrastructure.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.shouldNotBeNaN
 import io.kotest.matchers.shouldBe
-import io.mockk.clearMocks
 import io.mockk.spyk
-import io.mockk.verify
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.nio.file.Path
-import java.util.UUID
 import kotlin.io.path.pathString
 import kotlin.math.sqrt
 
@@ -27,6 +26,19 @@ class Siglip2RulePromptEmbeddingServiceTest {
     private lateinit var tokenizer: Siglip2Tokenizer
     private lateinit var service: Siglip2RulePromptEmbeddingService
 
+    private val prompt1 = "This is a test prompt"
+    private val prompt2 = "This is another test prompt"
+    private val ruleDefinitions =
+        listOf(
+            RuleDefinition(
+                prompt = prompt1,
+                threshold = RuleDefinitionThreshold(0.5),
+            ),
+            RuleDefinition(
+                prompt = prompt2,
+                threshold = RuleDefinitionThreshold(0.9),
+            ),
+        )
     private val environment = OrtEnvironment.getEnvironment()
     private val modelPath = Path.of("/home/daniel/imagek/text_model.onnx")
     private val ortSession = environment.createSession(modelPath.pathString, OrtSession.SessionOptions())
@@ -34,18 +46,19 @@ class Siglip2RulePromptEmbeddingServiceTest {
     @BeforeAll
     fun beforeAll() {
         tokenizer = spyk(Siglip2Tokenizer())
+
         service =
             Siglip2RulePromptEmbeddingService(
                 tokenizer = tokenizer,
                 ortEnvironment = environment,
                 ortSession = ortSession,
+                ruleDefinitions = ruleDefinitions,
             )
     }
 
     @Test
     fun `can generate embeddings`() {
-        val prompt = UUID.randomUUID().toString()
-        val embeddings = service.generateEmbeddings(prompt)
+        val embeddings = service.generateEmbeddings(prompt1)
 
         embeddings shouldHaveAtLeastSize 1
         embeddings.forEach { it.shouldNotBeNaN() }
@@ -56,22 +69,17 @@ class Siglip2RulePromptEmbeddingServiceTest {
 
     @Test
     fun `returns stable embeddings for same prompt`() {
-        val prompt = UUID.randomUUID().toString()
-        val first = service.generateEmbeddings(prompt)
-        val second = service.generateEmbeddings(prompt)
+        val first = service.generateEmbeddings(prompt1)
+        val second = service.generateEmbeddings(prompt1)
 
         first.contentEquals(second) shouldBe true
     }
 
     @Test
-    fun `embedding is cached the first time`() {
-        val prompt = UUID.randomUUID().toString()
-        service.generateEmbeddings(prompt)
-        verify(exactly = 1) { tokenizer.encode(prompt) }
+    fun `returns different embeddings for different prompts`() {
+        val first = service.generateEmbeddings(prompt1)
+        val second = service.generateEmbeddings(prompt2)
 
-        clearMocks(tokenizer)
-
-        service.generateEmbeddings(prompt)
-        verify(exactly = 0) { tokenizer.encode(prompt) }
+        first.contentEquals(second) shouldBe false
     }
 }

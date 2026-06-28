@@ -48,11 +48,10 @@ object ForceRgbBands : VipsTransformer {
         source: VImage,
         transformation: Transformation,
         appliedTransformations: List<AppliedTransformation>,
-    ): Boolean {
-        return source.hasAlpha() ||
+    ): Boolean =
+        source.hasAlpha() ||
             source.getInt(OPTION_BANDS) != EXPECTED_BANDS ||
             ImageColorSpaceExtractor.extract(source) != ColorSpace.SRGB
-    }
 
     override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
     override val name: String = "ForceRgbBands"

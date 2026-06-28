@@ -11,5 +11,7 @@ data class StoreRequestContext(
      * path configuration and there are no lqips to generate.
      */
     fun requiresPreProcessing(): Boolean =
-        pathConfiguration.transform.preProcessing.enabled || pathConfiguration.image.previews.isNotEmpty() || pathConfiguration.uploadRuleset.requiresEvaluationBeyondDefault()
+        pathConfiguration.transform.preProcessing.enabled ||
+            pathConfiguration.image.previews.isNotEmpty() ||
+            pathConfiguration.uploadRuleset.requiresEvaluationBeyondDefault()
 }

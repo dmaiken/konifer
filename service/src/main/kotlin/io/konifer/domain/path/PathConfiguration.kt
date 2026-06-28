@@ -2,7 +2,6 @@ package io.konifer.domain.path
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
-import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys

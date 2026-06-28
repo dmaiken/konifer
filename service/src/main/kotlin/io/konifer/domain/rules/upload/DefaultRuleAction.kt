@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable(with = DefaultRuleActionSerializer::class)
 enum class DefaultRuleAction {
     ACCEPT,
-    REJECT;
+    REJECT,
+    ;
 
     companion object {
         val default = ACCEPT

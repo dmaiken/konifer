@@ -7,19 +7,21 @@ import io.konifer.domain.image.vipsProperties
 
 val noOptions = emptyArray<VipsOption>()
 
-val supportsPagingOptions: Array<VipsOption> = arrayOf(
-    // Read all frames
-    VipsOption.Int(VipsOptionNames.OPTION_N, -1),
-    // Sequential decoding
-    VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-)
+val supportsPagingOptions: Array<VipsOption> =
+    arrayOf(
+        // Read all frames
+        VipsOption.Int(VipsOptionNames.OPTION_N, -1),
+        // Sequential decoding
+        VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+    )
 
-val noPagingOptions: Array<VipsOption> = arrayOf(
-    // Read only first frame
-    VipsOption.Int(VipsOptionNames.OPTION_N, 1),
-    // Sequential decoding
-    VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
-)
+val noPagingOptions: Array<VipsOption> =
+    arrayOf(
+        // Read only first frame
+        VipsOption.Int(VipsOptionNames.OPTION_N, 1),
+        // Sequential decoding
+        VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+    )
 
 fun createDecoderOptions(
     sourceFormat: ImageFormat,

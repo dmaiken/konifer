@@ -4,19 +4,23 @@ import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
+import io.konifer.infrastructure.variant.original.OriginalVariantContentService
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
-import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.toByteArray
 import io.mockk.coEvery
+import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -38,17 +42,14 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
         spyk<VipsImageProcessor>(
             VipsImageProcessor(),
         )
-    private val tensorProcessor =
-        spyk<VipsTensorProcessor>(
-            VipsTensorProcessor(),
-        )
+    private val originalVariantContentService =
+        mockk<OriginalVariantContentService>()
     private val channel = Channel<ImageProcessingJob<*>>()
 
     // This is needed despite what Intellij thinks - it consumes from the scheduler
     private val coroutineImageGenerator =
         CoroutineImageGenerator(
             imageProcessor = imageProcessor,
-            tensorProcessor = tensorProcessor,
             consumer =
                 PriorityChannelConsumer(
                     highPriorityChannel = channel,
@@ -56,6 +57,7 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                     highPriorityWeight = 80,
                 ),
             numberOfWorkers = 4,
+            originalVariantContentService = originalVariantContentService,
         )
 
     lateinit var source: Path
@@ -217,6 +219,117 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 val newResult = CompletableDeferred<Unit>()
                 channel.send(variantGenerationJob.copy(deferredResult = newResult))
                 shouldNotThrowAny { newResult.await() }
+            }
+    }
+
+    @Nested
+    inner class ProcessOriginalVariantGenerationJobTests {
+        private val transformation =
+            Transformation(
+                height = 200,
+                width = 200,
+                format = ImageFormat.PNG,
+                fit = Fit.FILL,
+                colorSpace = ColorSpace.SRGB,
+            )
+
+        @Test
+        fun `can handle original variant processing job`() =
+            runTest {
+                val output = ByteChannel()
+                val result = CompletableDeferred<ContentProcessorResult>()
+                val uploadRuleset = UploadRuleset()
+                val originalContentJob =
+                    ProcessOriginalVariantContentJob(
+                        source = source,
+                        transformationDataContainer =
+                            TransformationDataContainer(
+                                transformation = transformation,
+                                output = output,
+                            ),
+                        deferredResult = result,
+                        lqipImplementations = emptySet(),
+                        sourceFormat = ImageFormat.PNG,
+                        uploadRuleset = uploadRuleset,
+                    )
+                coEvery {
+                    originalVariantContentService.process(
+                        uploadRuleset = uploadRuleset,
+                        transformationDataContainer = originalContentJob.transformationDataContainer,
+                        lqipImplementations = originalContentJob.lqipImplementations,
+                        sourceFormat = originalContentJob.sourceFormat,
+                        source = originalContentJob.source,
+                    )
+                } returns ContentProcessorResult.Success
+                channel.send(originalContentJob)
+
+                result.await() shouldBe ContentProcessorResult.Success
+            }
+
+        @Test
+        fun `if exception is thrown then deferred result completes exceptionally`() =
+            runTest {
+                val output = ByteChannel()
+                val result = CompletableDeferred<ContentProcessorResult>()
+                val uploadRuleset = UploadRuleset()
+                val originalContentJob =
+                    ProcessOriginalVariantContentJob(
+                        source = source,
+                        transformationDataContainer =
+                            TransformationDataContainer(
+                                transformation = transformation,
+                                output = output,
+                            ),
+                        deferredResult = result,
+                        lqipImplementations = emptySet(),
+                        sourceFormat = ImageFormat.PNG,
+                        uploadRuleset = uploadRuleset,
+                    )
+                coEvery {
+                    originalVariantContentService.process(
+                        uploadRuleset = uploadRuleset,
+                        transformationDataContainer = originalContentJob.transformationDataContainer,
+                        lqipImplementations = originalContentJob.lqipImplementations,
+                        sourceFormat = originalContentJob.sourceFormat,
+                        source = originalContentJob.source,
+                    )
+                } throws IllegalStateException()
+                channel.send(originalContentJob)
+
+                shouldThrow<IllegalStateException> { result.await() }
+            }
+
+        @Test
+        fun `if cancellation exception is thrown then deferred result throws`() =
+            runTest {
+                val output = ByteChannel()
+                val result = CompletableDeferred<ContentProcessorResult>()
+                val uploadRuleset = UploadRuleset()
+                val originalContentJob =
+                    ProcessOriginalVariantContentJob(
+                        source = source,
+                        transformationDataContainer =
+                            TransformationDataContainer(
+                                transformation = transformation,
+                                output = output,
+                            ),
+                        deferredResult = result,
+                        lqipImplementations = emptySet(),
+                        sourceFormat = ImageFormat.PNG,
+                        uploadRuleset = uploadRuleset,
+                    )
+                coEvery {
+                    originalVariantContentService.process(
+                        uploadRuleset = uploadRuleset,
+                        transformationDataContainer = originalContentJob.transformationDataContainer,
+                        lqipImplementations = originalContentJob.lqipImplementations,
+                        sourceFormat = originalContentJob.sourceFormat,
+                        source = originalContentJob.source,
+                    )
+                } throws CancellationException()
+                channel.send(originalContentJob)
+
+                shouldThrow<CancellationException> { result.await() }
             }
     }
 }

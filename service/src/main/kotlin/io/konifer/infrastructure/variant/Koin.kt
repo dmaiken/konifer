@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.variant
 
+import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantMetricsRepository
 import io.konifer.domain.ports.VariantProfileRepository
@@ -7,10 +8,13 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VARIANT_GENE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.QUEUE_SIZE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.SYNCHRONOUS_PRIORITY
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.WORKERS
+import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.tryGetConfig
 import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.konifer.infrastructure.variant.metrics.VariantMetricsDrainSignal
+import io.konifer.infrastructure.variant.original.ChannelOriginalVariantContentScheduler
+import io.konifer.infrastructure.variant.original.OriginalVariantContentService
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.ktor.server.application.Application
 import io.ktor.server.config.tryGetString
@@ -49,6 +53,17 @@ fun Application.variantModule(): Module =
                     ?: Runtime.getRuntime().availableProcessors()
             CoroutineImageGenerator(get(), get(), get(), numberOfWorkers)
         }
+
+        single<OriginalVariantContentService> {
+            OriginalVariantContentService(
+                ruleEvaluator = lazy { get<RuleEvaluator>() },
+                vipsTensorProcessor = get(),
+                ruleDefinitionRepository = get(),
+                vipsImageProcessor = get(),
+            )
+        }
+
+        single<ChannelOriginalVariantContentScheduler>() bind OriginalVariantContentProcessor::class
 
         single<PriorityChannelConsumer<ImageProcessingJob<*>>> {
             val synchronousWeight =

@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.variant
 
+import io.konifer.infrastructure.variant.original.OriginalVariantContentService
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
-import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CancellationException
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class CoroutineImageGenerator(
     private val imageProcessor: VipsImageProcessor,
-    private val tensorProcessor: VipsTensorProcessor,
+    private val originalVariantContentService: OriginalVariantContentService,
     private val consumer: PriorityChannelConsumer<ImageProcessingJob<*>>,
     numberOfWorkers: Int,
 ) {
@@ -41,28 +41,8 @@ class CoroutineImageGenerator(
 
     private suspend fun handleVariantGenerationJob(job: ImageProcessingJob<*>) {
         when (job) {
-            is PreProcessJob -> handlePreProcessJob(job)
             is GenerateVariantsJob -> handleGenerateVariantsJob(job)
             is ProcessOriginalVariantContentJob -> handleProcessOriginalVariantContentJob(job)
-        }
-    }
-
-    private suspend fun handlePreProcessJob(job: PreProcessJob) {
-        logger.debug { "Handling PreProcessJob: $job" }
-        try {
-            imageProcessor.preprocess(
-                sourceFormat = job.sourceFormat,
-                transformationDataContainer = job.transformationDataContainer,
-                lqipImplementations = job.lqipImplementations,
-                source = job.source,
-            )
-            job.deferredResult.complete(Unit)
-        } catch (e: CancellationException) {
-            job.deferredResult.completeExceptionally(e)
-            throw e
-        } catch (e: Exception) {
-            logger.error("Error while preprocessing original with request: {}", job, e)
-            job.deferredResult.completeExceptionally(e)
         }
     }
 
@@ -85,6 +65,23 @@ class CoroutineImageGenerator(
     }
 
     private suspend fun handleProcessOriginalVariantContentJob(job: ProcessOriginalVariantContentJob) {
-        // TODO
+        logger.debug { "Handling ProcessOriginalVariantContentJob: $job" }
+        try {
+            val response =
+                originalVariantContentService.process(
+                    uploadRuleset = job.uploadRuleset,
+                    transformationDataContainer = job.transformationDataContainer,
+                    lqipImplementations = job.lqipImplementations,
+                    sourceFormat = job.sourceFormat,
+                    source = job.source,
+                )
+            job.deferredResult.complete(response)
+        } catch (e: CancellationException) {
+            job.deferredResult.completeExceptionally(e)
+            throw e
+        } catch (e: Exception) {
+            logger.error("Error while processing original variant with request: {}", job, e)
+            job.deferredResult.completeExceptionally(e)
+        }
     }
 }

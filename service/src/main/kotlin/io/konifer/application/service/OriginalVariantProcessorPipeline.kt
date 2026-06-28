@@ -7,7 +7,6 @@ import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.context.StoreRequestContext
 import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.OriginalVariantContentProcessor
-import io.konifer.domain.ports.RuleDefinitionRepository
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.Attributes
@@ -35,7 +34,6 @@ import kotlin.io.path.pathString
 class OriginalVariantProcessorPipeline(
     private val transformationNormalizer: TransformationNormalizer,
     private val originalVariantContentProcessor: OriginalVariantContentProcessor,
-    private val ruleDefinitionRepository: RuleDefinitionRepository,
 ) {
     suspend fun process(
         scope: CoroutineScope,
@@ -155,7 +153,7 @@ class OriginalVariantProcessorPipeline(
                         firstChannel = objectStoreChannel,
                         secondChannel = null,
                     )
-                    ContentProcessorResult.Success()
+                    ContentProcessorResult.Success
                 }.onFailure { e ->
                     objectStoreChannel.close(e)
                 }.getOrThrow()

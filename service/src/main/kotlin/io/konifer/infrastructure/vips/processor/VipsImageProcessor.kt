@@ -19,12 +19,9 @@ import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
-import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.lang.foreign.Arena
@@ -56,57 +53,49 @@ class VipsImageProcessor {
      * Preprocesses the image based on application configuration. Make sure to use the returned properties
      * since they reflect any changes performed on the image.
      */
-    suspend fun preprocess(
-        source: Path,
+    fun preprocess(
+        arena: Arena,
+        source: VImage,
         sourceFormat: ImageFormat,
         transformationDataContainer: TransformationDataContainer,
         lqipImplementations: Set<LQIPImplementation>,
-    ) = withContext(Dispatchers.IO) {
+    ): PreprocessOutput {
         // Note: You cannot use coroutines in here unless we change up the way the arena is defined
         // FFM requires that only one thread access the native memory arena
-        Vips.run { arena ->
-            val transformation = transformationDataContainer.transformation
-            val decoderOptions =
-                createDecoderOptions(
-                    sourceFormat = sourceFormat,
-                    destinationFormat = transformation.format,
-                )
-            val sourceImage = VImage.newFromFile(arena, source.toFile().absolutePath, *decoderOptions)
-            val preProcessed = preProcessingPipeline.run(arena, sourceImage, transformation)
+        val transformation = transformationDataContainer.transformation
+        val preProcessed = preProcessingPipeline.run(arena, source, transformation)
 
-            transformationDataContainer.attributes.complete(
-                Attributes.createAttributes(
-                    image = preProcessed.processed,
-                    sourceFormat = sourceFormat,
-                    destinationFormat = transformation.format,
-                ),
+        transformationDataContainer.attributes.complete(
+            Attributes.createAttributes(
+                image = preProcessed.processed,
+                sourceFormat = sourceFormat,
+                destinationFormat = transformation.format,
+            ),
+        )
+        // we always want to generate lqips if configured when preprocessing even if the pipeline
+        // says we don't need to
+        if (lqipImplementations.isNotEmpty()) {
+            generatePreviewVariant(
+                arena = arena,
+                sourceImage = preProcessed.processed,
+                lqipImplementations = lqipImplementations,
+                deferred = transformationDataContainer.lqips,
             )
-            // we always want to generate lqips if configured when preprocessing even if the pipeline
-            // says we don't need to
-            if (lqipImplementations.isNotEmpty()) {
-                generatePreviewVariant(
-                    arena = arena,
-                    sourceImage = preProcessed.processed,
-                    lqipImplementations = lqipImplementations,
-                    deferred = transformationDataContainer.lqips,
-                )
-            } else {
-                transformationDataContainer.lqips.complete(null)
-            }
-            if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
-                VipsEncoder.writeToStream(
-                    source = preProcessed.processed,
-                    format = transformation.format,
-                    quality = transformation.quality,
-                    outputChannel = transformationDataContainer.output,
-                )
-            } else {
-                // Encoding is where all the work is done - don't bother if the image was not transformed
-                logger.info("No applied transformations for image, bypassing libvips encoding")
-                launch {
-                    source.toFile().readChannel().copyAndClose(transformationDataContainer.output)
-                }
-            }
+        } else {
+            transformationDataContainer.lqips.complete(null)
+        }
+        return if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
+            VipsEncoder.writeToStream(
+                source = preProcessed.processed,
+                format = transformation.format,
+                quality = transformation.quality,
+                outputChannel = transformationDataContainer.output,
+            )
+            PreprocessOutput.SourceTransformed
+        } else {
+            // Encoding is where all the work is done - don't bother if the image was not transformed
+            logger.info("No applied transformations for image, bypassing libvips encoding")
+            PreprocessOutput.SourceNotTransformed
         }
     }
 

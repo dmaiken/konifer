@@ -3,6 +3,7 @@ package io.konifer.infrastructure.vips.processor
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import com.vanniktech.blurhash.BlurHash
+import io.konifer.ImageFactory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
@@ -11,7 +12,6 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
 import io.konifer.lqip.image.ThumbHash
-import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -69,18 +69,17 @@ class VipsImageProcessorTest {
                                 )
                             launch {
                                 vipsImageProcessor.preprocess(
-                                    source = container.getTemporaryFile(),
+                                    arena = arena,
+                                    source = sourceImage,
                                     sourceFormat = ImageFormat.PNG,
                                     lqipImplementations = emptySet(),
                                     transformationDataContainer = transformationDataContainer,
-                                )
+                                ) shouldBe PreprocessOutput.SourceNotTransformed
                             }
-                            val outputBytes = transformationDataContainer.output.toByteArray()
                             val attributes = transformationDataContainer.attributes.await()
                             attributes.format shouldBe ImageFormat.PNG
                             attributes.height shouldBe bufferedImage.height
                             attributes.width shouldBe bufferedImage.width
-                            ImageIO.read(ByteArrayInputStream(outputBytes)) shouldHaveSamePixelContentAs bufferedImage
                         }
                     }
                 }
@@ -112,12 +111,17 @@ class VipsImageProcessorTest {
                             transformation = Transformation.ORIGINAL_VARIANT,
                         )
                     container.toTemporaryFile(ImageFormat.JPEG.extension)
-                    vipsImageProcessor.preprocess(
-                        source = container.getTemporaryFile(),
-                        sourceFormat = ImageFormat.JPEG,
-                        lqipImplementations = emptySet(),
-                        transformationDataContainer = transformationDataContainer,
-                    )
+                    Vips.run { arena ->
+                        val sourceImage = VImage.newFromBytes(arena, image)
+                        vipsImageProcessor.preprocess(
+                            arena = arena,
+                            source = sourceImage,
+                            sourceFormat = ImageFormat.JPEG,
+                            lqipImplementations = emptySet(),
+                            transformationDataContainer = transformationDataContainer,
+                        ) shouldBe PreprocessOutput.SourceTransformed
+                    }
+
                     val outputBytes = transformationDataContainer.output.toByteArray()
                     val attributes = transformationDataContainer.attributes.await()
                     val lqips = transformationDataContainer.lqips.await()
@@ -132,44 +136,56 @@ class VipsImageProcessorTest {
         @ValueSource(booleans = [true, false])
         fun `image blurhash is generated regardless of whether preprocessing is enabled when preprocessing`(preprocessingEnabled: Boolean) =
             runTest {
-                val image =
-                    javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.use {
-                        it.readBytes()
+                val image = ImageFactory.testImage()
+
+                val transformationDataContainer =
+                    TransformationDataContainer(
+                        transformation =
+                            if (preprocessingEnabled) {
+                                Transformation(
+                                    width = 200,
+                                    height = 200,
+                                    format = ImageFormat.JPEG,
+                                    colorSpace = ColorSpace.SRGB,
+                                )
+                            } else {
+                                Transformation(
+                                    width = image.attributes.width,
+                                    height = image.attributes.height,
+                                    format = image.attributes.format,
+                                    colorSpace = ColorSpace.SRGB,
+                                )
+                            },
+                    )
+                Vips.run { arena ->
+                    val output =
+                        vipsImageProcessor.preprocess(
+                            arena = arena,
+                            source = VImage.newFromBytes(arena, image.bytes),
+                            sourceFormat = ImageFormat.JPEG,
+                            lqipImplementations = setOf(LQIPImplementation.BLURHASH),
+                            transformationDataContainer = transformationDataContainer,
+                        )
+                    when (preprocessingEnabled) {
+                        true -> output shouldBe PreprocessOutput.SourceTransformed
+                        false -> output shouldBe PreprocessOutput.SourceNotTransformed
                     }
-                val imageChannel = ByteChannel(true)
-                launch {
-                    imageChannel.writeFully(image)
-                    imageChannel.close()
                 }
 
-                AssetDataContainer(imageChannel).use { container ->
-                    container.toTemporaryFile(ImageFormat.JPEG.extension)
-                    val transformationDataContainer =
-                        TransformationDataContainer(
-                            transformation =
-                                if (preprocessingEnabled) {
-                                    Transformation(
-                                        width = 200,
-                                        height = 200,
-                                        format = ImageFormat.JPEG,
-                                        colorSpace = ColorSpace.SRGB,
-                                    )
-                                } else {
-                                    Transformation.ORIGINAL_VARIANT
-                                },
-                        )
-                    vipsImageProcessor.preprocess(
-                        source = container.getTemporaryFile(),
-                        sourceFormat = ImageFormat.JPEG,
-                        lqipImplementations = setOf(LQIPImplementation.BLURHASH),
-                        transformationDataContainer = transformationDataContainer,
-                    )
-                    val outputBytes = transformationDataContainer.output.toByteArray()
-                    val lqips = transformationDataContainer.lqips.await()
-                    lqips?.blurhash shouldNotBe null
-                    lqips?.thumbhash shouldBe null
+                val lqips = transformationDataContainer.lqips.await()
+                lqips?.blurhash shouldNotBe null
+                lqips?.thumbhash shouldBe null
+                if (preprocessingEnabled) {
+                    val output = transformationDataContainer.output.toByteArray()
                     Vips.run { arena ->
-                        val processedVImage = VImage.newFromBytes(arena, outputBytes)
+                        val processedVImage = VImage.newFromBytes(arena, output)
+                        shouldNotThrowAny {
+                            BlurHash.decode(lqips?.blurhash!!, processedVImage.width, processedVImage.height)
+                        }
+                    }
+                } else {
+                    Vips.run { arena ->
+                        val processedVImage = VImage.newFromBytes(arena, image.bytes)
                         shouldNotThrowAny {
                             BlurHash.decode(lqips?.blurhash!!, processedVImage.width, processedVImage.height)
                         }
@@ -182,60 +198,54 @@ class VipsImageProcessorTest {
         fun `image thumbhash is generated regardless of whether preprocessing is enabled when preprocessing`(
             preprocessingEnabled: Boolean,
         ) = runTest {
-            val image =
-                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.use {
-                    it.readBytes()
-                }
-            val imageChannel = ByteChannel(true)
-            launch {
-                imageChannel.writeFully(image)
-                imageChannel.close()
-            }
+            val image = ImageFactory.testImage()
 
-            AssetDataContainer(imageChannel).use { container ->
-                container.toTemporaryFile(ImageFormat.JPEG.extension)
-                val transformationDataContainer =
-                    TransformationDataContainer(
-                        transformation =
-                            if (preprocessingEnabled) {
-                                Transformation(
-                                    width = 200,
-                                    height = 200,
-                                    format = ImageFormat.JPEG,
-                                    colorSpace = ColorSpace.SRGB,
-                                )
-                            } else {
-                                var transformation = Transformation.ORIGINAL_VARIANT
-                                Vips.run { arena ->
-                                    val sourceImage = VImage.newFromBytes(arena, image)
-                                    transformation =
-                                        Transformation(
-                                            width = sourceImage.width,
-                                            height = sourceImage.height,
-                                            format = ImageFormat.JPEG,
-                                            colorSpace = ColorSpace.SRGB,
-                                        )
-                                }
-                                transformation
-                            },
-                    )
-                vipsImageProcessor.preprocess(
-                    source = container.getTemporaryFile(),
-                    sourceFormat = ImageFormat.JPEG,
-                    lqipImplementations = setOf(LQIPImplementation.THUMBHASH),
-                    transformationDataContainer = transformationDataContainer,
+            val transformationDataContainer =
+                TransformationDataContainer(
+                    transformation =
+                        if (preprocessingEnabled) {
+                            Transformation(
+                                width = 200,
+                                height = 200,
+                                format = image.attributes.format,
+                                colorSpace = ColorSpace.SRGB,
+                            )
+                        } else {
+                            Transformation(
+                                width = image.attributes.width,
+                                height = image.attributes.height,
+                                format = image.attributes.format,
+                                colorSpace = ColorSpace.SRGB,
+                            )
+                        },
                 )
+            Vips.run { arena ->
+                val output =
+                    vipsImageProcessor.preprocess(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image.bytes),
+                        sourceFormat = ImageFormat.JPEG,
+                        lqipImplementations = setOf(LQIPImplementation.THUMBHASH),
+                        transformationDataContainer = transformationDataContainer,
+                    )
+                when (preprocessingEnabled) {
+                    true -> output shouldBe PreprocessOutput.SourceTransformed
+                    false -> output shouldBe PreprocessOutput.SourceNotTransformed
+                }
+            }
+            if (preprocessingEnabled) {
                 val outputBytes = transformationDataContainer.output.toByteArray()
                 val attributes = transformationDataContainer.attributes.await()
                 attributes.format shouldBe ImageFormat.JPEG
                 Tika().detect(outputBytes) shouldBe ImageFormat.JPEG.mimeType
-                val lqips = transformationDataContainer.lqips.await()
-                lqips?.blurhash shouldBe null
-                lqips?.thumbhash shouldNotBe null
+            }
 
-                shouldNotThrowAny {
-                    ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(lqips?.thumbhash))
-                }
+            val lqips = transformationDataContainer.lqips.await()
+            lqips?.blurhash shouldBe null
+            lqips?.thumbhash shouldNotBe null
+
+            shouldNotThrowAny {
+                ThumbHash.thumbHashToRGBA(Base64.getDecoder().decode(lqips?.thumbhash))
             }
         }
 
@@ -274,12 +284,15 @@ class VipsImageProcessorTest {
                                 colorSpace = ColorSpace.SRGB,
                             ),
                     )
-                vipsImageProcessor.preprocess(
-                    source = container.getTemporaryFile(),
-                    sourceFormat = from,
-                    lqipImplementations = lqips,
-                    transformationDataContainer = transformationDataContainer,
-                )
+                Vips.run { arena ->
+                    vipsImageProcessor.preprocess(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        sourceFormat = from,
+                        lqipImplementations = lqips,
+                        transformationDataContainer = transformationDataContainer,
+                    ) shouldBe PreprocessOutput.SourceTransformed
+                }
                 val outputBytes = transformationDataContainer.output.toByteArray()
 
                 val attributes = transformationDataContainer.attributes.await()

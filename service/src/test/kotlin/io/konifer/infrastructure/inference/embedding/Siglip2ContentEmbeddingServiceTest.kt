@@ -29,7 +29,6 @@ import kotlin.math.sqrt
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Siglip2ContentEmbeddingServiceTest {
-
     private val environment = OrtEnvironment.getEnvironment()
     private val modelPath = Path.of("/home/daniel/imagek/vision_model.onnx")
     private val ortSession = environment.createSession(modelPath.pathString, OrtSession.SessionOptions())
@@ -47,41 +46,44 @@ class Siglip2ContentEmbeddingServiceTest {
     }
 
     @Test
-    fun `can generate embeddings`() = Vips.run { arena ->
-        val tensor = createTensor(arena)
-        // Ensure tensor is what we expect
-        tensor.shape.contentEquals(longArrayOf(1, 3, 224, 224)) shouldBe true
-        tensor.values.size shouldBe 1 * 3 * 224 * 224
-        tensor.values.forEach { it.shouldNotBeNaN() }
+    fun `can generate embeddings`() =
+        Vips.run { arena ->
+            val tensor = createTensor(arena)
+            // Ensure tensor is what we expect
+            tensor.shape.contentEquals(longArrayOf(1, 3, 224, 224)) shouldBe true
+            tensor.values.size shouldBe 1 * 3 * 224 * 224
+            tensor.values.forEach { it.shouldNotBeNaN() }
 
-        val embeddings = service.generateEmbeddings(tensor)
+            val embeddings = service.generateEmbeddings(tensor)
 
-        embeddings shouldHaveAtLeastSize 1
-        embeddings.forEach { it.shouldNotBeNaN() }
-        embeddings shouldHaveSize 768
+            embeddings shouldHaveAtLeastSize 1
+            embeddings.forEach { it.shouldNotBeNaN() }
+            embeddings shouldHaveSize 768
 
-        val norm = sqrt(embeddings.sumOf { (it * it).toDouble() })
-        norm shouldBe (1.0 plusOrMinus 0.0001)
-    }
-
-    @Test
-    fun `returns stable embeddings for same tensors`() = Vips.run { arena ->
-        val tensor = createTensor(arena)
-        val first = service.generateEmbeddings(tensor)
-        val second = service.generateEmbeddings(tensor)
-
-        first.contentEquals(second) shouldBe true
-    }
+            val norm = sqrt(embeddings.sumOf { (it * it).toDouble() })
+            norm shouldBe (1.0 plusOrMinus 0.0001)
+        }
 
     @Test
-    fun `returns different embeddings for different tensors`() = Vips.run { arena ->
-        val tensor = createTensor(arena)
-        val differentTensor = createTensor(arena, format = ImageFormat.JPEG, type = TestImageType.MOON)
-        val first = service.generateEmbeddings(tensor)
-        val second = service.generateEmbeddings(differentTensor)
+    fun `returns stable embeddings for same tensors`() =
+        Vips.run { arena ->
+            val tensor = createTensor(arena)
+            val first = service.generateEmbeddings(tensor)
+            val second = service.generateEmbeddings(tensor)
 
-        first.contentEquals(second) shouldBe false
-    }
+            first.contentEquals(second) shouldBe true
+        }
+
+    @Test
+    fun `returns different embeddings for different tensors`() =
+        Vips.run { arena ->
+            val tensor = createTensor(arena)
+            val differentTensor = createTensor(arena, format = ImageFormat.JPEG, type = TestImageType.MOON)
+            val first = service.generateEmbeddings(tensor)
+            val second = service.generateEmbeddings(differentTensor)
+
+            first.contentEquals(second) shouldBe false
+        }
 
     private fun createTensor(
         arena: Arena,

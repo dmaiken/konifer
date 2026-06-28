@@ -19,6 +19,7 @@ import io.konifer.infrastructure.datastore.assetRepositoryModule
 import io.konifer.infrastructure.event.InMemoryEventBus
 import io.konifer.infrastructure.http.httpClientModule
 import io.konifer.infrastructure.http.httpModule
+import io.konifer.infrastructure.inference.inferenceModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
@@ -48,22 +49,30 @@ fun Application.configureKoin(
 ) {
     install(Koin) {
         slf4jLogger()
-        modules(
-            configModule(),
-            httpClientModule(),
-            httpModule(),
-            domainModule(),
-            appModule(),
-            assetContainerFactoryModule(),
-            mimeTypeDetectorModule(),
-            assetRepositoryModule(),
-            variantModule(),
-            objectStoreModule(objectStoreProvider),
-            pathModule(),
-            vipsModule(),
-            rulesModule(),
-            *additionalModules.toTypedArray(),
-        )
+        val configuredModules =
+            mutableListOf(
+                configModule(),
+                httpClientModule(),
+                httpModule(),
+                domainModule(),
+                appModule(),
+                assetContainerFactoryModule(),
+                mimeTypeDetectorModule(),
+                assetRepositoryModule(),
+                variantModule(),
+                objectStoreModule(objectStoreProvider),
+                pathModule(),
+                vipsModule(),
+                rulesModule(),
+            )
+
+        if (environment.config.hasRuleDefinitions()) {
+            configuredModules += inferenceModule()
+        }
+
+        configuredModules += additionalModules
+
+        modules(configuredModules)
     }
 }
 

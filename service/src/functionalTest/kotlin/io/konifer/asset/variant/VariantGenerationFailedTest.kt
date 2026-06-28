@@ -27,6 +27,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                         sourceFormat = any(),
                         transformationDataContainer = any(),
                         lqipImplementations = any(),
+                        arena = any(),
                     )
                 } throws RuntimeException("boom")
             }

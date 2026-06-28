@@ -4,7 +4,6 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.TransformationDataContainer
-import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.upload.UploadRuleset
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
@@ -12,14 +11,6 @@ import java.nio.file.Path
 sealed interface ImageProcessingJob<T> {
     val deferredResult: CompletableDeferred<T>?
 }
-
-data class PreProcessJob(
-    val source: Path,
-    val sourceFormat: ImageFormat,
-    val lqipImplementations: Set<LQIPImplementation>,
-    val transformationDataContainer: TransformationDataContainer,
-    override val deferredResult: CompletableDeferred<Unit>,
-) : ImageProcessingJob<Unit>
 
 data class GenerateVariantsJob(
     val source: Path,

@@ -11,9 +11,9 @@ data class UploadRuleset(
     @SerialName(UploadRulesetPropertyKeys.DEFAULT)
     val default: DefaultRuleAction = DefaultRuleAction.default,
     @SerialName(UploadRulesetPropertyKeys.ACCEPT_RULES)
-    val acceptRules: List<UploadDecisionRule> = emptyList(),
+    val acceptRules: List<UploadRule> = emptyList(),
     @SerialName(UploadRulesetPropertyKeys.REJECT_RULES)
-    val rejectRules: List<UploadDecisionRule> = emptyList(),
+    val rejectRules: List<UploadRule> = emptyList(),
     // Label rules later
 ) {
     companion object Factory {
@@ -26,18 +26,17 @@ data class UploadRuleset(
         }
     }
 
-    fun requiresEvaluationBeyondDefault(): Boolean {
-        return when (default) {
+    fun requiresEvaluationBeyondDefault(): Boolean =
+        when (default) {
             DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty()
             DefaultRuleAction.REJECT -> acceptRules.isNotEmpty()
         }
-    }
 
-    val allRules: List<UploadDecisionRule> = acceptRules + rejectRules
+    val allRules: List<UploadRule> = acceptRules + rejectRules
 }
 
 @Serializable
-data class UploadDecisionRule(
+data class UploadRule(
     val rule: RuleName,
-    val violationResponse: RuleViolationResponse?
+    val violationResponse: RuleViolationResponse?,
 )

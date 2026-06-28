@@ -9,24 +9,20 @@ import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.TensorTransformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.format
-import io.konifer.infrastructure.vips.noPagingOptions
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.tensorProcessingPipeline
-import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.lang.foreign.Arena
-import java.nio.file.Path
 
 class VipsTensorProcessor {
-
     init {
         // Not necessary since this will be a long-running service
         Vips.disableOperationCache()
     }
 
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-
-    fun process(arena: Arena, source: VImage, transformation: TensorTransformation): ImageTensor {
+    fun process(
+        arena: Arena,
+        source: VImage,
+        transformation: TensorTransformation,
+    ): ImageTensor {
         // Note: You cannot use coroutines in here unless we change up the way the arena is defined
         // FFM requires that only one thread access the native memory arena
         val result = tensorProcessingPipeline.run(arena, source, transformation.toTransformation())

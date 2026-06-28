@@ -18,23 +18,24 @@ class InferenceRuleEvaluator(
     override fun evaluate(
         ruleDefinitions: List<RuleDefinition>,
         tensor: ImageTensor,
-    ): RulesetEvaluationResult{
+    ): RulesetEvaluationResult {
         if (ruleDefinitions.isEmpty()) return RulesetEvaluationResult.empty
         // Generate embedding for input
 
         val contentEmbedding = contentEmbeddingService.generateEmbeddings(tensor)
 
-        return ruleDefinitions.map { ruleDefinition ->
-            val promptEmbedding = rulePromptEmbeddingService.generateEmbeddings(ruleDefinition.prompt)
-            val score = promptEmbedding dot contentEmbedding
+        return ruleDefinitions
+            .map { ruleDefinition ->
+                val promptEmbedding = rulePromptEmbeddingService.generateEmbeddings(ruleDefinition.prompt)
+                val score = promptEmbedding dot contentEmbedding
 
-            RuleEvaluationResult(
-                ruleDefinition = ruleDefinition,
-                score = score,
-                matched = score >= ruleDefinition.threshold.value,
-            )
-        }.let {
-            RulesetEvaluationResult(it)
-        }
+                RuleEvaluationResult(
+                    ruleDefinition = ruleDefinition,
+                    score = score,
+                    matched = score >= ruleDefinition.threshold.value,
+                )
+            }.let {
+                RulesetEvaluationResult(it)
+            }
     }
 }
