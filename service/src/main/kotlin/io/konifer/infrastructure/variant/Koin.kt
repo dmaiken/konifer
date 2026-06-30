@@ -63,7 +63,11 @@ fun Application.variantModule(): Module =
             )
         }
 
-        single<ChannelOriginalVariantContentScheduler>() bind OriginalVariantContentProcessor::class
+        single<OriginalVariantContentProcessor> {
+            ChannelOriginalVariantContentScheduler(
+                highPriorityChannel = get(synchronousChannel),
+            )
+        }
 
         single<PriorityChannelConsumer<ImageProcessingJob<*>>> {
             val synchronousWeight =

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference
+package io.konifer.infrastructure.rules.inference
 
 /**
  * Calculates the dot-product of two vectors. Otherwise known as the cosine similarity.

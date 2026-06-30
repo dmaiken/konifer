@@ -19,17 +19,18 @@ import io.konifer.infrastructure.datastore.assetRepositoryModule
 import io.konifer.infrastructure.event.InMemoryEventBus
 import io.konifer.infrastructure.http.httpClientModule
 import io.konifer.infrastructure.http.httpModule
-import io.konifer.infrastructure.inference.inferenceModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.path.pathModule
+import io.konifer.infrastructure.rules.getRuleDefinitions
 import io.konifer.infrastructure.rules.rulesModule
 import io.konifer.infrastructure.tika.mimeTypeDetectorModule
 import io.konifer.infrastructure.variant.variantModule
 import io.konifer.infrastructure.vips.vipsModule
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,6 +48,7 @@ fun Application.configureKoin(
     objectStoreProvider: ObjectStoreProvider,
     additionalModules: List<Module> = emptyList(),
 ) {
+    val logger = KtorSimpleLogger("io.konifer.infrastructure.KtorKoin")
     install(Koin) {
         slf4jLogger()
         val configuredModules =
@@ -63,11 +65,12 @@ fun Application.configureKoin(
                 objectStoreModule(objectStoreProvider),
                 pathModule(),
                 vipsModule(),
-                rulesModule(),
             )
 
-        if (environment.config.hasRuleDefinitions()) {
-            configuredModules += inferenceModule()
+        val ruleDefinitions = environment.config.extractRawHocon().getRuleDefinitions()
+        if (ruleDefinitions.isNotEmpty()) {
+            logger.info("${ruleDefinitions.size} rule definitions found, initiating rules module")
+            configuredModules += rulesModule(ruleDefinitions)
         }
 
         configuredModules += additionalModules

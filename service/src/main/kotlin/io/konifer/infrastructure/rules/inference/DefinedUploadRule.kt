@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference
+package io.konifer.infrastructure.rules.inference
 
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.upload.UploadRule

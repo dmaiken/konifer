@@ -1,9 +1,9 @@
-package io.konifer.infrastructure.inference.embedding
+package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
-import io.konifer.infrastructure.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
+import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
 import io.konifer.infrastructure.variant.ImageTensor
 import java.nio.FloatBuffer

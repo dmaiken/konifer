@@ -31,12 +31,10 @@ data class UploadRuleset(
             DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty()
             DefaultRuleAction.REJECT -> acceptRules.isNotEmpty()
         }
-
-    val allRules: List<UploadRule> = acceptRules + rejectRules
 }
 
 @Serializable
 data class UploadRule(
     val rule: RuleName,
-    val violationResponse: RuleViolationResponse?,
+    val violationResponse: RuleViolationResponse? = null,
 )

@@ -4,7 +4,8 @@ import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
-import io.konifer.infrastructure.inference.Siglip2Tokenizer
+import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
+import io.konifer.infrastructure.rules.inference.embedding.Siglip2RulePromptEmbeddingService
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.shouldNotBeNaN

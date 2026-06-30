@@ -1,11 +1,11 @@
-package io.konifer.infrastructure.inference.embedding
+package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
-import io.konifer.infrastructure.inference.Siglip2Tokenizer
-import io.konifer.infrastructure.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
+import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
+import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
 import java.nio.LongBuffer
 import java.util.concurrent.ConcurrentHashMap
@@ -18,6 +18,7 @@ class Siglip2RulePromptEmbeddingService(
 ) : RulePromptEmbeddingService {
     companion object {
         private const val INPUT_IDS = "input_ids"
+        private const val ATTENTION_MASK = "attention_mask"
         private const val TEXT_EMBEDS = "text_embeds"
     }
 
@@ -62,12 +63,15 @@ class Siglip2RulePromptEmbeddingService(
 
         inputIds.use {
             attentionMask.use {
+                val inputs =
+                    buildMap {
+                        put(INPUT_IDS, inputIds)
+                        if (ortSession.inputNames.contains(ATTENTION_MASK)) {
+                            put(ATTENTION_MASK, attentionMask)
+                        }
+                    }
                 val outputs =
-                    ortSession.run(
-                        mapOf(
-                            INPUT_IDS to inputIds,
-                        ),
-                    )
+                    ortSession.run(inputs)
 
                 outputs.use {
                     return extractPooledEmbedding(

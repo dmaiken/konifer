@@ -18,6 +18,7 @@ import io.konifer.infrastructure.teeStream
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
 import kotlinx.coroutines.CompletableDeferred
@@ -35,6 +36,8 @@ class OriginalVariantProcessorPipeline(
     private val transformationNormalizer: TransformationNormalizer,
     private val originalVariantContentProcessor: OriginalVariantContentProcessor,
 ) {
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
     suspend fun process(
         scope: CoroutineScope,
         container: AssetDataContainer,

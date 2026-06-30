@@ -21,6 +21,7 @@ import io.konifer.infrastructure.vips.processor.PreprocessOutput
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.ktor.util.cio.readChannel
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,6 +34,8 @@ class OriginalVariantContentService(
     private val ruleDefinitionRepository: RuleDefinitionRepository,
     private val vipsImageProcessor: VipsImageProcessor,
 ) {
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
     suspend fun process(
         uploadRuleset: UploadRuleset,
         transformationDataContainer: TransformationDataContainer,
@@ -73,6 +76,7 @@ class OriginalVariantContentService(
 
                 // If rules allow, preprocess variant
                 if (decision.accept) {
+                    logger.info("Asset is accepted by rules, continuing with preprocessing")
                     preprocessOutput =
                         vipsImageProcessor.preprocess(
                             arena = arena,
@@ -85,6 +89,7 @@ class OriginalVariantContentService(
             }
 
             if (!decision.accept) {
+                logger.info("Asset is rejected due to rule violation")
                 transformationDataContainer.output.close()
                 return@withContext ContentProcessorResult.Rejected(decision.violationResponses)
             }

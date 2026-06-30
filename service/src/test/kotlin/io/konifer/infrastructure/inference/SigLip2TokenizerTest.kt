@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.inference
 
+import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

@@ -27,6 +27,8 @@ class VipsTensorProcessor {
         // FFM requires that only one thread access the native memory arena
         val result = tensorProcessingPipeline.run(arena, source, transformation.toTransformation())
 
+        result.processed.writeToFile("output.png")
+
         return ImageTensor(
             values = normalizePixels(result.processed),
             shape = transformation.tensorLayout,
@@ -80,6 +82,7 @@ class VipsTensorProcessor {
             height = height,
             width = width,
             fit = fit,
+            gravity = gravity,
             colorSpace = colorSpace,
             format = ImageFormat.PNG, // Ignored for tensor processing
         )

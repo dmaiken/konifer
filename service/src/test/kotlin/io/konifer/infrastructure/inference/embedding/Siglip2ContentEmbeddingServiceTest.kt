@@ -7,6 +7,7 @@ import app.photofox.vipsffm.Vips
 import io.konifer.ImageFactory
 import io.konifer.TestImageType
 import io.konifer.common.image.ImageFormat
+import io.konifer.infrastructure.rules.inference.embedding.Siglip2ContentEmbeddingService
 import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor

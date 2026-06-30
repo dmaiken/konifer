@@ -1,12 +1,63 @@
 package io.konifer.infrastructure.rules
 
+import ai.onnxruntime.OrtEnvironment
+import ai.onnxruntime.OrtSession
 import io.konifer.domain.ports.RuleDefinitionRepository
+import io.konifer.domain.rules.RuleDefinition
+import io.konifer.infrastructure.rules.inference.InferenceRuleEvaluator
+import io.konifer.infrastructure.rules.inference.Siglip2LogitSimilarityScorer
+import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
+import io.konifer.infrastructure.rules.inference.SimilarityScorer
+import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
+import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
+import io.konifer.infrastructure.rules.inference.embedding.Siglip2ContentEmbeddingService
+import io.konifer.infrastructure.rules.inference.embedding.Siglip2RulePromptEmbeddingService
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
+import java.nio.file.Path
+import kotlin.io.path.pathString
 
-fun rulesModule(): Module =
+fun rulesModule(ruleDefinitions: Map<String, RuleDefinition>): Module =
     module {
-        single<ConfigurationRuleDefinitionRepository>() bind RuleDefinitionRepository::class
+        single<RuleDefinitionRepository> {
+            ConfigurationRuleDefinitionRepository(ruleDefinitions)
+        }
+        single<Siglip2LogitSimilarityScorer>() bind SimilarityScorer::class
+        single<InferenceRuleEvaluator>() bind RuleEvaluator::class
+
+        single<Siglip2ContentEmbeddingService>() bind ContentEmbeddingService::class
+        single<Siglip2Tokenizer>()
+
+        val ortEnvironment = OrtEnvironment.getEnvironment()
+        single<ContentEmbeddingService> {
+            val session = ortEnvironment.createSession(
+                Path.of("/home/daniel/imagek/vision_model.onnx").pathString,
+                OrtSession.SessionOptions()
+            )
+            Siglip2ContentEmbeddingService(
+                ortEnvironment = ortEnvironment,
+                ortSession = session,
+            )
+        } withOptions {
+            createdAtStart()
+        }
+        single<RulePromptEmbeddingService> {
+            ortEnvironment.createSession(
+                Path.of("/home/daniel/imagek/text_model.onnx").pathString,
+                OrtSession.SessionOptions()
+            ).use { session ->
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = ortEnvironment,
+                    ortSession = session,
+                    ruleDefinitions = ruleDefinitions.values.toList(),
+                    tokenizer = Siglip2Tokenizer(),
+                )
+            }
+        } withOptions {
+            createdAtStart()
+        }
     }

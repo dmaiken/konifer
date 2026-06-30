@@ -7,7 +7,7 @@ import io.konifer.common.image.ImageFormat
 object ImageFactory {
     private const val STANDARD_PATH = "/images/joshua-tree/joshua-tree"
     private const val LARGE_PATH = "/images/large/large"
-    private const val MOON_PATH = "/images/apollo-11"
+    private const val MOON_PATH = "/images/moon_transparency"
 
     fun testImage(
         format: ImageFormat = ImageFormat.JPEG,
@@ -30,7 +30,7 @@ object ImageFactory {
                 )
             }
             TestImageType.MOON -> {
-                require(format == ImageFormat.JPEG) { "Moon images are only supported in JPEG format" }
+                require(format == ImageFormat.PNG) { "Moon images are only supported in JPEG format" }
                 val bytes = javaClass.getResourceAsStream("$MOON_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,

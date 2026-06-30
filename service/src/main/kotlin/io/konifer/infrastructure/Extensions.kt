@@ -6,7 +6,6 @@ import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DATASTORE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PROVIDER
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.OBJECT_STORE
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.RULE_DEFINITIONS
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.tryGetString
 import io.ktor.utils.io.ByteChannel
@@ -29,8 +28,6 @@ fun ApplicationConfig.tryGetConfigList(path: String): List<ApplicationConfig> =
     } catch (_: ConfigException) {
         emptyList()
     }
-
-fun ApplicationConfig.hasRuleDefinitions(): Boolean = tryGetConfig(RULE_DEFINITIONS)?.keys()?.isNotEmpty() == true
 
 fun ByteChannel.consumeAsFlow(): Flow<ByteBuffer> =
     flow {
