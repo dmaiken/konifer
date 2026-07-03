@@ -22,23 +22,25 @@ class Siglip2ContentEmbeddingService(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override fun generateEmbeddings(tensor: ImageTensor): FloatArray {
-        OnnxTensor.createTensor(
-            ortEnvironment,
-            FloatBuffer.wrap(tensor.values),
-            tensor.shape,
-        ).use { tensor ->
-            ortSession.run(
-                mapOf(
-                    PIXEL_VALUES to tensor,
-                ),
-            ).use { outputs ->
-                return extractPooledEmbedding(
-                    outputs = outputs,
-                    primaryOutputName = IMAGE_EMBEDS,
-                    modelDescription = "Vision model",
-                ).l2Normalize()
+        OnnxTensor
+            .createTensor(
+                ortEnvironment,
+                FloatBuffer.wrap(tensor.values),
+                tensor.shape,
+            ).use { tensor ->
+                ortSession
+                    .run(
+                        mapOf(
+                            PIXEL_VALUES to tensor,
+                        ),
+                    ).use { outputs ->
+                        return extractPooledEmbedding(
+                            outputs = outputs,
+                            primaryOutputName = IMAGE_EMBEDS,
+                            modelDescription = "Vision model",
+                        ).l2Normalize()
+                    }
             }
-        }
     }
 
     override fun close() {

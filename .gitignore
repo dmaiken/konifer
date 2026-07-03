@@ -45,3 +45,7 @@ out/
 
 # Python
 /scripts/venv/
+
+# Local model artifacts
+/models/
+/*_model.onnx

@@ -10,6 +10,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   BASE_IMAGE_NAME: ${{ github.repository }}-base
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096M -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+  SIGLIP2_MODEL_REVISION: "ba1f3b0843f24bc5417d38e19c37b287d719b2f4"
 
 jobs:
   build-images:
@@ -46,6 +47,17 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore SigLIP2 Model Cache
+        id: siglip2-cache
+        uses: actions/cache@v4
+        with:
+          path: models/siglip2-base-patch16-224
+          key: siglip2-base-patch16-224-${{ env.SIGLIP2_MODEL_REVISION }}
+
+      - name: Download SigLIP2 Models
+        if: steps.siglip2-cache.outputs.cache-hit != 'true'
+        run: bash scripts/download-siglip2-models.sh --revision "$SIGLIP2_MODEL_REVISION"
 
       - name: Build and Test
         run: ./gradlew :service:build :service:shadowJar

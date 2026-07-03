@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
  * Tests are all in one Test since model startup and embedding generation is expensive.
  */
 class AssetUploadRulesTest : BaseFunctionalTest() {
-
     @Test
     fun `evaluates upload rules with real siglip2 models`() =
         testInMemory(
@@ -50,10 +49,11 @@ class AssetUploadRulesTest : BaseFunctionalTest() {
             """.trimIndent(),
         ) {
             ImageFormat.entries.forEach { format ->
-                val (image, attributes) = ImageFactory.testImage(
-                    type = TestImageType.JOSHUA_TREE,
-                    format = format,
-                )
+                val (image, attributes) =
+                    ImageFactory.testImage(
+                        type = TestImageType.JOSHUA_TREE,
+                        format = format,
+                    )
                 konifer()
                     .storeAsset(
                         path = "accept/${format.format}",

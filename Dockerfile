@@ -7,7 +7,7 @@ FROM ${BASE_IMAGE} AS runtime
 RUN groupadd -r konifer && useradd -r -g konifer konifer
 
 WORKDIR /app
-RUN mkdir -p /app/config /app/tmp /app/logs
+RUN mkdir -p /app/config /app/tmp /app/logs /app/models
 COPY service/build/libs/*.jar konifer.jar
 RUN chown -R konifer:konifer /app
 

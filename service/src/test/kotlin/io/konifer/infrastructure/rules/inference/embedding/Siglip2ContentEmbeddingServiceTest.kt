@@ -7,6 +7,7 @@ import app.photofox.vipsffm.Vips
 import io.konifer.ImageFactory
 import io.konifer.TestImageType
 import io.konifer.common.image.ImageFormat
+import io.konifer.infrastructure.rules.inference.Siglip2ModelFiles
 import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.lang.foreign.Arena
-import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlin.math.sqrt
 
@@ -30,8 +30,8 @@ import kotlin.math.sqrt
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Siglip2ContentEmbeddingServiceTest {
     private val environment = OrtEnvironment.getEnvironment()
-    private val modelPath = Path.of("/home/daniel/imagek/vision_model.onnx")
-    private val ortSession = environment.createSession(modelPath.pathString, OrtSession.SessionOptions())
+    private val ortSession =
+        environment.createSession(Siglip2ModelFiles.visionModel().pathString, OrtSession.SessionOptions())
     private val tensorProcessor = VipsTensorProcessor()
 
     private lateinit var service: Siglip2ContentEmbeddingService

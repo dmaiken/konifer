@@ -3,14 +3,13 @@ package io.konifer.infrastructure.rules.inference
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 
 /**
- * Tokenize using tokenizer.json from:
- * https://huggingface.co/google/siglip2-base-patch16-224
+ * Tokenize using tokenizer.json from the configured SigLIP2 model directory.
  */
 class Siglip2Tokenizer {
     private val tokenizer =
         HuggingFaceTokenizer
             .builder()
-            .optTokenizerName("google/siglip2-base-patch16-224")
+            .optTokenizerPath(Siglip2ModelFiles.tokenizer())
             .optAddSpecialTokens(true)
             .optDoLowerCase(true)
             .optMaxLength(64)
