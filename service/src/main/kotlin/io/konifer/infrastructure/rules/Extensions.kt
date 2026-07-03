@@ -24,8 +24,8 @@ fun FloatArray.l2Normalize(): FloatArray {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Config.getRuleDefinitions(): Map<String, RuleDefinition> {
-    return try {
+fun Config.getRuleDefinitions(): Map<String, RuleDefinition> =
+    try {
         buildMap {
             this@getRuleDefinitions
                 .takeIf { it.hasPath(ConfigurationPropertyKeys.RULE_DEFINITIONS) }
@@ -45,4 +45,3 @@ fun Config.getRuleDefinitions(): Map<String, RuleDefinition> {
     } catch (e: ConfigException) {
         throw IllegalArgumentException("Failed to populate rules: ${e.message}", e)
     }
-}

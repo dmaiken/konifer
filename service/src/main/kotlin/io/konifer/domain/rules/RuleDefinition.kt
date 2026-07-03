@@ -6,11 +6,20 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RuleDefinition(
-    @SerialName(ConfigurationPropertyKeys.RuleDefinitionPropertyKeys.PROMPT)
-    val prompt: String,
+    @SerialName(ConfigurationPropertyKeys.RuleDefinitionPropertyKeys.PROMPTS)
+    val prompts: List<String>,
     @SerialName(ConfigurationPropertyKeys.RuleDefinitionPropertyKeys.THRESHOLD)
     val threshold: RuleDefinitionThreshold,
-)
+) {
+    init {
+        require(prompts.isNotEmpty()) {
+            "Rule prompts cannot be empty"
+        }
+        require(prompts.size <= 100) {
+            "Cannot have more than 100 prompts per rule definition"
+        }
+    }
+}
 
 @JvmInline
 @Serializable

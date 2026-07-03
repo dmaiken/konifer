@@ -74,7 +74,7 @@ object ConfigurationPropertyKeys {
     }
 
     object RuleDefinitionPropertyKeys {
-        const val PROMPT = "prompt"
+        const val PROMPTS = "prompts"
         const val THRESHOLD = "threshold"
     }
 

@@ -6,34 +6,32 @@ import ai.onnxruntime.OrtSession
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
 import io.konifer.infrastructure.variant.ImageTensor
+import io.ktor.util.logging.KtorSimpleLogger
 import java.nio.FloatBuffer
 
 class Siglip2ContentEmbeddingService(
     private val ortEnvironment: OrtEnvironment,
     private val ortSession: OrtSession,
-) : ContentEmbeddingService {
+) : ContentEmbeddingService,
+    AutoCloseable {
     companion object {
         private const val PIXEL_VALUES = "pixel_values"
         private const val IMAGE_EMBEDS = "image_embeds"
     }
 
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
     override fun generateEmbeddings(tensor: ImageTensor): FloatArray {
-        val input =
-            OnnxTensor.createTensor(
-                ortEnvironment,
-                FloatBuffer.wrap(tensor.values),
-                tensor.shape,
-            )
-
-        input.use {
-            val outputs =
-                ortSession.run(
-                    mapOf(
-                        PIXEL_VALUES to input,
-                    ),
-                )
-
-            outputs.use {
+        OnnxTensor.createTensor(
+            ortEnvironment,
+            FloatBuffer.wrap(tensor.values),
+            tensor.shape,
+        ).use { tensor ->
+            ortSession.run(
+                mapOf(
+                    PIXEL_VALUES to tensor,
+                ),
+            ).use { outputs ->
                 return extractPooledEmbedding(
                     outputs = outputs,
                     primaryOutputName = IMAGE_EMBEDS,
@@ -41,5 +39,10 @@ class Siglip2ContentEmbeddingService(
                 ).l2Normalize()
             }
         }
+    }
+
+    override fun close() {
+        logger.info("Closing vision ORT session")
+        ortSession.close()
     }
 }

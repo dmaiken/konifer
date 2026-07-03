@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference
+package io.konifer.infrastructure.rules.inference
 
 import io.konifer.infrastructure.rules.inference.Siglip2LogitSimilarityScorer
 import io.kotest.matchers.doubles.plusOrMinus
@@ -7,14 +7,10 @@ import org.junit.jupiter.api.Test
 import kotlin.math.exp
 
 class Siglip2LogitSimilarityScorerTest {
-
     @Test
     fun `scores embeddings as sigmoid of scaled biased dot product`() {
         val scorer =
-            Siglip2LogitSimilarityScorer(
-                logitScale = 2.0,
-                logitBias = -1.0,
-            )
+            Siglip2LogitSimilarityScorer()
 
         val score =
             scorer.score(
@@ -22,7 +18,7 @@ class Siglip2LogitSimilarityScorerTest {
                 contentEmbedding = floatArrayOf(1.0f, 0.0f),
             )
 
-        val expectedLogit = 0.5 * exp(2.0) - 1.0
+        val expectedLogit = 0.5 * exp(4.724453449249268) - 16.771724700927734
         val expectedScore = 1.0 / (1.0 + exp(-expectedLogit))
         score shouldBe (expectedScore plusOrMinus 0.000001)
     }

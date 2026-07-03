@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 
 class RuleNameTest {
-
     @Test
     fun `constructor lowercases value`() {
         RuleName("DOGS ONLY").value shouldBe "dogs only"

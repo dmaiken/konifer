@@ -4,6 +4,7 @@ import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.asset.AssetRejectedException
 import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.event.AssetReadyEvent
@@ -12,7 +13,6 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.rules.RuleViolationResponse
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ObjectStoreKeyFactory
@@ -136,12 +136,3 @@ class StoreNewAssetUseCase(
             }
         }
 }
-
-class AssetRejectedException(
-    violationResponses: List<RuleViolationResponse>,
-) : IllegalArgumentException(
-        violationResponses
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString(separator = "; ") { it.value }
-            ?: "Asset rejected by upload rules",
-    )

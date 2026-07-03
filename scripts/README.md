@@ -6,16 +6,23 @@
 parameters needed when Konifer uses split SigLIP/SigLIP2 text and vision ONNX
 models.
 
-Install dependencies:
+Create a virtual environment (if desired):
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install dependencies (this may take a while - these are large dependencies):
 
 ```bash
 pip install transformers torch safetensors
 ```
 
-From Hugging Face:
+From Hugging Face (model is ~1.5 GB):
 
 ```bash
-python3 scripts/extract-siglip2-calibration.py \
+python3 extract-siglip2-calibration.py \
   --model-id google/siglip2-base-patch16-224 \
   --output siglip2-calibration.json
 ```

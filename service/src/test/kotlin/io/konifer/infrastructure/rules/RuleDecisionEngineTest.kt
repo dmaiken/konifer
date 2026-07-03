@@ -41,7 +41,7 @@ class RuleDecisionEngineTest {
     fun `returns accept decision when rules match`() {
         val ruleDefinition =
             RuleDefinition(
-                prompt = "hello",
+                prompts = listOf("hello"),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -72,7 +72,7 @@ class RuleDecisionEngineTest {
     fun `returns reject decision when rules match`() {
         val ruleDefinition =
             RuleDefinition(
-                prompt = "hello",
+                prompts = listOf("hello"),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -103,7 +103,7 @@ class RuleDecisionEngineTest {
     fun `returns accept decision when rules do not match and default is accept`() {
         val ruleDefinition =
             RuleDefinition(
-                prompt = "hello",
+                prompts = listOf("hello"),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -134,7 +134,7 @@ class RuleDecisionEngineTest {
     fun `returns reject decision when rules do not match and default is reject`() {
         val ruleDefinition =
             RuleDefinition(
-                prompt = "hello",
+                prompts = listOf("hello"),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =

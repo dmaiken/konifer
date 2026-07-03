@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference.embedding
+package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
@@ -27,16 +27,17 @@ class Siglip2RulePromptEmbeddingServiceTest {
     private lateinit var tokenizer: Siglip2Tokenizer
     private lateinit var service: Siglip2RulePromptEmbeddingService
 
-    private val prompt1 = "This is a test prompt"
-    private val prompt2 = "This is another test prompt"
+    private val prompt1 = "This is a photo of a test prompt"
+    private val prompt2 = "another test prompt"
+    private val incorrectFormatPrompt = "   A TEST PROMPT  "
     private val ruleDefinitions =
         listOf(
             RuleDefinition(
-                prompt = prompt1,
+                prompts = listOf(prompt1),
                 threshold = RuleDefinitionThreshold(0.5),
             ),
             RuleDefinition(
-                prompt = prompt2,
+                prompts = listOf(prompt2),
                 threshold = RuleDefinitionThreshold(0.9),
             ),
         )
@@ -82,5 +83,13 @@ class Siglip2RulePromptEmbeddingServiceTest {
         val second = service.generateEmbeddings(prompt2)
 
         first.contentEquals(second) shouldBe false
+    }
+
+    @Test
+    fun `preprocesses text before generating embeddings`() {
+        val first = service.generateEmbeddings(incorrectFormatPrompt)
+        val second = service.generateEmbeddings(prompt1)
+
+        first.contentEquals(second) shouldBe true
     }
 }

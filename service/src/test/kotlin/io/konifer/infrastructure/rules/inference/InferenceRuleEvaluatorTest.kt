@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference
+package io.konifer.infrastructure.rules.inference
 
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
@@ -42,8 +42,8 @@ class InferenceRuleEvaluatorTest {
 
     @Test
     fun `generates content embedding once and evaluates all rule definitions`() {
-        val matchingRule = ruleDefinition(prompt = "dog", threshold = 0.80)
-        val nonMatchingRule = ruleDefinition(prompt = "cat", threshold = 0.90)
+        val matchingRule = ruleDefinition(prompts = listOf("dog"), threshold = 0.80)
+        val nonMatchingRule = ruleDefinition(prompts = listOf("cat"), threshold = 0.90)
 
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
@@ -89,7 +89,7 @@ class InferenceRuleEvaluatorTest {
 
     @Test
     fun `rule matches when score equals threshold`() {
-        val rule = ruleDefinition(prompt = "dog", threshold = 0.8)
+        val rule = ruleDefinition(prompts = listOf("dog"), threshold = 0.8)
 
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
@@ -113,8 +113,49 @@ class InferenceRuleEvaluatorTest {
     }
 
     @Test
+    fun `takes the max similarity from multiple prompts in definition`() {
+        val rule = ruleDefinition(prompts = listOf("dog", "cat", "snake"), threshold = 0.8)
+
+        val contentEmbedding = floatArrayOf(1.0f, 0.0f)
+        every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
+        val dogEmbedding = floatArrayOf(0.7f, 0.0f)
+        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
+        val catEmbedding = floatArrayOf(0.8f, 0.0f)
+        every { rulePromptEmbeddingService.generateEmbeddings("cat") } returns catEmbedding
+        val snakeEmbedding = floatArrayOf(0.5f, 0.0f)
+        every { rulePromptEmbeddingService.generateEmbeddings("snake") } returns snakeEmbedding
+        every {
+            similarityScorer.score(
+                promptEmbedding = dogEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.7
+        every {
+            similarityScorer.score(
+                promptEmbedding = catEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.8
+        every {
+            similarityScorer.score(
+                promptEmbedding = snakeEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.5
+
+        val result =
+            evaluator.evaluate(
+                ruleDefinitions = listOf(rule),
+                tensor = tensor,
+            )
+
+        result.results.single().score shouldBe (0.8 plusOrMinus 0.000001)
+        result.results.single().matched shouldBe true
+    }
+
+    @Test
     fun `throws when embeddings have different dimensions`() {
-        val rule = ruleDefinition(prompt = "dog", threshold = 0.8)
+        val rule = ruleDefinition(prompts = listOf("dog"), threshold = 0.8)
 
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
@@ -136,11 +177,11 @@ class InferenceRuleEvaluatorTest {
     }
 
     private fun ruleDefinition(
-        prompt: String,
+        prompts: List<String>,
         threshold: Double,
     ): RuleDefinition =
         RuleDefinition(
-            prompt = prompt,
+            prompts = prompts,
             threshold = RuleDefinitionThreshold(threshold),
         )
 

@@ -19,18 +19,19 @@ value class RuleName private constructor(
     }
 
     companion object {
-        operator fun invoke(value: String): RuleName =
-            RuleName(value.lowercase())
+        operator fun invoke(value: String): RuleName = RuleName(value.lowercase())
     }
 
     object Serializer : KSerializer<RuleName> {
         override val descriptor: SerialDescriptor =
             PrimitiveSerialDescriptor("RuleName", PrimitiveKind.STRING)
 
-        override fun deserialize(decoder: Decoder): RuleName =
-            invoke(decoder.decodeString())
+        override fun deserialize(decoder: Decoder): RuleName = invoke(decoder.decodeString())
 
-        override fun serialize(encoder: Encoder, value: RuleName) {
+        override fun serialize(
+            encoder: Encoder,
+            value: RuleName,
+        ) {
             encoder.encodeString(value.value)
         }
     }

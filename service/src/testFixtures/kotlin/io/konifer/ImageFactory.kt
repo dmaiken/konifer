@@ -30,7 +30,7 @@ object ImageFactory {
                 )
             }
             TestImageType.MOON -> {
-                require(format == ImageFormat.PNG) { "Moon images are only supported in JPEG format" }
+                require(format == ImageFormat.PNG) { "Moon images are only supported in PNG format" }
                 val bytes = javaClass.getResourceAsStream("$MOON_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,

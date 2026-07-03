@@ -8,10 +8,9 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class ConfigurationRuleDefinitionRepositoryTest {
-
     @Test
     fun `fetch returns configured rule definition`() {
-        val ruleDefinition = ruleDefinition(prompt = "an image of a dog")
+        val ruleDefinition = ruleDefinition(prompts = listOf("an image of a dog"))
         val repository =
             ConfigurationRuleDefinitionRepository(
                 mapOf("dogs only" to ruleDefinition),
@@ -22,7 +21,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
 
     @Test
     fun `fetch uses normalized rule name value`() {
-        val ruleDefinition = ruleDefinition(prompt = "an image of a dog")
+        val ruleDefinition = ruleDefinition(prompts = listOf("an image of a dog"))
         val repository =
             ConfigurationRuleDefinitionRepository(
                 mapOf("dogs only" to ruleDefinition),
@@ -35,7 +34,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
     fun `fetch throws when rule is not configured`() {
         val repository =
             ConfigurationRuleDefinitionRepository(
-                mapOf("cats only" to ruleDefinition(prompt = "an image of a cat")),
+                mapOf("cats only" to ruleDefinition(prompts = listOf("an image of a cat"))),
             )
 
         shouldThrow<IllegalArgumentException> {
@@ -43,9 +42,9 @@ class ConfigurationRuleDefinitionRepositoryTest {
         }.message shouldBe "Rule with name: 'dogs only' not found"
     }
 
-    private fun ruleDefinition(prompt: String): RuleDefinition =
+    private fun ruleDefinition(prompts: List<String>): RuleDefinition =
         RuleDefinition(
-            prompt = prompt,
+            prompts = prompts,
             threshold = RuleDefinitionThreshold(0.8),
         )
 }

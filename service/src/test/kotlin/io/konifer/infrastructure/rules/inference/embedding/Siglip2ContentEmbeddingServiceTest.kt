@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference.embedding
+package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
@@ -7,7 +7,6 @@ import app.photofox.vipsffm.Vips
 import io.konifer.ImageFactory
 import io.konifer.TestImageType
 import io.konifer.common.image.ImageFormat
-import io.konifer.infrastructure.rules.inference.embedding.Siglip2ContentEmbeddingService
 import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
@@ -79,7 +78,7 @@ class Siglip2ContentEmbeddingServiceTest {
     fun `returns different embeddings for different tensors`() =
         Vips.run { arena ->
             val tensor = createTensor(arena)
-            val differentTensor = createTensor(arena, format = ImageFormat.JPEG, type = TestImageType.MOON)
+            val differentTensor = createTensor(arena, format = ImageFormat.PNG, type = TestImageType.MOON)
             val first = service.generateEmbeddings(tensor)
             val second = service.generateEmbeddings(differentTensor)
 

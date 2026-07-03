@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.inference
+package io.konifer.infrastructure.rules.inference
 
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveSize

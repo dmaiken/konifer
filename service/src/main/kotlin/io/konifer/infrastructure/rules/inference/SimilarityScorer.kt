@@ -9,16 +9,18 @@ interface SimilarityScorer {
     ): Double
 }
 
-class Siglip2LogitSimilarityScorer(
-    private val logitScale: Double = 0.0,
-    private val logitBias: Double = 0.0,
-) : SimilarityScorer {
+class Siglip2LogitSimilarityScorer : SimilarityScorer {
+    companion object {
+        private const val LOGIT_SCALE = 4.724453449249268
+        private const val LOGIT_BIAS = -16.771724700927734
+    }
+
     override fun score(
         promptEmbedding: FloatArray,
         contentEmbedding: FloatArray,
     ): Double {
         val cosineSimilarity = promptEmbedding dot contentEmbedding
-        val logit = cosineSimilarity * exp(logitScale) + logitBias
+        val logit = cosineSimilarity * exp(LOGIT_SCALE) + LOGIT_BIAS
         return sigmoid(logit)
     }
 
