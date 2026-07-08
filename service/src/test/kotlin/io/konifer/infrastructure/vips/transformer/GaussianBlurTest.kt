@@ -77,7 +77,7 @@ class GaussianBlurTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `gaussian blur works on multi-page image`(format: ImageFormat) {
             val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 

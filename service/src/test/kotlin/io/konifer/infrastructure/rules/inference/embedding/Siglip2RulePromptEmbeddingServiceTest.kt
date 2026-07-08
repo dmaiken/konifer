@@ -1,21 +1,22 @@
 package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
-import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
-import io.konifer.infrastructure.rules.inference.Siglip2ModelFiles
+import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
-import io.konifer.infrastructure.rules.inference.embedding.Siglip2RulePromptEmbeddingService
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.shouldNotBeNaN
 import io.kotest.matchers.shouldBe
-import io.mockk.spyk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import kotlin.io.path.pathString
 import kotlin.math.sqrt
 
 /**
@@ -24,7 +25,6 @@ import kotlin.math.sqrt
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Siglip2RulePromptEmbeddingServiceTest {
-    private lateinit var tokenizer: Siglip2Tokenizer
     private lateinit var service: Siglip2RulePromptEmbeddingService
 
     private val prompt1 = "This is a photo of a test prompt"
@@ -42,20 +42,24 @@ class Siglip2RulePromptEmbeddingServiceTest {
             ),
         )
     private val environment = OrtEnvironment.getEnvironment()
-    private val ortSession =
-        environment.createSession(Siglip2ModelFiles.textModel().pathString, OrtSession.SessionOptions())
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @BeforeAll
     fun beforeAll() {
-        tokenizer = spyk(Siglip2Tokenizer())
-
         service =
             Siglip2RulePromptEmbeddingService(
-                tokenizer = tokenizer,
                 ortEnvironment = environment,
-                ortSession = ortSession,
+                onnxSessionFactory = OnnxSessionFactory(environment),
+                scope = scope,
                 ruleDefinitions = ruleDefinitions,
+                tokenizerFactory = ::Siglip2Tokenizer,
             )
+    }
+
+    @AfterAll
+    fun afterAll() {
+        service.close()
+        scope.cancel()
     }
 
     @Test

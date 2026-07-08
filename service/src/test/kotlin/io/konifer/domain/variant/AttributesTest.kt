@@ -40,7 +40,7 @@ class AttributesTest {
     }
 
     @ParameterizedTest
-    @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+    @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
     fun `multi page gif images have correct attributes when being converted to format that supports paging`(
         destinationFormat: ImageFormat,
     ) {
@@ -74,7 +74,7 @@ class AttributesTest {
     }
 
     @ParameterizedTest
-    @MethodSource("io.konifer.domain.image.ImageTestSources#notSupportsPagedSource")
+    @MethodSource("io.konifer.ImageTestSources#notSupportsPagedSource")
     fun `multi page gif images have correct attributes when being converted to format that does not support paging`(
         destinationFormat: ImageFormat,
     ) {

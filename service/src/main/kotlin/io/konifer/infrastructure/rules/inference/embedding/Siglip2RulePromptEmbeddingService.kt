@@ -4,97 +4,170 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
-import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
+import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbeddings
 import io.konifer.infrastructure.rules.l2Normalize
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.nio.LongBuffer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.measureTimedValue
 
 class Siglip2RulePromptEmbeddingService(
-    tokenizer: Siglip2Tokenizer,
     ortEnvironment: OrtEnvironment,
-    ortSession: OrtSession,
+    onnxSessionFactory: OnnxSessionFactory,
+    scope: CoroutineScope,
     ruleDefinitions: List<RuleDefinition>,
-) : RulePromptEmbeddingService {
+    private val tokenizerFactory: () -> Siglip2Tokenizer = ::Siglip2Tokenizer,
+) : RulePromptEmbeddingService,
+    AutoCloseable {
     companion object {
         private const val INPUT_IDS = "input_ids"
         private const val ATTENTION_MASK = "attention_mask"
         private const val TEXT_EMBEDS = "text_embeds"
         private const val PROMPT_PREFIX = "this is a photo of "
+        private const val EMBEDDING_BATCH_SIZE = 32
     }
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     private val rulePromptEmbeddings = ConcurrentHashMap<String, FloatArray>()
+    private val warmupJob =
+        scope.async(Dispatchers.IO) {
+            val prompts =
+                ruleDefinitions
+                    .flatMap { it.prompts }
+                    .map(::preprocessPrompt)
+                    .distinct()
 
-    init {
-        ruleDefinitions
-            .flatMap { it.prompts }
-            .forEach { prompt ->
-                val preprocessed = preprocessPrompt(prompt)
-                rulePromptEmbeddings.computeIfAbsent(preprocessed) {
-                    val timed =
-                        measureTimedValue {
-                            generate(
-                                ortEnvironment = ortEnvironment,
-                                ortSession = ortSession,
-                                tokenizer = tokenizer,
-                                prompt = preprocessed,
+            if (prompts.isEmpty()) return@async
+
+            tokenizerFactory().use { tokenizer ->
+                onnxSessionFactory.create(Model.SIGLIP2_TEXT).use { session ->
+                    prompts
+                        .chunked(EMBEDDING_BATCH_SIZE)
+                        .forEach { batch ->
+                            val timed =
+                                measureTimedValue {
+                                    generateBatch(
+                                        ortEnvironment = ortEnvironment,
+                                        ortSession = session,
+                                        tokenizer = tokenizer,
+                                        prompts = batch,
+                                    )
+                                }
+
+                            rulePromptEmbeddings.putAll(timed.value)
+                            logger.info(
+                                "Generated embeddings for ${batch.size} prompts in ${timed.duration.inWholeMilliseconds}ms",
                             )
                         }
-
-                    timed.value.also {
-                        logger.info("Generated embeddings for prompt: '$prompt' in ${timed.duration.inWholeMilliseconds}ms")
-                    }
                 }
             }
+        }
+
+    override fun generateEmbeddings(prompt: String): FloatArray {
+        val preprocessed = preprocessPrompt(prompt)
+
+        rulePromptEmbeddings[preprocessed]?.let { return it }
+
+        try {
+            runBlocking {
+                warmupJob.await()
+            }
+        } catch (e: CancellationException) {
+            throw IllegalStateException("Prompt embedding generation was cancelled", e)
+        }
+
+        return rulePromptEmbeddings[preprocessed]
+            ?: throw IllegalArgumentException("Embeddings for prompt: '$prompt' were not configured")
     }
 
-    override fun generateEmbeddings(prompt: String): FloatArray =
-        rulePromptEmbeddings[preprocessPrompt(prompt)]
-            ?: throw IllegalArgumentException("Embeddings for prompt: '$prompt' not found")
+    override fun close() {
+        warmupJob.cancel()
+    }
 
-    private fun generate(
+    private fun generateBatch(
         ortEnvironment: OrtEnvironment,
         ortSession: OrtSession,
         tokenizer: Siglip2Tokenizer,
-        prompt: String,
-    ): FloatArray {
-        val encoded = tokenizer.encode(prompt)
+        prompts: List<String>,
+    ): Map<String, FloatArray> {
+        val encoded = prompts.zip(tokenizer.encodeBatch(prompts))
+        val sequenceLength =
+            encoded
+                .first()
+                .second.inputIds.size
 
-        val inputIds =
+        encoded.forEach { (prompt, tokens) ->
+            require(tokens.inputIds.size == sequenceLength) {
+                "Prompt '$prompt' tokenized to ${tokens.inputIds.size} tokens, expected $sequenceLength"
+            }
+            require(tokens.attentionMask.size == sequenceLength) {
+                "Prompt '$prompt' attention mask had ${tokens.attentionMask.size} tokens, expected $sequenceLength"
+            }
+        }
+
+        val inputIds = LongArray(encoded.size * sequenceLength)
+        val attentionMask = LongArray(encoded.size * sequenceLength)
+
+        encoded.forEachIndexed { row, (_, tokens) ->
+            tokens.inputIds.copyInto(
+                destination = inputIds,
+                destinationOffset = row * sequenceLength,
+            )
+            tokens.attentionMask.copyInto(
+                destination = attentionMask,
+                destinationOffset = row * sequenceLength,
+            )
+        }
+
+        val inputIdsTensor =
             OnnxTensor.createTensor(
                 ortEnvironment,
-                LongBuffer.wrap(encoded.inputIds),
-                longArrayOf(1, encoded.inputIds.size.toLong()),
+                LongBuffer.wrap(inputIds),
+                longArrayOf(encoded.size.toLong(), sequenceLength.toLong()),
             )
-        val attentionMask =
+        val attentionMaskTensor =
             OnnxTensor.createTensor(
                 ortEnvironment,
-                LongBuffer.wrap(encoded.attentionMask),
-                longArrayOf(1, encoded.attentionMask.size.toLong()),
+                LongBuffer.wrap(attentionMask),
+                longArrayOf(encoded.size.toLong(), sequenceLength.toLong()),
             )
 
-        inputIds.use {
-            attentionMask.use {
+        inputIdsTensor.use {
+            attentionMaskTensor.use {
                 val inputs =
                     buildMap {
-                        put(INPUT_IDS, inputIds)
+                        put(INPUT_IDS, inputIdsTensor)
                         if (ortSession.inputNames.contains(ATTENTION_MASK)) {
-                            put(ATTENTION_MASK, attentionMask)
+                            put(ATTENTION_MASK, attentionMaskTensor)
                         }
                     }
-                val outputs =
-                    ortSession.run(inputs)
 
-                outputs.use {
-                    return extractPooledEmbedding(
-                        outputs = outputs,
-                        primaryOutputName = TEXT_EMBEDS,
-                        modelDescription = "Text model",
-                    ).l2Normalize()
+                ortSession.run(inputs).use { outputs ->
+                    val embeddings =
+                        extractPooledEmbeddings(
+                            outputs = outputs,
+                            primaryOutputName = TEXT_EMBEDS,
+                            modelDescription = "Text model",
+                        )
+
+                    check(embeddings.size == prompts.size) {
+                        "Text model returned ${embeddings.size} embeddings for ${prompts.size} prompts"
+                    }
+
+                    return prompts
+                        .zip(embeddings)
+                        .associate { (prompt, embedding) ->
+                            prompt to embedding.l2Normalize()
+                        }
                 }
             }
         }

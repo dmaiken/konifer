@@ -2,6 +2,8 @@ package io.konifer.infrastructure.path
 
 import com.typesafe.config.ConfigFactory
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -547,6 +549,47 @@ class TriePathConfigurationRepositoryTest {
             )
 
         repository.fetch("/users/123/profile").transform.eagerVariants shouldBe listOf("large")
+    }
+
+    @Test
+    fun `matching wildcard configurations are merged in specificity order`() {
+        val config =
+            """
+            paths {
+              "/kermit-accept/**" {
+                upload-ruleset {
+                  default = reject
+                  accept-rules = [
+                    { rule = kermit-the-frog }
+                  ]
+                }
+              }
+              "/kermit-accept/with-preprocessing/**" {
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      w = 200
+                    }
+                  }
+                }
+              }
+            }
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                ConfigFactory.parseString(config),
+            )
+
+        val pathConfiguration = repository.fetch("/kermit-accept/with-preprocessing/tiff")
+
+        pathConfiguration.uploadRuleset.default shouldBe DefaultRuleAction.REJECT
+        pathConfiguration.uploadRuleset.acceptRules
+            .single()
+            .rule shouldBe RuleName("kermit-the-frog")
+        pathConfiguration.transform.preProcessing.enabled shouldBe true
+        pathConfiguration.transform.preProcessing.image.width shouldBe 200
     }
 
     @Test

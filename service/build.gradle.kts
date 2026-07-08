@@ -148,6 +148,7 @@ dependencies {
     testFixturesImplementation(libs.testcontainers.localstack)
     testFixturesImplementation(libs.testcontainers.jupiter)
     testFixturesImplementation(libs.jooq)
+    testFixturesImplementation(libs.junit.params)
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))

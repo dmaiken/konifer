@@ -3,6 +3,8 @@ package io.konifer.infrastructure.rules.inference.embedding
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
 import io.konifer.infrastructure.variant.ImageTensor
@@ -11,7 +13,7 @@ import java.nio.FloatBuffer
 
 class Siglip2ContentEmbeddingService(
     private val ortEnvironment: OrtEnvironment,
-    private val ortSession: OrtSession,
+    onnxSessionFactory: OnnxSessionFactory,
 ) : ContentEmbeddingService,
     AutoCloseable {
     companion object {
@@ -20,6 +22,7 @@ class Siglip2ContentEmbeddingService(
     }
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+    private val ortSession: OrtSession = onnxSessionFactory.create(Model.SIGLIP2_VISION)
 
     override fun generateEmbeddings(tensor: ImageTensor): FloatArray {
         OnnxTensor

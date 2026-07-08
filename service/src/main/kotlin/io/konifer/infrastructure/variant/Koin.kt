@@ -8,7 +8,6 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VARIANT_GENE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.QUEUE_SIZE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.SYNCHRONOUS_PRIORITY
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.VariantGenerationConfigurationPropertyKeys.WORKERS
-import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.tryGetConfig
 import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
@@ -56,9 +55,9 @@ fun Application.variantModule(): Module =
 
         single<OriginalVariantContentService> {
             OriginalVariantContentService(
-                ruleEvaluator = lazy { get<RuleEvaluator>() },
+                ruleEvaluator = lazy { get() },
                 vipsTensorProcessor = get(),
-                ruleDefinitionRepository = get(),
+                ruleDefinitionRepository = lazy { get() },
                 vipsImageProcessor = get(),
             )
         }

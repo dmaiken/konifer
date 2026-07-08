@@ -35,6 +35,8 @@ data class UploadRuleset(
 
 @Serializable
 data class UploadRule(
+    @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.RULE)
     val rule: RuleName,
+    @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.VIOLATION_RESPONSE)
     val violationResponse: RuleViolationResponse? = null,
 )

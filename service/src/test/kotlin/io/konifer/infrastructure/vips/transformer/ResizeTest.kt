@@ -208,7 +208,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `can resize multi page image`(format: ImageFormat) {
             val width = 200
             val image =
@@ -435,7 +435,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `can resize multi page gif with stretch mode`(format: ImageFormat) {
             val height = 200
             val width = 200

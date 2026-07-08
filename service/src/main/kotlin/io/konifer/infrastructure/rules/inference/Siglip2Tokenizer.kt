@@ -5,7 +5,7 @@ import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 /**
  * Tokenize using tokenizer.json from the configured SigLIP2 model directory.
  */
-class Siglip2Tokenizer {
+class Siglip2Tokenizer : AutoCloseable {
     private val tokenizer =
         HuggingFaceTokenizer
             .builder()
@@ -17,13 +17,19 @@ class Siglip2Tokenizer {
             .optTruncation(true)
             .build()
 
-    fun encode(prompt: String): Siglip2Tokens =
-        tokenizer.encode(prompt.trim()).let {
-            Siglip2Tokens(
-                inputIds = it.ids,
-                attentionMask = it.attentionMask,
-            )
-        }
+    fun encodeBatch(prompts: List<String>): List<Siglip2Tokens> =
+        tokenizer
+            .batchEncode(prompts.map { it.trim() }.toTypedArray())
+            .map {
+                Siglip2Tokens(
+                    inputIds = it.ids,
+                    attentionMask = it.attentionMask,
+                )
+            }
+
+    override fun close() {
+        tokenizer.close()
+    }
 }
 
 data class Siglip2Tokens(

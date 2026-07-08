@@ -31,7 +31,7 @@ import java.nio.file.Path
 class OriginalVariantContentService(
     private val ruleEvaluator: Lazy<RuleEvaluator>,
     private val vipsTensorProcessor: VipsTensorProcessor,
-    private val ruleDefinitionRepository: RuleDefinitionRepository,
+    private val ruleDefinitionRepository: Lazy<RuleDefinitionRepository>,
     private val vipsImageProcessor: VipsImageProcessor,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -52,7 +52,7 @@ class OriginalVariantContentService(
 
             val definitionsByRule =
                 mutableMapOf<UploadRule, RuleDefinition>().also { map ->
-                    rulesToEvaluate.associateWithTo(map) { ruleDefinitionRepository.fetch(it.rule) }
+                    rulesToEvaluate.associateWithTo(map) { ruleDefinitionRepository.value.fetch(it.rule) }
                 }
 
             var decision = uploadRuleset.default.toDecision()
@@ -69,7 +69,7 @@ class OriginalVariantContentService(
                 decision =
                     canProcess(
                         arena = arena,
-                        source = source,
+                        source = source.copy(),
                         definitionsByRule = definitionsByRule,
                         uploadRuleset = uploadRuleset,
                     )
@@ -80,7 +80,7 @@ class OriginalVariantContentService(
                     preprocessOutput =
                         vipsImageProcessor.preprocess(
                             arena = arena,
-                            source = source.copy(),
+                            source = source,
                             transformationDataContainer = transformationDataContainer,
                             lqipImplementations = lqipImplementations,
                             sourceFormat = sourceFormat,
@@ -114,7 +114,7 @@ class OriginalVariantContentService(
 
         val imageTensor =
             vipsTensorProcessor.process(
-                source = source.copy(),
+                source = source,
                 arena = arena,
                 transformation = Siglip2TensorTransformation,
             )

@@ -1,6 +1,7 @@
 package io.konifer.domain.context
 
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.rules.upload.DefaultRuleAction
 
 data class StoreRequestContext(
     val path: String,
@@ -13,5 +14,6 @@ data class StoreRequestContext(
     fun requiresPreProcessing(): Boolean =
         pathConfiguration.transform.preProcessing.enabled ||
             pathConfiguration.image.previews.isNotEmpty() ||
+            pathConfiguration.uploadRuleset.default == DefaultRuleAction.REJECT ||
             pathConfiguration.uploadRuleset.requiresEvaluationBeyondDefault()
 }

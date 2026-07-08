@@ -10,7 +10,19 @@ object OnnxEmbeddingExtractor {
         outputs: OrtSession.Result,
         primaryOutputName: String,
         modelDescription: String,
-    ): FloatArray {
+    ): FloatArray =
+        extractPooledEmbeddings(
+            outputs = outputs,
+            primaryOutputName = primaryOutputName,
+            modelDescription = modelDescription,
+        ).firstOrNull()
+            ?: throw IllegalStateException("Pooled embedding output was empty")
+
+    fun extractPooledEmbeddings(
+        outputs: OrtSession.Result,
+        primaryOutputName: String,
+        modelDescription: String,
+    ): List<FloatArray> {
         val output =
             outputs[primaryOutputName]
                 .orElseGet {
@@ -28,22 +40,19 @@ object OnnxEmbeddingExtractor {
                 ?: throw IllegalStateException("Expected pooled embedding output to be an OnnxTensor")
 
         return when (val value = tensor.value) {
-            is Array<*> -> {
-                val first =
-                    value.firstOrNull()
-                        ?: throw IllegalStateException("Pooled embedding output was empty")
-
-                when (first) {
-                    is FloatArray -> first
-                    is Array<*> ->
-                        first.firstOrNull() as? FloatArray
-                            ?: throw IllegalStateException("Unsupported nested embedding shape")
-                    else -> throw IllegalStateException(
-                        "Unsupported pooled embedding row type: ${first::class.qualifiedName}",
-                    )
+            is Array<*> ->
+                value.map { row ->
+                    when (row) {
+                        is FloatArray -> row
+                        is Array<*> ->
+                            row.firstOrNull() as? FloatArray
+                                ?: throw IllegalStateException("Unsupported nested embedding shape")
+                        else -> throw IllegalStateException(
+                            "Unsupported pooled embedding row type: ${row?.let { it::class.qualifiedName }}",
+                        )
+                    }
                 }
-            }
-            is FloatArray -> value
+            is FloatArray -> listOf(value)
             else -> throw IllegalStateException(
                 "Unsupported pooled embedding output type: ${value::class.qualifiedName}",
             )
