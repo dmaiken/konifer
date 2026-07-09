@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import io.konifer.infrastructure.datastore.createPendingAsset
+import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
@@ -25,7 +26,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
-class FailedAssetSweeperTest : SchedulerTest() {
+class FailedAssetSweeperTest : PostgresContainerizedTest() {
     @Test
     fun `deletes failed assets and schedules reaping of original variant`() =
         runTest {

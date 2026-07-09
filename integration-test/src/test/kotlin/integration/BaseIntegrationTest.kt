@@ -3,6 +3,7 @@ package integration
 import io.konifer.client.KoniferClient
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
+import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.OutputFrame
@@ -12,6 +13,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
+import java.nio.file.Path
 import java.time.Duration
 
 abstract class BaseIntegrationTest {
@@ -68,6 +70,14 @@ abstract class BaseIntegrationTest {
                 .withCopyFileToContainer(
                     MountableFile.forClasspathResource("konifer.conf"),
                     "/app/config/konifer.conf",
+                ).withFileSystemBind(
+                    Path
+                        .of("..", "models")
+                        .toAbsolutePath()
+                        .normalize()
+                        .toString(),
+                    "/app/models",
+                    BindMode.READ_ONLY,
                 ).withEnv("PG_PASSWORD", "konifer_password")
                 .withEnv("S3_SECRET_KEY", "minio_secret_key")
                 .dependsOn(postgres, minio)
@@ -77,12 +87,27 @@ abstract class BaseIntegrationTest {
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            postgres.start()
+            postgres.startOrDumpLogs("postgres")
 
-            minio.start()
-            createBuckets.start()
+            minio.startOrDumpLogs("minio")
+            createBuckets.startOrDumpLogs("createBuckets")
 
-            konifer.start()
+            konifer.startOrDumpLogs("konifer")
+        }
+
+        private fun GenericContainer<*>.startOrDumpLogs(name: String) {
+            try {
+                start()
+            } catch (e: Exception) {
+                System.err.println()
+                System.err.println("===== $name container logs =====")
+                runCatching { logs }
+                    .onSuccess { System.err.print(it.ifBlank { "<no logs>\n" }) }
+                    .onFailure { System.err.println("<could not read logs: ${it.message}>") }
+                System.err.println("===== end $name container logs =====")
+                System.err.println()
+                throw e
+            }
         }
     }
 

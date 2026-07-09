@@ -3,16 +3,18 @@ package io.konifer.infrastructure.rules.inference.embedding
 import ai.onnxruntime.OrtEnvironment
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.infrastructure.rules.inference.Model
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.floats.shouldNotBeNaN
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineScope
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -30,6 +32,8 @@ class Siglip2RulePromptEmbeddingServiceTest {
     private val prompt1 = "This is a photo of a test prompt"
     private val prompt2 = "another test prompt"
     private val incorrectFormatPrompt = "   A TEST PROMPT  "
+    private val preprocessedPrompt1 = "this is a photo of a test prompt"
+    private val preprocessedPrompt2 = "this is a photo of another test prompt"
     private val ruleDefinitions =
         listOf(
             RuleDefinition(
@@ -42,7 +46,7 @@ class Siglip2RulePromptEmbeddingServiceTest {
             ),
         )
     private val environment = OrtEnvironment.getEnvironment()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val embeddingCacheRepository = RecordingEmbeddingCacheRepository()
 
     @BeforeAll
     fun beforeAll() {
@@ -50,8 +54,9 @@ class Siglip2RulePromptEmbeddingServiceTest {
             Siglip2RulePromptEmbeddingService(
                 ortEnvironment = environment,
                 onnxSessionFactory = OnnxSessionFactory(environment),
-                scope = scope,
                 ruleDefinitions = ruleDefinitions,
+                embeddingCacheRepository = embeddingCacheRepository,
+                dispatcher = Dispatchers.Default,
                 tokenizerFactory = ::Siglip2Tokenizer,
             )
     }
@@ -59,7 +64,6 @@ class Siglip2RulePromptEmbeddingServiceTest {
     @AfterAll
     fun afterAll() {
         service.close()
-        scope.cancel()
     }
 
     @Test
@@ -95,5 +99,73 @@ class Siglip2RulePromptEmbeddingServiceTest {
         val second = service.generateEmbeddings(prompt1)
 
         first.contentEquals(second) shouldBe true
+    }
+
+    @Test
+    fun `stores generated prompt embeddings in cache`() =
+        runTest {
+            service.generateEmbeddings(prompt1)
+
+            val cached = embeddingCacheRepository.fetchAll(Model.SIGLIP2_TEXT)
+
+            cached.keys shouldBe setOf(preprocessedPrompt1, preprocessedPrompt2)
+            cached.getValue(preprocessedPrompt1).toList().shouldNotBeEmpty()
+            cached.getValue(preprocessedPrompt2).toList().shouldNotBeEmpty()
+        }
+
+    @Test
+    fun `uses cached prompt embeddings without creating text model session`() {
+        val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
+        val cachedRepository =
+            RecordingEmbeddingCacheRepository(
+                initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
+            )
+        val onnxSessionFactory =
+            mockk<OnnxSessionFactory> {
+                every { create(any()) } throws AssertionError("Text model session should not be created")
+            }
+        val cachedService =
+            Siglip2RulePromptEmbeddingService(
+                ortEnvironment = environment,
+                onnxSessionFactory = onnxSessionFactory,
+                ruleDefinitions =
+                    listOf(
+                        RuleDefinition(
+                            prompts = listOf(prompt1),
+                            threshold = RuleDefinitionThreshold(0.5),
+                        ),
+                    ),
+                embeddingCacheRepository = cachedRepository,
+                dispatcher = Dispatchers.Default,
+                tokenizerFactory = ::Siglip2Tokenizer,
+            )
+
+        cachedService.use { cachedService ->
+            val embedding = cachedService.generateEmbeddings(prompt1)
+
+            embedding.contentEquals(cachedEmbedding) shouldBe true
+            cachedRepository.storeCalls shouldBe emptyMap()
+        }
+    }
+
+    private class RecordingEmbeddingCacheRepository(
+        initialEmbeddings: Map<String, FloatArray> = emptyMap(),
+    ) : EmbeddingCacheRepository {
+        private val embeddings = initialEmbeddings.toMutableMap()
+        private val stores = mutableMapOf<String, FloatArray>()
+
+        val storeCalls: Map<String, FloatArray>
+            get() = stores.toMap()
+
+        override suspend fun fetchAll(model: Model): Map<String, FloatArray> = embeddings.toMap()
+
+        override suspend fun store(
+            model: Model,
+            prompt: String,
+            embeddings: FloatArray,
+        ) {
+            stores[prompt] = embeddings
+            this.embeddings[prompt] = embeddings
+        }
     }
 }

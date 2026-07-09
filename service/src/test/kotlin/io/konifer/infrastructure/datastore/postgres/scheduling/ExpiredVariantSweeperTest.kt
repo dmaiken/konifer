@@ -5,6 +5,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
+import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
 import io.konifer.infrastructure.datastore.postgres.PostgresVariantRepository
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 
-class ExpiredVariantSweeperTest : SchedulerTest() {
+class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
     private val postgresVariantRepository = PostgresVariantRepository(dslContext)
 
     @Test

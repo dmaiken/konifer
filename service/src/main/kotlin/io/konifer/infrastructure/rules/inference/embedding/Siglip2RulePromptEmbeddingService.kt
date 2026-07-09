@@ -11,9 +11,12 @@ import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtracto
 import io.konifer.infrastructure.rules.l2Normalize
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import java.nio.LongBuffer
 import java.util.concurrent.ConcurrentHashMap
@@ -22,8 +25,9 @@ import kotlin.time.measureTimedValue
 class Siglip2RulePromptEmbeddingService(
     ortEnvironment: OrtEnvironment,
     onnxSessionFactory: OnnxSessionFactory,
-    scope: CoroutineScope,
     ruleDefinitions: List<RuleDefinition>,
+    private val embeddingCacheRepository: EmbeddingCacheRepository,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val tokenizerFactory: () -> Siglip2Tokenizer = ::Siglip2Tokenizer,
 ) : RulePromptEmbeddingService,
     AutoCloseable {
@@ -37,9 +41,10 @@ class Siglip2RulePromptEmbeddingService(
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val rulePromptEmbeddings = ConcurrentHashMap<String, FloatArray>()
     private val warmupJob =
-        scope.async(Dispatchers.IO) {
+        scope.async {
             val prompts =
                 ruleDefinitions
                     .flatMap { it.prompts }
@@ -48,27 +53,20 @@ class Siglip2RulePromptEmbeddingService(
 
             if (prompts.isEmpty()) return@async
 
-            tokenizerFactory().use { tokenizer ->
-                onnxSessionFactory.create(Model.SIGLIP2_TEXT).use { session ->
-                    prompts
-                        .chunked(EMBEDDING_BATCH_SIZE)
-                        .forEach { batch ->
-                            val timed =
-                                measureTimedValue {
-                                    generateBatch(
-                                        ortEnvironment = ortEnvironment,
-                                        ortSession = session,
-                                        tokenizer = tokenizer,
-                                        prompts = batch,
-                                    )
-                                }
-
-                            rulePromptEmbeddings.putAll(timed.value)
-                            logger.info(
-                                "Generated embeddings for ${batch.size} prompts in ${timed.duration.inWholeMilliseconds}ms",
-                            )
-                        }
+            // fetch cached embeddings and see if we even need the session/tokenizer
+            val cached =
+                embeddingCacheRepository.fetchAll(Model.SIGLIP2_TEXT).also {
+                    rulePromptEmbeddings.putAll(it)
                 }
+            val promptsRequiringGeneration = prompts.filterNot { cached.containsKey(it) }
+            if (promptsRequiringGeneration.isNotEmpty()) {
+                generateAndCacheEmbeddings(
+                    ortEnvironment = ortEnvironment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    prompts = promptsRequiringGeneration,
+                )
+            } else {
+                logger.info("All prompts found in embedding cache, skipping siglip2 text model initialization")
             }
         }
 
@@ -91,6 +89,44 @@ class Siglip2RulePromptEmbeddingService(
 
     override fun close() {
         warmupJob.cancel()
+        scope.cancel()
+    }
+
+    private suspend fun generateAndCacheEmbeddings(
+        onnxSessionFactory: OnnxSessionFactory,
+        ortEnvironment: OrtEnvironment,
+        prompts: List<String>,
+    ) {
+        tokenizerFactory().use { tokenizer ->
+            logger.info("Generating embeddings for ${prompts.size} prompts")
+            onnxSessionFactory.create(Model.SIGLIP2_TEXT).use { session ->
+                prompts
+                    .chunked(EMBEDDING_BATCH_SIZE)
+                    .forEach { batch ->
+                        val timed =
+                            measureTimedValue {
+                                generateBatch(
+                                    ortEnvironment = ortEnvironment,
+                                    ortSession = session,
+                                    tokenizer = tokenizer,
+                                    prompts = batch,
+                                )
+                            }
+
+                        rulePromptEmbeddings.putAll(timed.value)
+                        timed.value.forEach { (prompt, embedding) ->
+                            embeddingCacheRepository.store(
+                                model = Model.SIGLIP2_TEXT,
+                                prompt = prompt,
+                                embeddings = embedding,
+                            )
+                        }
+                        logger.info(
+                            "Generated embeddings for ${batch.size} prompts in ${timed.duration.inWholeMilliseconds}ms",
+                        )
+                    }
+            }
+        }
     }
 
     private fun generateBatch(

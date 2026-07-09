@@ -49,6 +49,7 @@ fun Application.configureKoin(
     additionalModules: List<Module> = emptyList(),
 ) {
     val logger = KtorSimpleLogger("io.konifer.infrastructure.KtorKoin")
+    val datastoreProvider = environment.config.getDataStoreProvider()
     install(Koin) {
         slf4jLogger()
         val configuredModules =
@@ -60,7 +61,7 @@ fun Application.configureKoin(
                 appModule(),
                 assetContainerFactoryModule(),
                 mimeTypeDetectorModule(),
-                assetRepositoryModule(),
+                assetRepositoryModule(datastoreProvider),
                 variantModule(),
                 objectStoreModule(objectStoreProvider),
                 pathModule(),
@@ -70,7 +71,7 @@ fun Application.configureKoin(
         val ruleDefinitions = environment.config.extractRawHocon().getRuleDefinitions()
         if (ruleDefinitions.isNotEmpty()) {
             logger.info("${ruleDefinitions.size} rule definitions found, initiating rules module")
-            configuredModules += rulesModule(ruleDefinitions)
+            configuredModules += rulesModule(ruleDefinitions, datastoreProvider)
         }
 
         configuredModules += additionalModules

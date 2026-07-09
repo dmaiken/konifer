@@ -74,7 +74,6 @@ class UploadRulesTest : BaseFunctionalTest() {
                     }
                   }
                   "/kermit-accept/with-preprocessing/**" {
-
                     transform {
                       preprocessing {
                         enabled = true

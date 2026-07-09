@@ -243,6 +243,7 @@ A huge thank-you to these amazing open-source projects:
 - **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the libvips API.
 - **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
 - **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
+- **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Development
 

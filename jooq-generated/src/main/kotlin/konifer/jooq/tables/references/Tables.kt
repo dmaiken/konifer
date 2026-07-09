@@ -10,6 +10,7 @@ import konifer.jooq.tables.AssetTag
 import konifer.jooq.tables.AssetTree
 import konifer.jooq.tables.AssetVariant
 import konifer.jooq.tables.Outbox
+import konifer.jooq.tables.PromptEmbedding
 
 
 
@@ -37,3 +38,8 @@ val ASSET_VARIANT: AssetVariant = AssetVariant.ASSET_VARIANT
  * The table <code>public.outbox</code>.
  */
 val OUTBOX: Outbox = Outbox.OUTBOX
+
+/**
+ * The table <code>public.prompt_embedding</code>.
+ */
+val PROMPT_EMBEDDING: PromptEmbedding = PromptEmbedding.PROMPT_EMBEDDING
