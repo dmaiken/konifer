@@ -116,7 +116,7 @@ class Siglip2RulePromptEmbeddingService(
                         rulePromptEmbeddings.putAll(timed.value)
                         timed.value.forEach { (prompt, embedding) ->
                             embeddingCacheRepository.store(
-                                model = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                                 prompt = prompt,
                                 embeddings = embedding,
                             )

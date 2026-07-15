@@ -13,7 +13,7 @@ class NoOpEmbeddingCacheRepository : EmbeddingCacheRepository {
     override suspend fun fetchAll(model: EmbeddingModel): Map<String, FloatArray> = emptyMap()
 
     override suspend fun store(
-        model: EmbeddingModel,
+        embeddingModel: EmbeddingModel,
         prompt: String,
         embeddings: FloatArray,
     ) {

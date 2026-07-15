@@ -6,7 +6,7 @@ interface EmbeddingCacheRepository {
     suspend fun fetchAll(model: EmbeddingModel): Map<String, FloatArray>
 
     suspend fun store(
-        model: EmbeddingModel,
+        embeddingModel: EmbeddingModel,
         prompt: String,
         embeddings: FloatArray,
     )

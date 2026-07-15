@@ -210,6 +210,17 @@ jobs:
       - uses: actions/checkout@v7
       - uses: gradle/actions/setup-gradle@v6
 
+      - name: Restore SigLIP2 Model Cache
+        id: siglip2-cache
+        uses: actions/cache@v4
+        with:
+          path: models/siglip2-base-patch16-224
+          key: siglip2-base-patch16-224-${{ env.SIGLIP2_MODEL_REVISION }}
+
+      - name: Download SigLIP2 Models
+        if: steps.siglip2-cache.outputs.cache-hit != 'true'
+        run: bash scripts/download-siglip2-models.sh --revision "$SIGLIP2_MODEL_REVISION"
+
       - name: Download Image Artifact
         uses: actions/download-artifact@v8
         with:

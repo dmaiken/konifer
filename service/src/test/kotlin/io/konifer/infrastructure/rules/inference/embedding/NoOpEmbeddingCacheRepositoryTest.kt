@@ -19,7 +19,7 @@ class NoOpEmbeddingCacheRepositoryTest {
     fun `store does not persist embeddings`() {
         runTest {
             repository.store(
-                model = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = "this is a photo of a dog",
                 embeddings = floatArrayOf(0.1f, 0.2f),
             )
