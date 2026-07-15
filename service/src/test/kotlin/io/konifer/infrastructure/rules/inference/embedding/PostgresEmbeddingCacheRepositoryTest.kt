@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.rules.inference.embedding
 
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
-import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -20,7 +20,7 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     @Test
     fun `fetch all returns empty map when no embeddings have been cached`() {
         runTest {
-            repository.fetchAll(Model.SIGLIP2_TEXT) shouldBe emptyMap()
+            repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT) shouldBe emptyMap()
         }
     }
 
@@ -31,17 +31,17 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
             val catEmbedding = floatArrayOf(0.4f, 0.5f, -0.6f)
 
             repository.store(
-                model = Model.SIGLIP2_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = DOG_PROMPT,
                 embeddings = dogEmbedding,
             )
             repository.store(
-                model = Model.SIGLIP2_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = CAT_PROMPT,
                 embeddings = catEmbedding,
             )
 
-            val embeddings = repository.fetchAll(Model.SIGLIP2_TEXT)
+            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT, CAT_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly dogEmbedding.toList()
@@ -53,17 +53,17 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     fun `fetch all only returns embeddings for requested model`() {
         runTest {
             repository.store(
-                model = Model.SIGLIP2_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = DOG_PROMPT,
                 embeddings = floatArrayOf(0.1f, 0.2f),
             )
             repository.store(
-                model = Model.SIGLIP2_VISION,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_VISION,
                 prompt = CAT_PROMPT,
                 embeddings = floatArrayOf(0.3f, 0.4f),
             )
 
-            val embeddings = repository.fetchAll(Model.SIGLIP2_TEXT)
+            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly listOf(0.1f, 0.2f)
@@ -75,18 +75,18 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
         runTest {
             val originalEmbedding = floatArrayOf(0.1f, 0.2f)
             repository.store(
-                model = Model.SIGLIP2_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = DOG_PROMPT,
                 embeddings = originalEmbedding,
             )
 
             repository.store(
-                model = Model.SIGLIP2_TEXT,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                 prompt = DOG_PROMPT,
                 embeddings = floatArrayOf(0.3f, 0.4f),
             )
 
-            val embeddings = repository.fetchAll(Model.SIGLIP2_TEXT)
+            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly originalEmbedding.toList()

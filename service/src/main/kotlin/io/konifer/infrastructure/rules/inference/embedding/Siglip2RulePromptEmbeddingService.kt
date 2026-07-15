@@ -4,7 +4,7 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
-import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbeddings
@@ -55,7 +55,7 @@ class Siglip2RulePromptEmbeddingService(
 
             // fetch cached embeddings and see if we even need the session/tokenizer
             val cached =
-                embeddingCacheRepository.fetchAll(Model.SIGLIP2_TEXT).also {
+                embeddingCacheRepository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT).also {
                     rulePromptEmbeddings.putAll(it)
                 }
             val promptsRequiringGeneration = prompts.filterNot { cached.containsKey(it) }
@@ -99,7 +99,7 @@ class Siglip2RulePromptEmbeddingService(
     ) {
         tokenizerFactory().use { tokenizer ->
             logger.info("Generating embeddings for ${prompts.size} prompts")
-            onnxSessionFactory.create(Model.SIGLIP2_TEXT).use { session ->
+            onnxSessionFactory.create(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT).use { session ->
                 prompts
                     .chunked(EMBEDDING_BATCH_SIZE)
                     .forEach { batch ->
@@ -116,7 +116,7 @@ class Siglip2RulePromptEmbeddingService(
                         rulePromptEmbeddings.putAll(timed.value)
                         timed.value.forEach { (prompt, embedding) ->
                             embeddingCacheRepository.store(
-                                model = Model.SIGLIP2_TEXT,
+                                model = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                                 prompt = prompt,
                                 embeddings = embedding,
                             )

@@ -3,7 +3,7 @@ package io.konifer.infrastructure.rules.inference.embedding
 import ai.onnxruntime.OrtEnvironment
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
-import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -106,7 +106,7 @@ class Siglip2RulePromptEmbeddingServiceTest {
         runTest {
             service.generateEmbeddings(prompt1)
 
-            val cached = embeddingCacheRepository.fetchAll(Model.SIGLIP2_TEXT)
+            val cached = embeddingCacheRepository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
 
             cached.keys shouldBe setOf(preprocessedPrompt1, preprocessedPrompt2)
             cached.getValue(preprocessedPrompt1).toList().shouldNotBeEmpty()
@@ -157,10 +157,10 @@ class Siglip2RulePromptEmbeddingServiceTest {
         val storeCalls: Map<String, FloatArray>
             get() = stores.toMap()
 
-        override suspend fun fetchAll(model: Model): Map<String, FloatArray> = embeddings.toMap()
+        override suspend fun fetchAll(embeddingModel: EmbeddingModel): Map<String, FloatArray> = embeddings.toMap()
 
         override suspend fun store(
-            model: Model,
+            embeddingModel: EmbeddingModel,
             prompt: String,
             embeddings: FloatArray,
         ) {

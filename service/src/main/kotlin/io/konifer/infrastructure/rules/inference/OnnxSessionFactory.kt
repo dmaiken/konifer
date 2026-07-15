@@ -11,9 +11,9 @@ class OnnxSessionFactory(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    fun create(model: Model): OrtSession =
+    fun create(model: EmbeddingModel): OrtSession =
         when (model) {
-            Model.SIGLIP2_TEXT -> {
+            EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT -> {
                 logger.info("Creating Siglip2 text model session")
                 measureTimedValue {
                     ortEnvironment
@@ -27,7 +27,7 @@ class OnnxSessionFactory(
                 }
             }
 
-            Model.SIGLIP2_VISION -> {
+            EmbeddingModel.SIGLIP2_BASE_PATCH16_224_VISION -> {
                 logger.info("Creating Siglip2 vision model session")
                 measureTimedValue {
                     ortEnvironment

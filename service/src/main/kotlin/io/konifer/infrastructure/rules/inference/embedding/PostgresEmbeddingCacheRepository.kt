@@ -1,6 +1,6 @@
 package io.konifer.infrastructure.rules.inference.embedding
 
-import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import konifer.jooq.tables.references.PROMPT_EMBEDDING
 import kotlinx.coroutines.flow.associate
 import kotlinx.coroutines.reactive.asFlow
@@ -15,7 +15,7 @@ import kotlin.uuid.toJavaUuid
 class PostgresEmbeddingCacheRepository(
     private val dslContext: DSLContext,
 ) : EmbeddingCacheRepository {
-    override suspend fun fetchAll(model: Model): Map<String, FloatArray> =
+    override suspend fun fetchAll(model: EmbeddingModel): Map<String, FloatArray> =
         dslContext
             .select(PROMPT_EMBEDDING.PROMPT_TEXT, PROMPT_EMBEDDING.EMBEDDING)
             .from(PROMPT_EMBEDDING)
@@ -36,7 +36,7 @@ class PostgresEmbeddingCacheRepository(
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun store(
-        model: Model,
+        embeddingModel: EmbeddingModel,
         prompt: String,
         embeddings: FloatArray,
     ) {
@@ -44,7 +44,7 @@ class PostgresEmbeddingCacheRepository(
         dslContext
             .insertInto(PROMPT_EMBEDDING)
             .set(PROMPT_EMBEDDING.ID, Uuid.generateV7().toJavaUuid())
-            .set(PROMPT_EMBEDDING.MODEL, model.name)
+            .set(PROMPT_EMBEDDING.MODEL, embeddingModel.name)
             .set(PROMPT_EMBEDDING.PROMPT_TEXT, prompt)
             .set(PROMPT_EMBEDDING.EMBEDDING, embeddingArray)
             .set(PROMPT_EMBEDDING.CREATED_AT, LocalDateTime.now(UTC))

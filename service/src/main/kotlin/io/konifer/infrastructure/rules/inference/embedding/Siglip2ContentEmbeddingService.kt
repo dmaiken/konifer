@@ -3,7 +3,7 @@ package io.konifer.infrastructure.rules.inference.embedding
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
-import io.konifer.infrastructure.rules.inference.Model
+import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
@@ -22,7 +22,7 @@ class Siglip2ContentEmbeddingService(
     }
 
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-    private val ortSession: OrtSession = onnxSessionFactory.create(Model.SIGLIP2_VISION)
+    private val ortSession: OrtSession = onnxSessionFactory.create(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_VISION)
 
     override fun generateEmbeddings(tensor: ImageTensor): FloatArray {
         OnnxTensor
