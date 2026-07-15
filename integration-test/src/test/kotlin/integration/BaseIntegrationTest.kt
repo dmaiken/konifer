@@ -13,12 +13,14 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
+import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 
 abstract class BaseIntegrationTest {
     companion object {
         private val koniferStartupTimeout: Duration = Duration.ofMinutes(5)
+        private val modelMountPath: Path = resolveModelMountPath()
 
         val network: Network = Network.newNetwork()
 
@@ -73,11 +75,7 @@ abstract class BaseIntegrationTest {
                     MountableFile.forClasspathResource("konifer.conf"),
                     "/app/config/konifer.conf",
                 ).withFileSystemBind(
-                    Path
-                        .of("..", "models")
-                        .toAbsolutePath()
-                        .normalize()
-                        .toString(),
+                    modelMountPath.toString(),
                     "/app/models",
                     BindMode.READ_ONLY,
                 ).withEnv("PG_PASSWORD", "konifer_password")
@@ -115,6 +113,35 @@ abstract class BaseIntegrationTest {
                 System.err.println()
                 throw e
             }
+        }
+
+        private fun resolveModelMountPath(): Path {
+            val requiredFiles =
+                listOf(
+                    "siglip2-base-patch16-224/vision_model.onnx",
+                    "siglip2-base-patch16-224/text_model.onnx",
+                    "siglip2-base-patch16-224/tokenizer.json",
+                )
+            val candidates =
+                listOf(
+                    Path.of("models"),
+                    Path.of("..", "models"),
+                ).map {
+                    it
+                        .toAbsolutePath()
+                        .normalize()
+                }
+
+            return candidates
+                .firstOrNull { candidate ->
+                    requiredFiles.all { Files.isRegularFile(candidate.resolve(it)) }
+                }?.also { candidate ->
+                    System.err.println("Mounting SigLIP2 models from $candidate")
+                } ?: error(
+                "Could not find SigLIP2 model files. Checked: ${
+                    candidates.joinToString()
+                }. Current working directory: ${Path.of("").toAbsolutePath().normalize()}",
+            )
         }
     }
 
