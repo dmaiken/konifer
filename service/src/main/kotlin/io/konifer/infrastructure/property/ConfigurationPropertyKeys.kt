@@ -9,6 +9,7 @@ object ConfigurationPropertyKeys {
     const val URL_SIGNING = "url-signing"
     const val HTTP = "http"
     const val VARIANT_PROFILES = "variant-profiles"
+    const val RULE_DEFINITIONS = "rule-definitions"
 
     object DataStorePropertyKeys {
         const val PROVIDER = "provider"
@@ -72,6 +73,11 @@ object ConfigurationPropertyKeys {
         const val PUBLIC_URL = "public-url"
     }
 
+    object RuleDefinitionPropertyKeys {
+        const val PROMPTS = "prompts"
+        const val THRESHOLD = "threshold"
+    }
+
     object PathPropertyKeys {
         const val IMAGE = "image"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
@@ -79,6 +85,7 @@ object ConfigurationPropertyKeys {
         const val RETURN_FORMAT = "return-format"
         const val TRANSFORM = "transform"
         const val CACHE_CONTROL = "cache-control"
+        const val UPLOAD_RULESET = "upload-ruleset"
 
         object ImagePropertyKeys {
             const val LQIP = "lqip"
@@ -141,6 +148,17 @@ object ConfigurationPropertyKeys {
             const val STALE_WHILE_REVALIDATE = "stale-while-revalidate"
             const val STALE_IF_ERROR = "stale-if-error"
             const val IMMUTABLE = "immutable"
+        }
+
+        object UploadRulesetPropertyKeys {
+            const val DEFAULT = "default"
+            const val ACCEPT_RULES = "accept-rules"
+            const val REJECT_RULES = "reject-rules"
+
+            object RulePropertyKeys {
+                const val RULE = "rule"
+                const val VIOLATION_RESPONSE = "violation-response"
+            }
         }
     }
 }

@@ -212,6 +212,14 @@ Useful starting points:
 
 The included Compose file runs Konifer with PostgreSQL and MinIO. It expects a `konifer.conf` file at the repository root.
 
+If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
+
+```bash
+./scripts/download-siglip2-models.sh
+```
+
+Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
+
 Build the local image first:
 
 ```bash
@@ -235,6 +243,7 @@ A huge thank-you to these amazing open-source projects:
 - **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the libvips API.
 - **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
 - **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
+- **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Development
 
@@ -244,6 +253,14 @@ For normal use, run Konifer in Docker. Local development requires libvips to be 
 chmod +x ./scripts/install-vips.sh
 ./scripts/install-vips.sh --with-deps
 ```
+
+Some service tests and upload content rules use SigLIP2 ONNX models. Download the local model pack once before running those tests:
+
+```bash
+./scripts/download-siglip2-models.sh
+```
+
+This creates `models/siglip2-base-patch16-224` at the repository root. The directory is ignored by Git and reused by local Gradle runs.
 
 Common Gradle tasks:
 

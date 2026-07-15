@@ -15,7 +15,7 @@ fun truncateTables(postgres: PostgreSQLContainer) {
         "-d",
         postgres.databaseName,
         "-c",
-        "TRUNCATE TABLE asset_tree, path_entry_counter, asset_variant, asset_label, asset_tag, scheduled_tasks, outbox;",
+        "TRUNCATE TABLE asset_tree, path_entry_counter, asset_variant, asset_label, asset_tag, scheduled_tasks, outbox, prompt_embedding;",
     )
 }
 

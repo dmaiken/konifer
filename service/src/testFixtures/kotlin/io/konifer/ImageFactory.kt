@@ -3,17 +3,20 @@ package io.konifer
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.vipsProperties
 
 object ImageFactory {
     private const val STANDARD_PATH = "/images/joshua-tree/joshua-tree"
     private const val LARGE_PATH = "/images/large/large"
+    private const val MOON_PATH = "/images/moon_transparency"
+    private const val KERMIT_PATH = "/images/kermit/kermit"
 
     fun testImage(
         format: ImageFormat = ImageFormat.JPEG,
-        type: TestImageType = TestImageType.STANDARD,
+        type: TestImageType = TestImageType.JOSHUA_TREE,
     ): TestImage =
         when (type) {
-            TestImageType.STANDARD -> {
+            TestImageType.JOSHUA_TREE -> {
                 val bytes = javaClass.getResourceAsStream("$STANDARD_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,
@@ -23,6 +26,23 @@ object ImageFactory {
             TestImageType.LARGE -> {
                 require(format == ImageFormat.JPEG) { "Large images are only supported in JPEG format" }
                 val bytes = javaClass.getResourceAsStream("$LARGE_PATH${format.extension}")!!.readBytes()
+                TestImage(
+                    bytes = bytes,
+                    attributes = bytes.toAttributes(format),
+                )
+            }
+            TestImageType.MOON -> {
+                require(format == ImageFormat.PNG) { "Moon images are only supported in PNG format" }
+                val bytes = javaClass.getResourceAsStream("$MOON_PATH${format.extension}")!!.readBytes()
+                TestImage(
+                    bytes = bytes,
+                    attributes = bytes.toAttributes(format),
+                )
+            }
+
+            TestImageType.KERMIT -> {
+                require(format.vipsProperties.supportsPaging) { "Kermit formats must support paging!" }
+                val bytes = javaClass.getResourceAsStream("$KERMIT_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,
                     attributes = bytes.toAttributes(format),
@@ -51,7 +71,25 @@ object ImageFactory {
 data class TestImage(
     val bytes: ByteArray,
     val attributes: TestImageAttributes,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TestImage
+
+        if (!bytes.contentEquals(other.bytes)) return false
+        if (attributes != other.attributes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = bytes.contentHashCode()
+        result = 31 * result + attributes.hashCode()
+        return result
+    }
+}
 
 data class TestImageAttributes(
     val height: Int,
@@ -60,6 +98,23 @@ data class TestImageAttributes(
 )
 
 enum class TestImageType {
-    STANDARD,
+    /**
+     * The default. Contains all image formats
+     */
+    JOSHUA_TREE,
+
+    /**
+     * For testing large images (e.g. testing ByteChannels and async flows)
+     */
     LARGE,
+
+    /**
+     * For testing transparency
+     */
+    MOON,
+
+    /**
+     * Multi-paged images
+     */
+    KERMIT,
 }

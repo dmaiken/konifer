@@ -8,12 +8,12 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.ClientProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 
 class KoniferTestScope(
-    private val builder: ApplicationTestBuilder,
+    private val clientProvider: ClientProvider,
     coroutineScope: CoroutineScope,
 ) : CoroutineScope by coroutineScope {
     private var currentClient = createClient()
@@ -53,7 +53,7 @@ class KoniferTestScope(
     }
 
     private fun createClient(block: HttpClientConfig<out HttpClientEngineConfig>.() -> Unit = {}) =
-        builder.createClient {
+        clientProvider.createClient {
             install(ContentNegotiation) {
                 json(
                     Json {

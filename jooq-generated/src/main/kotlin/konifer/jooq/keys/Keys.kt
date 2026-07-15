@@ -10,11 +10,13 @@ import konifer.jooq.tables.AssetTag
 import konifer.jooq.tables.AssetTree
 import konifer.jooq.tables.AssetVariant
 import konifer.jooq.tables.Outbox
+import konifer.jooq.tables.PromptEmbedding
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetTreeRecord
 import konifer.jooq.tables.records.AssetVariantRecord
 import konifer.jooq.tables.records.OutboxRecord
+import konifer.jooq.tables.records.PromptEmbeddingRecord
 
 import org.jooq.ForeignKey
 import org.jooq.UniqueKey
@@ -33,6 +35,7 @@ val ASSET_TAG_PKEY: UniqueKey<AssetTagRecord> = Internal.createUniqueKey(AssetTa
 val ASSET_TREE_PKEY: UniqueKey<AssetTreeRecord> = Internal.createUniqueKey(AssetTree.ASSET_TREE, DSL.name("asset_tree_pkey"), arrayOf(AssetTree.ASSET_TREE.ID), true)
 val ASSET_VARIANT_PKEY: UniqueKey<AssetVariantRecord> = Internal.createUniqueKey(AssetVariant.ASSET_VARIANT, DSL.name("asset_variant_pkey"), arrayOf(AssetVariant.ASSET_VARIANT.ID), true)
 val OUTBOX_PKEY: UniqueKey<OutboxRecord> = Internal.createUniqueKey(Outbox.OUTBOX, DSL.name("outbox_pkey"), arrayOf(Outbox.OUTBOX.ID), true)
+val PROMPT_EMBEDDING_PKEY: UniqueKey<PromptEmbeddingRecord> = Internal.createUniqueKey(PromptEmbedding.PROMPT_EMBEDDING, DSL.name("prompt_embedding_pkey"), arrayOf(PromptEmbedding.PROMPT_EMBEDDING.ID), true)
 
 // -------------------------------------------------------------------------
 // FOREIGN KEY definitions

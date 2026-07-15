@@ -2,7 +2,7 @@ package io.konifer.infrastructure
 
 import com.typesafe.config.Config
 import io.konifer.application.listener.AssetEventListener
-import io.konifer.application.service.VariantProcessorPipeline
+import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.application.usecase.delete.DeleteAssetUseCase
 import io.konifer.application.usecase.fetch.FetchAssetHandler
 import io.konifer.application.usecase.store.StoreNewAssetUseCase
@@ -23,11 +23,14 @@ import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.path.pathModule
+import io.konifer.infrastructure.rules.getRuleDefinitions
+import io.konifer.infrastructure.rules.rulesModule
 import io.konifer.infrastructure.tika.mimeTypeDetectorModule
 import io.konifer.infrastructure.variant.variantModule
 import io.konifer.infrastructure.vips.vipsModule
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,23 +48,35 @@ fun Application.configureKoin(
     objectStoreProvider: ObjectStoreProvider,
     additionalModules: List<Module> = emptyList(),
 ) {
+    val logger = KtorSimpleLogger("io.konifer.infrastructure.KtorKoin")
+    val datastoreProvider = environment.config.getDataStoreProvider()
     install(Koin) {
         slf4jLogger()
-        modules(
-            configModule(),
-            httpClientModule(),
-            httpModule(),
-            domainModule(),
-            appModule(),
-            assetContainerFactoryModule(),
-            mimeTypeDetectorModule(),
-            assetRepositoryModule(),
-            variantModule(),
-            objectStoreModule(objectStoreProvider),
-            pathModule(),
-            vipsModule(),
-            *additionalModules.toTypedArray(),
-        )
+        val configuredModules =
+            mutableListOf(
+                configModule(),
+                httpClientModule(),
+                httpModule(),
+                domainModule(),
+                appModule(),
+                assetContainerFactoryModule(),
+                mimeTypeDetectorModule(),
+                assetRepositoryModule(datastoreProvider),
+                variantModule(),
+                objectStoreModule(objectStoreProvider),
+                pathModule(),
+                vipsModule(),
+            )
+
+        val ruleDefinitions = environment.config.extractRawHocon().getRuleDefinitions()
+        if (ruleDefinitions.isNotEmpty()) {
+            logger.info("${ruleDefinitions.size} rule definitions found, initiating rules module")
+            configuredModules += rulesModule(ruleDefinitions, datastoreProvider)
+        }
+
+        configuredModules += additionalModules
+
+        modules(configuredModules)
     }
 }
 
@@ -91,7 +106,7 @@ fun appModule(): Module =
         single<DeleteAssetUseCase>()
         single<UpdateAssetUseCase>()
         single<StoreNewAssetUseCase>()
-        single<VariantProcessorPipeline>()
+        single<OriginalVariantProcessorPipeline>()
         single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
         single<AssetEventListener>() withOptions {
             createdAtStart()

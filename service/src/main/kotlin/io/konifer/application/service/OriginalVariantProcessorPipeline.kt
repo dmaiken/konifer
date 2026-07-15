@@ -5,8 +5,9 @@ import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.context.StoreRequestContext
+import io.konifer.domain.ports.ContentProcessorResult
+import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.TransformationDataContainer
-import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
@@ -17,6 +18,7 @@ import io.konifer.infrastructure.teeStream
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
 import kotlinx.coroutines.CompletableDeferred
@@ -30,11 +32,13 @@ import kotlinx.coroutines.withContext
 import kotlin.io.path.createLinkPointingTo
 import kotlin.io.path.pathString
 
-class VariantProcessorPipeline(
+class OriginalVariantProcessorPipeline(
     private val transformationNormalizer: TransformationNormalizer,
-    private val variantGenerator: VariantGenerator,
+    private val originalVariantContentProcessor: OriginalVariantContentProcessor,
 ) {
-    suspend fun prepareForStorage(
+    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
+    suspend fun process(
         scope: CoroutineScope,
         container: AssetDataContainer,
         context: StoreRequestContext,
@@ -105,11 +109,12 @@ class VariantProcessorPipeline(
                 }
 
                 val jobDeferred =
-                    variantGenerator.preProcessOriginalVariant(
+                    originalVariantContentProcessor.process(
                         sourceFormat = format,
                         lqipImplementations = context.pathConfiguration.image.previews,
                         source = container.getTemporaryFile(),
                         transformationDataContainer = transformationData,
+                        uploadRuleset = context.pathConfiguration.uploadRuleset,
                     )
 
                 jobDeferred.await()
@@ -143,7 +148,7 @@ class VariantProcessorPipeline(
             }
 
         // Since there is no preprocessing required here, we just stream the original file back to the caller
-        val passthroughProcess: Deferred<Unit> =
+        val passthroughProcess: Deferred<ContentProcessorResult> =
             scope.async {
                 runCatching {
                     teeStream(
@@ -151,6 +156,7 @@ class VariantProcessorPipeline(
                         firstChannel = objectStoreChannel,
                         secondChannel = null,
                     )
+                    ContentProcessorResult.Success
                 }.onFailure { e ->
                     objectStoreChannel.close(e)
                 }.getOrThrow()

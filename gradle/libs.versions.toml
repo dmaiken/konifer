@@ -35,6 +35,8 @@ kotlinx-datetime-version = "0.8.0"
 metadata-extractor-version = "2.20.0"
 kover-version = "0.9.8"
 cryptography-kotlin-version = "0.6.0"
+onnx-runtime-version = "1.26.0"
+huggingface-tokenizers-version = "0.36.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -109,6 +111,9 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari-version" }
 
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography-kotlin-version" }
 cryptography-provider-optimal = { module = "dev.whyoleg.cryptography:cryptography-provider-optimal", version.ref = "cryptography-kotlin-version" }
+
+onnx-runtime = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnx-runtime-version" }
+huggingface-tokenizers = {  module = "ai.djl.huggingface:tokenizers", version.ref = "huggingface-tokenizers-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

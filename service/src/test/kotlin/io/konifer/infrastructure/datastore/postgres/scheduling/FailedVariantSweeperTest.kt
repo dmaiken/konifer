@@ -5,6 +5,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
+import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldBeIn
@@ -28,7 +29,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 
 @Testcontainers
-class FailedVariantSweeperTest : SchedulerTest() {
+class FailedVariantSweeperTest : PostgresContainerizedTest() {
     @Test
     fun `deletes failed variants and schedules reaping of variant`() =
         runTest {

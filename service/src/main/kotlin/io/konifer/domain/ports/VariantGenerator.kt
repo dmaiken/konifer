@@ -1,6 +1,5 @@
 package io.konifer.domain.ports
 
-import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
@@ -10,13 +9,6 @@ import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
 
 interface VariantGenerator {
-    suspend fun preProcessOriginalVariant(
-        sourceFormat: ImageFormat,
-        lqipImplementations: Set<LQIPImplementation>,
-        source: Path,
-        transformationDataContainer: TransformationDataContainer,
-    ): CompletableDeferred<Unit>
-
     suspend fun generateVariantsFromSource(
         source: Path,
         transformationDataContainers: List<TransformationDataContainer>,

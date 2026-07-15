@@ -2,6 +2,7 @@ package io.konifer.domain.path
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ImageProperties
+import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.SerialName
@@ -21,6 +22,8 @@ data class PathConfiguration(
     val returnFormat: ReturnFormatProperties = ReturnFormatProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL)
     val cacheControl: CacheControlProperties = CacheControlProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.UPLOAD_RULESET)
+    val uploadRuleset: UploadRuleset = UploadRuleset.default,
 ) {
     init {
         validate()

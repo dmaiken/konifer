@@ -41,7 +41,9 @@ object StripMetadata : VipsTransformer {
         source: VImage,
         transformation: Transformation,
         appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = true
+    ): Boolean =
+        source.fields
+            .any { shouldStrip(it, transformation.metadata) }
 
     private fun shouldStrip(
         field: String,

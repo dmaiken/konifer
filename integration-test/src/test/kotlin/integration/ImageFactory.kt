@@ -10,10 +10,10 @@ object ImageFactory {
 
     fun testImage(
         format: ImageFormat = ImageFormat.JPEG,
-        type: TestImageType = TestImageType.STANDARD,
+        type: TestImageType = TestImageType.JOSHUA_TREE,
     ): TestImage =
         when (type) {
-            TestImageType.STANDARD -> {
+            TestImageType.JOSHUA_TREE -> {
                 val bytes = javaClass.getResourceAsStream("$STANDARD_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,
@@ -60,6 +60,6 @@ data class TestImageAttributes(
 )
 
 enum class TestImageType {
-    STANDARD,
+    JOSHUA_TREE,
     LARGE,
 }

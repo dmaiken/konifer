@@ -9,6 +9,7 @@ import konifer.jooq.tables.AssetTag
 import konifer.jooq.tables.AssetTree
 import konifer.jooq.tables.AssetVariant
 import konifer.jooq.tables.Outbox
+import konifer.jooq.tables.PromptEmbedding
 
 import kotlin.collections.List
 
@@ -56,6 +57,11 @@ open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALO
      */
     val OUTBOX: Outbox get() = Outbox.OUTBOX
 
+    /**
+     * The table <code>public.prompt_embedding</code>.
+     */
+    val PROMPT_EMBEDDING: PromptEmbedding get() = PromptEmbedding.PROMPT_EMBEDDING
+
     override fun getCatalog(): Catalog = DefaultCatalog.DEFAULT_CATALOG
 
     override fun getTables(): List<Table<*>> = listOf(
@@ -63,6 +69,7 @@ open class Public : SchemaImpl(DSL.name("public"), DefaultCatalog.DEFAULT_CATALO
         AssetTag.ASSET_TAG,
         AssetTree.ASSET_TREE,
         AssetVariant.ASSET_VARIANT,
-        Outbox.OUTBOX
+        Outbox.OUTBOX,
+        PromptEmbedding.PROMPT_EMBEDDING
     )
 }

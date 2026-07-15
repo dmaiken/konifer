@@ -12,10 +12,17 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Duration
 
 abstract class BaseIntegrationTest {
     companion object {
+        private val koniferStartupTimeout: Duration = Duration.ofMinutes(5)
+        private val modelRootPath: Path = resolveModelRootPath()
+        private val modelPackPath: Path = modelRootPath.resolve(SIGLIP2_MODEL_DIR)
+        private val koniferImage: DockerImageName = DockerImageName.parse("ghcr.io/dmaiken/konifer:latest")
+
         val network: Network = Network.newNetwork()
 
         @Container
@@ -56,34 +63,119 @@ abstract class BaseIntegrationTest {
                     )
                 }.withStartupCheckStrategy(
                     OneShotStartupCheckStrategy().withTimeout(Duration.ofSeconds(15)),
-                ).withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
+                ).withLogConsumer(::logContainerFrame)
 
         @Container
         @JvmStatic
         val konifer: GenericContainer<*> =
             GenericContainer(
-                DockerImageName.parse("ghcr.io/dmaiken/konifer:latest"),
+                koniferImage,
             ).withNetwork(network)
                 .withExposedPorts(8080)
                 .withCopyFileToContainer(
                     MountableFile.forClasspathResource("konifer.conf"),
                     "/app/config/konifer.conf",
+                ).withCopyFileToContainer(
+                    MountableFile.forHostPath(modelPackPath),
+                    "/app/models/$SIGLIP2_MODEL_DIR",
                 ).withEnv("PG_PASSWORD", "konifer_password")
                 .withEnv("S3_SECRET_KEY", "minio_secret_key")
                 .dependsOn(postgres, minio)
-                .withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
-                .waitingFor(Wait.forHttp("/health").forStatusCode(200))
+                .withLogConsumer(::logContainerFrame)
+                .waitingFor(
+                    Wait
+                        .forHttp("/health")
+                        .forStatusCode(200)
+                        .withStartupTimeout(koniferStartupTimeout),
+                )
 
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            postgres.start()
+            postgres.startOrDumpLogs("postgres")
 
-            minio.start()
-            createBuckets.start()
+            minio.startOrDumpLogs("minio")
+            createBuckets.startOrDumpLogs("createBuckets")
 
-            konifer.start()
+            verifyModelMountVisibleToDocker()
+            konifer.startOrDumpLogs("konifer")
         }
+
+        private fun GenericContainer<*>.startOrDumpLogs(name: String) {
+            try {
+                start()
+            } catch (e: Exception) {
+                System.err.println()
+                System.err.println("===== $name container logs =====")
+                runCatching { logs }
+                    .onSuccess { System.err.print(it.ifBlank { "<no logs>\n" }) }
+                    .onFailure { System.err.println("<could not read logs: ${it.message}>") }
+                System.err.println("===== end $name container logs =====")
+                System.err.println()
+                throw e
+            }
+        }
+
+        private fun verifyModelMountVisibleToDocker() {
+            GenericContainer(koniferImage)
+                .withCopyFileToContainer(
+                    MountableFile.forHostPath(modelPackPath),
+                    "/app/models/$SIGLIP2_MODEL_DIR",
+                ).withCreateContainerCmdModifier { cmd ->
+                    cmd.withEntrypoint(
+                        "/bin/sh",
+                        "-c",
+                        """
+                        set -eu
+                        echo "Verifying SigLIP2 models inside Docker"
+                        pwd
+                        ls -lh /app/models/$SIGLIP2_MODEL_DIR
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/vision_model.onnx
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/text_model.onnx
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/tokenizer.json
+                        """.trimIndent(),
+                    )
+                }.withStartupCheckStrategy(
+                    OneShotStartupCheckStrategy().withTimeout(Duration.ofSeconds(30)),
+                ).withLogConsumer(::logContainerFrame)
+                .startOrDumpLogs("konifer-model-mount")
+        }
+
+        private fun logContainerFrame(frame: OutputFrame) {
+            System.err.print(frame.utf8String)
+        }
+
+        private fun resolveModelRootPath(): Path {
+            val requiredFiles =
+                listOf(
+                    "$SIGLIP2_MODEL_DIR/vision_model.onnx",
+                    "$SIGLIP2_MODEL_DIR/text_model.onnx",
+                    "$SIGLIP2_MODEL_DIR/tokenizer.json",
+                )
+            val candidates =
+                listOf(
+                    Path.of("models"),
+                    Path.of("..", "models"),
+                ).map {
+                    it
+                        .toAbsolutePath()
+                        .normalize()
+                }
+
+            return candidates
+                .firstOrNull { candidate ->
+                    requiredFiles.all { Files.isRegularFile(candidate.resolve(it)) }
+                }?.also { candidate ->
+                    // Write to STD error so it shows up in CI
+                    System.err.println("Copying SigLIP2 models from $candidate into Docker containers")
+                } ?: error(
+                "Could not find SigLIP2 model files. Checked: ${
+                    candidates.joinToString()
+                }. Current working directory: ${Path.of("").toAbsolutePath().normalize()}",
+            )
+        }
+
+        private const val SIGLIP2_MODEL_DIR = "siglip2-base-patch16-224"
     }
 
     protected val client =

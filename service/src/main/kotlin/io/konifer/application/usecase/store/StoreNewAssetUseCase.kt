@@ -1,28 +1,33 @@
 package io.konifer.application.usecase.store
 
-import io.konifer.application.service.VariantProcessorPipeline
+import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.asset.AssetRejectedException
 import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ObjectStoreKeyFactory
+import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.domain.variant.Variant
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.selects.select
 
 class StoreNewAssetUseCase(
     private val assetStreamContainerFactory: AssetContainerFactory,
     private val formatValidator: FormatValidator,
     private val requestContextFactory: RequestContextFactory,
-    private val variantProcessorPipeline: VariantProcessorPipeline,
+    private val originalVariantProcessorPipeline: OriginalVariantProcessorPipeline,
     private val objectStore: ObjectStore,
     private val assetRepository: AssetRepository,
     private val eventPublisher: EventPublisher,
@@ -66,21 +71,22 @@ class StoreNewAssetUseCase(
 
             container.use { container ->
                 val pipeline =
-                    variantProcessorPipeline.prepareForStorage(
+                    originalVariantProcessorPipeline.process(
                         scope = this, // Pass the current scope
                         container = container,
                         context = context,
                         format = format,
                     )
 
-                val objectStoreKey = ObjectStoreKeyFactory.newKey(pipeline.attributes.await().format)
+                val attributes = pipeline.awaitAttributesOrRejection()
+                val objectStoreKey = ObjectStoreKeyFactory.newKey(attributes.format)
                 val pendingPersisted =
                     newAsset
                         .markPending(
                             originalVariant =
                                 Variant.Pending.originalVariant(
                                     assetId = newAsset.id,
-                                    attributes = pipeline.attributes.await(),
+                                    attributes = attributes,
                                     objectStoreBucket = context.pathConfiguration.objectStore.bucket,
                                     objectStoreKey = objectStoreKey,
                                     lqip = pipeline.lqips.await() ?: LQIPs.NONE,
@@ -93,7 +99,10 @@ class StoreNewAssetUseCase(
                         key = objectStoreKey,
                         channel = pipeline.outputChannel,
                     )
-                pipeline.processDeferred.await()
+                when (val result = pipeline.processDeferred.await()) {
+                    ContentProcessorResult.Success -> Unit
+                    is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
+                }
 
                 logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
                 val readyAsset =
@@ -110,6 +119,19 @@ class StoreNewAssetUseCase(
                             originalVariant = readyAsset.variants.first(),
                         ),
                     )
+                }
+            }
+        }
+
+    private suspend fun ProcessingPipeline.awaitAttributesOrRejection(): Attributes =
+        select {
+            attributes.onAwait { attributes ->
+                attributes
+            }
+            processDeferred.onAwait { result ->
+                when (result) {
+                    ContentProcessorResult.Success -> attributes.await()
+                    is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
                 }
             }
         }

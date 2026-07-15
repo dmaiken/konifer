@@ -5,7 +5,7 @@ import io.konifer.ImageFactory
 import io.konifer.client.EntryId
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.infrastructure.vips.VipsImageProcessor
+import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
@@ -27,6 +27,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                         sourceFormat = any(),
                         transformationDataContainer = any(),
                         lqipImplementations = any(),
+                        arena = any(),
                     )
                 } throws RuntimeException("boom")
             }

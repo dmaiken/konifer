@@ -7,8 +7,15 @@ import io.ktor.server.config.HoconApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
+import io.ktor.server.testing.TestApplication
+import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.koin.core.module.Module
 import org.testcontainers.postgresql.PostgreSQLContainer
 
@@ -32,6 +39,24 @@ fun testInMemory(
         testBody = testBody,
     )
 }
+
+fun testInMemoryHandle(
+    configuration: String? = null,
+    modules: List<Module> = emptyList(),
+): KoniferTestHandle =
+    testKoniferApplicationHandle(
+        configuration = configuration,
+        modules = modules,
+        baseConfiguration =
+            """
+            object-store {
+                provider = in-memory
+            }
+            data-store {
+                provider = in-memory
+            }
+            """.trimIndent(),
+    )
 
 fun testPostgres(
     postgres: PostgreSQLContainer,
@@ -64,6 +89,32 @@ fun testPostgres(
     )
 }
 
+class KoniferTestHandle internal constructor(
+    private val application: TestApplication,
+) : AutoCloseable {
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = KoniferTestScope(application, coroutineScope)
+
+    fun start() {
+        runBlocking {
+            application.start()
+        }
+    }
+
+    fun test(testBody: suspend KoniferTestScope.() -> Unit) {
+        runBlocking(coroutineScope.coroutineContext) {
+            scope.testBody()
+        }
+    }
+
+    override fun close() {
+        runBlocking {
+            application.stop()
+        }
+        coroutineScope.cancel()
+    }
+}
+
 private fun testKoniferApplication(
     configuration: String? = null,
     modules: List<Module> = emptyList(),
@@ -71,50 +122,57 @@ private fun testKoniferApplication(
     testBody: suspend KoniferTestScope.() -> Unit,
 ) {
     testApplication {
-        routing {
-            get("/test-image") {
-                val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
-                call.respondBytes(image, ContentType.Application.OctetStream)
-            }
-        }
-        environment {
-            val inMemoryConfig =
-                ConfigFactory.parseString(
-                    """
-                    ktor {
-                        application {
-                            modules = []
-                        }
-                    }
-                    $baseConfiguration
-                    """.trimIndent(),
-                )
-            config =
-                HoconApplicationConfig(ConfigFactory.load())
-                    .mergeWith(HoconApplicationConfig(inMemoryConfig))
-                    .let { cfg ->
-                        configuration?.let {
-                            cfg.mergeWith(HoconApplicationConfig(ConfigFactory.parseString(it)))
-                        } ?: cfg
-                    }
-        }
-        application {
-            serviceModule(additionalModules = modules)
-        }
+        configureKoniferApplication(configuration, modules, baseConfiguration)
         coroutineScope {
             KoniferTestScope(this@testApplication, this).testBody()
         }
     }
 }
 
-private fun PostgreSQLContainer.installLtree() {
-    execInContainer(
-        "psql",
-        "-U",
-        username,
-        "-d",
-        databaseName,
-        "-c",
-        "CREATE EXTENSION IF NOT EXISTS ltree;",
+private fun testKoniferApplicationHandle(
+    configuration: String? = null,
+    modules: List<Module> = emptyList(),
+    baseConfiguration: String,
+): KoniferTestHandle =
+    KoniferTestHandle(
+        TestApplication {
+            configureKoniferApplication(configuration, modules, baseConfiguration)
+        },
     )
+
+private fun TestApplicationBuilder.configureKoniferApplication(
+    configuration: String?,
+    modules: List<Module>,
+    baseConfiguration: String,
+) {
+    routing {
+        get("/test-image") {
+            val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
+            call.respondBytes(image, ContentType.Application.OctetStream)
+        }
+    }
+    environment {
+        val inMemoryConfig =
+            ConfigFactory.parseString(
+                """
+                ktor {
+                    application {
+                        modules = []
+                    }
+                }
+                $baseConfiguration
+                """.trimIndent(),
+            )
+        config =
+            HoconApplicationConfig(ConfigFactory.load())
+                .mergeWith(HoconApplicationConfig(inMemoryConfig))
+                .let { cfg ->
+                    configuration?.let {
+                        cfg.mergeWith(HoconApplicationConfig(ConfigFactory.parseString(it)))
+                    } ?: cfg
+                }
+    }
+    application {
+        serviceModule(additionalModules = modules)
+    }
 }

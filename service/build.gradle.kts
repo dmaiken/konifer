@@ -131,6 +131,9 @@ dependencies {
 
     implementation(libs.blurhash)
 
+    implementation(libs.onnx.runtime)
+    implementation(libs.huggingface.tokenizers)
+
     // Dependencies needed by testFixtures
     testFixturesImplementation(project(":common"))
     testFixturesImplementation(libs.kotlin.test.junit)
@@ -145,6 +148,7 @@ dependencies {
     testFixturesImplementation(libs.testcontainers.localstack)
     testFixturesImplementation(libs.testcontainers.jupiter)
     testFixturesImplementation(libs.jooq)
+    testFixturesImplementation(libs.junit.params)
 
     "functionalTestImplementation"(testFixtures(project))
     "functionalTestImplementation"(project(":common"))

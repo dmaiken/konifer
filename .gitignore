@@ -42,3 +42,10 @@ out/
 
 # Performance testing
 /performance/*.html
+
+# Python
+/scripts/venv/
+
+# Local model artifacts
+/models/
+/*_model.onnx

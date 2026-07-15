@@ -96,7 +96,7 @@ class ColorFilterTest {
             }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `when filter is greyscale then multi-page image is converted to greyscale`(format: ImageFormat) {
             val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
@@ -224,7 +224,7 @@ class ColorFilterTest {
             }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `when filter is black white then multi-page image is converted to black and white`(format: ImageFormat) {
             val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 
@@ -312,7 +312,7 @@ class ColorFilterTest {
             }
 
         @ParameterizedTest
-        @MethodSource("io.konifer.domain.image.ImageTestSources#supportsPagedSource")
+        @MethodSource("io.konifer.ImageTestSources#supportsPagedSource")
         fun `when filter is sepia then multi-page image is converted to sepia`(format: ImageFormat) {
             val image = javaClass.getResourceAsStream("/images/kermit/kermit${format.extension}")!!.readAllBytes()
 

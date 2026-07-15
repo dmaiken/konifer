@@ -10,7 +10,6 @@ import io.konifer.infrastructure.datastore.postgres.metrics.PostgresVariantMetri
 import io.konifer.infrastructure.datastore.postgres.postgres
 import io.konifer.infrastructure.datastore.postgres.scheduling.ScheduledJobProperties
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduledJobs
-import io.konifer.infrastructure.getDataStoreProvider
 import io.konifer.infrastructure.path.extractRawHocon
 import io.ktor.server.application.Application
 import io.r2dbc.spi.ConnectionFactory
@@ -33,9 +32,8 @@ import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Application.assetRepositoryModule(): Module =
+fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Module =
     module {
-        val datastoreProvider = environment.config.getDataStoreProvider()
         when (datastoreProvider) {
             DataStoreProvider.IN_MEMORY -> {
                 single<InMemoryAssetRepository>() bind AssetRepository::class
@@ -46,10 +44,15 @@ fun Application.assetRepositoryModule(): Module =
                 migrateSchema(connectionFactory)
                 val dslContext = configureR2dbcJOOQ(connectionFactory)
 
+                val rawConfig = environment.config.extractRawHocon()
                 val scheduledJobProperties =
-                    Hocon.decodeFromConfig<ScheduledJobProperties>(
-                        environment.config.extractRawHocon().getConfig("postgres.scheduled-jobs"),
-                    )
+                    if (rawConfig.hasPath("postgres.scheduled-jobs")) {
+                        Hocon.decodeFromConfig<ScheduledJobProperties>(
+                            rawConfig.getConfig("postgres.scheduled-jobs"),
+                        )
+                    } else {
+                        ScheduledJobProperties()
+                    }
                 configureScheduledJobs(properties, dslContext, scheduledJobProperties)
                 single<PostgresAssetRepository>() bind AssetRepository::class
                 single<ConnectionFactory> { connectionFactory }

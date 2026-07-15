@@ -18,6 +18,9 @@ class TriePathConfigurationRepository(
         private const val WILDCARD_SEGMENT = "*"
         private const val GREEDY_WILDCARD_SEGMENT = "**"
         private const val DEFAULT_PATH = "/$GREEDY_WILDCARD_SEGMENT"
+        private const val GREEDY_WILDCARD_SPECIFICITY = "0"
+        private const val WILDCARD_SPECIFICITY = "1"
+        private const val EXACT_SPECIFICITY = "2"
     }
 
     private val root = initializeTrieWithDefault()
@@ -27,6 +30,7 @@ class TriePathConfigurationRepository(
         constructPathConfigurationTrie(rawConfig)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun fetch(path: String): PathConfiguration {
         val segments =
             path
@@ -35,7 +39,19 @@ class TriePathConfigurationRepository(
                 .split('/')
                 .filter { it.isNotBlank() }
 
-        return matchRecursive(root, segments).node.parsedConfig
+        val matches = matchRecursive(root, segments)
+        if (matches.isEmpty()) {
+            return PathConfiguration.default
+        }
+
+        val mergedRawConfig =
+            matches
+                .sortedWith(compareBy<MatchResult> { it.depth }.thenBy { it.specificity })
+                .fold(ConfigFactory.empty()) { merged, match ->
+                    match.node.rawConfig.withFallback(merged)
+                }
+
+        return Hocon.decodeFromConfig<PathConfiguration>(mergedRawConfig)
     }
 
     private fun initializeTrieWithDefault(): PathTrieNode =
@@ -118,55 +134,55 @@ class TriePathConfigurationRepository(
         node: PathTrieNode,
         segments: List<String>,
         depth: Int = 0,
-    ): MatchResult {
-        // Base case
+        specificity: String = "",
+    ): List<MatchResult> {
+        val candidates = mutableListOf<MatchResult>()
+        if (node === root && node.hasExplicitConfiguration) {
+            candidates += MatchResult(node, depth, specificity + GREEDY_WILDCARD_SPECIFICITY)
+        }
+
         if (segments.isEmpty()) {
             if (node.hasExplicitConfiguration) {
-                return MatchResult(node, depth)
+                return listOf(MatchResult(node, depth, specificity))
             }
 
-            val candidates = mutableListOf<MatchResult>()
-
             node.children[WILDCARD_SEGMENT]?.let { wildcard ->
-                candidates += matchRecursive(wildcard, emptyList(), depth + 1)
+                candidates += matchRecursive(wildcard, emptyList(), depth + 1, specificity + WILDCARD_SPECIFICITY)
             }
 
             node.children[GREEDY_WILDCARD_SEGMENT]?.let { greedy ->
-                candidates += matchRecursive(greedy, emptyList(), depth + 1)
+                candidates += matchRecursive(greedy, emptyList(), depth + 1, specificity + GREEDY_WILDCARD_SPECIFICITY)
             }
 
-            candidates.maxByOrNull { it.depth }?.let { return it }
-            return MatchResult(node, depth)
+            return candidates
         }
 
         val segment = segments.first()
         val remaining = segments.drop(1)
-        val candidates = mutableListOf<MatchResult>()
 
         node.children[segment]?.let { exact ->
-            candidates += matchRecursive(exact, remaining, depth + 1)
+            candidates += matchRecursive(exact, remaining, depth + 1, specificity + EXACT_SPECIFICITY)
         }
 
         node.children[WILDCARD_SEGMENT]?.let { wildcard ->
-            candidates += matchRecursive(wildcard, remaining, depth + 1)
+            candidates += matchRecursive(wildcard, remaining, depth + 1, specificity + WILDCARD_SPECIFICITY)
         }
 
         node.children[GREEDY_WILDCARD_SEGMENT]?.let { greedy ->
             // Allow ** to consume 0..N segments
             for (i in 0..segments.size) {
                 val tail = segments.drop(i)
-                val result = matchRecursive(greedy, tail, depth + 1)
-                candidates += result
+                candidates += matchRecursive(greedy, tail, depth + 1, specificity + GREEDY_WILDCARD_SPECIFICITY)
                 if (tail.isEmpty()) break // already matched all segments
             }
         }
 
-        // No match
-        return candidates.maxByOrNull { it.depth } ?: MatchResult(node, depth)
+        return candidates
     }
 
     private data class MatchResult(
         val node: PathTrieNode,
         val depth: Int,
+        val specificity: String,
     )
 }

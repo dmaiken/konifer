@@ -10,6 +10,7 @@ import konifer.jooq.tables.AssetTag
 import konifer.jooq.tables.AssetTree
 import konifer.jooq.tables.AssetVariant
 import konifer.jooq.tables.Outbox
+import konifer.jooq.tables.PromptEmbedding
 
 import org.jooq.Index
 import org.jooq.impl.DSL
@@ -35,3 +36,4 @@ val ASSET_VARIANT_EXPIRES_AT_IDX: Index = Internal.createIndex(DSL.name("asset_v
 val ASSET_VARIANT_NOT_UPLOADED: Index = Internal.createIndex(DSL.name("asset_variant_not_uploaded"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ID), false)
 val ASSET_VARIANT_TRANSFORMATION_UQ: Index = Internal.createIndex(DSL.name("asset_variant_transformation_uq"), AssetVariant.ASSET_VARIANT, arrayOf(AssetVariant.ASSET_VARIANT.ASSET_ID, AssetVariant.ASSET_VARIANT.TRANSFORMATION), true)
 val OUTBOX_EVENT_TYPE_IDX: Index = Internal.createIndex(DSL.name("outbox_event_type_idx"), Outbox.OUTBOX, arrayOf(Outbox.OUTBOX.EVENT_TYPE), false)
+val PROMPT_EMBEDDING_CACHE_UQ: Index = Internal.createIndex(DSL.name("prompt_embedding_cache_uq"), PromptEmbedding.PROMPT_EMBEDDING, arrayOf(PromptEmbedding.PROMPT_EMBEDDING.MODEL, PromptEmbedding.PROMPT_EMBEDDING.PROMPT_TEXT), true)

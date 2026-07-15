@@ -18,60 +18,20 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.test.runTest
-import org.apache.commons.io.file.PathUtils.deleteOnExit
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PrioritizedChannelVariantSchedulerTest {
+class PrioritizedChannelVariantGeneratorTest {
     val highPriorityChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
     val backgroundChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
 
     val scheduler: VariantGenerator =
-        PrioritizedChannelVariantScheduler(
+        PrioritizedChannelVariantGenerator(
             highPriorityChannel = highPriorityChannel,
             backgroundChannel = backgroundChannel,
         )
-
-    @Test
-    fun `preprocessing original variants schedules job on high-priority channel`() =
-        runTest {
-            val sourceFormat = ImageFormat.JPEG
-            val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformation =
-                Transformation(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.JPEG,
-                    colorSpace = ColorSpace.SRGB,
-                )
-            val source =
-                TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension).apply {
-                    deleteOnExit(this)
-                }
-            val transformationDataContainer =
-                TransformationDataContainer(
-                    transformation = transformation,
-                )
-            val deferred =
-                scheduler.preProcessOriginalVariant(
-                    sourceFormat = sourceFormat,
-                    lqipImplementations = lqipImplementations,
-                    transformationDataContainer = transformationDataContainer,
-                    source = source,
-                )
-
-            val sent = highPriorityChannel.receiveCatching().getOrNull()
-            sent shouldNotBe null
-            with(sent!! as PreProcessJob) {
-                this.sourceFormat shouldBe sourceFormat
-                this.lqipImplementations shouldBe lqipImplementations
-                this.source shouldBe source
-                this.deferredResult shouldBe deferred
-            }
-            deferred.cancel()
-        }
 
     @Test
     fun `eager variants are scheduled on background channel`() =

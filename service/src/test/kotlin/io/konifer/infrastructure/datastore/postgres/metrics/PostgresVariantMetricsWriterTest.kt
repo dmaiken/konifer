@@ -8,7 +8,7 @@ import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantId
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
-import io.konifer.infrastructure.datastore.postgres.scheduling.SchedulerTest
+import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
@@ -30,7 +30,7 @@ import java.time.ZoneOffset.UTC
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
-class PostgresVariantMetricsWriterTest : SchedulerTest() {
+class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val signal = ChannelVariantMetricsDrainSignal()
     private val metricsRepository = InMemoryVariantMetricsRepository(drainSignal = signal)
