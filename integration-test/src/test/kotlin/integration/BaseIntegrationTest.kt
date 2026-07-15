@@ -21,6 +21,7 @@ abstract class BaseIntegrationTest {
     companion object {
         private val koniferStartupTimeout: Duration = Duration.ofMinutes(5)
         private val modelMountPath: Path = resolveModelMountPath()
+        private val koniferImage: DockerImageName = DockerImageName.parse("ghcr.io/dmaiken/konifer:latest")
 
         val network: Network = Network.newNetwork()
 
@@ -62,13 +63,13 @@ abstract class BaseIntegrationTest {
                     )
                 }.withStartupCheckStrategy(
                     OneShotStartupCheckStrategy().withTimeout(Duration.ofSeconds(15)),
-                ).withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
+                ).withLogConsumer(::logContainerFrame)
 
         @Container
         @JvmStatic
         val konifer: GenericContainer<*> =
             GenericContainer(
-                DockerImageName.parse("ghcr.io/dmaiken/konifer:latest"),
+                koniferImage,
             ).withNetwork(network)
                 .withExposedPorts(8080)
                 .withCopyFileToContainer(
@@ -81,7 +82,7 @@ abstract class BaseIntegrationTest {
                 ).withEnv("PG_PASSWORD", "konifer_password")
                 .withEnv("S3_SECRET_KEY", "minio_secret_key")
                 .dependsOn(postgres, minio)
-                .withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
+                .withLogConsumer(::logContainerFrame)
                 .waitingFor(
                     Wait
                         .forHttp("/health")
@@ -97,6 +98,7 @@ abstract class BaseIntegrationTest {
             minio.startOrDumpLogs("minio")
             createBuckets.startOrDumpLogs("createBuckets")
 
+            verifyModelMountVisibleToDocker()
             konifer.startOrDumpLogs("konifer")
         }
 
@@ -113,6 +115,36 @@ abstract class BaseIntegrationTest {
                 System.err.println()
                 throw e
             }
+        }
+
+        private fun verifyModelMountVisibleToDocker() {
+            GenericContainer(koniferImage)
+                .withFileSystemBind(
+                    modelMountPath.toString(),
+                    "/app/models",
+                    BindMode.READ_ONLY,
+                ).withCreateContainerCmdModifier { cmd ->
+                    cmd.withEntrypoint(
+                        "/bin/sh",
+                        "-c",
+                        """
+                        set -eu
+                        echo "Verifying SigLIP2 model mount inside Docker"
+                        pwd
+                        ls -lh /app/models/siglip2-base-patch16-224
+                        test -r /app/models/siglip2-base-patch16-224/vision_model.onnx
+                        test -r /app/models/siglip2-base-patch16-224/text_model.onnx
+                        test -r /app/models/siglip2-base-patch16-224/tokenizer.json
+                        """.trimIndent(),
+                    )
+                }.withStartupCheckStrategy(
+                    OneShotStartupCheckStrategy().withTimeout(Duration.ofSeconds(30)),
+                ).withLogConsumer(::logContainerFrame)
+                .startOrDumpLogs("konifer-model-mount")
+        }
+
+        private fun logContainerFrame(frame: OutputFrame) {
+            System.err.print(frame.utf8String)
         }
 
         private fun resolveModelMountPath(): Path {
