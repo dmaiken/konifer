@@ -221,6 +221,13 @@ jobs:
         if: steps.siglip2-cache.outputs.cache-hit != 'true'
         run: bash scripts/download-siglip2-models.sh --revision "$SIGLIP2_MODEL_REVISION"
 
+      - name: Verify SigLIP2 Models
+        run: |
+          test -s models/siglip2-base-patch16-224/vision_model.onnx
+          test -s models/siglip2-base-patch16-224/text_model.onnx
+          test -s models/siglip2-base-patch16-224/tokenizer.json
+          du -sh models/siglip2-base-patch16-224
+
       - name: Download Image Artifact
         uses: actions/download-artifact@v8
         with:

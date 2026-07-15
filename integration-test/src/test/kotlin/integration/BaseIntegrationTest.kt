@@ -18,6 +18,8 @@ import java.time.Duration
 
 abstract class BaseIntegrationTest {
     companion object {
+        private val koniferStartupTimeout: Duration = Duration.ofMinutes(5)
+
         val network: Network = Network.newNetwork()
 
         @Container
@@ -82,7 +84,12 @@ abstract class BaseIntegrationTest {
                 .withEnv("S3_SECRET_KEY", "minio_secret_key")
                 .dependsOn(postgres, minio)
                 .withLogConsumer { frame: OutputFrame -> print(frame.utf8String) }
-                .waitingFor(Wait.forHttp("/health").forStatusCode(200))
+                .waitingFor(
+                    Wait
+                        .forHttp("/health")
+                        .forStatusCode(200)
+                        .withStartupTimeout(koniferStartupTimeout),
+                )
 
         @JvmStatic
         @BeforeAll
