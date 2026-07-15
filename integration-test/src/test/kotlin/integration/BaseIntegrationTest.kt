@@ -3,7 +3,6 @@ package integration
 import io.konifer.client.KoniferClient
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
-import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.OutputFrame
@@ -20,7 +19,8 @@ import java.time.Duration
 abstract class BaseIntegrationTest {
     companion object {
         private val koniferStartupTimeout: Duration = Duration.ofMinutes(5)
-        private val modelMountPath: Path = resolveModelMountPath()
+        private val modelRootPath: Path = resolveModelRootPath()
+        private val modelPackPath: Path = modelRootPath.resolve(SIGLIP2_MODEL_DIR)
         private val koniferImage: DockerImageName = DockerImageName.parse("ghcr.io/dmaiken/konifer:latest")
 
         val network: Network = Network.newNetwork()
@@ -75,10 +75,9 @@ abstract class BaseIntegrationTest {
                 .withCopyFileToContainer(
                     MountableFile.forClasspathResource("konifer.conf"),
                     "/app/config/konifer.conf",
-                ).withFileSystemBind(
-                    modelMountPath.toString(),
-                    "/app/models",
-                    BindMode.READ_ONLY,
+                ).withCopyFileToContainer(
+                    MountableFile.forHostPath(modelPackPath),
+                    "/app/models/$SIGLIP2_MODEL_DIR",
                 ).withEnv("PG_PASSWORD", "konifer_password")
                 .withEnv("S3_SECRET_KEY", "minio_secret_key")
                 .dependsOn(postgres, minio)
@@ -119,22 +118,21 @@ abstract class BaseIntegrationTest {
 
         private fun verifyModelMountVisibleToDocker() {
             GenericContainer(koniferImage)
-                .withFileSystemBind(
-                    modelMountPath.toString(),
-                    "/app/models",
-                    BindMode.READ_ONLY,
+                .withCopyFileToContainer(
+                    MountableFile.forHostPath(modelPackPath),
+                    "/app/models/$SIGLIP2_MODEL_DIR",
                 ).withCreateContainerCmdModifier { cmd ->
                     cmd.withEntrypoint(
                         "/bin/sh",
                         "-c",
                         """
                         set -eu
-                        echo "Verifying SigLIP2 model mount inside Docker"
+                        echo "Verifying SigLIP2 models inside Docker"
                         pwd
-                        ls -lh /app/models/siglip2-base-patch16-224
-                        test -r /app/models/siglip2-base-patch16-224/vision_model.onnx
-                        test -r /app/models/siglip2-base-patch16-224/text_model.onnx
-                        test -r /app/models/siglip2-base-patch16-224/tokenizer.json
+                        ls -lh /app/models/$SIGLIP2_MODEL_DIR
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/vision_model.onnx
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/text_model.onnx
+                        test -r /app/models/$SIGLIP2_MODEL_DIR/tokenizer.json
                         """.trimIndent(),
                     )
                 }.withStartupCheckStrategy(
@@ -147,12 +145,12 @@ abstract class BaseIntegrationTest {
             System.err.print(frame.utf8String)
         }
 
-        private fun resolveModelMountPath(): Path {
+        private fun resolveModelRootPath(): Path {
             val requiredFiles =
                 listOf(
-                    "siglip2-base-patch16-224/vision_model.onnx",
-                    "siglip2-base-patch16-224/text_model.onnx",
-                    "siglip2-base-patch16-224/tokenizer.json",
+                    "$SIGLIP2_MODEL_DIR/vision_model.onnx",
+                    "$SIGLIP2_MODEL_DIR/text_model.onnx",
+                    "$SIGLIP2_MODEL_DIR/tokenizer.json",
                 )
             val candidates =
                 listOf(
@@ -168,13 +166,16 @@ abstract class BaseIntegrationTest {
                 .firstOrNull { candidate ->
                     requiredFiles.all { Files.isRegularFile(candidate.resolve(it)) }
                 }?.also { candidate ->
-                    System.err.println("Mounting SigLIP2 models from $candidate")
+                    // Write to STD error so it shows up in CI
+                    System.err.println("Copying SigLIP2 models from $candidate into Docker containers")
                 } ?: error(
                 "Could not find SigLIP2 model files. Checked: ${
                     candidates.joinToString()
                 }. Current working directory: ${Path.of("").toAbsolutePath().normalize()}",
             )
         }
+
+        private const val SIGLIP2_MODEL_DIR = "siglip2-base-patch16-224"
     }
 
     protected val client =
