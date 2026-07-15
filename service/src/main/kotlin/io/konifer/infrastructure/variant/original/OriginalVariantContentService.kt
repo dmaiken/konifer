@@ -44,18 +44,7 @@ class OriginalVariantContentService(
         source: Path,
     ): ContentProcessorResult =
         withContext(Dispatchers.IO) {
-            val rulesToEvaluate =
-                when (uploadRuleset.default) {
-                    DefaultRuleAction.ACCEPT -> uploadRuleset.rejectRules
-                    DefaultRuleAction.REJECT -> uploadRuleset.acceptRules
-                }
-
-            val definitionsByRule =
-                mutableMapOf<UploadRule, RuleDefinition>().also { map ->
-                    rulesToEvaluate.associateWithTo(map) { ruleDefinitionRepository.value.fetch(it.rule) }
-                }
-
-            var decision = uploadRuleset.default.toDecision()
+            var decision = uploadRuleset.default.toDecision(uploadRuleset.labelRules)
             var preprocessOutput: PreprocessOutput? = null
             Vips.run { arena ->
                 val source =
@@ -70,7 +59,6 @@ class OriginalVariantContentService(
                     canProcess(
                         arena = arena,
                         source = source.copy(),
-                        definitionsByRule = definitionsByRule,
                         uploadRuleset = uploadRuleset,
                     )
 
@@ -107,10 +95,15 @@ class OriginalVariantContentService(
     private fun canProcess(
         arena: Arena,
         source: VImage,
-        definitionsByRule: Map<UploadRule, RuleDefinition>,
         uploadRuleset: UploadRuleset,
     ): RuleDecision {
-        if (definitionsByRule.isEmpty()) return uploadRuleset.default.toDecision()
+        val acceptanceRulesToEvaluate =
+            when (uploadRuleset.default) {
+                DefaultRuleAction.ACCEPT -> uploadRuleset.rejectRules
+                DefaultRuleAction.REJECT -> uploadRuleset.acceptRules
+            }
+        if (acceptanceRulesToEvaluate.isEmpty()) return uploadRuleset.default.toDecision(uploadRuleset.labelRules)
+        val rulesToEvaluate = acceptanceRulesToEvaluate + uploadRuleset.labelRules
 
         val imageTensor =
             vipsTensorProcessor.process(
@@ -119,6 +112,10 @@ class OriginalVariantContentService(
                 transformation = Siglip2TensorTransformation,
             )
 
+        val definitionsByRule =
+            mutableMapOf<UploadRule, RuleDefinition>().also { map ->
+                rulesToEvaluate.associateWithTo(map) { ruleDefinitionRepository.value.fetch(it.rule) }
+            }
         val result =
             ruleEvaluator.value.evaluate(
                 ruleDefinitions = definitionsByRule.values.toList(),
@@ -127,9 +124,9 @@ class OriginalVariantContentService(
 
         // Iterator through rules and determine match
         return RuleDecisionEngine.makeDecision(
-            default = uploadRuleset.default,
-            definitionsByRule = definitionsByRule,
+            uploadRuleset = uploadRuleset,
             evaluationResult = result,
+            definitionsByRule = definitionsByRule,
         )
     }
 

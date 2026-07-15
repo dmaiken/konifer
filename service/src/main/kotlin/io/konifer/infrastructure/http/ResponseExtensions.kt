@@ -35,10 +35,10 @@ fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
 fun AssetResponse.Factory.fromAsset(asset: Asset): AssetResponse =
     AssetResponse(
         `class` = AssetClass.IMAGE,
-        alt = asset.alt,
+        alt = asset.alt?.value,
         entryId = checkNotNull(asset.entryId),
-        labels = asset.labels,
-        tags = asset.tags,
+        labels = asset.labels.asMap(),
+        tags = asset.tags.asSet(),
         source = asset.source,
         sourceUrl = asset.sourceUrl,
         variants = asset.variants.map { VariantResponse.fromVariant(it) },

@@ -16,9 +16,9 @@ sealed interface Asset {
     val id: AssetId
     val path: String
     val entryId: Long?
-    val alt: String?
-    val labels: Map<String, String>
-    val tags: Set<String>
+    val alt: AssetAlt?
+    val labels: AssetLabels
+    val tags: AssetTags
     val source: AssetSource
     val sourceUrl: String?
     val createdAt: LocalDateTime
@@ -33,9 +33,9 @@ sealed interface Asset {
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
-        override val alt: String?,
-        override val labels: Map<String, String>,
-        override val tags: Set<String>,
+        override val alt: AssetAlt?,
+        override val labels: AssetLabels,
+        override val tags: AssetTags,
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
@@ -44,25 +44,6 @@ sealed interface Asset {
         override val variants: MutableList<Variant>,
     ) : Asset {
         companion object {
-            /**
-             * Looks like some assistive devices truncate alts after 125 characters
-             */
-            private const val MAX_ALT_LENGTH: Int = 125
-
-            /**
-             * Inspired from AWS limit
-             */
-            private const val MAX_LABEL_KEY_LENGTH: Int = 128
-
-            /**
-             * Inspired from AWS limit
-             */
-            private const val MAX_LABEL_VALUE_LENGTH: Int = 256
-
-            /**
-             * Inspired from AWS limit
-             */
-            private const val MAX_LABELS: Int = 50
 
             private const val MAX_TAG_VALUE_LENGTH: Int = 256
 
@@ -75,9 +56,9 @@ sealed interface Asset {
                     id = AssetId(),
                     path = path,
                     entryId = null,
-                    alt = request.alt,
-                    labels = request.labels,
-                    tags = request.tags,
+                    alt = request.alt?.toAssetAlt(),
+                    labels = request.labels.toAssetLabels(),
+                    tags = request.tags.toAssetTags(),
                     source =
                         request.url?.let {
                             AssetSource.URL
@@ -94,18 +75,6 @@ sealed interface Asset {
         init {
             check(entryId == null)
             check(variants.isEmpty())
-            if (alt != null && alt.length > MAX_ALT_LENGTH) {
-                throw IllegalArgumentException("Alt exceeds max length of $MAX_ALT_LENGTH")
-            }
-            if (labels.any { it.key.length > MAX_LABEL_KEY_LENGTH || it.value.length > MAX_LABEL_VALUE_LENGTH }) {
-                throw IllegalArgumentException("Labels exceed max length of ($MAX_LABEL_KEY_LENGTH, $MAX_LABEL_VALUE_LENGTH)")
-            }
-            if (labels.size > MAX_LABELS) {
-                throw IllegalArgumentException("Cannot have more than $MAX_LABELS labels")
-            }
-            if (tags.any { it.length > MAX_TAG_VALUE_LENGTH }) {
-                throw IllegalArgumentException("Tags exceed max length of $MAX_TAG_VALUE_LENGTH")
-            }
         }
 
         fun markPending(originalVariant: Variant): Pending {
@@ -122,9 +91,9 @@ sealed interface Asset {
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
-        override val alt: String?,
-        override val labels: Map<String, String>,
-        override val tags: Set<String>,
+        override val alt: AssetAlt?,
+        override val labels: AssetLabels,
+        override val tags: AssetTags,
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
@@ -163,9 +132,9 @@ sealed interface Asset {
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
-        override val alt: String?,
-        override val labels: Map<String, String>,
-        override val tags: Set<String>,
+        override val alt: AssetAlt?,
+        override val labels: AssetLabels,
+        override val tags: AssetTags,
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
@@ -191,9 +160,9 @@ sealed interface Asset {
         override val id: AssetId,
         override val path: String,
         override val entryId: Long?,
-        override val alt: String?,
-        override val labels: Map<String, String>,
-        override val tags: Set<String>,
+        override val alt: AssetAlt?,
+        override val labels: AssetLabels,
+        override val tags: AssetTags,
         override val source: AssetSource,
         override val sourceUrl: String?,
         override val createdAt: LocalDateTime,
@@ -232,9 +201,9 @@ sealed interface Asset {
                     id = assetData.id,
                     path = assetData.path,
                     entryId = assetData.entryId,
-                    alt = assetData.alt,
-                    labels = assetData.labels,
-                    tags = assetData.tags,
+                    alt = assetData.alt?.toAssetAlt(),
+                    labels = assetData.labels.toAssetLabels(),
+                    tags = assetData.tags.toAssetTags(),
                     source = assetData.source,
                     sourceUrl = assetData.sourceUrl,
                     createdAt = assetData.createdAt,
@@ -261,9 +230,9 @@ sealed interface Asset {
                 id = id,
                 path = path,
                 entryId = entryId,
-                alt = alt,
-                labels = labels,
-                tags = tags,
+                alt = alt?.toAssetAlt(),
+                labels = labels.toAssetLabels(),
+                tags = tags.toAssetTags(),
                 source = source,
                 sourceUrl = sourceUrl,
                 createdAt = createdAt,

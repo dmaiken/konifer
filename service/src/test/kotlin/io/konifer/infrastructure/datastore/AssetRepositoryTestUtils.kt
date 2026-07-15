@@ -98,9 +98,9 @@ fun assertFetchedAgainstAggregate(
 ) {
     fetched shouldNotBe null
     fetched!!.id shouldBe asset.id
-    fetched.tags shouldBe asset.tags
-    fetched.labels shouldBe asset.labels
-    fetched.alt shouldBe asset.alt
+    fetched.tags shouldBe asset.tags.asSet()
+    fetched.labels shouldBe asset.labels.asMap()
+    fetched.alt shouldBe asset.alt?.value
     fetched.path shouldBe asset.path
     fetched.entryId shouldBe asset.entryId
     fetched.source shouldBe asset.source

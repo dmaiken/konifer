@@ -1,5 +1,6 @@
 package io.konifer.domain.rules.upload
 
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.RuleViolationResponse
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.UploadRulesetPropertyKeys
@@ -14,7 +15,8 @@ data class UploadRuleset(
     val acceptRules: List<UploadRule> = emptyList(),
     @SerialName(UploadRulesetPropertyKeys.REJECT_RULES)
     val rejectRules: List<UploadRule> = emptyList(),
-    // Label rules later
+    @SerialName(UploadRulesetPropertyKeys.LABEL_RULES)
+    val labelRules: List<UploadRule> = emptyList(),
 ) {
     companion object Factory {
         val default = UploadRuleset()
@@ -39,4 +41,6 @@ data class UploadRule(
     val rule: RuleName,
     @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.VIOLATION_RESPONSE)
     val violationResponse: RuleViolationResponse? = null,
+    @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.LABELS)
+    val labels: AssetLabels = AssetLabels.default,
 )

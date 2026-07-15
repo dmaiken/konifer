@@ -1,51 +1,57 @@
 package io.konifer.infrastructure.rules
 
+import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.merge
 import io.konifer.domain.rules.RuleDecision
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleViolationResponse
 import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
+import io.konifer.domain.rules.upload.UploadRuleset
 import kotlin.collections.iterator
 
 object RuleDecisionEngine {
-    /**
-     * Decisions the [evaluationResult] based on the [default] and [definitionsByRule].
-     *
-     * If [default] is [DefaultRuleAction.ACCEPT], then the [evaluationResult] must have a match to reject.
-     * If [default] is [DefaultRuleAction.REJECT], then the [evaluationResult] must have a match to accept.
-     */
+
     fun makeDecision(
-        default: DefaultRuleAction,
+        uploadRuleset: UploadRuleset,
         definitionsByRule: Map<UploadRule, RuleDefinition>,
         evaluationResult: RulesetEvaluationResult,
     ): RuleDecision {
         val evaluationResultsByDefinition = evaluationResult.results.associateBy { it.ruleDefinition }
 
-        val matchedRules = mutableListOf<RuleViolationResponse?>()
-        for ((rule, ruleDefinition) in definitionsByRule) {
-            val result =
-                evaluationResultsByDefinition[ruleDefinition]
-                    ?: throw IllegalStateException("Missing evaluation result for: ${rule.rule}")
+        val matchedAcceptanceRules = mutableListOf<RuleViolationResponse?>()
+        val matchedLabelRules = mutableListOf<AssetLabels>()
+        definitionsByRule
+            .forEach { (rule, ruleDefinition) ->
+                val result =
+                    evaluationResultsByDefinition[ruleDefinition]
+                        ?: throw IllegalStateException("Missing evaluation result for: ${rule.rule}")
 
-            if (result.matched) {
-                matchedRules.add(rule.violationResponse)
+                if (result.matched) {
+                    when (rule) {
+                        in uploadRuleset.acceptRules -> matchedAcceptanceRules.add(rule.violationResponse)
+                        in uploadRuleset.rejectRules -> matchedAcceptanceRules.add(rule.violationResponse)
+                        in uploadRuleset.labelRules -> matchedLabelRules.add(rule.labels)
+                    }
+                }
             }
-        }
 
-        return when (default) {
+        return when (uploadRuleset.default) {
             DefaultRuleAction.ACCEPT -> {
                 // Matched means we reject
                 RuleDecision(
-                    accept = matchedRules.isEmpty(),
-                    violationResponses = matchedRules.filterNotNull(),
+                    accept = matchedAcceptanceRules.isEmpty(),
+                    violationResponses = matchedAcceptanceRules.filterNotNull(),
+                    labels = matchedLabelRules.merge(),
                 )
             }
             DefaultRuleAction.REJECT -> {
                 // Matched means we accept
                 RuleDecision(
-                    accept = matchedRules.isNotEmpty(),
+                    accept = matchedAcceptanceRules.isNotEmpty(),
                     violationResponses = emptyList(),
+                    labels = matchedLabelRules.merge(),
                 )
             }
         }

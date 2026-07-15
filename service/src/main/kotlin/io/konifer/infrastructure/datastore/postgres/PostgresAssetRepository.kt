@@ -5,6 +5,10 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetTags
+import io.konifer.domain.asset.toAssetLabels
+import io.konifer.domain.asset.toAssetTags
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
@@ -61,7 +65,7 @@ class PostgresAssetRepository(
                     .insertInto(ASSET_TREE)
                     .set(ASSET_TREE.ID, assetId)
                     .set(ASSET_TREE.PATH, treePath)
-                    .set(ASSET_TREE.ALT, asset.alt)
+                    .set(ASSET_TREE.ALT, asset.alt?.value)
                     .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
                     .set(ASSET_TREE.MODIFIED_AT, now)
@@ -183,8 +187,8 @@ class PostgresAssetRepository(
             } else {
                 fetched.asset.toPendingPersisted(
                     variant = fetched.variants.first(),
-                    labels = fetched.labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
-                    tags = fetched.tags.mapNotNull { it.tagValue }.toSet(),
+                    labels = fetched.labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) }.toAssetLabels(),
+                    tags = fetched.tags.mapNotNull { it.tagValue }.toSet().toAssetTags(),
                 )
             }
         }
@@ -345,12 +349,12 @@ class PostgresAssetRepository(
         val assetId = fetched.id
         var modified = false
         dslContext.transactionCoroutine { trx ->
-            if (fetched.alt != asset.alt) {
+            if (fetched.alt != asset.alt?.value) {
                 modified = true
                 trx
                     .dsl()
                     .update(ASSET_TREE)
-                    .set(ASSET_TREE.ALT, asset.alt)
+                    .set(ASSET_TREE.ALT, asset.alt?.value)
                     .where(ASSET_TREE.ID.eq(assetId.value))
                     .awaitFirst()
             }
@@ -534,7 +538,7 @@ class PostgresAssetRepository(
     private suspend fun insertLabels(
         context: DSLContext,
         assetId: UUID,
-        labels: Map<String, String>,
+        labels: AssetLabels,
         dateTime: LocalDateTime = LocalDateTime.now(UTC),
     ): List<AssetLabelRecord> {
         val updated = mutableListOf<AssetLabelRecord>()
@@ -548,7 +552,7 @@ class PostgresAssetRepository(
                     ASSET_LABEL.LABEL_VALUE,
                     ASSET_LABEL.CREATED_AT,
                 )
-            labels.forEach { (key, value) ->
+            labels.asMap().forEach { (key, value) ->
                 step.values(UuidCreator.getTimeOrderedEpoch(), assetId, key, value, dateTime)
             }
             step.returning().asFlow().toList(updated)
@@ -559,7 +563,7 @@ class PostgresAssetRepository(
     private suspend fun insertTags(
         context: DSLContext,
         assetId: UUID,
-        tags: Set<String>,
+        tags: AssetTags,
         dateTime: LocalDateTime = LocalDateTime.now(UTC),
     ) {
         val updated = mutableListOf<AssetTagRecord>()
@@ -572,7 +576,7 @@ class PostgresAssetRepository(
                     ASSET_TAG.TAG_VALUE,
                     ASSET_TAG.CREATED_AT,
                 )
-            tags.forEach { value ->
+            tags.asSet().forEach { value ->
                 step.values(UuidCreator.getTimeOrderedEpoch(), assetId, value, dateTime)
             }
             step.returning().asFlow().toList(updated)

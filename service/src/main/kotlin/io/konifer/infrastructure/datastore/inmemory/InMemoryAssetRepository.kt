@@ -192,7 +192,7 @@ class InMemoryAssetRepository : AssetRepository {
         logger.info("Deleting assets (recursively) at path: $inMemoryPath with labels: $labels")
         store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
             val assetAndVariants = store[path] ?: emptyList()
-            val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
+            val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             assetsToDelete.map { it.id }.forEach {
                 idReference.remove(it)
             }
@@ -258,7 +258,7 @@ class InMemoryAssetRepository : AssetRepository {
                 }
             }.filter { asset ->
                 if (labels.isNotEmpty()) {
-                    labels.all { asset.labels[it.key] == it.value }
+                    labels.all { asset.labels.asMap()[it.key] == it.value }
                 } else {
                     true
                 }
@@ -287,7 +287,7 @@ class InMemoryAssetRepository : AssetRepository {
                 } else {
                     true
                 }
-            }?.filter { labels.all { entry -> it.labels[entry.key] == entry.value } }
+            }?.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             ?.map { asset ->
                 val variants =
                     if (transformation == null) {
