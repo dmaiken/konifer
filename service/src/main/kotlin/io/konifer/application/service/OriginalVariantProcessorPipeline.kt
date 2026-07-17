@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.StoreRequestContext
 import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.OriginalVariantContentProcessor
@@ -18,7 +19,6 @@ import io.konifer.infrastructure.teeStream
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
-import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
 import kotlinx.coroutines.CompletableDeferred
@@ -36,8 +36,6 @@ class OriginalVariantProcessorPipeline(
     private val transformationNormalizer: TransformationNormalizer,
     private val originalVariantContentProcessor: OriginalVariantContentProcessor,
 ) {
-    private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-
     suspend fun process(
         scope: CoroutineScope,
         container: AssetDataContainer,
@@ -156,7 +154,7 @@ class OriginalVariantProcessorPipeline(
                         firstChannel = objectStoreChannel,
                         secondChannel = null,
                     )
-                    ContentProcessorResult.Success
+                    ContentProcessorResult.Success(labels = AssetLabels.empty)
                 }.onFailure { e ->
                     objectStoreChannel.close(e)
                 }.getOrThrow()
@@ -193,7 +191,7 @@ class OriginalVariantProcessorPipeline(
                 val destinationFormat =
                     context.pathConfiguration.transform.preProcessing.image.format
                         ?: sourceFormat
-                // Even if this image is paged, just need to load one frame to get height/width
+                // Even if this image is paged, just need to load one frame to get height/ width,
                 // So don't specify "n" as an option
                 val image =
                     VImage.newFromFile(

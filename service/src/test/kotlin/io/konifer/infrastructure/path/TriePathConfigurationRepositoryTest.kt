@@ -562,6 +562,15 @@ class TriePathConfigurationRepositoryTest {
                   accept-rules = [
                     { rule = kermit-the-frog }
                   ]
+                  label-rules = [
+                    { 
+                      rule = kermit-the-frog 
+                      labels = {
+                        "character" = "kermit"
+                        "source" = "ruleset"
+                      }
+                    }
+                  ]
                 }
               }
               "/kermit-accept/with-preprocessing/**" {
@@ -588,6 +597,10 @@ class TriePathConfigurationRepositoryTest {
         pathConfiguration.uploadRuleset.acceptRules
             .single()
             .rule shouldBe RuleName("kermit-the-frog")
+        with(pathConfiguration.uploadRuleset.labelRules.single()) {
+            rule shouldBe RuleName("kermit-the-frog")
+            labels.asMap() shouldBe mapOf("character" to "kermit", "source" to "ruleset")
+        }
         pathConfiguration.transform.preProcessing.enabled shouldBe true
         pathConfiguration.transform.preProcessing.image.width shouldBe 200
     }

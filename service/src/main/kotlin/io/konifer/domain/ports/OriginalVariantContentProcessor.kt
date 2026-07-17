@@ -1,6 +1,7 @@
 package io.konifer.domain.ports
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.rules.RuleViolationResponse
 import io.konifer.domain.rules.upload.UploadRuleset
@@ -18,7 +19,9 @@ interface OriginalVariantContentProcessor {
 }
 
 sealed interface ContentProcessorResult {
-    object Success : ContentProcessorResult
+    class Success(
+        val labels: AssetLabels,
+    ) : ContentProcessorResult
 
     class Rejected(
         val violationResponses: List<RuleViolationResponse>,

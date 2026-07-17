@@ -120,6 +120,48 @@ class UploadRulesTest : BaseFunctionalTest() {
                       default = accept
                     }
                   }
+                  "/joshua-tree-label/**" {
+                    upload-ruleset {
+                      default = accept
+                      label-rules = [
+                        { 
+                          rule = joshua-tree
+                          labels = {
+                            "tree" = "joshua tree"
+                            "climate" = "desert"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                  "/joshua-tree-label/with-preprocessing/**" {
+                    transform {
+                      preprocessing {
+                        enabled = true
+                        image {
+                          r = 180
+                          w = 200
+                        }
+                      }
+                    }
+                  }
+                  "/joshua-tree-label-default-accept-with-accept-rules/**" {
+                    upload-ruleset {
+                      default = accept
+                      label-rules = [
+                        { 
+                          rule = joshua-tree
+                          labels = {
+                            "tree" = "joshua tree"
+                            "climate" = "desert"
+                          }
+                        }
+                      ]
+                      accept-rules = [
+                        { rule = joshua-tree-strict }
+                      ]
+                    }
+                  }
                 }
                 """.trimIndent(),
             )
@@ -271,5 +313,84 @@ class UploadRulesTest : BaseFunctionalTest() {
                     format = joshuaTreeAttributes.format,
                     request = StoreAssetRequest(),
                 ).shouldBeSuccessful()
+        }
+
+    @Test
+    fun `label rules apply labels when rule is matched`() =
+        handle.test {
+            val (joshuaTreeImage, joshuaTreeAttributes) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE)
+            val response =
+                konifer()
+                    .storeAsset(
+                        path = "joshua-tree-label/joshua-tree",
+                        bytes = joshuaTreeImage,
+                        format = joshuaTreeAttributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+
+            response.body.labels shouldBe mapOf("tree" to "joshua tree", "climate" to "desert")
+        }
+
+    @Test
+    fun `label rules apply labels when rule is matched during preprocessing`() =
+        handle.test {
+            val (joshuaTreeImage, joshuaTreeAttributes) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE)
+            val response =
+                konifer()
+                    .storeAsset(
+                        path = "joshua-tree-label/with-preprocessing/joshua-tree",
+                        bytes = joshuaTreeImage,
+                        format = joshuaTreeAttributes.format,
+                        request = StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+
+            response.body.labels shouldBe mapOf("tree" to "joshua tree", "climate" to "desert")
+            response.body.variants
+                .first()
+                .attributes.width shouldBe 200
+        }
+
+    @Test
+    fun `label rules are merged with request labels when rule is matched`() =
+        handle.test {
+            val (joshuaTreeImage, joshuaTreeAttributes) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE)
+            val response =
+                konifer()
+                    .storeAsset(
+                        path = "joshua-tree-label/joshua-tree-with-request-labels",
+                        bytes = joshuaTreeImage,
+                        format = joshuaTreeAttributes.format,
+                        request =
+                            StoreAssetRequest(
+                                labels =
+                                    mapOf(
+                                        "tree" to "generic tree",
+                                        "source" to "request",
+                                    ),
+                            ),
+                    ).shouldBeSuccessful()
+
+            response.body.labels shouldBe
+                mapOf(
+                    "tree" to "joshua tree",
+                    "climate" to "desert",
+                    "source" to "request",
+                )
+        }
+
+    @Test
+    fun `if only rules align with default then labels are not applied if rule not matched`() =
+        handle.test {
+            val (kermitImage, kermitAttributes) = ImageFactory.testImage(type = TestImageType.KERMIT, format = ImageFormat.WEBP)
+            val response =
+                konifer()
+                    .storeAsset(
+                        path = "joshua-tree-label-default-accept-with-accept-rules",
+                        bytes = kermitImage,
+                        format = kermitAttributes.format,
+                        request =
+                            StoreAssetRequest(),
+                    ).shouldBeSuccessful()
+            response.body.labels shouldBe emptyMap()
         }
 }

@@ -57,8 +57,8 @@ abstract class AssetRepositoryTest {
                 pendingPersisted.apply {
                     path shouldBe "/users/123"
                     entryId shouldBe 0
-                    labels shouldContainExactly pending.labels
-                    tags shouldContainExactly pending.tags
+                    labels.asMap() shouldContainExactly pending.labels.asMap()
+                    tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
                     sourceUrl shouldBe pending.sourceUrl
                     createdAt shouldBe modifiedAt
@@ -90,8 +90,8 @@ abstract class AssetRepositoryTest {
                 persisted.apply {
                     path shouldBe pending.path
                     entryId shouldBe 0
-                    labels shouldContainExactly pending.labels
-                    tags shouldContainExactly pending.tags
+                    labels.asMap() shouldContainExactly pending.labels.asMap()
+                    tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
                     sourceUrl shouldBe null
                     createdAt shouldBe modifiedAt
@@ -628,8 +628,8 @@ abstract class AssetRepositoryTest {
                 val ready1 =
                     persisted1.markReady(LocalDateTime.now(UTC)).update(
                         alt = "I'm updated!!",
-                        tags = persisted1.tags,
-                        labels = persisted1.labels,
+                        tags = persisted1.tags.asSet(),
+                        labels = persisted1.labels.asMap(),
                     )
                 val updated1 = repository.update(ready1)
                 repository
@@ -724,8 +724,8 @@ abstract class AssetRepositoryTest {
                 val ready1 =
                     persisted1.markReady(LocalDateTime.now(UTC)).update(
                         alt = "I'm updated!!",
-                        tags = persisted1.tags,
-                        labels = persisted1.labels,
+                        tags = persisted1.tags.asSet(),
+                        labels = persisted1.labels.asMap(),
                     )
                 repository.update(ready1)
 
@@ -1969,8 +1969,8 @@ abstract class AssetRepositoryTest {
                 actual.variants.first().id shouldBe updated.variants.first().id
                 actual.apply {
                     alt shouldBe updated.alt
-                    labels shouldContainExactly updated.labels
-                    tags shouldContainExactly updated.tags
+                    labels.asMap() shouldContainExactly updated.labels.asMap()
+                    tags.asSet() shouldContainExactly updated.tags.asSet()
                     modifiedAt shouldBeAfter ready.modifiedAt
                     modifiedAt.truncatedTo(ChronoUnit.MILLIS) shouldBe updated.modifiedAt.truncatedTo(ChronoUnit.MILLIS)
                 }

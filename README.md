@@ -9,9 +9,11 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
-Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
+Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style
+capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
 
-It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads, or asset information from a single HTTP API. The core idea is simple: Konifer's URLs can follow your domain model.
+It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads,
+or asset information from a single HTTP API. The core idea is straightforward: Konifer's URLs can follow your domain model.
 
 ```http
 POST /assets/users/123/profile-picture
@@ -19,7 +21,8 @@ GET  /assets/users/123/profile-picture/-/content?w=256&format=webp
 GET  /assets/users/123/profile-picture/-/info
 ```
 
-Instead of storing `imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a` in your user service, you can address the image where it naturally belongs: `/assets/users/123/profile-picture`.
+Instead of storing `imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a` in your user service, you can address the image
+where it naturally belongs: `/assets/users/123/profile-picture`.
 
 ## Try It
 
@@ -44,20 +47,26 @@ curl --request GET \
   --url 'http://localhost:8080/assets/my-images/-/content?w=800&format=webp'
 ```
 
-The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus S3-compatible or filesystem storage.
+The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus
+S3-compatible or filesystem storage.
 
 ## Why Konifer Exists
 
-Most hosted image platforms solve the hard parts of image delivery, but they also tend to introduce a new source of truth. Your application uploads a file, receives an opaque identifier, stores that identifier somewhere, then uses it later to ask the image service what to do.
+Most hosted image platforms solve the hard parts of image delivery, but they also tend to introduce a new source of
+truth. Your application uploads a file, receives an opaque identifier, stores that identifier somewhere, then uses it
+later to ask the image service what to do.
 
-Konifer is built around a zero-state integration model. Your application does not need to persist Konifer-specific IDs just to render an image later. If your product already knows the user, post, organization, tenant, or document that owns an image, that knowledge is enough to construct the image URL.
+Konifer is built around a zero-state integration model. Your application does not need to persist Konifer-specific IDs
+just to render an image later. If your product already knows the user, post, organization, tenant, or document that owns
+an image, that knowledge is enough to construct the image URL.
 
 ```http
 POST /assets/organizations/acme/users/123/avatar
 GET  /assets/organizations/acme/users/123/avatar/-/content
 ```
 
-Multiple images can still live at the same path. Each stored image receives an `entryId` that is unique within that path, so the path can represent the domain concept while `entryId` can represent a specific version or historical item.
+Multiple images can still live on the same path. Each stored image receives an `entryId` that is unique within that
+path, so the path can represent the domain concept while `entryId` can represent a specific version or historical item.
 
 ```http
 GET /assets/organizations/acme/users/123/avatar/-/entry/4/content
@@ -74,7 +83,8 @@ Konifer is intended for developers and platform teams who want:
 - Control over when variants are generated, where they are stored, and how they are returned.
 - CDN-friendly behavior, including redirects, cache headers, ETags, and signed URLs.
 
-It is especially useful for products where images already belong to clear domain resources: user avatars, organization logos, marketplace listings, CMS images, documents, galleries, generated media, and user-uploaded content.
+It is especially useful for products where images already belong to clear domain resources: user avatars, organization
+logos, marketplace listings, CMS images, documents, galleries, generated media, and user-uploaded content.
 
 ## What Konifer Does
 
@@ -94,7 +104,8 @@ Supported formats include JPEG, PNG, WebP, AVIF, JPEG XL, HEIC, and GIF, with su
 
 ## The Path Model
 
-Konifer paths are intentionally application-defined. The API does not care whether your hierarchy is user-based, tenant-based, CMS-based, or something else.
+Konifer paths are intentionally application-defined. The API does not care whether your hierarchy is user-based,
+tenant-based, CMS-based, or something else.
 
 ```http
 POST /assets/users/123/profile-picture
@@ -103,7 +114,8 @@ POST /assets/blog/42/posts/5/hero
 POST /assets/products/sku-123/gallery
 ```
 
-Query selectors live after the `/-/` separator. They let you choose the response shape, ordering, limit, or exact entry without making those controls part of your domain path.
+Query selectors live after the `/-/` separator. They let you choose the response shape, ordering, limit, or exact entry
+without making those controls part of your domain path.
 
 ```http
 GET /assets/users/123/profile-picture/-/link
@@ -118,7 +130,8 @@ By default, Konifer returns a `link` response for the newest image at a path.
 
 ## Transformations And Variants
 
-A variant is a transformed version of the original image. Konifer can resize, crop, rotate, flip, blur, pad, change formats, adjust quality, strip metadata, and manage color space.
+A variant is a transformed version of the original image. Konifer can resize, crop, rotate, flip, blur, pad, change
+formats, adjust quality, strip metadata, and manage color space.
 
 On-demand variants are generated when requested, stored, and reused on later requests:
 
@@ -142,11 +155,13 @@ variant-profiles {
 GET /assets/users/123/profile-picture/-/content?profile=thumbnail
 ```
 
-Profiles can also be used for eager variants, where Konifer starts background generation after upload. If an eager variant is not ready when requested, it can still be generated on demand.
+Profiles can also be used for eager variants, where Konifer starts background generation after upload. If an eager
+variant is not ready when requested, it can still be generated on demand.
 
 ## Path Configuration
 
-Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in `konifer.conf` and apply them with wildcard matching and inheritance.
+Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in
+`konifer.conf` and apply them with wildcard matching and inheritance.
 
 ```hocon
 variant-profiles {
@@ -181,7 +196,9 @@ paths {
 }
 ```
 
-This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and generated media can share the same service while using different buckets, validation rules, preprocessing, cache behavior, redirect strategies, and eager variants.
+This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and
+generated media can share the same service while using different buckets, validation rules, dynamic labeling,
+preprocessing, cache behavior, redirect strategies, and eager variants.
 
 ## Storage And Architecture
 
@@ -190,9 +207,13 @@ Konifer uses a dual-store architecture:
 - Object storage holds image bytes and generated variants.
 - PostgreSQL stores asset information, metadata, path hierarchy, labels, tags, and variant records.
 
-Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or in-memory storage for development. PostgreSQL is the production data store and uses the `ltree` extension for hierarchical path queries.
+Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or
+in-memory storage for development. PostgreSQL is the production data store and uses the `ltree` extension for
+hierarchical path queries.
 
-The server is built with Kotlin and Ktor, and image processing is powered by libvips. Konifer avoids buffering entire assets in application memory where possible, uses temporary files during processing, and runs variant generation through bounded workers so expensive transformations do not overwhelm the service.
+The server is built with Kotlin and Ktor, and image processing is powered by libvips. Konifer avoids buffering entire
+assets in application memory where possible, uses temporary files during processing, and runs variant generation through
+bounded workers so expensive transformations do not overwhelm the service.
 
 ## Documentation
 
@@ -210,7 +231,8 @@ Useful starting points:
 
 ## Running With Docker Compose
 
-The included Compose file runs Konifer with PostgreSQL and MinIO. It expects a `konifer.conf` file at the repository root.
+The included Compose file runs Konifer with PostgreSQL and MinIO. It expects a `konifer.conf` file at the repository
+root.
 
 If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
 
@@ -233,34 +255,40 @@ Then start the stack:
 docker compose up
 ```
 
-The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the `konifer-assets` MinIO bucket.
+The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the
+`konifer-assets` MinIO bucket.
 
 ## Acknowledgments
 
 A huge thank-you to these amazing open-source projects:
 
-- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for high-performance image processing.
-- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the libvips API.
+- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for
+  high-performance image processing.
+- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the
+  libvips API.
 - **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
 - **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
 - **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Development
 
-For normal use, run Konifer in Docker. Local development requires libvips to be installed in a way that matches the container environment as closely as possible.
+For normal use, run Konifer in Docker. Local development requires libvips to be installed in a way that matches the
+container environment as closely as possible.
 
 ```bash
 chmod +x ./scripts/install-vips.sh
 ./scripts/install-vips.sh --with-deps
 ```
 
-Some service tests and upload content rules use SigLIP2 ONNX models. Download the local model pack once before running those tests:
+Some service tests and upload content rules use SigLIP2 ONNX models. Download the local model pack once before running
+those tests:
 
 ```bash
 ./scripts/download-siglip2-models.sh
 ```
 
-This creates `models/siglip2-base-patch16-224` at the repository root. The directory is ignored by Git and reused by local Gradle runs.
+This creates `models/siglip2-base-patch16-224` at the repository root. The directory is ignored by Git and reused by
+local Gradle runs.
 
 Common Gradle tasks:
 
@@ -280,7 +308,8 @@ If you change the database schema or update JOOQ, run:
 ./gradlew generateJooq
 ```
 
-The generator starts a PostgreSQL testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes generated code into the `jooq-generated` module.
+The generator starts a PostgreSQL testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes
+generated code into the `jooq-generated` module.
 
 ## macOS Notes
 

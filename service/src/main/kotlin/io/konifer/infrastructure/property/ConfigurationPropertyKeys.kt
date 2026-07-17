@@ -154,10 +154,12 @@ object ConfigurationPropertyKeys {
             const val DEFAULT = "default"
             const val ACCEPT_RULES = "accept-rules"
             const val REJECT_RULES = "reject-rules"
+            const val LABEL_RULES = "label-rules"
 
             object RulePropertyKeys {
                 const val RULE = "rule"
                 const val VIOLATION_RESPONSE = "violation-response"
+                const val LABELS = "labels"
             }
         }
     }
