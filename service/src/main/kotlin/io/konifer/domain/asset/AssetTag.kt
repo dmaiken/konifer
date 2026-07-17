@@ -8,10 +8,12 @@ private const val MAX_TAG_VALUE_LENGTH: Int = 256
 const val MAX_TAGS: Int = 50
 
 @JvmInline
-value class AssetTag(val value: String) {
+value class AssetTag(
+    val value: String,
+) {
     init {
         require(value.isNotBlank()) { "Asset tag cannot be blank" }
-        require(value.length <= MAX_TAG_VALUE_LENGTH) { "Tags exceeds max length of $MAX_TAG_VALUE_LENGTH characters"  }
+        require(value.length <= MAX_TAG_VALUE_LENGTH) { "Tags exceeds max length of $MAX_TAG_VALUE_LENGTH characters" }
     }
 }
 
@@ -22,8 +24,7 @@ class AssetTags private constructor(
         require(values.size <= MAX_TAGS) { "Cannot have more than $MAX_TAGS tags" }
     }
 
-    fun asSet(): Set<String> =
-        values.map { it.value }.toSet()
+    fun asSet(): Set<String> = values.map { it.value }.toSet()
 
     fun isNotEmpty(): Boolean = values.isNotEmpty()
 

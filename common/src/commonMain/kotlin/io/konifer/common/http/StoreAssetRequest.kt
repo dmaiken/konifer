@@ -8,5 +8,4 @@ data class StoreAssetRequest(
     val url: String? = null,
     val labels: Map<String, String> = emptyMap(),
     val tags: Set<String> = emptySet(),
-) {
-}
+)

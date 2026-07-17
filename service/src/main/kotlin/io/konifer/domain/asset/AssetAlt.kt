@@ -6,7 +6,9 @@ package io.konifer.domain.asset
 private const val MAX_ALT_LENGTH: Int = 125
 
 @JvmInline
-value class AssetAlt(val value: String) {
+value class AssetAlt(
+    val value: String,
+) {
     init {
         require(value.length <= MAX_ALT_LENGTH) { "Asset alt cannot exceed $MAX_ALT_LENGTH characters" }
     }

@@ -3,6 +3,7 @@ package io.konifer.infrastructure.variant
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.TransformationDataContainer
@@ -252,6 +253,7 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         sourceFormat = ImageFormat.PNG,
                         uploadRuleset = uploadRuleset,
                     )
+                val processorResult = ContentProcessorResult.Success(labels = AssetLabels.empty)
                 coEvery {
                     originalVariantContentService.process(
                         uploadRuleset = uploadRuleset,
@@ -260,10 +262,10 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         sourceFormat = originalContentJob.sourceFormat,
                         source = originalContentJob.source,
                     )
-                } returns ContentProcessorResult.Success
+                } returns processorResult
                 channel.send(originalContentJob)
 
-                result.await() shouldBe ContentProcessorResult.Success
+                result.await() shouldBe processorResult
             }
 
         @Test

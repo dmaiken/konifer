@@ -9,10 +9,8 @@ import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
 import io.konifer.domain.rules.upload.UploadRuleset
-import kotlin.collections.iterator
 
 object RuleDecisionEngine {
-
     fun makeDecision(
         uploadRuleset: UploadRuleset,
         definitionsByRule: Map<UploadRule, RuleDefinition>,

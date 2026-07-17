@@ -24,7 +24,9 @@ private const val MAX_LABEL_VALUE_LENGTH: Int = 256
 private const val MAX_LABELS: Int = 50
 
 @JvmInline
-value class LabelKey(val key: String) {
+value class LabelKey(
+    val key: String,
+) {
     init {
         require(key.isNotBlank()) { "Label key cannot be blank" }
         require(key.length <= MAX_LABEL_KEY_LENGTH) { "Label key cannot exceed $MAX_LABEL_KEY_LENGTH characters" }
@@ -32,7 +34,9 @@ value class LabelKey(val key: String) {
 }
 
 @JvmInline
-value class LabelValue(val value: String) {
+value class LabelValue(
+    val value: String,
+) {
     init {
         require(value.isNotBlank()) { "Label value cannot be blank" }
         require(value.length <= MAX_LABEL_VALUE_LENGTH) { "Label value cannot exceed $MAX_LABEL_VALUE_LENGTH characters" }
@@ -47,18 +51,13 @@ class AssetLabels private constructor(
         require(values.size <= MAX_LABELS) { "Cannot have more than $MAX_LABELS labels" }
     }
 
-    fun asMap(): Map<String, String> =
-        values.mapKeys { it.key.key }
-            .mapValues { it.value.value }
-
-    fun isNotEmpty(): Boolean = values.isNotEmpty()
-
     companion object Factory {
-        val default = AssetLabels(emptyMap())
+        val empty = AssetLabels(emptyMap())
 
         fun from(labels: Map<String, String>): AssetLabels =
             AssetLabels(
-                labels.mapKeys { LabelKey(it.key) }
+                labels
+                    .mapKeys { LabelKey(it.key) }
                     .mapValues { LabelValue(it.value) },
             )
     }
@@ -70,8 +69,7 @@ class AssetLabels private constructor(
         override val descriptor: SerialDescriptor =
             delegate.descriptor
 
-        override fun deserialize(decoder: Decoder): AssetLabels =
-            from(delegate.deserialize(decoder))
+        override fun deserialize(decoder: Decoder): AssetLabels = from(delegate.deserialize(decoder))
 
         override fun serialize(
             encoder: Encoder,
@@ -80,6 +78,15 @@ class AssetLabels private constructor(
             delegate.serialize(encoder, value.asMap())
         }
     }
+
+    fun asMap(): Map<String, String> =
+        values
+            .mapKeys { it.key.key }
+            .mapValues { it.value.value }
+
+    fun isNotEmpty(): Boolean = values.isNotEmpty()
+
+    fun merge(other: AssetLabels): AssetLabels = AssetLabels(values + other.values)
 }
 
 fun Map<String, String>.toAssetLabels() = AssetLabels.from(this)

@@ -6,6 +6,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
@@ -63,6 +64,7 @@ fun createPendingAsset(
                         lqip = lqips,
                         assetId = it.id,
                     ),
+                additionalLabels = AssetLabels.empty,
             )
         }
 

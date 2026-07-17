@@ -44,7 +44,7 @@ class OriginalVariantContentService(
         source: Path,
     ): ContentProcessorResult =
         withContext(Dispatchers.IO) {
-            var decision = uploadRuleset.default.toDecision(uploadRuleset.labelRules)
+            var decision = uploadRuleset.default.toDecision()
             var preprocessOutput: PreprocessOutput? = null
             Vips.run { arena ->
                 val source =
@@ -60,6 +60,7 @@ class OriginalVariantContentService(
                         arena = arena,
                         source = source.copy(),
                         uploadRuleset = uploadRuleset,
+                        currentDecision = decision,
                     )
 
                 // If rules allow, preprocess variant
@@ -89,21 +90,21 @@ class OriginalVariantContentService(
                         .readChannel()
                         .copyAndClose(transformationDataContainer.output)
             }
-            ContentProcessorResult.Success
+            ContentProcessorResult.Success(
+                labels = decision.labels,
+            )
         }
 
     private fun canProcess(
         arena: Arena,
         source: VImage,
         uploadRuleset: UploadRuleset,
+        currentDecision: RuleDecision,
     ): RuleDecision {
-        val acceptanceRulesToEvaluate =
-            when (uploadRuleset.default) {
-                DefaultRuleAction.ACCEPT -> uploadRuleset.rejectRules
-                DefaultRuleAction.REJECT -> uploadRuleset.acceptRules
-            }
-        if (acceptanceRulesToEvaluate.isEmpty()) return uploadRuleset.default.toDecision(uploadRuleset.labelRules)
-        val rulesToEvaluate = acceptanceRulesToEvaluate + uploadRuleset.labelRules
+        val rulesToEvaluate =
+            determineRulesToEvaluate(uploadRuleset)
+                .takeIf { it.isNotEmpty() }
+                ?: return currentDecision
 
         val imageTensor =
             vipsTensorProcessor.process(
@@ -143,4 +144,10 @@ class OriginalVariantContentService(
             )
         return VImage.newFromFile(arena, source.toFile().absolutePath, *decoderOptions)
     }
+
+    private fun determineRulesToEvaluate(uploadRuleset: UploadRuleset): List<UploadRule> =
+        when (uploadRuleset.default) {
+            DefaultRuleAction.ACCEPT -> uploadRuleset.rejectRules
+            DefaultRuleAction.REJECT -> uploadRuleset.acceptRules
+        } + uploadRuleset.labelRules
 }

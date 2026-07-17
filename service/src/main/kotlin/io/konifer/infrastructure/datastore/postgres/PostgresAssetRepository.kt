@@ -188,7 +188,11 @@ class PostgresAssetRepository(
                 fetched.asset.toPendingPersisted(
                     variant = fetched.variants.first(),
                     labels = fetched.labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) }.toAssetLabels(),
-                    tags = fetched.tags.mapNotNull { it.tagValue }.toSet().toAssetTags(),
+                    tags =
+                        fetched.tags
+                            .mapNotNull { it.tagValue }
+                            .toSet()
+                            .toAssetTags(),
                 )
             }
         }

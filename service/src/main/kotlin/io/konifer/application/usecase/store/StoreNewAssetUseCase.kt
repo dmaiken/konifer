@@ -4,6 +4,7 @@ import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetRejectedException
 import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
@@ -20,6 +21,7 @@ import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.domain.variant.Variant
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.selects.select
 
@@ -80,6 +82,14 @@ class StoreNewAssetUseCase(
 
                 val attributes = pipeline.awaitAttributesOrRejection()
                 val objectStoreKey = ObjectStoreKeyFactory.newKey(attributes.format)
+                val uploadedAtDeferred =
+                    async {
+                        objectStore.persist(
+                            bucket = context.pathConfiguration.objectStore.bucket,
+                            key = objectStoreKey,
+                            channel = pipeline.outputChannel,
+                        )
+                    }
                 val pendingPersisted =
                     newAsset
                         .markPending(
@@ -91,16 +101,12 @@ class StoreNewAssetUseCase(
                                     objectStoreKey = objectStoreKey,
                                     lqip = pipeline.lqips.await() ?: LQIPs.NONE,
                                 ),
+                            additionalLabels = pipeline.awaitLabelsOrRejection(),
                         ).let { assetRepository.storeNew(it) }
 
-                val uploadedAt =
-                    objectStore.persist(
-                        bucket = context.pathConfiguration.objectStore.bucket,
-                        key = objectStoreKey,
-                        channel = pipeline.outputChannel,
-                    )
+                val uploadedAt = uploadedAtDeferred.await()
                 when (val result = pipeline.processDeferred.await()) {
-                    ContentProcessorResult.Success -> Unit
+                    is ContentProcessorResult.Success -> Unit
                     is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
                 }
 
@@ -130,9 +136,15 @@ class StoreNewAssetUseCase(
             }
             processDeferred.onAwait { result ->
                 when (result) {
-                    ContentProcessorResult.Success -> attributes.await()
+                    is ContentProcessorResult.Success -> attributes.await()
                     is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
                 }
             }
+        }
+
+    private suspend fun ProcessingPipeline.awaitLabelsOrRejection(): AssetLabels =
+        when (val result = processDeferred.await()) {
+            is ContentProcessorResult.Success -> result.labels
+            is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
         }
 }

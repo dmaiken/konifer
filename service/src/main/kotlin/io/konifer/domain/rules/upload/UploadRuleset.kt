@@ -30,8 +30,8 @@ data class UploadRuleset(
 
     fun requiresEvaluationBeyondDefault(): Boolean =
         when (default) {
-            DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty()
-            DefaultRuleAction.REJECT -> acceptRules.isNotEmpty()
+            DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty() || labelRules.isNotEmpty()
+            DefaultRuleAction.REJECT -> acceptRules.isNotEmpty() || labelRules.isNotEmpty()
         }
 }
 
@@ -42,5 +42,5 @@ data class UploadRule(
     @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.VIOLATION_RESPONSE)
     val violationResponse: RuleViolationResponse? = null,
     @SerialName(UploadRulesetPropertyKeys.RulePropertyKeys.LABELS)
-    val labels: AssetLabels = AssetLabels.default,
+    val labels: AssetLabels = AssetLabels.empty,
 )

@@ -44,9 +44,6 @@ sealed interface Asset {
         override val variants: MutableList<Variant>,
     ) : Asset {
         companion object {
-
-            private const val MAX_TAG_VALUE_LENGTH: Int = 256
-
             fun fromHttpRequest(
                 path: String,
                 request: StoreAssetRequest,
@@ -77,12 +74,16 @@ sealed interface Asset {
             check(variants.isEmpty())
         }
 
-        fun markPending(originalVariant: Variant): Pending {
+        fun markPending(
+            originalVariant: Variant,
+            additionalLabels: AssetLabels,
+        ): Pending {
             check(originalVariant is Variant.Pending) { "Variant must be in a pending state" }
 
             return Pending.fromNew(
                 new = this,
                 originalVariant = originalVariant,
+                additionalLabels = additionalLabels,
             )
         }
     }
@@ -105,13 +106,14 @@ sealed interface Asset {
             fun fromNew(
                 new: New,
                 originalVariant: Variant,
+                additionalLabels: AssetLabels = AssetLabels.empty,
             ): Pending =
                 Pending(
                     id = new.id,
                     path = new.path.removeSuffix("/"),
                     entryId = null,
                     alt = new.alt,
-                    labels = new.labels,
+                    labels = new.labels.merge(additionalLabels),
                     tags = new.tags,
                     source = new.source,
                     sourceUrl = new.sourceUrl,

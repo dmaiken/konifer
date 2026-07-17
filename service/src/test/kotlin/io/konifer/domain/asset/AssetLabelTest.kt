@@ -73,8 +73,8 @@ class AssetLabelTest {
 
     @Test
     fun `default asset labels has empty map and is empty`() {
-        AssetLabels.default.asMap().shouldBeEmpty()
-        AssetLabels.default.isNotEmpty() shouldBe false
+        AssetLabels.empty.asMap().shouldBeEmpty()
+        AssetLabels.empty.isNotEmpty() shouldBe false
     }
 
     @Test
@@ -119,5 +119,25 @@ class AssetLabelTest {
         val labels = mapOf("color" to "blue")
 
         labels.toAssetLabels().asMap() shouldContainExactly labels
+    }
+
+    @Test
+    fun `can merge asset label into another`() {
+        val labels = AssetLabels.from(mapOf("color" to "blue"))
+        val otherLabels = AssetLabels.from(mapOf("source" to "camera"))
+
+        labels.merge(otherLabels).asMap() shouldContainExactly
+            mapOf(
+                "color" to "blue",
+                "source" to "camera",
+            )
+    }
+
+    @Test
+    fun `can merge asset label into another with merging labels taking priority`() {
+        val labels = AssetLabels.from(mapOf("color" to "blue"))
+        val otherLabels = AssetLabels.from(mapOf("color" to "red"))
+
+        labels.merge(otherLabels).asMap() shouldContainExactly mapOf("color" to "red")
     }
 }
