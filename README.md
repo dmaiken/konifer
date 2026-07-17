@@ -242,7 +242,14 @@ If your configuration uses upload content rules, download the SigLIP2 model pack
 
 Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
 
-Build the local image first:
+Build the local base image, which contains Temurin JDK 25 and libvips:
+
+```bash
+docker build -f Dockerfile.base -t konifer-base:latest .
+```
+
+Rebuild the base image whenever `Dockerfile.base` or the libvips installation scripts change. Then build the Konifer
+application image:
 
 ```bash
 ./gradlew :service:shadowJar
@@ -319,10 +326,10 @@ If the libvips installer fails with `Compiler cc cannot compile programs`, insta
 xcode-select --install
 ```
 
-If Gradle or Docker image builds fail because Java cannot be found, install GraalVM and set `JAVA_HOME`:
+If Gradle or Docker image builds fail because Java cannot be found, install Temurin and set `JAVA_HOME`:
 
 ```bash
-brew install --cask graalvm-jdk@25
+brew install --cask temurin@25
 export JAVA_HOME=$(/usr/libexec/java_home)
 ```
 

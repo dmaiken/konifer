@@ -25,20 +25,15 @@ repositories {
     mavenCentral()
 }
 
-java {
-    sourceSets {
-        val functionalTest by creating {
-            kotlin.srcDir("src/functionalTest/kotlin")
-            resources.srcDir("src/functionalTest/resources")
-        }
-
-        getByName("testFixtures") {
-            resources.srcDir("src/testFixtures/resources")
-        }
+val functionalTestSourceSet =
+    sourceSets.create("functionalTest") {
+        kotlin.srcDir("src/functionalTest/kotlin")
+        resources.srcDir("src/functionalTest/resources")
     }
-}
 
-val functionalTestImplementation: Configuration by configurations
+sourceSets.named("testFixtures") {
+    resources.srcDir("src/testFixtures/resources")
+}
 
 configurations {
     // Make functionalTest see main + test + testFixtures
@@ -150,7 +145,7 @@ dependencies {
     testFixturesImplementation(libs.jooq)
     testFixturesImplementation(libs.junit.params)
 
-    "functionalTestImplementation"(testFixtures(project))
+    "functionalTestImplementation"(testFixtures(project(":service")))
     "functionalTestImplementation"(project(":common"))
     "functionalTestImplementation"(project(":client"))
 }
@@ -187,8 +182,8 @@ tasks.register<Test>("functionalTest") {
     description = "Runs functional tests"
     group = "verification"
 
-    testClassesDirs = sourceSets["functionalTest"].output.classesDirs
-    classpath = sourceSets["functionalTest"].runtimeClasspath
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
     shouldRunAfter(tasks.test)
 }
 
