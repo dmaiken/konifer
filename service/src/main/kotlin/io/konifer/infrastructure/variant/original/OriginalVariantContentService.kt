@@ -9,6 +9,7 @@ import io.konifer.domain.ports.RuleDefinitionRepository
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.rules.RuleDecision
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.domain.rules.toDecision
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
@@ -45,6 +46,7 @@ class OriginalVariantContentService(
     ): ContentProcessorResult =
         withContext(Dispatchers.IO) {
             var decision = uploadRuleset.default.toDecision()
+            var evaluationResult = RulesetEvaluationResult.none
             var preprocessOutput: PreprocessOutput? = null
             Vips.run { arena ->
                 val source =
@@ -55,13 +57,15 @@ class OriginalVariantContentService(
                         source = source,
                     )
 
-                decision =
-                    canProcess(
-                        arena = arena,
-                        source = source.copy(),
-                        uploadRuleset = uploadRuleset,
-                        currentDecision = decision,
-                    )
+                canProcess(
+                    arena = arena,
+                    source = source.copy(),
+                    uploadRuleset = uploadRuleset,
+                    currentDecision = decision,
+                ).also {
+                    evaluationResult = it.first
+                    decision = it.second
+                }
 
                 // If rules allow, preprocess variant
                 if (decision.accept) {
@@ -80,7 +84,10 @@ class OriginalVariantContentService(
             if (!decision.accept) {
                 logger.info("Asset is rejected due to rule violation")
                 transformationDataContainer.output.close()
-                return@withContext ContentProcessorResult.Rejected(decision.violationResponses)
+                return@withContext ContentProcessorResult.Rejected(
+                    rulesetEvaluationResult = RulesetEvaluationResult.none,
+                    violationResponses = decision.violationResponses,
+                )
             }
             when (checkNotNull(preprocessOutput)) {
                 PreprocessOutput.SourceTransformed -> Unit
@@ -92,6 +99,7 @@ class OriginalVariantContentService(
             }
             ContentProcessorResult.Success(
                 labels = decision.labels,
+                rulesetEvaluationResult = evaluationResult,
             )
         }
 
@@ -100,11 +108,11 @@ class OriginalVariantContentService(
         source: VImage,
         uploadRuleset: UploadRuleset,
         currentDecision: RuleDecision,
-    ): RuleDecision {
+    ): Pair<RulesetEvaluationResult, RuleDecision> {
         val rulesToEvaluate =
             determineRulesToEvaluate(uploadRuleset)
                 .takeIf { it.isNotEmpty() }
-                ?: return currentDecision
+                ?: return Pair(RulesetEvaluationResult.none, currentDecision)
 
         val imageTensor =
             vipsTensorProcessor.process(
@@ -124,10 +132,14 @@ class OriginalVariantContentService(
             )
 
         // Iterator through rules and determine match
-        return RuleDecisionEngine.makeDecision(
-            uploadRuleset = uploadRuleset,
-            evaluationResult = result,
-            definitionsByRule = definitionsByRule,
+        return Pair(
+            first = result,
+            second =
+                RuleDecisionEngine.makeDecision(
+                    uploadRuleset = uploadRuleset,
+                    evaluationResult = result,
+                    definitionsByRule = definitionsByRule,
+                ),
         )
     }
 

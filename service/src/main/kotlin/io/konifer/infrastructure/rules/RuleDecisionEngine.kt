@@ -26,7 +26,7 @@ object RuleDecisionEngine {
                     evaluationResultsByDefinition[ruleDefinition]
                         ?: throw IllegalStateException("Missing evaluation result for: ${rule.rule}")
 
-                if (result.matched) {
+                if (result.evaluationScore.matched) {
                     when (rule) {
                         in uploadRuleset.acceptRules -> matchedAcceptanceRules.add(rule.violationResponse)
                         in uploadRuleset.rejectRules -> matchedAcceptanceRules.add(rule.violationResponse)

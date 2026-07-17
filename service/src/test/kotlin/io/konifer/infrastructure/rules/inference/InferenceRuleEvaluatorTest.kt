@@ -2,14 +2,13 @@ package io.konifer.infrastructure.rules.inference
 
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
-import io.konifer.infrastructure.rules.inference.InferenceRuleEvaluator
-import io.konifer.infrastructure.rules.inference.SimilarityScorer
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
 import io.konifer.infrastructure.variant.ImageTensor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -73,12 +72,12 @@ class InferenceRuleEvaluatorTest {
         result.results shouldHaveSize 2
 
         result.results[0].ruleDefinition shouldBe matchingRule
-        result.results[0].score shouldBe (0.9 plusOrMinus 0.000001)
-        result.results[0].matched shouldBe true
+        result.results[0].evaluationScore.score shouldBe (0.9 plusOrMinus 0.000001)
+        result.results[0].evaluationScore.matched shouldBe true
 
         result.results[1].ruleDefinition shouldBe nonMatchingRule
-        result.results[1].score shouldBe (0.7 plusOrMinus 0.000001)
-        result.results[1].matched shouldBe false
+        result.results[1].evaluationScore.score shouldBe (0.7 plusOrMinus 0.000001)
+        result.results[1].evaluationScore.matched shouldBe false
 
         verify(exactly = 1) { contentEmbeddingService.generateEmbeddings(tensor) }
         verify(exactly = 1) { rulePromptEmbeddingService.generateEmbeddings("dog") }
@@ -108,8 +107,12 @@ class InferenceRuleEvaluatorTest {
                 tensor = tensor,
             )
 
-        result.results.single().score shouldBe (0.8 plusOrMinus 0.000001)
-        result.results.single().matched shouldBe true
+        result.results
+            .single()
+            .evaluationScore.score shouldBe (0.8 plusOrMinus 0.000001)
+        result.results
+            .single()
+            .evaluationScore.matched shouldBe true
     }
 
     @Test
@@ -149,8 +152,12 @@ class InferenceRuleEvaluatorTest {
                 tensor = tensor,
             )
 
-        result.results.single().score shouldBe (0.8 plusOrMinus 0.000001)
-        result.results.single().matched shouldBe true
+        result.results
+            .single()
+            .evaluationScore.score shouldBe (0.8 plusOrMinus 0.000001)
+        result.results
+            .single()
+            .evaluationScore.matched shouldBe true
     }
 
     @Test
@@ -174,6 +181,73 @@ class InferenceRuleEvaluatorTest {
                 tensor = tensor,
             )
         }
+    }
+
+    @Test
+    fun `regardless of match prompt scores are returned`() {
+        val matchingRule = ruleDefinition(prompts = listOf("dog", "nice dog"), threshold = 0.80)
+        val nonMatchingRule = ruleDefinition(prompts = listOf("cat", "nice cat"), threshold = 0.90)
+
+        val contentEmbedding = floatArrayOf(1.0f, 0.0f)
+        every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
+        val dogEmbedding = floatArrayOf(0.9f, 0.0f)
+        val catEmbedding = floatArrayOf(0.7f, 0.0f)
+        val niceDogEmbedding = floatArrayOf(0.4f, 0.0f)
+        val niceCatEmbedding = floatArrayOf(0.3f, 0.0f)
+        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings("nice dog") } returns niceDogEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings("cat") } returns catEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings("nice cat") } returns niceCatEmbedding
+        every {
+            similarityScorer.score(
+                promptEmbedding = dogEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.9
+        every {
+            similarityScorer.score(
+                promptEmbedding = catEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.7
+        every {
+            similarityScorer.score(
+                promptEmbedding = niceDogEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.4
+        every {
+            similarityScorer.score(
+                promptEmbedding = niceCatEmbedding,
+                contentEmbedding = contentEmbedding,
+            )
+        } returns 0.3
+
+        val result =
+            evaluator.evaluate(
+                ruleDefinitions = listOf(matchingRule, nonMatchingRule),
+                tensor = tensor,
+            )
+
+        result.results shouldHaveSize 2
+
+        result.results[0].ruleDefinition shouldBe matchingRule
+        result.results[0].evaluationScore.score shouldBe (0.9 plusOrMinus 0.000001)
+        result.results[0].evaluationScore.matched shouldBe true
+        result.results[0].promptScores shouldContainExactly
+            mapOf(
+                "dog" to 0.9,
+                "nice dog" to 0.4,
+            )
+
+        result.results[1].ruleDefinition shouldBe nonMatchingRule
+        result.results[1].evaluationScore.score shouldBe (0.7 plusOrMinus 0.000001)
+        result.results[1].promptScores shouldContainExactly
+            mapOf(
+                "cat" to 0.7,
+                "nice cat" to 0.3,
+            )
+        result.results[1].evaluationScore.matched shouldBe false
     }
 
     private fun ruleDefinition(

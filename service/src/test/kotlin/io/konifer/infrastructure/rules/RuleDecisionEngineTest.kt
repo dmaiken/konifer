@@ -2,6 +2,7 @@ package io.konifer.infrastructure.rules
 
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.toAssetLabels
+import io.konifer.domain.rules.EvaluationScore
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleEvaluationResult
@@ -63,7 +64,18 @@ class RuleDecisionEngineTest {
                 definitionsByRule = mapOf(labelRules.first() to ruleDefinition),
                 evaluationResult =
                     RulesetEvaluationResult(
-                        results = listOf(RuleEvaluationResult(ruleDefinition = ruleDefinition, score = 0.9, matched = true)),
+                        results =
+                            listOf(
+                                RuleEvaluationResult(
+                                    ruleDefinition = ruleDefinition,
+                                    evaluationScore =
+                                        EvaluationScore(
+                                            score = 0.9,
+                                            matched = true,
+                                        ),
+                                    promptScores = mapOf(),
+                                ),
+                            ),
                     ),
             )
 
@@ -92,8 +104,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.9,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.9,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -129,8 +145,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.9,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.9,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -161,8 +181,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -193,8 +217,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -225,8 +253,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -262,13 +294,21 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition1,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition2,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule1 =
@@ -304,8 +344,12 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
 
@@ -342,13 +386,21 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = labelDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = acceptDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val labelRule =
@@ -393,13 +445,21 @@ class RuleDecisionEngineTest {
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = labelDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = rejectDefinition,
-                    score = 0.80,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.80,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val labelRule =
