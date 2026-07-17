@@ -15,11 +15,11 @@ import kotlin.uuid.toJavaUuid
 class PostgresEmbeddingCacheRepository(
     private val dslContext: DSLContext,
 ) : EmbeddingCacheRepository {
-    override suspend fun fetchAll(model: EmbeddingModel): Map<String, FloatArray> =
+    override suspend fun fetchAll(embeddingModel: EmbeddingModel): Map<String, FloatArray> =
         dslContext
             .select(PROMPT_EMBEDDING.PROMPT_TEXT, PROMPT_EMBEDDING.EMBEDDING)
             .from(PROMPT_EMBEDDING)
-            .where(PROMPT_EMBEDDING.MODEL.eq(model.name))
+            .where(PROMPT_EMBEDDING.MODEL.eq(embeddingModel.name))
             .asFlow()
             .associate { record ->
                 val prompt =
