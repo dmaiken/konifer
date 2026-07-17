@@ -10,7 +10,7 @@ class NoOpEmbeddingCacheRepository : EmbeddingCacheRepository {
         logger.warn("Using NoOpEmbeddingCacheRepository. Prompts will NOT be cached!")
     }
 
-    override suspend fun fetchAll(model: EmbeddingModel): Map<String, FloatArray> = emptyMap()
+    override suspend fun fetchAll(embeddingModel: EmbeddingModel): Map<String, FloatArray> = emptyMap()
 
     override suspend fun store(
         embeddingModel: EmbeddingModel,
