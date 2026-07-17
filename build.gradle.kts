@@ -142,5 +142,5 @@ tasks.register("dockerIntegrationTest") {
     group = "verification"
 
     dependsOn("buildKoniferDockerImage")
-    dependsOn("integrationTest")
+    dependsOn(":integration-test:integrationTest")
 }
