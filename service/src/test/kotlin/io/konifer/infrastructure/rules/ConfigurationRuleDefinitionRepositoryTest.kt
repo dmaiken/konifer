@@ -3,6 +3,7 @@ package io.konifer.infrastructure.rules
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -60,7 +61,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
     ): RuleDefinition =
         RuleDefinition(
             name = RuleName(name),
-            prompts = prompts,
+            prompts = prompts.map { RulePrompt(it) },
             threshold = RuleDefinitionThreshold(0.8),
         )
 }

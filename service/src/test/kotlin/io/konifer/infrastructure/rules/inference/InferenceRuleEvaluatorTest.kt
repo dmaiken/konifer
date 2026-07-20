@@ -3,6 +3,7 @@ package io.konifer.infrastructure.rules.inference
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
 import io.konifer.infrastructure.vips.processor.ImageTensor
@@ -257,7 +258,7 @@ class InferenceRuleEvaluatorTest {
     ): RuleDefinition =
         RuleDefinition(
             name = RuleName(prompts.first()),
-            prompts = prompts,
+            prompts = prompts.map { RulePrompt(it) },
             threshold = RuleDefinitionThreshold(threshold),
         )
 

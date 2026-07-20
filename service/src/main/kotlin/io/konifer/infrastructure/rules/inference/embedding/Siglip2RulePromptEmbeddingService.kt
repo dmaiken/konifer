@@ -48,6 +48,7 @@ class Siglip2RulePromptEmbeddingService(
             val prompts =
                 ruleDefinitions
                     .flatMap { it.prompts }
+                    .map { it.prompt }
                     .map(::preprocessPrompt)
                     .distinct()
 

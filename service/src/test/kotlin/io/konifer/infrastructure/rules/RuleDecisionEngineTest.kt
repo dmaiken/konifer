@@ -8,6 +8,7 @@ import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.domain.rules.RuleViolationResponse
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
@@ -55,7 +56,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("phone"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val result =
@@ -97,7 +98,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -137,7 +138,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -173,7 +174,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -209,7 +210,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -245,7 +246,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -281,13 +282,13 @@ class RuleDecisionEngineTest {
         val ruleDefinition1 =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val ruleDefinition2 =
             RuleDefinition(
                 name = RuleName("cats only"),
-                prompts = listOf("hello again"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -337,7 +338,7 @@ class RuleDecisionEngineTest {
         val ruleDefinition =
             RuleDefinition(
                 name = RuleName("dogs only"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -374,13 +375,13 @@ class RuleDecisionEngineTest {
         val labelDefinition =
             RuleDefinition(
                 name = RuleName("label rule"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val acceptDefinition =
             RuleDefinition(
                 name = RuleName("accept rule"),
-                prompts = listOf("hello again"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
@@ -434,13 +435,13 @@ class RuleDecisionEngineTest {
         val labelDefinition =
             RuleDefinition(
                 name = RuleName("label rule"),
-                prompts = listOf("hello"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val rejectDefinition =
             RuleDefinition(
                 name = RuleName("reject rule"),
-                prompts = listOf("hello again"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =

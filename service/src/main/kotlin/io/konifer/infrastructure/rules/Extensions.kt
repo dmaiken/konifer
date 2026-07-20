@@ -6,6 +6,7 @@ import com.typesafe.config.ConfigObject
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -41,7 +42,7 @@ fun Config.getRuleDefinitions(): List<RuleDefinition> =
 
                 RuleDefinition(
                     name = RuleName(ruleName),
-                    prompts = config.prompts,
+                    prompts = config.prompts.map { RulePrompt(it) },
                     threshold = config.threshold,
                 )
             } ?: emptyList()

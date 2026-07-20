@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 data class RuleDefinition(
     val name: RuleName,
-    val prompts: List<String>,
+    val prompts: List<RulePrompt>,
     val threshold: RuleDefinitionThreshold,
 ) {
     init {
@@ -35,7 +35,7 @@ value class RuleDefinitionThreshold(
 fun RuleDefinitionRequest.toRuleDefinition(): RuleDefinition =
     RuleDefinition(
         name = RuleName(name),
-        prompts = prompts,
+        prompts = prompts.map { RulePrompt(it) },
         threshold = RuleDefinitionThreshold(threshold),
     )
 

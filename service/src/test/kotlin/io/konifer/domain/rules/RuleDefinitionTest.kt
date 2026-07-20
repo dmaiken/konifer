@@ -13,7 +13,7 @@ class RuleDefinitionTest {
         shouldNotThrowAny {
             RuleDefinition(
                 name = RuleName("test-rule"),
-                prompts = List(100) { "prompt-$it" },
+                prompts = List(100) { RulePrompt("prompt-$it") },
                 threshold = RuleDefinitionThreshold(0.5),
             )
         }
@@ -35,7 +35,7 @@ class RuleDefinitionTest {
         shouldThrow<IllegalArgumentException> {
             RuleDefinition(
                 name = RuleName("test-rule"),
-                prompts = List(101) { "prompt-$it" },
+                prompts = List(101) { RulePrompt("prompt-$it") },
                 threshold = RuleDefinitionThreshold(0.5),
             )
         }.message shouldBe "Cannot have more than 100 prompts per rule definition"
@@ -46,7 +46,7 @@ class RuleDefinitionTest {
         shouldThrow<IllegalArgumentException> {
             RuleDefinition(
                 name = RuleName("test-rule"),
-                prompts = List(2) { "prompt" },
+                prompts = List(2) { RulePrompt("prompt") },
                 threshold = RuleDefinitionThreshold(0.5),
             )
         }.message shouldBe "Rule prompts must be distinct"

@@ -31,14 +31,15 @@ class InferenceRuleEvaluator(
                 val promptScores = mutableMapOf<String, Double>()
                 var score: Double = -1.0
                 ruleDefinition.prompts.forEach { prompt ->
-                    val embeddings = rulePromptEmbeddingService.generateEmbeddings(prompt)
+                    val promptValue = prompt.prompt
+                    val embeddings = rulePromptEmbeddingService.generateEmbeddings(promptValue)
 
                     val promptScore =
                         similarityScorer.score(
                             promptEmbedding = embeddings,
                             contentEmbedding = contentEmbedding,
                         )
-                    promptScores[prompt] = promptScore
+                    promptScores[promptValue] = promptScore
                     score = max(score, promptScore)
                 }
 

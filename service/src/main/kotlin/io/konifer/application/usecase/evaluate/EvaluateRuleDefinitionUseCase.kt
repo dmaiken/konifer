@@ -73,10 +73,10 @@ class EvaluateRuleDefinitionUseCase(
             promptScores =
                 ruleDefinition.prompts.map { prompt ->
                     EvaluatedPromptResponse(
-                        prompt = prompt,
+                        prompt = prompt.prompt,
                         score =
-                            checkNotNull(promptScores[prompt]) {
-                                "Missing prompt score for '$prompt' in rule '${ruleDefinition.name.value}'"
+                            checkNotNull(promptScores[prompt.prompt]) {
+                                "Missing prompt score for '${prompt.prompt}' in rule '${ruleDefinition.name.value}'"
                             },
                     )
                 },

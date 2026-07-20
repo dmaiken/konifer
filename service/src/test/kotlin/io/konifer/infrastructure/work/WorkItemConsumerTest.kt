@@ -12,6 +12,7 @@ import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.Transformation
@@ -438,7 +439,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
         private fun ruleDefinition(): RuleDefinition =
             RuleDefinition(
                 name = RuleName("contains-tree"),
-                prompts = listOf("contains a tree"),
+                prompts = listOf(RulePrompt("contains a tree")),
                 threshold = RuleDefinitionThreshold(0.8),
             )
     }
