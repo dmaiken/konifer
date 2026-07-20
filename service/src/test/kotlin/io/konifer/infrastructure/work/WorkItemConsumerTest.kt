@@ -1,17 +1,24 @@
-package io.konifer.infrastructure.variant
+package io.konifer.infrastructure.work
 
 import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.rules.EvaluationScore
+import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
+import io.konifer.domain.rules.RuleEvaluationResult
+import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.Transformation
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
+import io.konifer.infrastructure.rules.evaluate.RuleDefinitionEvaluationService
 import io.konifer.infrastructure.variant.original.OriginalVariantContentService
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -38,18 +45,20 @@ import javax.imageio.ImageIO
 import kotlin.io.path.exists
 import kotlin.io.path.writeBytes
 
-class CoroutineImageGeneratorTest : BaseUnitTest() {
+class WorkItemConsumerTest : BaseUnitTest() {
     private val imageProcessor =
         spyk<VipsImageProcessor>(
             VipsImageProcessor(),
         )
     private val originalVariantContentService =
         mockk<OriginalVariantContentService>()
-    private val channel = Channel<ImageProcessingJob<*>>()
+    private val ruleDefinitionEvaluationService =
+        mockk<RuleDefinitionEvaluationService>()
+    private val channel = Channel<WorkItem<*>>()
 
-    // This is needed despite what Intellij thinks - it consumes from the scheduler
-    private val coroutineImageGenerator =
-        CoroutineImageGenerator(
+    // This is needed despite what Intellij thinks - it consumes from the WorkItem channel
+    private val workItemConsumer =
+        WorkItemConsumer(
             imageProcessor = imageProcessor,
             consumer =
                 PriorityChannelConsumer(
@@ -59,6 +68,7 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 ),
             numberOfWorkers = 4,
             originalVariantContentService = originalVariantContentService,
+            ruleDefinitionEvaluationService = lazy { ruleDefinitionEvaluationService },
         )
 
     lateinit var source: Path
@@ -83,8 +93,8 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
             runTest {
                 val output = ByteChannel()
                 val result = CompletableDeferred<Unit>()
-                val variantGenerationJob =
-                    GenerateVariantsJob(
+                val variantGenerationWorkItem =
+                    GenerateVariantsWorkItem(
                         source = source,
                         transformationDataContainers =
                             listOf(
@@ -103,7 +113,7 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                     )
-                channel.send(variantGenerationJob)
+                channel.send(variantGenerationWorkItem)
                 result.await()
 
                 val outputImage = ImageIO.read(ByteArrayInputStream(output.toByteArray()))
@@ -117,8 +127,8 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 val output1 = ByteChannel()
                 val output2 = ByteChannel()
                 val result = CompletableDeferred<Unit>()
-                val variantGenerationJob =
-                    GenerateVariantsJob(
+                val variantGenerationWorkItem =
+                    GenerateVariantsWorkItem(
                         source = source,
                         transformationDataContainers =
                             listOf(
@@ -148,7 +158,7 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                     )
-                channel.send(variantGenerationJob)
+                channel.send(variantGenerationWorkItem)
                 result.await()
 
                 val outputImage1 = ImageIO.read(ByteArrayInputStream(output1.toByteArray()))
@@ -167,14 +177,14 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         deleteOnExit(this)
                     }
                 val result = CompletableDeferred<Unit>()
-                val variantGenerationJob =
-                    GenerateVariantsJob(
+                val variantGenerationWorkItem =
+                    GenerateVariantsWorkItem(
                         source = source,
                         transformationDataContainers = listOf(),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
                     )
-                channel.send(variantGenerationJob)
+                channel.send(variantGenerationWorkItem)
                 result.await()
                 output.exists() shouldBe false
             }
@@ -184,8 +194,8 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
             runTest {
                 val output = ByteChannel()
                 val result = CompletableDeferred<Unit>()
-                val variantGenerationJob =
-                    GenerateVariantsJob(
+                val variantGenerationWorkItem =
+                    GenerateVariantsWorkItem(
                         source = source,
                         transformationDataContainers =
                             listOf(
@@ -214,17 +224,17 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 }.throws(RuntimeException())
                     .coAndThen { callOriginal() }
 
-                channel.send(variantGenerationJob)
+                channel.send(variantGenerationWorkItem)
                 shouldThrow<RuntimeException> { result.await() }
 
                 val newResult = CompletableDeferred<Unit>()
-                channel.send(variantGenerationJob.copy(deferredResult = newResult))
+                channel.send(variantGenerationWorkItem.copy(deferredResult = newResult))
                 shouldNotThrowAny { newResult.await() }
             }
     }
 
     @Nested
-    inner class ProcessOriginalVariantGenerationJobTests {
+    inner class ProcessOriginalVariantContentWorkItemTests {
         private val transformation =
             Transformation(
                 height = 200,
@@ -235,13 +245,13 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
             )
 
         @Test
-        fun `can handle original variant processing job`() =
+        fun `can handle original variant processing work item`() =
             runTest {
                 val output = ByteChannel()
-                val result = CompletableDeferred<ContentProcessorResult>()
+                val result = CompletableDeferred<UploadRuleDecision>()
                 val uploadRuleset = UploadRuleset()
-                val originalContentJob =
-                    ProcessOriginalVariantContentJob(
+                val originalContentWorkItem =
+                    ProcessOriginalVariantContentWorkItem(
                         source = source,
                         transformationDataContainer =
                             TransformationDataContainer(
@@ -253,17 +263,21 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                         sourceFormat = ImageFormat.PNG,
                         uploadRuleset = uploadRuleset,
                     )
-                val processorResult = ContentProcessorResult.Success(labels = AssetLabels.empty)
+                val processorResult =
+                    UploadRuleDecision.Success(
+                        ruleDefinitionsEvaluationResult = RuleDefinitionsEvaluationResult.none,
+                        labels = AssetLabels.empty,
+                    )
                 coEvery {
                     originalVariantContentService.process(
                         uploadRuleset = uploadRuleset,
-                        transformationDataContainer = originalContentJob.transformationDataContainer,
-                        lqipImplementations = originalContentJob.lqipImplementations,
-                        sourceFormat = originalContentJob.sourceFormat,
-                        source = originalContentJob.source,
+                        transformationDataContainer = originalContentWorkItem.transformationDataContainer,
+                        lqipImplementations = originalContentWorkItem.lqipImplementations,
+                        sourceFormat = originalContentWorkItem.sourceFormat,
+                        source = originalContentWorkItem.source,
                     )
                 } returns processorResult
-                channel.send(originalContentJob)
+                channel.send(originalContentWorkItem)
 
                 result.await() shouldBe processorResult
             }
@@ -272,10 +286,10 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
         fun `if exception is thrown then deferred result completes exceptionally`() =
             runTest {
                 val output = ByteChannel()
-                val result = CompletableDeferred<ContentProcessorResult>()
+                val result = CompletableDeferred<UploadRuleDecision>()
                 val uploadRuleset = UploadRuleset()
-                val originalContentJob =
-                    ProcessOriginalVariantContentJob(
+                val originalContentWorkItem =
+                    ProcessOriginalVariantContentWorkItem(
                         source = source,
                         transformationDataContainer =
                             TransformationDataContainer(
@@ -290,13 +304,13 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 coEvery {
                     originalVariantContentService.process(
                         uploadRuleset = uploadRuleset,
-                        transformationDataContainer = originalContentJob.transformationDataContainer,
-                        lqipImplementations = originalContentJob.lqipImplementations,
-                        sourceFormat = originalContentJob.sourceFormat,
-                        source = originalContentJob.source,
+                        transformationDataContainer = originalContentWorkItem.transformationDataContainer,
+                        lqipImplementations = originalContentWorkItem.lqipImplementations,
+                        sourceFormat = originalContentWorkItem.sourceFormat,
+                        source = originalContentWorkItem.source,
                     )
                 } throws IllegalStateException()
-                channel.send(originalContentJob)
+                channel.send(originalContentWorkItem)
 
                 shouldThrow<IllegalStateException> { result.await() }
             }
@@ -305,10 +319,10 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
         fun `if cancellation exception is thrown then deferred result throws`() =
             runTest {
                 val output = ByteChannel()
-                val result = CompletableDeferred<ContentProcessorResult>()
+                val result = CompletableDeferred<UploadRuleDecision>()
                 val uploadRuleset = UploadRuleset()
-                val originalContentJob =
-                    ProcessOriginalVariantContentJob(
+                val originalContentWorkItem =
+                    ProcessOriginalVariantContentWorkItem(
                         source = source,
                         transformationDataContainer =
                             TransformationDataContainer(
@@ -323,15 +337,109 @@ class CoroutineImageGeneratorTest : BaseUnitTest() {
                 coEvery {
                     originalVariantContentService.process(
                         uploadRuleset = uploadRuleset,
-                        transformationDataContainer = originalContentJob.transformationDataContainer,
-                        lqipImplementations = originalContentJob.lqipImplementations,
-                        sourceFormat = originalContentJob.sourceFormat,
-                        source = originalContentJob.source,
+                        transformationDataContainer = originalContentWorkItem.transformationDataContainer,
+                        lqipImplementations = originalContentWorkItem.lqipImplementations,
+                        sourceFormat = originalContentWorkItem.sourceFormat,
+                        source = originalContentWorkItem.source,
                     )
                 } throws CancellationException()
-                channel.send(originalContentJob)
+                channel.send(originalContentWorkItem)
 
                 shouldThrow<CancellationException> { result.await() }
             }
+    }
+
+    @Nested
+    inner class EvaluateRuleDefinitionsWorkItemTests {
+        @Test
+        fun `can handle rule definition evaluation work item`() =
+            runTest {
+                val ruleDefinitions = listOf(ruleDefinition())
+                val result = CompletableDeferred<RuleDefinitionsEvaluationResult>()
+                val workItem =
+                    EvaluateRuleDefinitionsWorkItem(
+                        source = source,
+                        sourceFormat = ImageFormat.PNG,
+                        ruleDefinitions = ruleDefinitions,
+                        deferredResult = result,
+                    )
+                val evaluationResult =
+                    RuleDefinitionsEvaluationResult(
+                        results =
+                            listOf(
+                                RuleEvaluationResult(
+                                    ruleDefinition = ruleDefinitions.single(),
+                                    evaluationScore = EvaluationScore(score = 0.9, matched = true),
+                                    promptScores = mapOf("contains a tree" to 0.9),
+                                ),
+                            ),
+                    )
+                coEvery {
+                    ruleDefinitionEvaluationService.evaluate(
+                        source = workItem.source,
+                        sourceFormat = workItem.sourceFormat,
+                        ruleDefinitions = workItem.ruleDefinitions,
+                    )
+                } returns evaluationResult
+
+                channel.send(workItem)
+
+                result.await() shouldBe evaluationResult
+            }
+
+        @Test
+        fun `if rule definition evaluation throws exception then deferred result completes exceptionally`() =
+            runTest {
+                val result = CompletableDeferred<RuleDefinitionsEvaluationResult>()
+                val workItem =
+                    EvaluateRuleDefinitionsWorkItem(
+                        source = source,
+                        sourceFormat = ImageFormat.PNG,
+                        ruleDefinitions = listOf(ruleDefinition()),
+                        deferredResult = result,
+                    )
+                coEvery {
+                    ruleDefinitionEvaluationService.evaluate(
+                        source = workItem.source,
+                        sourceFormat = workItem.sourceFormat,
+                        ruleDefinitions = workItem.ruleDefinitions,
+                    )
+                } throws IllegalStateException()
+
+                channel.send(workItem)
+
+                shouldThrow<IllegalStateException> { result.await() }
+            }
+
+        @Test
+        fun `if rule definition evaluation is cancelled then deferred result throws`() =
+            runTest {
+                val result = CompletableDeferred<RuleDefinitionsEvaluationResult>()
+                val workItem =
+                    EvaluateRuleDefinitionsWorkItem(
+                        source = source,
+                        sourceFormat = ImageFormat.PNG,
+                        ruleDefinitions = listOf(ruleDefinition()),
+                        deferredResult = result,
+                    )
+                coEvery {
+                    ruleDefinitionEvaluationService.evaluate(
+                        source = workItem.source,
+                        sourceFormat = workItem.sourceFormat,
+                        ruleDefinitions = workItem.ruleDefinitions,
+                    )
+                } throws CancellationException()
+
+                channel.send(workItem)
+
+                shouldThrow<CancellationException> { result.await() }
+            }
+
+        private fun ruleDefinition(): RuleDefinition =
+            RuleDefinition(
+                name = RuleName("contains-tree"),
+                prompts = listOf("contains a tree"),
+                threshold = RuleDefinitionThreshold(0.8),
+            )
     }
 }

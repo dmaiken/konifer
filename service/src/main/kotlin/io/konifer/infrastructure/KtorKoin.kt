@@ -12,6 +12,7 @@ import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.context.RequestContextValidator
 import io.konifer.domain.ports.EventBus
 import io.konifer.domain.ports.EventPublisher
+import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.VariantService
 import io.konifer.infrastructure.asset.assetContainerFactoryModule
@@ -23,11 +24,11 @@ import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.path.pathModule
-import io.konifer.infrastructure.rules.getRuleDefinitions
 import io.konifer.infrastructure.rules.rulesModule
 import io.konifer.infrastructure.tika.mimeTypeDetectorModule
 import io.konifer.infrastructure.variant.variantModule
 import io.konifer.infrastructure.vips.vipsModule
+import io.konifer.infrastructure.work.workModule
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.util.logging.KtorSimpleLogger
@@ -46,6 +47,8 @@ import org.koin.plugin.module.dsl.single
 
 fun Application.configureKoin(
     objectStoreProvider: ObjectStoreProvider,
+    ruleDefinitions: List<RuleDefinition>,
+    shouldEnableEvaluationApi: Boolean,
     additionalModules: List<Module> = emptyList(),
 ) {
     val logger = KtorSimpleLogger("io.konifer.infrastructure.KtorKoin")
@@ -62,16 +65,21 @@ fun Application.configureKoin(
                 assetContainerFactoryModule(),
                 mimeTypeDetectorModule(),
                 assetRepositoryModule(datastoreProvider),
+                workModule(),
                 variantModule(),
                 objectStoreModule(objectStoreProvider),
                 pathModule(),
                 vipsModule(),
             )
 
-        val ruleDefinitions = environment.config.extractRawHocon().getRuleDefinitions()
-        if (ruleDefinitions.isNotEmpty()) {
+        if (ruleDefinitions.isNotEmpty() || shouldEnableEvaluationApi) {
             logger.info("${ruleDefinitions.size} rule definitions found, initiating rules module")
-            configuredModules += rulesModule(ruleDefinitions, datastoreProvider)
+            configuredModules +=
+                rulesModule(
+                    ruleDefinitions = ruleDefinitions,
+                    dataStoreProvider = datastoreProvider,
+                    shouldEnableEvaluationApi = shouldEnableEvaluationApi,
+                )
         }
 
         configuredModules += additionalModules

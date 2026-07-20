@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.variant
+package io.konifer.infrastructure.work
 
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.channels.Channel
@@ -17,10 +17,10 @@ class PriorityChannelConsumer<T>(
         require(highPriorityWeight in 1..100) {
             "High priority weight must be between 0 and 100"
         }
-        logger.info("Initiated Variant generation consumer with synchronous priority of: $highPriorityWeight%")
+        logger.info("Initiated WorkItem consumer with synchronous priority of: $highPriorityWeight%")
     }
 
-    suspend fun nextJob(): T {
+    suspend fun nextWorkItem(): T {
         val random = Random.nextInt(0, 100)
         return select {
             if (random > 100 - highPriorityWeight) {

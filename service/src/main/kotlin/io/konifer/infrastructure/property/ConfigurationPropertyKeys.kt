@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.property
 
 object ConfigurationPropertyKeys {
+    const val API = "api"
     const val DATASTORE = "data-store"
     const val OBJECT_STORE = "object-store"
     const val PATH_CONFIGURATION = "paths"
@@ -10,6 +11,14 @@ object ConfigurationPropertyKeys {
     const val HTTP = "http"
     const val VARIANT_PROFILES = "variant-profiles"
     const val RULE_DEFINITIONS = "rule-definitions"
+
+    object ApiPropertyKeys {
+        const val RULE_EVALUATION = "rule-evaluation"
+
+        object RuleEvaluationPropertyKeys {
+            const val ENABLED = "enabled"
+        }
+    }
 
     object DataStorePropertyKeys {
         const val PROVIDER = "provider"

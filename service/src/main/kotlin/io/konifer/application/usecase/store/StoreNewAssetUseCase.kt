@@ -11,9 +11,9 @@ import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ObjectStoreKeyFactory
@@ -106,8 +106,8 @@ class StoreNewAssetUseCase(
 
                 val uploadedAt = uploadedAtDeferred.await()
                 when (val result = pipeline.processDeferred.await()) {
-                    is ContentProcessorResult.Success -> Unit
-                    is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
+                    is UploadRuleDecision.Success -> Unit
+                    is UploadRuleDecision.Rejected -> throw AssetRejectedException(result.violationResponses)
                 }
 
                 logger.info("Asset: ${pendingPersisted.descriptor} uploaded at $uploadedAt, marking as ready")
@@ -136,15 +136,15 @@ class StoreNewAssetUseCase(
             }
             processDeferred.onAwait { result ->
                 when (result) {
-                    is ContentProcessorResult.Success -> attributes.await()
-                    is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
+                    is UploadRuleDecision.Success -> attributes.await()
+                    is UploadRuleDecision.Rejected -> throw AssetRejectedException(result.violationResponses)
                 }
             }
         }
 
     private suspend fun ProcessingPipeline.awaitLabelsOrRejection(): AssetLabels =
         when (val result = processDeferred.await()) {
-            is ContentProcessorResult.Success -> result.labels
-            is ContentProcessorResult.Rejected -> throw AssetRejectedException(result.violationResponses)
+            is UploadRuleDecision.Success -> result.labels
+            is UploadRuleDecision.Rejected -> throw AssetRejectedException(result.violationResponses)
         }
 }

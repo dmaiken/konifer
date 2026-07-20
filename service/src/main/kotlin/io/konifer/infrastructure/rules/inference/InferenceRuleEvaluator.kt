@@ -2,12 +2,12 @@ package io.konifer.infrastructure.rules.inference
 
 import io.konifer.domain.rules.EvaluationScore
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
-import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
-import io.konifer.infrastructure.variant.ImageTensor
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlin.math.max
 
@@ -21,8 +21,8 @@ class InferenceRuleEvaluator(
     override fun evaluate(
         ruleDefinitions: List<RuleDefinition>,
         tensor: ImageTensor,
-    ): RulesetEvaluationResult {
-        if (ruleDefinitions.isEmpty()) return RulesetEvaluationResult.none
+    ): RuleDefinitionsEvaluationResult {
+        if (ruleDefinitions.isEmpty()) return RuleDefinitionsEvaluationResult.none
 
         val contentEmbedding = contentEmbeddingService.generateEmbeddings(tensor)
 
@@ -53,7 +53,7 @@ class InferenceRuleEvaluator(
                 )
             }.let {
                 logger.info("Evaluating rules resulted in: $it")
-                RulesetEvaluationResult(it)
+                RuleDefinitionsEvaluationResult(it)
             }
     }
 }

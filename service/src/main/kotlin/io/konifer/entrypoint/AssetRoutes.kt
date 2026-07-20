@@ -9,7 +9,6 @@ import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.domain.asset.MAX_BYTES_DEFAULT
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
@@ -20,17 +19,12 @@ import io.konifer.infrastructure.http.fromAsset
 import io.konifer.infrastructure.http.fromAssetData
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getContentDispositionHeader
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
-import io.konifer.infrastructure.tryGetConfig
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
-import io.ktor.server.config.tryGetString
 import io.ktor.server.request.contentType
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
@@ -45,34 +39,27 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.asSink
-import io.ktor.utils.io.copyTo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.let
 
-private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.AssetRouting")
+private val logger = KtorSimpleLogger("io.konifer.entrypoint.AssetRouting")
 
 const val ASSET_PATH_PREFIX = "/assets"
 
-fun Application.configureAssetRouting() {
-    logger.info("Configuring asset routes")
+private const val METADATA_PART_NAME = "metadata"
+private const val ASSET_PART_NAME = "asset"
+
+fun Application.configureAssetRouting(maxMultipartContentLength: Long) {
+    logger.info("Initializing asset routes")
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetUseCase by inject<DeleteAssetUseCase>()
     val updateAssetUseCase by inject<UpdateAssetUseCase>()
     val storeNewAssetUseCase by inject<StoreNewAssetUseCase>()
     val assetUrlGenerator by inject<AssetUrlGenerator>()
-    val maxMultipartContentLength =
-        environment.config
-            .tryGetConfig(SOURCE)
-            ?.tryGetConfig(MULTIPART)
-            ?.tryGetString(MAX_BYTES)
-            ?.toLong()
-            ?: MAX_BYTES_DEFAULT
 
     routing {
         route(ASSET_PATH_PREFIX) {
@@ -166,11 +153,11 @@ fun Application.configureAssetRouting() {
             }
 
             post {
-                storeNewAsset(assetUrlGenerator, call, storeNewAssetUseCase, maxMultipartContentLength)
+                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase, maxMultipartContentLength)
             }
 
             post("/{...}") {
-                storeNewAsset(assetUrlGenerator, call, storeNewAssetUseCase, maxMultipartContentLength)
+                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase, maxMultipartContentLength)
             }
 
             put("/{...}") {
@@ -193,101 +180,111 @@ fun Application.configureAssetRouting() {
     }
 }
 
-suspend fun storeNewAsset(
+private suspend fun RoutingCall.storeNewAsset(
     assetUrlGenerator: AssetUrlGenerator,
-    call: RoutingCall,
-    storeNewAssetWorkflow: StoreNewAssetUseCase,
+    storeNewAssetUseCase: StoreNewAssetUseCase,
     maxMultipartContentLength: Long,
-) = coroutineScope {
-    val deferredAsset = CompletableDeferred<AssetAndLocation>()
-    when (call.request.contentType().withoutParameters()) {
+) {
+    when (request.contentType().withoutParameters()) {
         ContentType.MultiPart.FormData -> {
             logger.info("Received multipart request to store a new asset")
-            val assetData = CompletableDeferred<StoreAssetRequest>()
-            val assetContentChannel = ByteChannel(true)
-
-            var assetReceived = false
-
-            val deferredResponse =
-                async {
-                    storeNewAssetWorkflow.handleFromUpload(
-                        deferredRequest = assetData,
-                        multiPartContainer = AssetDataContainer(assetContentChannel, maxMultipartContentLength),
-                        uriPath = call.request.path(),
-                    )
-                }
-
-            val multipart = call.receiveMultipart()
-            multipart.forEachPart { part ->
-                when (part.name) {
-                    "metadata" ->
-                        if (part is PartData.FormItem) {
-                            assetData.complete(Json.decodeFromString(part.value))
-                        }
-
-                    "asset" -> {
-                        assetReceived = true
-                        when (part) {
-                            is PartData.FileItem ->
-                                try {
-                                    part.provider().copyTo(assetContentChannel)
-                                } finally {
-                                    assetContentChannel.close()
-                                    part.release()
-                                }
-                            is PartData.BinaryChannelItem ->
-                                try {
-                                    part.provider().copyTo(assetContentChannel)
-                                } finally {
-                                    assetContentChannel.close()
-                                    part.release()
-                                }
-                            is PartData.BinaryItem ->
-                                try {
-                                    part.provider().transferTo(assetContentChannel.asSink())
-                                } finally {
-                                    assetContentChannel.close()
-                                    part.release()
-                                }
-                            else -> part.release()
-                        }
-                    }
-                    else -> part.release()
-                }
+            storeMultipartAsset(
+                storeNewAssetUseCase = storeNewAssetUseCase,
+                maxMultipartContentLength = maxMultipartContentLength,
+            )?.let { asset ->
+                respondStoredAsset(assetUrlGenerator, asset)
             }
-
-            if (!assetData.isCompleted) {
-                assetContentChannel.cancel(CancellationException("Missing metadata"))
-                deferredResponse.cancel()
-                call.respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
-                return@coroutineScope
-            }
-
-            if (!assetReceived) {
-                assetContentChannel.cancel(CancellationException("Missing asset payload"))
-                deferredResponse.cancel()
-                call.respond(HttpStatusCode.BadRequest, "No asset payload supplied")
-                return@coroutineScope
-            }
-
-            deferredAsset.complete(deferredResponse.await())
         }
         ContentType.Application.Json -> {
             logger.info("Received json request to store a new asset")
-            val payload = call.receive(StoreAssetRequest::class)
-            deferredAsset.complete(
-                storeNewAssetWorkflow.handleFromUrl(
+            val payload = receive(StoreAssetRequest::class)
+            val asset =
+                storeNewAssetUseCase.handleFromUrl(
                     request = payload,
-                    uriPath = call.request.path(),
-                ),
-            )
+                    uriPath = request.path(),
+                )
+            respondStoredAsset(assetUrlGenerator, asset)
+        }
+        else -> respond(HttpStatusCode.UnsupportedMediaType)
+    }
+}
+
+private suspend fun RoutingCall.storeMultipartAsset(
+    storeNewAssetUseCase: StoreNewAssetUseCase,
+    maxMultipartContentLength: Long,
+): AssetAndLocation? =
+    coroutineScope {
+        val assetData = CompletableDeferred<StoreAssetRequest>()
+        val assetContentChannel = ByteChannel(true)
+        var assetPartReceived = false
+        var assetReceived = false
+        var duplicateAssetReceived = false
+
+        val deferredResponse =
+            async {
+                storeNewAssetUseCase.handleFromUpload(
+                    deferredRequest = assetData,
+                    multiPartContainer = AssetDataContainer(assetContentChannel, maxMultipartContentLength),
+                    uriPath = request.path(),
+                )
+            }
+
+        receiveMultipart().forEachPart { part ->
+            when (part.name) {
+                METADATA_PART_NAME -> part.readStoreAssetRequestInto(assetData)
+                ASSET_PART_NAME -> {
+                    if (assetPartReceived) {
+                        duplicateAssetReceived = true
+                        part.release()
+                    } else {
+                        assetPartReceived = true
+                        assetReceived = part.copyAssetContentTo(assetContentChannel)
+                    }
+                }
+                else -> part.release()
+            }
+        }
+
+        when {
+            duplicateAssetReceived -> {
+                assetContentChannel.cancel(CancellationException("Duplicate asset payload"))
+                deferredResponse.cancel()
+                respond(HttpStatusCode.BadRequest, "Multiple asset payloads supplied")
+                null
+            }
+            !assetData.isCompleted -> {
+                assetContentChannel.cancel(CancellationException("Missing metadata"))
+                deferredResponse.cancel()
+                respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
+                null
+            }
+            !assetReceived -> {
+                assetContentChannel.cancel(CancellationException("Missing asset payload"))
+                deferredResponse.cancel()
+                respond(HttpStatusCode.BadRequest, "No asset payload supplied")
+                null
+            }
+            else -> deferredResponse.await()
         }
     }
-    val asset = deferredAsset.await()
 
+private suspend fun PartData.readStoreAssetRequestInto(assetData: CompletableDeferred<StoreAssetRequest>) {
+    try {
+        if (this is PartData.FormItem) {
+            assetData.complete(Json.decodeFromString(value))
+        }
+    } finally {
+        release()
+    }
+}
+
+private suspend fun RoutingCall.respondStoredAsset(
+    assetUrlGenerator: AssetUrlGenerator,
+    asset: AssetAndLocation,
+) {
     logger.info("Created asset under path: ${asset.locationPath}")
 
-    call.response.headers.append(
+    response.headers.append(
         name = HttpHeaders.Location,
         value =
             assetUrlGenerator.generateAbsoluteLocationUrl(
@@ -295,5 +292,5 @@ suspend fun storeNewAsset(
                 entryId = checkNotNull(asset.asset.entryId),
             ),
     )
-    call.respond(HttpStatusCode.Created, AssetResponse.fromAsset(asset.asset))
+    respond(HttpStatusCode.Created, AssetResponse.fromAsset(asset.asset))
 }

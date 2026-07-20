@@ -7,7 +7,7 @@ import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbedding
 import io.konifer.infrastructure.rules.l2Normalize
-import io.konifer.infrastructure.variant.ImageTensor
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.ktor.util.logging.KtorSimpleLogger
 import java.nio.FloatBuffer
 

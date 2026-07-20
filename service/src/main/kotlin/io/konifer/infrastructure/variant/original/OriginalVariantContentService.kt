@@ -4,12 +4,11 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.RuleDefinitionRepository
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.rules.RuleDecision
-import io.konifer.domain.rules.RuleDefinition
-import io.konifer.domain.rules.RulesetEvaluationResult
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
+import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.toDecision
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
@@ -17,7 +16,7 @@ import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.infrastructure.rules.RuleDecisionEngine
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
-import io.konifer.infrastructure.vips.createDecoderOptions
+import io.konifer.infrastructure.vips.VipsDecoder
 import io.konifer.infrastructure.vips.processor.PreprocessOutput
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
@@ -43,16 +42,16 @@ class OriginalVariantContentService(
         lqipImplementations: Set<LQIPImplementation>,
         sourceFormat: ImageFormat,
         source: Path,
-    ): ContentProcessorResult =
+    ): UploadRuleDecision =
         withContext(Dispatchers.IO) {
             var decision = uploadRuleset.default.toDecision()
-            var evaluationResult = RulesetEvaluationResult.none
+            var evaluationResult = RuleDefinitionsEvaluationResult.none
             var preprocessOutput: PreprocessOutput? = null
             Vips.run { arena ->
                 val source =
-                    decodeSource(
+                    VipsDecoder.decodeSource(
                         arena = arena,
-                        transformationDataContainer = transformationDataContainer,
+                        destinationFormat = transformationDataContainer.transformation.format,
                         sourceFormat = sourceFormat,
                         source = source,
                     )
@@ -84,8 +83,8 @@ class OriginalVariantContentService(
             if (!decision.accept) {
                 logger.info("Asset is rejected due to rule violation")
                 transformationDataContainer.output.close()
-                return@withContext ContentProcessorResult.Rejected(
-                    rulesetEvaluationResult = RulesetEvaluationResult.none,
+                return@withContext UploadRuleDecision.Rejected(
+                    ruleDefinitionsEvaluationResult = RuleDefinitionsEvaluationResult.none,
                     violationResponses = decision.violationResponses,
                 )
             }
@@ -97,9 +96,9 @@ class OriginalVariantContentService(
                         .readChannel()
                         .copyAndClose(transformationDataContainer.output)
             }
-            ContentProcessorResult.Success(
+            UploadRuleDecision.Success(
                 labels = decision.labels,
-                rulesetEvaluationResult = evaluationResult,
+                ruleDefinitionsEvaluationResult = evaluationResult,
             )
         }
 
@@ -108,11 +107,11 @@ class OriginalVariantContentService(
         source: VImage,
         uploadRuleset: UploadRuleset,
         currentDecision: RuleDecision,
-    ): Pair<RulesetEvaluationResult, RuleDecision> {
+    ): Pair<RuleDefinitionsEvaluationResult, RuleDecision> {
         val rulesToEvaluate =
             determineRulesToEvaluate(uploadRuleset)
                 .takeIf { it.isNotEmpty() }
-                ?: return Pair(RulesetEvaluationResult.none, currentDecision)
+                ?: return Pair(RuleDefinitionsEvaluationResult.none, currentDecision)
 
         val imageTensor =
             vipsTensorProcessor.process(
@@ -121,13 +120,13 @@ class OriginalVariantContentService(
                 transformation = Siglip2TensorTransformation,
             )
 
-        val definitionsByRule =
-            mutableMapOf<UploadRule, RuleDefinition>().also { map ->
-                rulesToEvaluate.associateWithTo(map) { ruleDefinitionRepository.value.fetch(it.rule) }
-            }
+        val ruleDefinitions =
+            rulesToEvaluate
+                .map { ruleDefinitionRepository.value.fetch(it.rule) }
+                .distinctBy { it.name }
         val result =
             ruleEvaluator.value.evaluate(
-                ruleDefinitions = definitionsByRule.values.toList(),
+                ruleDefinitions = ruleDefinitions,
                 tensor = imageTensor,
             )
 
@@ -138,23 +137,8 @@ class OriginalVariantContentService(
                 RuleDecisionEngine.makeDecision(
                     uploadRuleset = uploadRuleset,
                     evaluationResult = result,
-                    definitionsByRule = definitionsByRule,
                 ),
         )
-    }
-
-    private fun decodeSource(
-        arena: Arena,
-        transformationDataContainer: TransformationDataContainer,
-        sourceFormat: ImageFormat,
-        source: Path,
-    ): VImage {
-        val decoderOptions =
-            createDecoderOptions(
-                sourceFormat = sourceFormat,
-                destinationFormat = transformationDataContainer.transformation.format,
-            )
-        return VImage.newFromFile(arena, source.toFile().absolutePath, *decoderOptions)
     }
 
     private fun determineRulesToEvaluate(uploadRuleset: UploadRuleset): List<UploadRule> =

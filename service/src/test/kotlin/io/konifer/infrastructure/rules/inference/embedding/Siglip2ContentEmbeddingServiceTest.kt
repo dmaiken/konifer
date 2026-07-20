@@ -7,8 +7,8 @@ import io.konifer.ImageFactory
 import io.konifer.TestImageType
 import io.konifer.common.image.ImageFormat
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
-import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize

@@ -1,10 +1,10 @@
 package io.konifer.domain.rules
 
-data class RulesetEvaluationResult(
+data class RuleDefinitionsEvaluationResult(
     val results: List<RuleEvaluationResult>,
 ) {
     companion object Factory {
-        val none = RulesetEvaluationResult(results = emptyList())
+        val none = RuleDefinitionsEvaluationResult(results = emptyList())
     }
 }
 

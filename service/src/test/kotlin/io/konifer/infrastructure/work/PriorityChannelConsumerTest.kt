@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.variant
+package io.konifer.infrastructure.work
 
 import io.konifer.matchers.beApproximately
 import io.kotest.matchers.should
@@ -13,9 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class PriorityChannelConsumerTest {
     @Test
-    fun `processes jobs from high priority channel when nothing in background channel`() =
+    fun `processes work items from high priority channel when nothing in background channel`() =
         runTest {
-            val jobs = 300
+            val workItems = 300
             val high = Channel<Int>()
             val low = Channel<Int>()
             val consumer = PriorityChannelConsumer(high, low, 80)
@@ -24,24 +24,24 @@ class PriorityChannelConsumerTest {
             val handle =
                 launch {
                     var count = 0
-                    while (count < jobs) {
-                        val task = consumer.nextJob()
-                        counter.addAndGet(task)
+                    while (count < workItems) {
+                        val workItem = consumer.nextWorkItem()
+                        counter.addAndGet(workItem)
                         count++
                     }
                 }
 
-            repeat(jobs) {
+            repeat(workItems) {
                 high.send(1)
             }
             handle.join()
-            counter.get() shouldBe jobs
+            counter.get() shouldBe workItems
         }
 
     @Test
-    fun `processes jobs from background priority channel when nothing in high priority channel`() =
+    fun `processes work items from background priority channel when nothing in high priority channel`() =
         runTest {
-            val jobs = 300
+            val workItems = 300
             val high = Channel<Int>()
             val low = Channel<Int>()
             val consumer = PriorityChannelConsumer(high, low, 80)
@@ -50,30 +50,30 @@ class PriorityChannelConsumerTest {
             val handle =
                 launch {
                     var count = 0
-                    while (count < jobs) {
-                        val task = consumer.nextJob()
-                        counter.addAndGet(task)
+                    while (count < workItems) {
+                        val workItem = consumer.nextWorkItem()
+                        counter.addAndGet(workItem)
                         count++
                     }
                 }
 
-            repeat(jobs) {
+            repeat(workItems) {
                 low.send(1)
             }
             handle.join()
-            counter.get() shouldBe jobs
+            counter.get() shouldBe workItems
         }
 
     @ParameterizedTest
     @ValueSource(ints = [99, 90, 50])
     fun `respects priority when scheduling work from both channels`(highPriority: Int) =
         runTest {
-            val jobs = 20000
-            val high = Channel<Int>(capacity = jobs * 4)
-            val low = Channel<Int>(capacity = jobs * 4)
+            val workItems = 20000
+            val high = Channel<Int>(capacity = workItems * 4)
+            val low = Channel<Int>(capacity = workItems * 4)
             val consumer = PriorityChannelConsumer(high, low, highPriority)
 
-            repeat(jobs * 4) {
+            repeat(workItems * 4) {
                 high.send(1)
                 low.send(-1)
             }
@@ -84,9 +84,9 @@ class PriorityChannelConsumerTest {
             val handle =
                 launch {
                     var count = 0
-                    while (count < jobs) {
-                        val job = consumer.nextJob()
-                        if (job < 0) {
+                    while (count < workItems) {
+                        val workItem = consumer.nextWorkItem()
+                        if (workItem < 0) {
                             lowPulled.incrementAndGet()
                         } else {
                             highPulled.incrementAndGet()
@@ -101,20 +101,20 @@ class PriorityChannelConsumerTest {
             handle.join()
 
             // Ensure margin of error of 5%
-            (highPulled.get() / jobs.toDouble()) should beApproximately(highPriority * 0.01, epsilon = 0.05)
-            (lowPulled.get() / jobs.toDouble()) should beApproximately((100 - highPriority) * 0.01, epsilon = 0.05)
+            (highPulled.get() / workItems.toDouble()) should beApproximately(highPriority * 0.01, epsilon = 0.05)
+            (lowPulled.get() / workItems.toDouble()) should beApproximately((100 - highPriority) * 0.01, epsilon = 0.05)
         }
 
     @ParameterizedTest
     @ValueSource(ints = [99, 90, 50])
     fun `eventually processes all channels regardless of priority`(highPriority: Int) =
         runTest {
-            val jobs = 20000
-            val high = Channel<Int>(capacity = jobs)
-            val low = Channel<Int>(capacity = jobs)
+            val workItems = 20000
+            val high = Channel<Int>(capacity = workItems)
+            val low = Channel<Int>(capacity = workItems)
             val consumer = PriorityChannelConsumer(high, low, highPriority)
 
-            repeat(jobs) {
+            repeat(workItems) {
                 high.send(1)
                 low.send(-1)
             }
@@ -125,9 +125,9 @@ class PriorityChannelConsumerTest {
             // Switch dispatcher because runTest skips delay() calls
             launch {
                 var count = 0
-                while (count < jobs * 2) {
-                    val job = consumer.nextJob()
-                    if (job < 0) {
+                while (count < workItems * 2) {
+                    val workItem = consumer.nextWorkItem()
+                    if (workItem < 0) {
                         lowPulled.incrementAndGet()
                     } else {
                         highPulled.incrementAndGet()
@@ -137,7 +137,7 @@ class PriorityChannelConsumerTest {
                 }
             }.join()
 
-            lowPulled.get() shouldBe jobs
-            highPulled.get() shouldBe jobs
+            lowPulled.get() shouldBe workItems
+            highPulled.get() shouldBe workItems
         }
 }

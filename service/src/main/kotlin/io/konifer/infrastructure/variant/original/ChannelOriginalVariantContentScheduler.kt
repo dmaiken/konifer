@@ -2,18 +2,18 @@ package io.konifer.infrastructure.variant.original
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
-import io.konifer.infrastructure.variant.ImageProcessingJob
-import io.konifer.infrastructure.variant.ProcessOriginalVariantContentJob
+import io.konifer.infrastructure.work.ProcessOriginalVariantContentWorkItem
+import io.konifer.infrastructure.work.WorkItem
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import java.nio.file.Path
 
 class ChannelOriginalVariantContentScheduler(
-    private val highPriorityChannel: Channel<ImageProcessingJob<*>>,
+    private val highPriorityChannel: Channel<WorkItem<*>>,
 ) : OriginalVariantContentProcessor {
     override suspend fun process(
         sourceFormat: ImageFormat,
@@ -21,10 +21,10 @@ class ChannelOriginalVariantContentScheduler(
         source: Path,
         transformationDataContainer: TransformationDataContainer,
         uploadRuleset: UploadRuleset,
-    ): CompletableDeferred<ContentProcessorResult> {
-        val deferred = CompletableDeferred<ContentProcessorResult>()
+    ): CompletableDeferred<UploadRuleDecision> {
+        val deferred = CompletableDeferred<UploadRuleDecision>()
         highPriorityChannel.send(
-            ProcessOriginalVariantContentJob(
+            ProcessOriginalVariantContentWorkItem(
                 source = source,
                 sourceFormat = sourceFormat,
                 lqipImplementations = lqipImplementations,

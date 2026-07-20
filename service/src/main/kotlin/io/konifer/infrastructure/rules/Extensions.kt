@@ -4,11 +4,14 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigObject
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.domain.rules.RuleName
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
-import kotlin.collections.buildMap
 import kotlin.math.sqrt
 
 fun FloatArray.l2Normalize(): FloatArray {
@@ -24,24 +27,32 @@ fun FloatArray.l2Normalize(): FloatArray {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Config.getRuleDefinitions(): Map<String, RuleDefinition> =
+fun Config.getRuleDefinitions(): List<RuleDefinition> =
     try {
-        buildMap {
-            this@getRuleDefinitions
-                .takeIf { it.hasPath(ConfigurationPropertyKeys.RULE_DEFINITIONS) }
-                ?.getConfig(ConfigurationPropertyKeys.RULE_DEFINITIONS)
-                ?.root()
-                ?.forEach { (ruleName, ruleDefinition) ->
-                    if (contains(ruleName)) {
-                        throw IllegalArgumentException("Rule name: '$ruleName' already exists")
-                    }
-                    val rootNodeConfig =
-                        (ruleDefinition as? ConfigObject)?.toConfig()
-                            ?: throw IllegalArgumentException("Configuration for rule '$ruleName' must be an object")
+        this@getRuleDefinitions
+            .takeIf { it.hasPath(ConfigurationPropertyKeys.RULE_DEFINITIONS) }
+            ?.getConfig(ConfigurationPropertyKeys.RULE_DEFINITIONS)
+            ?.root()
+            ?.map { (ruleName, ruleDefinition) ->
+                val rootNodeConfig =
+                    (ruleDefinition as? ConfigObject)?.toConfig()
+                        ?: throw IllegalArgumentException("Configuration for rule '$ruleName' must be an object")
+                val config = Hocon.decodeFromConfig<ConfiguredRuleDefinition>(rootNodeConfig)
 
-                    put(ruleName, Hocon.decodeFromConfig<RuleDefinition>(rootNodeConfig))
-                }
-        }
+                RuleDefinition(
+                    name = RuleName(ruleName),
+                    prompts = config.prompts,
+                    threshold = config.threshold,
+                )
+            } ?: emptyList()
     } catch (e: ConfigException) {
         throw IllegalArgumentException("Failed to populate rules: ${e.message}", e)
     }
+
+@Serializable
+private data class ConfiguredRuleDefinition(
+    @SerialName(ConfigurationPropertyKeys.RuleDefinitionPropertyKeys.PROMPTS)
+    val prompts: List<String>,
+    @SerialName(ConfigurationPropertyKeys.RuleDefinitionPropertyKeys.THRESHOLD)
+    val threshold: RuleDefinitionThreshold,
+)

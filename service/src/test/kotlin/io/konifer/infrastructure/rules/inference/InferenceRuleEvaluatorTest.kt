@@ -2,9 +2,10 @@ package io.konifer.infrastructure.rules.inference
 
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.domain.rules.RuleName
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
-import io.konifer.infrastructure.variant.ImageTensor
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
@@ -255,6 +256,7 @@ class InferenceRuleEvaluatorTest {
         threshold: Double,
     ): RuleDefinition =
         RuleDefinition(
+            name = RuleName(prompts.first()),
             prompts = prompts,
             threshold = RuleDefinitionThreshold(threshold),
         )

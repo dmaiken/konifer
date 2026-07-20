@@ -8,6 +8,8 @@ import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.TemporaryFileFactory
+import io.konifer.infrastructure.work.GenerateVariantsWorkItem
+import io.konifer.infrastructure.work.WorkItem
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
@@ -24,8 +26,8 @@ import org.junit.jupiter.params.provider.EnumSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrioritizedChannelVariantGeneratorTest {
-    val highPriorityChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
-    val backgroundChannel = Channel<ImageProcessingJob<*>>(UNLIMITED)
+    val highPriorityChannel = Channel<WorkItem<*>>(UNLIMITED)
+    val backgroundChannel = Channel<WorkItem<*>>(UNLIMITED)
 
     val scheduler: VariantGenerator =
         PrioritizedChannelVariantGenerator(
@@ -59,7 +61,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             val sent = backgroundChannel.receiveCatching().getOrNull()
             sent shouldNotBe null
-            with(sent!! as GenerateVariantsJob) {
+            with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
@@ -92,7 +94,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             val sent = highPriorityChannel.receiveCatching().getOrNull()
             sent shouldNotBe null
-            with(sent!! as GenerateVariantsJob) {
+            with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations

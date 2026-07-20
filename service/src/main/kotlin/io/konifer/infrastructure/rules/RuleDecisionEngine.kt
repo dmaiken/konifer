@@ -3,9 +3,8 @@ package io.konifer.infrastructure.rules
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.merge
 import io.konifer.domain.rules.RuleDecision
-import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleViolationResponse
-import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
 import io.konifer.domain.rules.upload.UploadRuleset
@@ -13,17 +12,17 @@ import io.konifer.domain.rules.upload.UploadRuleset
 object RuleDecisionEngine {
     fun makeDecision(
         uploadRuleset: UploadRuleset,
-        definitionsByRule: Map<UploadRule, RuleDefinition>,
-        evaluationResult: RulesetEvaluationResult,
+        evaluationResult: RuleDefinitionsEvaluationResult,
     ): RuleDecision {
-        val evaluationResultsByDefinition = evaluationResult.results.associateBy { it.ruleDefinition }
+        val evaluationResultsByRuleName = evaluationResult.results.associateBy { it.ruleDefinition.name }
 
         val matchedAcceptanceRules = mutableListOf<RuleViolationResponse?>()
         val matchedLabelRules = mutableListOf<AssetLabels>()
-        definitionsByRule
-            .forEach { (rule, ruleDefinition) ->
+        uploadRuleset
+            .rulesToDecision()
+            .forEach { rule ->
                 val result =
-                    evaluationResultsByDefinition[ruleDefinition]
+                    evaluationResultsByRuleName[rule.rule]
                         ?: throw IllegalStateException("Missing evaluation result for: ${rule.rule}")
 
                 if (result.evaluationScore.matched) {
@@ -54,4 +53,10 @@ object RuleDecisionEngine {
             }
         }
     }
+
+    private fun UploadRuleset.rulesToDecision(): List<UploadRule> =
+        when (default) {
+            DefaultRuleAction.ACCEPT -> rejectRules
+            DefaultRuleAction.REJECT -> acceptRules
+        } + labelRules
 }

@@ -3,6 +3,7 @@ package io.konifer.infrastructure.rules.inference.embedding
 import ai.onnxruntime.OrtEnvironment
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.domain.rules.RuleName
 import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
@@ -37,10 +38,12 @@ class Siglip2RulePromptEmbeddingServiceTest {
     private val ruleDefinitions =
         listOf(
             RuleDefinition(
+                name = RuleName("test-prompt"),
                 prompts = listOf(prompt1),
                 threshold = RuleDefinitionThreshold(0.5),
             ),
             RuleDefinition(
+                name = RuleName("another-test-prompt"),
                 prompts = listOf(prompt2),
                 threshold = RuleDefinitionThreshold(0.9),
             ),
@@ -131,6 +134,7 @@ class Siglip2RulePromptEmbeddingServiceTest {
                 ruleDefinitions =
                     listOf(
                         RuleDefinition(
+                            name = RuleName("test-prompt"),
                             prompts = listOf(prompt1),
                             threshold = RuleDefinitionThreshold(0.5),
                         ),

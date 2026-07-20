@@ -5,13 +5,15 @@ import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.work.GenerateVariantsWorkItem
+import io.konifer.infrastructure.work.WorkItem
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import java.nio.file.Path
 
 class PrioritizedChannelVariantGenerator(
-    private val highPriorityChannel: Channel<ImageProcessingJob<*>>,
-    private val backgroundChannel: Channel<ImageProcessingJob<*>>,
+    private val highPriorityChannel: Channel<WorkItem<*>>,
+    private val backgroundChannel: Channel<WorkItem<*>>,
 ) : VariantGenerator {
     override suspend fun generateVariantsFromSource(
         source: Path,
@@ -27,7 +29,7 @@ class PrioritizedChannelVariantGenerator(
         }
         val deferred = CompletableDeferred<Unit>()
         val job =
-            GenerateVariantsJob(
+            GenerateVariantsWorkItem(
                 source = source,
                 transformationDataContainers = transformationDataContainers,
                 lqipImplementations = lqipImplementations,
