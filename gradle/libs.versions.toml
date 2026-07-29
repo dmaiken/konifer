@@ -35,7 +35,7 @@ kotlinx-datetime-version = "0.8.0"
 metadata-extractor-version = "2.21.0"
 kover-version = "0.9.9"
 cryptography-kotlin-version = "0.6.0"
-onnx-runtime-version = "1.27.0"
+onnx-runtime-version = "1.28.0"
 huggingface-tokenizers-version = "0.36.0"
 
 [libraries]
