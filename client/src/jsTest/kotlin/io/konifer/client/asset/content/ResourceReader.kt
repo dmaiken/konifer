@@ -1,4 +1,4 @@
-package io.konifer.client.content
+package io.konifer.client.asset.content
 
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
@@ -16,7 +16,7 @@ actual fun readResourceBytes(path: String): ByteArray {
             pathModule.resolve(js("__dirname"), cleanPath),
             // At the root of the generated NPM test package
             pathModule.resolve(js("__dirname"), "../", cleanPath),
-            // Hard fallback to your actual source directory
+            // Hard fallback to the actual source directory
             pathModule.resolve(js("__dirname"), "../../../../../client/src/commonTest/resources", cleanPath),
         ).unsafeCast<Array<String>>()
 

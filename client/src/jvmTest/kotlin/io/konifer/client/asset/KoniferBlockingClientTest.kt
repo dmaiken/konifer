@@ -1,5 +1,13 @@
-package io.konifer.client
+package io.konifer.client.asset
 
+import io.konifer.client.AssetContentRequestOptions
+import io.konifer.client.ContentFetchMode
+import io.konifer.client.EntryId
+import io.konifer.client.KoniferBlockingClient
+import io.konifer.client.KoniferClient
+import io.konifer.client.KoniferResponse
+import io.konifer.client.OrderBy
+import io.konifer.client.RequestedTransformation
 import io.konifer.client.asset.content.configureMockEngineHappy
 import io.konifer.client.asset.content.configureMockEngineHappyRedirect
 import io.konifer.client.asset.content.readResourceBytes

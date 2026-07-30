@@ -7,22 +7,20 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
-class FileSystemObjectStoreTest : ObjectStoreTest() {
+open class FileSystemObjectStoreTest : ObjectStoreTest() {
     val mountPath: Path =
         Paths
             .get(System.getProperty("java.io.tmpdir"))
             .resolve("object-store-test")
             .resolve("mnt")
 
-    @BeforeEach
-    fun beforeEach() {
+    override fun beforeCreateObjectStore() {
         if (!Files.exists(mountPath.parent)) {
             Files.createDirectories(mountPath.parent)
         }

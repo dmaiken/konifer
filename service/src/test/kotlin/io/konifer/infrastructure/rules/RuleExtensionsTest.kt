@@ -3,8 +3,10 @@ package io.konifer.infrastructure.rules
 import com.typesafe.config.ConfigFactory
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -37,7 +39,7 @@ class RuleExtensionsTest {
         ruleDefinitions shouldHaveSize 1
         with(ruleDefinitions.single()) {
             name shouldBe RuleName("joshua-tree")
-            prompts shouldBe listOf("a joshua tree", "joshua tree national park")
+            prompts shouldContainExactly listOf(RulePrompt("a joshua tree"), RulePrompt("joshua tree national park"))
             threshold shouldBe RuleDefinitionThreshold(0.7)
         }
     }
@@ -64,11 +66,11 @@ class RuleExtensionsTest {
 
         ruleDefinitionsByName.keys shouldBe setOf(RuleName("joshua-tree"), RuleName("kermit-the-frog"))
         with(ruleDefinitionsByName.getValue(RuleName("joshua-tree"))) {
-            prompts shouldBe listOf("a joshua tree")
+            prompts shouldContainExactly listOf(RulePrompt("a joshua tree"))
             threshold shouldBe RuleDefinitionThreshold(0.7)
         }
         with(ruleDefinitionsByName.getValue(RuleName("kermit-the-frog"))) {
-            prompts shouldBe listOf("Kermit the frog")
+            prompts shouldContainExactly listOf(RulePrompt("Kermit the frog"))
             threshold shouldBe RuleDefinitionThreshold(0.8)
         }
     }
