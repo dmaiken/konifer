@@ -4,6 +4,7 @@ import io.konifer.domain.rules.EvaluationScore
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
@@ -28,18 +29,16 @@ class InferenceRuleEvaluator(
 
         return ruleDefinitions
             .map { ruleDefinition ->
-                val promptScores = mutableMapOf<String, Double>()
+                val promptScores = mutableMapOf<RulePrompt, Double>()
                 var score: Double = -1.0
-                ruleDefinition.prompts.forEach { prompt ->
-                    val promptValue = prompt.prompt
-                    val embeddings = rulePromptEmbeddingService.generateEmbeddings(promptValue)
-
+                val embeddedDefinitionPrompts = rulePromptEmbeddingService.generateEmbeddings(ruleDefinition.prompts)
+                embeddedDefinitionPrompts.forEach { (prompt, embedding) ->
                     val promptScore =
                         similarityScorer.score(
-                            promptEmbedding = embeddings,
+                            promptEmbedding = embedding,
                             contentEmbedding = contentEmbedding,
                         )
-                    promptScores[promptValue] = promptScore
+                    promptScores[prompt] = promptScore
                     score = max(score, promptScore)
                 }
 

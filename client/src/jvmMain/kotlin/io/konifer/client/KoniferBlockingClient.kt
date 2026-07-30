@@ -2,6 +2,8 @@ package io.konifer.client
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.EvaluateRuleDefinitionsRequest
+import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.ktor.utils.io.ByteChannel
@@ -203,6 +205,39 @@ class KoniferBlockingClient internal constructor(
                 querySelectors = querySelectors,
                 labels = labels,
                 limit = limit,
+            )
+        }
+
+    fun evaluateRules(request: EvaluateRuleDefinitionsRequest): KoniferResponse<EvaluateRuleDefinitionsResponse> =
+        runBlocking {
+            client.evaluateRules(
+                request = request,
+            )
+        }
+
+    fun evaluateRules(
+        request: EvaluateRuleDefinitionsRequest,
+        format: ImageFormat,
+        bytes: ByteArray,
+    ): KoniferResponse<EvaluateRuleDefinitionsResponse> =
+        runBlocking {
+            client.evaluateRules(
+                request = request,
+                format = format,
+                bytes = bytes,
+            )
+        }
+
+    fun evaluateRules(
+        request: EvaluateRuleDefinitionsRequest,
+        format: ImageFormat,
+        inputStream: InputStream,
+    ): KoniferResponse<EvaluateRuleDefinitionsResponse> =
+        runBlocking {
+            client.evaluateRules(
+                request = request,
+                format = format,
+                channel = inputStream.toByteReadChannel(),
             )
         }
 

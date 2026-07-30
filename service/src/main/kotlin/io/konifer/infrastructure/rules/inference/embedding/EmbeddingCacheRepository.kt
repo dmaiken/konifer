@@ -3,11 +3,13 @@ package io.konifer.infrastructure.rules.inference.embedding
 import io.konifer.infrastructure.rules.inference.EmbeddingModel
 
 interface EmbeddingCacheRepository {
-    suspend fun fetchAll(embeddingModel: EmbeddingModel): Map<String, FloatArray>
-
-    suspend fun store(
+    suspend fun fetch(
+        prompts: List<String>,
         embeddingModel: EmbeddingModel,
-        prompt: String,
-        embeddings: FloatArray,
+    ): Map<String, FloatArray>
+
+    suspend fun storeAll(
+        embeddingModel: EmbeddingModel,
+        prompts: Map<String, FloatArray>,
     )
 }

@@ -38,7 +38,7 @@ class InferenceRuleEvaluatorTest {
 
         result.results shouldBe emptyList()
         verify(exactly = 0) { contentEmbeddingService.generateEmbeddings(any()) }
-        verify(exactly = 0) { rulePromptEmbeddingService.generateEmbeddings(any()) }
+        verify(exactly = 0) { rulePromptEmbeddingService.generateEmbeddings(any<List<RulePrompt>>()) }
     }
 
     @Test
@@ -50,8 +50,10 @@ class InferenceRuleEvaluatorTest {
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
         val dogEmbedding = floatArrayOf(0.9f, 0.0f)
         val catEmbedding = floatArrayOf(0.7f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
-        every { rulePromptEmbeddingService.generateEmbeddings("cat") } returns catEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings(matchingRule.prompts) } returns
+            promptEmbeddings(matchingRule.prompts, dogEmbedding)
+        every { rulePromptEmbeddingService.generateEmbeddings(nonMatchingRule.prompts) } returns
+            promptEmbeddings(nonMatchingRule.prompts, catEmbedding)
         every {
             similarityScorer.score(
                 promptEmbedding = dogEmbedding,
@@ -82,8 +84,8 @@ class InferenceRuleEvaluatorTest {
         result.results[1].evaluationScore.matched shouldBe false
 
         verify(exactly = 1) { contentEmbeddingService.generateEmbeddings(tensor) }
-        verify(exactly = 1) { rulePromptEmbeddingService.generateEmbeddings("dog") }
-        verify(exactly = 1) { rulePromptEmbeddingService.generateEmbeddings("cat") }
+        verify(exactly = 1) { rulePromptEmbeddingService.generateEmbeddings(matchingRule.prompts) }
+        verify(exactly = 1) { rulePromptEmbeddingService.generateEmbeddings(nonMatchingRule.prompts) }
         verify(exactly = 1) { similarityScorer.score(dogEmbedding, contentEmbedding) }
         verify(exactly = 1) { similarityScorer.score(catEmbedding, contentEmbedding) }
     }
@@ -95,7 +97,7 @@ class InferenceRuleEvaluatorTest {
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
         val dogEmbedding = floatArrayOf(0.8f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings(rule.prompts) } returns promptEmbeddings(rule.prompts, dogEmbedding)
         every {
             similarityScorer.score(
                 promptEmbedding = dogEmbedding,
@@ -124,11 +126,10 @@ class InferenceRuleEvaluatorTest {
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
         val dogEmbedding = floatArrayOf(0.7f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
         val catEmbedding = floatArrayOf(0.8f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("cat") } returns catEmbedding
         val snakeEmbedding = floatArrayOf(0.5f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("snake") } returns snakeEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings(rule.prompts) } returns
+            promptEmbeddings(rule.prompts, dogEmbedding, catEmbedding, snakeEmbedding)
         every {
             similarityScorer.score(
                 promptEmbedding = dogEmbedding,
@@ -169,7 +170,7 @@ class InferenceRuleEvaluatorTest {
         val contentEmbedding = floatArrayOf(1.0f, 0.0f)
         every { contentEmbeddingService.generateEmbeddings(tensor) } returns contentEmbedding
         val dogEmbedding = floatArrayOf(1.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings(rule.prompts) } returns promptEmbeddings(rule.prompts, dogEmbedding)
         every {
             similarityScorer.score(
                 promptEmbedding = dogEmbedding,
@@ -196,10 +197,10 @@ class InferenceRuleEvaluatorTest {
         val catEmbedding = floatArrayOf(0.7f, 0.0f)
         val niceDogEmbedding = floatArrayOf(0.4f, 0.0f)
         val niceCatEmbedding = floatArrayOf(0.3f, 0.0f)
-        every { rulePromptEmbeddingService.generateEmbeddings("dog") } returns dogEmbedding
-        every { rulePromptEmbeddingService.generateEmbeddings("nice dog") } returns niceDogEmbedding
-        every { rulePromptEmbeddingService.generateEmbeddings("cat") } returns catEmbedding
-        every { rulePromptEmbeddingService.generateEmbeddings("nice cat") } returns niceCatEmbedding
+        every { rulePromptEmbeddingService.generateEmbeddings(matchingRule.prompts) } returns
+            promptEmbeddings(matchingRule.prompts, dogEmbedding, niceDogEmbedding)
+        every { rulePromptEmbeddingService.generateEmbeddings(nonMatchingRule.prompts) } returns
+            promptEmbeddings(nonMatchingRule.prompts, catEmbedding, niceCatEmbedding)
         every {
             similarityScorer.score(
                 promptEmbedding = dogEmbedding,
@@ -238,19 +239,24 @@ class InferenceRuleEvaluatorTest {
         result.results[0].evaluationScore.matched shouldBe true
         result.results[0].promptScores shouldContainExactly
             mapOf(
-                "dog" to 0.9,
-                "nice dog" to 0.4,
+                RulePrompt("dog") to 0.9,
+                RulePrompt("nice dog") to 0.4,
             )
 
         result.results[1].ruleDefinition shouldBe nonMatchingRule
         result.results[1].evaluationScore.score shouldBe (0.7 plusOrMinus 0.000001)
         result.results[1].promptScores shouldContainExactly
             mapOf(
-                "cat" to 0.7,
-                "nice cat" to 0.3,
+                RulePrompt("cat") to 0.7,
+                RulePrompt("nice cat") to 0.3,
             )
         result.results[1].evaluationScore.matched shouldBe false
     }
+
+    private fun promptEmbeddings(
+        prompts: List<RulePrompt>,
+        vararg embeddings: FloatArray,
+    ): Map<RulePrompt, FloatArray> = prompts.zip(embeddings).toMap()
 
     private fun ruleDefinition(
         prompts: List<String>,

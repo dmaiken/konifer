@@ -11,7 +11,7 @@ data class RuleDefinitionsEvaluationResult(
 data class RuleEvaluationResult(
     val ruleDefinition: RuleDefinition,
     val evaluationScore: EvaluationScore,
-    val promptScores: Map<String, Double>,
+    val promptScores: Map<RulePrompt, Double>,
 )
 
 data class EvaluationScore(

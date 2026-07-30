@@ -4,6 +4,8 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.KoniferTestHandle
 import io.konifer.TestImageType
+import io.konifer.common.http.EvaluateRuleDefinitionsRequest
+import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.matchers.shouldBeSuccessful
@@ -392,5 +394,35 @@ class UploadRulesTest : BaseFunctionalTest() {
                             StoreAssetRequest(),
                     ).shouldBeSuccessful()
             response.body.labels shouldBe emptyMap()
+        }
+
+    /**
+     * Test that even if Upload Rules are configured, the Rule Evaluation API is still
+     * disabled unless enabled through configuration
+     */
+    @Test
+    fun `rule evaluation API is still disabled unless explicitly enabled`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer()
+                .evaluateRules(
+                    format = attributes.format,
+                    bytes = image,
+                    request =
+                        EvaluateRuleDefinitionsRequest(
+                            definitions =
+                                listOf(
+                                    RuleDefinitionRequest(
+                                        name = "one",
+                                        prompts =
+                                            listOf(
+                                                "a joshua tree",
+                                            ),
+                                        threshold = 0.99,
+                                    ),
+                                ),
+                        ),
+                ).shouldHaveHttpError(404)
         }
 }

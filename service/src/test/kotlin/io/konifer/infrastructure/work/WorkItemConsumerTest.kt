@@ -371,7 +371,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                                 RuleEvaluationResult(
                                     ruleDefinition = ruleDefinitions.single(),
                                     evaluationScore = EvaluationScore(score = 0.9, matched = true),
-                                    promptScores = mapOf("contains a tree" to 0.9),
+                                    promptScores = mapOf(RulePrompt("contains a tree") to 0.9),
                                 ),
                             ),
                     )

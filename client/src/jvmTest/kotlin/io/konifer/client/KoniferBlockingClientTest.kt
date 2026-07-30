@@ -1,15 +1,15 @@
 package io.konifer.client
 
-import io.konifer.client.content.configureMockEngineHappy
-import io.konifer.client.content.configureMockEngineHappyRedirect
-import io.konifer.client.content.readResourceBytes
+import io.konifer.client.asset.content.configureMockEngineHappy
+import io.konifer.client.asset.content.configureMockEngineHappyRedirect
+import io.konifer.client.asset.content.readResourceBytes
+import io.konifer.client.asset.info.createInfoResponse
+import io.konifer.client.asset.link.createLinkResponse
+import io.konifer.client.asset.store.configureMockMultipartEngineHappy
+import io.konifer.client.asset.store.configureMockUrlEngineHappy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.client.info.createInfoResponse
-import io.konifer.client.link.createLinkResponse
-import io.konifer.client.store.configureMockMultipartEngineHappy
-import io.konifer.client.store.configureMockUrlEngineHappy
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -25,11 +25,11 @@ import io.ktor.http.HttpStatusCode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.cancellation.CancellationException
-import io.konifer.client.delete.configureMockEngineHappy as configureMockDeleteEngineHappy
-import io.konifer.client.info.configureMockEngineHappy as configureMockMetadataEngineHappy
-import io.konifer.client.link.configureMockEngineHappy as configureMockLinkEngineHappy
-import io.konifer.client.redirect.configureMockEngineHappyRedirect as configureMockRedirectLocationEngineHappy
-import io.konifer.client.update.configureMockEngineHappy as configureMockUpdateEngineHappy
+import io.konifer.client.asset.delete.configureMockEngineHappy as configureMockDeleteEngineHappy
+import io.konifer.client.asset.info.configureMockEngineHappy as configureMockMetadataEngineHappy
+import io.konifer.client.asset.link.configureMockEngineHappy as configureMockLinkEngineHappy
+import io.konifer.client.asset.redirect.configureMockEngineHappyRedirect as configureMockRedirectLocationEngineHappy
+import io.konifer.client.asset.update.configureMockEngineHappy as configureMockUpdateEngineHappy
 
 class KoniferBlockingClientTest :
     FunSpec({

@@ -6,6 +6,7 @@ value class RulePrompt private constructor(
 ) {
     init {
         require(prompt.isNotBlank()) { "Prompt must not be empty." }
+        require(prompt.length <= 256) { "Prompt must not exceed 256 characters." }
     }
 
     companion object {

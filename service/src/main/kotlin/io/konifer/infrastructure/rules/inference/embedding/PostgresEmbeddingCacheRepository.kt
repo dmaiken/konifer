@@ -15,11 +15,17 @@ import kotlin.uuid.toJavaUuid
 class PostgresEmbeddingCacheRepository(
     private val dslContext: DSLContext,
 ) : EmbeddingCacheRepository {
-    override suspend fun fetchAll(embeddingModel: EmbeddingModel): Map<String, FloatArray> =
-        dslContext
+    override suspend fun fetch(
+        prompts: List<String>,
+        embeddingModel: EmbeddingModel,
+    ): Map<String, FloatArray> {
+        if (prompts.isEmpty()) return emptyMap()
+
+        return dslContext
             .select(PROMPT_EMBEDDING.PROMPT_TEXT, PROMPT_EMBEDDING.EMBEDDING)
             .from(PROMPT_EMBEDDING)
             .where(PROMPT_EMBEDDING.MODEL.eq(embeddingModel.name))
+            .and(PROMPT_EMBEDDING.PROMPT_TEXT.`in`(prompts))
             .asFlow()
             .associate { record ->
                 val prompt =
@@ -33,21 +39,35 @@ class PostgresEmbeddingCacheRepository(
 
                 prompt to embedding.toFloatArray(prompt)
             }
+    }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun store(
+    override suspend fun storeAll(
         embeddingModel: EmbeddingModel,
-        prompt: String,
-        embeddings: FloatArray,
+        prompts: Map<String, FloatArray>,
     ) {
-        val embeddingArray: Array<Float?> = Array(embeddings.size) { index -> embeddings[index] }
-        dslContext
-            .insertInto(PROMPT_EMBEDDING)
-            .set(PROMPT_EMBEDDING.ID, Uuid.generateV7().toJavaUuid())
-            .set(PROMPT_EMBEDDING.MODEL, embeddingModel.name)
-            .set(PROMPT_EMBEDDING.PROMPT_TEXT, prompt)
-            .set(PROMPT_EMBEDDING.EMBEDDING, embeddingArray)
-            .set(PROMPT_EMBEDDING.CREATED_AT, LocalDateTime.now(UTC))
+        if (prompts.isEmpty()) return
+
+        val insert =
+            dslContext.insertInto(
+                PROMPT_EMBEDDING,
+                PROMPT_EMBEDDING.ID,
+                PROMPT_EMBEDDING.MODEL,
+                PROMPT_EMBEDDING.PROMPT_TEXT,
+                PROMPT_EMBEDDING.EMBEDDING,
+                PROMPT_EMBEDDING.CREATED_AT,
+            )
+        prompts.forEach { (prompt, embeddings) ->
+            insert.values(
+                Uuid.generateV7().toJavaUuid(),
+                embeddingModel.name,
+                prompt,
+                embeddings.toPostgresArray(),
+                LocalDateTime.now(UTC),
+            )
+        }
+
+        insert
             .onConflict(PROMPT_EMBEDDING.MODEL, PROMPT_EMBEDDING.PROMPT_TEXT)
             .doNothing()
             .awaitFirstOrNull()
@@ -59,4 +79,6 @@ class PostgresEmbeddingCacheRepository(
                 "Prompt embedding for '$prompt' contained null at index $index"
             }
         }
+
+    private fun FloatArray.toPostgresArray(): Array<Float?> = Array(size) { index -> this[index] }
 }

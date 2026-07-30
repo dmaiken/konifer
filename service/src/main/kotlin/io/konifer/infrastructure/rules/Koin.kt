@@ -7,13 +7,14 @@ import io.konifer.domain.ports.RuleEvaluationProcessor
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.infrastructure.datastore.DataStoreProvider
 import io.konifer.infrastructure.rules.evaluate.ChannelRuleEvaluationProcessor
+import io.konifer.infrastructure.rules.evaluate.RuleDefinitionEvaluationService
 import io.konifer.infrastructure.rules.inference.InferenceRuleEvaluator
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2LogitSimilarityScorer
 import io.konifer.infrastructure.rules.inference.SimilarityScorer
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.EmbeddingCacheRepository
-import io.konifer.infrastructure.rules.inference.embedding.NoOpEmbeddingCacheRepository
+import io.konifer.infrastructure.rules.inference.embedding.InMemoryEmbeddingCacheRepository
 import io.konifer.infrastructure.rules.inference.embedding.PostgresEmbeddingCacheRepository
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.Siglip2ContentEmbeddingService
@@ -38,7 +39,7 @@ fun rulesModule(
             ConfigurationRuleDefinitionRepository(ruleDefinitions)
         }
         when (dataStoreProvider) {
-            DataStoreProvider.IN_MEMORY -> single<NoOpEmbeddingCacheRepository>() bind EmbeddingCacheRepository::class
+            DataStoreProvider.IN_MEMORY -> single<InMemoryEmbeddingCacheRepository>() bind EmbeddingCacheRepository::class
             DataStoreProvider.POSTGRES -> single<PostgresEmbeddingCacheRepository>() bind EmbeddingCacheRepository::class
         }
 
@@ -66,6 +67,7 @@ fun rulesModule(
                 onnxSessionFactory = get(),
                 ruleDefinitions = ruleDefinitions,
                 embeddingCacheRepository = get(),
+                allowEmbeddingCacheMiss = shouldEnableEvaluationApi,
             )
         } withOptions {
             createdAtStart()
@@ -78,5 +80,6 @@ fun rulesModule(
                     highPriorityChannel = get(synchronousChannel),
                 )
             } bind RuleEvaluationProcessor::class
+            single<RuleDefinitionEvaluationService>()
         }
     }

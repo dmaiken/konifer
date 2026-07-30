@@ -1,4 +1,4 @@
-package io.konifer.client.content
+package io.konifer.client.asset.content
 
 actual fun readResourceBytes(path: String): ByteArray {
     // We use an anonymous object to get a reference to the classloader
