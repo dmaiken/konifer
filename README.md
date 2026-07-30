@@ -6,7 +6,7 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmaiken/konifer/build.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
 Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style

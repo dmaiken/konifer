@@ -4,6 +4,7 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.rules.inference.EmbeddingModel
 import io.konifer.infrastructure.rules.inference.OnnxSessionFactory
 import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
@@ -18,17 +19,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.nio.LongBuffer
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.measureTimedValue
 
 class Siglip2RulePromptEmbeddingService(
-    ortEnvironment: OrtEnvironment,
+    private val ortEnvironment: OrtEnvironment,
     onnxSessionFactory: OnnxSessionFactory,
     ruleDefinitions: List<RuleDefinition>,
     private val embeddingCacheRepository: EmbeddingCacheRepository,
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val tokenizerFactory: () -> Siglip2Tokenizer = ::Siglip2Tokenizer,
+    private val allowEmbeddingCacheMiss: Boolean = true,
 ) : RulePromptEmbeddingService,
     AutoCloseable {
     companion object {
@@ -42,39 +45,132 @@ class Siglip2RulePromptEmbeddingService(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
-    private val rulePromptEmbeddings = ConcurrentHashMap<String, FloatArray>()
+    private val ortSession =
+        lazy {
+            if (allowEmbeddingCacheMiss) {
+                onnxSessionFactory.create(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
+            } else {
+                null
+            }
+        }
+    private val tokenizer =
+        lazy {
+            if (allowEmbeddingCacheMiss) tokenizerFactory() else null
+        }
+
+    private val embeddingGenerationMutex = Mutex()
+
     private val warmupJob =
         scope.async {
-            val prompts =
+            val promptKeys =
                 ruleDefinitions
                     .flatMap { it.prompts }
-                    .map(::preprocessPrompt)
-                    .distinct()
+                    .map(::toPromptEmbeddingKey)
+                    .distinctBy { it.cacheKey }
 
-            if (prompts.isEmpty()) return@async
+            if (promptKeys.isEmpty()) return@async
 
             // fetch cached embeddings and see if we even need the session/tokenizer
             val cached =
-                embeddingCacheRepository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT).also {
-                    rulePromptEmbeddings.putAll(it)
-                }
-            val promptsRequiringGeneration = prompts.filterNot { cached.containsKey(it) }
+                embeddingCacheRepository.fetch(
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                    prompts = promptKeys.map { it.cacheKey },
+                )
+            val promptsRequiringGeneration = promptKeys.filterNot { cached.containsKey(it.cacheKey) }
             if (promptsRequiringGeneration.isNotEmpty()) {
+                val tokenizer = tokenizer.value ?: tokenizerFactory()
+                val session = ortSession.value ?: onnxSessionFactory.create(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
                 generateAndCacheEmbeddings(
                     ortEnvironment = ortEnvironment,
-                    onnxSessionFactory = onnxSessionFactory,
-                    prompts = promptsRequiringGeneration,
+                    prompts = promptsRequiringGeneration.map { it.cacheKey },
+                    session = session,
+                    tokenizer = tokenizer,
+                    terminateEmbeddingResources = !allowEmbeddingCacheMiss,
                 )
             } else {
                 logger.info("All prompts found in embedding cache, skipping siglip2 text model initialization")
             }
         }
 
-    override fun generateEmbeddings(prompt: String): FloatArray {
-        val preprocessed = preprocessPrompt(prompt)
+    override fun generateEmbeddings(prompts: List<RulePrompt>): Map<RulePrompt, FloatArray> =
+        runBlocking {
+            val promptKeys = prompts.map(::toPromptEmbeddingKey)
+            if (promptKeys.isEmpty()) return@runBlocking emptyMap()
 
-        rulePromptEmbeddings[preprocessed]?.let { return it }
+            awaitWarmup()
 
+            val distinctCacheKeys = promptKeys.map { it.cacheKey }.distinct()
+            val cachedPrompts =
+                embeddingCacheRepository.fetch(
+                    prompts = distinctCacheKeys,
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                )
+
+            val missingPrompts =
+                distinctCacheKeys
+                    .filterNot { cachedPrompts.containsKey(it) }
+
+            val generatedPrompts =
+                if (missingPrompts.isEmpty()) {
+                    emptyMap()
+                } else {
+                    if (!allowEmbeddingCacheMiss) {
+                        throw IllegalArgumentException(
+                            "Embeddings for prompts were not configured: ${missingPrompts.joinToString()}",
+                        )
+                    }
+                    embeddingGenerationMutex.withLock {
+                        val refreshedPrompts =
+                            embeddingCacheRepository.fetch(
+                                prompts = missingPrompts,
+                                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                            )
+                        val stillMissingPrompts = missingPrompts.filterNot { refreshedPrompts.containsKey(it) }
+                        if (stillMissingPrompts.isEmpty()) {
+                            return@withLock refreshedPrompts
+                        }
+
+                        val session =
+                            checkNotNull(ortSession.value) {
+                                "Text model session was not initialized for prompt embedding cache misses"
+                            }
+                        val tokenizer =
+                            checkNotNull(tokenizer.value) {
+                                "Tokenizer was not initialized for prompt embedding cache misses"
+                            }
+
+                        refreshedPrompts +
+                            generateAndCacheEmbeddings(
+                                ortEnvironment = ortEnvironment,
+                                prompts = stillMissingPrompts,
+                                session = session,
+                                tokenizer = tokenizer,
+                                terminateEmbeddingResources = false,
+                            )
+                    }
+                }
+
+            val embeddingsByCacheKey = cachedPrompts + generatedPrompts
+            promptKeys.associate { promptKey ->
+                promptKey.rulePrompt to
+                    checkNotNull(embeddingsByCacheKey[promptKey.cacheKey]) {
+                        "Embeddings for prompt '${promptKey.rulePrompt.prompt}' were not generated"
+                    }
+            }
+        }
+
+    override fun close() {
+        warmupJob.cancel()
+        scope.cancel()
+        if (ortSession.isInitialized()) {
+            ortSession.value?.close()
+        }
+        if (tokenizer.isInitialized()) {
+            tokenizer.value?.close()
+        }
+    }
+
+    private fun awaitWarmup() {
         try {
             runBlocking {
                 warmupJob.await()
@@ -82,49 +178,47 @@ class Siglip2RulePromptEmbeddingService(
         } catch (e: CancellationException) {
             throw IllegalStateException("Prompt embedding generation was cancelled", e)
         }
-
-        return rulePromptEmbeddings[preprocessed]
-            ?: throw IllegalArgumentException("Embeddings for prompt: '$prompt' were not configured")
-    }
-
-    override fun close() {
-        warmupJob.cancel()
-        scope.cancel()
     }
 
     private suspend fun generateAndCacheEmbeddings(
-        onnxSessionFactory: OnnxSessionFactory,
         ortEnvironment: OrtEnvironment,
         prompts: List<String>,
-    ) {
-        tokenizerFactory().use { tokenizer ->
+        tokenizer: Siglip2Tokenizer,
+        session: OrtSession,
+        terminateEmbeddingResources: Boolean,
+    ): Map<String, FloatArray> {
+        try {
             logger.info("Generating embeddings for ${prompts.size} prompts")
-            onnxSessionFactory.create(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT).use { session ->
-                prompts
-                    .chunked(EMBEDDING_BATCH_SIZE)
-                    .forEach { batch ->
-                        val timed =
-                            measureTimedValue {
-                                generateBatch(
-                                    ortEnvironment = ortEnvironment,
-                                    ortSession = session,
-                                    tokenizer = tokenizer,
-                                    prompts = batch,
-                                )
-                            }
-
-                        rulePromptEmbeddings.putAll(timed.value)
-                        timed.value.forEach { (prompt, embedding) ->
-                            embeddingCacheRepository.store(
-                                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                                prompt = prompt,
-                                embeddings = embedding,
+            val promptEmbeddings = mutableMapOf<String, FloatArray>()
+            prompts
+                .chunked(EMBEDDING_BATCH_SIZE)
+                .forEach { batch ->
+                    val timed =
+                        measureTimedValue {
+                            generateBatch(
+                                ortEnvironment = ortEnvironment,
+                                ortSession = session,
+                                tokenizer = tokenizer,
+                                prompts = batch,
                             )
                         }
-                        logger.info(
-                            "Generated embeddings for ${batch.size} prompts in ${timed.duration.inWholeMilliseconds}ms",
-                        )
-                    }
+
+                    embeddingCacheRepository.storeAll(
+                        embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                        prompts = timed.value,
+                    )
+                    promptEmbeddings.putAll(timed.value)
+
+                    logger.info(
+                        "Generated embeddings for ${batch.size} prompts in ${timed.duration.inWholeMilliseconds}ms",
+                    )
+                }
+
+            return promptEmbeddings
+        } finally {
+            if (terminateEmbeddingResources) {
+                session.close()
+                tokenizer.close()
             }
         }
     }
@@ -209,7 +303,18 @@ class Siglip2RulePromptEmbeddingService(
         }
     }
 
+    private fun toPromptEmbeddingKey(rulePrompt: RulePrompt): PromptEmbeddingKey =
+        PromptEmbeddingKey(
+            rulePrompt = rulePrompt,
+            cacheKey = preprocessPrompt(rulePrompt.prompt),
+        )
+
     private fun preprocessPrompt(prompt: String): String = prompt.trim().lowercase().prependIfMissing(PROMPT_PREFIX)
 
     private fun String.prependIfMissing(prefix: String): String = if (startsWith(prefix)) this else prefix + this
+
+    private data class PromptEmbeddingKey(
+        val rulePrompt: RulePrompt,
+        val cacheKey: String,
+    )
 }

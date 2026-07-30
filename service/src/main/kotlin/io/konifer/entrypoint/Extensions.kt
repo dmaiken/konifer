@@ -9,8 +9,12 @@ import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getLqipHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondBytesWriter
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.asSink
+import io.ktor.utils.io.copyTo
 import java.time.LocalDateTime
 
 suspend fun ApplicationCall.respondContent(
@@ -47,5 +51,20 @@ suspend fun ApplicationCall.respondContent(
             storeKey = objectStoreKey,
             stream = this,
         )
+    }
+}
+
+suspend fun PartData.copyAssetContentTo(assetContentChannel: ByteChannel): Boolean {
+    try {
+        when (this) {
+            is PartData.FileItem -> provider().copyTo(assetContentChannel)
+            is PartData.BinaryChannelItem -> provider().copyTo(assetContentChannel)
+            is PartData.BinaryItem -> provider().transferTo(assetContentChannel.asSink())
+            else -> return false
+        }
+        return true
+    } finally {
+        assetContentChannel.close()
+        release()
     }
 }

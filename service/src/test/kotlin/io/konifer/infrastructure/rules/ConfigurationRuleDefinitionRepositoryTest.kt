@@ -3,6 +3,7 @@ package io.konifer.infrastructure.rules
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -13,7 +14,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
         val ruleDefinition = ruleDefinition(prompts = listOf("an image of a dog"))
         val repository =
             ConfigurationRuleDefinitionRepository(
-                mapOf("dogs only" to ruleDefinition),
+                listOf(ruleDefinition),
             )
 
         repository.fetch(RuleName("dogs only")) shouldBe ruleDefinition
@@ -24,7 +25,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
         val ruleDefinition = ruleDefinition(prompts = listOf("an image of a dog"))
         val repository =
             ConfigurationRuleDefinitionRepository(
-                mapOf("dogs only" to ruleDefinition),
+                listOf(ruleDefinition),
             )
 
         repository.fetch(RuleName("DOGS ONLY")) shouldBe ruleDefinition
@@ -34,7 +35,7 @@ class ConfigurationRuleDefinitionRepositoryTest {
     fun `fetch throws when rule is not configured`() {
         val repository =
             ConfigurationRuleDefinitionRepository(
-                mapOf("cats only" to ruleDefinition(prompts = listOf("an image of a cat"))),
+                listOf(ruleDefinition(name = "cats only", prompts = listOf("an image of a cat"))),
             )
 
         shouldThrow<IllegalArgumentException> {
@@ -42,9 +43,25 @@ class ConfigurationRuleDefinitionRepositoryTest {
         }.message shouldBe "Rule with name: 'dogs only' not found"
     }
 
-    private fun ruleDefinition(prompts: List<String>): RuleDefinition =
+    @Test
+    fun `constructor rejects duplicate rule names`() {
+        shouldThrow<IllegalArgumentException> {
+            ConfigurationRuleDefinitionRepository(
+                listOf(
+                    ruleDefinition(name = "dogs only", prompts = listOf("an image of a dog")),
+                    ruleDefinition(name = "DOGS ONLY", prompts = listOf("another image of a dog")),
+                ),
+            )
+        }.message shouldBe "Rule name: 'dogs only' already exists"
+    }
+
+    private fun ruleDefinition(
+        name: String = "dogs only",
+        prompts: List<String>,
+    ): RuleDefinition =
         RuleDefinition(
-            prompts = prompts,
+            name = RuleName(name),
+            prompts = prompts.map { RulePrompt(it) },
             threshold = RuleDefinitionThreshold(0.8),
         )
 }

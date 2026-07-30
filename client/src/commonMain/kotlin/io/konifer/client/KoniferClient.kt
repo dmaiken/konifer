@@ -2,6 +2,8 @@ package io.konifer.client
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.EvaluateRuleDefinitionsRequest
+import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
@@ -42,7 +44,10 @@ class KoniferClient internal constructor(
 ) {
     companion object {
         private const val ASSETS_BASE_PATH = "assets"
+        private const val RULE_EVALUATIONS_PATH = "/rule-evaluations"
         private const val BOUNDARY = "boundary"
+        private const val ASSET_FORM_KEY = "asset"
+        private const val METADATA_FORM_KEY = "metadata"
 
         suspend fun build(
             baseUrl: String,
@@ -276,31 +281,7 @@ class KoniferClient internal constructor(
                         appendPathSegments(path.splitPath())
                     }
                     contentType(ContentType.MultiPart.FormData)
-                    setBody(
-                        MultiPartFormDataContent(
-                            formData {
-                                append(
-                                    key = "metadata",
-                                    value = Json.encodeToString(request),
-                                    headers =
-                                        Headers.build {
-                                            append(HttpHeaders.ContentType, "application/json")
-                                        },
-                                )
-                                append(
-                                    key = "asset",
-                                    value = ChannelProvider { channel },
-                                    headers =
-                                        Headers.build {
-                                            append(HttpHeaders.ContentType, format.mimeType)
-                                            append(HttpHeaders.ContentDisposition, "filename=\"upload.bin\"")
-                                        },
-                                )
-                            },
-                            BOUNDARY,
-                            ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
-                        ),
-                    )
+                    setBody(assetUploadFormData(request, format, channel))
                 }.toKoniferResponse()
         }
     }
@@ -384,6 +365,57 @@ class KoniferClient internal constructor(
                 }.toKoniferResponse()
         }
 
+    /**
+     * Evaluate rules against content provided by the URL within the [request].
+     */
+    suspend fun evaluateRules(request: EvaluateRuleDefinitionsRequest): KoniferResponse<EvaluateRuleDefinitionsResponse> {
+        if (request.url.isNullOrBlank()) {
+            throw IllegalArgumentException("URL is required in request")
+        }
+
+        return safeApiCall {
+            httpClient
+                .post {
+                    url {
+                        appendPathSegments(RULE_EVALUATIONS_PATH)
+                    }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }.toKoniferResponse()
+        }
+    }
+
+    suspend fun evaluateRules(
+        request: EvaluateRuleDefinitionsRequest,
+        format: ImageFormat,
+        channel: ByteReadChannel,
+    ): KoniferResponse<EvaluateRuleDefinitionsResponse> {
+        if (request.url?.isNotBlank() == true) {
+            throw IllegalArgumentException("URL cannot be supplied when content is also supplied")
+        }
+        return safeApiCall {
+            httpClient
+                .post {
+                    url {
+                        appendPathSegments(RULE_EVALUATIONS_PATH)
+                    }
+                    contentType(ContentType.MultiPart.FormData)
+                    setBody(assetUploadFormData(request, format, channel))
+                }.toKoniferResponse()
+        }
+    }
+
+    suspend fun evaluateRules(
+        format: ImageFormat,
+        request: EvaluateRuleDefinitionsRequest,
+        bytes: ByteArray,
+    ): KoniferResponse<EvaluateRuleDefinitionsResponse> =
+        evaluateRules(
+            format = format,
+            request = request,
+            channel = ByteReadChannel(bytes),
+        )
+
     fun close() {
         httpClient.close()
         noRedirectClient.close()
@@ -402,6 +434,35 @@ class KoniferClient internal constructor(
         } catch (e: Exception) {
             KoniferResponse.NetworkError(e)
         }
+
+    private inline fun <reified T> assetUploadFormData(
+        request: T,
+        format: ImageFormat,
+        channel: ByteReadChannel,
+    ): MultiPartFormDataContent =
+        MultiPartFormDataContent(
+            formData {
+                append(
+                    key = METADATA_FORM_KEY,
+                    value = Json.encodeToString(request),
+                    headers =
+                        Headers.build {
+                            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                        },
+                )
+                append(
+                    key = ASSET_FORM_KEY,
+                    value = ChannelProvider { channel },
+                    headers =
+                        Headers.build {
+                            append(HttpHeaders.ContentType, format.mimeType)
+                            append(HttpHeaders.ContentDisposition, "filename=\"upload.bin\"")
+                        },
+                )
+            },
+            BOUNDARY,
+            ContentType.MultiPart.FormData.withParameter("boundary", BOUNDARY),
+        )
 
     private suspend fun fetchContentUrl(
         path: String,

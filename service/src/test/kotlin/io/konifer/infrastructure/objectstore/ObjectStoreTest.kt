@@ -36,8 +36,11 @@ abstract class ObjectStoreTest {
 
     @BeforeEach
     fun initialize() {
+        beforeCreateObjectStore()
         store = createObjectStore()
     }
+
+    protected open fun beforeCreateObjectStore() {}
 
     private val image =
         runBlocking {

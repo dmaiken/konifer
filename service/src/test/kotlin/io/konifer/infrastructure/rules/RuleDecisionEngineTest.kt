@@ -2,12 +2,14 @@ package io.konifer.infrastructure.rules
 
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.toAssetLabels
+import io.konifer.domain.rules.EvaluationScore
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
 import io.konifer.domain.rules.RuleName
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.domain.rules.RuleViolationResponse
-import io.konifer.domain.rules.RulesetEvaluationResult
 import io.konifer.domain.rules.upload.DefaultRuleAction
 import io.konifer.domain.rules.upload.UploadRule
 import io.konifer.domain.rules.upload.UploadRuleset
@@ -24,8 +26,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = default),
-                definitionsByRule = emptyMap(),
-                evaluationResult = RulesetEvaluationResult(results = emptyList()),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = emptyList()),
             )
 
         when (default) {
@@ -54,16 +55,27 @@ class RuleDecisionEngineTest {
             )
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("phone"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = default, labelRules = labelRules),
-                definitionsByRule = mapOf(labelRules.first() to ruleDefinition),
                 evaluationResult =
-                    RulesetEvaluationResult(
-                        results = listOf(RuleEvaluationResult(ruleDefinition = ruleDefinition, score = 0.9, matched = true)),
+                    RuleDefinitionsEvaluationResult(
+                        results =
+                            listOf(
+                                RuleEvaluationResult(
+                                    ruleDefinition = ruleDefinition,
+                                    evaluationScore =
+                                        EvaluationScore(
+                                            score = 0.9,
+                                            matched = true,
+                                        ),
+                                    promptScores = mapOf(),
+                                ),
+                            ),
                     ),
             )
 
@@ -85,15 +97,20 @@ class RuleDecisionEngineTest {
     fun `returns accept decision when rules match`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.9,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.9,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -106,11 +123,9 @@ class RuleDecisionEngineTest {
                 uploadRuleset =
                     UploadRuleset(
                         default = DefaultRuleAction.REJECT,
-                        acceptRules = emptyList(),
-                        rejectRules = listOf(uploadRule),
+                        acceptRules = listOf(uploadRule),
                     ),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -122,15 +137,20 @@ class RuleDecisionEngineTest {
     fun `returns reject decision when rules match`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.9,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.9,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -141,8 +161,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, rejectRules = listOf(uploadRule)),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe false
@@ -154,15 +173,20 @@ class RuleDecisionEngineTest {
     fun `returns accept decision when rules do not match and default is accept`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -173,8 +197,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, rejectRules = listOf(uploadRule)),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -186,15 +209,20 @@ class RuleDecisionEngineTest {
     fun `returns reject decision when rules do not match and default is reject`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -205,8 +233,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.REJECT, acceptRules = listOf(uploadRule)),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe false
@@ -218,15 +245,20 @@ class RuleDecisionEngineTest {
     fun `returns label decision when rules match`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule =
@@ -237,8 +269,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule)),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -250,25 +281,35 @@ class RuleDecisionEngineTest {
     fun `labels are merged in order when multiple rules match`() {
         val ruleDefinition1 =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val ruleDefinition2 =
             RuleDefinition(
-                prompts = listOf("hello again"),
+                name = RuleName("cats only"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition1,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition2,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val uploadRule1 =
@@ -278,14 +319,13 @@ class RuleDecisionEngineTest {
             )
         val uploadRule2 =
             UploadRule(
-                rule = RuleName("dogs only"),
+                rule = RuleName("cats only"),
                 labels = mapOf("phone" to "android").toAssetLabels(),
             )
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule1, uploadRule2)),
-                definitionsByRule = mapOf(uploadRule1 to ruleDefinition1, uploadRule2 to ruleDefinition2),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -297,15 +337,20 @@ class RuleDecisionEngineTest {
     fun `when label rule does not match then no labals are applied`() {
         val ruleDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("dogs only"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = 0.84,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.84,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
 
@@ -317,8 +362,7 @@ class RuleDecisionEngineTest {
         val result =
             RuleDecisionEngine.makeDecision(
                 uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule)),
-                definitionsByRule = mapOf(uploadRule to ruleDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -330,35 +374,45 @@ class RuleDecisionEngineTest {
     fun `can decision on both accept and label rules`() {
         val labelDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("label rule"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val acceptDefinition =
             RuleDefinition(
-                prompts = listOf("hello again"),
+                name = RuleName("accept rule"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = labelDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = acceptDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val labelRule =
             UploadRule(
-                rule = RuleName("dogs only"),
+                rule = RuleName("label rule"),
                 labels = mapOf("phone" to "iphone", "car" to "compact").toAssetLabels(),
             )
         val acceptRule =
             UploadRule(
-                rule = RuleName("dogs only"),
+                rule = RuleName("accept rule"),
             )
         val result =
             RuleDecisionEngine.makeDecision(
@@ -368,8 +422,7 @@ class RuleDecisionEngineTest {
                         labelRules = listOf(labelRule),
                         acceptRules = listOf(acceptRule),
                     ),
-                definitionsByRule = mapOf(labelRule to labelDefinition, acceptRule to acceptDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true
@@ -381,35 +434,45 @@ class RuleDecisionEngineTest {
     fun `labels are applied when reject rule fails`() {
         val labelDefinition =
             RuleDefinition(
-                prompts = listOf("hello"),
+                name = RuleName("label rule"),
+                prompts = listOf(RulePrompt("hello")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val rejectDefinition =
             RuleDefinition(
-                prompts = listOf("hello again"),
+                name = RuleName("reject rule"),
+                prompts = listOf(RulePrompt("hello again")),
                 threshold = RuleDefinitionThreshold(0.85),
             )
         val evaluationResult =
             listOf(
                 RuleEvaluationResult(
                     ruleDefinition = labelDefinition,
-                    score = 0.85,
-                    matched = true,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.85,
+                            matched = true,
+                        ),
+                    promptScores = mapOf(),
                 ),
                 RuleEvaluationResult(
                     ruleDefinition = rejectDefinition,
-                    score = 0.80,
-                    matched = false,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = 0.80,
+                            matched = false,
+                        ),
+                    promptScores = mapOf(),
                 ),
             )
         val labelRule =
             UploadRule(
-                rule = RuleName("dogs only"),
+                rule = RuleName("label rule"),
                 labels = mapOf("phone" to "iphone", "car" to "compact").toAssetLabels(),
             )
         val rejectRule =
             UploadRule(
-                rule = RuleName("dogs only"),
+                rule = RuleName("reject rule"),
             )
         val result =
             RuleDecisionEngine.makeDecision(
@@ -419,8 +482,7 @@ class RuleDecisionEngineTest {
                         labelRules = listOf(labelRule),
                         rejectRules = listOf(rejectRule),
                     ),
-                definitionsByRule = mapOf(labelRule to labelDefinition, rejectRule to rejectDefinition),
-                evaluationResult = RulesetEvaluationResult(results = evaluationResult),
+                evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
         result.accept shouldBe true

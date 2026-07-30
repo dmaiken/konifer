@@ -11,6 +11,7 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     private companion object {
         const val DOG_PROMPT = "this is a photo of a dog"
         const val CAT_PROMPT = "this is a photo of a cat"
+        const val BIRD_PROMPT = "this is a photo of a bird"
     }
 
     private val repository by lazy {
@@ -18,30 +19,35 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     }
 
     @Test
-    fun `fetch all returns empty map when no embeddings have been cached`() {
+    fun `fetch returns empty map when no requested embeddings have been cached`() {
         runTest {
-            repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT) shouldBe emptyMap()
+            repository.fetch(
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                prompts = listOf(DOG_PROMPT),
+            ) shouldBe emptyMap()
         }
     }
 
     @Test
-    fun `stores and fetches cached embeddings`() {
+    fun `storeAll stores and fetch returns requested cached embeddings`() {
         runTest {
             val dogEmbedding = floatArrayOf(0.1f, -0.2f, 0.3f)
             val catEmbedding = floatArrayOf(0.4f, 0.5f, -0.6f)
 
-            repository.store(
+            repository.storeAll(
                 embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                prompt = DOG_PROMPT,
-                embeddings = dogEmbedding,
-            )
-            repository.store(
-                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                prompt = CAT_PROMPT,
-                embeddings = catEmbedding,
+                prompts =
+                    mapOf(
+                        DOG_PROMPT to dogEmbedding,
+                        CAT_PROMPT to catEmbedding,
+                    ),
             )
 
-            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
+            val embeddings =
+                repository.fetch(
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                    prompts = listOf(DOG_PROMPT, CAT_PROMPT, BIRD_PROMPT),
+                )
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT, CAT_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly dogEmbedding.toList()
@@ -50,20 +56,22 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     }
 
     @Test
-    fun `fetch all only returns embeddings for requested model`() {
+    fun `fetch only returns requested prompts`() {
         runTest {
-            repository.store(
+            repository.storeAll(
                 embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                prompt = DOG_PROMPT,
-                embeddings = floatArrayOf(0.1f, 0.2f),
-            )
-            repository.store(
-                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_VISION,
-                prompt = CAT_PROMPT,
-                embeddings = floatArrayOf(0.3f, 0.4f),
+                prompts =
+                    mapOf(
+                        DOG_PROMPT to floatArrayOf(0.1f, 0.2f),
+                        CAT_PROMPT to floatArrayOf(0.3f, 0.4f),
+                    ),
             )
 
-            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
+            val embeddings =
+                repository.fetch(
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                    prompts = listOf(DOG_PROMPT),
+                )
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly listOf(0.1f, 0.2f)
@@ -71,25 +79,65 @@ class PostgresEmbeddingCacheRepositoryTest : PostgresContainerizedTest() {
     }
 
     @Test
-    fun `store ignores duplicate prompt for same model`() {
+    fun `fetch only returns embeddings for requested model`() {
+        runTest {
+            repository.storeAll(
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                prompts = mapOf(DOG_PROMPT to floatArrayOf(0.1f, 0.2f)),
+            )
+            repository.storeAll(
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_VISION,
+                prompts = mapOf(CAT_PROMPT to floatArrayOf(0.3f, 0.4f)),
+            )
+
+            val embeddings =
+                repository.fetch(
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                    prompts = listOf(DOG_PROMPT, CAT_PROMPT),
+                )
+
+            embeddings.keys shouldContainExactly setOf(DOG_PROMPT)
+            embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly listOf(0.1f, 0.2f)
+        }
+    }
+
+    @Test
+    fun `storeAll ignores duplicate prompts for same model`() {
         runTest {
             val originalEmbedding = floatArrayOf(0.1f, 0.2f)
-            repository.store(
+            repository.storeAll(
                 embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                prompt = DOG_PROMPT,
-                embeddings = originalEmbedding,
+                prompts = mapOf(DOG_PROMPT to originalEmbedding),
             )
 
-            repository.store(
+            repository.storeAll(
                 embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                prompt = DOG_PROMPT,
-                embeddings = floatArrayOf(0.3f, 0.4f),
+                prompts = mapOf(DOG_PROMPT to floatArrayOf(0.3f, 0.4f)),
             )
 
-            val embeddings = repository.fetchAll(EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT)
+            val embeddings =
+                repository.fetch(
+                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                    prompts = listOf(DOG_PROMPT),
+                )
 
             embeddings.keys shouldContainExactly setOf(DOG_PROMPT)
             embeddings.getValue(DOG_PROMPT).toList() shouldContainExactly originalEmbedding.toList()
+        }
+    }
+
+    @Test
+    fun `storeAll with empty prompts does nothing`() {
+        runTest {
+            repository.storeAll(
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                prompts = emptyMap(),
+            )
+
+            repository.fetch(
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+                prompts = listOf(DOG_PROMPT),
+            ) shouldBe emptyMap()
         }
     }
 }

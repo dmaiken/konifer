@@ -1,13 +1,16 @@
 package io.konifer.infrastructure.rules.inference
 
+import io.konifer.domain.rules.EvaluationScore
 import io.konifer.domain.rules.RuleDefinition
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.RuleEvaluationResult
-import io.konifer.domain.rules.RulesetEvaluationResult
+import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.rules.inference.embedding.ContentEmbeddingService
 import io.konifer.infrastructure.rules.inference.embedding.RulePromptEmbeddingService
-import io.konifer.infrastructure.variant.ImageTensor
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlin.math.max
 
 class InferenceRuleEvaluator(
     private val rulePromptEmbeddingService: RulePromptEmbeddingService,
@@ -19,31 +22,38 @@ class InferenceRuleEvaluator(
     override fun evaluate(
         ruleDefinitions: List<RuleDefinition>,
         tensor: ImageTensor,
-    ): RulesetEvaluationResult {
-        if (ruleDefinitions.isEmpty()) return RulesetEvaluationResult.empty
+    ): RuleDefinitionsEvaluationResult {
+        if (ruleDefinitions.isEmpty()) return RuleDefinitionsEvaluationResult.none
 
         val contentEmbedding = contentEmbeddingService.generateEmbeddings(tensor)
 
         return ruleDefinitions
             .map { ruleDefinition ->
-                val score =
-                    ruleDefinition.prompts.maxOf { prompt ->
-                        val embeddings = rulePromptEmbeddingService.generateEmbeddings(prompt)
-
+                val promptScores = mutableMapOf<RulePrompt, Double>()
+                var score: Double = -1.0
+                val embeddedDefinitionPrompts = rulePromptEmbeddingService.generateEmbeddings(ruleDefinition.prompts)
+                embeddedDefinitionPrompts.forEach { (prompt, embedding) ->
+                    val promptScore =
                         similarityScorer.score(
-                            promptEmbedding = embeddings,
+                            promptEmbedding = embedding,
                             contentEmbedding = contentEmbedding,
                         )
-                    }
+                    promptScores[prompt] = promptScore
+                    score = max(score, promptScore)
+                }
 
                 RuleEvaluationResult(
                     ruleDefinition = ruleDefinition,
-                    score = score,
-                    matched = score >= ruleDefinition.threshold.value,
+                    evaluationScore =
+                        EvaluationScore(
+                            score = score,
+                            matched = score >= ruleDefinition.threshold.value,
+                        ),
+                    promptScores = promptScores,
                 )
             }.let {
                 logger.info("Evaluating rules resulted in: $it")
-                RulesetEvaluationResult(it)
+                RuleDefinitionsEvaluationResult(it)
             }
     }
 }

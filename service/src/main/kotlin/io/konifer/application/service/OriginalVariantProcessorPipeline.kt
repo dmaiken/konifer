@@ -6,9 +6,10 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.StoreRequestContext
-import io.konifer.domain.ports.ContentProcessorResult
 import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
+import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
@@ -146,7 +147,7 @@ class OriginalVariantProcessorPipeline(
             }
 
         // Since there is no preprocessing required here, we just stream the original file back to the caller
-        val passthroughProcess: Deferred<ContentProcessorResult> =
+        val passthroughProcess: Deferred<UploadRuleDecision> =
             scope.async {
                 runCatching {
                     teeStream(
@@ -154,7 +155,10 @@ class OriginalVariantProcessorPipeline(
                         firstChannel = objectStoreChannel,
                         secondChannel = null,
                     )
-                    ContentProcessorResult.Success(labels = AssetLabels.empty)
+                    UploadRuleDecision.Success(
+                        labels = AssetLabels.empty,
+                        ruleDefinitionsEvaluationResult = RuleDefinitionsEvaluationResult.none,
+                    )
                 }.onFailure { e ->
                     objectStoreChannel.close(e)
                 }.getOrThrow()

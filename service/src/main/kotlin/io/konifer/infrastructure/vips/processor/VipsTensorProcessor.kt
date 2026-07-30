@@ -5,7 +5,6 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.enums.VipsBandFormat
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.variant.ImageTensor
 import io.konifer.infrastructure.variant.TensorTransformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.format
