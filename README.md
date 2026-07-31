@@ -200,6 +200,46 @@ This is where Konifer becomes more than a transformation endpoint. Public avatar
 generated media can share the same service while using different buckets, validation rules, dynamic labeling,
 preprocessing, cache behavior, redirect strategies, and eager variants.
 
+## Rule Evaluation API
+
+Konifer includes a production-ready Rule Evaluation API for testing rule definitions against real images before adding
+them to your Upload Rules. It can also be used independently to classify images with natural-language prompts. Each
+response reports whether the rule matched, its overall score, and the score for every prompt, making it easier to tune
+prompts and thresholds with representative content.
+
+Enable the API explicitly in `konifer.conf`:
+
+```hocon
+api {
+  rule-evaluation {
+    enabled = true
+  }
+}
+```
+
+Then submit up to ten rule definitions with an image URL:
+
+```bash
+curl --request POST \
+  --url 'http://localhost:8080/rule-evaluations' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "url": "https://example.com/image.jpg",
+    "definitions": [
+      {
+        "name": "outdoor-landscape",
+        "prompts": ["a mountain", "a forest", "an outdoor landscape"],
+        "threshold": 0.7
+      }
+    ]
+  }'
+```
+
+Image data can also be uploaded directly as multipart form data. Rule evaluation uses the same SigLIP2 model and rule
+semantics as Upload Rules, so a definition tested here can be moved into path configuration with confidence. Install
+the model pack using `./scripts/download-siglip2-models.sh` as described in
+[Running With Docker Compose](#running-with-docker-compose).
+
 ## Storage And Architecture
 
 Konifer uses a dual-store architecture:

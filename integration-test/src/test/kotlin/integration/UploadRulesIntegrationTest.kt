@@ -15,7 +15,7 @@ import java.util.UUID
 class UploadRulesIntegrationTest : BaseIntegrationTest() {
     @ParameterizedTest
     @EnumSource(value = ImageFormat::class)
-    fun `can store variant that passes upload rules`(format: ImageFormat) {
+    fun `can store asset that passes upload rules`(format: ImageFormat) {
         runBlocking {
             val path = UUID.randomUUID().toString()
             val (image, attributes) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE, format = format)

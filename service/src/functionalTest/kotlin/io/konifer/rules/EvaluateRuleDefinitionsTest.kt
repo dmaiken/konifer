@@ -6,6 +6,7 @@ import io.konifer.KoniferTestHandle
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.matchers.shouldBeSuccessful
+import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemoryHandle
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forExactly
@@ -214,5 +215,76 @@ class EvaluateRuleDefinitionsTest : BaseFunctionalTest() {
                 }
                 it.promptScores shouldHaveSize 1
             }
+        }
+
+    @Test
+    fun `cannot submit request with no prompts`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            konifer()
+                .evaluateRules(
+                    format = attributes.format,
+                    bytes = image,
+                    request =
+                        EvaluateRuleDefinitionsRequest(
+                            definitions =
+                                listOf(
+                                    RuleDefinitionRequest(
+                                        name = "matches",
+                                        prompts = emptyList(),
+                                        threshold = 0.7,
+                                    ),
+                                ),
+                        ),
+                ) shouldHaveHttpError 400
+        }
+
+    @Test
+    fun `cannot submit with invalid threshold`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            konifer()
+                .evaluateRules(
+                    format = attributes.format,
+                    bytes = image,
+                    request =
+                        EvaluateRuleDefinitionsRequest(
+                            definitions =
+                                listOf(
+                                    RuleDefinitionRequest(
+                                        name = "matches",
+                                        prompts = listOf("prompt"),
+                                        threshold = 1.01,
+                                    ),
+                                ),
+                        ),
+                ) shouldHaveHttpError 400
+        }
+
+    @Test
+    fun `cannot submit with more prompts than allowed`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            konifer()
+                .evaluateRules(
+                    format = attributes.format,
+                    bytes = image,
+                    request =
+                        EvaluateRuleDefinitionsRequest(
+                            definitions =
+                                listOf(
+                                    RuleDefinitionRequest(
+                                        name = "matches",
+                                        prompts =
+                                            buildList {
+                                                repeat(101) {
+                                                    add("prompt-$it")
+                                                }
+                                            },
+                                        threshold = 0.7,
+                                    ),
+                                ),
+                        ),
+                ) shouldHaveHttpError 400
         }
 }
