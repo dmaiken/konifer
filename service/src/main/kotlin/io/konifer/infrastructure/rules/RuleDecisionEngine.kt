@@ -29,7 +29,7 @@ object RuleDecisionEngine {
                     when (rule) {
                         in uploadRuleset.acceptRules -> matchedAcceptanceRules.add(rule.violationResponse)
                         in uploadRuleset.rejectRules -> matchedAcceptanceRules.add(rule.violationResponse)
-                        in uploadRuleset.labelRules -> matchedLabelRules.add(rule.labels)
+                        in uploadRuleset.editRules -> matchedLabelRules.add(rule.labels)
                     }
                 }
             }
@@ -58,5 +58,5 @@ object RuleDecisionEngine {
         when (default) {
             DefaultRuleAction.ACCEPT -> rejectRules
             DefaultRuleAction.REJECT -> acceptRules
-        } + labelRules
+        } + editRules
 }

@@ -562,7 +562,7 @@ class TriePathConfigurationRepositoryTest {
                   accept-rules = [
                     { rule = kermit-the-frog }
                   ]
-                  label-rules = [
+                  edit-rules = [
                     { 
                       rule = kermit-the-frog 
                       labels = {
@@ -597,7 +597,7 @@ class TriePathConfigurationRepositoryTest {
         pathConfiguration.uploadRuleset.acceptRules
             .single()
             .rule shouldBe RuleName("kermit-the-frog")
-        with(pathConfiguration.uploadRuleset.labelRules.single()) {
+        with(pathConfiguration.uploadRuleset.editRules.single()) {
             rule shouldBe RuleName("kermit-the-frog")
             labels.asMap() shouldBe mapOf("character" to "kermit", "source" to "ruleset")
         }
