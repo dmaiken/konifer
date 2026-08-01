@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.http.signature
 
 import io.konifer.common.http.ErrorResponse
+import io.konifer.entrypoint.ASSET_PATH_PREFIX
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createRouteScopedPlugin
@@ -16,7 +17,7 @@ val HmacSignatureVerification =
         val verifier = HmacSignatureVerifier(pluginConfig)
 
         onCall { call ->
-            if (call.request.httpMethod != HttpMethod.Get) {
+            if (call.request.httpMethod != HttpMethod.Get || !call.request.path().startsWith(ASSET_PATH_PREFIX)) {
                 return@onCall
             }
 

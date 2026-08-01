@@ -29,6 +29,12 @@ class EvaluateRuleDefinitionsTest : BaseFunctionalTest() {
             testInMemoryHandle(
                 """
                 api.rule-evaluation.enabled = true
+                
+                # Test that this works even with url-signing enabled
+                url-signing {
+                    enabled = true
+                    secret-key = secret
+                }
                 """.trimIndent(),
             )
         handle.start()

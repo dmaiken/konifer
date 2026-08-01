@@ -28,7 +28,6 @@ fun Application.configureHealthRouting() {
     routing {
         route("/health") {
             get {
-                println("Health check requested")
                 if (isReady.get()) {
                     call.respond(
                         status = HttpStatusCode.OK,
