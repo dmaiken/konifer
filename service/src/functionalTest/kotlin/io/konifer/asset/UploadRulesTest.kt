@@ -125,7 +125,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                   "/joshua-tree-label/**" {
                     upload-ruleset {
                       default = accept
-                      label-rules = [
+                      edit-rules = [
                         { 
                           rule = joshua-tree
                           labels = {
@@ -150,7 +150,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                   "/joshua-tree-label-default-accept-with-accept-rules/**" {
                     upload-ruleset {
                       default = accept
-                      label-rules = [
+                      edit-rules = [
                         { 
                           rule = joshua-tree
                           labels = {

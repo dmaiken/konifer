@@ -61,7 +61,7 @@ class RuleDecisionEngineTest {
             )
         val result =
             RuleDecisionEngine.makeDecision(
-                uploadRuleset = UploadRuleset(default = default, labelRules = labelRules),
+                uploadRuleset = UploadRuleset(default = default, editRules = labelRules),
                 evaluationResult =
                     RuleDefinitionsEvaluationResult(
                         results =
@@ -268,7 +268,7 @@ class RuleDecisionEngineTest {
             )
         val result =
             RuleDecisionEngine.makeDecision(
-                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule)),
+                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, editRules = listOf(uploadRule)),
                 evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
@@ -324,7 +324,7 @@ class RuleDecisionEngineTest {
             )
         val result =
             RuleDecisionEngine.makeDecision(
-                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule1, uploadRule2)),
+                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, editRules = listOf(uploadRule1, uploadRule2)),
                 evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
@@ -361,7 +361,7 @@ class RuleDecisionEngineTest {
             )
         val result =
             RuleDecisionEngine.makeDecision(
-                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, labelRules = listOf(uploadRule)),
+                uploadRuleset = UploadRuleset(default = DefaultRuleAction.ACCEPT, editRules = listOf(uploadRule)),
                 evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
             )
 
@@ -419,7 +419,7 @@ class RuleDecisionEngineTest {
                 uploadRuleset =
                     UploadRuleset(
                         default = DefaultRuleAction.REJECT,
-                        labelRules = listOf(labelRule),
+                        editRules = listOf(labelRule),
                         acceptRules = listOf(acceptRule),
                     ),
                 evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),
@@ -479,7 +479,7 @@ class RuleDecisionEngineTest {
                 uploadRuleset =
                     UploadRuleset(
                         default = DefaultRuleAction.ACCEPT,
-                        labelRules = listOf(labelRule),
+                        editRules = listOf(labelRule),
                         rejectRules = listOf(rejectRule),
                     ),
                 evaluationResult = RuleDefinitionsEvaluationResult(results = evaluationResult),

@@ -145,5 +145,5 @@ class OriginalVariantContentService(
         when (uploadRuleset.default) {
             DefaultRuleAction.ACCEPT -> uploadRuleset.rejectRules
             DefaultRuleAction.REJECT -> uploadRuleset.acceptRules
-        } + uploadRuleset.labelRules
+        } + uploadRuleset.editRules
 }

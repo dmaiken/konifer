@@ -15,8 +15,8 @@ data class UploadRuleset(
     val acceptRules: List<UploadRule> = emptyList(),
     @SerialName(UploadRulesetPropertyKeys.REJECT_RULES)
     val rejectRules: List<UploadRule> = emptyList(),
-    @SerialName(UploadRulesetPropertyKeys.LABEL_RULES)
-    val labelRules: List<UploadRule> = emptyList(),
+    @SerialName(UploadRulesetPropertyKeys.EDIT_RULES)
+    val editRules: List<UploadRule> = emptyList(),
 ) {
     companion object Factory {
         val default = UploadRuleset()
@@ -30,8 +30,8 @@ data class UploadRuleset(
 
     fun requiresEvaluationBeyondDefault(): Boolean =
         when (default) {
-            DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty() || labelRules.isNotEmpty()
-            DefaultRuleAction.REJECT -> acceptRules.isNotEmpty() || labelRules.isNotEmpty()
+            DefaultRuleAction.ACCEPT -> rejectRules.isNotEmpty() || editRules.isNotEmpty()
+            DefaultRuleAction.REJECT -> acceptRules.isNotEmpty() || editRules.isNotEmpty()
         }
 }
 
