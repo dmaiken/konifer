@@ -39,6 +39,10 @@ class AssetDataContainer(
 
     suspend fun toTemporaryFile(extension: String) =
         withContext(Dispatchers.IO) {
+            if (isDumpedToFile) {
+                return@withContext
+            }
+
             tempFile = createUploadTempFile(extension)
             runCatching {
                 FileChannel
@@ -66,7 +70,12 @@ class AssetDataContainer(
             }.getOrThrow()
         }
 
-    suspend fun peek(n: Int): ByteArray = channel.peek(n)?.toByteArray() ?: ByteArray(0)
+    suspend fun peek(n: Int): ByteArray =
+        tempFile?.let { path ->
+            withContext(Dispatchers.IO) {
+                path.toFile().inputStream().use { it.readNBytes(n) }
+            }
+        } ?: channel.peek(n)?.toByteArray() ?: ByteArray(0)
 
     /**
      * If a temporary file is created, delete it. If the delegate channel is still open, then cancel is.

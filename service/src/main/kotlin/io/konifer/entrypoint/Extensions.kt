@@ -1,6 +1,7 @@
 package io.konifer.entrypoint
 
 import io.konifer.application.usecase.fetch.FetchAssetHandler
+import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.variant.LQIPs
 import io.konifer.infrastructure.http.CustomAttributes.entryIdKey
 import io.konifer.infrastructure.http.CustomAttributes.lastModifiedKey
@@ -65,6 +66,30 @@ suspend fun PartData.copyAssetContentTo(assetContentChannel: ByteChannel): Boole
         return true
     } finally {
         assetContentChannel.close()
+        release()
+    }
+}
+
+suspend fun PartData.copyAssetContentToTemporaryFile(maxBytes: Long): AssetDataContainer? {
+    val source =
+        when (this) {
+            is PartData.FileItem -> provider()
+            else -> {
+                release()
+                return null
+            }
+        }
+    val container = AssetDataContainer(source, maxBytes)
+
+    try {
+        // The format is detected after all multipart fields have been parsed. Processing APIs receive
+        // the detected format explicitly, so the temporary upload does not require an extension.
+        container.toTemporaryFile("")
+        return container
+    } catch (e: Throwable) {
+        container.close()
+        throw e
+    } finally {
         release()
     }
 }

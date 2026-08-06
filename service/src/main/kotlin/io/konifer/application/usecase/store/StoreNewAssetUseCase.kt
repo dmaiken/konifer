@@ -117,7 +117,6 @@ class StoreNewAssetUseCase(
                     }
 
                 return@coroutineScope AssetAndLocation(readyAsset, context.path).also {
-                    logger.info("Publishing asset ready event")
                     eventPublisher.publish(
                         AssetReadyEvent(
                             pathConfiguration = context.pathConfiguration,

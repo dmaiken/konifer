@@ -17,10 +17,20 @@ import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.storeAssetUrlSource
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -29,6 +39,47 @@ import org.junit.jupiter.params.provider.ValueSource
 
 @OptIn(KoniferInternalTestApi::class)
 class StoreAssetTest : BaseFunctionalTest() {
+    @Test
+    fun `can store multipart asset when asset is sent before metadata`() =
+        testInMemory {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val request = StoreAssetRequest(alt = "asset-first upload")
+            val boundary = "asset-first-boundary"
+
+            val response =
+                withTimeout(5_000) {
+                    client.post("/assets/asset-first") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    append(
+                                        "asset",
+                                        image,
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, ImageFormat.PNG.mimeType)
+                                            append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                        },
+                                    )
+                                    append(
+                                        "metadata",
+                                        Json.encodeToString(request),
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                        },
+                                    )
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.Created
+            fetchAssetInfo(client, path = "asset-first")!!.alt shouldBe "asset-first upload"
+        }
+
     @Test
     fun `uploading something not an image will return bad request`() =
         testInMemory {

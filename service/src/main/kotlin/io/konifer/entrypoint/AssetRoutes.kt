@@ -38,13 +38,10 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import kotlin.coroutines.cancellation.CancellationException
 
 private val logger = KtorSimpleLogger("io.konifer.entrypoint.AssetRouting")
 
@@ -215,56 +212,49 @@ private suspend fun RoutingCall.storeMultipartAsset(
 ): AssetAndLocation? =
     coroutineScope {
         val assetData = CompletableDeferred<StoreAssetRequest>()
-        val assetContentChannel = ByteChannel(true)
         var assetPartReceived = false
-        var assetReceived = false
+        var assetContainer: AssetDataContainer? = null
         var duplicateAssetReceived = false
 
-        val deferredResponse =
-            async {
-                storeNewAssetUseCase.handleFromUpload(
-                    deferredRequest = assetData,
-                    multiPartContainer = AssetDataContainer(assetContentChannel, maxMultipartContentLength),
-                    uriPath = request.path(),
-                )
-            }
-
-        receiveMultipart().forEachPart { part ->
-            when (part.name) {
-                METADATA_PART_NAME -> part.readStoreAssetRequestInto(assetData)
-                ASSET_PART_NAME -> {
-                    if (assetPartReceived) {
-                        duplicateAssetReceived = true
-                        part.release()
-                    } else {
-                        assetPartReceived = true
-                        assetReceived = part.copyAssetContentTo(assetContentChannel)
+        try {
+            receiveMultipart().forEachPart { part ->
+                when (part.name) {
+                    METADATA_PART_NAME -> part.readStoreAssetRequestInto(assetData)
+                    ASSET_PART_NAME -> {
+                        if (assetPartReceived) {
+                            duplicateAssetReceived = true
+                            part.release()
+                        } else {
+                            assetPartReceived = true
+                            assetContainer = part.copyAssetContentToTemporaryFile(maxMultipartContentLength)
+                        }
                     }
+                    else -> part.release()
                 }
-                else -> part.release()
             }
-        }
 
-        when {
-            duplicateAssetReceived -> {
-                assetContentChannel.cancel(CancellationException("Duplicate asset payload"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "Multiple asset payloads supplied")
-                null
+            when {
+                duplicateAssetReceived -> {
+                    respond(HttpStatusCode.BadRequest, "Multiple asset payloads supplied")
+                    null
+                }
+                !assetData.isCompleted -> {
+                    respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
+                    null
+                }
+                assetContainer == null -> {
+                    respond(HttpStatusCode.BadRequest, "No asset payload supplied")
+                    null
+                }
+                else ->
+                    storeNewAssetUseCase.handleFromUpload(
+                        deferredRequest = assetData,
+                        multiPartContainer = checkNotNull(assetContainer),
+                        uriPath = request.path(),
+                    )
             }
-            !assetData.isCompleted -> {
-                assetContentChannel.cancel(CancellationException("Missing metadata"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
-                null
-            }
-            !assetReceived -> {
-                assetContentChannel.cancel(CancellationException("Missing asset payload"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "No asset payload supplied")
-                null
-            }
-            else -> deferredResponse.await()
+        } finally {
+            assetContainer?.close()
         }
     }
 
