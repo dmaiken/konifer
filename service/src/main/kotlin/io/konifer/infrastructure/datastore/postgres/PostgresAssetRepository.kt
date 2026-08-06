@@ -123,7 +123,7 @@ class PostgresAssetRepository(
         dslContext
             .update(ASSET_VARIANT)
             .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt)
-            .where(ASSET_VARIANT.ASSET_ID.eq(variant.assetId.value))
+            .where(ASSET_VARIANT.ID.eq(variant.id.value))
             .awaitFirstOrNull()
     }
 
@@ -536,7 +536,7 @@ class PostgresAssetRepository(
         if (onlyReady) {
             whereCondition.and(ASSET_TREE.IS_READY.eq(true))
         } else {
-            DSL.noCondition()
+            whereCondition
         }
 
     private suspend fun insertLabels(

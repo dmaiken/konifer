@@ -349,6 +349,30 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
+        fun `ready filtering can be disabled without discarding the requested path`() =
+            runTest {
+                val requested =
+                    repository.storeNew(
+                        createPendingAsset(path = "/requested/pending"),
+                    )
+                repository.storeNew(
+                    createPendingAsset(path = "/other/pending"),
+                )
+
+                val fetched =
+                    repository.fetchByPath(
+                        path = requested.path,
+                        entryId = requested.entryId,
+                        transformation = null,
+                        includeOnlyReady = false,
+                    )
+
+                fetched shouldNotBe null
+                fetched!!.id shouldBe requested.id
+                fetched.path shouldBe requested.path
+            }
+
+        @Test
         fun `returns an existing asset`() =
             runTest {
                 val pending = createPendingAsset()
@@ -879,8 +903,8 @@ abstract class AssetRepositoryTest {
                                     colorSpace = ColorSpace.SRGB,
                                 ),
                         )
-                    repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(pendingVariant.markReady(LocalDateTime.now(UTC)))
+                    val persistedVariant = repository.storeNewVariant(pendingVariant)
+                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
                 }
 
                 val fetched =
@@ -924,8 +948,8 @@ abstract class AssetRepositoryTest {
                                     colorSpace = ColorSpace.SRGB,
                                 ),
                         )
-                    repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(pendingVariant.markReady(LocalDateTime.now(UTC)))
+                    val persistedVariant = repository.storeNewVariant(pendingVariant)
+                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
                 }
 
                 val fetched = repository.fetchAllByPath("/users/123", null, limit = 10)
@@ -2062,6 +2086,72 @@ abstract class AssetRepositoryTest {
                     uploadedAt.truncatedTo(
                         ChronoUnit.MILLIS,
                     )
+            }
+
+        @Test
+        fun `marking a variant uploaded does not mark other variants uploaded`() =
+            runTest {
+                val originalUploadedAt = LocalDateTime.now(UTC).minusMinutes(1)
+                val persisted = repository.storeNew(createPendingAsset())
+                repository.markReady(persisted.markReady(originalUploadedAt))
+
+                val firstTransformation =
+                    Transformation(
+                        format = ImageFormat.WEBP,
+                        height = 200,
+                        width = 200,
+                        colorSpace = ColorSpace.SRGB,
+                    )
+                val secondTransformation =
+                    Transformation(
+                        format = ImageFormat.WEBP,
+                        height = 400,
+                        width = 400,
+                        colorSpace = ColorSpace.SRGB,
+                    )
+                val firstVariant =
+                    repository.storeNewVariant(
+                        createPendingVariant(
+                            assetId = persisted.id,
+                            transformation = firstTransformation,
+                        ),
+                    )
+                val secondVariant =
+                    repository.storeNewVariant(
+                        createPendingVariant(
+                            assetId = persisted.id,
+                            transformation = secondTransformation,
+                        ),
+                    )
+                val firstUploadedAt = LocalDateTime.now(UTC)
+
+                repository.markUploaded(firstVariant.markReady(firstUploadedAt))
+
+                val fetched =
+                    repository.fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = null,
+                    )
+                fetched shouldNotBe null
+                fetched!!.variants shouldHaveSize 2
+                fetched.variants
+                    .first { it.isOriginalVariant }
+                    .uploadedAt
+                    ?.truncatedTo(ChronoUnit.MILLIS) shouldBe originalUploadedAt.truncatedTo(ChronoUnit.MILLIS)
+                fetched.variants
+                    .first { it.id == firstVariant.id }
+                    .uploadedAt
+                    ?.truncatedTo(ChronoUnit.MILLIS) shouldBe firstUploadedAt.truncatedTo(ChronoUnit.MILLIS)
+                fetched.variants.find { it.id == secondVariant.id } shouldBe null
+
+                repository
+                    .fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        transformation = secondTransformation,
+                    )!!
+                    .variants shouldHaveSize 0
             }
     }
 }
