@@ -67,14 +67,16 @@ limitation of local results.
 6. Seeds run-scoped assets during k6 setup, outside the measured phases.
 7. Executes the configured warmup and measurement profiles.
 8. Validates every normalized result and requires it to pass.
-9. Deletes assets created under the run's unique benchmark path unless
-   `--keep-assets` was supplied.
+9. After each repetition, deletes assets created under the run's unique
+   benchmark path unless `--keep-assets` was supplied. The exit trap performs
+   the same cleanup for a repetition that fails before reaching this step.
 10. Aggregates successful results and, for a complete `release` run, updates
     release history when publication requirements are satisfied.
 
 The runner does not purge the entire PostgreSQL or MinIO volume. Isolation comes
-from unique run-scoped asset paths, followed by recursive deletion through
-Konifer's API so database and object-storage state remain consistent.
+from unique run-scoped asset paths, followed after each repetition by recursive
+deletion through Konifer's API so database and object-storage state remain
+consistent and storage use does not accumulate across repetitions.
 
 ## Measurement semantics
 

@@ -64,9 +64,10 @@ Run the short development suite with:
 
 The runner starts the Compose stack, verifies configured resource limits and
 fixture hashes, waits for Konifer health, executes k6, validates every result,
-and deletes run-scoped assets through Konifer's recursive Asset Delete API.
-PostgreSQL records are deleted synchronously, and Konifer reaps the associated
-object-store content asynchronously.
+and after each repetition deletes run-scoped assets through Konifer's recursive
+Asset Delete API. PostgreSQL records are deleted synchronously, and Konifer
+reaps the associated object-store content asynchronously. The exit trap applies
+the same cleanup if a repetition fails before validation completes.
 
 Reuse an already-running stack while iterating:
 
