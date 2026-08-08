@@ -1,5 +1,5 @@
 [versions]
-jooq-version = "3.21.6"
+jooq-version = "3.21.7"
 koin-version = "4.2.2"
 koin-plugin-version = "1.0.2"
 kotlin-version = "2.4.10"
