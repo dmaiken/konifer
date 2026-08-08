@@ -12,7 +12,7 @@ repetitions=""
 subject_override=""
 start_runtime=true
 keep_assets=false
-cleanup_done=false
+cleanup_pending=false
 run_id=""
 
 usage() {
@@ -39,7 +39,7 @@ Options:
                         published history requires vMAJOR.MINOR.PATCH.
   --no-start            Reuse an already-running Compose stack. Container
                         limits and Konifer health are still verified.
-  --keep-assets         Skip recursive deletion of assets created by this run.
+  --keep-assets         Skip per-repetition recursive deletion of assets.
                         Intended only for debugging disk or database state.
   -h, --help            Show this help text.
 
@@ -206,14 +206,6 @@ fi
   exit 2
 }
 
-cleanup_delay_seconds=0
-for workload in "${workloads[@]}"; do
-  if [[ $workload == "upload.eager.accept" || $workload == "variant.eager.ready" ]]; then
-    cleanup_delay_seconds=5
-    break
-  fi
-done
-
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$suite"
 if [[ -n $subject_override ]]; then
   subject=$subject_override
@@ -274,7 +266,7 @@ delete_cleanup_path() {
 cleanup_on_exit() {
   local status=$?
   trap - EXIT
-  if [[ -n $run_id && $cleanup_done == false ]]; then
+  if [[ -n $run_id && $cleanup_pending == true ]]; then
     if ! cleanup_assets; then
       echo "Benchmark asset cleanup did not complete successfully" >&2
       if [[ $status -eq 0 ]]; then
@@ -301,6 +293,11 @@ for workload in "${workloads[@]}"; do
 
   for case_id in "${cases[@]}"; do
     for ((repetition = 1; repetition <= repetitions; repetition += 1)); do
+      cleanup_delay_seconds=0
+      if [[ $workload == "upload.eager.accept" || $workload == "variant.eager.ready" ]]; then
+        cleanup_delay_seconds=5
+      fi
+
       safe_workload=${workload//./-}
       result_name="$safe_workload--$case_id--$repetition.json"
       normalized_path="$result_dir/normalized/$result_name"
@@ -308,6 +305,7 @@ for workload in "${workloads[@]}"; do
       started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
       echo "Running $suite $workload/$case_id repetition $repetition/$repetitions"
+      cleanup_pending=true
       k6 run \
         -e "SUITE=$suite" \
         -e "WORKLOAD=$workload" \
@@ -323,17 +321,17 @@ for workload in "${workloads[@]}"; do
 
       jsonschema -V Draft202012Validator -i "$normalized_path" schema/result.schema.json
       jq -e '.passed == true' "$normalized_path" >/dev/null
+
+      if cleanup_assets; then
+        cleanup_pending=false
+      else
+        cleanup_pending=false
+        echo "Benchmark asset cleanup did not complete successfully" >&2
+        exit 1
+      fi
     done
   done
 done
-
-if cleanup_assets; then
-  cleanup_done=true
-else
-  cleanup_done=true
-  echo "Benchmark asset cleanup did not complete successfully" >&2
-  exit 1
-fi
 
 "$performance_dir/report.sh" "$result_dir"
 
