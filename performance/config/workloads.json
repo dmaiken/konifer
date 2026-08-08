@@ -1,0 +1,165 @@
+{
+  "baseUrl": "http://localhost:8080",
+  "profiles": {
+    "read": {
+      "warmup": {"duration": "30s", "rate": 10, "timeUnit": "1s"},
+      "measurement": {"duration": "2m", "rate": 10, "timeUnit": "1s"},
+      "preAllocatedVUs": 10,
+      "maxVUs": 40
+    },
+    "light": {
+      "warmup": {"duration": "30s", "rate": 2, "timeUnit": "1s"},
+      "measurement": {"duration": "2m", "rate": 2, "timeUnit": "1s"},
+      "preAllocatedVUs": 4,
+      "maxVUs": 16
+    },
+    "heavy": {
+      "warmup": {"duration": "30s", "rate": 1, "timeUnit": "2s"},
+      "measurement": {"duration": "3m", "rate": 1, "timeUnit": "2s"},
+      "preAllocatedVUs": 2,
+      "maxVUs": 8
+    },
+    "inference": {
+      "warmup": {"duration": "30s", "rate": 1, "timeUnit": "5s"},
+      "measurement": {"duration": "2m", "rate": 1, "timeUnit": "5s"},
+      "preAllocatedVUs": 2,
+      "maxVUs": 4
+    }
+  },
+  "suites": {
+    "smoke": {
+      "repetitions": 1,
+      "workloads": [
+        "upload.original",
+        "variant.generate.cold",
+        "variant.deliver.cached",
+        "upload.preprocess",
+        "upload.rules",
+        "upload.rules.preprocess"
+      ]
+    },
+    "release": {
+      "repetitions": 1,
+      "workloads": [
+        "upload.original",
+        "delivery.original.cached",
+        "variant.generate.cold",
+        "variant.deliver.cached",
+        "upload.preprocess",
+        "upload.rules",
+        "upload.rules.preprocess",
+        "upload.eager.accept",
+        "variant.eager.ready",
+        "format.decode",
+        "format.encode"
+      ]
+    }
+  },
+  "workloads": {
+    "upload.original": {
+      "description": "Measures the complete multipart upload of an original image, including metadata and object-storage persistence, without transformation or inference.",
+      "profile": "light",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium"
+    },
+    "delivery.original.cached": {
+      "description": "Retrieves an existing original image after setup, measuring delivery without image decoding, transformation, or encoding.",
+      "profile": "read",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium"
+    },
+    "variant.generate.cold": {
+      "description": "Requests a new on-demand variant for the first time, including source retrieval, decoding, transformation, encoding, persistence, and delivery.",
+      "profile": "heavy",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-to-webp-400",
+      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80, "r": "auto"}
+    },
+    "variant.deliver.cached": {
+      "description": "Retrieves an on-demand variant generated during setup, measuring delivery without repeating the image transformation.",
+      "profile": "read",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-to-webp-400",
+      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80, "r": "auto"}
+    },
+    "upload.preprocess": {
+      "description": "Uploads an image through a path that preprocesses the original into a padded JXL image before the upload response completes.",
+      "profile": "heavy",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium-to-jxl",
+      "path": "/test-upload-preprocessing",
+      "expected": {"format": "jxl", "width": 994, "height": 1314}
+    },
+    "upload.rules": {
+      "description": "Uploads an image and evaluates an inference-backed Upload Rules rule, verifying the matching rule adds the expected metadata label.",
+      "profile": "inference",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium-landscape-rule",
+      "path": "/test-upload-rules"
+    },
+    "upload.rules.preprocess": {
+      "description": "Evaluates an inference-backed Upload Rules rule during upload, then preprocesses the accepted original into a padded JXL image.",
+      "profile": "inference",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium-landscape-rule-to-jxl",
+      "path": "/test-upload-rules-preprocessing",
+      "expected": {"format": "jxl", "width": 994, "height": 1314}
+    },
+    "upload.eager.accept": {
+      "description": "Measures upload acceptance while four configured eager variants are scheduled for background generation; it does not wait for them to finish.",
+      "profile": "light",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium-four-profiles",
+      "path": "/test-upload-eager-variants"
+    },
+    "variant.eager.ready": {
+      "description": "Measures the time after upload acceptance until all four background eager variants are ready, then verifies each variant can be delivered as a cache hit.",
+      "profile": "heavy",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "case": "jpg-medium-four-profiles",
+      "path": "/test-upload-eager-variants",
+      "profiles": ["thumbnail-200", "thumbnail-400", "thumbnail-600", "sepia-original"],
+      "timeoutSeconds": 30
+    },
+    "format.decode": {
+      "description": "Generates the same WebP variant from each supported source format, exercising its decoder with a common resize and output encoding.",
+      "profile": "heavy",
+      "fixture": "photo-medium",
+      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80},
+      "cases": [
+        {"id": "avif-to-webp", "sourceFormat": "avif"},
+        {"id": "gif-to-webp", "sourceFormat": "gif"},
+        {"id": "heic-to-webp", "sourceFormat": "heic"},
+        {"id": "jpg-to-webp", "sourceFormat": "jpg"},
+        {"id": "jxl-to-webp", "sourceFormat": "jxl"},
+        {"id": "png-to-webp", "sourceFormat": "png"},
+        {"id": "webp-to-webp", "sourceFormat": "webp"}
+      ]
+    },
+    "format.encode": {
+      "description": "Generates the same resized variant from a JPEG source in each supported destination format, exercising each output encoder.",
+      "profile": "heavy",
+      "fixture": "photo-medium",
+      "sourceFormat": "jpg",
+      "query": {"w": 400, "fit": "fit", "q": 80},
+      "cases": [
+        {"id": "jpg-to-avif", "destinationFormat": "avif"},
+        {"id": "jpg-to-gif", "destinationFormat": "gif"},
+        {"id": "jpg-to-heic", "destinationFormat": "heic"},
+        {"id": "jpg-to-jpg", "destinationFormat": "jpg"},
+        {"id": "jpg-to-jxl", "destinationFormat": "jxl"},
+        {"id": "jpg-to-png", "destinationFormat": "png"},
+        {"id": "jpg-to-webp", "destinationFormat": "webp"}
+      ]
+    }
+  }
+}

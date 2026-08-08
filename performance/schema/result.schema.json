@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "runId", "suite", "workload", "case", "repetition", "environment", "subject", "startedAt", "completedAt", "metrics", "passed"],
+  "properties": {
+    "version": {"const": 1},
+    "runId": {"type": "string", "minLength": 1},
+    "suite": {"enum": ["smoke", "release"]},
+    "workload": {"type": "string", "minLength": 1},
+    "case": {"type": "string", "minLength": 1},
+    "repetition": {"type": "integer", "minimum": 1},
+    "environment": {"type": "string", "minLength": 1},
+    "subject": {"type": "string", "minLength": 1},
+    "startedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": "string", "format": "date-time"},
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operations", "requests", "errors", "checks", "droppedIterations", "durationMs"],
+      "properties": {
+        "operations": {"type": "integer", "minimum": 1},
+        "requests": {"type": "integer", "minimum": 1},
+        "errors": {"type": "integer", "minimum": 0},
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "failed"],
+          "properties": {
+            "passed": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0}
+          }
+        },
+        "droppedIterations": {"type": "integer", "minimum": 0},
+        "durationMs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "p50", "p90", "p95", "p99", "max"],
+          "properties": {
+            "min": {"type": "number", "minimum": 0},
+            "p50": {"type": "number", "minimum": 0},
+            "p90": {"type": "number", "minimum": 0},
+            "p95": {"type": "number", "minimum": 0},
+            "p99": {"type": "number", "minimum": 0},
+            "max": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "passed": {"type": "boolean"}
+  }
+}

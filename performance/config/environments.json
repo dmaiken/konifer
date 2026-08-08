@@ -1,0 +1,28 @@
+{
+  "default": "local-compose-v2",
+  "profiles": {
+    "local-compose-v2": {
+      "displayName": "Local developer laptop",
+      "description": "Provisional reference environment for release-over-release development measurements on a single laptop. It is not representative of production server capacity.",
+      "hardware": {
+        "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
+        "architecture": "x86_64",
+        "processor": "Intel Core i7-8550U @ 1.80 GHz",
+        "physicalCores": 4,
+        "logicalCpus": 8,
+        "memoryGiB": 16
+      },
+      "interpretation": [
+        "Konifer is limited to 2 CPUs and 8 GiB of memory; PostgreSQL and MinIO are each limited to 1 CPU and 1 GiB.",
+        "Konifer, PostgreSQL, MinIO, and the host-based k6 load generator compete for the same physical CPU, memory, and storage.",
+        "Use these results to compare releases measured under this same profile, not to estimate production capacity or compare against other hardware."
+      ],
+      "composeFile": "runtime/docker-compose.yml",
+      "services": [
+        {"container": "perf_konifer", "cpus": 2, "memoryBytes": 8589934592},
+        {"container": "perf_konifer_postgres", "cpus": 1, "memoryBytes": 1073741824},
+        {"container": "perf_konifer_minio", "cpus": 1, "memoryBytes": 1073741824}
+      ]
+    }
+  }
+}

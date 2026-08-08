@@ -1,0 +1,17 @@
+{
+  "fixtures": {
+    "photo-medium": {
+      "width": 974,
+      "height": 1294,
+      "files": {
+        "avif": {"path": "medium/medium.avif", "mediaType": "image/avif", "bytes": 243960, "sha256": "455fbbffb5656f0e869bf438e8994df54a803f087527638e907be9fda7ac323a"},
+        "gif": {"path": "medium/medium.gif", "mediaType": "image/gif", "bytes": 1057133, "sha256": "1eaa2a264c56f8950dc4e12fea667ea3e290a9519376488a682d6af0869b30dc"},
+        "heic": {"path": "medium/medium.heic", "mediaType": "image/heic", "bytes": 367353, "sha256": "d223c3d0fe01b5e3fdec48072153742537c09edc40e971511293b0b5d49f7e85"},
+        "jpg": {"path": "medium/medium.jpg", "mediaType": "image/jpeg", "bytes": 500919, "sha256": "54a6433d4f756d3e20082e1dad0f79f906dcaf091321a52bed975f6fa0d5a1d0"},
+        "jxl": {"path": "medium/medium.jxl", "mediaType": "image/jxl", "bytes": 219838, "sha256": "7ef5dc816b2b4ab5af9765ac3aa90649a7ef1a0316cdbbb2e1ddda9e3c87e8be"},
+        "png": {"path": "medium/medium.png", "mediaType": "image/png", "bytes": 2782172, "sha256": "b71635bef57fda6c6e1f82b75d606bfb0a5247132988efdf83fc68e72ad0e429"},
+        "webp": {"path": "medium/medium.webp", "mediaType": "image/webp", "bytes": 293578, "sha256": "44ae9351df691919f9c7837c71d209a859d25e1ff91c1ff1ee43656b344b2b5d"}
+      }
+    }
+  }
+}

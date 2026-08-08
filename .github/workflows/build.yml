@@ -13,6 +13,8 @@ on:
       - "Dockerfile.base"
       - "scripts/install-vips.sh"
       - "scripts/query-runtime-deps.sh"
+      - "performance/**"
+      - ".github/workflows/performance.yml"
   pull_request:
     branches: [ "main" ]
     paths-ignore:
@@ -25,6 +27,8 @@ on:
       - "Dockerfile.base"
       - "scripts/install-vips.sh"
       - "scripts/query-runtime-deps.sh"
+      - "performance/**"
+      - ".github/workflows/performance.yml"
 
 env:
   REGISTRY: ghcr.io

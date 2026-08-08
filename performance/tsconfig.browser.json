@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "outDir": "./dist/report",
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "./report",
+    "types": []
+  },
+  "include": ["report/chart.ts", "report/model.ts", "report/report.js", "report/types.ts"]
+}

@@ -12,6 +12,8 @@
 Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style
 capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
 
+[View Konifer performance results](performance/report/README.md)
+
 It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads,
 or asset information from a single HTTP API. The core idea is straightforward: Konifer's URLs can follow your domain model.
 

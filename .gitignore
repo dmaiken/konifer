@@ -49,3 +49,8 @@ out/
 # Local model artifacts
 /models/
 /*_model.onnx
+
+# Local performance benchmark output
+/performance/results/
+/performance/dist/
+/performance/node_modules/

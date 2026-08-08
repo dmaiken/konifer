@@ -13,7 +13,34 @@ env:
   SIGLIP2_MODEL_REVISION: "ba1f3b0843f24bc5417d38e19c37b287d719b2f4"
 
 jobs:
+  validate-performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: performance
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: performance/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate performance project
+        run: npm run check
+
   build-images:
+    needs: validate-performance
     strategy:
       matrix:
         include:
