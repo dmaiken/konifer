@@ -39,7 +39,7 @@
       ]
     },
     "release": {
-      "repetitions": 1,
+      "repetitions": 3,
       "workloads": [
         "upload.original",
         "delivery.original.cached",
