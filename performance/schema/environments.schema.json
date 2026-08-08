@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://konifer.io/schemas/performance-environments.schema.json",
+  "title": "Konifer performance environment catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["default", "profiles"],
+  "properties": {
+    "default": {"type": "string", "minLength": 1},
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/profile"}
+    }
+  },
+  "$defs": {
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "architecture", "processor", "physicalCores", "logicalCpus", "memoryGiB"],
+      "properties": {
+        "system": {"type": "string", "minLength": 1},
+        "architecture": {"type": "string", "minLength": 1},
+        "processor": {"type": "string", "minLength": 1},
+        "physicalCores": {"type": "integer", "minimum": 1},
+        "logicalCpus": {"type": "integer", "minimum": 1},
+        "memoryGiB": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["container", "cpus", "memoryBytes"],
+      "properties": {
+        "container": {"type": "string", "minLength": 1},
+        "cpus": {"type": "number", "exclusiveMinimum": 0},
+        "memoryBytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "description", "hardware", "interpretation", "composeFile", "services"],
+      "properties": {
+        "displayName": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "description": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "hardware": {"$ref": "#/$defs/hardware"},
+        "interpretation": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+        },
+        "composeFile": {"type": "string", "minLength": 1},
+        "services": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/service"}
+        }
+      }
+    }
+  }
+}

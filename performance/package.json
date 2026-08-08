@@ -1,0 +1,32 @@
+{
+  "name": "@konifer/performance",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Konifer performance test harness and report tooling",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.browser.json",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix --max-warnings 0",
+    "lint:history": "./lint-history.sh",
+    "lint:history:fix": "./lint-history.sh --fix",
+    "test": "node --test report/*.test.ts",
+    "typecheck": "tsc",
+    "check": "npm run typecheck && npm run lint && npm run lint:history && npm test && npm run build",
+    "report": "node report/generate.ts"
+  },
+  "engines": {
+    "node": ">=24.0"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "8.0.1",
+    "@babel/preset-typescript": "8.0.1",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.13.3",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "eslint": "10.8.0",
+    "globals": "17.9.0",
+    "typescript": "7.0.2"
+  }
+}
