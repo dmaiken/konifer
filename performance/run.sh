@@ -10,6 +10,7 @@ selected_workload=""
 selected_case=""
 repetitions=""
 subject_override=""
+docker_tag=latest
 start_runtime=true
 keep_assets=false
 cleanup_pending=false
@@ -37,6 +38,7 @@ Options:
   --subject LABEL       Label the measured Konifer build, for example v0.9.0.
                         The default is `git describe --tags --always --dirty`;
                         published history requires vMAJOR.MINOR.PATCH.
+  --docker-tag TAG      Run ghcr.io/dmaiken/konifer:TAG. Defaults to latest.
   --no-start            Reuse an already-running Compose stack. Container
                         limits and Konifer health are still verified.
   --keep-assets         Skip per-repetition recursive deletion of assets.
@@ -45,6 +47,7 @@ Options:
 
 Examples:
   ./performance/run.sh smoke
+  ./performance/run.sh smoke --docker-tag local
   ./performance/run.sh smoke --workload format.encode --case jpg-to-webp
   ./performance/run.sh smoke --workload upload.rules --no-start
   ./performance/run.sh release --subject v0.9.0
@@ -79,6 +82,10 @@ while [[ $# -gt 0 ]]; do
       subject_override=${2:?Missing benchmark subject}
       shift 2
       ;;
+    --docker-tag)
+      docker_tag=${2:?Missing Docker tag}
+      shift 2
+      ;;
     --no-start)
       start_runtime=false
       shift
@@ -103,6 +110,13 @@ if [[ -n $selected_case && -z $selected_workload ]]; then
   usage >&2
   exit 2
 fi
+
+if [[ ! $docker_tag =~ ^[[:alnum:]_][[:alnum:]_.-]{0,127}$ ]]; then
+  echo "Invalid Docker tag: $docker_tag" >&2
+  exit 2
+fi
+
+export KONIFER_IMAGE="ghcr.io/dmaiken/konifer:$docker_tag"
 
 for command_name in curl docker jq k6 node sha256sum jsonschema; do
   command -v "$command_name" >/dev/null || {
@@ -178,6 +192,7 @@ validate_fixtures
 validate_models
 
 if [[ $start_runtime == true ]]; then
+  echo "Starting performance runtime with $KONIFER_IMAGE"
   # Compose --wait expects every selected service to remain running or healthy,
   # so run the successful one-shot bucket initializer separately.
   docker compose -f "$compose_file" up -d --wait perf-postgres perf-minio

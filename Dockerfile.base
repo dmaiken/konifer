@@ -13,6 +13,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
+    cmake \
     curl \
     glib2.0-dev \
     libaom-dev \
@@ -29,17 +30,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-plugin-x265 \
     libimagequant-dev \
     libjemalloc-dev \
-    libjpeg-turbo8-dev \
     libjxl-dev \
     liblcms2-dev \
     libpango1.0-dev \
-    libpng-dev \
     libwebp-dev \
     meson \
+    nasm \
     ninja-build \
     pkg-config \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/native-build/ /usr/local/src/native-build/
+
+RUN bash /usr/local/src/native-build/install.sh
+
+ENV PKG_CONFIG_PATH=/opt/konifer-native/lib/pkgconfig
+ENV CMAKE_PREFIX_PATH=/opt/konifer-native
 
 COPY scripts/install-vips.sh /usr/local/bin/install-vips.sh
 
@@ -85,7 +92,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-plugin-x265 \
     libimagequant0 \
     libjemalloc2 \
-    libjpeg-turbo8 \
     libjxl0.7 \
     liblcms2-2 \
     libpango-1.0-0 \
@@ -111,10 +117,26 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then GNU_ARCH="aarch64-linux-gnu"; else GNU_
 
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH=$JAVA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=/opt/konifer-native/lib
 
 COPY --from=temurin-build /opt/java/openjdk /opt/java/openjdk
+COPY --from=vips-build /opt/konifer-native /opt/konifer-native
 COPY --from=vips-build /usr/local /usr/local
-RUN ldconfig
+RUN rm -rf \
+      /opt/konifer-native/include \
+      /opt/konifer-native/lib/cmake \
+      /opt/konifer-native/lib/pkgconfig \
+      /opt/konifer-native/share/doc \
+    && ldconfig \
+    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libjpeg.so.8 \
+    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libpng16.so.16 \
+    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libz.so.1 \
+    && ldd /opt/konifer-native/lib/libpng16.so.16 | grep -F /opt/konifer-native/lib/libz.so.1 \
+    && vips black /tmp/libjpeg-turbo-smoke.jpg 8 8 \
+    && test "$(vipsheader -f width /tmp/libjpeg-turbo-smoke.jpg)" = 8 \
+    && vips black /tmp/zlib-ng-smoke.png 8 8 \
+    && test "$(vipsheader -f width /tmp/zlib-ng-smoke.png)" = 8 \
+    && rm /tmp/libjpeg-turbo-smoke.jpg /tmp/zlib-ng-smoke.png
 
 ENV LD_PRELOAD="libjemalloc.so.2"
 ENV SVT_LOG=1
