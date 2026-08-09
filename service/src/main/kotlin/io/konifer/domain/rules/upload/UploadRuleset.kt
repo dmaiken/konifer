@@ -15,7 +15,7 @@ data class UploadRuleset(
     val acceptRules: List<UploadRule> = emptyList(),
     @SerialName(UploadRulesetPropertyKeys.REJECT_RULES)
     val rejectRules: List<UploadRule> = emptyList(),
-    @SerialName(UploadRulesetPropertyKeys.EDIT_RULES)
+    @SerialName(UploadRulesetPropertyKeys.MODIFY_RULES)
     val editRules: List<UploadRule> = emptyList(),
 ) {
     companion object Factory {

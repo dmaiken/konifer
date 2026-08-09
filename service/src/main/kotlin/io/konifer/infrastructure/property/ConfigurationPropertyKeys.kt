@@ -163,7 +163,7 @@ object ConfigurationPropertyKeys {
             const val DEFAULT = "default"
             const val ACCEPT_RULES = "accept-rules"
             const val REJECT_RULES = "reject-rules"
-            const val EDIT_RULES = "edit-rules"
+            const val MODIFY_RULES = "modify-rules"
 
             object RulePropertyKeys {
                 const val RULE = "rule"
