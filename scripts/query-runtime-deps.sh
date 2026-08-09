@@ -7,7 +7,6 @@ DEV_PACKAGES=(
   "libexpat1-dev"
   "libfftw3-dev"
   "libimagequant-dev"
-  "libjpeg-turbo8-dev"
   "liblcms2-dev"
   "libpango1.0-dev"
   "libpng-dev"
