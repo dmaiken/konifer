@@ -5,6 +5,9 @@ set -euo pipefail
 readonly NATIVE_PREFIX="${NATIVE_INSTALL_PREFIX:-/opt/konifer-native}"
 readonly VIPS_PREFIX="${VIPS_INSTALL_PREFIX:-/usr/local}"
 readonly VIPS_LIBRARY="$VIPS_PREFIX/lib/libvips.so.42"
+readonly LIBHWY_LIBRARY="$NATIVE_PREFIX/lib/libhwy.so.1"
+readonly LIBJXL_LIBRARY="$NATIVE_PREFIX/lib/libjxl.so.0.12"
+readonly LIBJXL_THREADS_LIBRARY="$NATIVE_PREFIX/lib/libjxl_threads.so.0.12"
 readonly LIBPNG_LIBRARY="$NATIVE_PREFIX/lib/libpng16.so.16"
 
 export LD_LIBRARY_PATH="$NATIVE_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -71,11 +74,18 @@ runtime_verify_dependency_path() {
 }
 
 runtime_verify_dependencies_resolve "$VIPS_LIBRARY"
+runtime_verify_dependencies_resolve "$LIBHWY_LIBRARY"
+runtime_verify_dependencies_resolve "$LIBJXL_LIBRARY"
+runtime_verify_dependencies_resolve "$LIBJXL_THREADS_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBPNG_LIBRARY"
 
+runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBHWY_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$NATIVE_PREFIX/lib/libjpeg.so.8"
+runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBJXL_LIBRARY"
+runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBJXL_THREADS_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBPNG_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$NATIVE_PREFIX/lib/libz.so.1"
+runtime_verify_dependency_path "$LIBJXL_LIBRARY" "$LIBHWY_LIBRARY"
 runtime_verify_dependency_path "$LIBPNG_LIBRARY" "$NATIVE_PREFIX/lib/libz.so.1"
 
 readonly WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/konifer-native-runtime.XXXXXX")"
@@ -91,4 +101,17 @@ vips black "$WORK_DIR/libpng-smoke.png" 8 8
 [[ "$(vipsheader -f width "$WORK_DIR/libpng-smoke.png")" == 8 ]] || \
   runtime_die "libpng smoke image has an unexpected width"
 
-printf '[native-runtime] Verified native library linkage and image codecs\n'
+# JPEG XL
+vips black "$WORK_DIR/libjxl-smoke.jxl" 8 8
+[[ "$(vipsheader -f width "$WORK_DIR/libjxl-smoke.jxl")" == 8 ]] || \
+  runtime_die "libjxl smoke image has an unexpected width"
+
+# Highway-backed resize
+vips resize \
+  "$WORK_DIR/libpng-smoke.png" \
+  "$WORK_DIR/libhwy-resize-smoke.png" \
+  0.5
+[[ "$(vipsheader -f width "$WORK_DIR/libhwy-resize-smoke.png")" == 4 ]] || \
+  runtime_die "libhwy resize smoke image has an unexpected width"
+
+printf '[native-runtime] Verified native library linkage and image operations\n'

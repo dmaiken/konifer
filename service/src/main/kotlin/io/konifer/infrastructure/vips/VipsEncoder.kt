@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.vips
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.VTarget
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsForeignHeifEncoder
 import app.photofox.vipsffm.enums.VipsForeignSubsample
@@ -11,9 +12,12 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SUBSAMPLE_MODE
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
+import java.lang.foreign.Arena
+import java.nio.channels.Channels
 
 object VipsEncoder {
     fun writeToStream(
+        arena: Arena,
         source: VImage,
         format: ImageFormat,
         quality: Int?,
@@ -25,7 +29,36 @@ object VipsEncoder {
                 quality = quality,
             )
 
-        source.writeToStream(outputChannel.toOutputStream(), format.extension, *options)
+        if (format == ImageFormat.JPEG_XL) {
+            writeJpegXlToStream(arena, source, outputChannel, options)
+        } else {
+            source.writeToStream(outputChannel.toOutputStream(), format.extension, *options)
+        }
+    }
+
+    /**
+     * Encodes JPEG XL through a seekable memory target before writing it to the output channel.
+     *
+     * libvips uses libjxl's output-processor API when built against libjxl 0.9 or newer. That
+     * encoder path may seek while producing its output, but vips-ffm's OutputStream-backed custom
+     * target only supports sequential writes. A memory target is seekable and keeps the encoded
+     * bytes in native memory for the lifetime of [arena].
+     */
+    private fun writeJpegXlToStream(
+        arena: Arena,
+        source: VImage,
+        outputChannel: ByteChannel,
+        options: Array<VipsOption>,
+    ) {
+        val target = VTarget.newToMemory(arena)
+        source.writeToTarget(target, ImageFormat.JPEG_XL.extension, *options)
+
+        val encoded = target.blob.asArenaScopedByteBuffer()
+        Channels.newChannel(outputChannel.toOutputStream()).use { channel ->
+            while (encoded.hasRemaining()) {
+                channel.write(encoded)
+            }
+        }
     }
 
     private fun constructEncoderOptions(

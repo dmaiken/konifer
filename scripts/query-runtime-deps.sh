@@ -3,6 +3,7 @@
 # 1. The list of DEV packages you are using in your build
 DEV_PACKAGES=(
   "glib2.0-dev"
+  "libbrotli-dev"
   "libexif-dev"
   "libexpat1-dev"
   "libfftw3-dev"
@@ -13,7 +14,6 @@ DEV_PACKAGES=(
   "libwebp-dev"
   "libheif-dev"
   "libde265-dev"
-  "libjxl-dev"
   "libgif-dev"
   "libcgif-dev"
   "libaom-dev"

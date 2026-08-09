@@ -3,7 +3,7 @@ set -e # Exit immediately if a command exits with a non-zero status
 
 # Configuration
 PREFIX="/usr/local"
-VIPS_VERSION="8.18.0"
+VIPS_VERSION="8.18.5"
 VIPS_URL="https://github.com/libvips/libvips/releases/download"
 BUILD_DIR="/tmp/vips-build"
 
