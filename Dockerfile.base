@@ -122,21 +122,14 @@ ENV LD_LIBRARY_PATH=/opt/konifer-native/lib
 COPY --from=temurin-build /opt/java/openjdk /opt/java/openjdk
 COPY --from=vips-build /opt/konifer-native /opt/konifer-native
 COPY --from=vips-build /usr/local /usr/local
+COPY scripts/verify-native-runtime.sh /usr/local/bin/verify-native-runtime
 RUN rm -rf \
       /opt/konifer-native/include \
       /opt/konifer-native/lib/cmake \
       /opt/konifer-native/lib/pkgconfig \
       /opt/konifer-native/share/doc \
     && ldconfig \
-    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libjpeg.so.8 \
-    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libpng16.so.16 \
-    && ldd /usr/local/lib/libvips.so.42 | grep -F /opt/konifer-native/lib/libz.so.1 \
-    && ldd /opt/konifer-native/lib/libpng16.so.16 | grep -F /opt/konifer-native/lib/libz.so.1 \
-    && vips black /tmp/libjpeg-turbo-smoke.jpg 8 8 \
-    && test "$(vipsheader -f width /tmp/libjpeg-turbo-smoke.jpg)" = 8 \
-    && vips black /tmp/zlib-ng-smoke.png 8 8 \
-    && test "$(vipsheader -f width /tmp/zlib-ng-smoke.png)" = 8 \
-    && rm /tmp/libjpeg-turbo-smoke.jpg /tmp/zlib-ng-smoke.png
+    && /usr/local/bin/verify-native-runtime
 
 ENV LD_PRELOAD="libjemalloc.so.2"
 ENV SVT_LOG=1
