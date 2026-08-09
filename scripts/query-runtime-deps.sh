@@ -10,7 +10,6 @@ DEV_PACKAGES=(
   "liblcms2-dev"
   "libheif-dev"
   "libde265-dev"
-  "libcgif-dev"
   "libaom-dev"
   "libheif-plugin-x265"
   "libheif-plugin-svtenc"

@@ -7,7 +7,6 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import org.apache.tika.Tika
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.util.UUID
@@ -38,7 +37,7 @@ class UploadRulesIntegrationTest : BaseIntegrationTest() {
                 )
             fetchResponse::class shouldBe KoniferResponse.Success::class
             val content = (fetchResponse as KoniferResponse.Success).body
-            Tika().detect(content) shouldBe format.mimeType
+            tika.detect(content) shouldBe format.mimeType
 
             Vips.run { arena ->
                 val vImage = VImage.newFromBytes(arena, content)

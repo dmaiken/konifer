@@ -9,6 +9,7 @@ source "$SCRIPT_DIR/common.sh"
 
 readonly INSTALLERS=(
   zlib-ng.sh
+  cgif.sh
   libpng.sh
   libjpeg-turbo.sh
   libwebp.sh

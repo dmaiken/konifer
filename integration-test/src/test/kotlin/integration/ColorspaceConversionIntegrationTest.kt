@@ -6,7 +6,6 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.TransformableColorSpace
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import org.apache.tika.Tika
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.util.UUID
@@ -41,7 +40,7 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
                 )
             fetchResponse::class shouldBe KoniferResponse.Success::class
             val content = (fetchResponse as KoniferResponse.Success).body
-            Tika().detect(content) shouldBe attributes.format.mimeType
+            tika.detect(content) shouldBe attributes.format.mimeType
         }
     }
 }

@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     glib2.0-dev \
     libaom-dev \
     libbrotli-dev \
-    libcgif-dev \
     libde265-dev \
     libexif-dev \
     libexpat1-dev \
@@ -70,7 +69,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libaom3 \
     libbrotli1 \
-    libcgif0 \
     libdav1d7 \
     libde265-0 \
     libexif12 \
