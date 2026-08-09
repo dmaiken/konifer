@@ -8,13 +8,7 @@ DEV_PACKAGES=(
   "libexpat1-dev"
   "libimagequant-dev"
   "liblcms2-dev"
-  "libheif-dev"
   "libde265-dev"
-  "libaom-dev"
-  "libheif-plugin-x265"
-  "libheif-plugin-svtenc"
-  "libheif-plugin-libde265"
-  "libheif-plugin-dav1d"
 )
 
 # Update apt cache so we can query it (only needed if running in a fresh container)
@@ -27,7 +21,7 @@ echo "Resolving Runtime Libraries for Ubuntu $(cat /etc/os-release | grep VERSIO
 echo "----------------------------------------------------------------"
 
 # Loop through and find the runtime dependency
-RUNTIME_LIST="wget ca-certificates tini libheif-plugin-x265 libheif-plugin-dav1d libheif-plugin-libde265 libheif-plugin-svtenc libjemalloc2"
+RUNTIME_LIST="wget ca-certificates tini libjemalloc2"
 
 for pkg in "${DEV_PACKAGES[@]}"; do
     # Get dependencies, filter for "Depends:", clean up lines
