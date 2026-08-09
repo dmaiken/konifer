@@ -32,22 +32,22 @@ if [ "$INSTALL_DEPS" = true ]; then
   if [ "$OS" = "Darwin" ]; then
     brew install \
       pkg-config ninja meson \
-      glib libexif expat fftw \
+      glib libexif expat \
       libimagequant jpeg-turbo little-cms2 \
-      pango libpng \
+      libpng \
       webp libheif libde265 \
       jpeg-xl giflib cgif aom \
-      x265 jemalloc
+      x265
   else
     apt-get update && apt-get install -y \
       build-essential pkg-config ninja-build curl meson \
-      glib2.0-dev libexif-dev libexpat1-dev libfftw3-dev \
+      glib2.0-dev libexif-dev libexpat1-dev \
       libimagequant-dev libjpeg-turbo8-dev liblcms2-dev \
-      libpango1.0-dev libpng-dev \
+      libpng-dev \
       libwebp-dev libheif-dev libde265-dev \
-      libjxl-dev libgif-dev libcgif-dev libaom-dev \
+      libjxl-dev libcgif-dev libaom-dev \
       libheif-plugin-x265 libheif-plugin-svtenc libheif-plugin-libde265 \
-      libheif-plugin-dav1d libjemalloc-dev
+      libheif-plugin-dav1d
   fi
 fi
 
@@ -70,15 +70,44 @@ else
   LDFLAGS="-ljemalloc"
 fi
 
-LDFLAGS="$LDFLAGS" meson setup build \
+# auto_features=disabled should prevent magick, but I am
+# explicitly disabling it just to be safe
+meson setup build \
   --prefix="$PREFIX" \
-  --buildtype=release \
   --libdir=lib \
-  -Dintrospection=disabled \
-  -Dexamples=false \
-  -Dmodules=disabled \
+  --buildtype=release \
+  --default-library=shared \
+  --strip \
+  --wrap-mode=nodownload \
+  -Dauto_features=disabled \
+  -Dmagick=disabled \
+  -Dmagick-module=disabled \
+  -Ddeprecated=false \
   -Dcplusplus=false \
-  -Ddeprecated=false
+  -Dexamples=false \
+  -Ddocs=false \
+  -Dcpp-docs=false \
+  -Dintrospection=disabled \
+  -Dvapi=false \
+  -Dmodules=disabled \
+  -Djpeg=enabled \
+  -Dpng=enabled \
+  -Dwebp=enabled \
+  -Dheif=enabled \
+  -Dheif-module=disabled \
+  -Djpeg-xl=enabled \
+  -Djpeg-xl-module=disabled \
+  -Dcgif=enabled \
+  -Dnsgif=true \
+  -Dimagequant=enabled \
+  -Dexif=enabled \
+  -Dlcms=enabled \
+  -Dhighway=enabled \
+  -Dzlib=enabled \
+  -Dfftw=disabled \
+  -Dppm=false \
+  -Danalyze=false \
+  -Dradiance=false
 cd build
 ninja
 ninja install
