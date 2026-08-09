@@ -11,6 +11,7 @@ readonly INSTALLERS=(
   zlib-ng.sh
   libpng.sh
   libjpeg-turbo.sh
+  libwebp.sh
   libhwy.sh
   libjxl.sh
 )
