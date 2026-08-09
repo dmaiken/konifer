@@ -1,29 +1,24 @@
 #!/bin/bash
 
-# 1. The list of DEV packages you are using in your build
+# The list of DEV packages you are using in the native build
 DEV_PACKAGES=(
   "glib2.0-dev"
   "libbrotli-dev"
   "libexif-dev"
   "libexpat1-dev"
-  "libfftw3-dev"
   "libimagequant-dev"
   "liblcms2-dev"
-  "libpango1.0-dev"
-  "libpng-dev"
   "libheif-dev"
   "libde265-dev"
-  "libgif-dev"
   "libcgif-dev"
   "libaom-dev"
   "libheif-plugin-x265"
   "libheif-plugin-svtenc"
   "libheif-plugin-libde265"
   "libheif-plugin-dav1d"
-  "libjemalloc-dev"
 )
 
-# 2. Update apt cache so we can query it (only needed if running in a fresh container)
+# Update apt cache so we can query it (only needed if running in a fresh container)
 if [ ! -d "/var/lib/apt/lists/partial" ]; then
     echo "Updating apt cache..."
     apt-get update -qq
@@ -32,8 +27,8 @@ fi
 echo "Resolving Runtime Libraries for Ubuntu $(cat /etc/os-release | grep VERSION_ID | cut -d'"' -f2)..."
 echo "----------------------------------------------------------------"
 
-# 3. Loop through and find the runtime dependency
-RUNTIME_LIST="wget ca-certificates tini libheif-plugin-x265 libheif-plugin-dav1d libheif-plugin-libde265 libheif-plugin-svtenc"
+# Loop through and find the runtime dependency
+RUNTIME_LIST="wget ca-certificates tini libheif-plugin-x265 libheif-plugin-dav1d libheif-plugin-libde265 libheif-plugin-svtenc libjemalloc2"
 
 for pkg in "${DEV_PACKAGES[@]}"; do
     # Get dependencies, filter for "Depends:", clean up lines
@@ -59,7 +54,7 @@ for pkg in "${DEV_PACKAGES[@]}"; do
     RUNTIME_LIST="$RUNTIME_LIST $DEPS"
 done
 
-# 4. Print unique, sorted list ready for Dockerfile
+# Print unique, sorted list ready for Dockerfile
 echo "COPY THIS INTO RUNTIME STAGE:"
 echo ""
 echo "RUN apt-get update && apt-get install -y --no-install-recommends \\"
