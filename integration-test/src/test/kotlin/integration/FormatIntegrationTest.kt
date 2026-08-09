@@ -8,7 +8,6 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import org.apache.tika.Tika
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
@@ -51,7 +50,7 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                                 )
                             fetchResponse::class shouldBe KoniferResponse.Success::class
                             val content = (fetchResponse as KoniferResponse.Success).body
-                            Tika().detect(content) shouldBe destinationFormat.mimeType
+                            tika.detect(content) shouldBe destinationFormat.mimeType
 
                             Vips.run { arena ->
                                 val vImage = VImage.newFromBytes(arena, content)
