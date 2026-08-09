@@ -50,7 +50,7 @@ object ImageFactory {
 
             height = image.height
             width = image.width
-            pages = image.getInt("n-pages")
+            pages = image.getInt("n-pages") ?: 1
         }
 
         return TestImageAttributes(
