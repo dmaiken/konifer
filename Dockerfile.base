@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     glib2.0-dev \
     libaom-dev \
+    libbrotli-dev \
     libcgif-dev \
     libde265-dev \
     libexif-dev \
@@ -30,7 +31,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-plugin-x265 \
     libimagequant-dev \
     libjemalloc-dev \
-    libjxl-dev \
     liblcms2-dev \
     libpango1.0-dev \
     libwebp-dev \
@@ -74,6 +74,7 @@ ARG TARGETARCH
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libaom3 \
+    libbrotli1 \
     libcgif0 \
     libdav1d7 \
     libde265-0 \
@@ -92,7 +93,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-plugin-x265 \
     libimagequant0 \
     libjemalloc2 \
-    libjxl0.7 \
     liblcms2-2 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \

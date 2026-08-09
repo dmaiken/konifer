@@ -86,6 +86,7 @@ class VipsImageProcessor {
         }
         return if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
             VipsEncoder.writeToStream(
+                arena = arena,
                 source = preProcessed.processed,
                 format = transformation.format,
                 quality = transformation.quality,
@@ -142,6 +143,7 @@ class VipsImageProcessor {
                 )
 
                 VipsEncoder.writeToStream(
+                    arena = arena,
                     source = variantResult.processed,
                     format = transformation.format,
                     quality = transformation.quality,

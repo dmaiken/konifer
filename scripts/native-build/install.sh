@@ -11,6 +11,8 @@ readonly INSTALLERS=(
   zlib-ng.sh
   libpng.sh
   libjpeg-turbo.sh
+  libhwy.sh
+  libjxl.sh
 )
 
 native_log "Installing ${#INSTALLERS[@]} native dependencies"
