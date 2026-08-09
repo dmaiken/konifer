@@ -33,7 +33,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libjemalloc-dev \
     liblcms2-dev \
     libpango1.0-dev \
-    libwebp-dev \
     meson \
     nasm \
     ninja-build \
@@ -100,10 +99,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpangoxft-1.0-0 \
     libpng16-16t64 \
     libsvtav1enc1d1 \
-    libwebp7 \
-    libwebpdecoder3 \
-    libwebpdemux2 \
-    libwebpmux3 \
     libx265-199 \
     tini \
     && rm -rf /var/lib/apt/lists/*

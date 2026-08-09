@@ -11,7 +11,6 @@ DEV_PACKAGES=(
   "liblcms2-dev"
   "libpango1.0-dev"
   "libpng-dev"
-  "libwebp-dev"
   "libheif-dev"
   "libde265-dev"
   "libgif-dev"
