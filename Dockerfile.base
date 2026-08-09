@@ -16,16 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     curl \
     glib2.0-dev \
-    libaom-dev \
     libbrotli-dev \
     libde265-dev \
     libexif-dev \
     libexpat1-dev \
-    libheif-dev \
-    libheif-plugin-dav1d \
-    libheif-plugin-libde265 \
-    libheif-plugin-svtenc \
-    libheif-plugin-x265 \
     libimagequant-dev \
     liblcms2-dev \
     meson \
@@ -67,26 +61,17 @@ ARG TARGETARCH
 ## Generated from scripts/query-runtime-deps.sh.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    libaom3 \
     libbrotli1 \
-    libdav1d7 \
     libde265-0 \
     libexif12 \
     libexpat1 \
     libffi8 \
     libgirepository-2.0-0 \
     libglib2.0-0t64 \
-    libheif1 \
-    libheif-plugin-dav1d \
-    libheif-plugin-libde265 \
-    libheif-plugin-svtenc \
-    libheif-plugin-x265 \
     libimagequant0 \
     libjemalloc2 \
     liblcms2-2 \
     libpng16-16t64 \
-    libsvtav1enc1d1 \
-    libx265-199 \
     tini \
     && rm -rf /var/lib/apt/lists/*
 

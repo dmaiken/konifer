@@ -13,6 +13,10 @@ readonly INSTALLERS=(
   libpng.sh
   libjpeg-turbo.sh
   libwebp.sh
+  svt-av1.sh
+  dav1d.sh
+  kvazaar.sh
+  libheif.sh
   libhwy.sh
   libjxl.sh
 )

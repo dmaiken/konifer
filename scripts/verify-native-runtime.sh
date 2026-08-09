@@ -5,16 +5,20 @@ set -euo pipefail
 readonly NATIVE_PREFIX="${NATIVE_INSTALL_PREFIX:-/opt/konifer-native}"
 readonly VIPS_PREFIX="${VIPS_INSTALL_PREFIX:-/usr/local}"
 readonly VIPS_LIBRARY="$VIPS_PREFIX/lib/libvips.so.42"
+readonly DAV1D_LIBRARY="$NATIVE_PREFIX/lib/libdav1d.so.7"
 readonly LIBCGIF_LIBRARY="$NATIVE_PREFIX/lib/libcgif.so.0"
+readonly LIBHEIF_LIBRARY="$NATIVE_PREFIX/lib/libheif.so.1"
 readonly LIBHWY_LIBRARY="$NATIVE_PREFIX/lib/libhwy.so.1"
 readonly LIBJXL_LIBRARY="$NATIVE_PREFIX/lib/libjxl.so.0.12"
 readonly LIBJXL_THREADS_LIBRARY="$NATIVE_PREFIX/lib/libjxl_threads.so.0.12"
+readonly KVAZAAR_LIBRARY="$NATIVE_PREFIX/lib/libkvazaar.so.7"
 readonly LIBPNG_LIBRARY="$NATIVE_PREFIX/lib/libpng16.so.16"
 readonly LIBWEBP_LIBRARY="$NATIVE_PREFIX/lib/libwebp.so.7"
 readonly LIBWEBP_DECODER_LIBRARY="$NATIVE_PREFIX/lib/libwebpdecoder.so.3"
 readonly LIBWEBP_DEMUX_LIBRARY="$NATIVE_PREFIX/lib/libwebpdemux.so.2"
 readonly LIBWEBP_MUX_LIBRARY="$NATIVE_PREFIX/lib/libwebpmux.so.3"
 readonly LIBSHARPYUV_LIBRARY="$NATIVE_PREFIX/lib/libsharpyuv.so.0"
+readonly SVT_AV1_LIBRARY="$NATIVE_PREFIX/lib/libSvtAv1Enc.so.4"
 
 export LD_LIBRARY_PATH="$NATIVE_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
@@ -80,19 +84,24 @@ runtime_verify_dependency_path() {
 }
 
 runtime_verify_dependencies_resolve "$VIPS_LIBRARY"
+runtime_verify_dependencies_resolve "$DAV1D_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBCGIF_LIBRARY"
+runtime_verify_dependencies_resolve "$LIBHEIF_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBHWY_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBJXL_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBJXL_THREADS_LIBRARY"
+runtime_verify_dependencies_resolve "$KVAZAAR_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBPNG_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBWEBP_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBWEBP_DECODER_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBWEBP_DEMUX_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBWEBP_MUX_LIBRARY"
 runtime_verify_dependencies_resolve "$LIBSHARPYUV_LIBRARY"
+runtime_verify_dependencies_resolve "$SVT_AV1_LIBRARY"
 
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBHWY_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBCGIF_LIBRARY"
+runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBHEIF_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$NATIVE_PREFIX/lib/libjpeg.so.8"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBJXL_LIBRARY"
 runtime_verify_dependency_path "$VIPS_LIBRARY" "$LIBJXL_THREADS_LIBRARY"
@@ -104,6 +113,10 @@ runtime_verify_dependency_path "$VIPS_LIBRARY" "$NATIVE_PREFIX/lib/libz.so.1"
 runtime_verify_dependency_path "$LIBJXL_LIBRARY" "$LIBHWY_LIBRARY"
 runtime_verify_dependency_path "$LIBPNG_LIBRARY" "$NATIVE_PREFIX/lib/libz.so.1"
 runtime_verify_dependency_path "$LIBWEBP_LIBRARY" "$LIBSHARPYUV_LIBRARY"
+runtime_verify_dependency_path "$LIBHEIF_LIBRARY" "$DAV1D_LIBRARY"
+runtime_verify_dependency_path "$LIBHEIF_LIBRARY" "$KVAZAAR_LIBRARY"
+runtime_verify_dependency_path "$LIBHEIF_LIBRARY" "$LIBSHARPYUV_LIBRARY"
+runtime_verify_dependency_path "$LIBHEIF_LIBRARY" "$SVT_AV1_LIBRARY"
 
 readonly WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/konifer-native-runtime.XXXXXX")"
 trap 'rm -rf -- "$WORK_DIR"' EXIT
@@ -132,6 +145,28 @@ vips black "$WORK_DIR/libwebp-smoke.webp" 8 8
 vips black "$WORK_DIR/cgif-smoke.gif" 8 8
 [[ "$(vipsheader -f width "$WORK_DIR/cgif-smoke.gif")" == 8 ]] || \
   runtime_die "cgif smoke image has an unexpected width"
+
+# AVIF through the explicitly selected SVT-AV1 encoder, then dav1d decoder
+vips black "$WORK_DIR/heif-smoke-source.v" 64 64
+vips heifsave \
+  "$WORK_DIR/heif-smoke-source.v" \
+  "$WORK_DIR/svt-av1-smoke.avif" \
+  --compression av1 \
+  --encoder svt \
+  --subsample-mode on
+[[ "$(vipsheader -f width "$WORK_DIR/svt-av1-smoke.avif")" == 64 ]] || \
+  runtime_die "SVT-AV1/dav1d smoke image has an unexpected width"
+
+# HEIC through the only installed HEVC encoder (Kvazaar), then libde265 decoder.
+# libvips 8.18 does not expose Kvazaar in VipsForeignHeifEncoder, so auto is
+# intentionally used here. The exact libheif -> Kvazaar linkage is checked above.
+vips heifsave \
+  "$WORK_DIR/heif-smoke-source.v" \
+  "$WORK_DIR/kvazaar-smoke.heic" \
+  --compression hevc \
+  --encoder auto
+[[ "$(vipsheader -f width "$WORK_DIR/kvazaar-smoke.heic")" == 64 ]] || \
+  runtime_die "Kvazaar/libde265 smoke image has an unexpected width"
 
 # Highway-backed resize
 vips resize \
