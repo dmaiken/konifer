@@ -20,6 +20,7 @@ import io.konifer.infrastructure.vips.aspectRatio
 import io.konifer.matchers.shouldBeApproximately
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.matchers.shouldHaveSamePixelContentAs
+import io.konifer.writeToTestStream
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
@@ -115,7 +116,7 @@ class ResizeTest {
                 processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
@@ -148,7 +149,7 @@ class ResizeTest {
                 processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
@@ -237,7 +238,7 @@ class ResizeTest {
 
                 processedImage.processed.width shouldBeWithinOneOf width
                 processedImage.processed.aspectRatio() shouldBeApproximately source.aspectRatio()
-                processedImage.processed.writeToStream(output, format.extension)
+                processedImage.processed.writeToTestStream(arena, output, format)
             }
             val outputBytes = output.toByteArray()
             PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_IDENTICAL
@@ -273,7 +274,7 @@ class ResizeTest {
                 processedImage.processed.width shouldBe width
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
             }
@@ -306,7 +307,7 @@ class ResizeTest {
                 processedImage.processed.width shouldBe width
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeGreaterThan HAMMING_DISTANCE_CEILING
             }
@@ -395,7 +396,7 @@ class ResizeTest {
                 processedImage.processed.width shouldBe width
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
@@ -428,7 +429,7 @@ class ResizeTest {
                 processedImage.processed.width shouldBe width
 
                 val processedStream = ByteArrayOutputStream()
-                processedImage.processed.writeToStream(processedStream, format.extension)
+                processedImage.processed.writeToTestStream(arena, processedStream, format)
 
                 PHash.hammingDistance(image, processedStream.toByteArray()) shouldBeLessThan HAMMING_DISTANCE_CEILING
             }
@@ -462,7 +463,7 @@ class ResizeTest {
                                 fit = Fit.STRETCH,
                             ),
                     )
-                processedImage.processed.writeToStream(output, format.extension)
+                processedImage.processed.writeToTestStream(arena, output, format)
             }
             val outputBytes = output.toByteArray()
             PHash.hammingDistance(image, outputBytes) shouldBeLessThan HAMMING_DISTANCE_CEILING
