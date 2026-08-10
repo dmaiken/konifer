@@ -30,6 +30,7 @@ import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetInfo
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
+import io.konifer.writeToTestStream
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.collections.shouldContain
@@ -538,9 +539,10 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
                         }.toTypedArray()
                     VImage
                         .newFromBytes(arena, image)
-                        .writeToStream(
+                        .writeToTestStream(
+                            arena,
                             expectedStream,
-                            variantFormat.extension,
+                            variantFormat,
                             *options,
                         )
 
@@ -584,9 +586,10 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
             Vips.run { arena ->
                 VImage
                     .newFromBytes(arena, image)
-                    .writeToStream(
+                    .writeToTestStream(
+                        arena,
                         expectedStream,
-                        variantFormat.extension,
+                        variantFormat,
                         *options,
                     )
 

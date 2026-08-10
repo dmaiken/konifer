@@ -20,6 +20,7 @@ import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix4x4
 import io.konifer.infrastructure.vips.transformer.ColorFilter.sepiaMatrix3x3
 import io.konifer.infrastructure.vips.transformer.ColorFilter.sepiaMatrix4x4
 import io.konifer.matchers.shouldHaveSamePixelContentAs
+import io.konifer.writeToTestStream
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteReadChannel
@@ -79,7 +80,7 @@ class ColorFilterTest {
                                 source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
                                 transformation = colorFilterTransformation(Filter.GRAYSCALE),
                             )
-                        transformed.processed.writeToStream(actualStream, format.extension)
+                        transformed.processed.writeToTestStream(arena, actualStream, format)
 
                         val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix3x3))
                         VImage
@@ -87,7 +88,7 @@ class ColorFilterTest {
                             .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                             .recomb(matrixImage)
                             .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                            .writeToStream(expectedStream, format.extension)
+                            .writeToTestStream(arena, expectedStream, format)
 
                         PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
                             HAMMING_DISTANCE_IDENTICAL
@@ -122,7 +123,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.GRAYSCALE),
                     )
-                transformed.processed.writeToStream(actualStream, format.extension)
+                transformed.processed.writeToTestStream(arena, actualStream, format)
 
                 val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, greyscaleMatrix4x4))
                 VImage
@@ -134,7 +135,7 @@ class ColorFilterTest {
                     ).colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                     .recomb(matrixImage)
                     .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, format.extension)
+                    .writeToTestStream(arena, expectedStream, format)
                 val processed =
                     VImage.newFromBytes(
                         arena,
@@ -169,7 +170,7 @@ class ColorFilterTest {
                                 source = VImage.newFromFile(arena, container.getTemporaryFile().pathString),
                                 transformation = colorFilterTransformation(Filter.BLACK_WHITE),
                             )
-                        transformed.processed.writeToStream(actualStream, format.extension)
+                        transformed.processed.writeToTestStream(arena, actualStream, format)
 
                         val expectedSource = VImage.newFromFile(arena, container.getTemporaryFile().pathString)
                         val bands = expectedSource.getInt("bands")
@@ -181,7 +182,7 @@ class ColorFilterTest {
                                 .colourspace(VipsInterpretation.INTERPRETATION_B_W)
                                 .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
                                 .cast(VipsBandFormat.FORMAT_UCHAR)
-                        VImage.bandjoin(arena, listOf(faxedRgb, alpha)).writeToStream(expectedStream, format.extension)
+                        VImage.bandjoin(arena, listOf(faxedRgb, alpha)).writeToTestStream(arena, expectedStream, format)
 
                         // Not sure why these are not showing as identical images - perhaps the colorspace is
                         // so limited that a PHASH is not accurate?
@@ -209,13 +210,13 @@ class ColorFilterTest {
                                 source = VImage.newFromBytes(arena, image),
                                 transformation = colorFilterTransformation(Filter.BLACK_WHITE),
                             )
-                        transformed.processed.writeToStream(actualStream, format.extension)
+                        transformed.processed.writeToTestStream(arena, actualStream, format)
 
                         VImage
                             .newFromBytes(arena, image)
                             .colourspace(VipsInterpretation.INTERPRETATION_B_W)
                             .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
-                            .writeToStream(expectedStream, format.extension)
+                            .writeToTestStream(arena, expectedStream, format)
 
                         PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
                             HAMMING_DISTANCE_IDENTICAL
@@ -250,7 +251,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.BLACK_WHITE),
                     )
-                transformed.processed.writeToStream(actualStream, format.extension)
+                transformed.processed.writeToTestStream(arena, actualStream, format)
 
                 VImage
                     .newFromBytes(
@@ -260,7 +261,7 @@ class ColorFilterTest {
                         VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     ).relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, listOf(128.0))
                     .colourspace(VipsInterpretation.INTERPRETATION_B_W)
-                    .writeToStream(expectedStream, format.extension)
+                    .writeToTestStream(arena, expectedStream, format)
                 val processed =
                     VImage.newFromBytes(
                         arena,
@@ -295,7 +296,7 @@ class ColorFilterTest {
                                 source = VImage.newFromBytes(arena, image),
                                 transformation = colorFilterTransformation(Filter.SEPIA),
                             )
-                        transformed.processed.writeToStream(actualStream, format.extension)
+                        transformed.processed.writeToTestStream(arena, actualStream, format)
 
                         val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix3x3))
                         VImage
@@ -303,7 +304,7 @@ class ColorFilterTest {
                             .colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                             .recomb(matrixImage)
                             .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                            .writeToStream(expectedStream, format.extension)
+                            .writeToTestStream(arena, expectedStream, format)
 
                         PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
                             HAMMING_DISTANCE_IDENTICAL
@@ -338,7 +339,7 @@ class ColorFilterTest {
                             ),
                         transformation = colorFilterTransformation(Filter.SEPIA),
                     )
-                transformed.processed.writeToStream(actualStream, format.extension)
+                transformed.processed.writeToTestStream(arena, actualStream, format)
 
                 val matrixImage = VImage.matrixloadSource(arena, VSource.newFromBytes(arena, sepiaMatrix4x4))
                 VImage
@@ -350,7 +351,7 @@ class ColorFilterTest {
                     ).colourspace(VipsInterpretation.INTERPRETATION_scRGB)
                     .recomb(matrixImage)
                     .colourspace(VipsInterpretation.INTERPRETATION_sRGB)
-                    .writeToStream(expectedStream, format.extension)
+                    .writeToTestStream(arena, expectedStream, format)
                 val processed =
                     VImage.newFromBytes(
                         arena,

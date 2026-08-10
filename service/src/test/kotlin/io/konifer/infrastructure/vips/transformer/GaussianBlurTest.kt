@@ -9,6 +9,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.matchers.shouldHaveSamePixelContentAs
+import io.konifer.writeToTestStream
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
@@ -64,12 +65,12 @@ class GaussianBlurTest {
                         source = VImage.newFromBytes(arena, image),
                         transformation = blurTransformation(10),
                     )
-                transformed.processed.writeToStream(actualStream, format.extension)
+                transformed.processed.writeToTestStream(arena, actualStream, format)
 
                 VImage
                     .newFromBytes(arena, image)
                     .gaussblur(10 / 2.0)
-                    .writeToStream(expectedStream, format.extension)
+                    .writeToTestStream(arena, expectedStream, format)
 
                 PHash.hammingDistance(actualStream.toByteArray(), expectedStream.toByteArray()) shouldBeLessThanOrEqual
                     HAMMING_DISTANCE_IDENTICAL
@@ -103,7 +104,7 @@ class GaussianBlurTest {
                             ),
                         transformation = blurTransformation(10),
                     )
-                transformed.processed.writeToStream(actualStream, format.extension)
+                transformed.processed.writeToTestStream(arena, actualStream, format)
 
                 VImage
                     .newFromBytes(
@@ -112,7 +113,7 @@ class GaussianBlurTest {
                         VipsOption.Int("n", -1),
                         VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
                     ).gaussblur(10 / 2.0)
-                    .writeToStream(expectedStream, format.extension)
+                    .writeToTestStream(arena, expectedStream, format)
 
                 transformed.processed.getInt("n-pages") shouldBe original.getInt("n-pages")
                 transformed.processed.getInt("page-height") shouldBe original.getInt("page-height")

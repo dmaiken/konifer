@@ -10,6 +10,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
+import io.konifer.writeToTestStream
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
@@ -53,9 +54,9 @@ class CropFirstPageTest {
                     )
 
                 val expectedStream = ByteArrayOutputStream()
-                singlePageSource.writeToStream(expectedStream, format.extension)
+                singlePageSource.writeToTestStream(arena, expectedStream, format)
                 val actualStream = ByteArrayOutputStream()
-                processed.processed.writeToStream(actualStream, format.extension)
+                processed.processed.writeToTestStream(arena, actualStream, format)
 
                 processed.processed.height shouldBe singlePageSource.height
                 processed.processed.width shouldBe singlePageSource.width

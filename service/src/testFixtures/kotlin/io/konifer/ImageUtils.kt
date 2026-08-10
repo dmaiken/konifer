@@ -1,6 +1,7 @@
 package io.konifer
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.VTarget
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
@@ -25,9 +26,42 @@ import java.awt.image.DataBuffer
 import java.awt.image.DataBufferByte
 import java.awt.image.Raster
 import java.io.ByteArrayInputStream
+import java.io.OutputStream
+import java.lang.foreign.Arena
 import java.lang.foreign.ValueLayout
+import java.nio.channels.Channels
 import javax.imageio.ImageIO
 import java.awt.color.ColorSpace as AwtColorSpace
+
+/**
+ * Encodes this image through a seekable native-memory target and copies the
+ * encoded bytes to [output].
+ *
+ * Transformer tests use this instead of vips-ffm's OutputStream-backed target,
+ * which only supports sequential writes. JPEG XL encoding may seek while
+ * producing output, so using a memory target matches Konifer's production
+ * encoder behavior and keeps the tests compatible with current libjxl builds.
+ *
+ * @param arena arena that owns the native target and its encoded blob.
+ * @param output destination for the encoded bytes.
+ * @param format output image format.
+ * @param options optional libvips encoder options.
+ */
+fun VImage.writeToTestStream(
+    arena: Arena,
+    output: OutputStream,
+    format: ImageFormat,
+    vararg options: VipsOption,
+) {
+    val target = VTarget.newToMemory(arena)
+    writeToTarget(target, format.extension, *options)
+
+    val encoded = target.blob.asArenaScopedByteBuffer()
+    val outputChannel = Channels.newChannel(output)
+    while (encoded.hasRemaining()) {
+        outputChannel.write(encoded)
+    }
+}
 
 /**
  * Converts an RGBA byte array to a BufferedImage.

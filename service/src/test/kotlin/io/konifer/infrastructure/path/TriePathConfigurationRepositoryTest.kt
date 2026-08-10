@@ -562,7 +562,7 @@ class TriePathConfigurationRepositoryTest {
                   accept-rules = [
                     { rule = kermit-the-frog }
                   ]
-                  edit-rules = [
+                  modify-rules = [
                     { 
                       rule = kermit-the-frog 
                       labels = {
