@@ -89,8 +89,7 @@ Setup and asset seeding are not included in reported operation latency.
 - Cold variant cases create a distinct variant during each measured operation.
 - Cached cases request a variant that setup has already generated.
 - General transformation, preprocessing, and eager-variant cases use WebP as
-  their common output format. JPEG XL remains covered by its dedicated encode
-  and decode cases.
+  their common output format.
 - Preprocessing and Upload Rules cases measure the complete upload request.
 - Eager generation measures upload acceptance; readiness is verified separately
   after the upload and is not folded into upload latency.
