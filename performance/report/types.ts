@@ -55,6 +55,7 @@ export interface AggregatedResult {
     checks: CheckMetrics;
     droppedIterations: number;
     durationMs: AggregatedDurationMetrics;
+    notes?: string[];
     passed: boolean;
 }
 
@@ -66,6 +67,7 @@ export interface PerformanceRelease {
     subject: string;
     startedAt: string;
     completedAt: string;
+    notes?: string[];
     results: AggregatedResult[];
     passed: boolean;
 }
@@ -130,6 +132,8 @@ export interface LatestSeriesResult extends AggregatedResult {
     subject: string;
     environment: string;
     completedAt: string;
+    hasPrevious: boolean;
+    changeMs: number | null;
     changePercent: number | null;
 }
 

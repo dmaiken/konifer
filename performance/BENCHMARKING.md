@@ -88,9 +88,18 @@ Setup and asset seeding are not included in reported operation latency.
   sends requests at a controlled arrival rate so slow responses may overlap.
 - Cold variant cases create a distinct variant during each measured operation.
 - Cached cases request a variant that setup has already generated.
+- General transformation, preprocessing, and eager-variant cases use WebP as
+  their common output format. JPEG XL remains covered by its dedicated encode
+  and decode cases.
 - Preprocessing and Upload Rules cases measure the complete upload request.
 - Eager generation measures upload acceptance; readiness is verified separately
   after the upload and is not folded into upload latency.
+
+Single-request workload latency comes directly from k6's HTTP response timing,
+which retains fractional milliseconds. Eager readiness spans several polling
+requests, so it remains a wall-clock interval. The dashboard retains every raw
+measurement but displays a change indicator only when the p95 difference is
+both at least 5% and at least 2 ms.
 
 The configured release repetition count is currently one to keep development
 runs short. Increase it before relying on cross-release variability: aggregation
@@ -133,6 +142,10 @@ entries must use a release subject such as `v0.9.0`; `lint-history.sh` rejects
 commit-like, dirty, or otherwise non-release subjects. The history schema permits
 new workloads and cases to appear in later releases, so older releases do not
 need fabricated results for tests that did not yet exist.
+
+Release and individual-result entries may contain a manually maintained `notes`
+array. The dashboard renders these annotations so unusually large changes can
+be explained without changing or discarding their measurements.
 
 ## Local environment interpretation
 

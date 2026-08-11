@@ -85,6 +85,7 @@
         "profile": {"type": "string", "minLength": 1},
         "fixture": {"type": "string", "minLength": 1},
         "sourceFormat": {"type": "string", "minLength": 1},
+        "expectedFormat": {"type": "string", "minLength": 1},
         "case": {"type": "string", "minLength": 1},
         "cases": {
           "type": "array",

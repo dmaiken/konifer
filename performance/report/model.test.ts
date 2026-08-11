@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { environmentsForHistory, formatChange, formatRange, latestBySeries, pointsForSeries, workloadDescription, workloadLabel } from './model.ts';
+import {
+    changeClass,
+    environmentsForHistory,
+    formatChange,
+    formatDisplayedChange,
+    formatMs,
+    formatRange,
+    latestBySeries,
+    pointsForSeries,
+    significantChange,
+    workloadDescription,
+    workloadLabel,
+} from './model.ts';
 import type { EnvironmentCatalog, PerformanceRelease, WorkloadCatalog } from './types.ts';
 
 test('latest results calculate changes within the same environment and series', () => {
@@ -18,8 +30,33 @@ test('latest results calculate changes within the same environment and series', 
     const aws = latest.find((value) => value.environment === 'aws');
 
     assert.equal(local?.subject, 'v1.2.0');
+    assert.equal(local?.hasPrevious, true);
+    assert.equal(local?.changeMs, 20);
     assert.equal(local?.changePercent, 20);
+    assert.equal(aws?.hasPrevious, false);
+    assert.equal(aws?.changeMs, null);
     assert.equal(aws?.changePercent, null);
+});
+
+test('change indicators require both a practical percentage and millisecond difference', () => {
+    assert.deepEqual(significantChange(100, 106), { milliseconds: 6, percent: 6 });
+    assert.deepEqual(significantChange(100, 94), { milliseconds: -6, percent: -6 });
+    assert.equal(significantChange(100, 104), null, 'four percent is below the percentage threshold');
+    assert.equal(significantChange(5, 6.5), null, '1.5 ms is below the absolute threshold');
+    assert.equal(significantChange(0, 10), null, 'a zero baseline has no meaningful percentage');
+});
+
+test('displayed changes distinguish missing history from insignificant movement', () => {
+    assert.equal(formatDisplayedChange({ hasPrevious: false, changePercent: null }), 'No previous release');
+    assert.equal(formatDisplayedChange({ hasPrevious: true, changePercent: null }), 'No significant change');
+    assert.equal(formatDisplayedChange({ hasPrevious: true, changePercent: 6.25 }), '+6.3% vs previous');
+});
+
+test('change styling distinguishes improvements, regressions, and neutral results', () => {
+    assert.equal(changeClass(-6.25), 'improvement');
+    assert.equal(changeClass(6.25), 'regression');
+    assert.equal(changeClass(null), 'muted');
+    assert.equal(changeClass(0), 'muted');
 });
 
 test('series points are chronological and environment-specific', () => {
@@ -44,6 +81,13 @@ test('change formatting keeps regressions and unchanged results visible', () => 
     assert.equal(formatChange(0), '0.0%');
     assert.equal(formatChange(-3.25), '-3.3%');
     assert.equal(formatChange(null), '—');
+});
+
+test('latency formatting retains useful precision for fast responses', () => {
+    assert.equal(formatMs(4.375), '4.38 ms');
+    assert.equal(formatMs(42), '42 ms');
+    assert.equal(formatMs(42.25), '42.3 ms');
+    assert.equal(formatMs(120), '120 ms');
 });
 
 test('workload labels keep the customer-facing name separate from the case ID', () => {

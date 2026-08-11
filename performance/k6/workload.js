@@ -245,7 +245,7 @@ function runOriginalUpload() {
         'original dimensions match fixture': () => original && original.attributes.width === fixture.width && original.attributes.height === fixture.height,
         'location targets returned entry': (value) => body && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runOriginalDelivery(asset) {
@@ -255,7 +255,7 @@ function runOriginalDelivery(asset) {
         'original was a cache hit': (value) => header(value, 'K-Cache-Status') === 'hit',
         'original content type matches fixture': (value) => contentType(value) === sourceFile.mediaType,
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runColdVariant(asset) {
@@ -267,7 +267,7 @@ function runColdVariant(asset) {
         'cold variant was a cache miss': (value) => header(value, 'K-Cache-Status') === 'miss',
         'cold variant content type matches': (value) => contentType(value) === expectedType,
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runCachedVariant(asset) {
@@ -277,7 +277,7 @@ function runCachedVariant(asset) {
         'cached variant was a cache hit': (value) => header(value, 'K-Cache-Status') === 'hit',
         'cached variant content type matches': (value) => contentType(value) === fixture.files[query.format].mediaType,
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runPreprocessedUpload() {
@@ -291,7 +291,7 @@ function runPreprocessedUpload() {
         'preprocessed original width matches': () => original && original.attributes.width === workload.expected.width,
         'preprocessed original height matches': () => original && original.attributes.height === workload.expected.height,
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runUploadRules(expectPreprocessing) {
@@ -310,7 +310,7 @@ function runUploadRules(expectPreprocessing) {
         'upload rules original width matches': () => original && original.attributes.width === expected.width,
         'upload rules original height matches': () => original && original.attributes.height === expected.height,
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runEagerAcceptance() {
@@ -322,7 +322,7 @@ function runEagerAcceptance() {
         'eager upload response contains only original': () => body && Array.isArray(body.variants) && body.variants.length === 1 && body.variants[0].isOriginalVariant,
         'eager location targets returned entry': (value) => body && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
     });
-    return { ok };
+    return { ok, durationMs: response.timings.duration };
 }
 
 function runEagerReadiness() {
@@ -358,6 +358,7 @@ function runEagerReadiness() {
         ok = check(response, {
             [`${profile} returned 200`]: (value) => value.status === 200,
             [`${profile} was a cache hit`]: (value) => header(value, 'K-Cache-Status') === 'hit',
+            [`${profile} content type matches`]: (value) => contentType(value) === fixture.files[workload.expectedFormat].mediaType,
         }) && ok;
     }
     return { ok, durationMs: readinessDuration };

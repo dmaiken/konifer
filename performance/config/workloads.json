@@ -87,13 +87,13 @@
       "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80, "r": "auto"}
     },
     "upload.preprocess": {
-      "description": "Uploads an image through a path that preprocesses the original into a padded JXL image before the upload response completes.",
+      "description": "Uploads an image through a path that preprocesses the original into a padded WebP image before the upload response completes.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
-      "case": "jpg-medium-to-jxl",
+      "case": "jpg-medium-to-webp",
       "path": "/test-upload-preprocessing",
-      "expected": {"format": "jxl", "width": 994, "height": 1314}
+      "expected": {"format": "webp", "width": 994, "height": 1314}
     },
     "upload.rules": {
       "description": "Uploads an image and evaluates an inference-backed Upload Rules rule, verifying the matching rule adds the expected metadata label.",
@@ -104,30 +104,31 @@
       "path": "/test-upload-rules"
     },
     "upload.rules.preprocess": {
-      "description": "Evaluates an inference-backed Upload Rules rule during upload, then preprocesses the accepted original into a padded JXL image.",
+      "description": "Evaluates an inference-backed Upload Rules rule during upload, then preprocesses the accepted original into a padded WebP image.",
       "profile": "inference",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
-      "case": "jpg-medium-landscape-rule-to-jxl",
+      "case": "jpg-medium-landscape-rule-to-webp",
       "path": "/test-upload-rules-preprocessing",
-      "expected": {"format": "jxl", "width": 994, "height": 1314}
+      "expected": {"format": "webp", "width": 994, "height": 1314}
     },
     "upload.eager.accept": {
-      "description": "Measures upload acceptance while four configured eager variants are scheduled for background generation; it does not wait for them to finish.",
+      "description": "Measures upload acceptance while four WebP eager variants are scheduled for background generation; it does not wait for them to finish.",
       "profile": "light",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
-      "case": "jpg-medium-four-profiles",
+      "case": "jpg-medium-four-webp-profiles",
       "path": "/test-upload-eager-variants"
     },
     "variant.eager.ready": {
-      "description": "Measures the time after upload acceptance until all four background eager variants are ready, then verifies each variant can be delivered as a cache hit.",
+      "description": "Measures the time after upload acceptance until all four background WebP eager variants are ready, then verifies each variant can be delivered as a cache hit.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
-      "case": "jpg-medium-four-profiles",
+      "case": "jpg-medium-four-webp-profiles",
       "path": "/test-upload-eager-variants",
       "profiles": ["thumbnail-200", "thumbnail-400", "thumbnail-600", "sepia-original"],
+      "expectedFormat": "webp",
       "timeoutSeconds": 30
     },
     "format.decode": {

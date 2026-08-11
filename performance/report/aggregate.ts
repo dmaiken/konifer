@@ -82,10 +82,33 @@ function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
 }
 
 export function updateHistory(history: PerformanceHistory, aggregate: PerformanceRelease): PerformanceHistory {
+    const existing = (history.releases || []).find((value) => value.runId === aggregate.runId);
+    const annotatedAggregate = preserveNotes(existing, aggregate);
     const releases = (history.releases || []).filter((value) => value.runId !== aggregate.runId);
-    releases.push(aggregate);
+    releases.push(annotatedAggregate);
     releases.sort((left, right) => left.completedAt.localeCompare(right.completedAt));
     return { version: 1, releases };
+}
+
+function preserveNotes(
+    existing: PerformanceRelease | undefined,
+    aggregate: PerformanceRelease,
+): PerformanceRelease {
+    if (!existing) return aggregate;
+    const existingResults = new Map(existing.results.map((result) => [
+        `${result.workload}\u0000${result.case}`,
+        result,
+    ]));
+    return {
+        ...aggregate,
+        ...(aggregate.notes || !existing.notes ? {} : { notes: existing.notes }),
+        results: aggregate.results.map((result) => {
+            const previous = existingResults.get(`${result.workload}\u0000${result.case}`);
+            return result.notes || !previous?.notes
+                ? result
+                : { ...result, notes: previous.notes };
+        }),
+    };
 }
 
 export function median(values: number[]): number {

@@ -37,6 +37,22 @@ test('history replaces the same run instead of duplicating it', () => {
     assert.equal(history.releases[0].completedAt, changed.completedAt);
 });
 
+test('regenerating a run preserves manually maintained release and result notes', () => {
+    const first = aggregateResults([result(1, 100, 10)]);
+    first.notes = ['Dependency rebuild changed codec behavior.'];
+    first.results[0].notes = ['This result uses the new JPEG implementation.'];
+    const regenerated = {
+        ...aggregateResults([result(1, 110, 10)]),
+        completedAt: '2026-08-04T01:00:00Z',
+    };
+
+    const history = updateHistory(updateHistory({ version: 1, releases: [] }, first), regenerated);
+
+    assert.deepEqual(history.releases[0].notes, first.notes);
+    assert.deepEqual(history.releases[0].results[0].notes, first.results[0].notes);
+    assert.equal(history.releases[0].results[0].durationMs.p95, 110);
+});
+
 test('aggregation rejects a gap in repetition numbers', () => {
     assert.throws(
         () => aggregateResults([result(1, 100, 10), result(3, 200, 10), result(4, 300, 10)]),

@@ -274,6 +274,6 @@ must not be compared directly with a future AWS profile.
 
 The `upload.rules` workload verifies inference through a deterministic rule-added
 label. `upload.rules.preprocess` verifies the same inference plus the
-preprocessed JXL format and dimensions. Workloads whose paths do not reference
+preprocessed WebP format and dimensions. Workloads whose paths do not reference
 an Upload Rules ruleset do not perform inference, although the configured model
 remains resident in the Konifer process.
