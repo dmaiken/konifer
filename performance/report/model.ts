@@ -12,11 +12,14 @@ export const headlineSeries = [
     ['upload.original', 'jpg-medium'],
     ['variant.generate.cold', 'jpg-to-webp-400'],
     ['variant.deliver.cached', 'jpg-to-webp-400'],
-    ['upload.preprocess', 'jpg-medium-to-jxl'],
+    ['upload.preprocess', 'jpg-medium-to-webp'],
     ['upload.rules', 'jpg-medium-landscape-rule'],
-    ['upload.rules.preprocess', 'jpg-medium-landscape-rule-to-jxl'],
-    ['variant.eager.ready', 'jpg-medium-four-profiles'],
+    ['upload.rules.preprocess', 'jpg-medium-landscape-rule-to-webp'],
+    ['variant.eager.ready', 'jpg-medium-four-webp-profiles'],
 ];
+
+export const significantChangeMinimumPercent = 5;
+export const significantChangeMinimumMs = 2;
 
 const workloadLabels: Record<string, string> = {
     'upload.original': 'Original upload',
@@ -40,12 +43,17 @@ export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[
         for (const result of release.results) {
             const key = seriesId({ ...result, environment: release.environment });
             const previous = values.get(key);
+            const change = previous
+                ? significantChange(previous.durationMs.p95, result.durationMs.p95)
+                : null;
             values.set(key, {
                 ...result,
                 subject: release.subject,
                 environment: release.environment,
                 completedAt: release.completedAt,
-                changePercent: previous ? percentChange(previous.durationMs.p95, result.durationMs.p95) : null,
+                hasPrevious: previous !== undefined,
+                changeMs: change?.milliseconds ?? null,
+                changePercent: change?.percent ?? null,
             });
         }
     }
@@ -124,12 +132,42 @@ export function percentChange(previous: number, current: number): number | null 
     return previous === 0 ? null : ((current - previous) / previous) * 100;
 }
 
+export function significantChange(
+    previous: number,
+    current: number,
+): { milliseconds: number; percent: number } | null {
+    const percent = percentChange(previous, current);
+    const milliseconds = current - previous;
+    if (percent === null
+        || Math.abs(percent) < significantChangeMinimumPercent
+        || Math.abs(milliseconds) < significantChangeMinimumMs) {
+        return null;
+    }
+    return { milliseconds, percent };
+}
+
+export function formatDisplayedChange(
+    value: Pick<LatestSeriesResult, 'changePercent' | 'hasPrevious'>,
+): string {
+    if (!value.hasPrevious) return 'No previous release';
+    if (value.changePercent === null) return 'No significant change';
+    return `${formatChange(value.changePercent)} vs previous`;
+}
+
+export function changeClass(changePercent: number | null): string {
+    if (changePercent === null || changePercent === 0) return 'muted';
+    return changePercent > 0 ? 'regression' : 'improvement';
+}
+
 export function formatChange(value: number | null | undefined): string {
     return value === null || value === undefined ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
 }
 
 export function formatMs(value: number): string {
-    return value >= 1000 ? `${(value / 1000).toFixed(2)} s` : `${Math.round(value)} ms`;
+    if (value >= 1000) return `${(value / 1000).toFixed(2)} s`;
+    if (value >= 100) return `${Math.round(value)} ms`;
+    if (value >= 10) return `${Number(value.toFixed(1))} ms`;
+    return `${value.toFixed(2)} ms`;
 }
 
 function compareSeries(left: LatestSeriesResult, right: LatestSeriesResult): number {

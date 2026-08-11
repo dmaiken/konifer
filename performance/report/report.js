@@ -1,6 +1,7 @@
 import { layoutHistoryChart, layoutSparkline, linePath } from './chart.ts';
 import {
-    formatChange,
+    changeClass,
+    formatDisplayedChange,
     formatMs,
     formatRange,
     environmentsForHistory,
@@ -40,9 +41,19 @@ function render(history, environments, workloads) {
 
     report.replaceChildren(
         element('h1', '', 'Konifer performance'),
-        element('p', 'lead', 'Release benchmark history for common image workflows. Every result—including regressions and unchanged performance—is retained.'),
-        element('p', 'muted', lastRelease ? `Latest published run: ${dateTime(lastRelease.completedAt)}` : 'No release benchmark has been published yet.'),
+        element('p', 'lead', 'Release benchmark history for common image workflows. Every measurement is retained; change indicators are limited to practically significant differences.'),
+        element(
+            'p',
+            'release-summary',
+            lastRelease
+                ? `Latest published release: ${lastRelease.subject} · ${dateTime(lastRelease.completedAt)}`
+                : 'No release benchmark has been published yet.',
+        ),
     );
+
+    if (lastRelease?.notes?.length) {
+        report.append(notesPanel('Release notes', lastRelease.notes));
+    }
 
     if (latest.length === 0) {
         report.append(element('section', 'panel', 'No release benchmark has been published yet.'));
@@ -128,7 +139,11 @@ function headlineGrid(history, values, workloads) {
     const grid = element('section', 'grid');
     for (const value of values) {
         const card = element('article', 'panel');
-        const change = element('div', value.changePercent > 0 ? 'regression' : 'muted', `${formatChange(value.changePercent)} vs previous`);
+        const change = element(
+            'div',
+            changeClass(value.changePercent),
+            formatDisplayedChange(value),
+        );
         const description = workloadDescription(value, workloads);
         card.append(
             element('div', 'chart-title', workloadLabel(value)),
@@ -136,6 +151,7 @@ function headlineGrid(history, values, workloads) {
             ...(description ? [element('p', 'workload-description', description)] : []),
             element('div', 'chart-value', `${formatMs(value.durationMs.p95)} p95`),
             change,
+            ...(value.notes?.length ? [notesList(value.notes)] : []),
             sparkline(pointsForSeries(history, value)),
         );
         grid.append(card);
@@ -244,7 +260,7 @@ function resultTable(title, results, workloads) {
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors', 'Dropped', 'Version'];
+    const headings = ['Operation', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors', 'Dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -259,11 +275,10 @@ function resultTable(title, results, workloads) {
             { value: formatMs(value.durationMs.p95) },
             { value: formatRange(value) },
             { value: value.repetitions },
-            { value: formatChange(value.changePercent), className: value.changePercent > 0 ? 'regression' : '' },
+            { value: formatDisplayedChange(value), className: changeClass(value.changePercent) },
             { value: value.operations },
             { value: value.errors },
             { value: value.droppedIterations },
-            { value: value.subject },
         ];
         cells.forEach((cell) => {
             row.append(element('td', cell.className || '', String(cell.value)));
@@ -281,6 +296,7 @@ function operationCell(value) {
     cell.append(
         element('div', 'operation-label', workloadLabel(value)),
         element('div', 'result-case', value.case),
+        ...(value.notes?.length ? [notesList(value.notes)] : []),
     );
     return cell;
 }
@@ -289,9 +305,22 @@ function methodology() {
     const footer = document.createElement('footer');
     footer.append(
         document.createTextNode('Each result reports its repetition count. With multiple repetitions, latency is the median of the run-level percentiles. Compare results only within the same environment profile. '),
+        document.createTextNode('Single-request workloads use k6’s fractional-millisecond HTTP duration. Changes are shown only when the p95 difference is at least 5% and 2 ms. '),
         link('../BENCHMARKING.md', 'Read the benchmark methodology.'),
     );
     return footer;
+}
+
+function notesPanel(title, notes) {
+    const panel = element('section', 'panel notes-panel');
+    panel.append(element('h2', '', title), notesList(notes));
+    return panel;
+}
+
+function notesList(notes) {
+    const list = element('ul', 'result-notes');
+    notes.forEach((note) => list.append(element('li', '', note)));
+    return list;
 }
 
 function svgText(x, y, text, anchor) {

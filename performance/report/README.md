@@ -18,5 +18,33 @@ Then open <http://localhost:8000/performance/report/>.
 
 The HTML, CSS, and TypeScript are stable source files. Publishing a release
 updates only the underlying history document; it does not regenerate HTML.
-The generated browser modules live under `performance/dist/` and are ignored
-by Git.
+The generated browser modules and locally served Geist font assets live under
+`performance/dist/` and are ignored by Git.
+
+The dashboard retains all measurements in history, but labels a p95 change only
+when it is both at least 5% and at least 2 ms. Smaller movements are displayed
+as `No significant change` instead of an attention-grabbing percentage.
+
+## Annotating a release
+
+Add an optional `notes` array to a release or to one of its results in
+[`../history/releases.json`](../history/releases.json). Release notes appear at
+the top of the dashboard when that release is latest. Result notes appear with
+the corresponding headline card and table row. For example:
+
+```json
+{
+  "subject": "v0.10.0",
+  "notes": ["Native image dependencies were rebuilt from source."],
+  "results": [
+    {
+      "workload": "format.encode",
+      "case": "jpg-to-jxl",
+      "notes": ["JXL encode p95 changed after the native dependency upgrade; see the release notes."]
+    }
+  ]
+}
+```
+
+The other required release and result fields are omitted from the example.
+Notes are preserved if the same run is regenerated.

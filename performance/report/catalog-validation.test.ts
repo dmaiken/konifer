@@ -27,6 +27,7 @@ interface ExecutableWorkload extends WorkloadDefinition {
     profile: string;
     fixture: string;
     sourceFormat?: string;
+    expectedFormat?: string;
     query?: Record<string, string | number | boolean>;
     expected?: { format: string; width: number; height: number };
     cases?: Array<{
@@ -108,11 +109,33 @@ test('workload and suite references resolve', () => {
             assertFixtureFormat(workloadId, 'query.format', workload.query.format, fixture);
         }
         assertFixtureFormat(workloadId, 'expected.format', workload.expected?.format, fixture);
+        assertFixtureFormat(workloadId, 'expectedFormat', workload.expectedFormat, fixture);
         for (const workloadCase of workload.cases ?? []) {
             assertFixtureFormat(`${workloadId}/${workloadCase.id}`, 'sourceFormat', workloadCase.sourceFormat, fixture);
             assertFixtureFormat(`${workloadId}/${workloadCase.id}`, 'destinationFormat', workloadCase.destinationFormat, fixture);
         }
     }
+});
+
+test('general transformations use WebP while JPEG XL stays format-specific', () => {
+    assert.equal(workloads.workloads['variant.generate.cold'].query?.format, 'webp');
+    assert.equal(workloads.workloads['variant.deliver.cached'].query?.format, 'webp');
+    assert.equal(workloads.workloads['upload.preprocess'].expected?.format, 'webp');
+    assert.equal(workloads.workloads['upload.rules.preprocess'].expected?.format, 'webp');
+    assert.equal(workloads.workloads['variant.eager.ready'].expectedFormat, 'webp');
+
+    for (const [workloadId, workload] of Object.entries(workloads.workloads)) {
+        if (workloadId === 'format.encode' || workloadId === 'format.decode') continue;
+        assert.notEqual(workload.query?.format, 'jxl', `${workloadId} must not transform to JXL`);
+        assert.notEqual(workload.expected?.format, 'jxl', `${workloadId} must not preprocess to JXL`);
+        assert.notEqual(workload.expectedFormat, 'jxl', `${workloadId} must not expect JXL variants`);
+        for (const workloadCase of workload.cases ?? []) {
+            assert.notEqual(workloadCase.destinationFormat, 'jxl', `${workloadId}/${workloadCase.id} must not encode JXL`);
+        }
+    }
+
+    assert.ok(workloads.workloads['format.decode'].cases?.some((value) => value.sourceFormat === 'jxl'));
+    assert.ok(workloads.workloads['format.encode'].cases?.some((value) => value.destinationFormat === 'jxl'));
 });
 
 test('environment references and service identities are valid', async () => {

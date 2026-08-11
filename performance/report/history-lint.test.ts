@@ -43,6 +43,37 @@ test('history schema permits workloads to be added in later releases', () => {
     assert.equal(second.results.length, 2);
 });
 
+test('history schema permits release and result annotations', () => {
+    const annotated = release('release-1', 'v0.9.0');
+    annotated.notes = ['Native codec dependencies changed in this release.'];
+    annotated.results[0].notes = ['The format-specific regression is expected.'];
+
+    assert.doesNotThrow(() => assertHistoryMatchesSchema(
+        { version: 1, releases: [annotated] },
+        historySchema,
+    ));
+});
+
+test('history schema rejects empty annotations', () => {
+    const invalid = release('release-1', 'v0.9.0');
+    invalid.notes = [];
+
+    assert.throws(
+        () => assertHistoryMatchesSchema({ version: 1, releases: [invalid] }, historySchema),
+        /must NOT have fewer than 1 items/,
+    );
+});
+
+test('history schema rejects blank annotation text', () => {
+    const invalid = release('release-1', 'v0.9.0');
+    invalid.notes = ['   '];
+
+    assert.throws(
+        () => assertHistoryMatchesSchema({ version: 1, releases: [invalid] }, historySchema),
+        /must match pattern/,
+    );
+});
+
 test('history schema rejects malformed aggregate results', () => {
     const invalid = release('release-1', 'v0.9.0') as PerformanceRelease & {
         unexpected?: boolean;
