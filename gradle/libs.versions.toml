@@ -28,7 +28,6 @@ detekt-version = "2.0.0-alpha.6"
 license-version = "3.1.4"
 junit-version = "6.1.2"
 aws-sdk-version = "2.51.0"
-aws-crt-sdk-version = "0.48.3"
 hipparchus-version = "4.0.3"
 google-devtools-ksp-version = "2.3.11"
 kotlinx-datetime-version = "0.8.0"
@@ -82,7 +81,6 @@ commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons
 
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk-version" }
 aws-sdk-s3-transfermanager = { module = "software.amazon.awssdk:s3-transfer-manager", version.ref = "aws-sdk-version" }
-aws-sdk-crt = { module = "software.amazon.awssdk.crt:aws-crt", version.ref = "aws-crt-sdk-version" }
 
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest-version" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest-version" }
