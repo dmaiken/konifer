@@ -6,7 +6,6 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.transfer.s3.S3TransferManager
-import software.amazon.awssdk.transfer.s3.SizeConstant.MB
 import java.net.URI
 
 fun s3Client(properties: S3ClientProperties): S3AsyncClient {
