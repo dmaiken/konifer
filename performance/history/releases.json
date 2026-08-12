@@ -3,82 +3,38 @@
   "releases": [
     {
       "version": 1,
-      "runId": "20260808T060623Z-release",
+      "runId": "20260811T025520Z-release",
       "suite": "release",
       "environment": "local-compose-v2",
-      "subject": "v0.9.0",
-      "startedAt": "2026-08-08T06:06:23Z",
-      "completedAt": "2026-08-08T09:52:27.727Z",
+      "subject": "v0.10.0",
+      "startedAt": "2026-08-11T02:55:20Z",
+      "completedAt": "2026-08-11T06:41:23.482Z",
       "results": [
         {
           "workload": "delivery.original.cached",
           "case": "jpg-medium",
           "repetitions": 3,
-          "operations": 3601,
-          "requests": 3601,
+          "operations": 3602,
+          "requests": 3602,
           "errors": 0,
           "checks": {
-            "passed": 10803,
+            "passed": 10806,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 6,
-            "p90": 6,
-            "p95": 7,
-            "p99": 8,
-            "p95Min": 7,
-            "p95Max": 8
+            "p50": 6.039,
+            "p90": 6.471,
+            "p95": 6.825,
+            "p99": 10.004,
+            "p95Min": 6.655147499999998,
+            "p95Max": 9.305943
           },
           "passed": true
         },
         {
           "workload": "format.decode",
           "case": "avif-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 126,
-            "p90": 137,
-            "p95": 141.55,
-            "p99": 144.8,
-            "p95Min": 130.5,
-            "p95Max": 144
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "gif-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 78,
-            "p90": 85,
-            "p95": 89.1,
-            "p99": 109.9,
-            "p95Min": 87,
-            "p95Max": 89.5
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "heic-to-webp",
           "repetitions": 3,
           "operations": 271,
           "requests": 271,
@@ -89,12 +45,56 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 187,
-            "p90": 195,
-            "p95": 197.1,
-            "p99": 244.83,
-            "p95Min": 195,
-            "p95Max": 201.55
+            "p50": 107.003,
+            "p90": 116.504,
+            "p95": 121.165,
+            "p99": 134.108,
+            "p95Min": 117.609228,
+            "p95Max": 122.64232634999999
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "gif-to-webp",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 75.996,
+            "p90": 82.882,
+            "p95": 84.923,
+            "p99": 114.512,
+            "p95Min": 83.718831,
+            "p95Max": 87.1799615
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "heic-to-webp",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 167.776,
+            "p90": 176.059,
+            "p95": 178.63,
+            "p99": 186.102,
+            "p95Min": 177.71441349999998,
+            "p95Max": 181.25002849999998
           },
           "passed": true
         },
@@ -111,12 +111,12 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 70,
-            "p90": 76,
-            "p95": 77.55,
-            "p99": 86.76,
-            "p95Min": 77.5,
-            "p95Max": 78
+            "p50": 66.277,
+            "p90": 73.089,
+            "p95": 75.213,
+            "p99": 84.629,
+            "p95Min": 75.1878215,
+            "p95Max": 75.48697899999999
           },
           "passed": true
         },
@@ -124,21 +124,21 @@
           "workload": "format.decode",
           "case": "jxl-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 271,
+          "requests": 271,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 813,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 123,
-            "p90": 130,
-            "p95": 136,
-            "p99": 147.41,
-            "p95Min": 129,
-            "p95Max": 138
+            "p50": 109.778,
+            "p90": 117.265,
+            "p95": 120.914,
+            "p99": 150.195,
+            "p95Min": 116.932632,
+            "p95Max": 127.06202619999999
           },
           "passed": true
         },
@@ -146,21 +146,21 @@
           "workload": "format.decode",
           "case": "png-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 270,
+          "requests": 270,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 810,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 90.5,
-            "p90": 96,
-            "p95": 99.5,
-            "p99": 117.2,
-            "p95Min": 99.5,
-            "p95Max": 101.39999999999998
+            "p50": 81.649,
+            "p90": 87.427,
+            "p95": 89.188,
+            "p99": 121.122,
+            "p95Min": 88.05227225,
+            "p95Max": 92.1308853
           },
           "passed": true
         },
@@ -177,12 +177,12 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 99,
-            "p90": 107,
-            "p95": 110.5,
-            "p99": 131.8,
-            "p95Min": 108.5,
-            "p95Max": 113
+            "p50": 95.483,
+            "p90": 102.696,
+            "p95": 104.545,
+            "p99": 112.429,
+            "p95Min": 103.15336500000001,
+            "p95Max": 105.321402
           },
           "passed": true
         },
@@ -190,21 +190,21 @@
           "workload": "format.encode",
           "case": "jpg-to-avif",
           "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
+          "operations": 272,
+          "requests": 272,
           "errors": 0,
           "checks": {
-            "passed": 810,
+            "passed": 816,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 1430,
-            "p90": 1469.1,
-            "p95": 1475.1,
-            "p99": 1491.75,
-            "p95Min": 1457.5,
-            "p95Max": 3214
+            "p50": 196.967,
+            "p90": 212.641,
+            "p95": 223.094,
+            "p99": 251.243,
+            "p95Min": 209.80762049999998,
+            "p95Max": 233.7294115
           },
           "passed": true
         },
@@ -212,21 +212,21 @@
           "workload": "format.encode",
           "case": "jpg-to-gif",
           "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
+          "operations": 272,
+          "requests": 272,
           "errors": 0,
           "checks": {
-            "passed": 813,
+            "passed": 816,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 1233.5,
-            "p90": 1318,
-            "p95": 1325.1,
-            "p99": 1394.33,
-            "p95Min": 1301.85,
-            "p95Max": 1893
+            "p50": 1240.815,
+            "p90": 1288.064,
+            "p95": 1310.32,
+            "p99": 1367.707,
+            "p95Min": 1291.5320975,
+            "p95Max": 1334.627019
           },
           "passed": true
         },
@@ -234,21 +234,21 @@
           "workload": "format.encode",
           "case": "jpg-to-heic",
           "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
+          "operations": 272,
+          "requests": 272,
           "errors": 0,
           "checks": {
-            "passed": 813,
+            "passed": 816,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 568.5,
-            "p90": 604.3,
-            "p95": 616.2,
-            "p99": 687.93,
-            "p95Min": 599,
-            "p95Max": 631.65
+            "p50": 126.922,
+            "p90": 132.165,
+            "p95": 132.808,
+            "p99": 172.493,
+            "p95Min": 131.9204648,
+            "p95Max": 161.5098705
           },
           "passed": true
         },
@@ -256,49 +256,27 @@
           "workload": "format.encode",
           "case": "jpg-to-jpg",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 271,
+          "requests": 271,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 813,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 40,
-            "p90": 44.1,
-            "p95": 351.95,
-            "p99": 877.8,
-            "p95Min": 43,
-            "p95Max": 838.5
+            "p50": 38.433,
+            "p90": 40.529,
+            "p95": 42.446,
+            "p99": 45.492,
+            "p95Min": 41.255202,
+            "p95Max": 42.912966049999994
           },
           "passed": true
         },
         {
           "workload": "format.encode",
           "case": "jpg-to-jxl",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 87,
-            "p90": 93,
-            "p95": 96,
-            "p99": 114.7,
-            "p95Min": 94,
-            "p95Max": 107.55
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-png",
           "repetitions": 3,
           "operations": 271,
           "requests": 271,
@@ -309,18 +287,18 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 66,
-            "p90": 69,
-            "p95": 71,
-            "p99": 87.8,
-            "p95Min": 69,
-            "p95Max": 71.55
+            "p50": 174.194,
+            "p90": 179.342,
+            "p95": 180.705,
+            "p99": 197.518,
+            "p95Min": 132.3826703,
+            "p95Max": 181.50607779999999
           },
           "passed": true
         },
         {
           "workload": "format.encode",
-          "case": "jpg-to-webp",
+          "case": "jpg-to-png",
           "repetitions": 3,
           "operations": 270,
           "requests": 270,
@@ -331,18 +309,40 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 70,
-            "p90": 74.1,
-            "p95": 76.55,
-            "p99": 84.87,
-            "p95Min": 76,
-            "p95Max": 78.55
+            "p50": 60.214,
+            "p90": 63.189,
+            "p95": 65.21,
+            "p99": 106.031,
+            "p95Min": 64.1256088,
+            "p95Max": 67.07836
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-webp",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 65.948,
+            "p90": 71.259,
+            "p95": 73.816,
+            "p99": 81.483,
+            "p95Min": 72.3296245,
+            "p95Max": 74.89805664999999
           },
           "passed": true
         },
         {
           "workload": "upload.eager.accept",
-          "case": "jpg-medium-four-profiles",
+          "case": "jpg-medium-four-webp-profiles",
           "repetitions": 3,
           "operations": 722,
           "requests": 722,
@@ -353,12 +353,12 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 17,
-            "p90": 19,
-            "p95": 19,
-            "p99": 26.61,
-            "p95Min": 19,
-            "p95Max": 105
+            "p50": 17.729,
+            "p90": 20.114,
+            "p95": 82.194,
+            "p99": 159.941,
+            "p95Min": 21.341095,
+            "p95Max": 199.28522415
           },
           "passed": true
         },
@@ -366,27 +366,27 @@
           "workload": "upload.original",
           "case": "jpg-medium",
           "repetitions": 3,
-          "operations": 723,
-          "requests": 723,
+          "operations": 721,
+          "requests": 721,
           "errors": 0,
           "checks": {
-            "passed": 3615,
+            "passed": 3605,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 18,
-            "p90": 20,
-            "p95": 21,
-            "p99": 26.6,
-            "p95Min": 21,
-            "p95Max": 22
+            "p50": 20.125,
+            "p90": 23.338,
+            "p95": 24.969,
+            "p99": 29.819,
+            "p95Min": 24.055407199999994,
+            "p95Max": 33.29187
           },
           "passed": true
         },
         {
           "workload": "upload.preprocess",
-          "case": "jpg-medium-to-jxl",
+          "case": "jpg-medium-to-webp",
           "repetitions": 3,
           "operations": 273,
           "requests": 273,
@@ -397,12 +397,12 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 858,
-            "p90": 871,
-            "p95": 896.5,
-            "p99": 1043,
-            "p95Min": 875.5,
-            "p95Max": 928.5
+            "p50": 213.593,
+            "p90": 246.1,
+            "p95": 256.184,
+            "p99": 271.423,
+            "p95Min": 247.43244199999998,
+            "p95Max": 259.250132
           },
           "passed": true
         },
@@ -419,34 +419,34 @@
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 379.5,
-            "p90": 483,
-            "p95": 524,
-            "p99": 794.72,
-            "p95Min": 484.6,
-            "p95Max": 526.9999999999999
+            "p50": 357.898,
+            "p90": 481.823,
+            "p95": 482.718,
+            "p99": 556.251,
+            "p95Min": 468.059903,
+            "p95Max": 545.7361482499999
           },
           "passed": true
         },
         {
           "workload": "upload.rules.preprocess",
-          "case": "jpg-medium-landscape-rule-to-jxl",
+          "case": "jpg-medium-landscape-rule-to-webp",
           "repetitions": 3,
-          "operations": 74,
-          "requests": 74,
+          "operations": 75,
+          "requests": 75,
           "errors": 0,
           "checks": {
-            "passed": 444,
+            "passed": 450,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 1374,
-            "p90": 1471.6,
-            "p95": 1488.1,
-            "p99": 2366.56,
-            "p95Min": 1478.4,
-            "p95Max": 1582.5999999999997
+            "p50": 794.921,
+            "p90": 860.788,
+            "p95": 890.741,
+            "p99": 1360.38,
+            "p95Min": 812.3864524,
+            "p95Max": 1090.2476153999992
           },
           "passed": true
         },
@@ -454,43 +454,43 @@
           "workload": "variant.deliver.cached",
           "case": "jpg-to-webp-400",
           "repetitions": 3,
-          "operations": 3602,
-          "requests": 3602,
+          "operations": 3603,
+          "requests": 3603,
           "errors": 0,
           "checks": {
-            "passed": 10806,
+            "passed": 10809,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 6,
-            "p90": 6,
-            "p95": 6,
-            "p99": 7,
-            "p95Min": 6,
-            "p95Max": 6
+            "p50": 5.583,
+            "p90": 5.877,
+            "p95": 6.023,
+            "p99": 8.399,
+            "p95Min": 5.914954,
+            "p95Max": 6.197987
           },
           "passed": true
         },
         {
           "workload": "variant.eager.ready",
-          "case": "jpg-medium-four-profiles",
+          "case": "jpg-medium-four-webp-profiles",
           "repetitions": 3,
           "operations": 272,
-          "requests": 1983,
+          "requests": 2737,
           "errors": 0,
           "checks": {
-            "passed": 2992,
+            "passed": 4080,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 106,
-            "p90": 107,
-            "p95": 210,
-            "p99": 311.3,
-            "p95Min": 107,
-            "p95Max": 229.3499999999999
+            "p50": 415,
+            "p90": 418,
+            "p95": 473.9,
+            "p99": 533,
+            "p95Min": 423.5,
+            "p95Max": 518.5
           },
           "passed": true
         },
@@ -498,21 +498,21 @@
           "workload": "variant.generate.cold",
           "case": "jpg-to-webp-400",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 273,
+          "requests": 273,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 819,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 70,
-            "p90": 74.1,
-            "p95": 77.55,
-            "p99": 82.97,
-            "p95Min": 76.5,
-            "p95Max": 78
+            "p50": 67.939,
+            "p90": 75.838,
+            "p95": 77.501,
+            "p99": 83.276,
+            "p95Min": 76.42721399999999,
+            "p95Max": 79.82358550000001
           },
           "passed": true
         }
