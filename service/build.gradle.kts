@@ -87,7 +87,6 @@ dependencies {
 
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.s3.transfermanager)
-    implementation(libs.aws.sdk.crt)
 
     implementation(libs.uuid.creator)
     implementation(libs.commons.codec)

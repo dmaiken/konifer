@@ -6,16 +6,13 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.transfer.s3.S3TransferManager
-import software.amazon.awssdk.transfer.s3.SizeConstant.MB
 import java.net.URI
 
 fun s3Client(properties: S3ClientProperties): S3AsyncClient {
     val builder =
         S3AsyncClient
-            .crtBuilder()
-            .region(Region.US_EAST_1)
-            .minimumPartSizeInBytes(5 * MB)
-            .targetThroughputInGbps(20.0)
+            .builder()
+            .multipartEnabled(true)
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
@@ -29,9 +26,7 @@ fun s3Client(properties: S3ClientProperties): S3AsyncClient {
         builder.endpointOverride(URI.create(it))
     }
 
-    properties.region?.also {
-        builder.region(Region.of(it))
-    }
+    builder.region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
 
     builder.forcePathStyle(properties.forcePathStyle)
 
@@ -41,9 +36,7 @@ fun s3Client(properties: S3ClientProperties): S3AsyncClient {
 fun s3Presigner(properties: S3ClientProperties): S3Presigner {
     val builder = S3Presigner.builder()
 
-    properties.region?.also {
-        builder.region(Region.of(it))
-    }
+    builder.region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
