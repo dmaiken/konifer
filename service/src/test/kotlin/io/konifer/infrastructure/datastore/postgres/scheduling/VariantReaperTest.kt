@@ -1,7 +1,9 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import com.github.f4b6a3.uuid.UuidCreator
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
 import io.konifer.infrastructure.datastore.postgres.postgresContainer
 import io.konifer.infrastructure.datastore.postgres.truncateTables
@@ -55,8 +57,12 @@ class VariantReaperTest {
     fun `can reap variants`() =
         runTest {
             objectStore.persist(
-                bucket = "bucket",
-                key = "key",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
 
@@ -98,8 +104,12 @@ class VariantReaperTest {
     fun `if variant fails to be reaped then outbox event is not deleted`() =
         runTest {
             objectStore.persist(
-                bucket = "bucket",
-                key = "key",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
 
@@ -146,13 +156,21 @@ class VariantReaperTest {
     fun `if variant fails to be reaped then others are attempted`() =
         runTest {
             objectStore.persist(
-                bucket = "bucket",
-                key = "key1",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key1",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
             objectStore.persist(
-                bucket = "bucket",
-                key = "key2",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key2",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
 
@@ -225,13 +243,21 @@ class VariantReaperTest {
     fun `limit is respected when reaping variants`() =
         runTest {
             objectStore.persist(
-                bucket = "bucket",
-                key = "key1",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key1",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
             objectStore.persist(
-                bucket = "bucket",
-                key = "key2",
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = "bucket",
+                        key = "key2",
+                        contentType = ImageFormat.JPEG,
+                    ),
                 channel = channel,
             )
 

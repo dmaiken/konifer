@@ -4,6 +4,7 @@ import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -23,14 +24,13 @@ class InMemoryObjectStore : ObjectStore {
     }
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         channel: ByteChannel,
     ): LocalDateTime {
-        store.computeIfAbsent(bucket) { mutableMapOf() }
+        store.computeIfAbsent(request.bucket) { mutableMapOf() }
 
-        store[bucket]?.put(
-            key,
+        store[request.bucket]?.put(
+            request.key,
             channel.toByteArray(),
         )
 
@@ -38,13 +38,12 @@ class InMemoryObjectStore : ObjectStore {
     }
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         file: Path,
     ): LocalDateTime {
-        store.computeIfAbsent(bucket) { mutableMapOf() }
+        store.computeIfAbsent(request.bucket) { mutableMapOf() }
 
-        store[bucket]?.put(key, file.readChannel().toByteArray())
+        store[request.bucket]?.put(request.key, file.readChannel().toByteArray())
 
         return LocalDateTime.now(UTC)
     }
