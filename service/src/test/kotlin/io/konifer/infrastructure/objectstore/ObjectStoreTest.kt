@@ -6,6 +6,7 @@ import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.path.TemplateProperties
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.getResourceAsFile
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldHaveSize
@@ -47,11 +48,8 @@ abstract class ObjectStoreTest {
             javaClass.getResourceAsFile("/images/joshua-tree/joshua-tree.png")
         }
 
-    // 2. Create a factory function for a fresh channel
-    private fun getFreshImageChannel(format: ImageFormat = ImageFormat.PNG): ByteReadChannel {
-        // toByteReadChannel() runs asynchronously and doesn't block
-        return javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.toByteReadChannel()
-    }
+    private fun getFreshImageChannel(format: ImageFormat = ImageFormat.PNG): ByteReadChannel =
+        javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.toByteReadChannel()
 
     @Test
     fun `can persist and fetch an object`() =
@@ -63,7 +61,16 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            val result = store.persist(BUCKET_1, key, channel)
+            val result =
+                store.persist(
+                    request =
+                        PersistObjectStoreRequest(
+                            bucket = BUCKET_1,
+                            key = key,
+                            contentType = ImageFormat.PNG,
+                        ),
+                    channel = channel,
+                )
             result.toLocalDate() shouldBe LocalDate.now(UTC)
 
             val stream = ByteChannel(autoFlush = true)
@@ -87,7 +94,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            store.persist(BUCKET_1, key, channel)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel,
+            )
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =
@@ -120,7 +135,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            store.persist(BUCKET_1, key, channel)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel,
+            )
             store.delete(BUCKET_1, key)
 
             val stream = ByteChannel(autoFlush = true)
@@ -151,7 +174,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel1)
                 channel1.close()
             }
-            store.persist(BUCKET_1, key1, channel1)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key1,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel1,
+            )
 
             val key2 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.JPEG.extension}"
             val channel2 = ByteChannel()
@@ -159,7 +190,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel(ImageFormat.JPEG).copyTo(channel2)
                 channel2.close()
             }
-            store.persist(BUCKET_1, key2, channel2)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key2,
+                        contentType = ImageFormat.JPEG,
+                    ),
+                channel = channel2,
+            )
 
             val key3 = "${UuidCreator.getRandomBasedFast()}${ImageFormat.HEIC.extension}"
             val channel3 = ByteChannel()
@@ -167,7 +206,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel(ImageFormat.HEIC).copyTo(channel3)
                 channel3.close()
             }
-            store.persist(BUCKET_1, key3, channel3)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key3,
+                        contentType = ImageFormat.HEIC,
+                    ),
+                channel = channel3,
+            )
 
             store.deleteAll(BUCKET_1, listOf(key1, key2, key3))
 
@@ -212,7 +259,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            store.persist(BUCKET_1, key, channel)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel,
+            )
 
             store.deleteAll(BUCKET_2, listOf(key))
 
@@ -237,7 +292,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            store.persist(BUCKET_1, key, channel)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel,
+            )
 
             store.deleteAll(BUCKET_1, listOf(UuidCreator.getRandomBasedFast().toString()))
 
@@ -262,7 +325,15 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
-            store.persist(BUCKET_1, key, channel)
+            store.persist(
+                request =
+                    PersistObjectStoreRequest(
+                        bucket = BUCKET_1,
+                        key = key,
+                        contentType = ImageFormat.PNG,
+                    ),
+                channel = channel,
+            )
 
             store.exists(BUCKET_1, key) shouldBe true
         }

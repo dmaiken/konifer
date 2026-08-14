@@ -1,7 +1,14 @@
 package integration
 
 import io.konifer.client.KoniferClient
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import okhttp3.Dns
 import org.apache.tika.Tika
 import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.GenericContainer
@@ -13,6 +20,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import org.testcontainers.utility.MountableFile
+import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
@@ -25,6 +33,8 @@ abstract class BaseIntegrationTest {
         private val koniferImage: DockerImageName = DockerImageName.parse("ghcr.io/dmaiken/konifer:latest")
 
         val network: Network = Network.newNetwork()
+
+        private const val MINIO_PORT = 9000
 
         @Container
         @JvmStatic
@@ -46,8 +56,11 @@ abstract class BaseIntegrationTest {
                 .withCommand("server /data")
                 .withEnv("MINIO_ROOT_USER", "minio_admin")
                 .withEnv("MINIO_ROOT_PASSWORD", "minio_secret_key")
-                .withExposedPorts(9000)
-                .waitingFor(Wait.forHttp("/minio/health/live").forStatusCode(200))
+                .withExposedPorts(MINIO_PORT)
+                .apply {
+                    // Needed for redirect testing
+                    setPortBindings(listOf("$MINIO_PORT:$MINIO_PORT"))
+                }.waitingFor(Wait.forHttp("/minio/health/live").forStatusCode(200))
 
         @Container
         @JvmStatic
@@ -182,6 +195,34 @@ abstract class BaseIntegrationTest {
     protected val client =
         runBlocking {
             KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
+        }
+
+    protected val httpClient =
+        HttpClient(OkHttp) {
+            engine {
+                // Needed for redirects
+                dns =
+                    Dns { hostname ->
+                        if (hostname == "minio") {
+                            InetAddress
+                                .getAllByName(minio.host)
+                                .toList()
+                        } else {
+                            Dns.SYSTEM.lookup(hostname)
+                        }
+                    }
+            }
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        explicitNulls = false
+                    },
+                )
+            }
+            defaultRequest {
+                url("http://${konifer.host}:${konifer.getMappedPort(8080)}")
+            }
         }
 
     protected val tika = Tika()

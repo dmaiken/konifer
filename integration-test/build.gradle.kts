@@ -28,6 +28,11 @@ dependencies {
 
     testImplementation(libs.libvips.ffm)
     testImplementation(libs.tika.core)
+
+    testImplementation(libs.ktor.client.core)
+    testImplementation(libs.ktor.client.content.negotiation)
+    testImplementation(libs.ktor.serialization.kotlinx.json)
+    testImplementation(libs.ktor.client.okhttp)
 }
 
 tasks.test {

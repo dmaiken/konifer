@@ -4,6 +4,7 @@ import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
@@ -25,12 +26,15 @@ class FileSystemObjectStore(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         channel: ByteChannel,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
-            val target = resolvePath(bucket, key)
+            val target =
+                resolvePath(
+                    bucket = request.bucket,
+                    key = request.key,
+                )
 
             if (!Files.exists(target.parent)) {
                 Files.createDirectories(target.parent)
@@ -41,12 +45,15 @@ class FileSystemObjectStore(
         }
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         file: Path,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
-            val target = resolvePath(bucket, key)
+            val target =
+                resolvePath(
+                    bucket = request.bucket,
+                    key = request.key,
+                )
 
             if (!Files.exists(target.parent)) {
                 Files.createDirectories(target.parent)

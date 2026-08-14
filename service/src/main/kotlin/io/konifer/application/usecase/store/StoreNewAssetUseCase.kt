@@ -13,6 +13,7 @@ import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
@@ -85,8 +86,12 @@ class StoreNewAssetUseCase(
                 val uploadedAtDeferred =
                     async {
                         objectStore.persist(
-                            bucket = context.pathConfiguration.objectStore.bucket,
-                            key = objectStoreKey,
+                            request =
+                                PersistObjectStoreRequest(
+                                    bucket = context.pathConfiguration.objectStore.bucket,
+                                    key = objectStoreKey,
+                                    contentType = attributes.format,
+                                ),
                             channel = pipeline.outputChannel,
                         )
                     }

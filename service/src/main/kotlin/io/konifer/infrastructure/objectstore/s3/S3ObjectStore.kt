@@ -4,6 +4,7 @@ import io.konifer.domain.path.RedirectProperties
 import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.infrastructure.consumeAsFlow
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -44,10 +45,10 @@ class S3ObjectStore(
     private val s3Presigner: S3Presigner,
 ) : ObjectStore {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+    private val inlineContentDisposition = "inline"
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         channel: ByteChannel,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
@@ -59,15 +60,17 @@ class S3ObjectStore(
                     .builder()
                     .putObjectRequest { b: PutObjectRequest.Builder ->
                         b
-                            .bucket(bucket)
-                            .key(key)
+                            .bucket(request.bucket)
+                            .key(request.key)
+                            .contentType(request.contentType.mimeType)
+                            .contentDisposition(inlineContentDisposition)
                     }.requestBody(requestBody)
                     .build()
             runCatching {
                 s3TransferManager.upload(uploadRequest).completionFuture().await()
             }.onFailure { e ->
                 if (e is NoSuchBucketException) {
-                    logger.error("S3 bucket does not exist: $bucket, key: $key", e)
+                    logger.error("S3 bucket does not exist: ${request.bucket}, key: ${request.key}", e)
                 }
             }.getOrThrow()
 
@@ -75,16 +78,20 @@ class S3ObjectStore(
         }
 
     override suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         file: Path,
     ): LocalDateTime =
         withContext(Dispatchers.IO) {
             val uploadFileRequest =
                 UploadFileRequest
                     .builder()
-                    .putObjectRequest { b: PutObjectRequest.Builder -> b.bucket(bucket).key(key) }
-                    .source(file)
+                    .putObjectRequest { b: PutObjectRequest.Builder ->
+                        b
+                            .bucket(request.bucket)
+                            .key(request.key)
+                            .contentType(request.contentType.mimeType)
+                            .contentDisposition(inlineContentDisposition)
+                    }.source(file)
                     .build()
             s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
 

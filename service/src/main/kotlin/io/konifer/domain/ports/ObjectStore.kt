@@ -1,5 +1,6 @@
 package io.konifer.domain.ports
 
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.path.RedirectProperties
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -8,14 +9,12 @@ import java.time.LocalDateTime
 
 interface ObjectStore {
     suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         channel: ByteChannel,
     ): LocalDateTime
 
     suspend fun persist(
-        bucket: String,
-        key: String,
+        request: PersistObjectStoreRequest,
         file: Path,
     ): LocalDateTime
 
@@ -60,3 +59,9 @@ data class FetchResult(
         fun found(contentLength: Long) = FetchResult(true, contentLength)
     }
 }
+
+data class PersistObjectStoreRequest(
+    val bucket: String,
+    val key: String,
+    val contentType: ImageFormat,
+)

@@ -7,6 +7,7 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
@@ -120,8 +121,12 @@ class VariantService(
                             val uploadJob =
                                 async {
                                     objectStore.persist(
-                                        bucket = newVariant.objectStoreBucket,
-                                        key = newVariant.objectStoreKey,
+                                        request =
+                                            PersistObjectStoreRequest(
+                                                bucket = newVariant.objectStoreBucket,
+                                                key = newVariant.objectStoreKey,
+                                                contentType = attributes.format,
+                                            ),
                                         channel = container.output,
                                     )
                                 }

@@ -4,6 +4,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import java.net.URI
@@ -13,6 +14,8 @@ fun s3Client(properties: S3ClientProperties): S3AsyncClient {
         S3AsyncClient
             .builder()
             .multipartEnabled(true)
+            .region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
+            .forcePathStyle(properties.forcePathStyle)
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
@@ -26,17 +29,19 @@ fun s3Client(properties: S3ClientProperties): S3AsyncClient {
         builder.endpointOverride(URI.create(it))
     }
 
-    builder.region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
-
-    builder.forcePathStyle(properties.forcePathStyle)
-
     return builder.build()
 }
 
 fun s3Presigner(properties: S3ClientProperties): S3Presigner {
-    val builder = S3Presigner.builder()
-
-    builder.region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
+    val builder =
+        S3Presigner
+            .builder()
+            .serviceConfiguration(
+                S3Configuration
+                    .builder()
+                    .pathStyleAccessEnabled(properties.forcePathStyle)
+                    .build(),
+            ).region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
