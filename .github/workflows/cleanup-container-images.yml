@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Delete old untagged images
         # v3.1.0 protects untagged child manifests used by tagged multi-arch images.
-        uses: snok/container-retention-policy@3.1.0
+        uses: snok/container-retention-policy@v3.1.0
         with:
           account: user
           token: ${{ secrets.GITHUB_TOKEN }}
