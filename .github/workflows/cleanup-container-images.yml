@@ -1,0 +1,39 @@
+name: Clean Up Container Images
+
+on:
+  schedule:
+    # Daily at 03:17 UTC.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report eligible images without deleting them
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cleanup-container-images
+  cancel-in-progress: false
+
+jobs:
+  delete-untagged-images:
+    name: Delete untagged images older than 30 days
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Delete old untagged images
+        # v3.1.0 protects untagged child manifests used by tagged multi-arch images.
+        uses: snok/container-retention-policy@3.1.0
+        with:
+          account: user
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: "konifer konifer-base konifer-base-ci"
+          tag-selection: untagged
+          cut-off: 30d
+          timestamp-to-use: created_at
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
