@@ -5,6 +5,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
@@ -16,6 +17,11 @@ import java.time.ZoneOffset.UTC
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
+
+internal data class ObjectStoreReference(
+    val bucket: String,
+    val key: String,
+)
 
 class InMemoryAssetRepository : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -62,13 +68,16 @@ class InMemoryAssetRepository : AssetRepository {
     }
 
     override suspend fun markUploaded(variant: Variant.Ready) {
-        val asset = idReference[variant.assetId] ?: return
-        store[asset.path]
-            ?.firstOrNull { it.entryId == asset.entryId }
-            ?.let { asset ->
-                asset.variants.removeIf { it.id == variant.id }
-                asset.variants.add(variant)
-            }
+        storeMutex.withLock {
+            val asset = idReference[variant.assetId] ?: return
+            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            store[path]
+                ?.firstOrNull { it.entryId == asset.entryId }
+                ?.let { asset ->
+                    asset.variants.removeIf { it.id == variant.id }
+                    asset.variants.add(variant)
+                }
+        }
     }
 
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {
@@ -143,20 +152,12 @@ class InMemoryAssetRepository : AssetRepository {
         path: String,
         entryId: Long,
     ) {
-        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting asset at path: $inMemoryPath, entryId: $entryId")
-
-        val asset =
-            store[inMemoryPath]?.let { assets ->
-                assets.firstOrNull { it.entryId == entryId }
-            }
-
-        asset?.let {
-            idReference.remove(it.id)
-        }
-        store[inMemoryPath]?.let { assets ->
-            assets.removeIf { it.entryId == entryId }
-        }
+        deleteAndReturnObjectReferences(
+            DeleteAssetsCommand.Entry(
+                path = path,
+                entryId = entryId,
+            ),
+        )
     }
 
     override suspend fun deleteAllByPath(
@@ -165,54 +166,86 @@ class InMemoryAssetRepository : AssetRepository {
         order: Order,
         limit: Int,
     ) {
-        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting assets at path: $inMemoryPath, labels: $labels, orderBy: $order, limit: $limit")
-        val assetsToDelete =
-            fetchAll(
+        deleteAndReturnObjectReferences(
+            DeleteAssetsCommand.AtPath(
                 path = path,
-                order = order,
-                transformation = null,
-                limit = limit,
                 labels = labels,
-                includeOnlyReady = false,
-            )
-        assetsToDelete.map { it.id }.forEach {
-            idReference.remove(it)
-        }
-        store[inMemoryPath]?.let { assets ->
-            assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
-        }
+                order = order,
+                limit = limit,
+            ),
+        )
     }
 
     override suspend fun deleteRecursivelyByPath(
         path: String,
         labels: Map<String, String>,
     ) {
-        val inMemoryPath = InMemoryPathAdapter.toInMemoryPathFromUriPath(path)
-        logger.info("Deleting assets (recursively) at path: $inMemoryPath with labels: $labels")
-        store.keys.filter { it.startsWith(inMemoryPath) }.forEach { path ->
-            val assetAndVariants = store[path] ?: emptyList()
-            val assetsToDelete = assetAndVariants.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
-            assetsToDelete.map { it.id }.forEach {
-                idReference.remove(it)
-            }
-            store[path]?.let { assets ->
-                assets.removeIf { asset -> asset.id in assetsToDelete.map { it.id } }
-            }
-        }
+        deleteAndReturnObjectReferences(
+            DeleteAssetsCommand.Recursively(
+                path = path,
+                labels = labels,
+            ),
+        )
     }
 
     override suspend fun deleteByAssetId(assetId: AssetId) {
         logger.info("Deleting asset with id: : $assetId")
 
-        idReference[assetId]?.let { asset ->
-            idReference.remove(asset.id)
-            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
-            store[path]?.let { assets ->
-                assets.removeIf { it.id == assetId }
+        storeMutex.withLock {
+            idReference[assetId]?.let { asset ->
+                removeAssets(listOf(asset))
             }
         }
     }
+
+    internal suspend fun deleteAndReturnObjectReferences(command: DeleteAssetsCommand): List<ObjectStoreReference> =
+        storeMutex.withLock {
+            val assets =
+                when (command) {
+                    is DeleteAssetsCommand.Entry -> {
+                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        logger.info("Deleting asset at path: $path, entryId: ${command.entryId}")
+                        store[path]
+                            ?.firstOrNull { it.entryId == command.entryId }
+                            ?.let(::listOf)
+                            ?: emptyList()
+                    }
+                    is DeleteAssetsCommand.AtPath -> {
+                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        logger.info(
+                            "Deleting assets at path: $path, labels: ${command.labels}, " +
+                                "orderBy: ${command.order}, limit: ${command.limit}",
+                        )
+                        selectAssetsAtPath(
+                            path = path,
+                            labels = command.labels,
+                            order = command.order,
+                            limit = command.limit,
+                        )
+                    }
+                    is DeleteAssetsCommand.Recursively -> {
+                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        logger.info("Deleting assets (recursively) at path: $path with labels: ${command.labels}")
+                        store.keys
+                            .filter { it.startsWith(path) }
+                            .flatMap { storedPath ->
+                                store[storedPath]
+                                    ?.filter { asset ->
+                                        command.labels.all { entry -> asset.labels.asMap()[entry.key] == entry.value }
+                                    }.orEmpty()
+                            }
+                    }
+                }
+
+            val objectReferences =
+                assets
+                    .flatMap { it.variants }
+                    .map { ObjectStoreReference(bucket = it.objectStoreBucket, key = it.objectStoreKey) }
+                    .distinct()
+
+            removeAssets(assets)
+            objectReferences
+        }
 
     override suspend fun update(asset: Asset): Asset {
         if (asset !is Asset.Ready) {
@@ -225,6 +258,36 @@ class InMemoryAssetRepository : AssetRepository {
         store[path]?.add(asset)
 
         return asset
+    }
+
+    private fun selectAssetsAtPath(
+        path: String,
+        labels: Map<String, String>,
+        order: Order,
+        limit: Int,
+    ): List<Asset> =
+        store[path]
+            ?.asSequence()
+            ?.filter { asset -> labels.all { entry -> asset.labels.asMap()[entry.key] == entry.value } }
+            ?.sortedWith(
+                when (order) {
+                    Order.NEW -> compareByDescending<Asset> { it.createdAt }
+                    Order.MODIFIED -> compareByDescending { it.modifiedAt }
+                }.thenByDescending { it.entryId },
+            )?.let { assets ->
+                if (limit > 0) assets.take(limit) else assets
+            }?.toList()
+            ?: emptyList()
+
+    private fun removeAssets(assets: List<Asset>) {
+        val ids = assets.mapTo(mutableSetOf()) { it.id }
+        ids.forEach(idReference::remove)
+        assets
+            .map { InMemoryPathAdapter.toInMemoryPathFromUriPath(it.path) }
+            .distinct()
+            .forEach { path ->
+                store[path]?.removeIf { it.id in ids }
+            }
     }
 
     private fun getNextEntryId(path: String): Long =
