@@ -30,9 +30,12 @@ import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
+import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.TransformationValidator
+import io.konifer.domain.variant.Transformation
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -102,14 +105,12 @@ class RequestContextFactory(
             path = segments.first(),
             pathConfiguration = pathConfiguration,
             selectors = querySelectors,
-            transformation =
-                requestedTransformation?.let {
-                    transformationNormalizer.normalize(
-                        treePath = segments.first(),
-                        entryId = querySelectors.entryId,
-                        requested = it,
-                    )
-                },
+            transformation = normalizeRequestedTransformation(
+                requestedTransformation = requestedTransformation,
+                pathConfiguration = pathConfiguration,
+                treePath = segments.first(),
+                entryId = querySelectors.entryId,
+            ),
             labels = extractLabels(queryParameters),
             request =
                 HttpRequest(
@@ -268,6 +269,26 @@ class RequestContextFactory(
                 ContentType.Image.JXL -> ImageFormat.JPEG_XL
                 else -> null
             }
+        }
+    }
+    
+    private suspend fun normalizeRequestedTransformation(
+        requestedTransformation: RequestedTransformation?,
+        pathConfiguration: PathConfiguration,
+        treePath: String,
+        entryId: Long?,
+    ): Transformation? {
+        if (requestedTransformation == null) return null
+
+        return transformationNormalizer.normalize(
+            requested = requestedTransformation,
+            treePath = treePath,
+            entryId = entryId,
+        ).also { normalized ->
+            TransformationValidator.validateNormalizedTransformation(
+                transformProperties = pathConfiguration.transform,
+                transformation = normalized,
+            )
         }
     }
 }
