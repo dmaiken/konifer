@@ -1,7 +1,10 @@
 package io.konifer.infrastructure.datastore
 
+import io.konifer.domain.ports.AssetDeleter
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetDeleter
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
+import io.konifer.infrastructure.datastore.postgres.PostgresAssetDeleter
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
 import io.konifer.infrastructure.datastore.postgres.PostgresVariantRepository
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
@@ -37,6 +40,7 @@ fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Mod
         when (datastoreProvider) {
             DataStoreProvider.IN_MEMORY -> {
                 single<InMemoryAssetRepository>() bind AssetRepository::class
+                single<InMemoryAssetDeleter>() bind AssetDeleter::class
             }
             DataStoreProvider.POSTGRES -> {
                 val properties = createPostgresProperties()
@@ -72,6 +76,7 @@ fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Mod
                 } withOptions {
                     createdAtStart()
                 }
+                single<PostgresAssetDeleter>() bind AssetDeleter::class
             }
         }
     }
