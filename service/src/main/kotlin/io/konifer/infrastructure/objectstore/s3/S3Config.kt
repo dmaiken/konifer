@@ -14,8 +14,11 @@ fun s3Client(properties: S3ClientProperties): S3AsyncClient {
         S3AsyncClient
             .builder()
             .multipartEnabled(true)
-            .region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
             .forcePathStyle(properties.forcePathStyle)
+
+    properties.region?.let {
+        builder.region(Region.of(it))
+    }
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
@@ -41,7 +44,7 @@ fun s3Presigner(properties: S3ClientProperties): S3Presigner {
                     .builder()
                     .pathStyleAccessEnabled(properties.forcePathStyle)
                     .build(),
-            ).region(properties.region?.let { Region.of(it) } ?: Region.of("auto"))
+            )
 
     if (properties.accessKey != null && properties.secretKey != null) {
         builder.credentialsProvider(
@@ -49,6 +52,10 @@ fun s3Presigner(properties: S3ClientProperties): S3Presigner {
                 AwsBasicCredentials.create(properties.accessKey, properties.secretKey),
             ),
         )
+    }
+
+    properties.region?.let {
+        builder.region(Region.of(it))
     }
 
     properties.endpointUrl?.also {
