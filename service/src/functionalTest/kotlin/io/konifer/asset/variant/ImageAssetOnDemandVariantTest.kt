@@ -20,6 +20,7 @@ import io.konifer.domain.image.vipsProperties
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_QUALITY
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.matchers.shouldBeApproximately
@@ -52,6 +53,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
     @Test
@@ -342,6 +344,41 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
                 val expectedImage = ImageIO.read(ByteArrayInputStream(expectedStream.toByteArray()))
 
                 actualImage shouldHaveSamePixelContentAs expectedImage
+            }
+        }
+
+    @Test
+    fun `auto rotate derives missing height from oriented dimensions`() =
+        testInMemory {
+            val source = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.jpeg")!!.readBytes()
+            val image =
+                ByteArrayOutputStream().use { output ->
+                    Vips.run { arena ->
+                        VImage
+                            .newFromBytes(arena, source)
+                            .set(OPTION_ORIENTATION, 6)
+                            .writeToTestStream(arena, output, ImageFormat.JPEG)
+                    }
+                    output.toByteArray()
+                }
+            val sourceImage = byteArrayToImage(image)
+            val requestedWidth = 300
+            val expectedHeight = ((sourceImage.width.toDouble() * requestedWidth) / sourceImage.height).roundToInt()
+
+            storeAssetMultipartSource(client, image, StoreAssetRequest(alt = "an image"))
+
+            repeat(2) { requestIndex ->
+                val result =
+                    fetchAssetContent(
+                        client,
+                        width = requestedWidth,
+                        rotate = "auto",
+                        expectCacheHit = requestIndex == 1,
+                    ).second!!
+                val variantImage = byteArrayToImage(result)
+
+                variantImage.width shouldBe requestedWidth
+                variantImage.height shouldBe expectedHeight
             }
         }
 

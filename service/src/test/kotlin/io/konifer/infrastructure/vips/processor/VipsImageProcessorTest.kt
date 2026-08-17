@@ -6,6 +6,7 @@ import com.vanniktech.blurhash.BlurHash
 import io.konifer.ImageFactory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.Rotate
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
@@ -38,6 +39,39 @@ class VipsImageProcessorTest {
 
     @Nested
     inner class PreProcessTests {
+        @ParameterizedTest
+        @EnumSource(Rotate::class, names = ["NINETY", "TWO_HUNDRED_SEVENTY"])
+        fun `rotation is applied before resize so requested dimensions describe the output`(rotate: Rotate) =
+            runTest {
+                val image = ImageFactory.testImage()
+                val transformationDataContainer =
+                    TransformationDataContainer(
+                        transformation =
+                            Transformation(
+                                width = 300,
+                                height = 200,
+                                fit = Fit.STRETCH,
+                                rotate = rotate,
+                                format = ImageFormat.JPEG,
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                    )
+
+                Vips.run { arena ->
+                    vipsImageProcessor.preprocess(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image.bytes),
+                        sourceFormat = ImageFormat.JPEG,
+                        lqipImplementations = emptySet(),
+                        transformationDataContainer = transformationDataContainer,
+                    ) shouldBe PreprocessOutput.SourceTransformed
+                }
+
+                val attributes = transformationDataContainer.attributes.await()
+                attributes.width shouldBe 300
+                attributes.height shouldBe 200
+            }
+
         @Test
         fun `image is not preprocessed if not enabled`() =
             runTest {
