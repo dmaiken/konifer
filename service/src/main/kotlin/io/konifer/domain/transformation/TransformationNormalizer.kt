@@ -1,7 +1,6 @@
 package io.konifer.domain.transformation
 
 import io.konifer.common.image.Filter
-import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
@@ -24,7 +23,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class TransformationNormalizer(
     private val assetRepository: AssetRepository,
@@ -108,8 +106,8 @@ class TransformationNormalizer(
         if (requested.originalVariant) {
             return Transformation.ORIGINAL_VARIANT
         }
-        val (width, height) = normalizeDimensions(requested, originalAttributesDeferred)
         val (rotate, horizontalFlip) = normalizeRotateFlip(requested, originalAttributesDeferred)
+        val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
         val format = normalizeFormat(requested, originalAttributesDeferred)
         return Transformation(
             width = width,
@@ -139,36 +137,6 @@ class TransformationNormalizer(
             logger.debug { "Normalized requested transformation: $requested to: $it" }
         }
     }
-
-    private suspend fun normalizeDimensions(
-        requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
-    ): Pair<Int, Int> =
-        when (requested.fit) {
-            Fit.FIT -> {
-                if ((requested.width == null && requested.height != null) || (requested.width != null && requested.height == null)) {
-                    val originalVariant = originalAttributesDeferred.await()
-
-                    val originalWidth = originalVariant.width.toDouble()
-                    val originalHeight = originalVariant.height.toDouble()
-                    // Derive height/width if needed
-                    Pair(
-                        requested.width ?: ((originalWidth * requireNotNull(requested.height)) / originalHeight).roundToInt(),
-                        requested.height ?: ((originalHeight * requireNotNull(requested.width)) / originalWidth).roundToInt(),
-                    )
-                } else if (requested.height != null && requested.width != null) {
-                    Pair(requested.width, requested.height)
-                } else {
-                    Pair(
-                        originalAttributesDeferred.await().width,
-                        originalAttributesDeferred.await().height,
-                    )
-                }
-            }
-            Fit.FILL, Fit.STRETCH, Fit.CROP -> {
-                Pair(requireNotNull(requested.width), requireNotNull(requested.height))
-            }
-        }
 
     private suspend fun normalizeFormat(
         requested: RequestedTransformation,

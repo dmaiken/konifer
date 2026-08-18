@@ -21,9 +21,9 @@ object VipsPipelines {
 
     val preProcessingPipeline =
         vipsPipeline {
-            // Structural reduction
-            add(Resize)
+            // Spatial transformations
             add(RotateFlip)
+            add(Resize)
 
             // Color standardization
             add(TransformColorSpace)

@@ -380,6 +380,98 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
     @Nested
     inner class NormalizeResizeAttributesTests {
+        @ParameterizedTest
+        @EnumSource(Rotate::class, names = ["NINETY", "TWO_HUNDRED_SEVENTY"])
+        fun `width derives height from dimensions after a quarter turn rotation`(rotate: Rotate) =
+            runTest {
+                val asset = storePersistedAsset(width = 1200, height = 800)
+                val requested =
+                    createRequestedImageTransformation(
+                        width = 300,
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = rotate,
+                    )
+
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.width shouldBe 300
+                normalized.height shouldBe 450
+            }
+
+        @Test
+        fun `height derives width from dimensions after a quarter turn rotation`() =
+            runTest {
+                val asset = storePersistedAsset(width = 1200, height = 800)
+                val requested =
+                    createRequestedImageTransformation(
+                        height = 300,
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = Rotate.TWO_HUNDRED_SEVENTY,
+                    )
+
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.width shouldBe 200
+                normalized.height shouldBe 300
+            }
+
+        @Test
+        fun `rotation-only request uses oriented dimensions`() =
+            runTest {
+                val asset = storePersistedAsset(width = 1200, height = 800)
+                val requested =
+                    createRequestedImageTransformation(
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = Rotate.NINETY,
+                    )
+
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.width shouldBe 800
+                normalized.height shouldBe 1200
+            }
+
+        @Test
+        fun `auto rotation derives dimensions from the resolved orientation`() =
+            runTest {
+                val asset = storePersistedAsset(width = 1200, height = 800, orientation = 6)
+                val requested =
+                    createRequestedImageTransformation(
+                        width = 300,
+                        format = ImageFormat.PNG,
+                        fit = Fit.FIT,
+                        rotate = Rotate.AUTO,
+                    )
+
+                val normalized =
+                    transformationNormalizer.normalize(
+                        treePath = asset.path,
+                        entryId = asset.entryId,
+                        requested = requested,
+                    )
+
+                normalized.width shouldBe 300
+                normalized.height shouldBe 450
+            }
+
         @Test
         fun `only height is required when using scale fit`() =
             runTest {
