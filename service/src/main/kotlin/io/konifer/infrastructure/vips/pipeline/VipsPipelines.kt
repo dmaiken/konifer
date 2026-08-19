@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.vips.pipeline
 
+import io.konifer.infrastructure.vips.transformer.AutoRotate
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.infrastructure.vips.transformer.CropFirstPage
 import io.konifer.infrastructure.vips.transformer.ForceRgbBands
@@ -21,6 +22,7 @@ object VipsPipelines {
     val preProcessingPipeline =
         vipsPipeline {
             // Spatial transformations
+            add(AutoRotate)
             add(RotateFlip)
             add(Resize)
 
@@ -39,6 +41,7 @@ object VipsPipelines {
     val tensorProcessingPipeline =
         vipsPipeline {
             add(CropFirstPage)
+            add(AutoRotate)
             add(RotateFlip)
             add(Resize)
             add(TransformColorSpace)
