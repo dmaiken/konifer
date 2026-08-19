@@ -664,7 +664,7 @@ class ResizeTest {
         }
 
         @Test
-        fun `transformation required if source width does not match transformation width`() {
+        fun `transformation not required if fit bounding box differs but effective dimensions match`() {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
                     it.readBytes()
@@ -680,12 +680,12 @@ class ResizeTest {
                             height = source.height,
                         ),
                     appliedTransformations = emptyList(),
-                ) shouldBe true
+                ) shouldBe false
             }
         }
 
         @Test
-        fun `transformation required if source height does not match transformation height`() {
+        fun `transformation not required if upscaling is disabled`() {
             val image =
                 javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
                     it.readBytes()
@@ -697,11 +697,59 @@ class ResizeTest {
                     source = source,
                     transformation =
                         resizeTransformation(
-                            width = source.width,
-                            height = source.height + 1,
+                            width = source.width * 2,
+                            height = source.height * 2,
+                            upscale = false,
+                        ),
+                    appliedTransformations = emptyList(),
+                ) shouldBe false
+            }
+        }
+
+        @Test
+        fun `transformation required if effective dimensions differ`() {
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                    it.readBytes()
+                }
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+                Resize.requiresTransformation(
+                    arena = arena,
+                    source = source,
+                    transformation =
+                        resizeTransformation(
+                            width = source.width - 1,
+                            height = source.height,
                         ),
                     appliedTransformations = emptyList(),
                 ) shouldBe true
+            }
+        }
+
+        @Test
+        fun `stretch clamps each target dimension when upscaling is disabled`() {
+            val image =
+                javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.use {
+                    it.readBytes()
+                }
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+                val plan =
+                    Resize.createPlan(
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width / 2,
+                                height = source.height * 2,
+                                fit = Fit.STRETCH,
+                                upscale = false,
+                            ),
+                    )
+
+                plan.width shouldBe source.width / 2
+                plan.height shouldBe source.height
+                plan.requiresTransformation shouldBe true
             }
         }
     }

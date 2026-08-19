@@ -7,12 +7,22 @@ import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 interface VipsTransformer {
+    /**
+     * Add the transformation to the Vips transformation pipeline. Note that vips transformation is inherently
+     * demand-driven and the actual transformation will not apply unless the image is written to an output
+     * file, sink, target, stream, etc. The exception to this are transformations to image metadata such as
+     * EXIF.
+     */
     fun transform(
         arena: Arena,
         source: VImage,
         transformation: Transformation,
     ): VipsTransformationResult
 
+    /**
+     * Whether the image requires [transform] to be called on it. If false is returned, then the image does not
+     * need the implementing transformer applied to it.
+     */
     fun requiresTransformation(
         arena: Arena,
         source: VImage,

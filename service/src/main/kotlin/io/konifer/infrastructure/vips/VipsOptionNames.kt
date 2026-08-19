@@ -19,4 +19,5 @@ object VipsOptionNames {
     const val OPTION_INTENT = "intent"
     const val OPTION_SUBSAMPLE_MODE = "subsample_mode"
     const val OPTION_ENCODER = "encoder"
+    const val OPTION_NO_ROTATE = "no-rotate"
 }

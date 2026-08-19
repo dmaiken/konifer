@@ -1,15 +1,11 @@
 package io.konifer.domain.transformation
 
 import io.konifer.common.image.Filter
-import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
-import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
-import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
@@ -106,7 +102,7 @@ class TransformationNormalizer(
         if (requested.originalVariant) {
             return Transformation.ORIGINAL_VARIANT
         }
-        val (rotate, horizontalFlip) = normalizeRotateFlip(requested, originalAttributesDeferred)
+        val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
         val format = normalizeFormat(requested, originalAttributesDeferred)
         return Transformation(
@@ -129,6 +125,7 @@ class TransformationNormalizer(
             metadata = normalizeMetadata(requested),
             colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
             isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
+            isAutoRotate = isAutoRotate,
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
@@ -142,21 +139,6 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): ImageFormat = requested.format ?: originalAttributesDeferred.await().format
-
-    private suspend fun normalizeRotateFlip(
-        requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
-    ): Pair<Rotate, Boolean> =
-        if (requested.rotate == Rotate.AUTO) {
-            if (requested.flip != Flip.NONE) {
-                throw IllegalArgumentException(
-                    "Cannot specify flip (${ManipulationParameters.FLIP}) when r=${Rotate.AUTO.name.lowercase()}",
-                )
-            }
-            ExifOrientations.fromExifOrientation(originalAttributesDeferred.await().orientation)
-        } else {
-            ExifOrientations.normalizeOrientation(requested.rotate, requested.flip)
-        }
 
     private fun normalizeQuality(
         requested: RequestedTransformation,

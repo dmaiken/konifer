@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.transformer.AlphaState
 import io.konifer.infrastructure.vips.transformer.VipsTransformer
 import io.kotest.matchers.collections.shouldHaveSize
@@ -52,7 +53,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource2
@@ -103,7 +104,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource2
@@ -154,7 +155,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource2
@@ -204,7 +205,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource2
@@ -246,7 +247,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource1
@@ -255,6 +256,39 @@ class VipsPipelineTest {
         result.appliedTransformations.first().apply {
             name shouldBe "transformation 2"
             exceptionMessage shouldBe null
+        }
+    }
+
+    @Test
+    fun `skips transformations applied before the pipeline and preserves their result metadata`() {
+        val transformer = mockk<VipsTransformer>()
+        every { transformer.name } returns "transformation 1"
+        val appliedTransformation =
+            AppliedTransformation(
+                name = "transformation 1",
+                exceptionMessage = null,
+            )
+
+        val result =
+            vipsPipeline {
+                add(transformer)
+            }.build().run(
+                arena = arena,
+                source =
+                    DecodedVipsImage(
+                        image = source,
+                        appliedTransformations = listOf(appliedTransformation),
+                        requiresLqipRegeneration = true,
+                    ),
+                transformation = transformation,
+            )
+
+        result.processed shouldBe source
+        result.requiresLqipRegeneration shouldBe true
+        result.appliedTransformations shouldBe listOf(appliedTransformation)
+        verify(exactly = 0) {
+            transformer.requiresTransformation(any(), any(), any(), any())
+            transformer.transform(any(), any(), any())
         }
     }
 
@@ -291,7 +325,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe source
@@ -336,7 +370,7 @@ class VipsPipelineTest {
                 add(transformer2)
             }.build().run(
                 arena = arena,
-                source = source,
+                source = DecodedVipsImage(source),
                 transformation = transformation,
             )
         result.processed shouldBe transformedSource2

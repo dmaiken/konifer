@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.vips.pipeline
 
-import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.transformer.ColorFilter
 import io.konifer.infrastructure.vips.transformer.CropFirstPage
 import io.konifer.infrastructure.vips.transformer.ForceRgbBands

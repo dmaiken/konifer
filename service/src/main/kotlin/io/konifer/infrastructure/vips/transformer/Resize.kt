@@ -2,22 +2,23 @@ package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
-import app.photofox.vipsffm.enums.VipsInteresting
 import app.photofox.vipsffm.enums.VipsSize
 import io.konifer.common.image.Fit
-import io.konifer.common.image.Gravity
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.DimensionCalculator.calculateDimensions
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_NO_ROTATE
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pageSafeHeight
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
+import io.konifer.infrastructure.vips.toVipsInteresting
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import java.lang.foreign.Arena
+import kotlin.math.min
 
 /**
  * Scales the image to fit within the given width and height. [Transformation.fit] is used to define the method of fitting the
@@ -34,98 +35,114 @@ object Resize : VipsTransformer {
         source: VImage,
         transformation: Transformation,
         appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.width != source.width || transformation.height != source.height
+    ): Boolean = createPlan(source, transformation).requiresTransformation
 
-    override fun transform(
-        arena: Arena,
+    fun createPlan(
         source: VImage,
         transformation: Transformation,
-    ): VipsTransformationResult {
-        val (resizeWidth, resizeHeight) =
+    ): ResizePlan {
+        val sourceWidth = source.width
+        val sourceHeight = source.pageSafeHeight()
+        val (calculatedWidth, calculatedHeight) =
             calculateDimensions(
                 source,
                 transformation.width,
                 transformation.height,
                 transformation.fit,
             )
+
+        val (targetWidth, targetHeight) =
+            when {
+                transformation.canUpscale -> Pair(calculatedWidth, calculatedHeight)
+                transformation.fit == Fit.STRETCH ->
+                    Pair(
+                        min(calculatedWidth, sourceWidth),
+                        min(calculatedHeight, sourceHeight),
+                    )
+                transformation.fit == Fit.FIT &&
+                    (calculatedWidth > sourceWidth || calculatedHeight > sourceHeight) ->
+                    Pair(sourceWidth, sourceHeight)
+                else -> Pair(calculatedWidth, calculatedHeight)
+            }
+
+        val requiresTransformation =
+            when (transformation.fit) {
+                Fit.FILL ->
+                    if (transformation.canUpscale) {
+                        targetWidth != sourceWidth || targetHeight != sourceHeight
+                    } else {
+                        targetWidth < sourceWidth || targetHeight < sourceHeight
+                    }
+                Fit.FIT, Fit.STRETCH, Fit.CROP ->
+                    targetWidth != sourceWidth || targetHeight != sourceHeight
+            }
+
+        return ResizePlan(
+            width = targetWidth,
+            height = targetHeight,
+            requiresTransformation = requiresTransformation,
+            requiresLqipRegeneration =
+                requiresTransformation &&
+                    (transformation.fit == Fit.STRETCH || transformation.fit == Fit.FILL),
+        )
+    }
+
+    override fun transform(
+        arena: Arena,
+        source: VImage,
+        transformation: Transformation,
+    ): VipsTransformationResult {
+        val plan = createPlan(source, transformation)
         logger.debug {
-            "Scaling image with dimensions (${source.width}, ${source.pageSafeHeight()}) to ($resizeWidth, $resizeHeight) " +
+            "Scaling image with dimensions (${source.width}, ${source.pageSafeHeight()}) to (${plan.width}, ${plan.height}) " +
                 "using fit: ${transformation.fit}"
         }
-        val regenerateLqip = requiresLqipRegeneration(source, resizeWidth, resizeHeight, transformation)
         val scaled =
             when (transformation.fit) {
                 Fit.FIT ->
                     source.thumbnailImage(
-                        resizeWidth,
-                        VipsOption.Int(OPTION_HEIGHT, resizeHeight),
+                        plan.width,
+                        VipsOption.Int(OPTION_HEIGHT, plan.height),
                         VipsOption.Boolean(OPTION_CROP, false),
+                        VipsOption.Boolean(OPTION_NO_ROTATE, true),
                         VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
                 Fit.FILL -> {
                     source.thumbnailImage(
-                        resizeWidth,
-                        VipsOption.Int(OPTION_HEIGHT, resizeHeight),
-                        VipsOption.Enum(OPTION_CROP, toVipsInterestingOption(transformation.gravity)),
+                        plan.width,
+                        VipsOption.Int(OPTION_HEIGHT, plan.height),
+                        VipsOption.Enum(OPTION_CROP, transformation.gravity.toVipsInteresting()),
+                        VipsOption.Boolean(OPTION_NO_ROTATE, true),
                         VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
                 }
-                Fit.STRETCH -> {
-                    if (!transformation.canUpscale && source.width > resizeWidth && source.height > resizeHeight) {
-                        // [VipsSize] does not have "force fit but also only downscale"
-                        // In this case, don't do anything since the resize dimensions are larger than the image itself
-                        source
-                    } else {
-                        source.thumbnailImage(
-                            resizeWidth,
-                            VipsOption.Int(OPTION_HEIGHT, resizeHeight),
-                            VipsOption.Boolean(OPTION_CROP, false),
-                            VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_FORCE),
-                        )
-                    }
-                }
+                Fit.STRETCH ->
+                    source.thumbnailImage(
+                        plan.width,
+                        VipsOption.Int(OPTION_HEIGHT, plan.height),
+                        VipsOption.Boolean(OPTION_CROP, false),
+                        VipsOption.Boolean(OPTION_NO_ROTATE, true),
+                        VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_FORCE),
+                    )
                 Fit.CROP -> {
                     source.smartcrop(
-                        resizeWidth,
-                        resizeHeight,
-                        VipsOption.Enum(OPTION_INTERESTING, toVipsInterestingOption(transformation.gravity)),
+                        plan.width,
+                        plan.height,
+                        VipsOption.Enum(OPTION_INTERESTING, transformation.gravity.toVipsInteresting()),
                     )
                 }
             }
 
         return VipsTransformationResult(
             processed = scaled,
-            requiresLqipRegeneration = regenerateLqip,
+            requiresLqipRegeneration = plan.requiresLqipRegeneration,
         )
     }
-
-    private fun requiresLqipRegeneration(
-        source: VImage,
-        resizeWidth: Int,
-        resizeHeight: Int,
-        transformation: Transformation,
-    ): Boolean {
-        if (
-            (transformation.fit == Fit.STRETCH || transformation.fit == Fit.FILL) &&
-            transformation.canUpscale &&
-            (resizeWidth > source.width || resizeHeight > source.height)
-        ) {
-            return true
-        }
-        if (
-            (transformation.fit == Fit.STRETCH || transformation.fit == Fit.FILL) &&
-            (resizeWidth < source.width || resizeHeight < source.height)
-        ) {
-            return true
-        }
-
-        return false
-    }
-
-    private fun toVipsInterestingOption(gravity: Gravity): VipsInteresting =
-        when (gravity) {
-            Gravity.CENTER -> VipsInteresting.INTERESTING_CENTRE
-            Gravity.ATTENTION -> VipsInteresting.INTERESTING_ATTENTION
-            Gravity.ENTROPY -> VipsInteresting.INTERESTING_ENTROPY
-        }
 }
+
+data class ResizePlan(
+    val width: Int,
+    val height: Int,
+    val requiresTransformation: Boolean,
+    val requiresLqipRegeneration: Boolean,
+)

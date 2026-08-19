@@ -77,7 +77,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
             mockk<VipsImageProcessor> {
                 coEvery {
                     generateVariants(
-                        source = any(),
+                        sourceFile = any(),
                         transformationDataContainers = any(),
                         lqipImplementations = any(),
                     )

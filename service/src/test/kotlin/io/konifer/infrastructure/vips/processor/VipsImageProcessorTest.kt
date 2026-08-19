@@ -12,6 +12,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
@@ -60,7 +61,7 @@ class VipsImageProcessorTest {
                 Vips.run { arena ->
                     vipsImageProcessor.preprocess(
                         arena = arena,
-                        source = VImage.newFromBytes(arena, image.bytes),
+                        source = DecodedVipsImage(VImage.newFromBytes(arena, image.bytes)),
                         sourceFormat = ImageFormat.JPEG,
                         lqipImplementations = emptySet(),
                         transformationDataContainer = transformationDataContainer,
@@ -104,7 +105,7 @@ class VipsImageProcessorTest {
                             launch {
                                 vipsImageProcessor.preprocess(
                                     arena = arena,
-                                    source = sourceImage,
+                                    source = DecodedVipsImage(sourceImage),
                                     sourceFormat = ImageFormat.PNG,
                                     lqipImplementations = emptySet(),
                                     transformationDataContainer = transformationDataContainer,
@@ -149,7 +150,7 @@ class VipsImageProcessorTest {
                         val sourceImage = VImage.newFromBytes(arena, image)
                         vipsImageProcessor.preprocess(
                             arena = arena,
-                            source = sourceImage,
+                            source = DecodedVipsImage(sourceImage),
                             sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = emptySet(),
                             transformationDataContainer = transformationDataContainer,
@@ -195,7 +196,7 @@ class VipsImageProcessorTest {
                     val output =
                         vipsImageProcessor.preprocess(
                             arena = arena,
-                            source = VImage.newFromBytes(arena, image.bytes),
+                            source = DecodedVipsImage(VImage.newFromBytes(arena, image.bytes)),
                             sourceFormat = ImageFormat.JPEG,
                             lqipImplementations = setOf(LQIPImplementation.BLURHASH),
                             transformationDataContainer = transformationDataContainer,
@@ -257,7 +258,7 @@ class VipsImageProcessorTest {
                 val output =
                     vipsImageProcessor.preprocess(
                         arena = arena,
-                        source = VImage.newFromBytes(arena, image.bytes),
+                        source = DecodedVipsImage(VImage.newFromBytes(arena, image.bytes)),
                         sourceFormat = ImageFormat.JPEG,
                         lqipImplementations = setOf(LQIPImplementation.THUMBHASH),
                         transformationDataContainer = transformationDataContainer,
@@ -321,7 +322,7 @@ class VipsImageProcessorTest {
                 Vips.run { arena ->
                     vipsImageProcessor.preprocess(
                         arena = arena,
-                        source = VImage.newFromBytes(arena, image),
+                        source = DecodedVipsImage(VImage.newFromBytes(arena, image)),
                         sourceFormat = from,
                         lqipImplementations = lqips,
                         transformationDataContainer = transformationDataContainer,

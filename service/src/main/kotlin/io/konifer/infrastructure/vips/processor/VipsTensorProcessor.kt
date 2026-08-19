@@ -7,9 +7,11 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.variant.TensorTransformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
+import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
 import io.konifer.infrastructure.vips.format
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.tensorProcessingPipeline
 import java.lang.foreign.Arena
+import java.nio.file.Path
 
 class VipsTensorProcessor {
     init {
@@ -19,16 +21,25 @@ class VipsTensorProcessor {
 
     fun process(
         arena: Arena,
-        source: VImage,
-        transformation: TensorTransformation,
+        sourceFile: Path,
+        sourceFormat: ImageFormat,
+        tensorTransformation: TensorTransformation,
     ): ImageTensor {
         // Note: You cannot use coroutines in here unless we change up the way the arena is defined
         // FFM requires that only one thread access the native memory arena
-        val result = tensorProcessingPipeline.run(arena, source, transformation.toTransformation())
+        val transformation = tensorTransformation.toTransformation()
+        val source =
+            VipsThumbnailDecoder.decode(
+                arena = arena,
+                transformation = transformation,
+                sourceFormat = sourceFormat,
+                sourceFile = sourceFile,
+            )
+        val result = tensorProcessingPipeline.run(arena, source, transformation)
 
         return ImageTensor(
             values = normalizePixels(result.processed),
-            shape = transformation.tensorLayout,
+            shape = tensorTransformation.tensorLayout,
         )
     }
 
