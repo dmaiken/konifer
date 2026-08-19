@@ -1,7 +1,6 @@
 package io.konifer.infrastructure.rules.inference.embedding
 
 import ai.onnxruntime.OrtEnvironment
-import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.ImageFactory
 import io.konifer.TestImageType
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.lang.foreign.Arena
+import java.nio.file.Files
 import kotlin.math.sqrt
 
 /**
@@ -87,10 +87,14 @@ class Siglip2ContentEmbeddingServiceTest {
         type: TestImageType = TestImageType.JOSHUA_TREE,
     ): ImageTensor {
         val image = ImageFactory.testImage(format = format, type = type)
+        val sourceFile = Files.createTempFile("siglip2-content-embedding", format.extension)
+        Files.write(sourceFile, image.bytes)
+        sourceFile.toFile().deleteOnExit()
         return tensorProcessor.process(
             arena = arena,
-            source = VImage.newFromBytes(arena, image.bytes),
-            transformation = Siglip2TensorTransformation,
+            sourceFile = sourceFile,
+            sourceFormat = format,
+            tensorTransformation = Siglip2TensorTransformation,
         )
     }
 }

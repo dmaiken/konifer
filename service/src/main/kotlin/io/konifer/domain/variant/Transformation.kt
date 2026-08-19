@@ -34,6 +34,7 @@ data class Transformation(
     val isColorSpaceLocked: Boolean = false,
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
+    val isAutoRotate: Boolean = false,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =

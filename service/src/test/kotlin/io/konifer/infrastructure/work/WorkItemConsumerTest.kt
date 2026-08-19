@@ -218,7 +218,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
 
                 coEvery {
                     imageProcessor.generateVariants(
-                        source = any(),
+                        sourceFile = any(),
                         transformationDataContainers = any(),
                         lqipImplementations = any(),
                     )
@@ -275,7 +275,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                         transformationDataContainer = originalContentWorkItem.transformationDataContainer,
                         lqipImplementations = originalContentWorkItem.lqipImplementations,
                         sourceFormat = originalContentWorkItem.sourceFormat,
-                        source = originalContentWorkItem.source,
+                        sourceFile = originalContentWorkItem.source,
                     )
                 } returns processorResult
                 channel.send(originalContentWorkItem)
@@ -308,7 +308,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                         transformationDataContainer = originalContentWorkItem.transformationDataContainer,
                         lqipImplementations = originalContentWorkItem.lqipImplementations,
                         sourceFormat = originalContentWorkItem.sourceFormat,
-                        source = originalContentWorkItem.source,
+                        sourceFile = originalContentWorkItem.source,
                     )
                 } throws IllegalStateException()
                 channel.send(originalContentWorkItem)
@@ -341,7 +341,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                         transformationDataContainer = originalContentWorkItem.transformationDataContainer,
                         lqipImplementations = originalContentWorkItem.lqipImplementations,
                         sourceFormat = originalContentWorkItem.sourceFormat,
-                        source = originalContentWorkItem.source,
+                        sourceFile = originalContentWorkItem.source,
                     )
                 } throws CancellationException()
                 channel.send(originalContentWorkItem)
@@ -377,7 +377,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                     )
                 coEvery {
                     ruleDefinitionEvaluationService.evaluate(
-                        source = workItem.source,
+                        sourceFile = workItem.source,
                         sourceFormat = workItem.sourceFormat,
                         ruleDefinitions = workItem.ruleDefinitions,
                     )
@@ -401,7 +401,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                     )
                 coEvery {
                     ruleDefinitionEvaluationService.evaluate(
-                        source = workItem.source,
+                        sourceFile = workItem.source,
                         sourceFormat = workItem.sourceFormat,
                         ruleDefinitions = workItem.ruleDefinitions,
                     )
@@ -425,7 +425,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                     )
                 coEvery {
                     ruleDefinitionEvaluationService.evaluate(
-                        source = workItem.source,
+                        sourceFile = workItem.source,
                         sourceFormat = workItem.sourceFormat,
                         ruleDefinitions = workItem.ruleDefinitions,
                     )

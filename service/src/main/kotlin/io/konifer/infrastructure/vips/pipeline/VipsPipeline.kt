@@ -2,6 +2,7 @@ package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.premultiplyIfNecessary
 import io.konifer.infrastructure.vips.transformer.AlphaState
 import io.konifer.infrastructure.vips.transformer.VipsTransformer
@@ -27,20 +28,23 @@ class VipsPipeline(
 
     fun run(
         arena: Arena,
-        source: VImage,
+        source: DecodedVipsImage,
         transformation: Transformation,
     ): VipsPipelineResult {
-        val appliedTransformations = mutableListOf<AppliedTransformation>()
+        val appliedTransformations = source.appliedTransformations.toMutableList()
+        val alreadyAppliedTransformations =
+            appliedTransformations
+                .filter { it.exceptionMessage == null }
+                .map { it.name }
+                .toSet()
         var isAlphaPremultiplied = false
-        var requiresLqipRegeneration = false
-        var processed =
-            VipsTransformationResult(
-                processed = source,
-                requiresLqipRegeneration = false,
-            )
+        var requiresLqipRegeneration = source.requiresLqipRegeneration
+        var processed = VipsTransformationResult.new(source.image)
         var failed = false
 
-        for (transformer in transformers) {
+        // Filter out transformations already applied
+        val transformersToExecute = transformers.filterNot { it.name in alreadyAppliedTransformations }
+        for (transformer in transformersToExecute) {
             if (failed) {
                 break
             }
@@ -130,7 +134,15 @@ data class VipsTransformationResult(
      * If true, a new LQIP(s) will need to be generated for the [processed] image.
      */
     val requiresLqipRegeneration: Boolean,
-)
+) {
+    companion object Factory {
+        fun new(source: VImage): VipsTransformationResult =
+            VipsTransformationResult(
+                processed = source,
+                requiresLqipRegeneration = false,
+            )
+    }
+}
 
 data class VipsPipelineResult(
     val successful: Boolean,

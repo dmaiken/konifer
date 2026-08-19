@@ -16,6 +16,7 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
 import io.konifer.infrastructure.vips.VipsEncoder
 import io.konifer.infrastructure.vips.createDecoderOptions
+import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -55,7 +56,7 @@ class VipsImageProcessor {
      */
     fun preprocess(
         arena: Arena,
-        source: VImage,
+        source: DecodedVipsImage,
         sourceFormat: ImageFormat,
         transformationDataContainer: TransformationDataContainer,
         lqipImplementations: Set<LQIPImplementation>,
@@ -63,7 +64,12 @@ class VipsImageProcessor {
         // Note: You cannot use coroutines in here unless we change up the way the arena is defined
         // FFM requires that only one thread access the native memory arena
         val transformation = transformationDataContainer.transformation
-        val preProcessed = preProcessingPipeline.run(arena, source, transformation)
+        val preProcessed =
+            preProcessingPipeline.run(
+                arena = arena,
+                source = source,
+                transformation = transformation,
+            )
 
         transformationDataContainer.attributes.complete(
             Attributes.createAttributes(
@@ -101,16 +107,15 @@ class VipsImageProcessor {
     }
 
     suspend fun generateVariants(
-        source: Path,
+        sourceFile: Path,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->
             // Some transformations may want all pages, if present
             val sourceByDecoderOptions = mutableMapOf<Array<VipsOption>, VImage>()
-            val sourceFormat = ImageFormat.fromExtension(".${source.extension}")
-            for (container in transformationDataContainers) {
-                val (transformation, output) = container
+            val sourceFormat = ImageFormat.fromExtension(".${sourceFile.extension}")
+            for ((transformation, output, lqips, attributes) in transformationDataContainers) {
                 val decoderOptions =
                     createDecoderOptions(
                         sourceFormat = sourceFormat,
@@ -119,22 +124,23 @@ class VipsImageProcessor {
                 val image =
                     sourceByDecoderOptions
                         .getOrPut(decoderOptions) {
-                            VImage.newFromFile(arena, source.pathString, *decoderOptions)
+                            VImage.newFromFile(arena, sourceFile.pathString, *decoderOptions)
                         }.copy()
 
-                val variantResult = variantGenerationPipeline.run(arena, image, transformation)
+                val source = DecodedVipsImage(image = image)
+                val variantResult = variantGenerationPipeline.run(arena, source, transformation)
 
                 if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
                     generatePreviewVariant(
                         arena = arena,
                         sourceImage = variantResult.processed,
                         lqipImplementations = lqipImplementations,
-                        deferred = container.lqips,
+                        deferred = lqips,
                     )
                 } else {
-                    container.lqips.complete(null)
+                    lqips.complete(null)
                 }
-                container.attributes.complete(
+                attributes.complete(
                     Attributes.createAttributes(
                         image = variantResult.processed,
                         sourceFormat = sourceFormat,
@@ -160,7 +166,11 @@ class VipsImageProcessor {
         deferred: CompletableDeferred<LQIPs?>,
     ) {
         val previewVariantStream = ByteArrayOutputStream()
-        val previewResult = lqipVariantPipeline.run(arena, sourceImage.copy(), lqipTransformation)
+        val source =
+            DecodedVipsImage(
+                image = sourceImage,
+            )
+        val previewResult = lqipVariantPipeline.run(arena, source.copy(), lqipTransformation)
         previewResult.processed.writeToStream(previewVariantStream, ImageFormat.PNG.extension)
 
         deferred.complete(

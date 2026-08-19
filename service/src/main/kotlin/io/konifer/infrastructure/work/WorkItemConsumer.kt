@@ -53,7 +53,7 @@ class WorkItemConsumer(
         logger.debug { "Handling GenerateVariantsWorkItem: $workItem" }
         try {
             imageProcessor.generateVariants(
-                source = workItem.source,
+                sourceFile = workItem.source,
                 lqipImplementations = workItem.lqipImplementations,
                 transformationDataContainers = workItem.transformationDataContainers,
             )
@@ -76,7 +76,7 @@ class WorkItemConsumer(
                     transformationDataContainer = workItem.transformationDataContainer,
                     lqipImplementations = workItem.lqipImplementations,
                     sourceFormat = workItem.sourceFormat,
-                    source = workItem.source,
+                    sourceFile = workItem.source,
                 )
             workItem.deferredResult.complete(response)
         } catch (e: CancellationException) {
@@ -92,7 +92,7 @@ class WorkItemConsumer(
         try {
             val result =
                 ruleDefinitionEvaluationService.value.evaluate(
-                    source = workItem.source,
+                    sourceFile = workItem.source,
                     sourceFormat = workItem.sourceFormat,
                     ruleDefinitions = workItem.ruleDefinitions,
                 )

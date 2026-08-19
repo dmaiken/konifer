@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.variant.original
 
-import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.LQIPImplementation
@@ -16,7 +15,7 @@ import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.infrastructure.rules.RuleDecisionEngine
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
-import io.konifer.infrastructure.vips.VipsDecoder
+import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
 import io.konifer.infrastructure.vips.processor.PreprocessOutput
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
@@ -41,7 +40,7 @@ class OriginalVariantContentService(
         transformationDataContainer: TransformationDataContainer,
         lqipImplementations: Set<LQIPImplementation>,
         sourceFormat: ImageFormat,
-        source: Path,
+        sourceFile: Path,
     ): UploadRuleDecision =
         withContext(Dispatchers.IO) {
             var decision = uploadRuleset.default.toDecision()
@@ -49,18 +48,19 @@ class OriginalVariantContentService(
             var preprocessOutput: PreprocessOutput? = null
             Vips.run { arena ->
                 val source =
-                    VipsDecoder.decodeSource(
+                    VipsThumbnailDecoder.decode(
                         arena = arena,
-                        destinationFormat = transformationDataContainer.transformation.format,
+                        transformation = transformationDataContainer.transformation,
                         sourceFormat = sourceFormat,
-                        source = source,
+                        sourceFile = sourceFile,
                     )
 
                 canProcess(
                     arena = arena,
-                    source = source.copy(),
+                    sourceFile = sourceFile,
                     uploadRuleset = uploadRuleset,
                     currentDecision = decision,
+                    sourceFormat = sourceFormat,
                 ).also {
                     evaluationResult = it.first
                     decision = it.second
@@ -91,7 +91,7 @@ class OriginalVariantContentService(
             when (checkNotNull(preprocessOutput)) {
                 PreprocessOutput.SourceTransformed -> Unit
                 PreprocessOutput.SourceNotTransformed ->
-                    source
+                    sourceFile
                         .toFile()
                         .readChannel()
                         .copyAndClose(transformationDataContainer.output)
@@ -104,9 +104,10 @@ class OriginalVariantContentService(
 
     private fun canProcess(
         arena: Arena,
-        source: VImage,
+        sourceFile: Path,
         uploadRuleset: UploadRuleset,
         currentDecision: RuleDecision,
+        sourceFormat: ImageFormat,
     ): Pair<RuleDefinitionsEvaluationResult, RuleDecision> {
         val rulesToEvaluate =
             determineRulesToEvaluate(uploadRuleset)
@@ -115,9 +116,10 @@ class OriginalVariantContentService(
 
         val imageTensor =
             vipsTensorProcessor.process(
-                source = source,
+                sourceFile = sourceFile,
+                sourceFormat = sourceFormat,
                 arena = arena,
-                transformation = Siglip2TensorTransformation,
+                tensorTransformation = Siglip2TensorTransformation,
             )
 
         val ruleDefinitions =
