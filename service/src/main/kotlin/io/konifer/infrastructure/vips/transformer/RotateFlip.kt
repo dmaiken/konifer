@@ -12,34 +12,30 @@ import java.lang.foreign.Arena
 
 object RotateFlip : VipsTransformer {
     override val name: String = "RotateFlip"
-    override val requiresAlphaState: AlphaState = AlphaState.PREMULTIPLIED
+    override val requiresAlphaState: AlphaState = AlphaState.EITHER
 
+    /**
+     * Required if the transformation has any rotation or specified that is not an auto-rotation
+     */
     override fun requiresTransformation(
         arena: Arena,
         source: VImage,
         transformation: Transformation,
         appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.rotate != Rotate.ZERO || transformation.horizontalFlip
+    ): Boolean = !transformation.isAutoRotate && (transformation.rotate != Rotate.ZERO || transformation.horizontalFlip)
 
     override fun transform(
         arena: Arena,
         source: VImage,
         transformation: Transformation,
     ): VipsTransformationResult {
-        if (transformation.rotate == Rotate.AUTO) {
-            // Vips autorotate strips the exif metadata tag
-            return VipsTransformationResult(
-                processed = source.autorot(),
-                requiresLqipRegeneration = true,
-            )
-        }
-
         val angle =
             when (transformation.rotate) {
                 Rotate.ZERO -> VipsAngle.ANGLE_D0
                 Rotate.NINETY -> VipsAngle.ANGLE_D90
                 Rotate.ONE_HUNDRED_EIGHTY -> VipsAngle.ANGLE_D180
                 Rotate.TWO_HUNDRED_SEVENTY -> VipsAngle.ANGLE_D270
+                Rotate.AUTO -> throw IllegalArgumentException("Auto-rotation must be handled by ${AutoRotate.name} transformation")
             }
 
         val processed =

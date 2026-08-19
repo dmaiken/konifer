@@ -1,11 +1,15 @@
 package io.konifer.infrastructure.vips.decode
 
+import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.ImageFactory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
+import io.konifer.infrastructure.vips.transformer.AutoRotate
 import io.konifer.infrastructure.vips.transformer.Resize
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -14,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 class VipsThumbnailDecoderTest {
     @TempDir
@@ -98,11 +103,68 @@ class VipsThumbnailDecoderTest {
         }
     }
 
+    @Test
+    fun `auto-rotation plans resize using oriented dimensions`() {
+        val image = ImageFactory.testImage(format = ImageFormat.JPEG)
+        val sourceFile = temporaryDirectory.resolve("auto-rotate.jpeg")
+
+        Vips.run { arena ->
+            VImage
+                .newFromBytes(arena, image.bytes)
+                .set(OPTION_ORIENTATION, 6)
+                .writeToFile(sourceFile.absolutePathString())
+
+            val decoded =
+                VipsThumbnailDecoder.decode(
+                    arena = arena,
+                    sourceFile = sourceFile,
+                    sourceFormat = ImageFormat.JPEG,
+                    transformation =
+                        transformation(
+                            width = 301,
+                            height = 400,
+                            fit = Fit.FIT,
+                            rotate = Rotate.TWO_HUNDRED_SEVENTY,
+                            isAutoRotate = true,
+                        ),
+                )
+
+            decoded.image.width shouldBe 301
+            decoded.image.height shouldBe 400
+            decoded.appliedTransformations.map { it.name } shouldBe
+                listOf(Resize.name, AutoRotate.name)
+            decoded.requiresLqipRegeneration shouldBe true
+        }
+    }
+
+    @Test
+    fun `ordinary thumbnail does not report auto-rotation`() {
+        val image = ImageFactory.testImage(format = ImageFormat.JPEG)
+        val sourceFile = temporaryDirectory.resolve("source.jpeg")
+        Files.write(sourceFile, image.bytes)
+
+        Vips.run { arena ->
+            val decoded =
+                VipsThumbnailDecoder.decode(
+                    arena = arena,
+                    sourceFile = sourceFile,
+                    sourceFormat = ImageFormat.JPEG,
+                    transformation = transformation(width = 400, height = 301, fit = Fit.FIT),
+                )
+
+            decoded.appliedTransformations.map { it.name } shouldBe listOf(Resize.name)
+            decoded.requiresLqipRegeneration shouldBe false
+        }
+    }
+
     private fun transformation(
         width: Int,
         height: Int,
         fit: Fit,
         canUpscale: Boolean = true,
+        rotate: Rotate = Rotate.ZERO,
+        horizontalFlip: Boolean = false,
+        isAutoRotate: Boolean = false,
     ): Transformation =
         Transformation(
             width = width,
@@ -111,5 +173,8 @@ class VipsThumbnailDecoderTest {
             canUpscale = canUpscale,
             format = ImageFormat.PNG,
             colorSpace = ColorSpace.SRGB,
+            rotate = rotate,
+            horizontalFlip = horizontalFlip,
+            isAutoRotate = isAutoRotate,
         )
 }

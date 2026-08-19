@@ -7,12 +7,14 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_NO_ROTATE
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N_PAGES
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.toVipsInteresting
+import io.konifer.infrastructure.vips.transformer.AutoRotate
 import io.konifer.infrastructure.vips.transformer.Resize
 import io.konifer.infrastructure.vips.transformer.ResizePlan
 import java.lang.foreign.Arena
@@ -33,7 +35,9 @@ object VipsThumbnailDecoder {
                 sourceFormat = sourceFormat,
                 source = sourceFile,
             )
-        val resizePlan = Resize.createPlan(normalVImage, transformation)
+        val resizePlanningImage =
+            if (transformation.isAutoRotate) normalVImage.autorot() else normalVImage
+        val resizePlan = Resize.createPlan(resizePlanningImage, transformation)
         val shouldDecodeWithThumbnail =
             shouldDecodeWithThumbnail(
                 decoded = normalVImage,
@@ -58,13 +62,14 @@ object VipsThumbnailDecoder {
         decoded: VImage,
         transformation: Transformation,
     ): Boolean {
-        val pageCount = (decoded.getInt(OPTION_N_PAGES) ?: 1)
+        val pageCount = decoded.getInt(OPTION_N_PAGES) ?: 1
 
         return pageCount == 1 &&
             transformation.fit != Fit.CROP &&
-            transformation.rotate == Rotate.ZERO &&
-            !transformation.horizontalFlip &&
-            !transformation.isAutoRotate
+            (
+                transformation.isAutoRotate ||
+                    (transformation.rotate == Rotate.ZERO && !transformation.horizontalFlip)
+            )
     }
 
     /**
@@ -89,23 +94,37 @@ object VipsThumbnailDecoder {
                 add(VipsOption.Int(OPTION_HEIGHT, resizePlan.height))
                 add(sizeOption(transformation))
                 cropOption(transformation)?.let(::add)
-                add(VipsOption.Boolean(OPTION_NO_ROTATE, true))
+                add(VipsOption.Boolean(OPTION_NO_ROTATE, !transformation.isAutoRotate))
             }.toTypedArray()
 
         val image = VImage.thumbnail(arena, source.thumbnailFilename(), resizePlan.width, *options)
 
         return DecodedVipsImage(
             image = image,
-            appliedTransformations =
-                listOf(
-                    AppliedTransformation(
-                        name = Resize.name,
-                        exceptionMessage = null,
-                    ),
-                ),
-            requiresLqipRegeneration = resizePlan.requiresLqipRegeneration,
+            appliedTransformations = thumbnailAppliedTransformations(transformation),
+            requiresLqipRegeneration =
+                resizePlan.requiresLqipRegeneration ||
+                    AutoRotate.changesImageOrientation(transformation),
         )
     }
+
+    private fun thumbnailAppliedTransformations(transformation: Transformation): List<AppliedTransformation> =
+        buildList {
+            add(
+                AppliedTransformation(
+                    name = Resize.name,
+                    exceptionMessage = null,
+                ),
+            )
+            if (AutoRotate.changesImageOrientation(transformation)) {
+                add(
+                    AppliedTransformation(
+                        name = AutoRotate.name,
+                        exceptionMessage = null,
+                    ),
+                )
+            }
+        }
 
     private fun Path.thumbnailFilename(): String = "${absolutePathString()}[access=sequential]"
 
@@ -122,7 +141,7 @@ object VipsThumbnailDecoder {
 
     private fun cropOption(transformation: Transformation): VipsOption? =
         when (transformation.fit) {
-            Fit.FILL -> VipsOption.Enum("crop", transformation.gravity.toVipsInteresting())
+            Fit.FILL -> VipsOption.Enum(OPTION_CROP, transformation.gravity.toVipsInteresting())
             else -> null
         }
 }
