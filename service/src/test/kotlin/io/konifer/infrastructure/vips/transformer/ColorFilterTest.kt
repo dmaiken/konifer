@@ -369,18 +369,20 @@ class ColorFilterTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `does not require transformation if filter is NONE`() {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                ColorFilter.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation = colorFilterTransformation(Filter.NONE),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                ColorFilter.decide(
+                    TransformationContext(
+                        arena,
+                        VImage.newFromBytes(arena, image),
+                        colorFilterTransformation(Filter.NONE),
+                        emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -390,12 +392,18 @@ class ColorFilterTest {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                ColorFilter.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation = colorFilterTransformation(filter),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                ColorFilter.decide(
+                    TransformationContext(
+                        arena,
+                        VImage.newFromBytes(arena, image),
+                        colorFilterTransformation(filter),
+                        emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

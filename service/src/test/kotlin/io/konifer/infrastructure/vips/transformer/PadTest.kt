@@ -313,17 +313,19 @@ class PadTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `does not require transformation if if pad is 0`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
             Vips.run { arena ->
-                Pad.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, imageBytes),
-                    transformation = padTransformation(0, listOf(200, 45, 0)),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                Pad.decide(
+                    TransformationContext(
+                        arena,
+                        VImage.newFromBytes(arena, imageBytes),
+                        padTransformation(0, listOf(200, 45, 0)),
+                        emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -331,12 +333,14 @@ class PadTest {
         fun `does not require transformation if if background is empty`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
             Vips.run { arena ->
-                Pad.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, imageBytes),
-                    transformation = padTransformation(10, emptyList()),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                Pad.decide(
+                    TransformationContext(
+                        arena,
+                        VImage.newFromBytes(arena, imageBytes),
+                        padTransformation(10, emptyList()),
+                        emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -344,12 +348,18 @@ class PadTest {
         fun `requires transformation if if pad is greater than 0 and background is not empty`() {
             val imageBytes = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
             Vips.run { arena ->
-                Pad.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, imageBytes),
-                    transformation = padTransformation(1, listOf(200, 45, 0)),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                Pad.decide(
+                    TransformationContext(
+                        arena,
+                        VImage.newFromBytes(arena, imageBytes),
+                        padTransformation(1, listOf(200, 45, 0)),
+                        emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

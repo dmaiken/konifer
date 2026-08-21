@@ -17,6 +17,53 @@ import org.junit.jupiter.api.Test
 
 class StripMetadataTest {
     @Nested
+    inner class DecisionTests {
+        @Test
+        fun `applies when requested metadata exists`() {
+            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+                val transformation =
+                    Transformation(
+                        width = source.width,
+                        height = source.height,
+                        format = ImageFormat.JPEG,
+                        metadata = MetadataTransformation(strip = setOf(MetadataType.EXIF)),
+                        colorSpace = ColorSpace.SRGB,
+                    )
+
+                StripMetadata.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
+            }
+        }
+
+        @Test
+        fun `skips when no metadata is requested`() {
+            val image = javaClass.getResourceAsStream("/images/metadata/exif-xmp-iptc.jpg")!!.readBytes()
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+                val transformation =
+                    Transformation(
+                        width = source.width,
+                        height = source.height,
+                        format = ImageFormat.JPEG,
+                        metadata = MetadataTransformation(strip = emptySet()),
+                        colorSpace = ColorSpace.SRGB,
+                    )
+
+                StripMetadata.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe TransformationDecision.Skip
+            }
+        }
+    }
+
+    @Nested
     inner class TransformTests {
         @Test
         fun `removes exif tags if exif is to be stripped`() {

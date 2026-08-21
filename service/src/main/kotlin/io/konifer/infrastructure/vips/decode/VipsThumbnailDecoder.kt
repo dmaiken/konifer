@@ -15,6 +15,7 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.toVipsInteresting
 import io.konifer.infrastructure.vips.transformer.AutoRotate
+import io.konifer.infrastructure.vips.transformer.PixelAccess
 import io.konifer.infrastructure.vips.transformer.Resize
 import io.konifer.infrastructure.vips.transformer.ResizePlan
 import java.lang.foreign.Arena
@@ -150,6 +151,7 @@ data class DecodedVipsImage(
     val image: VImage,
     val appliedTransformations: List<AppliedTransformation> = emptyList(),
     val requiresLqipRegeneration: Boolean = false,
+    val pixelAccess: PixelAccess = PixelAccess.SEQUENTIAL,
 ) {
     fun copy(): DecodedVipsImage = copy(image = image.copy())
 }

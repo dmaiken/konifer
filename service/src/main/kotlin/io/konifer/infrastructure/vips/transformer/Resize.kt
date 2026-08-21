@@ -12,7 +12,6 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_NO_ROTATE
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_SIZE
 import io.konifer.infrastructure.vips.pageSafeHeight
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.konifer.infrastructure.vips.toVipsInteresting
 import io.ktor.util.logging.KtorSimpleLogger
@@ -28,14 +27,23 @@ object Resize : VipsTransformer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override val name: String = "Resize"
-    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = createPlan(source, transformation).requiresTransformation
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (createPlan(context.source, context.transformation).requiresTransformation) {
+            val pixelAccess =
+                if (context.transformation.fit == Fit.CROP) {
+                    PixelAccess.RANDOM
+                } else {
+                    PixelAccess.SEQUENTIAL
+                }
+
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                requiredPixelAccess = pixelAccess,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     fun createPlan(
         source: VImage,

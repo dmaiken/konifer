@@ -5,7 +5,9 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
-import io.konifer.infrastructure.vips.transformer.AlphaState
+import io.konifer.infrastructure.vips.transformer.AlphaRequirement
+import io.konifer.infrastructure.vips.transformer.PixelAccess
+import io.konifer.infrastructure.vips.transformer.TransformationDecision
 import io.konifer.infrastructure.vips.transformer.VipsTransformer
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -87,7 +89,7 @@ class VipsPipelineTest {
             source = source,
             output = transformedSource1,
             name = "transformation 1",
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
         mockRequiredTransformation(
             mock = transformer2,
@@ -95,7 +97,7 @@ class VipsPipelineTest {
             source = transformedSource1,
             output = transformedSource2,
             name = "transformation 2",
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
 
         val result =
@@ -138,7 +140,7 @@ class VipsPipelineTest {
             source = source,
             output = transformedSource1,
             name = "transformation 1",
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
         mockRequiredTransformation(
             mock = transformer2,
@@ -146,7 +148,7 @@ class VipsPipelineTest {
             source = transformedSource1,
             output = transformedSource2,
             name = "transformation 2",
-            alphaStateRequired = AlphaState.UN_PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.UN_PREMULTIPLIED,
         )
 
         val result =
@@ -188,7 +190,7 @@ class VipsPipelineTest {
             source = source,
             output = transformedSource1,
             name = "transformation 1",
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
         mockRequiredTransformation(
             mock = transformer2,
@@ -196,7 +198,7 @@ class VipsPipelineTest {
             source = transformedSource1,
             output = transformedSource2,
             name = "transformation 2",
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
 
         val result =
@@ -287,7 +289,7 @@ class VipsPipelineTest {
         result.requiresLqipRegeneration shouldBe true
         result.appliedTransformations shouldBe listOf(appliedTransformation)
         verify(exactly = 0) {
-            transformer.requiresTransformation(any(), any(), any(), any())
+            transformer.decide(any())
             transformer.transform(any(), any(), any())
         }
     }
@@ -309,7 +311,7 @@ class VipsPipelineTest {
             output = transformedSource1,
             name = "transformation 1",
             exceptionToThrow = exceptionToThrow,
-            alphaStateRequired = AlphaState.PREMULTIPLIED,
+            alphaStateRequired = AlphaRequirement.PREMULTIPLIED,
         )
         mockRequiredTransformation(
             mock = transformer2,
@@ -392,7 +394,7 @@ class VipsPipelineTest {
         source: VImage,
         output: VImage,
         name: String,
-        alphaStateRequired: AlphaState = AlphaState.UN_PREMULTIPLIED,
+        alphaStateRequired: AlphaRequirement = AlphaRequirement.UN_PREMULTIPLIED,
         exceptionToThrow: Throwable? = null,
         requireLqipRegeneration: Boolean = true,
     ) {
@@ -419,15 +421,19 @@ class VipsPipelineTest {
         }
 
         every {
-            mock.requiresTransformation(
-                arena = arena,
-                source = source,
-                transformation = transformation,
-                appliedTransformations = any(),
+            mock.decide(
+                match {
+                    it.arena == arena &&
+                        it.source == source &&
+                        it.transformation == transformation
+                },
             )
-        } returns true
+        } returns
+            TransformationDecision.Apply(
+                requiredAlpha = alphaStateRequired,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
         every { mock.name } returns name
-        every { mock.requiresAlphaState } returns alphaStateRequired
     }
 
     private fun mockUnRequiredTransformation(
@@ -437,13 +443,14 @@ class VipsPipelineTest {
         name: String,
     ) {
         every {
-            mock.requiresTransformation(
-                arena = arena,
-                source = source,
-                transformation = transformation,
-                appliedTransformations = any(),
+            mock.decide(
+                match {
+                    it.arena == arena &&
+                        it.source == source &&
+                        it.transformation == transformation
+                },
             )
-        } returns false
+        } returns TransformationDecision.Skip
         every {
             mock.name
         } returns name

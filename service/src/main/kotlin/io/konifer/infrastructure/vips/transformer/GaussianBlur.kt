@@ -2,7 +2,6 @@ package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -12,14 +11,16 @@ import java.lang.foreign.Arena
  */
 object GaussianBlur : VipsTransformer {
     override val name: String = "GaussianBlur"
-    override val requiresAlphaState: AlphaState = AlphaState.PREMULTIPLIED
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.blur > 0
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (context.transformation.blur > 0) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.PREMULTIPLIED,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     override fun transform(
         arena: Arena,

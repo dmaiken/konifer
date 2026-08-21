@@ -1,10 +1,14 @@
 package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.VipsImageCopyMemory
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.premultiplyIfNecessary
-import io.konifer.infrastructure.vips.transformer.AlphaState
+import io.konifer.infrastructure.vips.transformer.AlphaRequirement
+import io.konifer.infrastructure.vips.transformer.PixelAccess
+import io.konifer.infrastructure.vips.transformer.TransformationContext
+import io.konifer.infrastructure.vips.transformer.TransformationDecision
 import io.konifer.infrastructure.vips.transformer.VipsTransformer
 import io.konifer.infrastructure.vips.unPremultiplyIfNecessary
 import io.ktor.util.logging.KtorSimpleLogger
@@ -38,6 +42,8 @@ class VipsPipeline(
                 .map { it.name }
                 .toSet()
         var isAlphaPremultiplied = false
+        var currentPixelAccess = source.pixelAccess
+
         var requiresLqipRegeneration = source.requiresLqipRegeneration
         var processed = VipsTransformationResult.new(source.image)
         var failed = false
@@ -48,19 +54,27 @@ class VipsPipeline(
             if (failed) {
                 break
             }
-            if (transformer.requiresTransformation(
-                    arena = arena,
-                    source = processed.processed,
-                    transformation = transformation,
-                    appliedTransformations = appliedTransformations,
+            val decision =
+                transformer.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = processed.processed,
+                        transformation = transformation,
+                        appliedTransformations = appliedTransformations,
+                    ),
                 )
-            ) {
+            if (decision is TransformationDecision.Apply) {
                 val source =
                     prepareForNextTransformation(
-                        transformer = transformer,
+                        arena = arena,
                         processed = processed.processed,
                         isAlphaPremultiplied = isAlphaPremultiplied,
-                    ).also { isAlphaPremultiplied = it.second }.first
+                        decision = decision,
+                        pixelAccess = currentPixelAccess,
+                    ).also {
+                        isAlphaPremultiplied = it.isAlphaPremultiplied
+                        currentPixelAccess = it.currentPixelAccess
+                    }.processed
 
                 try {
                     processed =
@@ -70,14 +84,10 @@ class VipsPipeline(
                             transformation = transformation,
                         )
                     appliedTransformations.add(
-                        AppliedTransformation(
-                            name = transformer.name,
-                            exceptionMessage = null,
-                        ),
+                        AppliedTransformation.success(transformer.name),
                     )
                     requiresLqipRegeneration = requiresLqipRegeneration || processed.requiresLqipRegeneration
                 } catch (e: Exception) {
-                    logger.error("Vips pipeline failed! Pipeline results: $appliedTransformations", e)
                     failed = true
                     appliedTransformations.add(
                         AppliedTransformation(
@@ -85,6 +95,7 @@ class VipsPipeline(
                             exceptionMessage = e.message,
                         ),
                     )
+                    logger.error("Vips pipeline failed! Pipeline results: $appliedTransformations", e)
                 }
             }
         }
@@ -98,32 +109,54 @@ class VipsPipeline(
             processed = processed.processed.unPremultiplyIfNecessary(isAlphaPremultiplied),
             requiresLqipRegeneration = requiresLqipRegeneration,
             appliedTransformations = appliedTransformations,
+            processedPixelAccess = currentPixelAccess,
         )
     }
 
     private fun prepareForNextTransformation(
-        transformer: VipsTransformer,
+        arena: Arena,
         processed: VImage,
         isAlphaPremultiplied: Boolean,
-    ): Pair<VImage, Boolean> {
+        pixelAccess: PixelAccess,
+        decision: TransformationDecision.Apply,
+    ): PipelineState {
         var newAlphaState = isAlphaPremultiplied
-        return when (transformer.requiresAlphaState) {
-            AlphaState.PREMULTIPLIED -> {
-                processed.premultiplyIfNecessary(isAlphaPremultiplied).let {
-                    newAlphaState = it.second
-                    it.first
+        val alphaPrepared =
+            when (decision.requiredAlpha) {
+                AlphaRequirement.PREMULTIPLIED -> {
+                    processed.premultiplyIfNecessary(isAlphaPremultiplied).let {
+                        newAlphaState = it.second
+                        it.first
+                    }
                 }
-            }
-            AlphaState.UN_PREMULTIPLIED -> {
-                processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
-                    newAlphaState = false
+                AlphaRequirement.UN_PREMULTIPLIED -> {
+                    processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
+                        newAlphaState = false
+                    }
                 }
+                AlphaRequirement.EITHER -> processed
             }
-            AlphaState.EITHER -> processed
-        }.let {
-            Pair(it, newAlphaState)
-        }
+        val requiresRandomAccess =
+            pixelAccess == PixelAccess.SEQUENTIAL && decision.requiredPixelAccess == PixelAccess.RANDOM
+        val preparedSource =
+            if (requiresRandomAccess) {
+                VipsImageCopyMemory.copyMemory(arena, alphaPrepared)
+            } else {
+                alphaPrepared
+            }
+
+        return PipelineState(
+            isAlphaPremultiplied = newAlphaState,
+            processed = preparedSource,
+            currentPixelAccess = if (requiresRandomAccess) PixelAccess.RANDOM else pixelAccess,
+        )
     }
+
+    private data class PipelineState(
+        val processed: VImage,
+        val isAlphaPremultiplied: Boolean,
+        val currentPixelAccess: PixelAccess,
+    )
 }
 
 fun vipsPipeline(initializer: VipsPipelineBuilder.() -> Unit): VipsPipelineBuilder = VipsPipelineBuilder().apply(initializer)
@@ -149,12 +182,21 @@ data class VipsPipelineResult(
     val processed: VImage,
     val requiresLqipRegeneration: Boolean,
     val appliedTransformations: List<AppliedTransformation>,
+    val processedPixelAccess: PixelAccess,
 )
 
 data class AppliedTransformation(
     val name: String,
     val exceptionMessage: String?,
 ) {
+    companion object Factory {
+        fun success(name: String): AppliedTransformation =
+            AppliedTransformation(
+                name = name,
+                exceptionMessage = null,
+            )
+    }
+
     override fun toString(): String =
         if (exceptionMessage == null) {
             "Successfully applied transformation $name"

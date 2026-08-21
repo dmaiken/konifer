@@ -9,7 +9,6 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BLACK_POINT_COMPENSATION
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTENT
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.konifer.infrastructure.vips.transformer.TransformColorSpace.ProfileNames.DISPLAY_P3
 import io.konifer.infrastructure.vips.transformer.TransformColorSpace.ProfileNames.GRAYSCALE
@@ -22,6 +21,18 @@ object TransformColorSpace : VipsTransformer {
         const val DISPLAY_P3 = "p3"
         const val GRAYSCALE = "bw"
     }
+
+    override val name = "TransformColorSpace"
+
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (ImageColorSpaceExtractor.extract(context.source) != context.transformation.colorSpace) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     override fun transform(
         arena: Arena,
@@ -56,18 +67,4 @@ object TransformColorSpace : VipsTransformer {
             requiresLqipRegeneration = true,
         )
     }
-
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean {
-        val currentColorSpace = ImageColorSpaceExtractor.extract(source)
-
-        return currentColorSpace != transformation.colorSpace
-    }
-
-    override val requiresAlphaState = AlphaState.UN_PREMULTIPLIED
-    override val name = "TransformColorSpace"
 }

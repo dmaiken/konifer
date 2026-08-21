@@ -67,7 +67,7 @@ class CropFirstPageTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @ParameterizedTest
         @MethodSource("io.konifer.ImageTestSources#notSupportsPagedSource")
         fun `images that do not support multi-page are skipped`(format: ImageFormat) {
@@ -90,7 +90,9 @@ class CropFirstPageTest {
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
+                CropFirstPage.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -116,7 +118,9 @@ class CropFirstPageTest {
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe false
+                CropFirstPage.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -142,7 +146,13 @@ class CropFirstPageTest {
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
-                CropFirstPage.requiresTransformation(arena, source, transformation, emptyList()) shouldBe true
+                CropFirstPage.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

@@ -5,7 +5,10 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.vipsProperties
 
-val noOptions = emptyArray<VipsOption>()
+val defaultOptions: Array<VipsOption> =
+    arrayOf(
+        VipsOption.Enum(VipsOptionNames.OPTION_ACCESS, VipsAccess.ACCESS_SEQUENTIAL),
+    )
 
 val supportsPagingOptions: Array<VipsOption> =
     arrayOf(
@@ -33,5 +36,5 @@ fun createDecoderOptions(
     if (sourceFormat.vipsProperties.supportsPaging) {
         return noPagingOptions
     }
-    return noOptions
+    return defaultOptions
 }

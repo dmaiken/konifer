@@ -10,7 +10,6 @@ import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -101,7 +100,7 @@ class TransformColorSpaceTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @ParameterizedTest
         @ValueSource(strings = ["srgb", "p3", "grayscale"])
         fun `requires transformation if color space is different from interpreted color space`(colorSpaceName: String) {
@@ -119,12 +118,13 @@ class TransformColorSpaceTest {
 
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                TransformColorSpace.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = transformation,
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                TransformColorSpace.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
 
@@ -148,18 +148,10 @@ class TransformColorSpaceTest {
 
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                TransformColorSpace.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = transformation,
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                TransformColorSpace.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
-    }
-
-    @Test
-    fun `requires un-premultiplied alpha`() {
-        TransformColorSpace.requiresAlphaState shouldBe AlphaState.UN_PREMULTIPLIED
     }
 }

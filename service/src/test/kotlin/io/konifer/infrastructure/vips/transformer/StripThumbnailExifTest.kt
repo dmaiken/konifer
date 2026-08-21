@@ -74,7 +74,7 @@ class StripThumbnailExifTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `requires transformation if transformations have been applied`() {
             val image =
@@ -84,18 +84,24 @@ class StripThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                StripThumbnailExif.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    appliedTransformations =
-                        listOf(
-                            AppliedTransformation(
-                                name = "something",
-                                exceptionMessage = null,
+                StripThumbnailExif.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation = Transformation.ORIGINAL_VARIANT,
+                        appliedTransformations =
+                            listOf(
+                                AppliedTransformation(
+                                    name = "something",
+                                    exceptionMessage = null,
+                                ),
                             ),
-                        ),
-                ) shouldBe true
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
 
@@ -108,12 +114,9 @@ class StripThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                StripThumbnailExif.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                StripThumbnailExif.decide(
+                    TransformationContext(arena, source, Transformation.ORIGINAL_VARIANT, emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -126,18 +129,20 @@ class StripThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                StripThumbnailExif.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    appliedTransformations =
-                        listOf(
-                            AppliedTransformation(
-                                name = StripMetadata.name,
-                                exceptionMessage = null,
+                StripThumbnailExif.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation = Transformation.ORIGINAL_VARIANT,
+                        appliedTransformations =
+                            listOf(
+                                AppliedTransformation(
+                                    name = StripMetadata.name,
+                                    exceptionMessage = null,
+                                ),
                             ),
-                        ),
-                ) shouldBe false
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -150,22 +155,28 @@ class StripThumbnailExifTest {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
 
-                StripThumbnailExif.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    appliedTransformations =
-                        listOf(
-                            AppliedTransformation(
-                                name = StripMetadata.name,
-                                exceptionMessage = null,
+                StripThumbnailExif.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation = Transformation.ORIGINAL_VARIANT,
+                        appliedTransformations =
+                            listOf(
+                                AppliedTransformation(
+                                    name = StripMetadata.name,
+                                    exceptionMessage = null,
+                                ),
+                                AppliedTransformation(
+                                    name = Resize.name,
+                                    exceptionMessage = null,
+                                ),
                             ),
-                            AppliedTransformation(
-                                name = Resize.name,
-                                exceptionMessage = null,
-                            ),
-                        ),
-                ) shouldBe true
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

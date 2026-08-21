@@ -4,7 +4,6 @@ import app.photofox.vipsffm.VImage
 import io.konifer.common.image.MetadataType
 import io.konifer.domain.variant.MetadataTransformation
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -17,9 +16,17 @@ object StripMetadata : VipsTransformer {
     private const val IPTC_TAG = "iptc-data"
     private const val IFD1_TAG_NAME = "jpeg-thumbnail-data"
 
-    override val requiresAlphaState = AlphaState.EITHER
-
     override val name = "StripMetadata"
+
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (context.source.fields.any { shouldStrip(it, context.transformation.metadata) }) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.EITHER,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     override fun transform(
         arena: Arena,
@@ -35,15 +42,6 @@ object StripMetadata : VipsTransformer {
             requiresLqipRegeneration = false,
         )
     }
-
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean =
-        source.fields
-            .any { shouldStrip(it, transformation.metadata) }
 
     private fun shouldStrip(
         field: String,

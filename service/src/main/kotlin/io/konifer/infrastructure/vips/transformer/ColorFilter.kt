@@ -10,7 +10,6 @@ import io.konifer.common.image.Filter
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_N
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -68,14 +67,16 @@ object ColorFilter : VipsTransformer {
     val blackWhiteThreshold = listOf(128.0)
 
     override val name: String = "ColorFilter"
-    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.filter != Filter.NONE
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (context.transformation.filter != Filter.NONE) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     override fun transform(
         arena: Arena,

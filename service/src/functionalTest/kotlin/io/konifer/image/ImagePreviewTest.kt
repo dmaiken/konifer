@@ -4,6 +4,8 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.image.LQIPImplementation
+import io.konifer.infrastructure.http.APP_LQIP_BLURHASH
+import io.konifer.infrastructure.http.APP_LQIP_THUMBHASH
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetInfo
@@ -187,6 +189,87 @@ class ImagePreviewTest : BaseFunctionalTest() {
 
             result.lqip.blurhash shouldBe original.lqip.blurhash
             result.lqip.thumbhash shouldBe original.lqip.thumbhash
+        }
+
+    @Test
+    fun `lqips are regenerated without corrupting the transformed variant`() =
+        testInMemory(
+            """
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val originalImage = byteArrayToImage(image)
+            val originalLqip =
+                storeAssetMultipartSource(client, image, StoreAssetRequest(), path = PATH)
+                    .second!!
+                    .variants
+                    .single()
+                    .lqip
+
+            val (response, variantBytes) =
+                fetchAssetContent(
+                    client,
+                    path = PATH,
+                    filter = "sepia",
+                    expectCacheHit = false,
+                )
+
+            val variantImage = byteArrayToImage(variantBytes!!)
+            variantImage.width shouldBe originalImage.width
+            variantImage.height shouldBe originalImage.height
+            variantImage.getRGB(variantImage.width / 2, variantImage.height / 2) shouldNotBe
+                originalImage.getRGB(originalImage.width / 2, originalImage.height / 2)
+
+            response.headers[APP_LQIP_BLURHASH] shouldNotBe null
+            response.headers[APP_LQIP_THUMBHASH] shouldNotBe null
+            response.headers[APP_LQIP_BLURHASH] shouldNotBe originalLqip.blurhash
+            response.headers[APP_LQIP_THUMBHASH] shouldNotBe originalLqip.thumbhash
+        }
+
+    @Test
+    fun `lqips are generated without corrupting preprocessed content`() =
+        testInMemory(
+            """
+            paths {
+              "/**" {
+                image {
+                  lqip = [ "thumbhash", "blurhash" ]
+                }
+                transform {
+                  preprocessing {
+                    enabled = true
+                    image {
+                      filter = sepia
+                    }
+                  }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            val originalImage = byteArrayToImage(image)
+            val stored = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = PATH).second!!
+            val storedLqip = stored.variants.single().lqip
+
+            storedLqip.blurhash shouldNotBe null
+            storedLqip.thumbhash shouldNotBe null
+
+            val (response, preprocessedBytes) = fetchAssetContent(client, path = PATH, expectCacheHit = true)
+            val preprocessedImage = byteArrayToImage(preprocessedBytes!!)
+            preprocessedImage.width shouldBe originalImage.width
+            preprocessedImage.height shouldBe originalImage.height
+            preprocessedImage.getRGB(preprocessedImage.width / 2, preprocessedImage.height / 2) shouldNotBe
+                originalImage.getRGB(originalImage.width / 2, originalImage.height / 2)
+            response.headers[APP_LQIP_BLURHASH] shouldBe storedLqip.blurhash
+            response.headers[APP_LQIP_THUMBHASH] shouldBe storedLqip.thumbhash
         }
 
     private suspend fun storeAndAssert(

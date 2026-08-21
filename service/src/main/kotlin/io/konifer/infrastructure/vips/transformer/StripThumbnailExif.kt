@@ -2,7 +2,6 @@ package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -15,7 +14,19 @@ object StripThumbnailExif : VipsTransformer {
     private const val THUMBNAIL_DATA_FIELD = "jpeg-thumbnail-data"
 
     override val name = "RemoveThumbnailExif"
-    override val requiresAlphaState = AlphaState.EITHER
+
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (
+            context.appliedTransformations.isNotEmpty() &&
+            !(context.appliedTransformations.size == 1 && context.appliedTransformations.first().name == StripMetadata.name)
+        ) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.EITHER,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     override fun transform(
         arena: Arena,
@@ -34,16 +45,4 @@ object StripThumbnailExif : VipsTransformer {
             requiresLqipRegeneration = false,
         )
     }
-
-    /**
-     * Only run this transformation if any transformations have been applied to the image.
-     */
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean =
-        appliedTransformations.isNotEmpty() &&
-            !(appliedTransformations.size == 1 && appliedTransformations.first().name == StripMetadata.name)
 }
