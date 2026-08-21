@@ -27,7 +27,7 @@
     "@types/node": "26.1.2",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
-    "eslint": "10.8.0",
+    "eslint": "10.8.1",
     "globals": "17.9.0",
     "typescript": "7.0.2"
   }
