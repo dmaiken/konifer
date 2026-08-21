@@ -10,7 +10,6 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -26,14 +25,18 @@ object Pad : VipsTransformer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     override val name: String = "Pad"
-    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.padding.amount > 0 && transformation.padding.color.isNotEmpty()
+    override fun decide(context: TransformationContext): TransformationDecision {
+        val padding = context.transformation.padding
+        return if (padding.amount > 0 && padding.color.isNotEmpty()) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
+    }
 
     override fun transform(
         arena: Arena,

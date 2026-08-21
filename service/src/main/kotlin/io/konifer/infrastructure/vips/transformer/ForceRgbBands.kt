@@ -8,7 +8,6 @@ import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
@@ -44,16 +43,19 @@ object ForceRgbBands : VipsTransformer {
         )
     }
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean =
-        source.hasAlpha() ||
-            source.getInt(OPTION_BANDS) != EXPECTED_BANDS ||
-            ImageColorSpaceExtractor.extract(source) != ColorSpace.SRGB
-
-    override val requiresAlphaState: AlphaState = AlphaState.UN_PREMULTIPLIED
     override val name: String = "ForceRgbBands"
+
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (
+            context.source.hasAlpha() ||
+            context.source.getInt(OPTION_BANDS) != EXPECTED_BANDS ||
+            ImageColorSpaceExtractor.extract(context.source) != ColorSpace.SRGB
+        ) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                requiredPixelAccess = PixelAccess.SEQUENTIAL,
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 }

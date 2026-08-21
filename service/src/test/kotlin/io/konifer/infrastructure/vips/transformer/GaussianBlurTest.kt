@@ -164,18 +164,15 @@ class GaussianBlurTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `does not require transformation if blur is 0`() {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                GaussianBlur.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation = blurTransformation(0),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                GaussianBlur.decide(
+                    TransformationContext(arena, VImage.newFromBytes(arena, image), blurTransformation(0), emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -184,12 +181,13 @@ class GaussianBlurTest {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                GaussianBlur.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation = blurTransformation(1),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                GaussianBlur.decide(
+                    TransformationContext(arena, VImage.newFromBytes(arena, image), blurTransformation(1), emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

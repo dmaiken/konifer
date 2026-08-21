@@ -7,6 +7,14 @@ import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 interface VipsTransformer {
+    val name: String
+
+    /**
+     * Decides whether this transformer should run and, when it should, which image state it requires.
+     * Implementations should only inspect the request and image header; pixel evaluation belongs in [transform].
+     */
+    fun decide(context: TransformationContext): TransformationDecision
+
     /**
      * Add the transformation to the Vips transformation pipeline. Note that vips transformation is inherently
      * demand-driven and the actual transformation will not apply unless the image is written to an output
@@ -18,29 +26,11 @@ interface VipsTransformer {
         source: VImage,
         transformation: Transformation,
     ): VipsTransformationResult
-
-    /**
-     * Whether the image requires [transform] to be called on it. If false is returned, then the image does not
-     * need the implementing transformer applied to it.
-     */
-    fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean
-
-    /**
-     * What state does alpha need to be in before running this transformer. Implementations should
-     * assume that the image passed to [transform] will have alpha in the desired state.
-     */
-    val requiresAlphaState: AlphaState
-
-    val name: String
 }
 
-enum class AlphaState {
-    PREMULTIPLIED,
-    UN_PREMULTIPLIED,
-    EITHER,
-}
+data class TransformationContext(
+    val arena: Arena,
+    val source: VImage,
+    val transformation: Transformation,
+    val appliedTransformations: List<AppliedTransformation>,
+)

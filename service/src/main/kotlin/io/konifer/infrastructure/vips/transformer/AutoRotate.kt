@@ -3,13 +3,11 @@ package io.konifer.infrastructure.vips.transformer
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 object AutoRotate : VipsTransformer {
     override val name: String = "AutoRotate"
-    override val requiresAlphaState: AlphaState = AlphaState.EITHER
 
     override fun transform(
         arena: Arena,
@@ -21,12 +19,20 @@ object AutoRotate : VipsTransformer {
             requiresLqipRegeneration = changesImageOrientation(transformation),
         )
 
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = transformation.isAutoRotate
+    override fun decide(context: TransformationContext): TransformationDecision =
+        if (context.transformation.isAutoRotate) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.EITHER,
+                requiredPixelAccess =
+                    if (context.transformation.rotate == Rotate.ZERO) {
+                        PixelAccess.SEQUENTIAL
+                    } else {
+                        PixelAccess.RANDOM
+                    },
+            )
+        } else {
+            TransformationDecision.Skip
+        }
 
     /**
      * Auto-rotation always normalizes orientation metadata, but only invalidates image-derived

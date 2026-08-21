@@ -59,30 +59,32 @@ class ForceRgbBandsTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `requires transformation when image has alpha`() {
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, alphaPng())
 
-                ForceRgbBands.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation = transformation,
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                ForceRgbBands.decide(
+                    TransformationContext(arena, source, transformation, emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
 
         @Test
         fun `requires transformation when image is not three bands`() {
             Vips.run { arena ->
-                ForceRgbBands.requiresTransformation(
-                    arena = arena,
-                    source = VImage.black(arena, 2, 2),
-                    transformation = transformation,
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                ForceRgbBands.decide(
+                    TransformationContext(arena, VImage.black(arena, 2, 2), transformation, emptyList()),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
 
@@ -98,19 +100,11 @@ class ForceRgbBandsTest {
                         transformation = transformation,
                     )
 
-                ForceRgbBands.requiresTransformation(
-                    arena = arena,
-                    source = transformed.processed,
-                    transformation = transformation,
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                ForceRgbBands.decide(
+                    TransformationContext(arena, transformed.processed, transformation, emptyList()),
+                ) shouldBe TransformationDecision.Skip
             }
         }
-    }
-
-    @Test
-    fun `requires un-premultiplied alpha`() {
-        ForceRgbBands.requiresAlphaState shouldBe AlphaState.UN_PREMULTIPLIED
     }
 
     private companion object {

@@ -2,7 +2,7 @@ package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.VipsImageCopyMemory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
@@ -15,11 +15,12 @@ import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
 import io.konifer.infrastructure.vips.VipsEncoder
-import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
+import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
+import io.konifer.infrastructure.vips.transformer.PixelAccess
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,6 @@ import java.io.ByteArrayOutputStream
 import java.lang.foreign.Arena
 import java.nio.file.Path
 import kotlin.io.path.extension
-import kotlin.io.path.pathString
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -70,30 +70,41 @@ class VipsImageProcessor {
                 source = source,
                 transformation = transformation,
             )
+        val shouldEncode = preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format
+        val shouldGeneratePreview = lqipImplementations.isNotEmpty()
+        val outputSource =
+            if (shouldEncode && shouldGeneratePreview) {
+                when (preProcessed.processedPixelAccess) {
+                    PixelAccess.RANDOM -> preProcessed.processed.copy()
+                    PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, preProcessed.processed)
+                }
+            } else {
+                preProcessed.processed
+            }
 
         transformationDataContainer.attributes.complete(
             Attributes.createAttributes(
-                image = preProcessed.processed,
+                image = outputSource,
                 sourceFormat = sourceFormat,
                 destinationFormat = transformation.format,
             ),
         )
         // we always want to generate lqips if configured when preprocessing even if the pipeline
         // says we don't need to
-        if (lqipImplementations.isNotEmpty()) {
+        if (shouldGeneratePreview) {
             generatePreviewVariant(
                 arena = arena,
-                sourceImage = preProcessed.processed,
+                sourceImage = outputSource,
                 lqipImplementations = lqipImplementations,
                 deferred = transformationDataContainer.lqips,
             )
         } else {
             transformationDataContainer.lqips.complete(null)
         }
-        return if (preProcessed.appliedTransformations.isNotEmpty() || sourceFormat != transformation.format) {
+        return if (shouldEncode) {
             VipsEncoder.writeToStream(
                 arena = arena,
-                source = preProcessed.processed,
+                source = outputSource,
                 format = transformation.format,
                 quality = transformation.quality,
                 outputChannel = transformationDataContainer.output,
@@ -112,49 +123,58 @@ class VipsImageProcessor {
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->
-            // Some transformations may want all pages, if present
-            val sourceByDecoderOptions = mutableMapOf<Array<VipsOption>, VImage>()
             val sourceFormat = ImageFormat.fromExtension(".${sourceFile.extension}")
             for ((transformation, output, lqips, attributes) in transformationDataContainers) {
-                val decoderOptions =
-                    createDecoderOptions(
-                        sourceFormat = sourceFormat,
-                        destinationFormat = transformation.format,
+                runCatching {
+                    val source =
+                        VipsThumbnailDecoder.decode(
+                            arena = arena,
+                            transformation = transformation,
+                            sourceFormat = sourceFormat,
+                            sourceFile = sourceFile,
+                        )
+
+                    val variantResult = variantGenerationPipeline.run(arena, source, transformation)
+                    val shouldGeneratePreview =
+                        variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()
+                    val outputSource =
+                        if (shouldGeneratePreview) {
+                            when (variantResult.processedPixelAccess) {
+                                PixelAccess.RANDOM -> variantResult.processed.copy()
+                                PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, variantResult.processed)
+                            }
+                        } else {
+                            variantResult.processed
+                        }
+
+                    if (shouldGeneratePreview) {
+                        generatePreviewVariant(
+                            arena = arena,
+                            sourceImage = outputSource,
+                            lqipImplementations = lqipImplementations,
+                            deferred = lqips,
+                        )
+                    } else {
+                        lqips.complete(null)
+                    }
+                    attributes.complete(
+                        Attributes.createAttributes(
+                            image = outputSource,
+                            sourceFormat = sourceFormat,
+                            destinationFormat = transformation.format,
+                        ),
                     )
-                val image =
-                    sourceByDecoderOptions
-                        .getOrPut(decoderOptions) {
-                            VImage.newFromFile(arena, sourceFile.pathString, *decoderOptions)
-                        }.copy()
 
-                val source = DecodedVipsImage(image = image)
-                val variantResult = variantGenerationPipeline.run(arena, source, transformation)
-
-                if (variantResult.requiresLqipRegeneration && lqipImplementations.isNotEmpty()) {
-                    generatePreviewVariant(
+                    VipsEncoder.writeToStream(
                         arena = arena,
-                        sourceImage = variantResult.processed,
-                        lqipImplementations = lqipImplementations,
-                        deferred = lqips,
+                        source = outputSource,
+                        format = transformation.format,
+                        quality = transformation.quality,
+                        outputChannel = output,
                     )
-                } else {
-                    lqips.complete(null)
-                }
-                attributes.complete(
-                    Attributes.createAttributes(
-                        image = variantResult.processed,
-                        sourceFormat = sourceFormat,
-                        destinationFormat = transformation.format,
-                    ),
-                )
-
-                VipsEncoder.writeToStream(
-                    arena = arena,
-                    source = variantResult.processed,
-                    format = transformation.format,
-                    quality = transformation.quality,
-                    outputChannel = output,
-                )
+                }.onFailure {
+                    output.cancel(it)
+                }.getOrThrow()
             }
         }
     }

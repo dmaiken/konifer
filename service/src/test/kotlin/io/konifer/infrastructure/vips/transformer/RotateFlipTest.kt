@@ -95,26 +95,28 @@ class RotateFlipTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `does not require transformation if rotate is zero and no horizontal flip`() {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                RotateFlip.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation =
-                        Transformation(
-                            width = 10,
-                            height = 10,
-                            format = ImageFormat.PNG,
-                            rotate = Rotate.ZERO,
-                            horizontalFlip = false,
-                            colorSpace = ColorSpace.SRGB,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                RotateFlip.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        transformation =
+                            Transformation(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                                rotate = Rotate.ZERO,
+                                horizontalFlip = false,
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -124,20 +126,26 @@ class RotateFlipTest {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                RotateFlip.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation =
-                        Transformation(
-                            width = 10,
-                            height = 10,
-                            format = ImageFormat.PNG,
-                            rotate = rotate,
-                            horizontalFlip = false,
-                            colorSpace = ColorSpace.SRGB,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                RotateFlip.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        transformation =
+                            Transformation(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                                rotate = rotate,
+                                horizontalFlip = false,
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.RANDOM,
+                    )
             }
         }
 
@@ -146,20 +154,26 @@ class RotateFlipTest {
             val image = javaClass.getResourceAsStream("/images/apollo-11.jpeg")!!.readAllBytes()
 
             Vips.run { arena ->
-                RotateFlip.requiresTransformation(
-                    arena = arena,
-                    source = VImage.newFromBytes(arena, image),
-                    transformation =
-                        Transformation(
-                            width = 10,
-                            height = 10,
-                            format = ImageFormat.PNG,
-                            rotate = Rotate.ZERO,
-                            horizontalFlip = true,
-                            colorSpace = ColorSpace.SRGB,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                RotateFlip.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = VImage.newFromBytes(arena, image),
+                        transformation =
+                            Transformation(
+                                width = 10,
+                                height = 10,
+                                format = ImageFormat.PNG,
+                                rotate = Rotate.ZERO,
+                                horizontalFlip = true,
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.EITHER,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
             }
         }
     }

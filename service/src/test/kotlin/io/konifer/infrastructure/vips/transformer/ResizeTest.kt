@@ -641,7 +641,7 @@ class ResizeTest {
     }
 
     @Nested
-    inner class RequiresTransformationTests {
+    inner class DecisionTests {
         @Test
         fun `transformation not required if source dimensions match transformation dimensions`() {
             val image =
@@ -650,16 +650,18 @@ class ResizeTest {
                 }
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width,
-                            height = source.height,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                Resize.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width,
+                                height = source.height,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -671,16 +673,18 @@ class ResizeTest {
                 }
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width + 1,
-                            height = source.height,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                Resize.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width + 1,
+                                height = source.height,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -692,17 +696,19 @@ class ResizeTest {
                 }
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width * 2,
-                            height = source.height * 2,
-                            upscale = false,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe false
+                Resize.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width * 2,
+                                height = source.height * 2,
+                                upscale = false,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe TransformationDecision.Skip
             }
         }
 
@@ -714,16 +720,48 @@ class ResizeTest {
                 }
             Vips.run { arena ->
                 val source = VImage.newFromBytes(arena, image)
-                Resize.requiresTransformation(
-                    arena = arena,
-                    source = source,
-                    transformation =
-                        resizeTransformation(
-                            width = source.width - 1,
-                            height = source.height,
-                        ),
-                    appliedTransformations = emptyList(),
-                ) shouldBe true
+                Resize.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width - 1,
+                                height = source.height,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.SEQUENTIAL,
+                    )
+            }
+        }
+
+        @Test
+        fun `crop requires random pixel access`() {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            Vips.run { arena ->
+                val source = VImage.newFromBytes(arena, image)
+
+                Resize.decide(
+                    TransformationContext(
+                        arena = arena,
+                        source = source,
+                        transformation =
+                            resizeTransformation(
+                                width = source.width - 1,
+                                height = source.height - 1,
+                                fit = Fit.CROP,
+                            ),
+                        appliedTransformations = emptyList(),
+                    ),
+                ) shouldBe
+                    TransformationDecision.Apply(
+                        requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
+                        requiredPixelAccess = PixelAccess.RANDOM,
+                    )
             }
         }
 

@@ -6,23 +6,31 @@ import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
-import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.konifer.infrastructure.vips.pipeline.VipsTransformationResult
 import java.lang.foreign.Arena
 
 object RotateFlip : VipsTransformer {
     override val name: String = "RotateFlip"
-    override val requiresAlphaState: AlphaState = AlphaState.EITHER
 
     /**
      * Required if the transformation has any rotation or specified that is not an auto-rotation
      */
-    override fun requiresTransformation(
-        arena: Arena,
-        source: VImage,
-        transformation: Transformation,
-        appliedTransformations: List<AppliedTransformation>,
-    ): Boolean = !transformation.isAutoRotate && (transformation.rotate != Rotate.ZERO || transformation.horizontalFlip)
+    override fun decide(context: TransformationContext): TransformationDecision {
+        val transformation = context.transformation
+        return if (!transformation.isAutoRotate && (transformation.rotate != Rotate.ZERO || transformation.horizontalFlip)) {
+            TransformationDecision.Apply(
+                requiredAlpha = AlphaRequirement.EITHER,
+                requiredPixelAccess =
+                    if (transformation.rotate == Rotate.ZERO) {
+                        PixelAccess.SEQUENTIAL
+                    } else {
+                        PixelAccess.RANDOM
+                    },
+            )
+        } else {
+            TransformationDecision.Skip
+        }
+    }
 
     override fun transform(
         arena: Arena,
