@@ -9,8 +9,8 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
-Konifer is a self-hosted image storage, transformation, and delivery API for teams that want Cloudinary- or Imgix-style
-capabilities without shaping their application around a vendor's asset IDs, pricing model, or storage choices.
+Konifer is image infrastructure for applications that need to store, transform, and deliver images using their own
+domain model.
 
 It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads,
 or asset information from a single HTTP API. The core idea is straightforward: Konifer's URLs can follow your domain model.
@@ -52,9 +52,8 @@ S3-compatible or filesystem storage.
 
 ## Why Konifer Exists
 
-Most hosted image platforms solve the hard parts of image delivery, but they also tend to introduce a new source of
-truth. Your application uploads a file, receives an opaque identifier, stores that identifier somewhere, then uses it
-later to ask the image service what to do.
+Many image platforms introduce a separate identity model for media. Your application uploads a file, receives a separate
+identifier, stores that identifier somewhere, then uses it later to ask the image service what to do.
 
 Konifer is built around a zero-state integration model. Your application does not need to persist Konifer-specific IDs
 just to render an image later. If your product already knows the user, post, organization, tenant, or document that owns
@@ -76,12 +75,12 @@ GET /assets/organizations/acme/users/123/avatar/-/entry/4/content
 
 Konifer is intended for developers and platform teams who want:
 
-- A self-hosted image pipeline with predictable infrastructure costs.
-- Image transformation and delivery without sending image processing through a third-party API.
-- S3-compatible storage, local filesystem storage, or in-memory storage for development.
+- One API for image storage, transformation, and delivery.
 - A path-based API that fits an existing domain model instead of forcing a separate image identity model.
+- S3-compatible storage, local filesystem storage, or in-memory storage for development.
 - Control over when variants are generated, where they are stored, and how they are returned.
 - CDN-friendly behavior, including redirects, cache headers, ETags, and signed URLs.
+- An image pipeline that fits their existing infrastructure and cost model.
 
 It is especially useful for products where images already belong to clear domain resources: user avatars, organization
 logos, marketplace listings, CMS images, documents, galleries, generated media, and user-uploaded content.
