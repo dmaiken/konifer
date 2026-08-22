@@ -54,6 +54,17 @@ test('history schema permits release and result annotations', () => {
     ));
 });
 
+test('history schema permits complete releases with failed benchmark results', () => {
+    const incomplete = release('release-1', 'v0.9.0');
+    incomplete.results[0].passed = false;
+    incomplete.passed = false;
+
+    assert.doesNotThrow(() => assertHistoryMatchesSchema(
+        { version: 1, releases: [incomplete] },
+        historySchema,
+    ));
+});
+
 test('history schema rejects empty annotations', () => {
     const invalid = release('release-1', 'v0.9.0');
     invalid.notes = [];

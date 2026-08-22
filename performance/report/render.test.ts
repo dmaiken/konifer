@@ -12,12 +12,23 @@ test('run report displays the actual repetition count without a fixed assumption
     assert.doesNotMatch(markdown, /\| Change \|/);
 });
 
-test('run report presents measurements without a pass or fail verdict', () => {
+test('run report identifies completed measurements', () => {
     const markdown = renderRunMarkdown(release(3));
 
-    assert.doesNotMatch(markdown, /Verdict/);
-    assert.doesNotMatch(markdown, /\| Result \|/);
-    assert.doesNotMatch(markdown, /\b(?:PASS|FAIL)\b/);
+    assert.match(markdown, /- Result: Completed/);
+    assert.match(markdown, /\| Operation \| Result \|/);
+    assert.match(markdown, /\| Completed \| 50 ms \| 95 ms \|/);
+});
+
+test('run report marks a failed benchmark unavailable instead of presenting its latency', () => {
+    const failed = release(3);
+    failed.results[0].passed = false;
+    failed.passed = false;
+    const markdown = renderRunMarkdown(failed);
+
+    assert.match(markdown, /- Result: Completed with failed benchmarks/);
+    assert.match(markdown, /\| Failed to complete \| — \| — \| — \|/);
+    assert.doesNotMatch(markdown, /\| Failed to complete \| 50 ms/);
 });
 
 test('run report hides a meaningless single-repetition p95 range', () => {

@@ -41,12 +41,12 @@ function render(history, environments, workloads) {
 
     report.replaceChildren(
         element('h1', '', 'Konifer performance'),
-        element('p', 'lead', 'Release benchmark history for common image workflows. Every measurement is retained; change indicators are limited to practically significant differences.'),
+        element('p', 'lead', 'Release benchmark history for common image workflows. Valid measurements are retained, while failed benchmarks are identified without publishing their latency.'),
         element(
             'p',
             'release-summary',
             lastRelease
-                ? `Latest published release: ${lastRelease.subject} · ${dateTime(lastRelease.completedAt)}`
+                ? `Latest published release: ${lastRelease.subject} · ${dateTime(lastRelease.completedAt)}${lastRelease.passed ? '' : ' · completed with failed benchmarks'}`
                 : 'No release benchmark has been published yet.',
         ),
     );
@@ -139,17 +139,18 @@ function headlineGrid(history, values, workloads) {
     const grid = element('section', 'grid');
     for (const value of values) {
         const card = element('article', 'panel');
+        if (!value.passed) card.classList.add('failed-result');
         const change = element(
             'div',
-            changeClass(value.changePercent),
-            formatDisplayedChange(value),
+            value.passed ? changeClass(value.changePercent) : 'regression',
+            value.passed ? formatDisplayedChange(value) : 'No latency published',
         );
         const description = workloadDescription(value, workloads);
         card.append(
             element('div', 'chart-title', workloadLabel(value)),
             element('div', 'result-case', value.case),
             ...(description ? [element('p', 'workload-description', description)] : []),
-            element('div', 'chart-value', `${formatMs(value.durationMs.p95)} p95`),
+            element('div', 'chart-value', value.passed ? `${formatMs(value.durationMs.p95)} p95` : 'Failed to complete'),
             change,
             ...(value.notes?.length ? [notesList(value.notes)] : []),
             sparkline(pointsForSeries(history, value)),
@@ -260,7 +261,7 @@ function resultTable(title, results, workloads) {
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors', 'Dropped'];
+    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors', 'Dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -269,13 +270,16 @@ function resultTable(title, results, workloads) {
 
     for (const value of results) {
         const row = document.createElement('tr');
+        if (!value.passed) row.classList.add('failed-result');
         row.append(operationCell(value));
+        const measurements = value.passed
+            ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
+            : ['—', '—', '—'];
         const cells = [
-            { value: formatMs(value.durationMs.p50) },
-            { value: formatMs(value.durationMs.p95) },
-            { value: formatRange(value) },
+            { value: value.passed ? 'Completed' : 'Failed to complete', className: value.passed ? '' : 'regression' },
+            ...measurements.map((measurement) => ({ value: measurement })),
             { value: value.repetitions },
-            { value: formatDisplayedChange(value), className: changeClass(value.changePercent) },
+            { value: value.passed ? formatDisplayedChange(value) : '—', className: value.passed ? changeClass(value.changePercent) : 'muted' },
             { value: value.operations },
             { value: value.errors },
             { value: value.droppedIterations },

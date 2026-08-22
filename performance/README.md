@@ -65,9 +65,10 @@ Run the short development suite with:
 The runner starts the Compose stack, verifies configured resource limits and
 fixture hashes, waits for Konifer health, executes k6, validates every result,
 and after each repetition deletes run-scoped assets through Konifer's recursive
-Asset Delete API. PostgreSQL records are deleted synchronously, and Konifer
-reaps the associated object-store content asynchronously. The exit trap applies
-the same cleanup if a repetition fails before validation completes.
+Asset Delete API. A benchmark whose k6 checks or thresholds fail is recorded and
+the remaining suite continues. PostgreSQL records are deleted synchronously,
+and Konifer reaps the associated object-store content asynchronously. The exit
+trap applies the same cleanup if a repetition cannot produce a valid result.
 
 Reuse an already-running stack while iterating:
 
@@ -135,11 +136,13 @@ Regenerate an existing run's aggregate and Markdown report with:
 ./performance/report.sh performance/results/<run-id>
 ```
 
-A complete, passing release run is added to
+A complete release run is added to
 [`history/releases.json`](history/releases.json). Smoke runs, filtered release
-diagnostics, incomplete repetitions, and failed runs do not update published
-history. The results directory remains ignored because raw runs are noisy and
-can be reproduced; only curated release history is committed.
+diagnostics, and incomplete repetitions do not update published history. Failed
+benchmark cases remain in a complete release as unavailable results, while the
+valid cases are still published. The results directory remains ignored because
+raw runs are noisy and can be reproduced; only curated release history is
+committed.
 
 Published history must match its JSON Schema and contain only stable release
 subjects:

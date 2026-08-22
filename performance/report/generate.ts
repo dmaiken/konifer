@@ -39,14 +39,13 @@ if (aggregate.suite === 'release') {
         console.log(`Release history not updated: ${incomplete.length} case(s) have fewer than ${requiredRepetitions} repetitions.`);
     } else if (missing.length > 0) {
         console.log(`Release history not updated: ${missing.length} configured case(s) were not run.`);
-    } else if (!aggregate.passed) {
-        console.log('Release history not updated: the run did not pass.');
     } else {
         const historyPath = path.join(performanceDirectory, 'history/releases.json');
         const history = await readJson<PerformanceHistory>(historyPath, { version: 1, releases: [] });
         const updated = updateHistory(history, aggregate);
         await writeJson(historyPath, updated);
-        console.log(`Published release history: ${historyPath}`);
+        const outcome = aggregate.passed ? 'passing' : 'with failed benchmark results';
+        console.log(`Published release history ${outcome}: ${historyPath}`);
     }
 }
 

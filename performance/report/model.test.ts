@@ -76,6 +76,22 @@ test('series points are chronological and environment-specific', () => {
     assert.deepEqual(points.map((value) => value.p95), [100, 120]);
 });
 
+test('failed latest results remain visible but are excluded from charts and change baselines', () => {
+    const first = release('2026-01-01T00:00:00Z', 'v1.0.0', 'local', 100);
+    const failed = release('2026-02-01T00:00:00Z', 'v1.1.0', 'local', 999);
+    failed.results[0].passed = false;
+    failed.passed = false;
+    const recovered = release('2026-03-01T00:00:00Z', 'v1.2.0', 'local', 120);
+    const failedLatest = latestBySeries({ version: 1, releases: [first, failed] })[0];
+
+    assert.equal(failedLatest.passed, false);
+    assert.equal(failedLatest.subject, 'v1.1.0');
+    assert.deepEqual(pointsForSeries({ version: 1, releases: [first, failed] }, failedLatest).map((value) => value.subject), ['v1.0.0']);
+
+    const recoveredLatest = latestBySeries({ version: 1, releases: [first, failed, recovered] })[0];
+    assert.equal(recoveredLatest.changePercent, 20);
+});
+
 test('change formatting keeps regressions and unchanged results visible', () => {
     assert.equal(formatChange(4.25), '+4.3%');
     assert.equal(formatChange(0), '0.0%');
