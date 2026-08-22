@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "defaultProfile": "mixed-v1",
+  "profiles": {
+    "mixed-v1": {
+      "description": "Representative concurrent reads, uploads, image generation, eager background work, and Upload Rules inference.",
+      "timeUnit": "1m",
+      "rampUpDuration": "2m",
+      "steadyDuration": "10m",
+      "rampDownDuration": "2m",
+      "recoveryTimeout": "1m",
+      "streams": [
+        {
+          "id": "cached-original",
+          "workload": "delivery.original.cached",
+          "case": "jpg-medium",
+          "exec": "cachedOriginal",
+          "startRate": 90,
+          "targetRate": 360,
+          "preAllocatedVUs": 8
+        },
+        {
+          "id": "cached-variant",
+          "workload": "variant.deliver.cached",
+          "case": "jpg-to-webp-400",
+          "exec": "cachedVariant",
+          "startRate": 90,
+          "targetRate": 360,
+          "preAllocatedVUs": 8
+        },
+        {
+          "id": "original-upload",
+          "workload": "upload.original",
+          "case": "jpg-medium",
+          "exec": "originalUpload",
+          "startRate": 15,
+          "targetRate": 60,
+          "preAllocatedVUs": 8
+        },
+        {
+          "id": "cold-variant",
+          "workload": "variant.generate.cold",
+          "case": "jpg-to-webp-400",
+          "exec": "coldVariant",
+          "startRate": 8,
+          "targetRate": 30,
+          "preAllocatedVUs": 8
+        },
+        {
+          "id": "eager-upload",
+          "workload": "upload.eager.accept",
+          "case": "jpg-medium-four-webp-profiles",
+          "exec": "eagerUpload",
+          "startRate": 8,
+          "targetRate": 30,
+          "preAllocatedVUs": 8
+        },
+        {
+          "id": "upload-rules",
+          "workload": "upload.rules",
+          "case": "jpg-medium-landscape-rule",
+          "exec": "uploadRules",
+          "startRate": 8,
+          "targetRate": 30,
+          "preAllocatedVUs": 8
+        }
+      ],
+      "recovery": {
+        "workload": "variant.eager.ready",
+        "case": "jpg-medium-four-webp-profiles"
+      }
+    }
+  }
+}

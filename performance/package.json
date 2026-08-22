@@ -11,9 +11,10 @@
     "lint:history": "./lint-history.sh",
     "lint:history:fix": "./lint-history.sh --fix",
     "test": "node --test report/*.test.ts",
-    "typecheck": "tsc",
+    "typecheck": "tsc && tsc --project tsconfig.k6.json",
     "check": "npm run typecheck && npm run lint && npm run lint:history && npm test && npm run build",
-    "report": "node report/generate.ts"
+    "report": "node report/generate.ts",
+    "report:load": "node report/load-generate.ts"
   },
   "engines": {
     "node": ">=24.0"
@@ -24,6 +25,7 @@
     "@eslint/js": "10.0.1",
     "@fontsource/geist-mono": "5.3.0",
     "@fontsource/geist-sans": "5.3.0",
+    "@types/k6": "2.2.0",
     "@types/node": "26.2.0",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",

@@ -2,9 +2,37 @@ import execution from 'k6/execution';
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Rate, Trend } from 'k6/metrics';
+import type { Options, Scenario } from 'k6/options';
+import {
+    contentType,
+    entryUrl,
+    header,
+    logUnexpectedResponse,
+    parseJson,
+    requestParameters as buildRequestParameters,
+    safe,
+    uploadAsset as postAsset,
+    withQuery,
+} from './lib/konifer.ts';
+import type {
+    ArrivalPhase,
+    AssetPools,
+    AssetReference,
+    ExecutionProfile,
+    FixtureManifest,
+    KoniferResponseBody,
+    OperationResult,
+    QueryParameters,
+    SummaryData,
+    SummaryOutput,
+    Tags,
+    WorkloadCatalog,
+    WorkloadCase,
+    WorkloadDefinition,
+} from './types.ts';
 
-const catalog = JSON.parse(open('../config/workloads.json'));
-const fixtures = JSON.parse(open('../assets/manifest.json')).fixtures;
+const catalog = JSON.parse(open('../config/workloads.json')) as WorkloadCatalog;
+const fixtures = (JSON.parse(open('../assets/manifest.json')) as FixtureManifest).fixtures;
 
 const workloadId = requiredEnvironment('WORKLOAD');
 const suite = __ENV.SUITE || 'smoke';
@@ -16,19 +44,16 @@ if (!workload) {
 }
 
 const selectedCase = selectCase(workload, __ENV.CASE);
-const caseId = selectedCase.id || workload.case;
-const sourceFormat = selectedCase.sourceFormat || workload.sourceFormat;
+const caseId = requiredString(selectedCase.id || workload.case, `Workload ${workloadId} does not define a case`);
+const sourceFormat = requiredString(
+    selectedCase.sourceFormat || workload.sourceFormat,
+    `Workload ${workloadId}/${caseId} does not define a source format`,
+);
 const destinationFormat = selectedCase.destinationFormat;
 const fixture = fixtures[workload.fixture];
 
-if (!caseId) {
-    throw new Error(`Workload ${workloadId} does not define a case`);
-}
 if (!fixture) {
     throw new Error(`Unknown fixture: ${workload.fixture}`);
-}
-if (!sourceFormat) {
-    throw new Error(`Workload ${workloadId}/${caseId} does not define a source format`);
 }
 
 const sourceFile = fixture.files[sourceFormat];
@@ -38,24 +63,18 @@ if (!sourceFile) {
 
 const sourceBytes = open(`../assets/${sourceFile.path}`, 'b');
 const baseUrl = __ENV.BASE_URL || catalog.baseUrl;
-const query = {
+const query: QueryParameters = {
     ...(workload.query || {}),
     ...(destinationFormat ? { format: destinationFormat } : {}),
 };
-
-const metadata = JSON.stringify({
-    alt: 'Performance benchmark fixture',
-    tags: ['performance', 'benchmark'],
-    labels: { suite: 'konifer-performance' },
-});
 
 const operationDuration = new Trend('operation_duration', true);
 const operationErrors = new Rate('operation_errors');
 const operations = new Counter('operations');
 
-export const options = buildOptions();
+export const options: Options = buildOptions();
 
-export function setup() {
+export function setup(): AssetPools {
     if (suite === 'smoke') {
         return seedForPhases(0, 1);
     }
@@ -67,15 +86,15 @@ export function setup() {
     );
 }
 
-export function warmup(data) {
+export function warmup(data: AssetPools): void {
     executeWorkload(data, 'warmup');
 }
 
-export default function measurement(data) {
+export default function measurement(data: AssetPools): void {
     executeWorkload(data, 'measurement');
 }
 
-function buildOptions() {
+function buildOptions(): Options {
     const thresholds = {
         'operation_duration{phase:measurement}': ['p(95)>=0'],
         'operation_errors{phase:measurement}': ['rate==0'],
@@ -124,7 +143,12 @@ function buildOptions() {
     };
 }
 
-function arrivalScenario(profile, phase, startTime, execFunction) {
+function arrivalScenario(
+    profile: ExecutionProfile,
+    phase: ArrivalPhase,
+    startTime: string,
+    execFunction: string,
+): Scenario {
     return {
         executor: 'constant-arrival-rate',
         exec: execFunction,
@@ -138,7 +162,7 @@ function arrivalScenario(profile, phase, startTime, execFunction) {
     };
 }
 
-function seedForPhases(warmupCount, measurementCount) {
+function seedForPhases(warmupCount: number, measurementCount: number): AssetPools {
     if (requiresColdPool()) {
         return {
             warmup: seedAssets('warmup', warmupCount, false),
@@ -163,17 +187,17 @@ function seedForPhases(warmupCount, measurementCount) {
     return { warmup: [], measurement: [] };
 }
 
-function seedAssets(phase, count, generateVariant) {
-    const assets = [];
+function seedAssets(phase: keyof AssetPools, count: number, generateVariant: boolean): AssetReference[] {
+    const assets: AssetReference[] = [];
     for (let index = 0; index < count; index += 1) {
         const assetPath = `/performance/${safe(runId)}/seed/${safe(workloadId)}/${safe(caseId)}/${phase}/${index}`;
         const response = uploadAsset(assetPath, { phase: 'setup', operation: 'seed-upload' });
-        const body = parseJson(response);
+        const body = parseJson<KoniferResponseBody>(response);
         if (response.status !== 201 || !body || body.entryId === undefined) {
             throw new Error(`Unable to seed ${workloadId}/${caseId}: HTTP ${response.status}`);
         }
 
-        const contentUrl = entryUrl(assetPath, body.entryId, 'content');
+        const contentUrl = entryUrl(baseUrl, assetPath, body.entryId, 'content');
         if (generateVariant) {
             const generated = http.get(withQuery(contentUrl, query), {
                 tags: { phase: 'setup', operation: 'seed-variant' },
@@ -188,13 +212,13 @@ function seedAssets(phase, count, generateVariant) {
     return assets;
 }
 
-function executeWorkload(data, phase) {
+function executeWorkload(data: AssetPools, phase: keyof AssetPools): void {
     const started = Date.now();
     let result;
     try {
         result = runHandler(data, phase);
     } catch (error) {
-        console.error(`${workloadId}/${caseId}: ${error.message}`);
+        console.error(`${workloadId}/${caseId}: ${errorMessage(error)}`);
         check(null, { 'operation completed without exception': () => false });
         result = { ok: false };
     }
@@ -205,7 +229,7 @@ function executeWorkload(data, phase) {
     operations.add(1);
 }
 
-function runHandler(data, phase) {
+function runHandler(data: AssetPools, phase: keyof AssetPools): OperationResult {
     switch (workloadId) {
         case 'upload.original':
             return runOriginalUpload();
@@ -232,23 +256,23 @@ function runHandler(data, phase) {
     }
 }
 
-function runOriginalUpload() {
+function runOriginalUpload(): OperationResult {
     const assetPath = uniqueAssetPath();
     const response = uploadAsset(assetPath);
-    const body = parseJson(response);
-    const original = body && body.variants && body.variants[0];
+    const body = parseJson<KoniferResponseBody>(response);
+    const original = body?.variants?.[0];
     logUnexpectedResponse(response, 201);
     const ok = check(response, {
         'upload returned 201': (value) => value.status === 201,
-        'upload returned one original': () => body && Array.isArray(body.variants) && body.variants.length === 1 && original.isOriginalVariant,
-        'original format matches fixture': () => original && original.attributes.format === sourceFormat,
-        'original dimensions match fixture': () => original && original.attributes.width === fixture.width && original.attributes.height === fixture.height,
-        'location targets returned entry': (value) => body && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
+        'upload returned one original': () => body?.variants?.length === 1 && original?.isOriginalVariant === true,
+        'original format matches fixture': () => original?.attributes.format === sourceFormat,
+        'original dimensions match fixture': () => original?.attributes.width === fixture.width && original.attributes.height === fixture.height,
+        'location targets returned entry': (value) => body?.entryId !== undefined && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
     });
     return { ok, durationMs: response.timings.duration };
 }
 
-function runOriginalDelivery(asset) {
+function runOriginalDelivery(asset: AssetReference): OperationResult {
     const response = http.get(asset.contentUrl, requestParameters());
     const ok = check(response, {
         'original returned 200': (value) => value.status === 200,
@@ -258,9 +282,9 @@ function runOriginalDelivery(asset) {
     return { ok, durationMs: response.timings.duration };
 }
 
-function runColdVariant(asset) {
+function runColdVariant(asset: AssetReference): OperationResult {
     const response = http.get(withQuery(asset.contentUrl, query), requestParameters());
-    const expectedFormat = destinationFormat || query.format;
+    const expectedFormat = destinationFormat || String(query.format);
     const expectedType = fixture.files[expectedFormat].mediaType;
     const ok = check(response, {
         'cold variant returned 200': (value) => value.status === 200,
@@ -270,81 +294,85 @@ function runColdVariant(asset) {
     return { ok, durationMs: response.timings.duration };
 }
 
-function runCachedVariant(asset) {
+function runCachedVariant(asset: AssetReference): OperationResult {
     const response = http.get(withQuery(asset.contentUrl, query), requestParameters());
     const ok = check(response, {
         'cached variant returned 200': (value) => value.status === 200,
         'cached variant was a cache hit': (value) => header(value, 'K-Cache-Status') === 'hit',
-        'cached variant content type matches': (value) => contentType(value) === fixture.files[query.format].mediaType,
+        'cached variant content type matches': (value) => contentType(value) === fixture.files[String(query.format)].mediaType,
     });
     return { ok, durationMs: response.timings.duration };
 }
 
-function runPreprocessedUpload() {
+function runPreprocessedUpload(): OperationResult {
     const response = uploadAsset(ruleAssetPath());
-    const body = parseJson(response);
-    const original = body && body.variants && body.variants[0];
+    const body = parseJson<KoniferResponseBody>(response);
+    const original = body?.variants?.[0];
+    const expected = requiredExpectedImage();
     logUnexpectedResponse(response, 201);
     const ok = check(response, {
         'preprocessed upload returned 201': (value) => value.status === 201,
-        'preprocessed original format matches': () => original && original.attributes.format === workload.expected.format,
-        'preprocessed original width matches': () => original && original.attributes.width === workload.expected.width,
-        'preprocessed original height matches': () => original && original.attributes.height === workload.expected.height,
+        'preprocessed original format matches': () => original?.attributes.format === expected.format,
+        'preprocessed original width matches': () => original?.attributes.width === expected.width,
+        'preprocessed original height matches': () => original?.attributes.height === expected.height,
     });
     return { ok, durationMs: response.timings.duration };
 }
 
-function runUploadRules(expectPreprocessing) {
+function runUploadRules(expectPreprocessing: boolean): OperationResult {
     const response = uploadAsset(ruleAssetPath());
-    const body = parseJson(response);
-    const original = body && body.variants && body.variants[0];
+    const body = parseJson<KoniferResponseBody>(response);
+    const original = body?.variants?.[0];
     const expected = expectPreprocessing
-        ? workload.expected
+        ? requiredExpectedImage()
         : { format: sourceFormat, width: fixture.width, height: fixture.height };
     logUnexpectedResponse(response, 201);
     const ok = check(response, {
         'upload rules returned 201': (value) => value.status === 201,
-        'upload rule applied benchmark label': () => body && body.labels && body.labels['performance-rule'] === 'matched',
-        'upload rules returned one original': () => body && Array.isArray(body.variants) && body.variants.length === 1 && original.isOriginalVariant,
-        'upload rules original format matches': () => original && original.attributes.format === expected.format,
-        'upload rules original width matches': () => original && original.attributes.width === expected.width,
-        'upload rules original height matches': () => original && original.attributes.height === expected.height,
+        'upload rule applied benchmark label': () => body?.labels?.['performance-rule'] === 'matched',
+        'upload rules returned one original': () => body?.variants?.length === 1 && original?.isOriginalVariant === true,
+        'upload rules original format matches': () => original?.attributes.format === expected.format,
+        'upload rules original width matches': () => original?.attributes.width === expected.width,
+        'upload rules original height matches': () => original?.attributes.height === expected.height,
     });
     return { ok, durationMs: response.timings.duration };
 }
 
-function runEagerAcceptance() {
+function runEagerAcceptance(): OperationResult {
     const response = uploadAsset(ruleAssetPath());
-    const body = parseJson(response);
+    const body = parseJson<KoniferResponseBody>(response);
     logUnexpectedResponse(response, 201);
     const ok = check(response, {
         'eager upload returned 201': (value) => value.status === 201,
-        'eager upload response contains only original': () => body && Array.isArray(body.variants) && body.variants.length === 1 && body.variants[0].isOriginalVariant,
-        'eager location targets returned entry': (value) => body && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
+        'eager upload response contains only original': () => body?.variants?.length === 1 && body.variants[0]?.isOriginalVariant === true,
+        'eager location targets returned entry': (value) => body?.entryId !== undefined && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
     });
     return { ok, durationMs: response.timings.duration };
 }
 
-function runEagerReadiness() {
+function runEagerReadiness(): OperationResult {
     const assetPath = ruleAssetPath();
     const upload = uploadAsset(assetPath);
-    const body = parseJson(upload);
+    const body = parseJson<KoniferResponseBody>(upload);
     let ok = check(upload, {
         'eager readiness upload returned 201': (value) => value.status === 201,
-        'eager readiness upload returned entry': () => body && body.entryId !== undefined,
+        'eager readiness upload returned entry': () => body?.entryId !== undefined,
     });
     if (!ok) {
         return { ok: false };
     }
 
     const readinessStarted = Date.now();
-    const expectedVariantCount = workload.profiles.length + 1;
-    const infoUrl = entryUrl(assetPath, body.entryId, 'info');
+    const eagerProfiles = workload.profiles ?? [];
+    const entryId = body?.entryId;
+    if (entryId === undefined) return { ok: false };
+    const expectedVariantCount = eagerProfiles.length + 1;
+    const infoUrl = entryUrl(baseUrl, assetPath, entryId, 'info');
     let ready = false;
-    while ((Date.now() - readinessStarted) / 1000 < workload.timeoutSeconds) {
+    while ((Date.now() - readinessStarted) / 1000 < (workload.timeoutSeconds ?? 0)) {
         const info = http.get(infoUrl, requestParameters('eager-info'));
-        const infoBody = parseJson(info);
-        ready = info.status === 200 && infoBody && infoBody.variants.length === expectedVariantCount;
+        const infoBody = parseJson<KoniferResponseBody>(info);
+        ready = info.status === 200 && infoBody?.variants?.length === expectedVariantCount;
         if (ready) {
             break;
         }
@@ -353,40 +381,33 @@ function runEagerReadiness() {
     const readinessDuration = Date.now() - readinessStarted;
     ok = check(ready, { 'all eager variants became ready': (value) => value });
 
-    for (const profile of workload.profiles) {
-        const response = http.get(withQuery(entryUrl(assetPath, body.entryId, 'content'), { profile }), requestParameters('eager-verify'));
+    for (const profile of eagerProfiles) {
+        const response = http.get(withQuery(entryUrl(baseUrl, assetPath, entryId, 'content'), { profile }), requestParameters('eager-verify'));
         ok = check(response, {
             [`${profile} returned 200`]: (value) => value.status === 200,
             [`${profile} was a cache hit`]: (value) => header(value, 'K-Cache-Status') === 'hit',
-            [`${profile} content type matches`]: (value) => contentType(value) === fixture.files[workload.expectedFormat].mediaType,
+            [`${profile} content type matches`]: (value) => contentType(value) === fixture.files[workload.expectedFormat ?? ''].mediaType,
         }) && ok;
     }
     return { ok, durationMs: readinessDuration };
 }
 
-function uploadAsset(assetPath, tags = undefined) {
-    return http.post(
-        `${baseUrl}/assets${assetPath}`,
-        {
-            metadata,
-            asset: http.file(sourceBytes, `fixture.${sourceFormat}`, sourceFile.mediaType),
-        },
-        requestParameters('upload', tags),
-    );
+function uploadAsset(assetPath: string, tags?: Tags) {
+    return postAsset({
+        baseUrl,
+        sourceBytes,
+        sourceFormat,
+        sourceFile,
+        workloadId,
+        caseId,
+    }, assetPath, tags);
 }
 
-function requestParameters(operation = workloadId, extraTags = undefined) {
-    return {
-        tags: {
-            operation,
-            workload: workloadId,
-            case: caseId,
-            ...(extraTags || {}),
-        },
-    };
+function requestParameters(operation = workloadId, extraTags?: Tags) {
+    return buildRequestParameters(workloadId, caseId, operation, extraTags);
 }
 
-function assetForIteration(data, phase, reuse) {
+function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boolean): AssetReference {
     const assets = data[phase];
     if (!assets || assets.length === 0) {
         throw new Error(`No ${phase} seed data available`);
@@ -401,57 +422,26 @@ function assetForIteration(data, phase, reuse) {
     return assets[index];
 }
 
-function uniqueAssetPath() {
+function uniqueAssetPath(): string {
     return `/performance/${safe(runId)}/${safe(workloadId)}/${safe(caseId)}/${execution.scenario.name}/${execution.vu.idInTest}-${execution.scenario.iterationInTest}`;
 }
 
-function ruleAssetPath() {
+function ruleAssetPath(): string {
+    if (!workload.path) throw new Error(`Workload ${workloadId} does not define a path`);
     return `${workload.path}${uniqueAssetPath()}`;
 }
 
-function entryUrl(assetPath, entryId, selector) {
-    return `${baseUrl}/assets${assetPath}/-/entry/${entryId}/${selector}`;
-}
-
-function withQuery(url, parameters) {
-    const values = Object.entries(parameters).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
-    return values.length === 0 ? url : `${url}?${values.join('&')}`;
-}
-
-function parseJson(response) {
-    try {
-        return response.json();
-    } catch (_) {
-        return null;
-    }
-}
-
-function header(response, name) {
-    const expected = name.toLowerCase();
-    for (const [key, value] of Object.entries(response.headers)) {
-        if (key.toLowerCase() === expected) {
-            return value;
-        }
-    }
-    return '';
-}
-
-function contentType(response) {
-    return header(response, 'Content-Type').split(';')[0].trim().toLowerCase();
-}
-
-function logUnexpectedResponse(response, expectedStatus) {
-    if (response.status !== expectedStatus) {
-        console.error(`Expected HTTP ${expectedStatus}, received ${response.status}: ${response.body}`);
-    }
-}
-
-function selectCase(selectedWorkload, requestedCase) {
+function selectCase(selectedWorkload: WorkloadDefinition, requestedCase?: string): WorkloadCase {
     if (!selectedWorkload.cases) {
         if (requestedCase && requestedCase !== selectedWorkload.case) {
             throw new Error(`Unknown case ${requestedCase} for ${workloadId}`);
         }
-        return { id: selectedWorkload.case };
+        return {
+            id: requiredString(
+                selectedWorkload.case,
+                `Workload ${workloadId} does not define a case`,
+            ),
+        };
     }
     const id = requestedCase || selectedWorkload.cases[0].id;
     const value = selectedWorkload.cases.find((item) => item.id === id);
@@ -461,25 +451,31 @@ function selectCase(selectedWorkload, requestedCase) {
     return value;
 }
 
-function requiresColdPool() {
+function requiresColdPool(): boolean {
     return workloadId === 'variant.generate.cold' || workloadId === 'format.decode' || workloadId === 'format.encode';
 }
 
-function expectedIterations(phase) {
+function expectedIterations(phase: ArrivalPhase): number {
     const iterations = (durationSeconds(phase.duration) / durationSeconds(phase.timeUnit)) * phase.rate;
     return Math.ceil(iterations * 1.05) + 1;
 }
 
-function durationSeconds(value) {
+function durationSeconds(value: string): number {
     const match = /^(\d+)(ms|s|m|h)$/.exec(value);
     if (!match) {
         throw new Error(`Unsupported duration: ${value}`);
     }
     const amount = Number(match[1]);
-    return amount * { ms: 0.001, s: 1, m: 60, h: 3600 }[match[2]];
+    switch (match[2]) {
+        case 'ms': return amount * 0.001;
+        case 's': return amount;
+        case 'm': return amount * 60;
+        case 'h': return amount * 3600;
+        default: throw new Error(`Unsupported duration: ${value}`);
+    }
 }
 
-function requiredEnvironment(name) {
+function requiredEnvironment(name: string): string {
     const value = __ENV[name];
     if (!value) {
         throw new Error(`Missing required environment variable: ${name}`);
@@ -487,19 +483,15 @@ function requiredEnvironment(name) {
     return value;
 }
 
-function safe(value) {
-    return value.replace(/[^a-zA-Z0-9_-]/g, '-');
-}
-
-function metricValues(data, name) {
+function metricValues(data: SummaryData, name: string): Record<string, number | undefined> {
     return (data.metrics[name] && data.metrics[name].values) || {};
 }
 
-function integer(value) {
+function integer(value: number | undefined): number {
     return Math.round(Number(value || 0));
 }
 
-export function handleSummary(data) {
+export function handleSummary(data: SummaryData): SummaryOutput {
     const duration = metricValues(data, 'operation_duration{phase:measurement}');
     const operationValues = metricValues(data, 'operations{phase:measurement}');
     const errorValues = metricValues(data, 'operation_errors{phase:measurement}');
@@ -548,4 +540,18 @@ export function handleSummary(data) {
         [requiredEnvironment('RESULT_PATH')]: JSON.stringify(result, null, 2),
         stdout: `${workloadId}/${caseId}: operations=${result.metrics.operations} p95=${result.metrics.durationMs.p95.toFixed(2)}ms passed=${result.passed}\n`,
     };
+}
+
+function requiredExpectedImage() {
+    if (!workload.expected) throw new Error(`Workload ${workloadId} does not define expected image metadata`);
+    return workload.expected;
+}
+
+function errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function requiredString(value: string | undefined, message: string): string {
+    if (!value) throw new Error(message);
+    return value;
 }

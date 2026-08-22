@@ -94,6 +94,21 @@ Run the complete release suite and assign its future release label with:
 ./performance/run.sh release --subject v0.9.0
 ```
 
+Run the shorter mixed-traffic load profile independently, or append it to a
+release run:
+
+```bash
+./performance/run.sh load --subject v0.9.0
+./performance/run.sh release --subject v0.9.0 --with-load
+```
+
+The `mixed-v1` profile concurrently exercises cached original and variant
+delivery, original uploads, cold WebP generation, eager background variants,
+and Upload Rules inference. Its duration and rates come from `config/load.json`.
+Its gate is operational: every stream must execute without request errors,
+failed checks, or dropped iterations, and a post-load health/eager-readiness
+canary must pass. Latency is trended but does not have a fixed ceiling.
+
 Without `--subject`, the runner uses `git describe --tags --always --dirty`.
 Only stable `vMAJOR.MINOR.PATCH` subjects belong in published history. The
 release repetition count comes from `config/workloads.json` and can be
@@ -103,10 +118,10 @@ overridden for a run:
 ./performance/run.sh release --subject v0.9.0 --repetitions 3
 ```
 
-At present, both suites configure one repetition while the harness is being
-developed. A filtered release run using `--workload` or `--case` is diagnostic:
-it generates local artifacts but is not published unless every configured
-release case and repetition is present.
+The configured release repetition count can be changed as the harness evolves.
+A filtered release run using `--workload` or `--case` is diagnostic: it
+generates local artifacts but is not published unless every configured release
+case and repetition is present.
 
 Prevent the host from sleeping during a long local release run. On systems
 using systemd, one option is:
@@ -130,10 +145,20 @@ performance/results/<run-id>/
 └── report.md      # readable report for this run
 ```
 
+Load runs use the same directory shape, with one `normalized/load.json`
+document. Their Markdown report and aggregate describe the traffic mix rather
+than repetition medians.
+
 Regenerate an existing run's aggregate and Markdown report with:
 
 ```bash
 ./performance/report.sh performance/results/<run-id>
+```
+
+For a load run, use its load-specific generator:
+
+```bash
+./performance/load-report.sh performance/results/<load-run-id>
 ```
 
 A complete release run is added to
@@ -143,6 +168,13 @@ benchmark cases remain in a complete release as unavailable results, while the
 valid cases are still published. The results directory remains ignored because
 raw runs are noisy and can be reproduced; only curated release history is
 committed.
+
+Valid standalone and chained load runs, including failed operational results,
+are added to [`history/loads.json`](history/loads.json). The browser dashboard
+renders them in a dedicated Mixed load tab so concurrent-load measurements are
+not confused with isolated workload latency. Optional `notes` arrays can be
+maintained on a load run or traffic stream and are preserved when that release
+is regenerated.
 
 Published history must match its JSON Schema and contain only stable release
 subjects:
@@ -169,9 +201,12 @@ python3 -m http.server 8000
 ```
 
 Open <http://localhost:8000/performance/report/>. The stable HTML loads
-`history/releases.json` and `config/environments.json` at runtime, so publishing
-a release does not regenerate HTML. Environment hardware and interpretation
-notes appear above the charts and tables.
+the release and load histories at runtime, so publishing a release does not
+regenerate HTML or change the report URL. The bare URL selects the newest
+published release and opens Benchmark latency. Release, environment, and load
+profile selectors provide shareable deep links; `#load` opens the Mixed load
+tab. The named environment and its interpretation remain visible while full
+hardware details are expandable.
 
 ## Add or update fixtures
 
@@ -249,6 +284,10 @@ material.
   dimensions, media types, and hashes.
 - [`schema/result.schema.json`](schema/result.schema.json) validates one
   normalized k6 repetition before aggregation.
+- [`config/load.json`](config/load.json) defines the versioned mixed-traffic
+  profile, its concurrent arrival rates, timing, and recovery canary.
+- [`schema/load-result.schema.json`](schema/load-result.schema.json) validates a
+  normalized mixed-load run before it is reported or published.
 - [`schema/history.schema.json`](schema/history.schema.json) validates the
   published aggregate history. Workload and case IDs remain open-ended so later
   releases can add coverage without rewriting earlier releases.

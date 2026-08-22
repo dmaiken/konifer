@@ -24,10 +24,12 @@ The suite covers common customer workflows:
 - Upload Rules inference, with and without preprocessing;
 - decoding and encoding each supported image format.
 
-The current profiles measure nominal, controlled request arrival rather than
-maximum capacity. Workloads, cases, and repetitions run sequentially so that a
-slow case does not contaminate another case's measurements. Capacity, mixed
-traffic, and soak testing are intentionally outside the current scope.
+The isolated profiles measure nominal, controlled request arrival rather than
+maximum capacity. Their workloads, cases, and repetitions run sequentially so
+that a slow case does not contaminate another case's measurements. The separate
+`mixed-v1` load profile exercises representative operations concurrently at a
+fixed target. Maximum-capacity discovery and soak testing remain outside the
+current scope.
 
 ## Comparison contract
 
@@ -96,6 +98,27 @@ Setup and asset seeding are not included in reported operation latency.
 - Eager generation measures upload acceptance; readiness is verified separately
   after the upload and is not folded into upload latency.
 
+## Mixed-load semantics
+
+The load suite is one open-model k6 run. Its scenarios, stage durations, and
+arrival rates come from the selected profile in `config/load.json`; changing a
+rate or duration does not require updating separately calculated totals or seed
+pool sizes. The current profile concurrently exercises cached original and
+variant delivery, original uploads, cold WebP generation, eager uploads with
+four background variants, and Upload Rules inference.
+
+After traffic ramps down, a recovery scenario checks service health, uploads an
+eager asset, waits up to 30 seconds for its four variants, and verifies their
+delivery as cache hits. The run passes only when every traffic stream executes
+with zero request errors, failed checks, and dropped iterations and the recovery
+scenario passes. Latency remains comparative rather than a fixed SLO.
+
+The load profile uses one representative case per operation. Codec matrices,
+preprocessing combined with inference, repetitions, saturation ramps, and long
+soaks stay in the isolated suite or future profiles. A material change to the
+mix, stage timing, or arrival rates requires a new profile ID so historical
+series remain comparable.
+
 Single-request workload latency comes directly from k6's HTTP response timing,
 which retains fractional milliseconds. Eager readiness spans several polling
 requests, so it remains a wall-clock interval. The dashboard retains every raw
@@ -140,7 +163,8 @@ Raw run output is written below `performance/results/` and is intentionally
 ignored by Git. It includes one normalized JSON result per case and repetition,
 plus aggregate JSON and Markdown summaries for a completed run.
 
-Customer-facing history lives in `performance/history/releases.json`. History
+Customer-facing isolated history lives in `performance/history/releases.json`,
+and mixed-load history lives in `performance/history/loads.json`. History
 entries must use a release subject such as `v0.9.0`; `lint-history.sh` rejects
 commit-like, dirty, or otherwise non-release subjects. The history schema permits
 new workloads and cases to appear in later releases, so older releases do not
@@ -148,7 +172,15 @@ need fabricated results for tests that did not yet exist.
 
 Release and individual-result entries may contain a manually maintained `notes`
 array. The dashboard renders these annotations so unusually large changes can
-be explained without changing or discarding their measurements.
+be explained without changing or discarding their measurements. Mixed-load runs
+and individual traffic streams support the same annotations, which are preserved
+when the run is regenerated.
+
+The customer report joins both histories by release subject and environment.
+Its Benchmark latency and Mixed load tabs always keep environments and versioned
+load profiles separate. The stable report URL selects the newest release by
+default; query parameters and the `#load` fragment provide shareable historical
+views without generating per-release HTML.
 
 ## Local environment interpretation
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://konifer.io/schemas/performance-load-history.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "runs"],
+  "properties": {
+    "version": {"const": 1},
+    "runs": {
+      "type": "array",
+      "items": {"$ref": "https://konifer.io/schemas/performance-load-result.schema.json"}
+    }
+  }
+}
