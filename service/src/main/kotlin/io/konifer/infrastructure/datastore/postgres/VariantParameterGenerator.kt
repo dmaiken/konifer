@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.Transformation
 
 /**
  * It is VERY IMPORTANT that the [postgresJson] serializer is used here. We do not want to serialize null values
@@ -36,8 +36,8 @@ object VariantParameterGenerator {
     fun generateImageVariantAttributes(imageAttributes: Attributes): String =
         postgresJson.encodeToString(
             ImageVariantAttributes(
-                width = imageAttributes.width,
-                height = imageAttributes.height,
+                width = imageAttributes.width.value,
+                height = imageAttributes.height.value,
                 format = imageAttributes.format,
                 colorSpace = imageAttributes.colorSpace,
                 pageCount = imageAttributes.pageCount,

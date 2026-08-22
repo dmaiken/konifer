@@ -7,10 +7,14 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.MetadataTransformation
+import io.konifer.domain.transformation.PaddingTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.MetadataTransformation
-import io.konifer.domain.variant.PaddingTransformation
-import io.konifer.domain.variant.Transformation
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -33,8 +37,8 @@ class VariantParameterGeneratorTest {
             VariantParameterGenerator.generateImageVariantAttributes(
                 imageAttributes =
                     Attributes(
-                        width = 100,
-                        height = 100,
+                        width = 100.toDimension(),
+                        height = 100.toDimension(),
                         format = ImageFormat.JPEG,
                         colorSpace = ColorSpace.P3,
                     ),
@@ -74,19 +78,19 @@ class VariantParameterGeneratorTest {
             VariantParameterGenerator.generateImageVariantTransformations(
                 imageTransformation =
                     Transformation(
-                        height = 100,
-                        width = 100,
+                        height = 100.toDimension(),
+                        width = 100.toDimension(),
                         format = ImageFormat.JPEG,
                         fit = Fit.FILL,
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
                         filter = Filter.SEPIA,
-                        blur = 10,
-                        quality = 30,
+                        blur = 10.toBlur(),
+                        quality = 30.toQuality(),
                         padding =
                             PaddingTransformation(
-                                amount = 10,
+                                amount = 10.toPaddingAmount(),
                                 color = listOf(100, 100, 50, 10),
                             ),
                         metadata =
@@ -100,19 +104,19 @@ class VariantParameterGeneratorTest {
             VariantParameterGenerator.generateImageVariantTransformations(
                 imageTransformation =
                     Transformation(
-                        height = 100,
-                        width = 100,
+                        height = 100.toDimension(),
+                        width = 100.toDimension(),
                         format = ImageFormat.JPEG,
                         fit = Fit.FILL,
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         horizontalFlip = true,
                         filter = Filter.SEPIA,
-                        blur = 10,
-                        quality = 30,
+                        blur = 10.toBlur(),
+                        quality = 30.toQuality(),
                         padding =
                             PaddingTransformation(
-                                amount = 10,
+                                amount = 10.toPaddingAmount(),
                                 color = listOf(100, 100, 50, 10),
                             ),
                         metadata =
@@ -130,8 +134,8 @@ class VariantParameterGeneratorTest {
     fun `default fields are ignored when serializing`() {
         val transformation =
             Transformation(
-                height = 100,
-                width = 150,
+                height = 100.toDimension(),
+                width = 150.toDimension(),
                 format = ImageFormat.JPEG,
                 colorSpace = ColorSpace.SRGB,
             )
@@ -150,8 +154,8 @@ class VariantParameterGeneratorTest {
     fun `metadata strip field is sorted alphabetically when serializing`() {
         val transformation =
             Transformation(
-                height = 100,
-                width = 150,
+                height = 100.toDimension(),
+                width = 150.toDimension(),
                 format = ImageFormat.JPEG,
                 metadata =
                     MetadataTransformation(

@@ -2,10 +2,8 @@ package io.konifer.domain.transformation
 
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.TransformProperties
-import io.konifer.domain.variant.Transformation
 
 object TransformationValidator {
-
     fun validateNormalizedTransformation(
         transformProperties: TransformProperties,
         transformation: Transformation,
@@ -30,21 +28,23 @@ object TransformationValidator {
     }
 
     private fun calculateOutputDimensions(transformation: Transformation): Pair<Long, Long> {
-        val contentWidth = transformation.width.toLong()
-        val contentHeight = transformation.height.toLong()
+        val contentWidth = transformation.width.value.toLong()
+        val contentHeight = transformation.height.value.toLong()
         val (rotatedWidth, rotatedHeight) =
             when (transformation.rotate) {
                 Rotate.NINETY,
                 Rotate.TWO_HUNDRED_SEVENTY,
-                    -> contentHeight to contentWidth
+                -> contentHeight to contentWidth
 
                 else -> contentWidth to contentHeight
             }
-        val totalPadding = transformation.padding.amount.toLong() * 2L
+        val totalPadding =
+            transformation.padding.amount.value
+                .toLong() * 2L
 
         return Pair(
             rotatedWidth + totalPadding,
-            rotatedHeight + totalPadding
+            rotatedHeight + totalPadding,
         )
     }
 }

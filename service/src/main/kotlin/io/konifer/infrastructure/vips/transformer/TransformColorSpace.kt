@@ -5,7 +5,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsIntent
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BLACK_POINT_COMPENSATION
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTENT

@@ -8,9 +8,10 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.kotest.matchers.collections.shouldHaveSize
@@ -35,8 +36,8 @@ fun createPendingAsset(
     url: String? = null,
     attributes: Attributes =
         Attributes(
-            width = 100,
-            height = 100,
+            width = 100.toDimension(),
+            height = 100.toDimension(),
             format = ImageFormat.PNG,
             colorSpace = ColorSpace.SRGB,
         ),
@@ -72,8 +73,8 @@ fun createPendingVariant(
     assetId: AssetId,
     attributes: Attributes =
         Attributes(
-            width = 150,
-            height = 100,
+            width = 150.toDimension(),
+            height = 100.toDimension(),
             format = ImageFormat.PNG,
             colorSpace = ColorSpace.SRGB,
         ),

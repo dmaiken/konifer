@@ -9,9 +9,6 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.MetadataTransformation
-import io.konifer.domain.variant.PaddingTransformation
-import io.konifer.domain.variant.Transformation
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -115,11 +112,11 @@ class TransformationNormalizer(
             rotate = rotate,
             horizontalFlip = horizontalFlip,
             filter = normalizeFilter(requested),
-            blur = requested.blur ?: 0,
+            blur = requested.blur ?: 0.toBlur(),
             quality = normalizeQuality(requested, format),
             padding =
                 PaddingTransformation(
-                    amount = requested.pad ?: 0,
+                    amount = requested.pad ?: 0.toPaddingAmount(),
                     color = normalizeBackground(requested, format),
                 ),
             metadata = normalizeMetadata(requested),
@@ -143,12 +140,15 @@ class TransformationNormalizer(
     private fun normalizeQuality(
         requested: RequestedTransformation,
         normalizedFormat: ImageFormat,
-    ): Int {
+    ): Quality {
         if (!normalizedFormat.vipsProperties.supportsQuality) {
-            return normalizedFormat.vipsProperties.defaultQuality
+            return normalizedFormat.vipsProperties.defaultQuality.toQuality()
         }
 
-        return min(requested.quality ?: normalizedFormat.vipsProperties.defaultQuality, normalizedFormat.vipsProperties.maxQuality)
+        return min(
+            requested.quality?.value ?: normalizedFormat.vipsProperties.defaultQuality,
+            normalizedFormat.vipsProperties.maxQuality,
+        ).toQuality()
     }
 
     fun normalizeFilter(requested: RequestedTransformation): Filter {
@@ -169,7 +169,7 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
         normalizedFormat: ImageFormat,
     ): List<Int> {
-        if (requested.pad == null || requested.pad == 0) {
+        if (requested.pad == null || requested.pad.value == 0) {
             // Background is useless unless padding is defined
             return emptyList()
         }

@@ -11,7 +11,8 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERESTING
@@ -799,8 +800,8 @@ class ResizeTest {
         fit: Fit = Fit.default,
         gravity: Gravity = Gravity.default,
     ) = Transformation(
-        height = height,
-        width = width,
+        height = height.toDimension(),
+        width = width.toDimension(),
         canUpscale = upscale,
         format = ImageFormat.PNG,
         fit = fit,

@@ -5,6 +5,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
@@ -43,7 +44,13 @@ class InMemoryEventBusTest {
                     originalVariant =
                         Variant.Pending.originalVariant(
                             assetId = AssetId(UUID.randomUUID()),
-                            attributes = Attributes(width = 100, height = 100, format = ImageFormat.JPEG, colorSpace = ColorSpace.SRGB),
+                            attributes =
+                                Attributes(
+                                    width = 100.toDimension(),
+                                    height = 100.toDimension(),
+                                    format = ImageFormat.JPEG,
+                                    colorSpace = ColorSpace.SRGB,
+                                ),
                             objectStoreBucket = "bucket",
                             objectStoreKey = "key",
                             lqip = LQIPs.NONE,

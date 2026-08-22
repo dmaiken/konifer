@@ -12,7 +12,7 @@ object TransformationDimensionNormalizer {
         requested: RequestedTransformation,
         normalizedRotate: Rotate,
         originalAttributesDeferred: Deferred<Attributes>,
-    ): Pair<Int, Int> =
+    ): Pair<Dimension, Dimension> =
         when (requested.fit) {
             Fit.FIT -> {
                 if (requested.width == null || requested.height == null) {
@@ -29,14 +29,14 @@ object TransformationDimensionNormalizer {
                         requested.width != null ->
                             Pair(
                                 requested.width,
-                                ((orientedHeight * requested.width) / orientedWidth).roundToInt(),
+                                ((orientedHeight * requested.width.value) / orientedWidth).roundToInt().toDimension(),
                             )
                         requested.height != null ->
                             Pair(
-                                ((orientedWidth * requested.height) / orientedHeight).roundToInt(),
+                                ((orientedWidth * requested.height.value) / orientedHeight).roundToInt().toDimension(),
                                 requested.height,
                             )
-                        else -> Pair(orientedWidth.roundToInt(), orientedHeight.roundToInt())
+                        else -> Pair(orientedWidth.roundToInt().toDimension(), orientedHeight.roundToInt().toDimension())
                     }
                 } else {
                     Pair(requested.width, requested.height)
@@ -52,8 +52,8 @@ object TransformationDimensionNormalizer {
         originalVariantAttributes: Attributes,
     ): Pair<Double, Double> =
         if (normalizedRotate == Rotate.NINETY || normalizedRotate == Rotate.TWO_HUNDRED_SEVENTY) {
-            Pair(originalVariantAttributes.height.toDouble(), originalVariantAttributes.width.toDouble())
+            Pair(originalVariantAttributes.height.value.toDouble(), originalVariantAttributes.width.value.toDouble())
         } else {
-            Pair(originalVariantAttributes.width.toDouble(), originalVariantAttributes.height.toDouble())
+            Pair(originalVariantAttributes.width.value.toDouble(), originalVariantAttributes.height.value.toDouble())
         }
 }

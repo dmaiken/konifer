@@ -11,6 +11,7 @@ import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.async

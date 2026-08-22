@@ -8,7 +8,7 @@ import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.VariantService
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.http.AssetUrlGenerator

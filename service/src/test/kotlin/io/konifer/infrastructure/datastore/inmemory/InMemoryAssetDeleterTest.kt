@@ -5,7 +5,8 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.kotest.matchers.shouldBe
@@ -42,8 +43,8 @@ class InMemoryAssetDeleterTest {
                     objectStoreKey = variantKey,
                     transformation =
                         Transformation(
-                            width = 50,
-                            height = 50,
+                            width = 50.toDimension(),
+                            height = 50.toDimension(),
                             format = ImageFormat.WEBP,
                             colorSpace = ColorSpace.SRGB,
                         ),

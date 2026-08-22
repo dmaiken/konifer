@@ -4,6 +4,7 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.Rotate
 import io.konifer.createImagePreProcessingProperties
+import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -23,7 +24,7 @@ class ImagePreProcessingPropertiesTest {
                 )
             }
 
-        exception.message shouldBe "'max-height' must be greater than 0"
+        exception.message shouldBe "Dimension must be a positive number: $maxHeight"
     }
 
     @ParameterizedTest
@@ -36,7 +37,7 @@ class ImagePreProcessingPropertiesTest {
                 )
             }
 
-        exception.message shouldBe "'max-width' must be greater than 0"
+        exception.message shouldBe "Dimension must be a positive number: $maxWidth"
     }
 
     @Test
@@ -115,7 +116,7 @@ class ImagePreProcessingPropertiesTest {
                     width = 200,
                 )
             }
-        properties.requestedImageTransformation.width shouldBe 200
+        properties.requestedImageTransformation.width shouldBe 200.toDimension()
     }
 
     @Test
@@ -127,7 +128,7 @@ class ImagePreProcessingPropertiesTest {
                     height = 200,
                 )
             }
-        properties.requestedImageTransformation.height shouldBe 200
+        properties.requestedImageTransformation.height shouldBe 200.toDimension()
     }
 
     @Test

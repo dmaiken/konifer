@@ -2,7 +2,7 @@ package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsImageCopyMemory
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.premultiplyIfNecessary
 import io.konifer.infrastructure.vips.transformer.AlphaRequirement

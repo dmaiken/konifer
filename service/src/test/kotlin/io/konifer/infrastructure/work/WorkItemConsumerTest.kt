@@ -15,7 +15,8 @@ import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.RulePrompt
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
@@ -102,8 +103,8 @@ class WorkItemConsumerTest : BaseUnitTest() {
                                 TransformationDataContainer(
                                     transformation =
                                         Transformation(
-                                            height = 200,
-                                            width = 200,
+                                            height = 200.toDimension(),
+                                            width = 200.toDimension(),
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
                                             colorSpace = ColorSpace.SRGB,
@@ -136,8 +137,8 @@ class WorkItemConsumerTest : BaseUnitTest() {
                                 TransformationDataContainer(
                                     transformation =
                                         Transformation(
-                                            height = 200,
-                                            width = 200,
+                                            height = 200.toDimension(),
+                                            width = 200.toDimension(),
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
                                             colorSpace = ColorSpace.SRGB,
@@ -147,8 +148,8 @@ class WorkItemConsumerTest : BaseUnitTest() {
                                 TransformationDataContainer(
                                     transformation =
                                         Transformation(
-                                            height = 100,
-                                            width = 100,
+                                            height = 100.toDimension(),
+                                            width = 100.toDimension(),
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
                                             colorSpace = ColorSpace.SRGB,
@@ -203,8 +204,8 @@ class WorkItemConsumerTest : BaseUnitTest() {
                                 TransformationDataContainer(
                                     transformation =
                                         Transformation(
-                                            height = 200,
-                                            width = 200,
+                                            height = 200.toDimension(),
+                                            width = 200.toDimension(),
                                             format = ImageFormat.PNG,
                                             fit = Fit.FILL,
                                             colorSpace = ColorSpace.SRGB,
@@ -238,8 +239,8 @@ class WorkItemConsumerTest : BaseUnitTest() {
     inner class ProcessOriginalVariantContentWorkItemTests {
         private val transformation =
             Transformation(
-                height = 200,
-                width = 200,
+                height = 200.toDimension(),
+                width = 200.toDimension(),
                 format = ImageFormat.PNG,
                 fit = Fit.FILL,
                 colorSpace = ColorSpace.SRGB,

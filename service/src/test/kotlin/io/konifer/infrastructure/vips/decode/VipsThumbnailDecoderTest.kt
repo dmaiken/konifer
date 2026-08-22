@@ -7,7 +7,8 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ORIENTATION
 import io.konifer.infrastructure.vips.transformer.AutoRotate
 import io.konifer.infrastructure.vips.transformer.Resize
@@ -167,8 +168,8 @@ class VipsThumbnailDecoderTest {
         isAutoRotate: Boolean = false,
     ): Transformation =
         Transformation(
-            width = width,
-            height = height,
+            width = width.toDimension(),
+            height = height.toDimension(),
             fit = fit,
             canUpscale = canUpscale,
             format = ImageFormat.PNG,

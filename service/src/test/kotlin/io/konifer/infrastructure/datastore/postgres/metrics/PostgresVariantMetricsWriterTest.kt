@@ -3,7 +3,8 @@ package io.konifer.infrastructure.datastore.postgres.metrics
 import com.typesafe.config.ConfigFactory
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantId
 import io.konifer.infrastructure.datastore.createPendingAsset
@@ -190,8 +191,8 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 assetId = asset.id,
                 transformation =
                     Transformation(
-                        width = transformationWidth,
-                        height = 100,
+                        width = transformationWidth.toDimension(),
+                        height = 100.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     ),

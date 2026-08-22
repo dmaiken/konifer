@@ -14,7 +14,6 @@ import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
-import io.konifer.domain.variant.Transformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
@@ -191,7 +190,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
                 normalized.fit shouldBe requested.fit
                 normalized.width shouldBe requested.width
-                normalized.height shouldBe 200
+                normalized.height shouldBe 200.toDimension()
                 normalized.format shouldBe requested.format
 
                 coVerify(exactly = 1) {
@@ -222,7 +221,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
 
                 normalized.fit shouldBe requested.fit
-                normalized.width shouldBe 200
+                normalized.width shouldBe 200.toDimension()
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe requested.format
 
@@ -253,7 +252,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
 
                 normalized.fit shouldBe requested.fit
-                normalized.width shouldBe 200
+                normalized.width shouldBe 200.toDimension()
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe ImageFormat.PNG
 
@@ -400,8 +399,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.width shouldBe 300
-                normalized.height shouldBe 450
+                normalized.width shouldBe 300.toDimension()
+                normalized.height shouldBe 450.toDimension()
             }
 
         @Test
@@ -423,8 +422,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.width shouldBe 200
-                normalized.height shouldBe 300
+                normalized.width shouldBe 200.toDimension()
+                normalized.height shouldBe 300.toDimension()
             }
 
         @Test
@@ -445,8 +444,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.width shouldBe 800
-                normalized.height shouldBe 1200
+                normalized.width shouldBe 800.toDimension()
+                normalized.height shouldBe 1200.toDimension()
             }
 
         @Test
@@ -468,8 +467,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         requested = requested,
                     )
 
-                normalized.width shouldBe 300
-                normalized.height shouldBe 450
+                normalized.width shouldBe 300.toDimension()
+                normalized.height shouldBe 450.toDimension()
             }
 
         @Test
@@ -491,7 +490,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         )
                     }
                 normalized.fit shouldBe requested.fit
-                normalized.width shouldBe 200
+                normalized.width shouldBe 200.toDimension()
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe ImageFormat.PNG
             }
@@ -516,7 +515,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     }
                 normalized.fit shouldBe requested.fit
                 normalized.width shouldBe requested.width
-                normalized.height shouldBe 200
+                normalized.height shouldBe 200.toDimension()
                 normalized.format shouldBe ImageFormat.PNG
             }
 
@@ -538,8 +537,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         )
                     }
                 normalized.fit shouldBe requested.fit
-                normalized.width shouldBe 100
-                normalized.height shouldBe 100
+                normalized.width shouldBe 100.toDimension()
+                normalized.height shouldBe 100.toDimension()
                 normalized.format shouldBe ImageFormat.PNG
 
                 coVerify {
@@ -624,12 +623,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.forAtLeastOne {
                     it.fit shouldBe requested1.fit
                     it.width shouldBe requested1.width
-                    it.height shouldBe 200
+                    it.height shouldBe 200.toDimension()
                     it.format shouldBe requested1.format
                 }
                 normalized.forAtLeastOne {
                     it.fit shouldBe requested2.fit
-                    it.width shouldBe 300
+                    it.width shouldBe 300.toDimension()
                     it.height shouldBe requested2.height
                     it.format shouldBe requested2.format
                 }
@@ -761,7 +760,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.blur shouldBe 0
+                normalized.blur shouldBe 0.toBlur()
             }
 
         @Test
@@ -780,7 +779,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.blur shouldBe 50
+                normalized.blur shouldBe 50.toBlur()
             }
     }
 
@@ -803,7 +802,9 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.quality shouldBe ImageFormat.PNG.vipsProperties.defaultQuality
+                normalized.quality shouldBe
+                    ImageFormat.PNG.vipsProperties.defaultQuality
+                        .toQuality()
                 normalized.format shouldBe ImageFormat.PNG
             }
 
@@ -824,7 +825,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.quality shouldBe 40
+                normalized.quality shouldBe 40.toQuality()
                 normalized.format shouldBe ImageFormat.JPEG
             }
 
@@ -845,7 +846,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.quality shouldBe 99
+                normalized.quality shouldBe 99.toQuality()
                 normalized.format shouldBe ImageFormat.AVIF
             }
 
@@ -866,7 +867,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.quality shouldBe format.vipsProperties.defaultQuality
+                normalized.quality shouldBe format.vipsProperties.defaultQuality.toQuality()
                 normalized.format shouldBe format
             }
     }
@@ -891,7 +892,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.padding.amount shouldBe 1
+                normalized.padding.amount shouldBe 1.toPaddingAmount()
                 normalized.padding.color shouldBe listOf(0, 0, 0, 0)
             }
 
@@ -913,7 +914,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.padding.amount shouldBe 1
+                normalized.padding.amount shouldBe 1.toPaddingAmount()
                 normalized.padding.color shouldBe listOf(255, 255, 255, 255)
             }
 
@@ -935,7 +936,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.padding.amount shouldBe 1
+                normalized.padding.amount shouldBe 1.toPaddingAmount()
                 normalized.padding.color shouldBe listOf(250, 155, 30, 1)
             }
 
@@ -957,7 +958,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.padding.amount shouldBe 1
+                normalized.padding.amount shouldBe 1.toPaddingAmount()
                 normalized.padding.color shouldBe listOf(250, 155, 30, 255)
             }
 
@@ -979,7 +980,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                             requested = requested,
                         )
                     }
-                normalized.padding.amount shouldBe 0
+                normalized.padding.amount shouldBe 0.toPaddingAmount()
                 normalized.padding.color shouldBe emptyList()
             }
 

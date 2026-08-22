@@ -7,7 +7,8 @@ import app.photofox.vipsffm.enums.VipsDirection
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -52,8 +53,8 @@ class RotateFlipTest {
                     source = VImage.newFromBytes(arena, image),
                     transformation =
                         Transformation(
-                            width = 10,
-                            height = 10,
+                            width = 10.toDimension(),
+                            height = 10.toDimension(),
                             format = ImageFormat.PNG,
                             rotate = rotate,
                             horizontalFlip = horizontalFlip,
@@ -107,8 +108,8 @@ class RotateFlipTest {
                         source = VImage.newFromBytes(arena, image),
                         transformation =
                             Transformation(
-                                width = 10,
-                                height = 10,
+                                width = 10.toDimension(),
+                                height = 10.toDimension(),
                                 format = ImageFormat.PNG,
                                 rotate = Rotate.ZERO,
                                 horizontalFlip = false,
@@ -132,8 +133,8 @@ class RotateFlipTest {
                         source = VImage.newFromBytes(arena, image),
                         transformation =
                             Transformation(
-                                width = 10,
-                                height = 10,
+                                width = 10.toDimension(),
+                                height = 10.toDimension(),
                                 format = ImageFormat.PNG,
                                 rotate = rotate,
                                 horizontalFlip = false,
@@ -160,8 +161,8 @@ class RotateFlipTest {
                         source = VImage.newFromBytes(arena, image),
                         transformation =
                             Transformation(
-                                width = 10,
-                                height = 10,
+                                width = 10.toDimension(),
+                                height = 10.toDimension(),
                                 format = ImageFormat.PNG,
                                 rotate = Rotate.ZERO,
                                 horizontalFlip = true,

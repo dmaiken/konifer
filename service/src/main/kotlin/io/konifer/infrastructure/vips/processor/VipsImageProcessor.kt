@@ -10,9 +10,10 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
 import io.konifer.infrastructure.vips.VipsEncoder
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
@@ -41,8 +42,8 @@ class VipsImageProcessor {
     companion object {
         val lqipTransformation =
             Transformation(
-                width = 32,
-                height = 32,
+                width = 32.toDimension(),
+                height = 32.toDimension(),
                 format = ImageFormat.PNG,
                 fit = Fit.FIT,
                 gravity = Gravity.CENTER,
@@ -106,7 +107,7 @@ class VipsImageProcessor {
                 arena = arena,
                 source = outputSource,
                 format = transformation.format,
-                quality = transformation.quality,
+                quality = transformation.quality.value,
                 outputChannel = transformationDataContainer.output,
             )
             PreprocessOutput.SourceTransformed
@@ -169,7 +170,7 @@ class VipsImageProcessor {
                         arena = arena,
                         source = outputSource,
                         format = transformation.format,
-                        quality = transformation.quality,
+                        quality = transformation.quality.value,
                         outputChannel = output,
                     )
                 }.onFailure {

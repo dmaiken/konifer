@@ -10,11 +10,11 @@ import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.UploadRuleDecision
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ProcessingPipeline
-import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.teeStream
 import io.konifer.infrastructure.vips.createDecoderOptions

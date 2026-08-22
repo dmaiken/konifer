@@ -13,7 +13,8 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.transformer.ColorFilter.blackWhiteThreshold
 import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix3x3
 import io.konifer.infrastructure.vips.transformer.ColorFilter.greyscaleMatrix4x4
@@ -410,8 +411,8 @@ class ColorFilterTest {
 
     private fun colorFilterTransformation(filter: Filter) =
         Transformation(
-            height = 10,
-            width = 10,
+            height = 10.toDimension(),
+            width = 10.toDimension(),
             format = ImageFormat.PNG,
             filter = filter,
             colorSpace = ColorSpace.SRGB,

@@ -7,7 +7,8 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
 import io.konifer.writeToTestStream
@@ -38,8 +39,8 @@ class CropFirstPageTest {
                 val source = VImage.newFromBytes(arena, image, *decoderOptions)
                 val transformation =
                     Transformation(
-                        height = source.height,
-                        width = source.width,
+                        height = source.height.toDimension(),
+                        width = source.width.toDimension(),
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -85,8 +86,8 @@ class CropFirstPageTest {
                 val source = VImage.newFromBytes(arena, image, *decoderOptions)
                 val transformation =
                     Transformation(
-                        height = source.height,
-                        width = source.width,
+                        height = source.height.toDimension(),
+                        width = source.width.toDimension(),
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -113,8 +114,8 @@ class CropFirstPageTest {
                 val source = VImage.newFromBytes(arena, image, *decoderOptions)
                 val transformation =
                     Transformation(
-                        height = source.height,
-                        width = source.width,
+                        height = source.height.toDimension(),
+                        width = source.width.toDimension(),
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -141,8 +142,8 @@ class CropFirstPageTest {
                 val source = VImage.newFromBytes(arena, image, *decoderOptions)
                 val transformation =
                     Transformation(
-                        height = source.height,
-                        width = source.width,
+                        height = source.height.toDimension(),
+                        width = source.width.toDimension(),
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )

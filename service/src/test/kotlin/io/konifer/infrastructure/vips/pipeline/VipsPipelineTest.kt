@@ -3,7 +3,8 @@ package io.konifer.infrastructure.vips.pipeline
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.transformer.AlphaRequirement
 import io.konifer.infrastructure.vips.transformer.PixelAccess
@@ -22,8 +23,8 @@ class VipsPipelineTest {
     val source = mockk<VImage>()
     val transformation =
         Transformation(
-            width = 100,
-            height = 200,
+            width = 100.toDimension(),
+            height = 200.toDimension(),
             format = ImageFormat.PNG,
             colorSpace = ColorSpace.SRGB,
         )

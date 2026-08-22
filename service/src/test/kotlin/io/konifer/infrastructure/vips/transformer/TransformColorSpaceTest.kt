@@ -5,7 +5,8 @@ import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.toColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -43,8 +44,8 @@ class TransformColorSpaceTest {
             val colorSpace = colorSpaceName.toColorSpace()
             val transformation =
                 Transformation(
-                    width = 100,
-                    height = 100,
+                    width = 100.toDimension(),
+                    height = 100.toDimension(),
                     format = ImageFormat.PNG,
                     colorSpace = colorSpace,
                 )
@@ -75,8 +76,8 @@ class TransformColorSpaceTest {
         fun `cannot transform to unsupported color space`(colorSpace: ColorSpace) {
             val transformation =
                 Transformation(
-                    width = 100,
-                    height = 100,
+                    width = 100.toDimension(),
+                    height = 100.toDimension(),
                     format = ImageFormat.PNG,
                     colorSpace = colorSpace,
                 )
@@ -106,8 +107,8 @@ class TransformColorSpaceTest {
         fun `requires transformation if color space is different from interpreted color space`(colorSpaceName: String) {
             val transformation =
                 Transformation(
-                    width = 100,
-                    height = 100,
+                    width = 100.toDimension(),
+                    height = 100.toDimension(),
                     format = ImageFormat.PNG,
                     colorSpace = colorSpaceName.toColorSpace(),
                 )
@@ -136,8 +137,8 @@ class TransformColorSpaceTest {
         ) {
             val transformation =
                 Transformation(
-                    width = 100,
-                    height = 100,
+                    width = 100.toDimension(),
+                    height = 100.toDimension(),
                     format = ImageFormat.PNG,
                     colorSpace = colorSpace,
                 )

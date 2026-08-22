@@ -11,9 +11,9 @@ import io.konifer.common.http.VariantResponse
 import io.konifer.common.image.Flip
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -78,8 +78,8 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
 
 fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeResponse =
     AttributeResponse(
-        height = attributes.height,
-        width = attributes.width,
+        height = attributes.height.value,
+        width = attributes.width.value,
         format = attributes.format.format,
         colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
@@ -88,19 +88,19 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
 
 fun TransformationResponse.Factory.fromTransformation(transformation: Transformation): TransformationResponse =
     TransformationResponse(
-        width = transformation.width,
-        height = transformation.height,
+        width = transformation.width.value,
+        height = transformation.height.value,
         fit = transformation.fit,
         gravity = transformation.gravity,
         format = transformation.format.format,
         rotate = transformation.rotate,
         flip = if (transformation.horizontalFlip) Flip.H else Flip.NONE,
         filter = transformation.filter,
-        blur = transformation.blur,
-        quality = transformation.quality,
+        blur = transformation.blur.value,
+        quality = transformation.quality.value,
         padding =
             PaddingResponse(
-                amount = transformation.padding.amount,
+                amount = transformation.padding.amount.value,
                 color = transformation.padding.color,
             ),
         metadata =
