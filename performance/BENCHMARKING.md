@@ -66,12 +66,14 @@ limitation of local results.
 5. Runs each selected workload, case, and repetition through k6.
 6. Seeds run-scoped assets during k6 setup, outside the measured phases.
 7. Executes the configured warmup and measurement profiles.
-8. Validates every normalized result and requires it to pass.
+8. Validates every normalized result. Failed checks or thresholds are recorded
+   without stopping the remaining workloads.
 9. After each repetition, deletes assets created under the run's unique
    benchmark path unless `--keep-assets` was supplied. The exit trap performs
    the same cleanup for a repetition that fails before reaching this step.
-10. Aggregates successful results and, for a complete `release` run, updates
-    release history when publication requirements are satisfied.
+10. Aggregates the results and, for a complete `release` run, updates release
+    history. Failed cases are published as unavailable rather than as latency
+    measurements.
 
 The runner does not purge the entire PostgreSQL or MinIO volume. Isolation comes
 from unique run-scoped asset paths, followed after each repetition by recursive
@@ -116,14 +118,16 @@ pass. Depending on the case, these checks include:
 - Upload Rules metadata produced by inference;
 - eager variant readiness.
 
-Each normalized result must satisfy the JSON schema and report passing checks,
-zero request errors, at least one measured operation, and no dropped iterations.
-The current suite does not impose a fixed latency ceiling: regressions remain
-visible in history instead of being hidden by a failed publication.
+Each normalized result must satisfy the JSON schema. Its latency qualifies as a
+valid measurement only when it reports passing checks, zero request errors, at
+least one measured operation, and no dropped iterations. The current suite does
+not impose a fixed latency ceiling: regressions remain visible in history
+instead of being hidden by a failed publication.
 
-A failed case prevents aggregation and history publication. A filtered release
-run is also diagnostic only: publication requires every case configured for the
-release suite and the configured number of repetitions for each case.
+A failed case does not stop aggregation or history publication, but its latency
+is not presented as a valid measurement. A filtered release run is still
+diagnostic only: publication requires every case configured for the release
+suite and the configured number of repetitions for each case.
 
 ## Fixtures and generated data
 

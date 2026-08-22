@@ -31,7 +31,7 @@
           "minItems": 1,
           "items": {"$ref": "#/$defs/result"}
         },
-        "passed": {"const": true}
+        "passed": {"type": "boolean"}
       }
     },
     "result": {
@@ -49,7 +49,7 @@
         "droppedIterations": {"type": "integer", "minimum": 0},
         "durationMs": {"$ref": "#/$defs/duration"},
         "notes": {"$ref": "#/$defs/notes"},
-        "passed": {"const": true}
+        "passed": {"type": "boolean"}
       }
     },
     "checks": {

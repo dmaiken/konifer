@@ -15,6 +15,7 @@ start_runtime=true
 keep_assets=false
 cleanup_pending=false
 run_id=""
+failed_repetitions=0
 
 usage() {
   cat <<'EOF'
@@ -24,8 +25,9 @@ Usage:
 Suites:
   smoke                 Run the short functional development suite (default).
                         Smoke results are never added to release history.
-  release               Run the complete benchmark suite. A passing run is
-                        published only when every configured case is present.
+  release               Run the complete benchmark suite. A complete run is
+                        published when every configured case is present;
+                        failed cases are marked unavailable in the report.
 
 Options:
   --workload ID         Run one workload ID from config/workloads.json instead
@@ -54,8 +56,9 @@ Examples:
   ./performance/run.sh release --subject v0.9.0 --repetitions 3
 
 Output:
-  Results are written to performance/results/<run-id>/. Passing, complete
-  release runs are also added to performance/history/releases.json.
+  Results are written to performance/results/<run-id>/. Complete release runs
+  are also added to performance/history/releases.json. A failed benchmark
+  repetition is recorded and does not stop the remaining suite.
 EOF
 }
 
@@ -321,6 +324,7 @@ for workload in "${workloads[@]}"; do
 
       echo "Running $suite $workload/$case_id repetition $repetition/$repetitions"
       cleanup_pending=true
+      k6_status=0
       k6 run \
         -e "SUITE=$suite" \
         -e "WORKLOAD=$workload" \
@@ -332,10 +336,18 @@ for workload in "${workloads[@]}"; do
         -e "STARTED_AT=$started_at" \
         -e "RESULT_PATH=$normalized_path" \
         -e "RAW_RESULT_PATH=$raw_path" \
-        k6/workload.js
+        k6/workload.js || k6_status=$?
 
       jsonschema -V Draft202012Validator -i "$normalized_path" schema/result.schema.json
-      jq -e '.passed == true' "$normalized_path" >/dev/null
+      if jq -e '.passed == true' "$normalized_path" >/dev/null; then
+        if [[ $k6_status -ne 0 ]]; then
+          echo "k6 exited with status $k6_status despite producing a passing result for $workload/$case_id" >&2
+          exit 1
+        fi
+      else
+        failed_repetitions=$((failed_repetitions + 1))
+        echo "Benchmark failed for $workload/$case_id repetition $repetition; continuing with the remaining suite" >&2
+      fi
 
       if cleanup_assets; then
         cleanup_pending=false
@@ -350,4 +362,7 @@ done
 
 "$performance_dir/report.sh" "$result_dir"
 
+if [[ $failed_repetitions -gt 0 ]]; then
+  echo "Completed with $failed_repetitions failed benchmark repetition(s); see report.md for unavailable results"
+fi
 echo "Performance results: $result_dir"

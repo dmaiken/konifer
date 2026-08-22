@@ -37,13 +37,14 @@ const workloadLabels: Record<string, string> = {
 
 export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[] {
     const values = new Map<string, LatestSeriesResult>();
+    const latestPassing = new Map<string, AggregatedResult>();
     const releases = [...(history.releases || [])].sort((left, right) => left.completedAt.localeCompare(right.completedAt));
 
     for (const release of releases) {
         for (const result of release.results) {
             const key = seriesId({ ...result, environment: release.environment });
-            const previous = values.get(key);
-            const change = previous
+            const previous = latestPassing.get(key);
+            const change = result.passed && previous
                 ? significantChange(previous.durationMs.p95, result.durationMs.p95)
                 : null;
             values.set(key, {
@@ -55,6 +56,7 @@ export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[
                 changeMs: change?.milliseconds ?? null,
                 changePercent: change?.percent ?? null,
             });
+            if (result.passed) latestPassing.set(key, result);
         }
     }
 
@@ -84,7 +86,7 @@ export function pointsForSeries(history: PerformanceHistory, selected: Pick<Late
         .flatMap((release) => {
             if (release.environment !== selected.environment) return [];
             return release.results
-                .filter((value) => seriesKey(value) === seriesKey(selected))
+                .filter((value) => value.passed && seriesKey(value) === seriesKey(selected))
                 .map((value) => ({
                     completedAt: release.completedAt,
                     subject: release.subject,

@@ -29,6 +29,18 @@ test('aggregation uses repetition medians and sums totals', () => {
     assert.equal(aggregate.passed, true);
 });
 
+test('aggregation retains failed repetitions and marks their series unavailable', () => {
+    const failed = { ...result(2, 300, 20), passed: false };
+    failed.metrics.errors = 20;
+    failed.metrics.checks.failed = 20;
+    const aggregate = aggregateResults([result(1, 100, 10), failed]);
+
+    assert.equal(aggregate.results[0].repetitions, 2);
+    assert.equal(aggregate.results[0].passed, false);
+    assert.equal(aggregate.results[0].errors, 20);
+    assert.equal(aggregate.passed, false);
+});
+
 test('history replaces the same run instead of duplicating it', () => {
     const first = aggregateResults([result(1, 100, 10)]);
     const changed = { ...first, completedAt: '2026-08-04T01:00:00Z' };

@@ -11,6 +11,7 @@ export function renderRunMarkdown(
 - Suite: \`${aggregate.suite}\`
 - Environment: \`${aggregate.environment}\`
 - Completed: ${aggregate.completedAt}
+- Result: ${aggregate.passed ? 'Completed' : 'Completed with failed benchmarks'}
 
 ${markdownEnvironment(aggregate.environment, environment)}
 
@@ -70,8 +71,13 @@ function markdownTable(results: AggregatedResult[]): string {
     if (results.length === 0) {
         return '_No measurements published._';
     }
-    const rows = results.map((value) => `| ${label(value)} | ${formatMs(value.durationMs.p50)} | ${formatMs(value.durationMs.p95)} | ${formatRange(value)} | ${value.repetitions} | ${value.operations} | ${value.errors} | ${value.droppedIterations} |`);
-    return `| Operation | p50 | p95 | p95 range | Repetitions | Operations | Errors | Dropped |
-|---|---:|---:|---:|---:|---:|---:|---:|
+    const rows = results.map((value) => {
+        const measurements = value.passed
+            ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
+            : ['—', '—', '—'];
+        return `| ${label(value)} | ${value.passed ? 'Completed' : 'Failed to complete'} | ${measurements.join(' | ')} | ${value.repetitions} | ${value.operations} | ${value.errors} | ${value.droppedIterations} |`;
+    });
+    return `| Operation | Result | p50 | p95 | p95 range | Repetitions | Operations | Errors | Dropped |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
 ${rows.join('\n')}`;
 }
