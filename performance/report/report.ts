@@ -31,6 +31,7 @@ import {
     type RequestedReportState,
     urlForState,
 } from './report-state.ts';
+import { compareReleaseVersions } from './release-version.ts';
 import type {
     AggregatedResult,
     EnvironmentCatalog,
@@ -335,7 +336,7 @@ function benchmarkContent(
     const scopedHistory: PerformanceHistory = {
         version: 1,
         releases: history.releases.filter((value) => value.environment === release.environment
-            && value.completedAt.localeCompare(release.completedAt) <= 0),
+            && compareReleaseVersions(value.subject, release.subject) <= 0),
     };
     const latest = latestBySeries(scopedHistory).filter((value) => value.subject === release.subject);
     const common = latest.filter(isHeadline);

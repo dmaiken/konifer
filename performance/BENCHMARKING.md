@@ -180,7 +180,9 @@ The customer report joins both histories by release subject and environment.
 Its Benchmark latency and Mixed load tabs always keep environments and versioned
 load profiles separate. The stable report URL selects the newest release by
 default; query parameters and the `#load` fragment provide shareable historical
-views without generating per-release HTML.
+views without generating per-release HTML. Release selectors, charts, and
+comparison baselines use numeric `vMAJOR.MINOR.PATCH` order, so a backfilled run
+keeps its release position even though its measurement timestamp is newer.
 
 ## Local environment interpretation
 

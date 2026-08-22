@@ -20,7 +20,7 @@ import type {
     PerformanceRelease,
 } from './types.ts';
 
-test('report subjects combine both histories and sort by newest measurement', () => {
+test('report subjects combine both histories and sort by release version', () => {
     const histories = fixtureHistories();
     assert.deepEqual(reportSubjects(histories.releases, histories.loads).map((value) => value.subject), [
         'v1.2.0',
@@ -162,7 +162,7 @@ function fixtureHistories(): { releases: PerformanceHistory; loads: LoadHistory 
             runs: [
                 loadRun('v1.0.0', 'local', 'mixed-v1', '2026-01-01T01:00:00Z'),
                 loadRun('v1.0.0', 'local', 'mixed-v2', '2026-01-01T02:00:00Z'),
-                loadRun('v1.1.0', 'aws', 'mixed-v1', '2026-02-01T00:00:00Z'),
+                loadRun('v1.1.0', 'aws', 'mixed-v1', '2026-04-01T00:00:00Z'),
             ],
         },
     };

@@ -3,6 +3,171 @@
   "runs": [
     {
       "version": 1,
+      "runId": "20260822T220552Z-load",
+      "profile": "mixed-v1",
+      "environment": "local-compose-v2",
+      "subject": "v0.9.0",
+      "startedAt": "2026-08-22T22:05:52Z",
+      "completedAt": "2026-08-22T22:20:12.594Z",
+      "trafficDurationSeconds": 840,
+      "peakRatePerMinute": 870,
+      "targetOperations": 10659,
+      "operations": 10656,
+      "requests": 10656,
+      "errors": 0,
+      "checks": {
+        "passed": 32703,
+        "failed": 0
+      },
+      "droppedIterations": 0,
+      "streams": [
+        {
+          "id": "cached-original",
+          "workload": "delivery.original.cached",
+          "case": "jpg-medium",
+          "targetRatePerMinute": 360,
+          "plannedOperations": 4410,
+          "operations": 4410,
+          "requests": 4410,
+          "errors": 0,
+          "checks": {
+            "passed": 13230,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 54.568481500000004,
+            "p90": 351.69519869999993,
+            "p95": 455.8703773000001,
+            "p99": 715.1476254899985
+          },
+          "passed": true
+        },
+        {
+          "id": "cached-variant",
+          "workload": "variant.deliver.cached",
+          "case": "jpg-to-webp-400",
+          "targetRatePerMinute": 360,
+          "plannedOperations": 4410,
+          "operations": 4410,
+          "requests": 4410,
+          "errors": 0,
+          "checks": {
+            "passed": 13230,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 55.0821185,
+            "p90": 344.63296099999997,
+            "p95": 453.43527090000003,
+            "p99": 658.2814380999998
+          },
+          "passed": true
+        },
+        {
+          "id": "original-upload",
+          "workload": "upload.original",
+          "case": "jpg-medium",
+          "targetRatePerMinute": 60,
+          "plannedOperations": 735,
+          "operations": 734,
+          "requests": 734,
+          "errors": 0,
+          "checks": {
+            "passed": 2936,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 226.48344400000002,
+            "p90": 605.0603957,
+            "p95": 724.58040865,
+            "p99": 2998.39986517996
+          },
+          "passed": true
+        },
+        {
+          "id": "cold-variant",
+          "workload": "variant.generate.cold",
+          "case": "jpg-to-webp-400",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 367,
+          "requests": 367,
+          "errors": 0,
+          "checks": {
+            "passed": 1101,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 449.803501,
+            "p90": 722.1106572,
+            "p95": 1026.9668709999999,
+            "p99": 3111.191252239992
+          },
+          "passed": true
+        },
+        {
+          "id": "eager-upload",
+          "workload": "upload.eager.accept",
+          "case": "jpg-medium-four-webp-profiles",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 367,
+          "requests": 367,
+          "errors": 0,
+          "checks": {
+            "passed": 734,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 202.661039,
+            "p90": 323.19631999999996,
+            "p95": 409.5017045,
+            "p99": 2572.528115199972
+          },
+          "passed": true
+        },
+        {
+          "id": "upload-rules",
+          "workload": "upload.rules",
+          "case": "jpg-medium-landscape-rule",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 368,
+          "requests": 368,
+          "errors": 0,
+          "checks": {
+            "passed": 1472,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 1423.0835,
+            "p90": 1729.8728412,
+            "p95": 1893.7895888,
+            "p99": 3587.084668489987
+          },
+          "passed": true
+        }
+      ],
+      "recovery": {
+        "healthPassed": true,
+        "eagerReady": true,
+        "durationMs": 1294,
+        "checks": {
+          "passed": 12,
+          "failed": 0
+        },
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "version": 1,
       "runId": "20260822T211410Z-load",
       "profile": "mixed-v1",
       "environment": "local-compose-v2",

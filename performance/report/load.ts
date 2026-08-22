@@ -1,4 +1,5 @@
 import { formatMs, significantChange, workloadLabel } from './model.ts';
+import { compareReleaseRecords, compareReleaseVersions } from './release-version.ts';
 import type {
     LatestLoadRun,
     LatestLoadStream,
@@ -14,13 +15,13 @@ export function updateLoadHistory(history: LoadHistory, run: LoadRun): LoadHisto
     const annotatedRun = preserveLoadNotes(existing, run);
     const runs = history.runs.filter((value) => !sameLoadIdentity(value, run));
     runs.push(annotatedRun);
-    runs.sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+    runs.sort(compareReleaseRecords);
     return { version: 1, runs };
 }
 
 export function latestLoadRuns(history: LoadHistory): LatestLoadRun[] {
     const latest = new Map<string, LoadRun>();
-    const runs = [...history.runs].sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+    const runs = [...history.runs].sort(compareReleaseRecords);
     for (const run of runs) {
         latest.set(loadProfileKey(run), run);
     }
@@ -31,7 +32,7 @@ export function latestLoadRuns(history: LoadHistory): LatestLoadRun[] {
 
 export function loadRunWithComparisons(history: LoadHistory, selected: LoadRun): LatestLoadRun {
     const previousStreams = new Map<string, LoadStreamResult>();
-    const runs = [...history.runs].sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+    const runs = [...history.runs].sort(compareReleaseRecords);
 
     for (const run of runs) {
         if (run.runId === selected.runId) break;
@@ -147,8 +148,8 @@ function comparableRuns(history: LoadHistory, selected: LoadRun): LoadRun[] {
     return history.runs
         .filter((run) => run.environment === selected.environment
             && run.profile === selected.profile
-            && run.completedAt.localeCompare(selected.completedAt) <= 0)
-        .sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+            && compareReleaseVersions(run.subject, selected.subject) <= 0)
+        .sort(compareReleaseRecords);
 }
 
 function preserveLoadNotes(existing: LoadRun | undefined, run: LoadRun): LoadRun {

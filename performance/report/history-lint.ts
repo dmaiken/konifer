@@ -1,32 +1,27 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
+import { isStableRelease } from './release-version.ts';
 import type { LoadHistory, LoadRun, PerformanceHistory, PerformanceRelease } from './types.ts';
 
-const releaseTagPattern = /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
-
-export function isReleaseTag(subject: string): boolean {
-    return releaseTagPattern.test(subject);
-}
-
 export function nonReleaseEntries(history: PerformanceHistory): PerformanceRelease[] {
-    return history.releases.filter((release) => !isReleaseTag(release.subject));
+    return history.releases.filter((release) => !isStableRelease(release.subject));
 }
 
 export function withoutNonReleaseEntries(history: PerformanceHistory): PerformanceHistory {
     return {
         ...history,
-        releases: history.releases.filter((release) => isReleaseTag(release.subject)),
+        releases: history.releases.filter((release) => isStableRelease(release.subject)),
     };
 }
 
 export function nonReleaseLoadRuns(history: LoadHistory): LoadRun[] {
-    return history.runs.filter((run) => !isReleaseTag(run.subject));
+    return history.runs.filter((run) => !isStableRelease(run.subject));
 }
 
 export function withoutNonReleaseLoadRuns(history: LoadHistory): LoadHistory {
     return {
         ...history,
-        runs: history.runs.filter((run) => isReleaseTag(run.subject)),
+        runs: history.runs.filter((run) => isStableRelease(run.subject)),
     };
 }
 

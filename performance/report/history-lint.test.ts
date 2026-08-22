@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
     assertHistoryMatchesSchema,
-    isReleaseTag,
     nonReleaseLoadRuns,
     nonReleaseEntries,
     withoutNonReleaseLoadRuns,
@@ -16,15 +15,6 @@ const [historySchema, loadHistorySchema, loadResultSchema] = await Promise.all([
     readFile(new URL('../schema/load-history.schema.json', import.meta.url), 'utf8'),
     readFile(new URL('../schema/load-result.schema.json', import.meta.url), 'utf8'),
 ]).then((documents) => documents.map((document) => JSON.parse(document) as Record<string, unknown>));
-
-test('release subjects must be stable semantic version tags', () => {
-    assert.equal(isReleaseTag('v0.9.0'), true);
-    assert.equal(isReleaseTag('v12.34.56'), true);
-    assert.equal(isReleaseTag('v0.9.0-dirty'), false);
-    assert.equal(isReleaseTag('v0.9.0-rc.1'), false);
-    assert.equal(isReleaseTag('0.9.0'), false);
-    assert.equal(isReleaseTag('abc1234'), false);
-});
 
 test('non-release entries can be identified and removed without mutating history', () => {
     const valid = release('release-1', 'v0.9.0');
