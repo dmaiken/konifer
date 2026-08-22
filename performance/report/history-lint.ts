@@ -1,6 +1,6 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-import type { PerformanceHistory, PerformanceRelease } from './types.ts';
+import type { LoadHistory, LoadRun, PerformanceHistory, PerformanceRelease } from './types.ts';
 
 const releaseTagPattern = /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
 
@@ -19,12 +19,25 @@ export function withoutNonReleaseEntries(history: PerformanceHistory): Performan
     };
 }
 
-export function assertHistoryMatchesSchema(
+export function nonReleaseLoadRuns(history: LoadHistory): LoadRun[] {
+    return history.runs.filter((run) => !isReleaseTag(run.subject));
+}
+
+export function withoutNonReleaseLoadRuns(history: LoadHistory): LoadHistory {
+    return {
+        ...history,
+        runs: history.runs.filter((run) => isReleaseTag(run.subject)),
+    };
+}
+
+export function assertHistoryMatchesSchema<T = PerformanceHistory>(
     value: unknown,
     schema: Record<string, unknown>,
-): asserts value is PerformanceHistory {
+    referencedSchemas: Record<string, unknown>[] = [],
+): asserts value is T {
     const validator = new Ajv2020({ allErrors: true, strict: true });
     addFormats(validator);
+    referencedSchemas.forEach((referencedSchema) => validator.addSchema(referencedSchema));
     const validate = validator.compile(schema);
     if (!validate(value)) {
         const details = validate.errors

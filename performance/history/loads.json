@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "runs": [
+    {
+      "version": 1,
+      "runId": "20260822T211410Z-load",
+      "profile": "mixed-v1",
+      "environment": "local-compose-v2",
+      "subject": "v0.10.0",
+      "startedAt": "2026-08-22T21:14:10Z",
+      "completedAt": "2026-08-22T21:28:19.497Z",
+      "trafficDurationSeconds": 840,
+      "peakRatePerMinute": 870,
+      "targetOperations": 10659,
+      "operations": 10657,
+      "requests": 10657,
+      "errors": 0,
+      "checks": {
+        "passed": 32707,
+        "failed": 0
+      },
+      "droppedIterations": 0,
+      "streams": [
+        {
+          "id": "cached-original",
+          "workload": "delivery.original.cached",
+          "case": "jpg-medium",
+          "targetRatePerMinute": 360,
+          "plannedOperations": 4410,
+          "operations": 4409,
+          "requests": 4409,
+          "errors": 0,
+          "checks": {
+            "passed": 13227,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 30.277102,
+            "p90": 302.07403880000004,
+            "p95": 382.5872827999987,
+            "p99": 590.3233840000001
+          },
+          "passed": true
+        },
+        {
+          "id": "cached-variant",
+          "workload": "variant.deliver.cached",
+          "case": "jpg-to-webp-400",
+          "targetRatePerMinute": 360,
+          "plannedOperations": 4410,
+          "operations": 4410,
+          "requests": 4410,
+          "errors": 0,
+          "checks": {
+            "passed": 13230,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 30.5449805,
+            "p90": 283.3681951,
+            "p95": 360.5401011000001,
+            "p99": 571.9960244699989
+          },
+          "passed": true
+        },
+        {
+          "id": "original-upload",
+          "workload": "upload.original",
+          "case": "jpg-medium",
+          "targetRatePerMinute": 60,
+          "plannedOperations": 735,
+          "operations": 735,
+          "requests": 735,
+          "errors": 0,
+          "checks": {
+            "passed": 2940,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 206.245684,
+            "p90": 399.9054482000001,
+            "p95": 438.1324556,
+            "p99": 599.3925345399994
+          },
+          "passed": true
+        },
+        {
+          "id": "cold-variant",
+          "workload": "variant.generate.cold",
+          "case": "jpg-to-webp-400",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 368,
+          "requests": 368,
+          "errors": 0,
+          "checks": {
+            "passed": 1104,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 399.6811525,
+            "p90": 596.8754755,
+            "p95": 618.4974862,
+            "p99": 1025.2162292199987
+          },
+          "passed": true
+        },
+        {
+          "id": "eager-upload",
+          "workload": "upload.eager.accept",
+          "case": "jpg-medium-four-webp-profiles",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 367,
+          "requests": 367,
+          "errors": 0,
+          "checks": {
+            "passed": 734,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 206.633009,
+            "p90": 299.81265600000006,
+            "p95": 327.35990199999986,
+            "p99": 422.51884701999865
+          },
+          "passed": true
+        },
+        {
+          "id": "upload-rules",
+          "workload": "upload.rules",
+          "case": "jpg-medium-landscape-rule",
+          "targetRatePerMinute": 30,
+          "plannedOperations": 368,
+          "operations": 368,
+          "requests": 368,
+          "errors": 0,
+          "checks": {
+            "passed": 1472,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 1264.5501345,
+            "p90": 1434.3361063,
+            "p95": 1500.4031474999995,
+            "p99": 1709.1962796599998
+          },
+          "passed": true
+        }
+      ],
+      "recovery": {
+        "healthPassed": true,
+        "eagerReady": true,
+        "durationMs": 1293,
+        "checks": {
+          "passed": 12,
+          "failed": 0
+        },
+        "passed": true
+      },
+      "passed": true
+    }
+  ]
+}

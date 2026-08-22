@@ -47,19 +47,19 @@ export default [
         },
     },
     {
-        files: ['eslint.config.js', 'report/{aggregate,aggregate.test,catalog-validation.test,chart,chart.test,generate,history-lint,history-lint.test,lint-history,model,model.test,publication,publication.test,render,render.test,types}.ts'],
+        files: ['eslint.config.js', 'report/{aggregate,aggregate.test,catalog-validation.test,chart,chart.test,generate,history-lint,history-lint.test,lint-history,load,load-generate,load.test,model,model.test,publication,publication.test,render,render.test,types}.ts'],
         languageOptions: {
             globals: globals.node,
         },
     },
     {
-        files: ['report/report.js'],
+        files: ['report/report.ts'],
         languageOptions: {
             globals: globals.browser,
         },
     },
     {
-        files: ['k6/**/*.js'],
+        files: ['k6/**/*.{js,ts}'],
         languageOptions: {
             globals: {
                 __ENV: 'readonly',

@@ -145,3 +145,97 @@ export interface SeriesPoint {
     p50: number;
     p95: number;
 }
+
+export interface LoadDurationMetrics {
+    p50: number;
+    p90: number;
+    p95: number;
+    p99: number;
+}
+
+export interface LoadStreamResult {
+    id: string;
+    workload: string;
+    case: string;
+    targetRatePerMinute: number;
+    plannedOperations: number;
+    operations: number;
+    requests: number;
+    errors: number;
+    checks: CheckMetrics;
+    droppedIterations: number;
+    durationMs: LoadDurationMetrics;
+    notes?: string[];
+    passed: boolean;
+}
+
+export interface LoadRecoveryResult {
+    healthPassed: boolean;
+    eagerReady: boolean;
+    durationMs: number;
+    checks: CheckMetrics;
+    passed: boolean;
+}
+
+export interface LoadRun {
+    version: 1;
+    runId: string;
+    profile: string;
+    environment: string;
+    subject: string;
+    startedAt: string;
+    completedAt: string;
+    trafficDurationSeconds: number;
+    peakRatePerMinute: number;
+    targetOperations: number;
+    operations: number;
+    requests: number;
+    errors: number;
+    checks: CheckMetrics;
+    droppedIterations: number;
+    streams: LoadStreamResult[];
+    recovery: LoadRecoveryResult;
+    notes?: string[];
+    passed: boolean;
+}
+
+export interface LoadHistory {
+    version: 1;
+    runs: LoadRun[];
+}
+
+export interface LatestLoadStream extends LoadStreamResult {
+    hasPrevious: boolean;
+    changePercent: number | null;
+}
+
+export interface LatestLoadRun extends Omit<LoadRun, 'streams'> {
+    streams: LatestLoadStream[];
+}
+
+export interface LoadStreamDefinition {
+    id: string;
+    workload: string;
+    case: string;
+    targetRate: number;
+}
+
+export interface LoadProfileDefinition {
+    description: string;
+    timeUnit: string;
+    rampUpDuration: string;
+    steadyDuration: string;
+    rampDownDuration: string;
+    recoveryTimeout: string;
+    streams: LoadStreamDefinition[];
+    recovery: {
+        workload: string;
+        case: string;
+    };
+}
+
+export interface LoadCatalog {
+    version: 1;
+    defaultProfile: string;
+    profiles: Record<string, LoadProfileDefinition>;
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "lib": ["ES2022"],
+    "types": ["k6"]
+  },
+  "include": ["k6/**/*.ts"]
+}

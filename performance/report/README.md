@@ -1,8 +1,9 @@
 # Konifer Performance
 
-The interactive performance dashboard renders release history from
-[`../history/releases.json`](../history/releases.json). It includes headline
-workflow charts, a selectable p50/p95 release history, and exact result tables.
+The interactive performance dashboard renders isolated benchmark and mixed-load
+history from [`../history/releases.json`](../history/releases.json) and
+[`../history/loads.json`](../history/loads.json). It separates the two measurement
+styles into Benchmark latency and Mixed load tabs under one release-aware page.
 
 The dashboard must be served over HTTP because browsers do not allow its JSON
 request when [`index.html`](index.html) is opened directly with `file://`.
@@ -17,9 +18,18 @@ python3 -m http.server 8000
 Then open <http://localhost:8000/performance/report/>.
 
 The HTML, CSS, and TypeScript are stable source files. Publishing a release
-updates only the underlying history document; it does not regenerate HTML.
-The generated browser modules and locally served Geist font assets live under
-`performance/dist/` and are ignored by Git.
+updates only the underlying history documents; it does not regenerate HTML or
+change the GitHub Pages URL. The bare URL automatically selects the newest
+release and opens Benchmark latency. Selections are shareable, for example:
+
+```text
+?release=v0.10.0&environment=local-compose-v2&profile=mixed-v1#load
+```
+
+The selected environment description is always visible, while hardware and
+interpretation details are expandable. The generated browser modules and
+locally served Geist font assets live under `performance/dist/` and are ignored
+by Git.
 
 The dashboard retains all measurements in history, but labels a p95 change only
 when it is both at least 5% and at least 2 ms. Smaller movements are displayed
@@ -48,3 +58,8 @@ the corresponding headline card and table row. For example:
 
 The other required release and result fields are omitted from the example.
 Notes are preserved if the same run is regenerated.
+
+Mixed-load runs and individual traffic streams accept the same optional
+`notes` array in [`../history/loads.json`](../history/loads.json). These notes
+are also preserved when the same subject, environment, and profile are
+regenerated.

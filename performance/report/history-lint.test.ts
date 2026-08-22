@@ -4,14 +4,18 @@ import test from 'node:test';
 import {
     assertHistoryMatchesSchema,
     isReleaseTag,
+    nonReleaseLoadRuns,
     nonReleaseEntries,
+    withoutNonReleaseLoadRuns,
     withoutNonReleaseEntries,
 } from './history-lint.ts';
-import type { AggregatedResult, PerformanceHistory, PerformanceRelease } from './types.ts';
+import type { AggregatedResult, LoadHistory, LoadRun, PerformanceHistory, PerformanceRelease } from './types.ts';
 
-const historySchema = JSON.parse(
-    await readFile(new URL('../schema/history.schema.json', import.meta.url), 'utf8'),
-) as Record<string, unknown>;
+const [historySchema, loadHistorySchema, loadResultSchema] = await Promise.all([
+    readFile(new URL('../schema/history.schema.json', import.meta.url), 'utf8'),
+    readFile(new URL('../schema/load-history.schema.json', import.meta.url), 'utf8'),
+    readFile(new URL('../schema/load-result.schema.json', import.meta.url), 'utf8'),
+]).then((documents) => documents.map((document) => JSON.parse(document) as Record<string, unknown>));
 
 test('release subjects must be stable semantic version tags', () => {
     assert.equal(isReleaseTag('v0.9.0'), true);
@@ -30,6 +34,16 @@ test('non-release entries can be identified and removed without mutating history
     assert.deepEqual(nonReleaseEntries(history), [invalid]);
     assert.deepEqual(withoutNonReleaseEntries(history).releases, [valid]);
     assert.deepEqual(history.releases, [valid, invalid]);
+});
+
+test('non-release load runs can be identified and removed without mutating history', () => {
+    const valid = loadRun('v0.9.0');
+    const invalid = loadRun('working-tree');
+    const history: LoadHistory = { version: 1, runs: [valid, invalid] };
+
+    assert.deepEqual(nonReleaseLoadRuns(history), [invalid]);
+    assert.deepEqual(withoutNonReleaseLoadRuns(history).runs, [valid]);
+    assert.equal(history.runs.length, 2);
 });
 
 test('history schema permits workloads to be added in later releases', () => {
@@ -97,6 +111,45 @@ test('history schema rejects malformed aggregate results', () => {
     );
 });
 
+test('load history schema permits passing and failed operational results', () => {
+    const failed = loadRun('v0.9.0');
+    failed.streams[0].passed = false;
+    failed.passed = false;
+    const history: LoadHistory = { version: 1, runs: [loadRun('v0.8.0'), failed] };
+
+    assert.doesNotThrow(() => assertHistoryMatchesSchema<LoadHistory>(
+        history,
+        loadHistorySchema,
+        [loadResultSchema],
+    ));
+});
+
+test('load history schema permits run and stream annotations', () => {
+    const annotated = loadRun('v0.9.0');
+    annotated.notes = ['Eager generation scheduling changed in this release.'];
+    annotated.streams[0].notes = ['Cached delivery improved after removing a metadata lookup.'];
+
+    assert.doesNotThrow(() => assertHistoryMatchesSchema<LoadHistory>(
+        { version: 1, runs: [annotated] },
+        loadHistorySchema,
+        [loadResultSchema],
+    ));
+});
+
+test('load history schema rejects blank annotations', () => {
+    const invalid = loadRun('v0.9.0');
+    invalid.notes = ['   '];
+
+    assert.throws(
+        () => assertHistoryMatchesSchema<LoadHistory>(
+            { version: 1, runs: [invalid] },
+            loadHistorySchema,
+            [loadResultSchema],
+        ),
+        /must match pattern/,
+    );
+});
+
 function release(runId: string, subject: string): PerformanceRelease {
     return {
         version: 1,
@@ -128,6 +181,48 @@ function result(workload: string, caseId: string): AggregatedResult {
             p99: 99,
             p95Min: 95,
             p95Max: 95,
+        },
+        passed: true,
+    };
+}
+
+function loadRun(subject: string): LoadRun {
+    return {
+        version: 1,
+        runId: `load-${subject}`,
+        profile: 'mixed-v1',
+        environment: 'local-compose-v2',
+        subject,
+        startedAt: '2026-08-05T00:00:00Z',
+        completedAt: '2026-08-05T00:15:00Z',
+        trafficDurationSeconds: 840,
+        peakRatePerMinute: 1,
+        targetOperations: 1,
+        operations: 1,
+        requests: 1,
+        errors: 0,
+        checks: { passed: 1, failed: 0 },
+        droppedIterations: 0,
+        streams: [{
+            id: 'cached-original',
+            workload: 'delivery.original.cached',
+            case: 'jpg-medium',
+            targetRatePerMinute: 1,
+            plannedOperations: 1,
+            operations: 1,
+            requests: 1,
+            errors: 0,
+            checks: { passed: 1, failed: 0 },
+            droppedIterations: 0,
+            durationMs: { p50: 1, p90: 1, p95: 1, p99: 1 },
+            passed: true,
+        }],
+        recovery: {
+            healthPassed: true,
+            eagerReady: true,
+            durationMs: 1,
+            checks: { passed: 1, failed: 0 },
+            passed: true,
         },
         passed: true,
     };

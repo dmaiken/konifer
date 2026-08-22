@@ -6,6 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
+import type { LoadCatalog } from '../k6/types.ts';
 import type { EnvironmentCatalog, WorkloadCatalog, WorkloadDefinition } from './types.ts';
 
 interface FixtureFile {
@@ -48,8 +49,9 @@ interface ExecutableWorkloadCatalog extends Omit<WorkloadCatalog, 'workloads'> {
 const performanceDirectory = fileURLToPath(new URL('../', import.meta.url));
 const assetsDirectory = path.join(performanceDirectory, 'assets');
 
-const [workloads, environments, manifest] = await Promise.all([
+const [workloads, load, environments, manifest] = await Promise.all([
     readJson<ExecutableWorkloadCatalog>('config/workloads.json'),
+    readJson<LoadCatalog>('config/load.json'),
     readJson<EnvironmentCatalog>('config/environments.json'),
     readJson<FixtureManifest>('assets/manifest.json'),
 ]);
@@ -57,6 +59,7 @@ const [workloads, environments, manifest] = await Promise.all([
 test('catalog documents match their JSON schemas', async (context) => {
     const documents = [
         ['workloads', workloads, 'schema/workloads.schema.json'],
+        ['load', load, 'schema/load-config.schema.json'],
         ['environments', environments, 'schema/environments.schema.json'],
         ['fixture manifest', manifest, 'schema/manifest.schema.json'],
     ] as const;
@@ -71,15 +74,32 @@ test('catalog documents match their JSON schemas', async (context) => {
 });
 
 test('published result schemas compile successfully', async () => {
-    const schemas = await Promise.all([
+    const [result, history, loadResult, loadHistory, workloadsSchema] = await Promise.all([
         readJson<Record<string, unknown>>('schema/result.schema.json'),
         readJson<Record<string, unknown>>('schema/history.schema.json'),
+        readJson<Record<string, unknown>>('schema/load-result.schema.json'),
+        readJson<Record<string, unknown>>('schema/load-history.schema.json'),
         readJson<Record<string, unknown>>('schema/workloads.schema.json'),
     ]);
 
-    for (const schema of schemas) {
+    for (const schema of [result, history, loadResult, workloadsSchema]) {
         assert.doesNotThrow(() => createValidator().compile(schema));
     }
+    const validator = createValidator();
+    validator.addSchema(loadResult);
+    assert.doesNotThrow(() => validator.compile(loadHistory));
+});
+
+test('mixed load profile references executable workloads and has valid stream rates', () => {
+    const profile = load.profiles[load.defaultProfile];
+    assert.ok(profile, `Unknown default load profile ${load.defaultProfile}`);
+    assert.equal(new Set(profile.streams.map((stream) => stream.id)).size, profile.streams.length);
+    assert.equal(new Set(profile.streams.map((stream) => stream.exec)).size, profile.streams.length);
+    for (const stream of profile.streams) {
+        assert.ok(stream.targetRate >= stream.startRate, `${stream.id} target rate must not be below its start rate`);
+        assertLoadReference(stream.workload, stream.case);
+    }
+    assertLoadReference(profile.recovery.workload, profile.recovery.case);
 });
 
 test('workload and suite references resolve', () => {
@@ -187,6 +207,13 @@ function assertFixtureFormat(
 ): void {
     if (!format) return;
     assert.ok(fixture.files[format], `${workloadId} ${field} references format ${format} missing from its fixture`);
+}
+
+function assertLoadReference(workloadId: string, caseId: string): void {
+    const workload = workloads.workloads[workloadId];
+    assert.ok(workload, `Load profile references unknown workload ${workloadId}`);
+    const cases = workload.cases?.map((value) => value.id) ?? [workload.case!];
+    assert.ok(cases.includes(caseId), `Load profile references unknown case ${workloadId}/${caseId}`);
 }
 
 function resolveWithin(parent: string, relativePath: string): string {

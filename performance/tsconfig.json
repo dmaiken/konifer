@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
     "allowImportingTsExtensions": true,
-    "checkJs": false,
     "erasableSyntaxOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -16,6 +15,6 @@
     "target": "ES2022",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "report/**/*.js", "report/**/*.ts", "report/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "report/**/*.ts", "report/**/*.tsx"],
   "exclude": ["dist", "node_modules"]
 }
