@@ -7,6 +7,7 @@ import type {
     SeriesPoint,
     WorkloadCatalog,
 } from './types.ts';
+import { compareReleaseRecords } from './release-version.ts';
 
 export const headlineSeries = [
     ['upload.original', 'jpg-medium'],
@@ -38,7 +39,7 @@ const workloadLabels: Record<string, string> = {
 export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[] {
     const values = new Map<string, LatestSeriesResult>();
     const latestPassing = new Map<string, AggregatedResult>();
-    const releases = [...(history.releases || [])].sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+    const releases = [...(history.releases || [])].sort(compareReleaseRecords);
 
     for (const release of releases) {
         for (const result of release.results) {
@@ -82,7 +83,7 @@ export function environmentsForHistory(
 
 export function pointsForSeries(history: PerformanceHistory, selected: Pick<LatestSeriesResult, 'environment' | 'workload' | 'case'>): SeriesPoint[] {
     return [...(history.releases || [])]
-        .sort((left, right) => left.completedAt.localeCompare(right.completedAt))
+        .sort(compareReleaseRecords)
         .flatMap((release) => {
             if (release.environment !== selected.environment) return [];
             return release.results

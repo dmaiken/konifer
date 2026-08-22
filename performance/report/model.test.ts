@@ -59,13 +59,13 @@ test('change styling distinguishes improvements, regressions, and neutral result
     assert.equal(changeClass(0), 'muted');
 });
 
-test('series points are chronological and environment-specific', () => {
+test('series points use release order and stay environment-specific when results are backfilled', () => {
     const history = {
         version: 1 as const,
         releases: [
             release('2026-03-01T00:00:00Z', 'v1.2.0', 'local', 120),
             release('2026-02-01T00:00:00Z', 'v1.1.0', 'aws', 50),
-            release('2026-01-01T00:00:00Z', 'v1.0.0', 'local', 100),
+            release('2026-04-01T00:00:00Z', 'v1.0.0', 'local', 100),
         ],
     };
     const selected = latestBySeries(history).find((value) => value.environment === 'local');

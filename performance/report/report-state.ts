@@ -6,6 +6,7 @@ import type {
     PerformanceHistory,
     PerformanceRelease,
 } from './types.ts';
+import { compareReleaseRecords, compareReleaseVersions } from './release-version.ts';
 
 export type ReportTab = 'benchmarks' | 'load';
 
@@ -51,7 +52,7 @@ export function reportSubjects(history: PerformanceHistory, loads: LoadHistory):
     }
     return [...subjects]
         .map(([subject, completedAt]) => ({ subject, completedAt }))
-        .sort((left, right) => right.completedAt.localeCompare(left.completedAt));
+        .sort((left, right) => compareReleaseVersions(right.subject, left.subject));
 }
 
 export function resolveReportState(
@@ -128,7 +129,7 @@ export function selectedLoadRun(loads: LoadHistory, state: ReportState): LoadRun
 export function newestLoadRun(loads: LoadHistory, environment: string | null): LoadRun | null {
     return [...loads.runs]
         .filter((value) => !environment || value.environment === environment)
-        .sort((left, right) => left.completedAt.localeCompare(right.completedAt))
+        .sort(compareReleaseRecords)
         .at(-1) ?? null;
 }
 

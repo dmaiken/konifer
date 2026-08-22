@@ -8,5 +8,5 @@
     "rootDir": "./report",
     "types": []
   },
-  "include": ["report/chart.ts", "report/load.ts", "report/model.ts", "report/report-state.ts", "report/report.ts", "report/types.ts"]
+  "include": ["report/chart.ts", "report/load.ts", "report/model.ts", "report/release-version.ts", "report/report-state.ts", "report/report.ts", "report/types.ts"]
 }

@@ -79,6 +79,27 @@ test('latest load comparison ignores failed latency and uses the last passing ba
     assert.equal(recoveredLatest.streams[0].changePercent, 20);
 });
 
+test('backfilled load runs use release versions for ordering and comparisons', () => {
+    const older = {
+        ...loadRun('v0.9.0', 'local', 'mixed-v1', 100),
+        completedAt: '2026-08-22T22:20:00Z',
+    };
+    const newer = {
+        ...loadRun('v0.10.0', 'local', 'mixed-v1', 80),
+        completedAt: '2026-08-22T21:28:00Z',
+    };
+    const history = updateLoadHistory(updateLoadHistory(emptyHistory(), newer), older);
+
+    assert.deepEqual(history.runs.map((value) => value.subject), ['v0.9.0', 'v0.10.0']);
+    const latest = latestLoadRuns(history)[0];
+    assert.equal(latest.subject, 'v0.10.0');
+    assert.equal(latest.streams[0].changePercent, -20);
+    assert.deepEqual(
+        loadPointsForStream(history, newer, newer.streams[0]).map((value) => value.subject),
+        ['v0.9.0', 'v0.10.0'],
+    );
+});
+
 test('selected load comparisons and charts stop at the selected release', () => {
     const first = { ...loadRun('v1.0.0', 'local', 'mixed-v1', 100), completedAt: '2026-01-01T00:15:00Z' };
     const failed = { ...loadRun('v1.1.0', 'local', 'mixed-v1', 900, false), completedAt: '2026-02-01T00:15:00Z' };

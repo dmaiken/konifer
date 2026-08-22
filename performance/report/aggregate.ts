@@ -4,6 +4,7 @@ import type {
     PerformanceHistory,
     PerformanceRelease,
 } from './types.ts';
+import { compareReleaseRecords } from './release-version.ts';
 
 const metricNames = ['p50', 'p90', 'p95', 'p99'] as const;
 
@@ -86,7 +87,7 @@ export function updateHistory(history: PerformanceHistory, aggregate: Performanc
     const annotatedAggregate = preserveNotes(existing, aggregate);
     const releases = (history.releases || []).filter((value) => value.runId !== aggregate.runId);
     releases.push(annotatedAggregate);
-    releases.sort((left, right) => left.completedAt.localeCompare(right.completedAt));
+    releases.sort(compareReleaseRecords);
     return { version: 1, releases };
 }
 
