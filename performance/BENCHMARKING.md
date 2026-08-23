@@ -161,7 +161,10 @@ case or workload ID.
 
 Raw run output is written below `performance/results/` and is intentionally
 ignored by Git. It includes one normalized JSON result per case and repetition,
-plus aggregate JSON and Markdown summaries for a completed run.
+one self-contained k6 HTML time-series report per release or mixed-load k6
+invocation, plus aggregate JSON and Markdown summaries for a completed run.
+Smoke invocations are too short to provide useful time-series reports and skip
+the HTML export.
 
 Customer-facing isolated history lives in `performance/history/releases.json`,
 and mixed-load history lives in `performance/history/loads.json`. History
