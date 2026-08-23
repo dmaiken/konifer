@@ -120,12 +120,6 @@ code {
     line-height: 1.65;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-    gap: 1rem;
-}
-
 .panel {
     margin: 1.15rem 0;
     padding: 1.4rem;
@@ -270,11 +264,6 @@ code {
     padding-left: 20px;
 }
 
-.chart-title {
-    color: var(--heading);
-    font-weight: 600;
-}
-
 .load-heading {
     color: var(--heading);
     font-size: 1.2rem;
@@ -343,13 +332,6 @@ code {
     border-radius: 50%;
 }
 
-.chart-value {
-    color: var(--heading);
-    font-size: 1.45rem;
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-}
-
 .muted,
 footer,
 .loading { color: var(--muted); }
@@ -384,6 +366,16 @@ footer,
 }
 
 .operation-label { font-weight: 600; }
+
+.operation-description {
+    min-width: 280px;
+    max-width: 420px;
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    white-space: normal;
+}
 
 .workload-description {
     max-width: 680px;
@@ -456,8 +448,6 @@ select:focus-visible {
 }
 
 .chart { width: 100%; min-width: 560px; height: auto; }
-.sparkline { width: 100%; height: 110px; }
-.axis { stroke: var(--line); }
 .grid-line { stroke: var(--line); stroke-dasharray: 3 5; }
 .axis-label { fill: var(--muted); font-family: var(--font-mono); font-size: 12px; }
 .trend-p50 { fill: none; stroke: var(--p50); stroke-width: 3; }
