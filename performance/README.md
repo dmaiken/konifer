@@ -139,6 +139,7 @@ Each run writes ignored, reproducible artifacts beneath its run directory:
 
 ```text
 performance/results/<run-id>/
+├── html/          # self-contained k6 time-series reports
 ├── raw/           # complete k6 summaries
 ├── normalized/    # one validated document per case and repetition
 ├── aggregate.json # repetition medians and p95 variability
@@ -146,8 +147,12 @@ performance/results/<run-id>/
 ```
 
 Load runs use the same directory shape, with one `normalized/load.json`
-document. Their Markdown report and aggregate describe the traffic mix rather
-than repetition medians.
+document and one `html/load.html` report. Release suites write one HTML report
+per workload, case, and repetition. Smoke runs skip HTML export because their
+short duration does not provide a useful time series. Open the self-contained
+reports directly in a browser to inspect request volume, latency, failures, and
+other k6 metrics over time. The runner records dashboard samples every second
+and disables the live dashboard listener so unattended runs exit normally.
 
 Regenerate an existing run's aggregate and Markdown report with:
 

@@ -812,7 +812,10 @@
             "p95Min": 132.3826703,
             "p95Max": 181.50607779999999
           },
-          "passed": true
+          "passed": true,
+          "notes": [
+            "libvips does not support streamable output option in libjxl 0.12.0, so more output buffering is required."
+          ]
         },
         {
           "workload": "format.encode",

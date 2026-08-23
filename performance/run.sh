@@ -215,6 +215,22 @@ wait_for_konifer() {
   return 1
 }
 
+run_k6() {
+  local html_report_path=$1
+  shift
+
+  if [[ $suite == "smoke" ]]; then
+    k6 run "$@"
+    return
+  fi
+
+  K6_WEB_DASHBOARD=true \
+    K6_WEB_DASHBOARD_PORT=-1 \
+    K6_WEB_DASHBOARD_PERIOD=1s \
+    K6_WEB_DASHBOARD_EXPORT="$html_report_path" \
+    k6 run "$@"
+}
+
 validate_fixtures
 validate_models
 
@@ -259,6 +275,9 @@ fi
 echo "Benchmark subject: $subject"
 result_dir="$performance_dir/results/$run_id"
 mkdir -p "$result_dir/raw" "$result_dir/normalized"
+if [[ $suite != "smoke" ]]; then
+  mkdir -p "$result_dir/html"
+fi
 
 cleanup_assets() {
   local cleanup_failed=false
@@ -325,6 +344,7 @@ trap cleanup_on_exit EXIT
 
 if [[ $suite == "load" ]]; then
   load_profile=$(jq -r '.defaultProfile' config/load.json)
+  html_report_path="$result_dir/html/load.html"
   normalized_path="$result_dir/normalized/load.json"
   raw_path="$result_dir/raw/load.json"
   started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -333,7 +353,7 @@ if [[ $suite == "load" ]]; then
   k6_status=0
 
   echo "Running load profile $load_profile"
-  k6 run \
+  run_k6 "$html_report_path" \
     -e "LOAD_PROFILE=$load_profile" \
     -e "RUN_ID=$run_id" \
     -e "ENVIRONMENT=$environment" \
@@ -387,6 +407,7 @@ for workload in "${workloads[@]}"; do
 
       safe_workload=${workload//./-}
       result_name="$safe_workload--$case_id--$repetition.json"
+      html_report_path="$result_dir/html/${result_name%.json}.html"
       normalized_path="$result_dir/normalized/$result_name"
       raw_path="$result_dir/raw/$result_name"
       started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -394,7 +415,7 @@ for workload in "${workloads[@]}"; do
       echo "Running $suite $workload/$case_id repetition $repetition/$repetitions"
       cleanup_pending=true
       k6_status=0
-      k6 run \
+      run_k6 "$html_report_path" \
         -e "SUITE=$suite" \
         -e "WORKLOAD=$workload" \
         -e "CASE=$case_id" \
