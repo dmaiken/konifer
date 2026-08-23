@@ -304,7 +304,7 @@ definition, and result checks.
 
 ## Local reference environment
 
-`local-compose-v2` runs on the developer laptop described in
+`local-compose-v2` runs on my (Daniel) laptop described in
 `config/environments.json`. Konifer is limited to 2 CPUs and 8 GiB; PostgreSQL
 and MinIO are each limited to 1 CPU and 1 GiB. Konifer uses a Docker-managed,
 disk-backed `/app/tmp` volume, and the SigLIP2 model is mounted read-only.

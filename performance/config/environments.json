@@ -2,8 +2,8 @@
   "default": "local-compose-v2",
   "profiles": {
     "local-compose-v2": {
-      "displayName": "Local developer laptop",
-      "description": "Provisional reference environment for release-over-release development measurements on a single laptop. It is not representative of production server capacity.",
+      "displayName": "Daniel's laptop",
+      "description": "Reference environment for release-over-release benchmarks. It is not representative of production server capacity.",
       "hardware": {
         "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
         "architecture": "x86_64",

@@ -258,15 +258,21 @@ bounded workers so expensive transformations do not overwhelm the service.
 
 The full documentation is available at [konifer.io](https://konifer.io/).
 
+Release-over-release latency and mixed-load results are available in the
+[interactive performance report](https://dmaiken.github.io/konifer/performance/report/).
+
+> [!NOTE] 
+> Performance testing on AWS hardware is on the road map and will replace a laptop as the testing hardware.
+
 Useful starting points:
 
-- Getting started
-- Asset storage and retrieval concepts
-- Path configuration
-- Image transformation reference
-- Storage configuration
-- URL signing
-- HTTP caching
+- [Getting started](https://konifer.io/docs/start-here/getting-started)
+- [Path configuration](https://konifer.io/docs/concepts/concepts-path-configuration)
+- [Asset storage and retrieval concepts](https://konifer.io/docs/concepts/Assets/concepts-assets)
+- [Image transformation reference](https://konifer.io/docs/reference/image-transformation-reference)
+- [Storage configuration](https://konifer.io/docs/reference/reference-variant-storage)
+- [HTTP caching](https://konifer.io/docs/reference/http-caching)
+- [URL signing](https://konifer.io/docs/reference/url-signing)
 
 ## Running With Docker Compose
 

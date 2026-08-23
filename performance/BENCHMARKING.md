@@ -186,7 +186,7 @@ keeps its release position even though its measurement timestamp is newer.
 
 ## Local environment interpretation
 
-The `local-compose-v2` environment represents the developer laptop described in
+The `local-compose-v2` environment represents my laptop described in
 `config/environments.json`. Its hardware description and interpretation notes
 are rendered at the top of the report. Docker resource limits are part of that
 profile, and Konifer uses a Docker-managed, disk-backed temporary volume rather
