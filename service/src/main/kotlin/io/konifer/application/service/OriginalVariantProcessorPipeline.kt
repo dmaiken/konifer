@@ -12,6 +12,7 @@ import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.TransformationValidator
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ProcessingPipeline
@@ -209,15 +210,21 @@ class OriginalVariantProcessorPipeline(
 
                 transformation =
                     runBlocking {
-                        transformationNormalizer.normalize(
-                            requested = requestedTransformation,
-                            originalVariantAttributes =
-                                Attributes.createAttributes(
-                                    image = image,
-                                    sourceFormat = sourceFormat,
-                                    destinationFormat = destinationFormat,
-                                ),
-                        )
+                        transformationNormalizer
+                            .normalize(
+                                requested = requestedTransformation,
+                                originalVariantAttributes =
+                                    Attributes.createAttributes(
+                                        image = image,
+                                        sourceFormat = sourceFormat,
+                                        destinationFormat = destinationFormat,
+                                    ),
+                            ).also { normalized ->
+                                TransformationValidator.validateNormalizedTransformation(
+                                    transformProperties = context.pathConfiguration.transform,
+                                    transformation = normalized,
+                                )
+                            }
                     }
             }
             checkNotNull(transformation)

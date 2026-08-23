@@ -13,6 +13,7 @@ import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.TransformationValidator
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -42,6 +43,12 @@ class VariantService(
                 requested = requestedTransformations,
                 originalVariantAttributes = originalVariantAttributes,
             )
+        transformations.forEach { transformation ->
+            TransformationValidator.validateNormalizedTransformation(
+                transformProperties = pathConfiguration.transform,
+                transformation = transformation,
+            )
+        }
         generateVariants(
             originalVariantFile = originalVariantFile,
             transformations = transformations,

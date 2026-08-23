@@ -8,6 +8,7 @@ import io.konifer.client.fold
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
+import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
@@ -15,6 +16,7 @@ import io.konifer.util.fetchAssetInfo
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
@@ -24,9 +26,58 @@ import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import kotlin.test.junit.JUnitAsserter.fail
 
 class EagerVariantTest : BaseFunctionalTest() {
+    @Test
+    fun `eager variants cannot exceed path transformation limits`() =
+        testInMemory(
+            """
+            variant-profiles {
+              oversized {
+                w = 15
+              }
+            }
+            paths {
+              "/users/**" {
+                transform {
+                  eager-variants = [oversized]
+                  limits {
+                    max-width = 14
+                  }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = testImage()
+            konifer()
+                .storeAsset(
+                    path = "users/123",
+                    format = attributes.format,
+                    request = StoreAssetRequest(),
+                    bytes = image,
+                ).fold(
+                    onSuccess = { storeResponse ->
+                        storeResponse.variants shouldHaveSize 1
+
+                        // The eager source is deleted only after the event listener finishes handling the asset.
+                        await().untilAsserted {
+                            Files.walk(TemporaryFileFactory.tempDir).use { files ->
+                                files
+                                    .filter { Files.isRegularFile(it) }
+                                    .toList()
+                                    .shouldBeEmpty()
+                            }
+                        }
+
+                        fetchAssetInfo(client, "users/123")!!.variants shouldHaveSize 1
+                    },
+                    onError = { _, _, _ -> fail("Request failed") },
+                )
+        }
+
     @Test
     fun `can store asset and eager variants are generated`() =
         testInMemory(

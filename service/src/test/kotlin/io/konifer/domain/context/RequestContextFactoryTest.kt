@@ -19,6 +19,7 @@ import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
@@ -829,6 +830,41 @@ class RequestContextFactoryTest : BaseUnitTest() {
             context.transformation shouldBe transformation
             context.labels shouldBe emptyMap()
         }
+
+        @Test
+        fun `normalized dimensions must satisfy path transformation limits`() =
+            runTest {
+                storePersistedAsset(
+                    width = 100,
+                    height = 200,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                every {
+                    pathConfigurationRepository.fetch(path = "/profile/")
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                limits = LimitProperties(maxHeight = 199),
+                            ),
+                    )
+
+                val exception =
+                    shouldThrow<IllegalArgumentException> {
+                        requestContextFactory.fromFetchRequest(
+                            path = "/assets/profile/-/content/",
+                            headers = HeadersBuilder().build(),
+                            queryParameters =
+                                ParametersBuilder()
+                                    .apply {
+                                        append("w", "100")
+                                    }.build(),
+                        )
+                    }
+
+                exception.message shouldBe "Height 200 must not exceed 199"
+            }
 
         @Test
         fun `cannot create GET context if requesting metadata with image attributes`() =
