@@ -1,4 +1,4 @@
-import { layoutHistoryChart, layoutSparkline, linePath } from './chart.ts';
+import { layoutHistoryChart, linePath } from './chart.ts';
 import {
     formatCompletion,
     formatRate,
@@ -345,14 +345,13 @@ function benchmarkContent(
 
     content.append(
         sectionIntro(
-            'Benchmark latency',
+            'Isolated benchmark latency',
             'Controlled workloads isolate common customer operations so release-over-release latency changes remain easy to attribute.',
         ),
-        ...(common.length > 0 ? [headlineGrid(scopedHistory, common, workloads)] : []),
-        ...(latest.length > 0 ? [seriesExplorer(scopedHistory, latest, workloads)] : []),
         resultTable('Common workflows', common, workloads),
         resultTable('Format encoding', encode, workloads),
         resultTable('Format decoding', decode, workloads),
+        ...(latest.length > 0 ? [seriesExplorer(scopedHistory, latest, workloads)] : []),
     );
     return content;
 }
@@ -361,35 +360,6 @@ function sectionIntro(title: string, description: string): HTMLElement {
     const header = element('header', 'section-intro');
     header.append(element('h2', '', title), element('p', '', description));
     return header;
-}
-
-function headlineGrid(
-    history: PerformanceHistory,
-    values: LatestSeriesResult[],
-    workloads: WorkloadCatalog,
-): HTMLElement {
-    const grid = element('section', 'grid');
-    for (const value of values) {
-        const card = element('article', 'panel');
-        if (!value.passed) card.classList.add('failed-result');
-        const change = element(
-            'div',
-            value.passed ? changeClass(value.changePercent) : 'regression',
-            value.passed ? formatDisplayedChange(value) : 'No latency published',
-        );
-        const description = workloadDescription(value, workloads);
-        card.append(
-            element('div', 'chart-title', workloadLabel(value)),
-            element('div', 'result-case', value.case),
-            ...(description ? [element('p', 'workload-description', description)] : []),
-            element('div', 'chart-value', value.passed ? `${formatMs(value.durationMs.p95)} p95` : 'Failed to complete'),
-            change,
-            ...(value.notes?.length ? [notesList(value.notes)] : []),
-            sparkline(pointsForSeries(history, value)),
-        );
-        grid.append(card);
-    }
-    return grid;
 }
 
 function seriesExplorer(
@@ -638,20 +608,6 @@ function historyChart(points: SeriesPoint[], options: HistoryChartOptions = {}):
     return svg;
 }
 
-function sparkline(points: SeriesPoint[]): SVGSVGElement {
-    const width = 500;
-    const height = 90;
-    const padding = 8;
-    const coordinates = layoutSparkline(points, width, height, padding);
-    const svg = svgElement('svg', { class: 'sparkline', viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': 'p95 latency history' });
-    svg.append(
-        svgElement('line', { class: 'axis', x1: 0, y1: height - 1, x2: width, y2: height - 1 }),
-        svgElement('path', { class: 'trend-p95', d: linePath(coordinates, (value) => value.y) }),
-    );
-    coordinates.forEach((point) => svg.append(metricPoint({ ...point, y95: point.y }, 'p95', 'y95')));
-    return svg;
-}
-
 function metricPoint(
     point: DrawableMetricPoint,
     metric: 'p50' | 'p95',
@@ -683,7 +639,7 @@ function resultTable(
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors', 'Dropped'];
+    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors / dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -692,7 +648,8 @@ function resultTable(
     for (const value of results) {
         const row = document.createElement('tr');
         if (!value.passed) row.classList.add('failed-result');
-        row.append(operationCell(value));
+        const description = workloadIds.size > 1 ? workloadDescription(value, workloads) : null;
+        row.append(operationCell(value, description));
         const measurements = value.passed
             ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
             : ['—', '—', '—'];
@@ -702,8 +659,7 @@ function resultTable(
             { value: value.repetitions },
             { value: value.passed ? formatDisplayedChange(value) : '—', className: value.passed ? changeClass(value.changePercent) : 'muted' },
             { value: value.operations },
-            { value: value.errors },
-            { value: value.droppedIterations },
+            { value: `${value.errors} / ${value.droppedIterations}` },
         ];
         cells.forEach((cell) => row.append(element('td', cell.className || '', String(cell.value))));
         body.append(row);
@@ -716,7 +672,7 @@ function resultTable(
 function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     const table = document.createElement('table');
     const header = document.createElement('tr');
-    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'Change', 'Errors', 'Dropped']
+    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'Change', 'Errors / dropped']
         .forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
     head.append(header);
@@ -731,8 +687,7 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
             { value: `${stream.operations}/${stream.plannedOperations}` },
             { value: stream.passed ? formatMs(stream.durationMs.p95) : '—' },
             { value: stream.passed ? formatDisplayedChange(stream) : '—', className: stream.passed ? changeClass(stream.changePercent) : 'muted' },
-            { value: stream.errors },
-            { value: stream.droppedIterations },
+            { value: `${stream.errors} / ${stream.droppedIterations}` },
         ];
         cells.forEach((cell) => row.append(element('td', cell.className || '', String(cell.value))));
         body.append(row);
@@ -743,11 +698,13 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
 
 function operationCell(
     value: Pick<AggregatedResult, 'workload' | 'case' | 'notes'>,
+    description: string | null = null,
 ): HTMLTableCellElement {
     const cell = element('td', 'operation');
     cell.append(
         element('div', 'operation-label', workloadLabel(value)),
         element('div', 'result-case', value.case),
+        ...(description ? [element('p', 'operation-description', description)] : []),
         ...(value.notes?.length ? [notesList(value.notes)] : []),
     );
     return cell;
