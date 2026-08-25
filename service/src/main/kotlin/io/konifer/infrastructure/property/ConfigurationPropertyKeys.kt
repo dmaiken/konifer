@@ -105,6 +105,7 @@ object ConfigurationPropertyKeys {
             const val EAGER_VARIANTS = "eager-variants"
             const val ON_DEMAND_VARIANT = "on-demand-variant"
             const val EXPIRE = "expire"
+            const val LIMITS = "limits"
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
@@ -123,6 +124,12 @@ object ConfigurationPropertyKeys {
             object ExpirePropertyKeys {
                 const val STRATEGY = "strategy"
                 const val TTL = "ttl"
+            }
+
+            object LimitsPropertyKeys {
+                const val MAX_WIDTH = "max-width"
+                const val MAX_HEIGHT = "max-height"
+                const val MAX_PIXELS = "max-pixels"
             }
         }
 

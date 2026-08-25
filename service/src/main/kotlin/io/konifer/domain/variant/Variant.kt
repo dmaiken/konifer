@@ -2,6 +2,7 @@ package io.konifer.domain.variant
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.transformation.Transformation
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 import java.util.UUID

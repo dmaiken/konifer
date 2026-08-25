@@ -16,11 +16,14 @@ import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
+import io.konifer.domain.transformation.InvalidTransformationException
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
-import io.konifer.domain.variant.Transformation
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -467,8 +470,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("format", "png")
                         }.build(),
                     Transformation(
-                        width = 10,
-                        height = 20,
+                        width = 10.toDimension(),
+                        height = 20.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -481,8 +484,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("h", "20")
                         }.build(),
                     Transformation(
-                        width = 10,
-                        height = 20,
+                        width = 10.toDimension(),
+                        height = 20.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -494,8 +497,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("w", "10")
                         }.build(),
                     Transformation(
-                        width = 10,
-                        height = 10,
+                        width = 10.toDimension(),
+                        height = 10.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -507,8 +510,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("format", "jpg")
                         }.build(),
                     Transformation(
-                        width = 100,
-                        height = 100,
+                        width = 100.toDimension(),
+                        height = 100.toDimension(),
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -718,8 +721,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100
-                context.transformation?.width shouldBe 500
+                context.transformation?.height shouldBe 100.toDimension()
+                context.transformation?.width shouldBe 500.toDimension()
                 context.transformation?.format shouldBe ImageFormat.JPEG
                 context.labels shouldBe emptyMap()
             }
@@ -830,6 +833,41 @@ class RequestContextFactoryTest : BaseUnitTest() {
         }
 
         @Test
+        fun `normalized dimensions must satisfy path transformation limits`() =
+            runTest {
+                storePersistedAsset(
+                    width = 100,
+                    height = 200,
+                    format = ImageFormat.PNG,
+                    path = "/profile/",
+                )
+                every {
+                    pathConfigurationRepository.fetch(path = "/profile/")
+                } returns
+                    PathConfiguration(
+                        transform =
+                            TransformProperties(
+                                limits = LimitProperties(maxHeight = 199.toDimension()),
+                            ),
+                    )
+
+                val exception =
+                    shouldThrow<InvalidTransformationException> {
+                        requestContextFactory.fromFetchRequest(
+                            path = "/assets/profile/-/content/",
+                            headers = HeadersBuilder().build(),
+                            queryParameters =
+                                ParametersBuilder()
+                                    .apply {
+                                        append("w", "100")
+                                    }.build(),
+                        )
+                    }
+
+                exception.message shouldBe "Height 200 must not exceed 199"
+            }
+
+        @Test
         fun `cannot create GET context if requesting metadata with image attributes`() =
             runTest {
                 val parameters =
@@ -917,8 +955,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100
-                context.transformation?.width shouldBe 500
+                context.transformation?.height shouldBe 100.toDimension()
+                context.transformation?.width shouldBe 500.toDimension()
                 context.transformation?.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainExactly
                     mapOf(
@@ -954,8 +992,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100
-                context.transformation?.width shouldBe 500
+                context.transformation?.height shouldBe 100.toDimension()
+                context.transformation?.width shouldBe 500.toDimension()
                 context.transformation?.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
@@ -988,8 +1026,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100
-                context.transformation?.width shouldBe 500
+                context.transformation?.height shouldBe 100.toDimension()
+                context.transformation?.width shouldBe 500.toDimension()
                 context.transformation?.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
@@ -1220,8 +1258,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     variantProfileRepository.fetch(profileName = "thumbnail")
                 } returns
                     RequestedTransformation(
-                        width = 100,
-                        height = 100,
+                        width = 100.toDimension(),
+                        height = 100.toDimension(),
                         format = ImageFormat.JPEG,
                     )
                 shouldNotThrowAny {

@@ -5,8 +5,9 @@ import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.MetadataTransformation
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.MetadataTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
@@ -25,8 +26,8 @@ class StripMetadataTest {
                 val source = VImage.newFromBytes(arena, image)
                 val transformation =
                     Transformation(
-                        width = source.width,
-                        height = source.height,
+                        width = source.width.toDimension(),
+                        height = source.height.toDimension(),
                         format = ImageFormat.JPEG,
                         metadata = MetadataTransformation(strip = setOf(MetadataType.EXIF)),
                         colorSpace = ColorSpace.SRGB,
@@ -49,8 +50,8 @@ class StripMetadataTest {
                 val source = VImage.newFromBytes(arena, image)
                 val transformation =
                     Transformation(
-                        width = source.width,
-                        height = source.height,
+                        width = source.width.toDimension(),
+                        height = source.height.toDimension(),
                         format = ImageFormat.JPEG,
                         metadata = MetadataTransformation(strip = emptySet()),
                         colorSpace = ColorSpace.SRGB,
@@ -85,8 +86,8 @@ class StripMetadataTest {
                         source = source,
                         transformation =
                             Transformation(
-                                width = source.width,
-                                height = source.height,
+                                width = source.width.toDimension(),
+                                height = source.height.toDimension(),
                                 format = ImageFormat.JPEG,
                                 metadata =
                                     MetadataTransformation(
@@ -119,8 +120,8 @@ class StripMetadataTest {
                         source = source,
                         transformation =
                             Transformation(
-                                width = source.width,
-                                height = source.height,
+                                width = source.width.toDimension(),
+                                height = source.height.toDimension(),
                                 format = ImageFormat.JPEG,
                                 metadata =
                                     MetadataTransformation(
@@ -153,8 +154,8 @@ class StripMetadataTest {
                         source = source,
                         transformation =
                             Transformation(
-                                width = source.width,
-                                height = source.height,
+                                width = source.width.toDimension(),
+                                height = source.height.toDimension(),
                                 format = ImageFormat.JPEG,
                                 metadata =
                                     MetadataTransformation(
@@ -192,8 +193,8 @@ class StripMetadataTest {
                             arena = arena,
                             source = source,
                             Transformation(
-                                width = source.width,
-                                height = source.height,
+                                width = source.width.toDimension(),
+                                height = source.height.toDimension(),
                                 format = ImageFormat.JPEG,
                                 metadata =
                                     MetadataTransformation(
@@ -223,8 +224,8 @@ class StripMetadataTest {
                         arena = arena,
                         source = source,
                         Transformation(
-                            width = source.width,
-                            height = source.height,
+                            width = source.width.toDimension(),
+                            height = source.height.toDimension(),
                             format = ImageFormat.JPEG,
                             metadata =
                                 MetadataTransformation(

@@ -9,6 +9,10 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.transformation.Blur
+import io.konifer.domain.transformation.Dimension
+import io.konifer.domain.transformation.PaddingAmount
+import io.konifer.domain.transformation.Quality
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -18,9 +22,9 @@ data class RequestedTransformation(
     @Transient
     val originalVariant: Boolean = false,
     @SerialName(ManipulationParameters.WIDTH)
-    val width: Int? = null,
+    val width: Dimension? = null,
     @SerialName(ManipulationParameters.HEIGHT)
-    val height: Int? = null,
+    val height: Dimension? = null,
     @SerialName(ManipulationParameters.FORMAT)
     val format: ImageFormat? = null,
     @SerialName(ManipulationParameters.FIT)
@@ -36,11 +40,11 @@ data class RequestedTransformation(
     @SerialName(ManipulationParameters.FILTER)
     val filter: Filter = Filter.default,
     @SerialName(ManipulationParameters.BLUR)
-    val blur: Int? = null,
+    val blur: Blur? = null,
     @SerialName(ManipulationParameters.QUALITY)
-    val quality: Int? = null,
+    val quality: Quality? = null,
     @SerialName(ManipulationParameters.PAD)
-    val pad: Int? = null,
+    val pad: PaddingAmount? = null,
     @SerialName(ManipulationParameters.PAD_COLOR)
     val padColor: String? = null,
     @SerialName(ManipulationParameters.STRIP)
@@ -59,23 +63,10 @@ data class RequestedTransformation(
             )
     }
 
-    /**
-     * This gives us validation of eager variants at startup. There may be duplication between this and the
-     * validation logic in the [io.konifer.domain.transformation.TransformationNormalizer].
-     */
+    /** Validates relationships and structured values that are not owned by the numeric value classes. */
     private fun validate() {
         if (originalVariant) {
             return
-        }
-        if (width != null) {
-            require(width >= 1) {
-                "Width cannot be < 1"
-            }
-        }
-        if (height != null) {
-            require(height >= 1) {
-                "Height cannot be < 1"
-            }
         }
         when (fit) {
             Fit.FIT -> {}
@@ -83,21 +74,6 @@ data class RequestedTransformation(
                 require(height != null && width != null) {
                     "Height or width must be supplied for fit: $fit"
                 }
-            }
-        }
-        if (blur != null) {
-            require(blur in 0..150) {
-                "Blur must be between 0 and 150"
-            }
-        }
-        if (quality != null) {
-            require(quality in 1..100) {
-                "Quality must be between 1 and 100"
-            }
-        }
-        if (pad != null) {
-            require(pad >= 0) {
-                "Pad must not be negative"
             }
         }
         if (padColor != null) {

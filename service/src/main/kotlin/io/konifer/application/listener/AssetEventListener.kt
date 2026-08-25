@@ -25,7 +25,7 @@ class AssetEventListener(
     init {
         applicationScope.launch {
             bus.events.collect { event ->
-                launch {
+                this@launch.launch {
                     runCatching {
                         handle(event)
                     }.onFailure { e ->

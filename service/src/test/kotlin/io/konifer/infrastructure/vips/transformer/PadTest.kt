@@ -7,8 +7,10 @@ import app.photofox.vipsffm.enums.VipsExtend
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.PaddingTransformation
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.PaddingTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
@@ -370,12 +372,12 @@ class PadTest {
         format: ImageFormat = ImageFormat.PNG,
         colorSpace: ColorSpace? = null,
     ) = Transformation(
-        height = 10,
-        width = 10,
+        height = 10.toDimension(),
+        width = 10.toDimension(),
         format = format,
         padding =
             PaddingTransformation(
-                amount = pad,
+                amount = pad.toPaddingAmount(),
                 color = color,
             ),
         colorSpace = colorSpace ?: ColorSpace.SRGB,

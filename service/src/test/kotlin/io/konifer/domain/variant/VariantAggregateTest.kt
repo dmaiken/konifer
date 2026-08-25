@@ -3,6 +3,8 @@ package io.konifer.domain.variant
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.kotest.assertions.throwables.shouldThrow
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -20,8 +22,8 @@ class VariantAggregateTest {
                 isOriginalVariant = true,
                 attributes =
                     Attributes(
-                        width = 10,
-                        height = 10,
+                        width = 10.toDimension(),
+                        height = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     ),
@@ -45,8 +47,8 @@ class VariantAggregateTest {
                 isOriginalVariant = true,
                 attributes =
                     Attributes(
-                        width = 10,
-                        height = 10,
+                        width = 10.toDimension(),
+                        height = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     ),

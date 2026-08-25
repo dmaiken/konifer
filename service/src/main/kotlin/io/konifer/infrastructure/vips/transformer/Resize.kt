@@ -4,7 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsSize
 import io.konifer.common.image.Fit
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.DimensionCalculator.calculateDimensions
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
@@ -54,8 +54,8 @@ object Resize : VipsTransformer {
         val (calculatedWidth, calculatedHeight) =
             calculateDimensions(
                 source,
-                transformation.width,
-                transformation.height,
+                transformation.width.value,
+                transformation.height.value,
                 transformation.fit,
             )
 

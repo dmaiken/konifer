@@ -30,9 +30,16 @@ import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
+import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.TransformationValidator
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -103,13 +110,12 @@ class RequestContextFactory(
             pathConfiguration = pathConfiguration,
             selectors = querySelectors,
             transformation =
-                requestedTransformation?.let {
-                    transformationNormalizer.normalize(
-                        treePath = segments.first(),
-                        entryId = querySelectors.entryId,
-                        requested = it,
-                    )
-                },
+                normalizeRequestedTransformation(
+                    requestedTransformation = requestedTransformation,
+                    pathConfiguration = pathConfiguration,
+                    treePath = segments.first(),
+                    entryId = querySelectors.entryId,
+                ),
             labels = extractLabels(queryParameters),
             request =
                 HttpRequest(
@@ -204,17 +210,17 @@ class RequestContextFactory(
             RequestedTransformation.ORIGINAL_VARIANT
         } else {
             RequestedTransformation(
-                width = parameters[WIDTH]?.toInt() ?: variantProfile?.width,
-                height = parameters[HEIGHT]?.toInt() ?: variantProfile?.height,
+                width = parameters[WIDTH]?.toInt()?.toDimension() ?: variantProfile?.width,
+                height = parameters[HEIGHT]?.toInt()?.toDimension() ?: variantProfile?.height,
                 format = requestedFormat,
                 fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                 gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
                 rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                 flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                 filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
-                blur = parameters[BLUR]?.toInt() ?: variantProfile?.blur,
-                quality = parameters[QUALITY]?.toInt() ?: variantProfile?.quality,
-                pad = parameters[PAD]?.toInt() ?: variantProfile?.pad,
+                blur = parameters[BLUR]?.toInt()?.toBlur() ?: variantProfile?.blur,
+                quality = parameters[QUALITY]?.toInt()?.toQuality() ?: variantProfile?.quality,
+                pad = parameters[PAD]?.toInt()?.toPaddingAmount() ?: variantProfile?.pad,
                 padColor = parameters[PAD_COLOR] ?: variantProfile?.padColor,
                 stripMetadata = parameters[STRIP] ?: variantProfile?.stripMetadata,
                 colorSpace =
@@ -269,5 +275,26 @@ class RequestContextFactory(
                 else -> null
             }
         }
+    }
+
+    private suspend fun normalizeRequestedTransformation(
+        requestedTransformation: RequestedTransformation?,
+        pathConfiguration: PathConfiguration,
+        treePath: String,
+        entryId: Long?,
+    ): Transformation? {
+        if (requestedTransformation == null) return null
+
+        return transformationNormalizer
+            .normalize(
+                requested = requestedTransformation,
+                treePath = treePath,
+                entryId = entryId,
+            ).also { normalized ->
+                TransformationValidator.validateNormalizedTransformation(
+                    transformProperties = pathConfiguration.transform,
+                    transformation = normalized,
+                )
+            }
     }
 }

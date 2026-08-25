@@ -2,7 +2,7 @@ package io.konifer.domain.context
 
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.ktor.http.Parameters
 
 data class QueryRequestContext(

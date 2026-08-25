@@ -7,7 +7,9 @@ import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.PHash
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
 import io.konifer.matchers.shouldHaveSamePixelContentAs
 import io.konifer.writeToTestStream
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
@@ -194,10 +196,10 @@ class GaussianBlurTest {
 
     private fun blurTransformation(blur: Int) =
         Transformation(
-            height = 10,
-            width = 10,
+            height = 10.toDimension(),
+            width = 10.toDimension(),
             format = ImageFormat.PNG,
-            blur = blur,
+            blur = blur.toBlur(),
             colorSpace = ColorSpace.SRGB,
         )
 }

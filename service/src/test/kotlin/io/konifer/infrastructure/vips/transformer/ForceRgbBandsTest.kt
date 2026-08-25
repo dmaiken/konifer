@@ -4,7 +4,8 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
@@ -110,8 +111,8 @@ class ForceRgbBandsTest {
     private companion object {
         val transformation =
             Transformation(
-                width = 2,
-                height = 2,
+                width = 2.toDimension(),
+                height = 2.toDimension(),
                 format = ImageFormat.PNG,
                 colorSpace = ColorSpace.SRGB,
             )

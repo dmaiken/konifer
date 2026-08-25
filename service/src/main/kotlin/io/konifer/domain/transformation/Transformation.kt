@@ -1,4 +1,4 @@
-package io.konifer.domain.variant
+package io.konifer.domain.transformation
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -12,8 +12,8 @@ import kotlin.collections.emptyList
 
 data class Transformation(
     val originalVariant: Boolean = false,
-    val width: Int,
-    val height: Int,
+    val width: Dimension,
+    val height: Dimension,
     val fit: Fit = Fit.default,
     val gravity: Gravity = Gravity.default,
     val canUpscale: Boolean = true,
@@ -24,8 +24,8 @@ data class Transformation(
     val rotate: Rotate = Rotate.default,
     val horizontalFlip: Boolean = false,
     val filter: Filter = Filter.default,
-    val blur: Int = 0,
-    val quality: Int = format.vipsProperties.defaultQuality,
+    val blur: Blur = 0.toBlur(),
+    val quality: Quality = format.vipsProperties.defaultQuality.toQuality(),
     val colorSpace: ColorSpace,
     /**
      * Whether the customer explicitly requested this color space or if it was derived from the
@@ -40,8 +40,8 @@ data class Transformation(
         val ORIGINAL_VARIANT =
             Transformation(
                 originalVariant = true,
-                width = 1,
-                height = 1,
+                width = 1.toDimension(),
+                height = 1.toDimension(),
                 format = ImageFormat.PNG,
                 colorSpace = ColorSpace.SRGB,
                 isColorSpaceLocked = false,
@@ -70,12 +70,12 @@ data class Transformation(
 
     override fun hashCode(): Int {
         var result = originalVariant.hashCode()
-        result = 31 * result + width
-        result = 31 * result + height
+        result = 31 * result + width.value
+        result = 31 * result + height.value
         result = 31 * result + canUpscale.hashCode()
         result = 31 * result + horizontalFlip.hashCode()
-        result = 31 * result + blur
-        result = 31 * result + quality
+        result = 31 * result + blur.value
+        result = 31 * result + quality.value
         result = 31 * result + fit.hashCode()
         result = 31 * result + gravity.hashCode()
         result = 31 * result + format.hashCode()
@@ -88,13 +88,13 @@ data class Transformation(
 }
 
 data class PaddingTransformation(
-    val amount: Int,
+    val amount: PaddingAmount,
     val color: List<Int>,
 ) {
     companion object Factory {
         val default =
             PaddingTransformation(
-                amount = 0,
+                amount = 0.toPaddingAmount(),
                 color = emptyList(),
             )
     }

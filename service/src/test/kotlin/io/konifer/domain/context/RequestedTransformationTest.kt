@@ -3,6 +3,7 @@ package io.konifer.domain.context
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.transformation.toDimension
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -23,7 +24,7 @@ class RequestedTransformationTest {
                 )
             }
         requested.fit shouldBe Fit.FIT
-        requested.height shouldBe 200
+        requested.height shouldBe 200.toDimension()
         requested.format shouldBe ImageFormat.PNG
     }
 
@@ -38,7 +39,7 @@ class RequestedTransformationTest {
                 )
             }
         normalized.fit shouldBe Fit.FIT
-        normalized.width shouldBe 200
+        normalized.width shouldBe 200.toDimension()
         normalized.format shouldBe ImageFormat.PNG
     }
 
@@ -52,61 +53,6 @@ class RequestedTransformationTest {
                 fit = fit,
             )
         }.message shouldBe "Height or width must be supplied for fit: $fit"
-    }
-
-    @Test
-    fun `width cannot be less than 1 if supplied`() {
-        shouldThrow<IllegalArgumentException> {
-            createRequestedImageTransformation(
-                width = 0,
-            )
-        }.message shouldBe "Width cannot be < 1"
-    }
-
-    @Test
-    fun `height cannot be less than 1 if supplied`() {
-        shouldThrow<IllegalArgumentException> {
-            createRequestedImageTransformation(
-                height = 0,
-            )
-        }.message shouldBe "Height cannot be < 1"
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-        ints = [
-            -1, 151,
-        ],
-    )
-    fun `blur cannot be outside bounds if supplied`(blur: Int) {
-        shouldThrow<IllegalArgumentException> {
-            createRequestedImageTransformation(
-                blur = blur,
-            )
-        }.message shouldBe "Blur must be between 0 and 150"
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-        ints = [
-            0, 101,
-        ],
-    )
-    fun `quality cannot be outside bounds if supplied`(quality: Int) {
-        shouldThrow<IllegalArgumentException> {
-            createRequestedImageTransformation(
-                quality = quality,
-            )
-        }.message shouldBe "Quality must be between 1 and 100"
-    }
-
-    @Test
-    fun `pad cannot be negative`() {
-        shouldThrow<IllegalArgumentException> {
-            createRequestedImageTransformation(
-                pad = -1,
-            )
-        }.message shouldBe "Pad must not be negative"
     }
 
     @ParameterizedTest

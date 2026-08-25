@@ -9,6 +9,10 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.context.RequestedTransformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -48,10 +52,6 @@ data class ImagePreProcessingProperties(
     @SerialName(ManipulationParameters.COLOR_SPACE)
     val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ) {
-    init {
-        validate()
-    }
-
     companion object Factory {
         val default =
             ImagePreProcessingProperties(
@@ -74,12 +74,12 @@ data class ImagePreProcessingProperties(
             )
     }
 
-    val requestedImageTransformation by lazy { toRequestedImageTransformation() }
+    val requestedImageTransformation = toRequestedImageTransformation()
 
     private fun toRequestedImageTransformation(): RequestedTransformation =
         RequestedTransformation(
-            width = width ?: maxWidth,
-            height = height ?: maxHeight,
+            width = (width ?: maxWidth)?.toDimension(),
+            height = (height ?: maxHeight)?.toDimension(),
             format = format,
             fit = fit,
             gravity = gravity,
@@ -87,36 +87,11 @@ data class ImagePreProcessingProperties(
             flip = flip,
             canUpscale = maxWidth == null && maxHeight == null,
             filter = filter,
-            blur = blur,
-            quality = quality,
-            pad = pad,
+            blur = blur?.toBlur(),
+            quality = quality?.toQuality(),
+            pad = pad?.toPaddingAmount(),
             padColor = padColor,
             stripMetadata = strip.joinToString(","),
             colorSpace = colorSpace,
         )
-
-    private fun validate() {
-        maxWidth?.let {
-            require(it > 0) {
-                "'${PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH}' must be greater than 0"
-            }
-        }
-        maxHeight?.let {
-            require(it > 0) {
-                "'${PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT}' must be greater than 0"
-            }
-        }
-        blur?.let {
-            require(it in 0..150) { "'${ManipulationParameters.BLUR}' must be between 0 and 150" }
-        }
-        quality?.let {
-            require(it in 1..100) { "'${ManipulationParameters.QUALITY}' must be between 1 and 100" }
-        }
-        pad?.let {
-            require(it > 0) { "'${ManipulationParameters.PAD}' must be greater than 0" }
-        }
-        padColor?.let {
-            require(it.isNotBlank() && it.length > 3 && it.startsWith('#')) { "'${ManipulationParameters.PAD_COLOR}' must not be blank" }
-        }
-    }
 }

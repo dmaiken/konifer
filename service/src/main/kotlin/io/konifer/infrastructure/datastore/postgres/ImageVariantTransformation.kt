@@ -8,10 +8,14 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
+import io.konifer.domain.transformation.MetadataTransformation
+import io.konifer.domain.transformation.PaddingTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
-import io.konifer.domain.variant.MetadataTransformation
-import io.konifer.domain.variant.PaddingTransformation
-import io.konifer.domain.variant.Transformation
 import kotlinx.serialization.Serializable
 
 /**
@@ -37,8 +41,8 @@ data class ImageVariantTransformation(
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
             ImageVariantTransformation(
-                width = attributes.width,
-                height = attributes.height,
+                width = attributes.width.value,
+                height = attributes.height.value,
                 format = attributes.format,
                 fit = Fit.default,
                 gravity = Gravity.default,
@@ -54,16 +58,16 @@ data class ImageVariantTransformation(
 
         fun from(transformation: Transformation): ImageVariantTransformation =
             ImageVariantTransformation(
-                width = transformation.width,
-                height = transformation.height,
+                width = transformation.width.value,
+                height = transformation.height.value,
                 format = transformation.format,
                 fit = transformation.fit,
                 gravity = transformation.gravity,
                 rotate = transformation.rotate,
                 horizontalFlip = transformation.horizontalFlip,
                 filter = transformation.filter,
-                blur = transformation.blur,
-                quality = transformation.quality,
+                blur = transformation.blur.value,
+                quality = transformation.quality.value,
                 padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
                 metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
                 colorSpace = transformation.colorSpace,
@@ -72,19 +76,19 @@ data class ImageVariantTransformation(
 
     fun toTransformation(): Transformation =
         Transformation(
-            width = this.width,
-            height = this.height,
+            width = this.width.toDimension(),
+            height = this.height.toDimension(),
             format = this.format,
             fit = this.fit,
             gravity = this.gravity,
             rotate = this.rotate,
             horizontalFlip = this.horizontalFlip,
             filter = this.filter,
-            blur = this.blur,
-            quality = this.quality,
+            blur = this.blur.toBlur(),
+            quality = this.quality.toQuality(),
             padding =
                 PaddingTransformation(
-                    amount = this.padding.amount,
+                    amount = this.padding.amount.toPaddingAmount(),
                     color = this.padding.color,
                 ),
             metadata =
@@ -109,7 +113,7 @@ data class ImageVariantPadding(
 
         fun fromPaddingTransformation(transformation: PaddingTransformation): ImageVariantPadding =
             ImageVariantPadding(
-                amount = transformation.amount,
+                amount = transformation.amount.value,
                 color = transformation.color,
             )
     }

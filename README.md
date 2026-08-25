@@ -172,6 +172,11 @@ variant-profiles {
 paths {
   "/public/avatars/**" {
     transform {
+      limits {
+        max-width = 8192
+        max-height = 8192
+        max-pixels = 67108864
+      }
       eager-variants = [thumbnail]
       preprocessing {
         enabled = true
@@ -194,6 +199,9 @@ paths {
   }
 }
 ```
+
+Transformation limits apply to preprocessing, eager variants, and on-demand variants. See the documentation for
+defaults, normalization behavior, and configuration-time validation.
 
 This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and
 generated media can share the same service while using different buckets, validation rules, dynamic labeling,

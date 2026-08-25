@@ -11,7 +11,8 @@ import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -49,8 +50,8 @@ class VipsImageProcessorTest {
                     TransformationDataContainer(
                         transformation =
                             Transformation(
-                                width = 300,
-                                height = 200,
+                                width = 300.toDimension(),
+                                height = 200.toDimension(),
                                 fit = Fit.STRETCH,
                                 rotate = rotate,
                                 format = ImageFormat.JPEG,
@@ -69,8 +70,8 @@ class VipsImageProcessorTest {
                 }
 
                 val attributes = transformationDataContainer.attributes.await()
-                attributes.width shouldBe 300
-                attributes.height shouldBe 200
+                attributes.width shouldBe 300.toDimension()
+                attributes.height shouldBe 200.toDimension()
             }
 
         @Test
@@ -96,8 +97,8 @@ class VipsImageProcessorTest {
                                 TransformationDataContainer(
                                     transformation =
                                         Transformation(
-                                            width = sourceImage.width,
-                                            height = sourceImage.height,
+                                            width = sourceImage.width.toDimension(),
+                                            height = sourceImage.height.toDimension(),
                                             format = ImageFormat.PNG,
                                             colorSpace = ColorSpace.SRGB,
                                         ),
@@ -113,8 +114,8 @@ class VipsImageProcessorTest {
                             }
                             val attributes = transformationDataContainer.attributes.await()
                             attributes.format shouldBe ImageFormat.PNG
-                            attributes.height shouldBe bufferedImage.height
-                            attributes.width shouldBe bufferedImage.width
+                            attributes.height shouldBe bufferedImage.height.toDimension()
+                            attributes.width shouldBe bufferedImage.width.toDimension()
                         }
                     }
                 }
@@ -178,15 +179,15 @@ class VipsImageProcessorTest {
                         transformation =
                             if (preprocessingEnabled) {
                                 Transformation(
-                                    width = 200,
-                                    height = 200,
+                                    width = 200.toDimension(),
+                                    height = 200.toDimension(),
                                     format = ImageFormat.JPEG,
                                     colorSpace = ColorSpace.SRGB,
                                 )
                             } else {
                                 Transformation(
-                                    width = image.attributes.width,
-                                    height = image.attributes.height,
+                                    width = image.attributes.width.toDimension(),
+                                    height = image.attributes.height.toDimension(),
                                     format = image.attributes.format,
                                     colorSpace = ColorSpace.SRGB,
                                 )
@@ -240,15 +241,15 @@ class VipsImageProcessorTest {
                     transformation =
                         if (preprocessingEnabled) {
                             Transformation(
-                                width = 200,
-                                height = 200,
+                                width = 200.toDimension(),
+                                height = 200.toDimension(),
                                 format = image.attributes.format,
                                 colorSpace = ColorSpace.SRGB,
                             )
                         } else {
                             Transformation(
-                                width = image.attributes.width,
-                                height = image.attributes.height,
+                                width = image.attributes.width.toDimension(),
+                                height = image.attributes.height.toDimension(),
                                 format = image.attributes.format,
                                 colorSpace = ColorSpace.SRGB,
                             )
@@ -312,8 +313,8 @@ class VipsImageProcessorTest {
                     TransformationDataContainer(
                         transformation =
                             Transformation(
-                                width = 100,
-                                height = 100,
+                                width = 100.toDimension(),
+                                height = 100.toDimension(),
                                 fit = Fit.FILL,
                                 format = to,
                                 colorSpace = ColorSpace.SRGB,
@@ -342,8 +343,8 @@ class VipsImageProcessorTest {
                 Vips.run { arena ->
                     val processedVImage = VImage.newFromBytes(arena, outputBytes)
 
-                    attributes.height shouldBe processedVImage.height
-                    attributes.width shouldBe processedVImage.width
+                    attributes.height shouldBe processedVImage.height.toDimension()
+                    attributes.width shouldBe processedVImage.width.toDimension()
 
                     if (lqips.contains(LQIPImplementation.BLURHASH)) {
                         shouldNotThrowAny {

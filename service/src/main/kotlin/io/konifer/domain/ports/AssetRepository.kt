@@ -4,7 +4,7 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 
 interface AssetRepository {

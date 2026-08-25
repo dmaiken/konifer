@@ -1,5 +1,6 @@
 package io.konifer.domain.variant
 
+import io.konifer.domain.transformation.Transformation
 import java.time.LocalDateTime
 
 data class VariantData(

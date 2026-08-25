@@ -2,7 +2,8 @@ package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
@@ -43,8 +44,8 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = ready.id,
                     transformation =
                         Transformation(
-                            height = 500,
-                            width = 100,
+                            height = 500.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -76,8 +77,8 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     .also { assetRepository.markReady(it) }
             val transformation =
                 Transformation(
-                    height = 500,
-                    width = 100,
+                    height = 500.toDimension(),
+                    width = 100.toDimension(),
                     format = ImageFormat.PNG,
                     colorSpace = ColorSpace.SRGB,
                 )
@@ -122,8 +123,8 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = ready.id,
                     transformation =
                         Transformation(
-                            height = 500,
-                            width = 100,
+                            height = 500.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -157,8 +158,8 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = readyAsset1.id,
                     transformation =
                         Transformation(
-                            height = 500,
-                            width = 100,
+                            height = 500.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -175,8 +176,8 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = readyAsset2.id,
                     transformation =
                         Transformation(
-                            height = 500,
-                            width = 100,
+                            height = 500.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),

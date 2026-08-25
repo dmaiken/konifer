@@ -15,6 +15,10 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.context.RequestedTransformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import org.hipparchus.transform.DctNormalization
 import org.hipparchus.transform.FastCosineTransformer
@@ -211,8 +215,8 @@ fun createRequestedImageTransformation(
     colorSpace: TransformableColorSpace = TransformableColorSpace.default,
 ): RequestedTransformation =
     RequestedTransformation(
-        width = width,
-        height = height,
+        width = width?.toDimension(),
+        height = height?.toDimension(),
         canUpscale = canUpscale,
         format = format,
         fit = fit,
@@ -220,9 +224,9 @@ fun createRequestedImageTransformation(
         rotate = rotate,
         flip = flip,
         filter = filter,
-        blur = blur,
-        quality = quality,
-        pad = pad,
+        blur = blur?.toBlur(),
+        quality = quality?.toQuality(),
+        pad = pad?.toPaddingAmount(),
         padColor = padColor,
         stripMetadata = strip,
         colorSpace = colorSpace,

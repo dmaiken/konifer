@@ -6,7 +6,7 @@ import app.photofox.vipsffm.enums.VipsExtend
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_EXTEND
@@ -28,7 +28,7 @@ object Pad : VipsTransformer {
 
     override fun decide(context: TransformationContext): TransformationDecision {
         val padding = context.transformation.padding
-        return if (padding.amount > 0 && padding.color.isNotEmpty()) {
+        return if (padding.amount.value > 0 && padding.color.isNotEmpty()) {
             TransformationDecision.Apply(
                 requiredAlpha = AlphaRequirement.UN_PREMULTIPLIED,
                 requiredPixelAccess = PixelAccess.SEQUENTIAL,
@@ -43,7 +43,8 @@ object Pad : VipsTransformer {
         source: VImage,
         transformation: Transformation,
     ): VipsTransformationResult {
-        val (amount, color) = transformation.padding
+        val (paddingAmount, color) = transformation.padding
+        val amount = paddingAmount.value
         if (color.size !in 3..4) {
             throw IllegalArgumentException("Illegal background definition: ${transformation.padding.color}")
         }

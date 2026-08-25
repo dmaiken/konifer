@@ -4,7 +4,7 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
 import kotlinx.coroutines.CompletableDeferred

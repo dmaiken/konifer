@@ -4,7 +4,8 @@ import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -49,8 +50,8 @@ class AutoRotateTest {
             source = source,
             transformation =
                 Transformation(
-                    width = 10,
-                    height = 10,
+                    width = 10.toDimension(),
+                    height = 10.toDimension(),
                     format = ImageFormat.PNG,
                     rotate = rotate,
                     colorSpace = ColorSpace.SRGB,

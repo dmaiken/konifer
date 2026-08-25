@@ -2,7 +2,8 @@ package io.konifer.infrastructure.datastore.postgres.scheduling
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
@@ -32,8 +33,8 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = ready.id,
                     transformation =
                         Transformation(
-                            height = 500,
-                            width = 100,
+                            height = 500.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -49,8 +50,8 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = ready.id,
                     transformation =
                         Transformation(
-                            height = 400,
-                            width = 100,
+                            height = 400.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -93,8 +94,8 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetId = ready.id,
                     transformation =
                         Transformation(
-                            height = 400,
-                            width = 100,
+                            height = 400.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),

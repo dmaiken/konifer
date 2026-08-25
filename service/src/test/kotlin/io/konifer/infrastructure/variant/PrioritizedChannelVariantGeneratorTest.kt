@@ -6,7 +6,8 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
@@ -43,8 +44,8 @@ class PrioritizedChannelVariantGeneratorTest {
                 TransformationDataContainer(
                     transformation =
                         Transformation(
-                            height = 100,
-                            width = 100,
+                            height = 100.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.JPEG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -76,8 +77,8 @@ class PrioritizedChannelVariantGeneratorTest {
                 TransformationDataContainer(
                     transformation =
                         Transformation(
-                            height = 100,
-                            width = 100,
+                            height = 100.toDimension(),
+                            width = 100.toDimension(),
                             format = ImageFormat.JPEG,
                             colorSpace = ColorSpace.SRGB,
                         ),

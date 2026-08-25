@@ -6,7 +6,7 @@ import app.photofox.vipsffm.enums.VipsSize
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_NO_ROTATE

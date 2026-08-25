@@ -5,6 +5,7 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
@@ -32,8 +33,8 @@ class AttributesTest {
                     destinationFormat = destinationFormat,
                 )
             attributes.format shouldBe destinationFormat
-            attributes.height shouldBe height
-            attributes.width shouldBe width
+            attributes.height shouldBe height.toDimension()
+            attributes.width shouldBe width.toDimension()
             attributes.pageCount shouldBeOneOf listOf(null, 1)
             attributes.loop shouldBeOneOf listOf(null, 0)
         }
@@ -66,8 +67,8 @@ class AttributesTest {
                     destinationFormat = destinationFormat,
                 )
             attributes.format shouldBe destinationFormat
-            attributes.height shouldBe height
-            attributes.width shouldBe width
+            attributes.height shouldBe height?.toDimension()
+            attributes.width shouldBe width.toDimension()
             attributes.pageCount shouldBe 19
             attributes.loop shouldBe 0
         }
@@ -99,8 +100,8 @@ class AttributesTest {
                     destinationFormat = destinationFormat,
                 )
             attributes.format shouldBe destinationFormat
-            attributes.height shouldBe height
-            attributes.width shouldBe width
+            attributes.height shouldBe height.toDimension()
+            attributes.width shouldBe width.toDimension()
             attributes.pageCount shouldBe null
             attributes.loop shouldBe null
         }

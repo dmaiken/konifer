@@ -10,7 +10,7 @@ import io.konifer.domain.asset.AssetTags
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.asset.toAssetTags
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.variant.Transformation
+import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets

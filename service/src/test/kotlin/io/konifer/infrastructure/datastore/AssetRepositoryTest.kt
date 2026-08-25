@@ -11,11 +11,15 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.transformation.MetadataTransformation
+import io.konifer.domain.transformation.PaddingTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toBlur
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.transformation.toPaddingAmount
+import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.MetadataTransformation
-import io.konifer.domain.variant.PaddingTransformation
-import io.konifer.domain.variant.Transformation
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -160,8 +164,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val attributes =
                     Attributes(
-                        width = 10,
-                        height = 10,
+                        width = 10.toDimension(),
+                        height = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                         pageCount = 5,
@@ -170,8 +174,8 @@ abstract class AssetRepositoryTest {
 
                 val variantTransformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -224,8 +228,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val attributes =
                     Attributes(
-                        width = 10,
-                        height = 10,
+                        width = 10.toDimension(),
+                        height = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                         pageCount = 5,
@@ -235,8 +239,8 @@ abstract class AssetRepositoryTest {
                 val expiry = LocalDateTime.now(UTC).plusHours(10)
                 val variantTransformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -279,8 +283,8 @@ abstract class AssetRepositoryTest {
                             assetId = AssetId(),
                             transformation =
                                 Transformation(
-                                    height = 100,
-                                    width = 100,
+                                    height = 100.toDimension(),
+                                    width = 100.toDimension(),
                                     format = ImageFormat.PNG,
                                     colorSpace = ColorSpace.SRGB,
                                 ),
@@ -296,16 +300,16 @@ abstract class AssetRepositoryTest {
                 val persisted = repository.storeNew(pending)
                 val attributes =
                     Attributes(
-                        width = 50,
-                        height = 100,
+                        width = 50.toDimension(),
+                        height = 100.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     )
 
                 val transformation =
                     Transformation(
-                        height = 50,
-                        width = 100,
+                        height = 50.toDimension(),
+                        width = 100.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -445,8 +449,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -479,8 +483,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val variantTransformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -680,8 +684,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -859,8 +863,8 @@ abstract class AssetRepositoryTest {
                             assetId = persisted.id,
                             transformation =
                                 Transformation(
-                                    height = 10,
-                                    width = 10,
+                                    height = 10.toDimension(),
+                                    width = 10.toDimension(),
                                     format = ImageFormat.PNG,
                                     colorSpace = ColorSpace.SRGB,
                                 ),
@@ -870,8 +874,8 @@ abstract class AssetRepositoryTest {
                 }
                 val transformation =
                     Transformation(
-                        width = 8,
-                        height = 5,
+                        width = 8.toDimension(),
+                        height = 5.toDimension(),
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
                         colorSpace = ColorSpace.SRGB,
@@ -897,8 +901,8 @@ abstract class AssetRepositoryTest {
                             assetId = persisted.id,
                             transformation =
                                 Transformation(
-                                    height = 10,
-                                    width = 10,
+                                    height = 10.toDimension(),
+                                    width = 10.toDimension(),
                                     format = ImageFormat.PNG,
                                     colorSpace = ColorSpace.SRGB,
                                 ),
@@ -911,8 +915,8 @@ abstract class AssetRepositoryTest {
                     repository.fetchAllByPath(
                         "/users/123",
                         Transformation(
-                            height = 10,
-                            width = 10,
+                            height = 10.toDimension(),
+                            width = 10.toDimension(),
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
@@ -922,8 +926,8 @@ abstract class AssetRepositoryTest {
                 fetched.forAll {
                     it.variants shouldHaveSize 1
                     it.variants.first().apply {
-                        transformation.height shouldBe 10
-                        transformation.height shouldBe 10
+                        transformation.height shouldBe 10.toDimension()
+                        transformation.width shouldBe 10.toDimension()
                         isOriginalVariant shouldBe false
                     }
                 }
@@ -942,8 +946,8 @@ abstract class AssetRepositoryTest {
                             assetId = persisted.id,
                             transformation =
                                 Transformation(
-                                    height = 10,
-                                    width = 10,
+                                    height = 10.toDimension(),
+                                    width = 10.toDimension(),
                                     format = ImageFormat.PNG,
                                     colorSpace = ColorSpace.SRGB,
                                 ),
@@ -958,7 +962,7 @@ abstract class AssetRepositoryTest {
                     it.variants shouldHaveSize 2
                     it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
                     it.variants.find { variant ->
-                        variant.transformation.height == 10 && variant.transformation.width == 10
+                        variant.transformation.height.value == 10 && variant.transformation.width.value == 10
                     } shouldNotBe null
                 }
             }
@@ -1378,8 +1382,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         fit = fit,
                         colorSpace = ColorSpace.SRGB,
@@ -1421,8 +1425,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = format,
                         colorSpace = ColorSpace.SRGB,
                     )
@@ -1431,8 +1435,8 @@ abstract class AssetRepositoryTest {
                         assetId = persisted.id,
                         transformation =
                             Transformation(
-                                height = 10,
-                                width = 10,
+                                height = 10.toDimension(),
+                                width = 10.toDimension(),
                                 format = format,
                                 colorSpace = ColorSpace.SRGB,
                             ),
@@ -1470,8 +1474,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         rotate = rotate,
                         colorSpace = ColorSpace.SRGB,
@@ -1513,8 +1517,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         horizontalFlip = horizontalFlip,
                         colorSpace = ColorSpace.SRGB,
@@ -1556,8 +1560,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         filter = filter,
                         colorSpace = ColorSpace.SRGB,
@@ -1599,8 +1603,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         gravity = gravity,
                         colorSpace = ColorSpace.SRGB,
@@ -1641,10 +1645,10 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
-                        quality = 10,
+                        quality = 10.toQuality(),
                         colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
@@ -1669,7 +1673,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = transformation.copy(quality = 50),
+                        transformation = transformation.copy(quality = 50.toQuality()),
                     )
                 noVariant shouldNotBe null
                 noVariant!!.variants shouldHaveSize 0
@@ -1683,10 +1687,10 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
-                        blur = 10,
+                        blur = 10.toBlur(),
                         colorSpace = ColorSpace.SRGB,
                     )
                 val pendingVariant =
@@ -1711,7 +1715,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = transformation.copy(blur = 50),
+                        transformation = transformation.copy(blur = 50.toBlur()),
                     )
                 noVariant shouldNotBe null
                 noVariant!!.variants shouldHaveSize 0
@@ -1725,12 +1729,12 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         padding =
                             PaddingTransformation(
-                                amount = 10,
+                                amount = 10.toPaddingAmount(),
                                 color = emptyList(),
                             ),
                         colorSpace = ColorSpace.SRGB,
@@ -1761,7 +1765,7 @@ abstract class AssetRepositoryTest {
                             transformation.copy(
                                 padding =
                                     PaddingTransformation(
-                                        amount = 50,
+                                        amount = 50.toPaddingAmount(),
                                         color = emptyList(),
                                     ),
                             ),
@@ -1778,12 +1782,12 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         padding =
                             PaddingTransformation(
-                                amount = 0,
+                                amount = 0.toPaddingAmount(),
                                 color = listOf(255, 255, 255, 255),
                             ),
                         colorSpace = ColorSpace.SRGB,
@@ -1814,7 +1818,7 @@ abstract class AssetRepositoryTest {
                             transformation.copy(
                                 padding =
                                     PaddingTransformation(
-                                        amount = 0,
+                                        amount = 0.toPaddingAmount(),
                                         color = listOf(240, 255, 255, 255),
                                     ),
                             ),
@@ -1831,8 +1835,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         metadata =
                             MetadataTransformation(
@@ -1882,8 +1886,8 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.P3,
                     )
@@ -1926,18 +1930,18 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
-                        height = 10,
-                        width = 10,
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
                         format = ImageFormat.PNG,
                         horizontalFlip = true,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
                         fit = Fit.STRETCH,
                         filter = Filter.SEPIA,
                         gravity = Gravity.ENTROPY,
-                        quality = 50,
+                        quality = 50.toQuality(),
                         padding =
                             PaddingTransformation(
-                                amount = 10,
+                                amount = 10.toPaddingAmount(),
                                 color = listOf(100, 50, 34, 100),
                             ),
                         metadata =
@@ -2051,8 +2055,8 @@ abstract class AssetRepositoryTest {
                 val transformation =
                     Transformation(
                         format = ImageFormat.HEIC,
-                        height = 400,
-                        width = 400,
+                        height = 400.toDimension(),
+                        width = 400.toDimension(),
                         colorSpace = ColorSpace.SRGB,
                     )
 
@@ -2098,15 +2102,15 @@ abstract class AssetRepositoryTest {
                 val firstTransformation =
                     Transformation(
                         format = ImageFormat.WEBP,
-                        height = 200,
-                        width = 200,
+                        height = 200.toDimension(),
+                        width = 200.toDimension(),
                         colorSpace = ColorSpace.SRGB,
                     )
                 val secondTransformation =
                     Transformation(
                         format = ImageFormat.WEBP,
-                        height = 400,
-                        width = 400,
+                        height = 400.toDimension(),
+                        width = 400.toDimension(),
                         colorSpace = ColorSpace.SRGB,
                     )
                 val firstVariant =
