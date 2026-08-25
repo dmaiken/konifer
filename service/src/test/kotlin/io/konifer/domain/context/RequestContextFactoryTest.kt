@@ -16,6 +16,7 @@ import io.konifer.domain.path.CacheControlProperties
 import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.toDimension
@@ -851,7 +852,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 val exception =
-                    shouldThrow<IllegalArgumentException> {
+                    shouldThrow<InvalidTransformationException> {
                         requestContextFactory.fromFetchRequest(
                             path = "/assets/profile/-/content/",
                             headers = HeadersBuilder().build(),
