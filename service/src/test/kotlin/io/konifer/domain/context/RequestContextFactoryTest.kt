@@ -846,7 +846,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     PathConfiguration(
                         transform =
                             TransformProperties(
-                                limits = LimitProperties(maxHeight = 199),
+                                limits = LimitProperties(maxHeight = 199.toDimension()),
                             ),
                     )
 

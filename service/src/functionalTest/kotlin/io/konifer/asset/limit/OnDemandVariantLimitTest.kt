@@ -1,4 +1,4 @@
-package io.konifer.asset.variant
+package io.konifer.asset.limit
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
@@ -7,6 +7,7 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class OnDemandVariantLimitTest : BaseFunctionalTest() {
@@ -43,13 +44,16 @@ class OnDemandVariantLimitTest : BaseFunctionalTest() {
             ) shouldHaveHttpError 400
 
             // Height is indirectly set to < 15
-            konifer().fetchAssetContentBytes(
-                path = "users/123",
-                requestedTransformation =
-                    requestedTransformation {
-                        height = 500
-                    },
-            ) shouldHaveHttpError 400
+            val error =
+                konifer().fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            height = 500
+                        },
+                ) shouldHaveHttpError 400
+
+            error.message shouldBe "Invalid transformation"
         }
 
     @Test
@@ -85,13 +89,16 @@ class OnDemandVariantLimitTest : BaseFunctionalTest() {
             ) shouldHaveHttpError 400
 
             // Height is indirectly set to < 15
-            konifer().fetchAssetContentBytes(
-                path = "users/123",
-                requestedTransformation =
-                    requestedTransformation {
-                        width = 500
-                    },
-            ) shouldHaveHttpError 400
+            val error =
+                konifer().fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            width = 500
+                        },
+                ) shouldHaveHttpError 400
+
+            error.message shouldBe "Invalid transformation"
         }
 
     @Test
@@ -126,12 +133,15 @@ class OnDemandVariantLimitTest : BaseFunctionalTest() {
                     },
             ) shouldHaveHttpError 400
 
-            konifer().fetchAssetContentBytes(
-                path = "users/123",
-                requestedTransformation =
-                    requestedTransformation {
-                        width = 50
-                    },
-            ) shouldHaveHttpError 400
+            val error =
+                konifer().fetchAssetContentBytes(
+                    path = "users/123",
+                    requestedTransformation =
+                        requestedTransformation {
+                            width = 50
+                        },
+                ) shouldHaveHttpError 400
+
+            error.message shouldBe "Invalid transformation"
         }
 }

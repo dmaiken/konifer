@@ -7,6 +7,7 @@ import io.konifer.domain.context.ContentTypeNotPermittedException
 import io.konifer.domain.context.IllegalRequestedTransformationException
 import io.konifer.domain.context.InvalidPathException
 import io.konifer.domain.image.InvalidImageException
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -45,5 +46,9 @@ fun Application.configureStatusPages() =
         exception<AssetRejectedException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
+        }
+        exception<InvalidTransformationException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid transformation"))
         }
     }

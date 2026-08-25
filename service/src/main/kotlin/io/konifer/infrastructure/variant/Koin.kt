@@ -4,6 +4,7 @@ import io.konifer.domain.ports.OriginalVariantContentProcessor
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantMetricsRepository
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.TransformConfigurationValidator
 import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.konifer.infrastructure.variant.metrics.VariantMetricsDrainSignal
@@ -41,6 +42,7 @@ fun variantModule(): Module =
             )
         }
 
+        single<TransformConfigurationValidator>()
         single<ConfigurationVariantProfileRepository>() bind VariantProfileRepository::class
         single<InMemoryVariantMetricsRepository>() bind VariantMetricsRepository::class
         single<ChannelVariantMetricsDrainSignal>() bind VariantMetricsDrainSignal::class

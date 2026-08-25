@@ -3,6 +3,7 @@ package io.konifer.infrastructure.datastore.postgres.metrics
 import com.typesafe.config.ConfigFactory
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.TransformConfigurationValidator
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Variant
@@ -15,6 +16,7 @@ import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSigna
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +61,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 }
                 """.trimIndent(),
             ),
+            mockk<TransformConfigurationValidator>(relaxed = true),
         )
 
     @AfterEach

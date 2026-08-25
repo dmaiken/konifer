@@ -4,13 +4,19 @@ import com.typesafe.config.ConfigFactory
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.upload.DefaultRuleAction
+import io.konifer.domain.transformation.ConfiguredTransformationValidationException
+import io.konifer.domain.transformation.TransformConfigurationValidator
+import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class TriePathConfigurationRepositoryTest {
+    private val transformConfigurationValidator = mockk<TransformConfigurationValidator>(relaxed = true)
+
     @Test
     fun `fetch returns a path configuration when the path matches exactly`() {
         val config =
@@ -32,6 +38,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -58,6 +65,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         listOf(
             "/users/123/profile",
@@ -84,6 +92,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -105,6 +114,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -133,6 +143,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
             allowedContentTypes shouldBe null
@@ -162,6 +173,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration =
             pathConfigurationRepository.fetch("/users/lastName/firstName/profile/last")
@@ -201,11 +213,45 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
         pathConfiguration.transform.preProcessing.image.maxWidth shouldBe 10
         pathConfiguration.transform.preProcessing.image.maxHeight shouldBe 10
+    }
+
+    @Test
+    fun `preprocessing must satisfy path transformation limits`() {
+        val config =
+            """
+            paths {
+              "/images/**" {
+                transform {
+                  limits {
+                    max-width = 100
+                    max-height = 100
+                    max-pixels = 10000
+                  }
+                  preprocessing {
+                    enabled = true
+                    image {
+                      w = 101
+                      h = 100
+                    }
+                  }
+                }
+              }
+            }
+            """.trimIndent()
+
+        val exception =
+            shouldThrow<ConfiguredTransformationValidationException> {
+                createRepositoryWithValidation(config)
+            }
+
+        exception.message shouldBe "Preprocessing validation failed"
+        exception.cause?.message shouldBe "width 101 must not exceed 100 limit"
     }
 
     @Test
@@ -227,6 +273,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/recipe/123")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -265,6 +312,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
@@ -288,6 +336,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("// //123")
         pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
@@ -309,6 +358,7 @@ class TriePathConfigurationRepositoryTest {
         shouldThrow<IllegalArgumentException> {
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         }.message shouldBe "Path key cannot be blank"
     }
@@ -328,9 +378,43 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile")
         pathConfiguration.transform.eagerVariants shouldBe listOf("small", "large")
+    }
+
+    @Test
+    fun `eager variants must satisfy path transformation limits`() {
+        val config =
+            """
+            variant-profiles {
+              too-wide {
+                w = 101
+                h = 100
+              }
+            }
+            paths {
+              "/images/**" {
+                transform {
+                  limits {
+                    max-width = 100
+                    max-height = 100
+                    max-pixels = 10000
+                  }
+                  eager-variants = [too-wide]
+                }
+              }
+            }
+            """.trimIndent()
+
+        val exception =
+            shouldThrow<ConfiguredTransformationValidationException> {
+                createRepositoryWithValidation(config)
+            }
+
+        exception.message shouldBe "Eager variant 'too-wide' validation failed"
+        exception.cause?.message shouldBe "width 101 must not exceed 100 limit"
     }
 
     @Test
@@ -353,6 +437,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/profile/123")
         pathConfiguration.transform.eagerVariants shouldBe listOf("large")
@@ -374,6 +459,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.transform.eagerVariants shouldBe listOf("large")
@@ -395,6 +481,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.transform.eagerVariants shouldBe listOf("large")
@@ -421,6 +508,7 @@ class TriePathConfigurationRepositoryTest {
         val pathConfigurationRepository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch(path)
         pathConfiguration.transform.eagerVariants shouldBe listOf("medium")
@@ -447,6 +535,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("small")
@@ -473,6 +562,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("small")
@@ -499,6 +589,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/profile").transform.eagerVariants shouldBe listOf("small")
@@ -520,6 +611,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/users/profile").transform.eagerVariants shouldBe listOf("large")
@@ -546,6 +638,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/users/123/profile").transform.eagerVariants shouldBe listOf("large")
@@ -589,6 +682,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         val pathConfiguration = repository.fetch("/kermit-accept/with-preprocessing/tiff")
@@ -621,6 +715,7 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/profile/123").transform.eagerVariants shouldBe listOf("large")
@@ -632,8 +727,20 @@ class TriePathConfigurationRepositoryTest {
         val repository =
             TriePathConfigurationRepository(
                 ConfigFactory.parseString(config),
+                transformConfigurationValidator,
             )
 
         repository.fetch("/users/123/profile") shouldBe PathConfiguration.default
+    }
+
+    private fun createRepositoryWithValidation(config: String): TriePathConfigurationRepository {
+        val rawConfig = ConfigFactory.parseString(config)
+        return TriePathConfigurationRepository(
+            rawConfig = rawConfig,
+            transformConfigurationValidator =
+                TransformConfigurationValidator(
+                    ConfigurationVariantProfileRepository(rawConfig),
+                ),
+        )
     }
 }

@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
+import io.konifer.domain.transformation.TransformConfigurationValidator
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -13,6 +14,7 @@ import kotlinx.serialization.hocon.decodeFromConfig
 
 class TriePathConfigurationRepository(
     rawConfig: Config,
+    private val transformConfigurationValidator: TransformConfigurationValidator,
 ) : PathConfigurationRepository {
     companion object {
         private const val WILDCARD_SEGMENT = "*"
@@ -30,7 +32,6 @@ class TriePathConfigurationRepository(
         constructPathConfigurationTrie(rawConfig)
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun fetch(path: String): PathConfiguration {
         val segments =
             path
@@ -51,7 +52,7 @@ class TriePathConfigurationRepository(
                     match.node.rawConfig.withFallback(merged)
                 }
 
-        return Hocon.decodeFromConfig<PathConfiguration>(mergedRawConfig)
+        return decodePathConfiguration(mergedRawConfig)
     }
 
     private fun initializeTrieWithDefault(): PathTrieNode =
@@ -61,7 +62,6 @@ class TriePathConfigurationRepository(
             parsedConfig = PathConfiguration.default,
         )
 
-    @OptIn(ExperimentalSerializationApi::class)
     private fun constructPathConfigurationTrie(config: Config) {
         if (!config.hasPath(ConfigurationPropertyKeys.PATH_CONFIGURATION)) {
             logger.info("No explicit paths configuration found, using defaults.")
@@ -79,7 +79,7 @@ class TriePathConfigurationRepository(
                     ?: throw IllegalArgumentException("Configuration for $DEFAULT_PATH must be an object")
 
             root.rawConfig = rootNodeConfig
-            root.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(rootNodeConfig)
+            root.parsedConfig = decodePathConfiguration(rootNodeConfig)
             root.hasExplicitConfiguration = true
             logger.info("Applied base configuration to root node from $DEFAULT_PATH")
         }
@@ -104,7 +104,6 @@ class TriePathConfigurationRepository(
         logger.info("Populated config trie: $root")
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     private fun insertPath(
         path: String,
         nodeConfig: Config,
@@ -126,7 +125,7 @@ class TriePathConfigurationRepository(
         val mergedRawConfig = nodeConfig.withFallback(current.rawConfig)
 
         current.rawConfig = mergedRawConfig
-        current.parsedConfig = Hocon.decodeFromConfig<PathConfiguration>(mergedRawConfig)
+        current.parsedConfig = decodePathConfiguration(mergedRawConfig)
         current.hasExplicitConfiguration = true
     }
 
@@ -179,6 +178,12 @@ class TriePathConfigurationRepository(
 
         return candidates
     }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun decodePathConfiguration(config: Config): PathConfiguration =
+        Hocon.decodeFromConfig<PathConfiguration>(config).also {
+            transformConfigurationValidator.validate(it.transform)
+        }
 
     private data class MatchResult(
         val node: PathTrieNode,
