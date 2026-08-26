@@ -14,17 +14,15 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 
-/**
- * 100MB
- */
-const val MAX_BYTES_DEFAULT = (1024 * 1024 * 100).toLong()
+class AssetDataTooLargeException(
+    val maxBytes: Long,
+) : IllegalArgumentException("Asset exceeds the maximum allowed size of $maxBytes bytes")
 
 class AssetDataContainer(
     private val channel: ByteReadChannel,
-    private val maxBytes: Long = MAX_BYTES_DEFAULT,
+    private val maxBytes: Long = Long.MAX_VALUE,
 ) : AutoCloseable {
     companion object {
-        private const val TOO_LARGE_MESSAGE = "Asset exceeds the maximum allowed size"
         private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     }
 
@@ -52,12 +50,13 @@ class AssetDataContainer(
                         StandardOpenOption.CREATE_NEW,
                     ).use { fileChannel ->
                         val bytesWritten =
-                            channel.copyTo(
-                                channel = fileChannel,
-                                limit = maxBytes + 1,
-                            )
+                            if (maxBytes == Long.MAX_VALUE) {
+                                channel.copyTo(fileChannel)
+                            } else {
+                                channel.copyTo(fileChannel, limit = maxBytes + 1)
+                            }
                         if (bytesWritten > maxBytes) {
-                            throw IllegalArgumentException(TOO_LARGE_MESSAGE)
+                            throw AssetDataTooLargeException(maxBytes)
                         }
 
                         logger.debug { "Successfully wrote $bytesWritten bytes to ${tempFile?.pathString}" }

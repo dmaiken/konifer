@@ -77,8 +77,8 @@ dependencies {
     implementation(libs.ktor.server.conditional.headers)
     implementation(libs.ktor.server.compression)
     implementation(libs.ktor.server.netty)
-    implementation(libs.logback.classic)
     implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.server.body.limit)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
 
@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.s3.transfermanager)
 
+    implementation(libs.logback.classic)
     implementation(libs.uuid.creator)
     implementation(libs.commons.codec)
 
@@ -102,6 +103,7 @@ dependencies {
     implementation(libs.hikari)
 
     testImplementation(libs.ktor.client.content.negotiation)
+    testImplementation(libs.ktor.client.mock)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.mockk)

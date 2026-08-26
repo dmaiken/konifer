@@ -33,7 +33,7 @@ private const val ASSET_PART_NAME = "asset"
 
 private val logger = KtorSimpleLogger("io.konifer.entrypoint.RuleEvaluationRoutes")
 
-fun Application.configureRuleEvaluationRouting(maxMultipartContentLength: Long) {
+fun Application.configureRuleEvaluationRouting() {
     logger.info("Evaluating rule evaluation routes")
     val evaluateRuleDefinitionUseCase by inject<EvaluateRuleDefinitionUseCase>()
 
@@ -42,23 +42,18 @@ fun Application.configureRuleEvaluationRouting(maxMultipartContentLength: Long) 
             post {
                 call.evaluateRuleDefinitions(
                     evaluateRuleDefinitionUseCase = evaluateRuleDefinitionUseCase,
-                    maxMultipartContentLength = maxMultipartContentLength,
                 )
             }
         }
     }
 }
 
-private suspend fun RoutingCall.evaluateRuleDefinitions(
-    evaluateRuleDefinitionUseCase: EvaluateRuleDefinitionUseCase,
-    maxMultipartContentLength: Long,
-) {
+private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUseCase: EvaluateRuleDefinitionUseCase) {
     when (request.contentType().withoutParameters()) {
         ContentType.MultiPart.FormData -> {
             logger.info("Received multipart request to evaluate rule definitions")
             evaluateMultipartRuleDefinitions(
                 evaluateRuleDefinitionUseCase = evaluateRuleDefinitionUseCase,
-                maxMultipartContentLength = maxMultipartContentLength,
             )?.let { response ->
                 respond(HttpStatusCode.OK, response)
             }
@@ -78,7 +73,6 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(
 
 private suspend fun RoutingCall.evaluateMultipartRuleDefinitions(
     evaluateRuleDefinitionUseCase: EvaluateRuleDefinitionUseCase,
-    maxMultipartContentLength: Long,
 ): EvaluateRuleDefinitionsResponse? =
     coroutineScope {
         val evaluationRequest = CompletableDeferred<EvaluateRuleDefinitionsRequest>()
@@ -91,7 +85,7 @@ private suspend fun RoutingCall.evaluateMultipartRuleDefinitions(
             async {
                 evaluateRuleDefinitionUseCase.handleFromUpload(
                     deferredRequest = evaluationRequest,
-                    multiPartContainer = AssetDataContainer(contentChannel, maxMultipartContentLength),
+                    multiPartContainer = AssetDataContainer(contentChannel),
                 )
             }
 

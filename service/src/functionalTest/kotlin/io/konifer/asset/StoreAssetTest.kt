@@ -2,7 +2,6 @@ package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.client.ContentFetchMode
-import io.konifer.client.KoniferInternalTestApi
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
@@ -36,8 +35,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(KoniferInternalTestApi::class)
 class StoreAssetTest : BaseFunctionalTest() {
     @Test
     fun `can store multipart asset when asset is sent before metadata`() =
@@ -47,7 +46,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             val boundary = "asset-first-boundary"
 
             val response =
-                withTimeout(5_000) {
+                withTimeout(5_000.milliseconds) {
                     client.post("/assets/asset-first") {
                         contentType(ContentType.MultiPart.FormData)
                         setBody(
@@ -269,15 +268,12 @@ class StoreAssetTest : BaseFunctionalTest() {
             """
             source = {
               url = {
-                allowed-domains = [
-                  daniel.haxx.se
-                ]
+                allowed-domains = [ konifer.io ]
               }
             }
             """.trimIndent(),
         ) {
-            // Come up with a better way to not rely on the internet
-            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val url = "https://konifer.io/img/konifer-small.png"
             val request =
                 StoreAssetRequest(
                     alt = "an image",
@@ -287,7 +283,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             storeAssetResponse!!.variants.first().storeBucket shouldBe "assets"
             storeAssetResponse.variants
                 .first()
-                .attributes.format shouldBe "jpg"
+                .attributes.format shouldBe "png"
             storeAssetResponse.`class` shouldBe AssetClass.IMAGE
             storeAssetResponse.alt shouldBe "an image"
             storeAssetResponse.entryId shouldBe 0
@@ -299,9 +295,8 @@ class StoreAssetTest : BaseFunctionalTest() {
     @ParameterizedTest
     @ValueSource(
         strings = [
-            "httpssss://daniel.haxx.se/daniel/b-daniel-at-snow.jpg",
+            "httpssss://konifer.io/img/konifer-small.png",
             "url",
-            "ftp://hello",
             "; DROP TABLE ASSET_TREE",
         ],
     )
@@ -310,20 +305,17 @@ class StoreAssetTest : BaseFunctionalTest() {
             """
             source = {
               url = {
-                allowed-domains = [
-                  daniel.haxx.se
-                ]
+                allowed-domains = [ konifer.io ]
               }
             }
             """.trimIndent(),
         ) {
-            // Come up with a better way to not rely on the internet
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                     url = badUrl,
                 )
-            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.UnprocessableEntity)
             fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
@@ -338,15 +330,14 @@ class StoreAssetTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            // Come up with a better way to not rely on the internet
-            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val url = "https://konifer.io/img/konifer-small.png"
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                     url = url,
                 )
 
-            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.Forbidden)
             fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
@@ -356,21 +347,21 @@ class StoreAssetTest : BaseFunctionalTest() {
             """
             source = {
               url = {
-                allowed-domains = [ daniel.haxx.se ]
+                allowed-domains = [ konifer.io ]
                 max-bytes = 100
               }
             }
             """.trimIndent(),
         ) {
             // Come up with a better way to not rely on the internet
-            val url = "https://daniel.haxx.se/daniel/b-daniel-at-snow.jpg"
+            val url = "https://konifer.io/img/konifer-small.png"
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                     url = url,
                 )
 
-            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.UnprocessableEntity)
             fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
@@ -390,7 +381,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.PayloadTooLarge)
 
             fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
@@ -402,7 +393,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
+            storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.UnprocessableEntity)
 
             fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }

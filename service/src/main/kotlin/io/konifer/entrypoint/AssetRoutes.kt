@@ -50,7 +50,7 @@ const val ASSET_PATH_PREFIX = "/assets"
 private const val METADATA_PART_NAME = "metadata"
 private const val ASSET_PART_NAME = "asset"
 
-fun Application.configureAssetRouting(maxMultipartContentLength: Long) {
+fun Application.configureAssetRouting() {
     logger.info("Initializing asset routes")
     val fetchAssetHandler by inject<FetchAssetHandler>()
     val deleteAssetUseCase by inject<DeleteAssetUseCase>()
@@ -150,11 +150,11 @@ fun Application.configureAssetRouting(maxMultipartContentLength: Long) {
             }
 
             post {
-                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase, maxMultipartContentLength)
+                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase)
             }
 
             post("/{...}") {
-                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase, maxMultipartContentLength)
+                call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase)
             }
 
             put("/{...}") {
@@ -180,14 +180,12 @@ fun Application.configureAssetRouting(maxMultipartContentLength: Long) {
 private suspend fun RoutingCall.storeNewAsset(
     assetUrlGenerator: AssetUrlGenerator,
     storeNewAssetUseCase: StoreNewAssetUseCase,
-    maxMultipartContentLength: Long,
 ) {
     when (request.contentType().withoutParameters()) {
         ContentType.MultiPart.FormData -> {
             logger.info("Received multipart request to store a new asset")
             storeMultipartAsset(
                 storeNewAssetUseCase = storeNewAssetUseCase,
-                maxMultipartContentLength = maxMultipartContentLength,
             )?.let { asset ->
                 respondStoredAsset(assetUrlGenerator, asset)
             }
@@ -206,10 +204,7 @@ private suspend fun RoutingCall.storeNewAsset(
     }
 }
 
-private suspend fun RoutingCall.storeMultipartAsset(
-    storeNewAssetUseCase: StoreNewAssetUseCase,
-    maxMultipartContentLength: Long,
-): AssetAndLocation? =
+private suspend fun RoutingCall.storeMultipartAsset(storeNewAssetUseCase: StoreNewAssetUseCase): AssetAndLocation? =
     coroutineScope {
         val assetData = CompletableDeferred<StoreAssetRequest>()
         var assetPartReceived = false
@@ -226,7 +221,7 @@ private suspend fun RoutingCall.storeMultipartAsset(
                             part.release()
                         } else {
                             assetPartReceived = true
-                            assetContainer = part.copyAssetContentToTemporaryFile(maxMultipartContentLength)
+                            assetContainer = part.copyAssetContentToTemporaryFile()
                         }
                     }
                     else -> part.release()

@@ -1,12 +1,12 @@
 package io.konifer
 
-import io.konifer.domain.asset.MAX_BYTES_DEFAULT
 import io.konifer.entrypoint.configureAssetRouting
 import io.konifer.entrypoint.configureHealthRouting
 import io.konifer.entrypoint.configureInMemoryObjectStoreRouting
 import io.konifer.entrypoint.configureRuleEvaluationRouting
 import io.konifer.infrastructure.configureKoin
 import io.konifer.infrastructure.getObjectStoreProvider
+import io.konifer.infrastructure.http.bodylimit.configureRequestBodyLimit
 import io.konifer.infrastructure.http.cache.configureConditionalHeaders
 import io.konifer.infrastructure.http.configureCompression
 import io.konifer.infrastructure.http.exception.configureStatusPages
@@ -17,9 +17,6 @@ import io.konifer.infrastructure.path.extractRawHocon
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ApiPropertyKeys
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ApiPropertyKeys.RuleEvaluationPropertyKeys
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
 import io.konifer.infrastructure.rules.getRuleDefinitions
 import io.konifer.infrastructure.tryGetConfig
 import io.ktor.server.application.Application
@@ -60,6 +57,7 @@ fun Application.serviceModule(additionalModules: List<Module>) {
         additionalModules = additionalModules,
     )
     configureContentNegotiation()
+    configureRequestBodyLimit()
     configureRouting(
         objectStoreProvider = objectStoreProvider,
         shouldEnableRuleEvaluationsRoutes = shouldEnableEvaluationApi,
@@ -76,17 +74,9 @@ fun Application.configureRouting(
 ) {
     configureHealthRouting()
 
-    val maxMultipartContentLength =
-        environment.config
-            .tryGetConfig(SOURCE)
-            ?.tryGetConfig(MULTIPART)
-            ?.tryGetString(MAX_BYTES)
-            ?.toLong()
-            ?: MAX_BYTES_DEFAULT
-
-    configureAssetRouting(maxMultipartContentLength)
+    configureAssetRouting()
     if (shouldEnableRuleEvaluationsRoutes) {
-        configureRuleEvaluationRouting(maxMultipartContentLength)
+        configureRuleEvaluationRouting()
     }
     if (objectStoreProvider == ObjectStoreProvider.IN_MEMORY) {
         configureInMemoryObjectStoreRouting()

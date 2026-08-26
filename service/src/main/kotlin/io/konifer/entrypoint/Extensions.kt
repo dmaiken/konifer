@@ -70,7 +70,7 @@ suspend fun PartData.copyAssetContentTo(assetContentChannel: ByteChannel): Boole
     }
 }
 
-suspend fun PartData.copyAssetContentToTemporaryFile(maxBytes: Long): AssetDataContainer? {
+suspend fun PartData.copyAssetContentToTemporaryFile(): AssetDataContainer? {
     val source =
         when (this) {
             is PartData.FileItem -> provider()
@@ -79,7 +79,7 @@ suspend fun PartData.copyAssetContentToTemporaryFile(maxBytes: Long): AssetDataC
                 return null
             }
         }
-    val container = AssetDataContainer(source, maxBytes)
+    val container = AssetDataContainer(channel = source)
 
     try {
         // The format is detected after all multipart fields have been parsed. Processing APIs receive
