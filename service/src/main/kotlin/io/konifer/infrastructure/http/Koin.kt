@@ -21,6 +21,9 @@ fun httpClientModule(): Module =
     module {
         single<HttpClient> {
             HttpClient(OkHttp) {
+                // Redirects are followed explicitly so every target can be validated against the source allowlist.
+                followRedirects = false
+
                 engine {
                     config {
                         connectionPool(
@@ -31,18 +34,18 @@ fun httpClientModule(): Module =
                             ),
                         )
 
-                        followRedirects(true)
+                        followRedirects(false)
                     }
                 }
 
                 install(HttpTimeout) {
-                    requestTimeoutMillis = 15000
+                    requestTimeoutMillis = 30000
                     connectTimeoutMillis = 5000
-                    socketTimeoutMillis = 15000
+                    socketTimeoutMillis = 10000
                 }
 
                 install(HttpRequestRetry) {
-                    retryOnServerErrors(maxRetries = 3)
+                    retryOnServerErrors(maxRetries = 1)
                     exponentialDelay()
                 }
             }

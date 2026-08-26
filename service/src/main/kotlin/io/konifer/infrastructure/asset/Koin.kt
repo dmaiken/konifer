@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.asset
 
-import io.konifer.domain.asset.MAX_BYTES_DEFAULT
 import io.konifer.domain.ports.AssetContainerFactory
+import io.konifer.infrastructure.http.bodylimit.DEFAULT_UPLOAD_BODY_LIMIT
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.URL
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.UrlConfigurationPropertyKeys.ALLOWED_DOMAINS
@@ -29,8 +29,12 @@ fun Application.assetContainerFactoryModule(): Module =
                     ?.tryGetConfig(URL)
                     ?.tryGetString(MAX_BYTES)
                     ?.toLong()
-                    ?: MAX_BYTES_DEFAULT
+                    ?: DEFAULT_UPLOAD_BODY_LIMIT
 
-            AssetStreamContainerFactory(allowedDomains, maxContentLength, get())
+            UrlAssetStreamContainerFactory(
+                allowedDomains = allowedDomains,
+                maxBytes = maxContentLength,
+                httpClient = get(),
+            )
         }
     }
