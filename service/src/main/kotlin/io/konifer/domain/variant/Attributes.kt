@@ -19,7 +19,7 @@ data class Attributes(
     val format: ImageFormat,
     val orientation: Int = 1,
     val colorSpace: ColorSpace,
-    val pageCount: Int? = null,
+    val pageCount: Int = 1,
     val loop: Int? = null,
 ) {
     companion object Factory {
@@ -43,7 +43,7 @@ data class Attributes(
                 format = destinationFormat,
                 colorSpace = ImageColorSpaceExtractor.extract(image),
                 orientation = image.getInt(VipsOptionNames.OPTION_ORIENTATION) ?: 1,
-                pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else null,
+                pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else 1,
                 loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,
             )
         }

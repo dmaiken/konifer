@@ -1,6 +1,7 @@
 package io.konifer.domain.path
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.AssetLimitProperties
 import io.konifer.domain.image.ImageProperties
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.TransformProperties
@@ -16,6 +17,8 @@ data class PathConfiguration(
     val transform: TransformProperties = TransformProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.IMAGE)
     val image: ImageProperties = ImageProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.LIMITS)
+    val limits: AssetLimitProperties = AssetLimitProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE)
     val objectStore: ObjectStoreProperties = ObjectStoreProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.RETURN_FORMAT)

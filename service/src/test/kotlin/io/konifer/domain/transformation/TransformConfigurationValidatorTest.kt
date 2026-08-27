@@ -3,8 +3,8 @@ package io.konifer.domain.transformation
 import io.konifer.createImagePreProcessingProperties
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.ports.VariantProfileRepository
-import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.TransformProperties
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.domain.variant.toPixelCount
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -99,8 +99,8 @@ class TransformConfigurationValidatorTest {
         verify(exactly = 0) { variantProfileRepository.fetch(any()) }
     }
 
-    private fun limits(): LimitProperties =
-        LimitProperties(
+    private fun limits(): TransformationLimitProperties =
+        TransformationLimitProperties(
             maxWidth = 100.toDimension(),
             maxHeight = 200.toDimension(),
             maxPixels = 20_000L.toPixelCount(),

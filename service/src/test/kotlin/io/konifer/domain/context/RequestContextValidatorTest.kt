@@ -6,6 +6,7 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties

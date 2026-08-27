@@ -33,6 +33,7 @@ import io.konifer.domain.image.fromQueryParameters
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
@@ -59,20 +60,12 @@ class RequestContextFactory(
         const val RECURSIVE_MODIFIER = "RECURSIVE"
     }
 
-    fun fromStoreRequest(
-        path: String,
-        mimeType: String,
-    ): StoreRequestContext {
+    fun fromStoreRequest(path: String): StoreRequestContext {
         if (extractPathSegments(path).size > 1) {
             throw InvalidPathException("Store request cannot have modifiers in path: $path")
         }
         val route = extractRoute(path)
         val pathConfiguration = pathConfigurationRepository.fetch(route)
-        pathConfiguration.allowedContentTypes?.let {
-            if (!it.contains(mimeType)) {
-                throw ContentTypeNotPermittedException("Content type: $mimeType not permitted")
-            }
-        }
 
         return StoreRequestContext(
             path = route,
@@ -214,7 +207,9 @@ class RequestContextFactory(
                 height = parameters[HEIGHT]?.toInt()?.toDimension() ?: variantProfile?.height,
                 format = requestedFormat,
                 fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
-                gravity = Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity ?: Gravity.default,
+                gravity =
+                    Gravity.fromQueryParameters(parameters, GRAVITY) ?: variantProfile?.gravity
+                        ?: Gravity.default,
                 rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                 flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                 filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,

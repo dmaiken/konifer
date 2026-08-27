@@ -102,7 +102,7 @@ class AttributesTest {
             attributes.format shouldBe destinationFormat
             attributes.height shouldBe height.toDimension()
             attributes.width shouldBe width.toDimension()
-            attributes.pageCount shouldBe null
+            attributes.pageCount shouldBe 1
             attributes.loop shouldBe null
         }
     }

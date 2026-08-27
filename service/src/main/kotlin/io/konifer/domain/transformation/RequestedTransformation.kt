@@ -1,4 +1,4 @@
-package io.konifer.domain.context
+package io.konifer.domain.transformation
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -9,10 +9,6 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.transformation.Blur
-import io.konifer.domain.transformation.Dimension
-import io.konifer.domain.transformation.PaddingAmount
-import io.konifer.domain.transformation.Quality
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

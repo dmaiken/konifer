@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.asset
 
+import io.konifer.domain.ByteSize
 import io.konifer.domain.ports.AssetSourceForbiddenException
 import io.konifer.domain.ports.InvalidAssetSourceException
 import io.konifer.domain.ports.RemoteAssetTooLargeException
@@ -152,7 +153,7 @@ class UrlAssetStreamContainerFactoryTest {
             }
         return UrlAssetStreamContainerFactory(
             allowedDomains = setOf("assets.example"),
-            maxBytes = maxBytes,
+            maxBytes = ByteSize.parse(maxBytes.toString()),
             httpClient = client,
         )
     }

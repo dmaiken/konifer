@@ -2,7 +2,6 @@ package io.konifer.domain.variant
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.AssetRepository
@@ -11,6 +10,7 @@ import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator

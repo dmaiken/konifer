@@ -1,8 +1,8 @@
 package io.konifer.domain.transformation
 
 import io.konifer.domain.ports.VariantProfileRepository
-import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.TransformProperties
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 
 class TransformConfigurationValidator(
@@ -21,7 +21,7 @@ class TransformConfigurationValidator(
 
     private fun validateEagerVariants(
         eagerVariants: List<String>,
-        limits: LimitProperties,
+        limits: TransformationLimitProperties,
     ) {
         eagerVariants.forEach { profileName ->
             val requested = variantProfileRepository.fetch(profileName)
@@ -39,7 +39,7 @@ class TransformConfigurationValidator(
 
     private fun validatePreprocessing(
         preProcessing: PreProcessingProperties,
-        limits: LimitProperties,
+        limits: TransformationLimitProperties,
     ) {
         if (preProcessing.enabled) {
             try {

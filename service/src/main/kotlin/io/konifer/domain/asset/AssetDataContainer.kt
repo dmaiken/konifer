@@ -15,7 +15,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 
 class AssetDataTooLargeException(
-    val maxBytes: Long,
+    maxBytes: Long,
 ) : IllegalArgumentException("Asset exceeds the maximum allowed size of $maxBytes bytes")
 
 class AssetDataContainer(

@@ -89,12 +89,21 @@ object ConfigurationPropertyKeys {
 
     object PathPropertyKeys {
         const val IMAGE = "image"
+        const val LIMITS = "limits"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val OBJECT_STORE = "object-store"
         const val RETURN_FORMAT = "return-format"
         const val TRANSFORM = "transform"
         const val CACHE_CONTROL = "cache-control"
         const val UPLOAD_RULESET = "upload-ruleset"
+
+        object AssetLimitPropertyKeys {
+            const val MAX_WIDTH = "max-width"
+            const val MAX_HEIGHT = "max-height"
+            const val MAX_PIXELS = "max-pixels"
+            const val MAX_PAGES = "max-pages"
+            const val MAX_PIXELS_PER_PAGE = "max-pixels-per-page"
+        }
 
         object ImagePropertyKeys {
             const val LQIP = "lqip"

@@ -7,7 +7,7 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.context.RequestedTransformation
+import io.konifer.domain.transformation.RequestedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
