@@ -11,11 +11,7 @@ import io.konifer.domain.context.selector.DeleteModifiers
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.image.ImageProperties
-import io.konifer.domain.path.CacheControlProperties
-import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
-import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
@@ -1429,28 +1425,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `can create store asset request context`() {
             val path = "/assets/profile/123"
-            val context = requestContextFactory.fromStoreRequest(path, "image/png")
+            val context = requestContextFactory.fromStoreRequest(path)
 
             context.pathConfiguration shouldBe PathConfiguration.default
-            context.path shouldBe "/profile/123"
-        }
-
-        @Test
-        fun `can create store asset request context if mimeType is permitted`() {
-            val path = "/assets/profile/123"
-            every {
-                pathConfigurationRepository.fetch("/profile/123")
-            } returns
-                PathConfiguration(
-                    allowedContentTypes = listOf("image/png"),
-                    image = ImageProperties.default,
-                    objectStore = ObjectStoreProperties.default,
-                    cacheControl = CacheControlProperties.default,
-                    returnFormat = ReturnFormatProperties.default,
-                )
-            val context = requestContextFactory.fromStoreRequest(path, "image/png")
-
-            context.pathConfiguration.allowedContentTypes shouldBe listOf("image/png")
             context.path shouldBe "/profile/123"
         }
 
@@ -1459,30 +1436,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
             val path = "/assets/profile/123/-/new"
             val exception =
                 shouldThrow<InvalidPathException> {
-                    requestContextFactory.fromStoreRequest(path, "image/png")
+                    requestContextFactory.fromStoreRequest(path)
                 }
             exception.message shouldBe "Store request cannot have modifiers in path: $path"
-        }
-
-        @Test
-        fun `throws if content type is not permitted`() {
-            val path = "/assets/profile/123"
-            every {
-                pathConfigurationRepository.fetch("/profile/123")
-            } returns
-                PathConfiguration(
-                    allowedContentTypes = listOf("image/jpeg"),
-                    image = ImageProperties.default,
-                    objectStore = ObjectStoreProperties.default,
-                    cacheControl = CacheControlProperties.default,
-                    returnFormat = ReturnFormatProperties.default,
-                )
-
-            val exception =
-                shouldThrow<ContentTypeNotPermittedException> {
-                    requestContextFactory.fromStoreRequest(path, "image/png")
-                }
-            exception.message shouldBe "Content type: image/png not permitted"
         }
     }
 

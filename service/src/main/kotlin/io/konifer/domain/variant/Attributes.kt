@@ -19,7 +19,7 @@ data class Attributes(
     val format: ImageFormat,
     val orientation: Int = 1,
     val colorSpace: ColorSpace,
-    val pageCount: Int,
+    val pageCount: Int = 1,
     val loop: Int? = null,
 ) {
     companion object Factory {
