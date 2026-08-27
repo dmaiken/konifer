@@ -31,6 +31,7 @@ class VariantParameterGeneratorTest {
                     height = 100,
                     format = ImageFormat.JPEG,
                     colorSpace = ColorSpace.P3,
+                    pageCount = 1,
                 ),
             )
         val attributes =
