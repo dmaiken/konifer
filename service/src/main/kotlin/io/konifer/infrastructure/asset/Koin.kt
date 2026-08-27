@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.asset
 
+import io.konifer.domain.ByteSize
 import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.infrastructure.http.bodylimit.DEFAULT_UPLOAD_BODY_LIMIT
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
@@ -28,7 +29,7 @@ fun Application.assetContainerFactoryModule(): Module =
                     .tryGetConfig(SOURCE)
                     ?.tryGetConfig(URL)
                     ?.tryGetString(MAX_BYTES)
-                    ?.toLong()
+                    ?.let { ByteSize.parse(it) }
                     ?: DEFAULT_UPLOAD_BODY_LIMIT
 
             UrlAssetStreamContainerFactory(

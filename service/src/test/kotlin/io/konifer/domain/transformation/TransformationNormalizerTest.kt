@@ -10,7 +10,6 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties

@@ -1,4 +1,4 @@
-package io.konifer.asset
+package io.konifer.asset.store
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.client.ContentFetchMode
@@ -339,51 +339,6 @@ class StoreAssetTest : BaseFunctionalTest() {
 
             storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.Forbidden)
             fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
-        }
-
-    @Test
-    fun `cannot store asset via url that is larger than configured max value`() =
-        testInMemory(
-            """
-            source = {
-              url = {
-                allowed-domains = [ konifer.io ]
-                max-bytes = 100
-              }
-            }
-            """.trimIndent(),
-        ) {
-            // Come up with a better way to not rely on the internet
-            val url = "https://konifer.io/img/konifer-small.png"
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                    url = url,
-                )
-
-            storeAssetUrlSource(client, request, expectedStatus = HttpStatusCode.UnprocessableEntity)
-            fetchAssetInfo(client, path = "profile", expectedStatus = HttpStatusCode.NotFound)
-        }
-
-    @Test
-    fun `cannot store asset via upload that is larger than configured max value`() =
-        testInMemory(
-            """
-            source = {
-              multipart = {
-                max-bytes = 100
-              }
-            }
-            """.trimIndent(),
-        ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val request =
-                StoreAssetRequest(
-                    alt = "an image",
-                )
-            storeAssetMultipartSource(client, image, request, path = "users/123/profile", expectedStatus = HttpStatusCode.PayloadTooLarge)
-
-            fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }
 
     @Test

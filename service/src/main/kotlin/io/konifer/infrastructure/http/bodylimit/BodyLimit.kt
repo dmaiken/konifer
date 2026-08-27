@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http.bodylimit
 
+import io.konifer.domain.ByteSize
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SOURCE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MULTIPART
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.SourceConfigurationPropertyKeys.MultipartConfigurationPropertyKeys.MAX_BYTES
@@ -11,10 +12,8 @@ import io.ktor.server.config.tryGetString
 import io.ktor.server.plugins.bodylimit.RequestBodyLimit
 import io.ktor.server.request.contentType
 
-const val MEGABYTE = 1024L * 1024
-
-const val DEFAULT_UPLOAD_BODY_LIMIT = 20 * MEGABYTE
-const val NON_MULTIPART_BODY_LIMIT = 1L * MEGABYTE
+val DEFAULT_UPLOAD_BODY_LIMIT = ByteSize.parse("20MB")
+val NON_MULTIPART_BODY_LIMIT = ByteSize.parse("1MB")
 
 fun Application.configureRequestBodyLimit() {
     val multipartBodyLimit =
@@ -22,14 +21,14 @@ fun Application.configureRequestBodyLimit() {
             .tryGetConfig(SOURCE)
             ?.tryGetConfig(MULTIPART)
             ?.tryGetString(MAX_BYTES)
-            ?.toLong()
+            ?.let { ByteSize.parse(it) }
             ?: DEFAULT_UPLOAD_BODY_LIMIT
 
     install(RequestBodyLimit) {
         bodyLimit { call ->
             when (call.request.contentType().withoutParameters()) {
-                ContentType.MultiPart.FormData -> multipartBodyLimit
-                else -> NON_MULTIPART_BODY_LIMIT
+                ContentType.MultiPart.FormData -> multipartBodyLimit.bytes
+                else -> NON_MULTIPART_BODY_LIMIT.bytes
             }
         }
     }

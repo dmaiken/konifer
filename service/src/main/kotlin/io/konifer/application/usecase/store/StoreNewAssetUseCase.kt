@@ -3,10 +3,10 @@ package io.konifer.application.usecase.store
 import io.konifer.application.service.OriginalVariantProcessorPipeline
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
+import io.konifer.domain.asset.AssetContentValidator
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetRejectedException
-import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.ports.AssetContainerFactory
@@ -28,7 +28,7 @@ import kotlinx.coroutines.selects.select
 
 class StoreNewAssetUseCase(
     private val assetStreamContainerFactory: AssetContainerFactory,
-    private val formatValidator: FormatValidator,
+    private val assetContentValidator: AssetContentValidator,
     private val requestContextFactory: RequestContextFactory,
     private val originalVariantProcessorPipeline: OriginalVariantProcessorPipeline,
     private val objectStore: ObjectStore,
@@ -64,8 +64,12 @@ class StoreNewAssetUseCase(
         uriPath: String,
     ): AssetAndLocation =
         coroutineScope {
-            val format = formatValidator.deriveValidImageFormat(container.peek(1024))
-            val context = requestContextFactory.fromStoreRequest(uriPath, format.mimeType)
+            val context = requestContextFactory.fromStoreRequest(uriPath)
+            val suppliedContentAttributes =
+                assetContentValidator.validateAssetContent(
+                    pathConfiguration = context.pathConfiguration,
+                    container = container,
+                )
             val newAsset =
                 Asset.New.fromHttpRequest(
                     path = context.path,
@@ -78,7 +82,7 @@ class StoreNewAssetUseCase(
                         scope = this, // Pass the current scope
                         container = container,
                         context = context,
-                        format = format,
+                        attributes = suppliedContentAttributes,
                     )
 
                 val attributes = pipeline.awaitAttributesOrRejection()

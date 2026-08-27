@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.asset
 
+import io.konifer.domain.ByteSize
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.AssetDataTooLargeException
 import io.konifer.domain.ports.AssetContainerFactory
@@ -24,7 +25,7 @@ import javax.net.ssl.SSLException
 
 class UrlAssetStreamContainerFactory(
     allowedDomains: Set<String>,
-    private val maxBytes: Long,
+    private val maxBytes: ByteSize,
     private val httpClient: HttpClient,
 ) : AssetContainerFactory {
     companion object {
@@ -88,7 +89,7 @@ class UrlAssetStreamContainerFactory(
             validateRemoteStatus(response)
             validateContentLength(response)
 
-            val container = AssetDataContainer(response.bodyAsChannel(), maxBytes)
+            val container = AssetDataContainer(response.bodyAsChannel(), maxBytes.bytes)
             try {
                 // Streaming responses are only valid inside execute, so materialize the bounded body before returning.
                 container.toTemporaryFile("")
@@ -145,7 +146,7 @@ class UrlAssetStreamContainerFactory(
         val contentLength =
             value.toLongOrNull()
                 ?: throw AssetSourceUnavailableException("Asset source returned an invalid Content-Length header")
-        if (contentLength > maxBytes) {
+        if (contentLength > maxBytes.bytes) {
             throw RemoteAssetTooLargeException()
         }
     }

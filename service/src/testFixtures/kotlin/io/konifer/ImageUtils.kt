@@ -14,7 +14,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.context.RequestedTransformation
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount

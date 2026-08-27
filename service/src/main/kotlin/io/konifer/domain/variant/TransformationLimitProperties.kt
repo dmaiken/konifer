@@ -9,15 +9,15 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LimitProperties(
+data class TransformationLimitProperties(
     @SerialName(MAX_WIDTH)
     val maxWidth: Dimension = 8192.toDimension(),
     @SerialName(MAX_HEIGHT)
     val maxHeight: Dimension = 8192.toDimension(),
     @SerialName(MAX_PIXELS)
-    val maxPixels: PixelCount = (8192L * 8192L).toPixelCount(),
+    val maxPixels: PixelCount = PixelCount.parse("20MP"),
 ) {
     companion object Factory {
-        val default = LimitProperties()
+        val default = TransformationLimitProperties()
     }
 }

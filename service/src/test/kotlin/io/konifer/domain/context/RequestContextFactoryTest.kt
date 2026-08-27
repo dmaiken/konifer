@@ -17,13 +17,14 @@ import io.konifer.domain.path.ObjectStoreProperties
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.path.ReturnFormatProperties
 import io.konifer.domain.transformation.InvalidTransformationException
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -847,7 +848,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     PathConfiguration(
                         transform =
                             TransformProperties(
-                                limits = LimitProperties(maxHeight = 199.toDimension()),
+                                limits = TransformationLimitProperties(maxHeight = 199.toDimension()),
                             ),
                     )
 

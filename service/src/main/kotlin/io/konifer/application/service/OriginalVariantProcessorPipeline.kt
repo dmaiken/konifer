@@ -1,8 +1,5 @@
 package io.konifer.application.service
 
-import app.photofox.vipsffm.VImage
-import app.photofox.vipsffm.Vips
-import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.StoreRequestContext
@@ -18,7 +15,6 @@ import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.teeStream
-import io.konifer.infrastructure.vips.createDecoderOptions
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.ByteChannel
@@ -26,13 +22,9 @@ import io.ktor.utils.io.close
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlin.io.path.createLinkPointingTo
-import kotlin.io.path.pathString
 
 class OriginalVariantProcessorPipeline(
     private val transformationNormalizer: TransformationNormalizer,
@@ -42,9 +34,8 @@ class OriginalVariantProcessorPipeline(
         scope: CoroutineScope,
         container: AssetDataContainer,
         context: StoreRequestContext,
-        format: ImageFormat,
+        attributes: Attributes,
     ): ProcessingPipeline {
-        container.toTemporaryFile(format.extension)
         val hasEagerVariants =
             context.pathConfiguration.transform.eagerVariants
                 .isNotEmpty()
@@ -54,14 +45,14 @@ class OriginalVariantProcessorPipeline(
                 scope = scope,
                 container = container,
                 context = context,
-                format = format,
+                attributes = attributes,
                 hasEagerVariants = hasEagerVariants,
             )
         } else {
             buildPassthroughPipeline(
                 scope = scope,
                 container = container,
-                format = format,
+                attributes = attributes,
                 hasEagerVariants = hasEagerVariants,
             )
         }
@@ -71,14 +62,13 @@ class OriginalVariantProcessorPipeline(
         scope: CoroutineScope,
         container: AssetDataContainer,
         context: StoreRequestContext,
-        format: ImageFormat,
+        attributes: Attributes,
         hasEagerVariants: Boolean,
     ): ProcessingPipeline {
         val transformation =
             normalizePreProcessing(
                 context = context,
-                container = container,
-                sourceFormat = format,
+                attributes = attributes,
             )
 
         val objectStoreChannel = ByteChannel()
@@ -92,7 +82,7 @@ class OriginalVariantProcessorPipeline(
 
         val eagerVariantTemporaryFile =
             if (hasEagerVariants) {
-                TemporaryFileFactory.createPreProcessedTempFile(format.extension)
+                TemporaryFileFactory.createPreProcessedTempFile(transformation.format.extension)
             } else {
                 null
             }
@@ -110,7 +100,7 @@ class OriginalVariantProcessorPipeline(
 
                 val jobDeferred =
                     originalVariantContentProcessor.process(
-                        sourceFormat = format,
+                        sourceFormat = attributes.format,
                         lqipImplementations = context.pathConfiguration.image.previews,
                         source = container.getTemporaryFile(),
                         transformationDataContainer = transformationData,
@@ -132,13 +122,13 @@ class OriginalVariantProcessorPipeline(
     private suspend fun buildPassthroughPipeline(
         scope: CoroutineScope,
         container: AssetDataContainer,
-        format: ImageFormat,
+        attributes: Attributes,
         hasEagerVariants: Boolean,
     ): ProcessingPipeline {
         val objectStoreChannel = ByteChannel()
         val eagerVariantFile =
             if (hasEagerVariants) {
-                TemporaryFileFactory.createPreProcessedTempFile(format.extension).apply {
+                TemporaryFileFactory.createPreProcessedTempFile(attributes.format.extension).apply {
                     // Hard reference - not a symbolic link!! This prevents the underlying file
                     // from being deleted when the container is closed
                     createLinkPointingTo(container.getTemporaryFile())
@@ -166,15 +156,7 @@ class OriginalVariantProcessorPipeline(
             }
 
         return ProcessingPipeline(
-            attributes =
-                CompletableDeferred(
-                    withContext(Dispatchers.IO) {
-                        Attributes.createAttributes(
-                            path = container.getTemporaryFile(),
-                            format = format,
-                        )
-                    },
-                ),
+            attributes = CompletableDeferred(attributes),
             outputChannel = objectStoreChannel,
             eagerVariantFile = eagerVariantFile,
             processDeferred = passthroughProcess,
@@ -184,49 +166,19 @@ class OriginalVariantProcessorPipeline(
 
     private suspend fun normalizePreProcessing(
         context: StoreRequestContext,
-        container: AssetDataContainer,
-        sourceFormat: ImageFormat,
-    ): Transformation =
-        withContext(Dispatchers.IO) {
-            val requestedTransformation =
-                context.pathConfiguration.transform.preProcessing.image.requestedImageTransformation
-            var transformation: Transformation? = null
-
-            Vips.run { arena ->
-                val destinationFormat =
-                    context.pathConfiguration.transform.preProcessing.image.format
-                        ?: sourceFormat
-                // Even if this image is paged, just need to load one frame to get height/ width,
-                // So don't specify "n" as an option
-                val image =
-                    VImage.newFromFile(
-                        arena,
-                        container.getTemporaryFile().pathString,
-                        *createDecoderOptions(
-                            sourceFormat = sourceFormat,
-                            destinationFormat = destinationFormat,
-                        ),
-                    )
-
-                transformation =
-                    runBlocking {
-                        transformationNormalizer
-                            .normalize(
-                                requested = requestedTransformation,
-                                originalVariantAttributes =
-                                    Attributes.createAttributes(
-                                        image = image,
-                                        sourceFormat = sourceFormat,
-                                        destinationFormat = destinationFormat,
-                                    ),
-                            ).also { normalized ->
-                                TransformationValidator.validateNormalizedTransformation(
-                                    transformProperties = context.pathConfiguration.transform,
-                                    transformation = normalized,
-                                )
-                            }
-                    }
+        attributes: Attributes,
+    ): Transformation {
+        val requestedTransformation =
+            context.pathConfiguration.transform.preProcessing.image.requestedImageTransformation
+        return transformationNormalizer
+            .normalize(
+                requested = requestedTransformation,
+                originalVariantAttributes = attributes,
+            ).also { normalized ->
+                TransformationValidator.validateNormalizedTransformation(
+                    transformProperties = context.pathConfiguration.transform,
+                    transformation = normalized,
+                )
             }
-            checkNotNull(transformation)
-        }
+    }
 }

@@ -4,8 +4,8 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.LimitProperties
 import io.konifer.domain.variant.TransformProperties
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.toPixelCount
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -103,7 +103,7 @@ class TransformationValidatorTest {
         shouldNotThrowAny {
             TransformationValidator.validateRequestedTransformation(
                 limits =
-                    LimitProperties(
+                    TransformationLimitProperties(
                         maxWidth = 100.toDimension(),
                         maxHeight = 200.toDimension(),
                         maxPixels = 20_000L.toPixelCount(),
@@ -119,7 +119,7 @@ class TransformationValidatorTest {
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateRequestedTransformation(
                     limits =
-                        LimitProperties(
+                        TransformationLimitProperties(
                             maxWidth = 99.toDimension(),
                             maxHeight = 200.toDimension(),
                             maxPixels = 20_000L.toPixelCount(),
@@ -137,7 +137,7 @@ class TransformationValidatorTest {
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateRequestedTransformation(
                     limits =
-                        LimitProperties(
+                        TransformationLimitProperties(
                             maxWidth = 100.toDimension(),
                             maxHeight = 199.toDimension(),
                             maxPixels = 20_000L.toPixelCount(),
@@ -155,7 +155,7 @@ class TransformationValidatorTest {
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateRequestedTransformation(
                     limits =
-                        LimitProperties(
+                        TransformationLimitProperties(
                             maxWidth = 100.toDimension(),
                             maxHeight = 100.toDimension(),
                             maxPixels = 9_999L.toPixelCount(),
@@ -173,7 +173,7 @@ class TransformationValidatorTest {
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateRequestedTransformation(
                     limits =
-                        LimitProperties(
+                        TransformationLimitProperties(
                             maxWidth = 100.toDimension(),
                             maxHeight = 100.toDimension(),
                             maxPixels = 10_000L.toPixelCount(),
@@ -191,7 +191,7 @@ class TransformationValidatorTest {
         shouldNotThrowAny {
             TransformationValidator.validateRequestedTransformation(
                 limits =
-                    LimitProperties(
+                    TransformationLimitProperties(
                         maxWidth = 60.toDimension(),
                         maxHeight = 110.toDimension(),
                         maxPixels = 6_600L.toPixelCount(),
@@ -206,7 +206,7 @@ class TransformationValidatorTest {
         shouldNotThrowAny {
             TransformationValidator.validateRequestedTransformation(
                 limits =
-                    LimitProperties(
+                    TransformationLimitProperties(
                         maxWidth = 1.toDimension(),
                         maxHeight = 1.toDimension(),
                         maxPixels = 1L.toPixelCount(),
@@ -223,7 +223,7 @@ class TransformationValidatorTest {
     ): TransformProperties =
         TransformProperties(
             limits =
-                LimitProperties(
+                TransformationLimitProperties(
                     maxWidth = maxWidth.toDimension(),
                     maxHeight = maxHeight.toDimension(),
                     maxPixels = maxPixels.toPixelCount(),

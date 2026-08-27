@@ -36,7 +36,7 @@ data class ImageVariantAttributes(
             width = this.width.toDimension(),
             height = this.height.toDimension(),
             format = this.format,
-            pageCount = this.pageCount,
+            pageCount = this.pageCount ?: 1,
             loop = this.loop,
             colorSpace = this.colorSpace,
         )

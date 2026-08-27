@@ -95,7 +95,9 @@ data class TestImageAttributes(
     val height: Int,
     val width: Int,
     val format: ImageFormat,
-)
+) {
+    val pixelCount: Long = height.toLong() * width
+}
 
 enum class TestImageType {
     /**

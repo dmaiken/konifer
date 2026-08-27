@@ -4,7 +4,6 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository

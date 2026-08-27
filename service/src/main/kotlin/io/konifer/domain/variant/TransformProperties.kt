@@ -16,7 +16,7 @@ data class TransformProperties(
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.EXPIRE)
     val expire: ExpirationProperties = ExpirationProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.LIMITS)
-    val limits: LimitProperties = LimitProperties.default,
+    val limits: TransformationLimitProperties = TransformationLimitProperties.default,
 ) {
     companion object Factory {
         val default = TransformProperties()

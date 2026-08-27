@@ -3,8 +3,8 @@ package io.konifer.infrastructure.variant.profile
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigObject
-import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon

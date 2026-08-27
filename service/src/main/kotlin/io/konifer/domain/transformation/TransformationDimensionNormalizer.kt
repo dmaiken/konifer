@@ -2,7 +2,6 @@ package io.konifer.domain.transformation
 
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Rotate
-import io.konifer.domain.context.RequestedTransformation
 import io.konifer.domain.variant.Attributes
 import kotlinx.coroutines.Deferred
 import kotlin.math.roundToInt
