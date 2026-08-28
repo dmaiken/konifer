@@ -20,10 +20,9 @@ class PriorityChannelConsumer<T>(
         logger.info("Initiated WorkItem consumer with synchronous priority of: $highPriorityWeight%")
     }
 
-    suspend fun nextWorkItem(): T {
-        val random = Random.nextInt(0, 100)
-        return select {
-            if (random > 100 - highPriorityWeight) {
+    suspend fun nextWorkItem(): T =
+        select {
+            if (Random.nextInt(100) < highPriorityWeight) {
                 // Pull from high channel
                 highPriorityChannel.onReceiveCatching { result ->
                     if (result.isClosed) throw CancellationException("High priority channel closed.")
@@ -45,5 +44,4 @@ class PriorityChannelConsumer<T>(
                 }
             }
         }
-    }
 }

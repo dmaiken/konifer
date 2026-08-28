@@ -16,6 +16,7 @@ import io.konifer.infrastructure.rules.RuleDecisionEngine
 import io.konifer.infrastructure.rules.RuleEvaluator
 import io.konifer.infrastructure.variant.Siglip2TensorTransformation
 import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
+import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.konifer.infrastructure.vips.processor.PreprocessOutput
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.infrastructure.vips.processor.VipsTensorProcessor
@@ -24,7 +25,6 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.lang.foreign.Arena
 import java.nio.file.Path
 
 class OriginalVariantContentService(
@@ -43,31 +43,25 @@ class OriginalVariantContentService(
         sourceFile: Path,
     ): UploadRuleDecision =
         withContext(Dispatchers.IO) {
-            var decision = uploadRuleset.default.toDecision()
-            var evaluationResult = RuleDefinitionsEvaluationResult.none
             var preprocessOutput: PreprocessOutput? = null
-            Vips.run { arena ->
-                val source =
-                    VipsThumbnailDecoder.decode(
-                        arena = arena,
-                        transformation = transformationDataContainer.transformation,
-                        sourceFormat = sourceFormat,
-                        sourceFile = sourceFile,
-                    )
-
+            val (evaluationResult, decision) =
                 canProcess(
-                    arena = arena,
                     sourceFile = sourceFile,
                     uploadRuleset = uploadRuleset,
-                    currentDecision = decision,
+                    defaultDecision = uploadRuleset.default.toDecision(),
                     sourceFormat = sourceFormat,
-                ).also {
-                    evaluationResult = it.first
-                    decision = it.second
-                }
+                )
 
-                // If rules allow, preprocess variant
-                if (decision.accept) {
+            // If rules allow, preprocess variant
+            if (decision.accept) {
+                Vips.run { arena ->
+                    val source =
+                        VipsThumbnailDecoder.decode(
+                            arena = arena,
+                            transformation = transformationDataContainer.transformation,
+                            sourceFormat = sourceFormat,
+                            sourceFile = sourceFile,
+                        )
                     logger.info("Asset is accepted by rules, continuing with preprocessing")
                     preprocessOutput =
                         vipsImageProcessor.preprocess(
@@ -102,25 +96,31 @@ class OriginalVariantContentService(
             )
         }
 
-    private fun canProcess(
-        arena: Arena,
+    private suspend fun canProcess(
         sourceFile: Path,
         uploadRuleset: UploadRuleset,
-        currentDecision: RuleDecision,
+        defaultDecision: RuleDecision,
         sourceFormat: ImageFormat,
     ): Pair<RuleDefinitionsEvaluationResult, RuleDecision> {
         val rulesToEvaluate =
             determineRulesToEvaluate(uploadRuleset)
                 .takeIf { it.isNotEmpty() }
-                ?: return Pair(RuleDefinitionsEvaluationResult.none, currentDecision)
+                ?: return Pair(RuleDefinitionsEvaluationResult.none, defaultDecision)
 
         val imageTensor =
-            vipsTensorProcessor.process(
-                sourceFile = sourceFile,
-                sourceFormat = sourceFormat,
-                arena = arena,
-                tensorTransformation = Siglip2TensorTransformation,
-            )
+            withContext(Dispatchers.IO) {
+                var result: ImageTensor? = null
+                Vips.run { arena ->
+                    result =
+                        vipsTensorProcessor.process(
+                            sourceFile = sourceFile,
+                            sourceFormat = sourceFormat,
+                            arena = arena,
+                            tensorTransformation = Siglip2TensorTransformation,
+                        )
+                }
+                checkNotNull(result)
+            }
 
         val ruleDefinitions =
             rulesToEvaluate

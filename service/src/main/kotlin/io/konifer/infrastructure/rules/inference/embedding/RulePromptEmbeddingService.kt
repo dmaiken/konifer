@@ -6,5 +6,5 @@ interface RulePromptEmbeddingService {
     /**
      * Generate embeddings for [prompts].
      */
-    fun generateEmbeddings(prompts: List<RulePrompt>): Map<RulePrompt, FloatArray>
+    suspend fun generateEmbeddings(prompts: List<RulePrompt>): Map<RulePrompt, FloatArray>
 }
