@@ -78,7 +78,34 @@ jobs:
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
 
-  build-service:
+  unit-tests:
+    needs: compile-and-lint
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Unit Tests
+        run: ./gradlew koverBinaryReport -x :service:functionalTest -x detekt -x ktlintCheck
+
+      - name: Upload Unit Test Coverage Data
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-coverage-data
+          path: |
+            build/kover/bin-reports/*.ic
+            client/build/kover/bin-reports/*.ic
+            common/build/kover/bin-reports/*.ic
+            service/build/kover/bin-reports/test.ic
+          if-no-files-found: error
+          retention-days: 1
+
+  functional-tests:
     needs: compile-and-lint
     runs-on: ubuntu-latest
     container:
@@ -101,13 +128,67 @@ jobs:
         if: steps.siglip2-cache.outputs.cache-hit != 'true'
         run: bash scripts/download-siglip2-models.sh --revision "$SIGLIP2_MODEL_REVISION"
 
-      - name: Run Unified Tests & Coverage
-        run: ./gradlew koverXmlReport -x detekt -x ktlintCheck
+      - name: Run Functional Tests
+        run: ./gradlew :service:functionalTest --no-parallel -Dorg.gradle.workers.max=1 -x detekt -x ktlintCheck --info
         env:
           SVT_LOG: 1
 
-      - name: Build Service Fat JAR
-        run: ./gradlew :service:shadowJar -x test -x detekt -x ktlintCheck
+      - name: Upload Functional Test Coverage Data
+        uses: actions/upload-artifact@v7
+        with:
+          name: functional-test-coverage-data
+          path: service/build/kover/bin-reports/functionalTest.ic
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Report Memory State After Failure
+        if: ${{ failure() }}
+        run: |
+          free -h
+          for file in memory.max memory.peak memory.current memory.events; do
+            path="/sys/fs/cgroup/$file"
+            if test -r "$path"; then
+              echo "$file: $(tr '\n' ' ' < "$path")"
+            fi
+          done
+
+      - name: Upload Functional Test Reports After Failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: functional-test-reports
+          path: |
+            service/build/test-results/functionalTest
+            service/build/reports/tests/functionalTest
+          if-no-files-found: ignore
+          retention-days: 7
+
+  coverage:
+    needs: [ unit-tests, functional-tests ]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Download Unit Test Coverage Data
+        uses: actions/download-artifact@v8
+        with:
+          name: unit-test-coverage-data
+          path: .
+
+      - name: Download Functional Test Coverage Data
+        uses: actions/download-artifact@v8
+        with:
+          name: functional-test-coverage-data
+          path: .
+
+      - name: Generate Unified Coverage Report
+        run: ./gradlew koverXmlReport -x test -x jvmTest -x functionalTest -x detekt -x ktlintCheck
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
@@ -118,6 +199,21 @@ jobs:
           flags: tests
           fail_ci_if_error: true
 
+  build-service:
+    needs: [ test-client, coverage ]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-base-ci:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build Service Fat JAR
+        run: ./gradlew :service:shadowJar -x test -x functionalTest -x detekt -x ktlintCheck
+
       - name: Upload Shadow JAR Artifact
         uses: actions/upload-artifact@v7
         with:
@@ -126,7 +222,7 @@ jobs:
           retention-days: 1
 
   docker-build:
-    needs: [ test-client, build-service ]
+    needs: build-service
     strategy:
       fail-fast: false
       matrix:
