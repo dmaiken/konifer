@@ -66,6 +66,13 @@ jobs:
       - uses: actions/checkout@v7
       - uses: gradle/actions/setup-gradle@v6
 
+      - name: Restore SigLIP2 Model Cache
+        id: siglip2-cache
+        uses: actions/cache@v6
+        with:
+          path: models/siglip2-base-patch16-224
+          key: siglip2-base-patch16-224-${{ env.SIGLIP2_MODEL_REVISION }}
+
       - name: Run Unit Tests
         run: ./gradlew :service:test -x detekt -x ktlintCheck
 
