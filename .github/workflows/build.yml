@@ -192,7 +192,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: functional-test-coverage-data
-          path: .
+          path: service/build/kover/bin-reports
+
+      - name: Verify Coverage Data
+        run: |
+          test -s service/build/kover/bin-reports/test.ic
+          test -s service/build/kover/bin-reports/functionalTest.ic
 
       - name: Generate Unified Coverage Report
         run: ./gradlew koverXmlReport -x test -x jvmTest -x functionalTest -x detekt -x ktlintCheck
@@ -347,7 +352,9 @@ jobs:
         run: docker load --input /tmp/konifer-image-${{ matrix.arch }}.tar
 
       - name: Run Docker Integration Tests
-        run: ./gradlew :integration-test:cleanTest :integration-test:integrationTest -x detekt -x ktlintCheck
+        # The Docker image is an external test input that Gradle cannot fingerprint.
+        # Force execution so a cached result is never reused for a newly built image.
+        run: ./gradlew :integration-test:cleanTest :integration-test:integrationTest --rerun-tasks -x detekt -x ktlintCheck
 
   merge:
     runs-on: ubuntu-latest
