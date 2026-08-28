@@ -73,53 +73,58 @@ class Siglip2RulePromptEmbeddingServiceTest {
     }
 
     @Test
-    fun `can generate embeddings`() {
-        val embeddings = service.generateSingleEmbedding(prompt1)
+    fun `can generate embeddings`() =
+        runTest {
+            val embeddings = service.generateSingleEmbedding(prompt1)
 
-        embeddings shouldHaveAtLeastSize 1
-        embeddings.forEach { it.shouldNotBeNaN() }
+            embeddings shouldHaveAtLeastSize 1
+            embeddings.forEach { it.shouldNotBeNaN() }
 
-        val norm = sqrt(embeddings.sumOf { (it * it).toDouble() })
-        norm shouldBe (1.0 plusOrMinus 0.0001)
-    }
-
-    @Test
-    fun `returns stable embeddings for same prompt`() {
-        val first = service.generateSingleEmbedding(prompt1)
-        val second = service.generateSingleEmbedding(prompt1)
-
-        first.contentEquals(second) shouldBe true
-    }
-
-    @Test
-    fun `returns different embeddings for different prompts`() {
-        val first = service.generateSingleEmbedding(prompt1)
-        val second = service.generateSingleEmbedding(prompt2)
-
-        first.contentEquals(second) shouldBe false
-    }
-
-    @Test
-    fun `can generate embeddings for multiple prompts`() {
-        val prompts = rulePrompts(prompt1, prompt2, incorrectFormatPrompt)
-        val embeddings = service.generateEmbeddings(prompts)
-
-        embeddings.size shouldBe 3
-        embeddings.getValue(prompts[0]).contentEquals(embeddings.getValue(prompts[1])) shouldBe false
-        embeddings.getValue(prompts[0]).contentEquals(embeddings.getValue(prompts[2])) shouldBe true
-        embeddings.values.forEach { embedding ->
-            embedding shouldHaveAtLeastSize 1
-            embedding.forEach { it.shouldNotBeNaN() }
+            val norm = sqrt(embeddings.sumOf { (it * it).toDouble() })
+            norm shouldBe (1.0 plusOrMinus 0.0001)
         }
-    }
 
     @Test
-    fun `preprocesses text before generating embeddings`() {
-        val first = service.generateSingleEmbedding(incorrectFormatPrompt)
-        val second = service.generateSingleEmbedding(prompt1)
+    fun `returns stable embeddings for same prompt`() =
+        runTest {
+            val first = service.generateSingleEmbedding(prompt1)
+            val second = service.generateSingleEmbedding(prompt1)
 
-        first.contentEquals(second) shouldBe true
-    }
+            first.contentEquals(second) shouldBe true
+        }
+
+    @Test
+    fun `returns different embeddings for different prompts`() =
+        runTest {
+            val first = service.generateSingleEmbedding(prompt1)
+            val second = service.generateSingleEmbedding(prompt2)
+
+            first.contentEquals(second) shouldBe false
+        }
+
+    @Test
+    fun `can generate embeddings for multiple prompts`() =
+        runTest {
+            val prompts = rulePrompts(prompt1, prompt2, incorrectFormatPrompt)
+            val embeddings = service.generateEmbeddings(prompts)
+
+            embeddings.size shouldBe 3
+            embeddings.getValue(prompts[0]).contentEquals(embeddings.getValue(prompts[1])) shouldBe false
+            embeddings.getValue(prompts[0]).contentEquals(embeddings.getValue(prompts[2])) shouldBe true
+            embeddings.values.forEach { embedding ->
+                embedding shouldHaveAtLeastSize 1
+                embedding.forEach { it.shouldNotBeNaN() }
+            }
+        }
+
+    @Test
+    fun `preprocesses text before generating embeddings`() =
+        runTest {
+            val first = service.generateSingleEmbedding(incorrectFormatPrompt)
+            val second = service.generateSingleEmbedding(prompt1)
+
+            first.contentEquals(second) shouldBe true
+        }
 
     @Test
     fun `stores generated prompt embeddings in cache`() =
@@ -138,168 +143,173 @@ class Siglip2RulePromptEmbeddingServiceTest {
         }
 
     @Test
-    fun `uses cached prompt embeddings without creating text model session`() {
-        val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
-        val cachedRepository =
-            RecordingEmbeddingCacheRepository(
-                initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
-            )
-        val onnxSessionFactory =
-            mockk<OnnxSessionFactory> {
-                every { create(any()) } throws AssertionError("Text model session should not be created")
-            }
-        val cachedService =
-            Siglip2RulePromptEmbeddingService(
-                ortEnvironment = environment,
-                onnxSessionFactory = onnxSessionFactory,
-                ruleDefinitions =
-                    listOf(
-                        RuleDefinition(
-                            name = RuleName("test-prompt"),
-                            prompts = listOf(RulePrompt(prompt1)),
-                            threshold = RuleDefinitionThreshold(0.5),
-                        ),
-                    ),
-                embeddingCacheRepository = cachedRepository,
-                dispatcher = Dispatchers.Default,
-                tokenizerFactory = ::Siglip2Tokenizer,
-            )
-
-        cachedService.use { cachedService ->
-            val embedding = cachedService.generateSingleEmbedding(prompt1)
-
-            embedding.contentEquals(cachedEmbedding) shouldBe true
-            cachedRepository.storeCalls shouldBe emptyMap()
-        }
-    }
-
-    @Test
-    fun `returns embeddings keyed by rule prompt while fetching cache by preprocessed prompt`() {
-        val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
-        val cachedRepository =
-            RecordingEmbeddingCacheRepository(
-                initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
-            )
-        val onnxSessionFactory =
-            mockk<OnnxSessionFactory> {
-                every { create(any()) } throws AssertionError("Text model session should not be created")
-            }
-        val cachedService =
-            Siglip2RulePromptEmbeddingService(
-                ortEnvironment = environment,
-                onnxSessionFactory = onnxSessionFactory,
-                ruleDefinitions = emptyList(),
-                embeddingCacheRepository = cachedRepository,
-                dispatcher = Dispatchers.Default,
-                tokenizerFactory = ::Siglip2Tokenizer,
-            )
-        val prompt = RulePrompt(prompt1)
-
-        cachedService.use { cachedService ->
-            val embeddings = cachedService.generateEmbeddings(listOf(prompt))
-
-            embeddings shouldContainExactly mapOf(prompt to cachedEmbedding)
-            cachedRepository.fetchCalls shouldBe listOf(listOf(preprocessedPrompt1))
-        }
-    }
-
-    @Test
-    fun `fetches distinct preprocessed prompts from cache`() {
-        val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
-        val cachedRepository =
-            RecordingEmbeddingCacheRepository(
-                initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
-            )
-        val onnxSessionFactory =
-            mockk<OnnxSessionFactory> {
-                every { create(any()) } throws AssertionError("Text model session should not be created")
-            }
-        val cachedService =
-            Siglip2RulePromptEmbeddingService(
-                ortEnvironment = environment,
-                onnxSessionFactory = onnxSessionFactory,
-                ruleDefinitions = emptyList(),
-                embeddingCacheRepository = cachedRepository,
-                dispatcher = Dispatchers.Default,
-                tokenizerFactory = ::Siglip2Tokenizer,
-            )
-        val prompts = rulePrompts(prompt1, incorrectFormatPrompt)
-
-        cachedService.use { cachedService ->
-            val embeddings = cachedService.generateEmbeddings(prompts)
-
-            embeddings.size shouldBe 2
-            embeddings.getValue(prompts[0]).contentEquals(cachedEmbedding) shouldBe true
-            embeddings.getValue(prompts[1]).contentEquals(cachedEmbedding) shouldBe true
-            cachedRepository.fetchCalls shouldBe listOf(listOf(preprocessedPrompt1))
-        }
-    }
-
-    @Test
-    fun `does not reuse stale in-memory prompt embeddings across calls`() {
-        val firstEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
-        val secondEmbedding = floatArrayOf(-0.1f, 0.2f, -0.3f)
-        val cachedRepository =
-            RecordingEmbeddingCacheRepository(
-                initialEmbeddings = mapOf(preprocessedPrompt1 to firstEmbedding),
-            )
-        val onnxSessionFactory =
-            mockk<OnnxSessionFactory> {
-                every { create(any()) } throws AssertionError("Text model session should not be created")
-            }
-        val cachedService =
-            Siglip2RulePromptEmbeddingService(
-                ortEnvironment = environment,
-                onnxSessionFactory = onnxSessionFactory,
-                ruleDefinitions = emptyList(),
-                embeddingCacheRepository = cachedRepository,
-                dispatcher = Dispatchers.Default,
-                tokenizerFactory = ::Siglip2Tokenizer,
-            )
-
-        cachedService.use { cachedService ->
-            val first = cachedService.generateSingleEmbedding(prompt1)
-            cachedRepository.replace(preprocessedPrompt1, secondEmbedding)
-            val second = cachedService.generateSingleEmbedding(prompt1)
-
-            first.contentEquals(firstEmbedding) shouldBe true
-            second.contentEquals(secondEmbedding) shouldBe true
-            cachedRepository.fetchCalls shouldBe
-                listOf(
-                    listOf(preprocessedPrompt1),
-                    listOf(preprocessedPrompt1),
+    fun `uses cached prompt embeddings without creating text model session`() =
+        runTest {
+            val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
+            val cachedRepository =
+                RecordingEmbeddingCacheRepository(
+                    initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
                 )
+            val onnxSessionFactory =
+                mockk<OnnxSessionFactory> {
+                    every { create(any()) } throws AssertionError("Text model session should not be created")
+                }
+            val cachedService =
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = environment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    ruleDefinitions =
+                        listOf(
+                            RuleDefinition(
+                                name = RuleName("test-prompt"),
+                                prompts = listOf(RulePrompt(prompt1)),
+                                threshold = RuleDefinitionThreshold(0.5),
+                            ),
+                        ),
+                    embeddingCacheRepository = cachedRepository,
+                    dispatcher = Dispatchers.Default,
+                    tokenizerFactory = ::Siglip2Tokenizer,
+                )
+
+            cachedService.use { cachedService ->
+                val embedding = cachedService.generateSingleEmbedding(prompt1)
+
+                embedding.contentEquals(cachedEmbedding) shouldBe true
+                cachedRepository.storeCalls shouldBe emptyMap()
+            }
         }
-    }
 
     @Test
-    fun `throws for uncached prompts when embedding cache misses are disabled`() {
-        val cachedRepository = RecordingEmbeddingCacheRepository()
-        val onnxSessionFactory =
-            mockk<OnnxSessionFactory> {
-                every { create(any()) } throws AssertionError("Text model session should not be created")
+    fun `returns embeddings keyed by rule prompt while fetching cache by preprocessed prompt`() =
+        runTest {
+            val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
+            val cachedRepository =
+                RecordingEmbeddingCacheRepository(
+                    initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
+                )
+            val onnxSessionFactory =
+                mockk<OnnxSessionFactory> {
+                    every { create(any()) } throws AssertionError("Text model session should not be created")
+                }
+            val cachedService =
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = environment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    ruleDefinitions = emptyList(),
+                    embeddingCacheRepository = cachedRepository,
+                    dispatcher = Dispatchers.Default,
+                    tokenizerFactory = ::Siglip2Tokenizer,
+                )
+            val prompt = RulePrompt(prompt1)
+
+            cachedService.use { cachedService ->
+                val embeddings = cachedService.generateEmbeddings(listOf(prompt))
+
+                embeddings shouldContainExactly mapOf(prompt to cachedEmbedding)
+                cachedRepository.fetchCalls shouldBe listOf(listOf(preprocessedPrompt1))
             }
-        val cachedOnlyService =
-            Siglip2RulePromptEmbeddingService(
-                ortEnvironment = environment,
-                onnxSessionFactory = onnxSessionFactory,
-                ruleDefinitions = emptyList(),
-                embeddingCacheRepository = cachedRepository,
-                dispatcher = Dispatchers.Default,
-                tokenizerFactory = ::Siglip2Tokenizer,
-                allowEmbeddingCacheMiss = false,
-            )
-
-        cachedOnlyService.use { cachedOnlyService ->
-            shouldThrow<IllegalArgumentException> {
-                cachedOnlyService.generateEmbeddings(rulePrompts("uncached prompt"))
-            }.message shouldBe "Embeddings for prompts were not configured: this is a photo of uncached prompt"
-
-            cachedRepository.storeCalls shouldBe emptyMap()
         }
-    }
 
-    private fun Siglip2RulePromptEmbeddingService.generateSingleEmbedding(prompt: String): FloatArray =
+    @Test
+    fun `fetches distinct preprocessed prompts from cache`() =
+        runTest {
+            val cachedEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
+            val cachedRepository =
+                RecordingEmbeddingCacheRepository(
+                    initialEmbeddings = mapOf(preprocessedPrompt1 to cachedEmbedding),
+                )
+            val onnxSessionFactory =
+                mockk<OnnxSessionFactory> {
+                    every { create(any()) } throws AssertionError("Text model session should not be created")
+                }
+            val cachedService =
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = environment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    ruleDefinitions = emptyList(),
+                    embeddingCacheRepository = cachedRepository,
+                    dispatcher = Dispatchers.Default,
+                    tokenizerFactory = ::Siglip2Tokenizer,
+                )
+            val prompts = rulePrompts(prompt1, incorrectFormatPrompt)
+
+            cachedService.use { cachedService ->
+                val embeddings = cachedService.generateEmbeddings(prompts)
+
+                embeddings.size shouldBe 2
+                embeddings.getValue(prompts[0]).contentEquals(cachedEmbedding) shouldBe true
+                embeddings.getValue(prompts[1]).contentEquals(cachedEmbedding) shouldBe true
+                cachedRepository.fetchCalls shouldBe listOf(listOf(preprocessedPrompt1))
+            }
+        }
+
+    @Test
+    fun `does not reuse stale in-memory prompt embeddings across calls`() =
+        runTest {
+            val firstEmbedding = floatArrayOf(0.25f, -0.5f, 0.75f)
+            val secondEmbedding = floatArrayOf(-0.1f, 0.2f, -0.3f)
+            val cachedRepository =
+                RecordingEmbeddingCacheRepository(
+                    initialEmbeddings = mapOf(preprocessedPrompt1 to firstEmbedding),
+                )
+            val onnxSessionFactory =
+                mockk<OnnxSessionFactory> {
+                    every { create(any()) } throws AssertionError("Text model session should not be created")
+                }
+            val cachedService =
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = environment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    ruleDefinitions = emptyList(),
+                    embeddingCacheRepository = cachedRepository,
+                    dispatcher = Dispatchers.Default,
+                    tokenizerFactory = ::Siglip2Tokenizer,
+                )
+
+            cachedService.use { cachedService ->
+                val first = cachedService.generateSingleEmbedding(prompt1)
+                cachedRepository.replace(preprocessedPrompt1, secondEmbedding)
+                val second = cachedService.generateSingleEmbedding(prompt1)
+
+                first.contentEquals(firstEmbedding) shouldBe true
+                second.contentEquals(secondEmbedding) shouldBe true
+                cachedRepository.fetchCalls shouldBe
+                    listOf(
+                        listOf(preprocessedPrompt1),
+                        listOf(preprocessedPrompt1),
+                    )
+            }
+        }
+
+    @Test
+    fun `throws for uncached prompts when embedding cache misses are disabled`() =
+        runTest {
+            val cachedRepository = RecordingEmbeddingCacheRepository()
+            val onnxSessionFactory =
+                mockk<OnnxSessionFactory> {
+                    every { create(any()) } throws AssertionError("Text model session should not be created")
+                }
+            val cachedOnlyService =
+                Siglip2RulePromptEmbeddingService(
+                    ortEnvironment = environment,
+                    onnxSessionFactory = onnxSessionFactory,
+                    ruleDefinitions = emptyList(),
+                    embeddingCacheRepository = cachedRepository,
+                    dispatcher = Dispatchers.Default,
+                    tokenizerFactory = ::Siglip2Tokenizer,
+                    allowEmbeddingCacheMiss = false,
+                )
+
+            cachedOnlyService.use { cachedOnlyService ->
+                shouldThrow<IllegalArgumentException> {
+                    cachedOnlyService.generateEmbeddings(rulePrompts("uncached prompt"))
+                }.message shouldBe "Embeddings for prompts were not configured: this is a photo of uncached prompt"
+
+                cachedRepository.storeCalls shouldBe emptyMap()
+            }
+        }
+
+    private suspend fun Siglip2RulePromptEmbeddingService.generateSingleEmbedding(prompt: String): FloatArray =
         generateEmbeddings(rulePrompts(prompt)).values.single()
 
     private fun rulePrompts(vararg prompts: String): List<RulePrompt> = prompts.map { RulePrompt(it) }

@@ -19,7 +19,7 @@ class InferenceRuleEvaluator(
 ) : RuleEvaluator {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override fun evaluate(
+    override suspend fun evaluate(
         ruleDefinitions: List<RuleDefinition>,
         tensor: ImageTensor,
     ): RuleDefinitionsEvaluationResult {

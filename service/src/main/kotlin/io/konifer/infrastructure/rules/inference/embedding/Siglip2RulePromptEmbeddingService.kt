@@ -11,14 +11,12 @@ import io.konifer.infrastructure.rules.inference.Siglip2Tokenizer
 import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtractor.extractPooledEmbeddings
 import io.konifer.infrastructure.rules.l2Normalize
 import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.LongBuffer
@@ -92,72 +90,72 @@ class Siglip2RulePromptEmbeddingService(
             }
         }
 
-    override fun generateEmbeddings(prompts: List<RulePrompt>): Map<RulePrompt, FloatArray> =
-        runBlocking {
-            val promptKeys = prompts.map(::toPromptEmbeddingKey)
-            if (promptKeys.isEmpty()) return@runBlocking emptyMap()
+    override suspend fun generateEmbeddings(prompts: List<RulePrompt>): Map<RulePrompt, FloatArray> {
+        val promptKeys = prompts.map(::toPromptEmbeddingKey)
+        if (promptKeys.isEmpty()) return emptyMap()
 
-            awaitWarmup()
+        warmupJob.await()
 
-            val distinctCacheKeys = promptKeys.map { it.cacheKey }.distinct()
-            val cachedPrompts =
-                embeddingCacheRepository.fetch(
-                    prompts = distinctCacheKeys,
-                    embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                )
+        val distinctCacheKeys = promptKeys.map { it.cacheKey }.distinct()
+        val cachedPrompts =
+            embeddingCacheRepository.fetch(
+                prompts = distinctCacheKeys,
+                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
+            )
 
-            val missingPrompts =
-                distinctCacheKeys
-                    .filterNot { cachedPrompts.containsKey(it) }
+        val missingPrompts =
+            distinctCacheKeys
+                .filterNot { cachedPrompts.containsKey(it) }
 
-            val generatedPrompts =
-                if (missingPrompts.isEmpty()) {
-                    emptyMap()
-                } else {
-                    if (!allowEmbeddingCacheMiss) {
-                        throw IllegalArgumentException(
-                            "Embeddings for prompts were not configured: ${missingPrompts.joinToString()}",
+        val generatedPrompts =
+            if (missingPrompts.isEmpty()) {
+                emptyMap()
+            } else {
+                if (!allowEmbeddingCacheMiss) {
+                    throw IllegalArgumentException(
+                        "Embeddings for prompts were not configured: ${missingPrompts.joinToString()}",
+                    )
+                }
+                embeddingGenerationMutex.withLock {
+                    val refreshedPrompts =
+                        embeddingCacheRepository.fetch(
+                            prompts = missingPrompts,
+                            embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
                         )
+                    val stillMissingPrompts = missingPrompts.filterNot { refreshedPrompts.containsKey(it) }
+                    if (stillMissingPrompts.isEmpty()) {
+                        return@withLock refreshedPrompts
                     }
-                    embeddingGenerationMutex.withLock {
-                        val refreshedPrompts =
-                            embeddingCacheRepository.fetch(
-                                prompts = missingPrompts,
-                                embeddingModel = EmbeddingModel.SIGLIP2_BASE_PATCH16_224_TEXT,
-                            )
-                        val stillMissingPrompts = missingPrompts.filterNot { refreshedPrompts.containsKey(it) }
-                        if (stillMissingPrompts.isEmpty()) {
-                            return@withLock refreshedPrompts
+
+                    val session =
+                        checkNotNull(ortSession.value) {
+                            "Text model session was not initialized for prompt embedding cache misses"
+                        }
+                    val tokenizer =
+                        checkNotNull(tokenizer.value) {
+                            "Tokenizer was not initialized for prompt embedding cache misses"
                         }
 
-                        val session =
-                            checkNotNull(ortSession.value) {
-                                "Text model session was not initialized for prompt embedding cache misses"
-                            }
-                        val tokenizer =
-                            checkNotNull(tokenizer.value) {
-                                "Tokenizer was not initialized for prompt embedding cache misses"
-                            }
-
-                        refreshedPrompts +
-                            generateAndCacheEmbeddings(
-                                ortEnvironment = ortEnvironment,
-                                prompts = stillMissingPrompts,
-                                session = session,
-                                tokenizer = tokenizer,
-                                terminateEmbeddingResources = false,
-                            )
-                    }
+                    refreshedPrompts +
+                        generateAndCacheEmbeddings(
+                            ortEnvironment = ortEnvironment,
+                            prompts = stillMissingPrompts,
+                            session = session,
+                            tokenizer = tokenizer,
+                            terminateEmbeddingResources = false,
+                        )
                 }
-
-            val embeddingsByCacheKey = cachedPrompts + generatedPrompts
-            promptKeys.associate { promptKey ->
-                promptKey.rulePrompt to
-                    checkNotNull(embeddingsByCacheKey[promptKey.cacheKey]) {
-                        "Embeddings for prompt '${promptKey.rulePrompt.prompt}' were not generated"
-                    }
             }
+
+        val embeddingsByCacheKey = cachedPrompts + generatedPrompts
+
+        return promptKeys.associate { promptKey ->
+            promptKey.rulePrompt to
+                checkNotNull(embeddingsByCacheKey[promptKey.cacheKey]) {
+                    "Embeddings for prompt '${promptKey.rulePrompt.prompt}' were not generated"
+                }
         }
+    }
 
     override fun close() {
         warmupJob.cancel()
@@ -167,16 +165,6 @@ class Siglip2RulePromptEmbeddingService(
         }
         if (tokenizer.isInitialized()) {
             tokenizer.value?.close()
-        }
-    }
-
-    private fun awaitWarmup() {
-        try {
-            runBlocking {
-                warmupJob.await()
-            }
-        } catch (e: CancellationException) {
-            throw IllegalStateException("Prompt embedding generation was cancelled", e)
         }
     }
 
