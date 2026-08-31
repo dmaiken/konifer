@@ -52,9 +52,7 @@ class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
             }
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
                 object-store {
                   bucket = correct-bucket
                 }

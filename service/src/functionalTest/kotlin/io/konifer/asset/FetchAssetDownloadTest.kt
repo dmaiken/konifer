@@ -26,9 +26,7 @@ class FetchAssetDownloadTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -63,9 +61,7 @@ class FetchAssetDownloadTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),

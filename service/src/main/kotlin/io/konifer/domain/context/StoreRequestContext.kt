@@ -13,7 +13,7 @@ data class StoreRequestContext(
      */
     fun requiresPreProcessing(): Boolean =
         pathConfiguration.transform.preProcessing.enabled ||
-            pathConfiguration.image.previews.isNotEmpty() ||
+            pathConfiguration.lqip.isNotEmpty() ||
             pathConfiguration.uploadRuleset.default == DefaultRuleAction.REJECT ||
             pathConfiguration.uploadRuleset.requiresEvaluationBeyondDefault()
 }

@@ -29,9 +29,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "blurhash" ]
-                }
+                lqip = [ "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -48,9 +46,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash" ]
-                }
+                lqip = [ "thumbhash" ]
               }
             }
             """.trimIndent(),
@@ -67,9 +63,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -86,9 +80,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ ]
-                }
+                lqip = [ ]
               }
             }
             """.trimIndent(),
@@ -104,9 +96,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
         testInMemory(
             """
             paths {
-              "/**" {
-                image { }
-              }
+              "/**" { }
             }
             """.trimIndent(),
         ) {
@@ -122,9 +112,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -160,9 +148,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -197,9 +183,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -239,9 +223,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
                 transform {
                   preprocessing {
                     enabled = true

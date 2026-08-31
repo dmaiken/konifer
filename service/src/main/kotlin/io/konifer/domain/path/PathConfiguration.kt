@@ -2,7 +2,7 @@ package io.konifer.domain.path
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetLimitProperties
-import io.konifer.domain.image.ImageProperties
+import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
@@ -15,8 +15,8 @@ data class PathConfiguration(
     val allowedContentTypes: List<String>? = null,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TRANSFORM)
     val transform: TransformProperties = TransformProperties.default,
-    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.IMAGE)
-    val image: ImageProperties = ImageProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.LQIP)
+    val lqip: Set<LQIPImplementation> = emptySet(),
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.LIMITS)
     val limits: AssetLimitProperties = AssetLimitProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE)
@@ -36,7 +36,6 @@ data class PathConfiguration(
         val default =
             PathConfiguration(
                 allowedContentTypes = null,
-                image = ImageProperties.default,
                 objectStore = ObjectStoreProperties.default,
                 returnFormat = ReturnFormatProperties.default,
                 cacheControl = CacheControlProperties.default,

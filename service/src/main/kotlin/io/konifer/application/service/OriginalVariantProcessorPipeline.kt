@@ -101,7 +101,7 @@ class OriginalVariantProcessorPipeline(
                 val jobDeferred =
                     originalVariantContentProcessor.process(
                         sourceFormat = attributes.format,
-                        lqipImplementations = context.pathConfiguration.image.previews,
+                        lqipImplementations = context.pathConfiguration.lqip,
                         source = container.getTemporaryFile(),
                         transformationDataContainer = transformationData,
                         uploadRuleset = context.pathConfiguration.uploadRuleset,

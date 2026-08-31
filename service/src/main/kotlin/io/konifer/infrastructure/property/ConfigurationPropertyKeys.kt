@@ -88,7 +88,7 @@ object ConfigurationPropertyKeys {
     }
 
     object PathPropertyKeys {
-        const val IMAGE = "image"
+        const val LQIP = "lqip"
         const val LIMITS = "limits"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val OBJECT_STORE = "object-store"
@@ -103,10 +103,6 @@ object ConfigurationPropertyKeys {
             const val MAX_PIXELS = "max-pixels"
             const val MAX_PAGES = "max-pages"
             const val MAX_PIXELS_PER_PAGE = "max-pixels-per-page"
-        }
-
-        object ImagePropertyKeys {
-            const val LQIP = "lqip"
         }
 
         object TransformPropertyKeys {
