@@ -1039,6 +1039,524 @@
         }
       ],
       "passed": true
+    },
+    {
+      "version": 1,
+      "runId": "20260828T034748Z-release",
+      "suite": "release",
+      "environment": "local-compose-v2",
+      "subject": "v0.11.0",
+      "startedAt": "2026-08-28T03:47:48Z",
+      "completedAt": "2026-08-28T07:33:29.092Z",
+      "results": [
+        {
+          "workload": "delivery.original.cached",
+          "case": "jpg-medium",
+          "repetitions": 3,
+          "operations": 3601,
+          "requests": 3601,
+          "errors": 0,
+          "checks": {
+            "passed": 10803,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 5.384,
+            "p90": 5.691,
+            "p95": 5.87,
+            "p99": 9.115,
+            "p95Min": 5.692557399999999,
+            "p95Max": 7.670079199999997
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "avif-to-webp",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 94.284,
+            "p90": 97.083,
+            "p95": 98.636,
+            "p99": 105.684,
+            "p95Min": 98.58431675,
+            "p95Max": 99.021543
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "gif-to-webp",
+          "repetitions": 3,
+          "operations": 270,
+          "requests": 270,
+          "errors": 0,
+          "checks": {
+            "passed": 810,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 66.439,
+            "p90": 68.338,
+            "p95": 69.528,
+            "p99": 84.756,
+            "p95Min": 69.15134875,
+            "p95Max": 71.38363389999999
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "heic-to-webp",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 151.363,
+            "p90": 154.872,
+            "p95": 156.392,
+            "p99": 160.257,
+            "p95Min": 155.489251,
+            "p95Max": 156.68119489999998
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "jpg-to-webp",
+          "repetitions": 3,
+          "operations": 271,
+          "requests": 271,
+          "errors": 0,
+          "checks": {
+            "passed": 813,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 59.364,
+            "p90": 62.368,
+            "p95": 63.234,
+            "p99": 71.653,
+            "p95Min": 62.2930522,
+            "p95Max": 65.34561755
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "jxl-to-webp",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 91.532,
+            "p90": 95.179,
+            "p95": 97.243,
+            "p99": 110.472,
+            "p95Min": 96.69092,
+            "p95Max": 112.033231
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "png-to-webp",
+          "repetitions": 3,
+          "operations": 271,
+          "requests": 271,
+          "errors": 0,
+          "checks": {
+            "passed": 813,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 69.616,
+            "p90": 72.122,
+            "p95": 75.013,
+            "p99": 81.6,
+            "p95Min": 74.47722949999999,
+            "p95Max": 78.65520934999999
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.decode",
+          "case": "webp-to-webp",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 71.241,
+            "p90": 75.194,
+            "p95": 77.846,
+            "p99": 83.813,
+            "p95Min": 75.868252,
+            "p95Max": 78.3262245
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-avif",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 146.933,
+            "p90": 154.319,
+            "p95": 158.902,
+            "p99": 177.824,
+            "p95Min": 156.7534845,
+            "p95Max": 162.19352450000002
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-gif",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 157.757,
+            "p90": 161.394,
+            "p95": 165.351,
+            "p99": 245.399,
+            "p95Min": 161.916586,
+            "p95Max": 170.77727785
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-heic",
+          "repetitions": 3,
+          "operations": 270,
+          "requests": 270,
+          "errors": 0,
+          "checks": {
+            "passed": 810,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 104.489,
+            "p90": 110.745,
+            "p95": 113.822,
+            "p99": 157.889,
+            "p95Min": 112.0669068,
+            "p95Max": 119.85212544999999
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-jpg",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 34.524,
+            "p90": 36.573,
+            "p95": 37.267,
+            "p99": 44.029,
+            "p95Min": 36.411655499999995,
+            "p95Max": 37.7005925
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-jxl",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 88.052,
+            "p90": 93.673,
+            "p95": 94.945,
+            "p99": 135.569,
+            "p95Min": 94.7388515,
+            "p95Max": 122.44956175
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-png",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 47.382,
+            "p90": 50.123,
+            "p95": 51.53,
+            "p99": 53.787,
+            "p95Min": 50.193839999999994,
+            "p95Max": 51.820987
+          },
+          "passed": true
+        },
+        {
+          "workload": "format.encode",
+          "case": "jpg-to-webp",
+          "repetitions": 3,
+          "operations": 273,
+          "requests": 273,
+          "errors": 0,
+          "checks": {
+            "passed": 819,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 58.199,
+            "p90": 60.875,
+            "p95": 61.005,
+            "p99": 70.59,
+            "p95Min": 60.5677835,
+            "p95Max": 62.830725
+          },
+          "passed": true
+        },
+        {
+          "workload": "upload.eager.accept",
+          "case": "jpg-medium-four-webp-profiles",
+          "repetitions": 3,
+          "operations": 723,
+          "requests": 723,
+          "errors": 0,
+          "checks": {
+            "passed": 2169,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 13.265,
+            "p90": 14.378,
+            "p95": 14.996,
+            "p99": 19.155,
+            "p95Min": 14.810432,
+            "p95Max": 15.128665
+          },
+          "passed": true
+        },
+        {
+          "workload": "upload.original",
+          "case": "jpg-medium",
+          "repetitions": 3,
+          "operations": 721,
+          "requests": 721,
+          "errors": 0,
+          "checks": {
+            "passed": 3605,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 15.584,
+            "p90": 18.449,
+            "p95": 20.429,
+            "p99": 23.629,
+            "p95Min": 17.480207749999998,
+            "p95Max": 28.666025
+          },
+          "passed": true
+        },
+        {
+          "workload": "upload.preprocess",
+          "case": "jpg-medium-to-webp",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 1088,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 196.4,
+            "p90": 200.697,
+            "p95": 205.824,
+            "p99": 209.373,
+            "p95Min": 201.997333,
+            "p95Max": 220.30951464999995
+          },
+          "passed": true
+        },
+        {
+          "workload": "upload.rules",
+          "case": "jpg-medium-landscape-rule",
+          "repetitions": 3,
+          "operations": 74,
+          "requests": 74,
+          "errors": 0,
+          "checks": {
+            "passed": 444,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 363.148,
+            "p90": 476.305,
+            "p95": 537.839,
+            "p99": 770.567,
+            "p95Min": 480.04760039999996,
+            "p95Max": 554.2912872999999
+          },
+          "passed": true
+        },
+        {
+          "workload": "upload.rules.preprocess",
+          "case": "jpg-medium-landscape-rule-to-webp",
+          "repetitions": 3,
+          "operations": 73,
+          "requests": 73,
+          "errors": 0,
+          "checks": {
+            "passed": 438,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 622.453,
+            "p90": 748.075,
+            "p95": 750.912,
+            "p99": 1071.459,
+            "p95Min": 718.6321963500001,
+            "p95Max": 776.7326218
+          },
+          "passed": true
+        },
+        {
+          "workload": "variant.deliver.cached",
+          "case": "jpg-to-webp-400",
+          "repetitions": 3,
+          "operations": 3603,
+          "requests": 3603,
+          "errors": 0,
+          "checks": {
+            "passed": 10809,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 4.494,
+            "p90": 5.036,
+            "p95": 6.401,
+            "p99": 7.713,
+            "p95Min": 6.302141,
+            "p95Max": 6.67726
+          },
+          "passed": true
+        },
+        {
+          "workload": "variant.eager.ready",
+          "case": "jpg-medium-four-webp-profiles",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 2721,
+          "errors": 0,
+          "checks": {
+            "passed": 4080,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 416,
+            "p90": 417,
+            "p95": 418,
+            "p99": 429.9,
+            "p95Min": 417.55,
+            "p95Max": 419
+          },
+          "passed": true
+        },
+        {
+          "workload": "variant.generate.cold",
+          "case": "jpg-to-webp-400",
+          "repetitions": 3,
+          "operations": 272,
+          "requests": 272,
+          "errors": 0,
+          "checks": {
+            "passed": 816,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 61.043,
+            "p90": 64.703,
+            "p95": 69.507,
+            "p99": 77.769,
+            "p95Min": 63.76646095,
+            "p95Max": 70.5017015
+          },
+          "passed": true
+        }
+      ],
+      "passed": true
     }
   ]
 }
