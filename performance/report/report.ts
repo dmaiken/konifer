@@ -141,7 +141,7 @@ function render(sources: ReportSources, state: ReportState, onNavigate: Navigate
         element(
             'p',
             'lead',
-            'Measured release performance for customer-relevant image workflows, from isolated latency to representative concurrent traffic.',
+            'Measured release performance for common image workflows, from isolated latency to representative customer traffic.',
         ),
     );
 
@@ -429,7 +429,7 @@ function loadContent(
     const intro = sectionIntro(
         'Mixed workload under load',
         run.passed
-            ? `On ${environmentName}, Konifer completed ${run.operations.toLocaleString()} operations during a ${formatMinutes(run.trafficDurationSeconds)} concurrent profile, peaking at a configured ${formatRate(run.peakRatePerMinute)} with ${run.errors} errors and ${run.droppedIterations} dropped iterations.`
+            ? `On ${environmentName}, Konifer completed ${run.operations.toLocaleString()} operations during a ${formatMinutes(run.trafficDurationSeconds)} run, peaking at a configured ${formatRate(run.peakRatePerMinute)} with ${run.errors} errors.`
             : `The ${run.profile} run on ${environmentName} completed with failed operational checks; failed stream latency is not presented as a valid measurement.`,
     );
     content.append(intro);
@@ -445,7 +445,7 @@ function loadContent(
         content.append(selector);
     }
     if (run.notes?.length) content.append(notesPanel('Load run notes', run.notes));
-    content.append(loadSummary(run, profile), trafficMix(run.streams), loadHistoryExplorer(loadHistory, run, workloads));
+    content.append(loadSummary(run), trafficMix(run.streams), loadHistoryExplorer(loadHistory, run, workloads));
 
     const tablePanel = element('section', 'panel');
     tablePanel.append(element('h2', '', 'Traffic streams'), loadStreamTable(run.streams));
@@ -453,12 +453,11 @@ function loadContent(
     return content;
 }
 
-function loadSummary(run: LatestLoadRun, profile: LoadProfileDefinition | undefined): HTMLElement {
+function loadSummary(run: LatestLoadRun): HTMLElement {
     const panel = element('section', 'panel load-summary');
     panel.append(
         element('div', 'load-heading', `${run.subject} · ${run.profile}`),
         element('div', 'result-case', `${run.environment} · ${dateTime(run.completedAt)}`),
-        element('p', 'workload-description', profile?.description || 'Concurrent customer-relevant image operations at a fixed arrival-rate profile.'),
     );
     const facts = element('div', 'load-facts');
     const values = [
