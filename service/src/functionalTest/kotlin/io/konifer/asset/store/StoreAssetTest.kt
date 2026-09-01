@@ -237,9 +237,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      format = ${format.format}
-                    }
+                    format = ${format.format}
                   }
                 }
               }

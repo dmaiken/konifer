@@ -169,7 +169,7 @@ class OriginalVariantProcessorPipeline(
         attributes: Attributes,
     ): Transformation {
         val requestedTransformation =
-            context.pathConfiguration.transform.preProcessing.image.requestedImageTransformation
+            context.pathConfiguration.transform.preProcessing.requestedImageTransformation
         return transformationNormalizer
             .normalize(
                 requested = requestedTransformation,

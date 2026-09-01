@@ -114,12 +114,8 @@ object ConfigurationPropertyKeys {
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
-                const val IMAGE = "image"
-
-                object ImagePreProcessingPropertyKeys {
-                    const val MAX_HEIGHT = "max-height"
-                    const val MAX_WIDTH = "max-width"
-                }
+                const val MAX_HEIGHT = "max-height"
+                const val MAX_WIDTH = "max-width"
             }
 
             object OnDemandVariantsPropertyKeys {
