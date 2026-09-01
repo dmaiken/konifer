@@ -30,7 +30,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         fun scalingNotNeededSource(): Stream<Arguments> =
             Stream.of(
                 Arguments.arguments(Named.named("No height or width supplied", null), null),
-                Arguments.arguments(Named.named("Height and width are too large", 5000), 5000),
+                Arguments.arguments(Named.named("Height and width are too large", 3000), 3000),
             )
 
         @JvmStatic
@@ -52,9 +52,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      max-width = 100
-                    }
+                    max-width = 100
                   }
                 }
               }
@@ -97,9 +95,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      max-height = 50
-                    }
+                    max-height = 50
                   }
                 }
               }
@@ -146,10 +142,9 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
           "/**" {
             transform {
               preprocessing {
-                image {
-                  ${maxHeight?.let { "max-height = $it" } ?: ""}
-                  ${maxWidth?.let { "max-width = $it" } ?: ""}
-                }
+                enabled = true
+                ${maxHeight?.let { "max-height = $it" } ?: ""}
+                ${maxWidth?.let { "max-width = $it" } ?: ""}
               }
             }
           }
@@ -195,9 +190,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             transform {
               preprocessing {
                 enabled = true
-                image {
-                  format = $imageFormat
-                }
+                format = $imageFormat
               }
             }
           }
@@ -237,20 +230,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      format = jpg
-                      max-height = 55
-                    }
+                    format = jpg
+                    max-height = 55
                   }  
                 }
               }
               "/Users/*/Profile" {
                 transform {
                   preprocessing {
-                    image {
-                      format = webp
-                      max-height = 50
-                    }
+                    format = webp
+                    max-height = 50
                   }
                 }
               }
@@ -293,10 +282,8 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = false
-                    image {
-                      format = jpg
-                      max-height = 55
-                    }
+                    format = jpg
+                    max-height = 55
                   }
                 }
               }
@@ -334,20 +321,16 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = false
-                    image {
-                      format = jpg
-                      max-height = 55
-                    }
+                    format = jpg
+                    max-height = 55
                   }
                 }
               }
               "/Users/*/Profile" {
                 transform {
                   preprocessing {
-                    image {
-                      format = webp
-                      max-height = 50
-                    }
+                    format = webp
+                    max-height = 50
                   }
                 }
               }
@@ -385,9 +368,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      max-height = 50
-                    }
+                    max-height = 50
                   }
                 }
               }
@@ -414,9 +395,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      strip = [ exif, xmp, iptc ]
-                    }
+                    strip = [ exif, xmp, iptc ]
                   }
                 }
               }
@@ -446,9 +425,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      cs = srgb
-                    }
+                    cs = srgb
                   }
                 }
               }
@@ -469,10 +446,8 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      max-width = 3000
+                    max-width = 3000
                       format = png
-                    }
                   }
                 }
               }

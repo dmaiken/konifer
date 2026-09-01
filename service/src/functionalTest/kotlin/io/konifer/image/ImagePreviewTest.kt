@@ -227,9 +227,7 @@ class ImagePreviewTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      filter = sepia
-                    }
+                    filter = sepia
                   }
                 }
               }

@@ -3,7 +3,6 @@ package io.konifer.domain.transformation
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.TransformationLimitProperties
-import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 
 class TransformConfigurationValidator(
     private val variantProfileRepository: VariantProfileRepository,
@@ -45,7 +44,7 @@ class TransformConfigurationValidator(
             try {
                 TransformationValidator.validateRequestedTransformation(
                     limits = limits,
-                    requested = preProcessing.image.requestedImageTransformation,
+                    requested = preProcessing.requestedImageTransformation,
                 )
             } catch (e: InvalidTransformationException) {
                 throw ConfiguredTransformationValidationException("Preprocessing validation failed", e)

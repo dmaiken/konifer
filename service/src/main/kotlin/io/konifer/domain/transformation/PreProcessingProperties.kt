@@ -1,4 +1,4 @@
-package io.konifer.domain.variant.preprocessing
+package io.konifer.domain.transformation
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -8,20 +8,18 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.transformation.RequestedTransformation
-import io.konifer.domain.transformation.toBlur
-import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.transformation.toPaddingAmount
-import io.konifer.domain.transformation.toQuality
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys.ENABLED
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ImagePreProcessingProperties(
-    @SerialName(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_WIDTH)
+data class PreProcessingProperties(
+    @SerialName(ENABLED)
+    val enabled: Boolean = false,
+    @SerialName(PreProcessingPropertyKeys.MAX_WIDTH)
     val maxWidth: Int? = null,
-    @SerialName(PreProcessingPropertyKeys.ImagePreProcessingPropertyKeys.MAX_HEIGHT)
+    @SerialName(PreProcessingPropertyKeys.MAX_HEIGHT)
     val maxHeight: Int? = null,
     @SerialName(ManipulationParameters.WIDTH)
     val width: Int? = null,
@@ -54,23 +52,8 @@ data class ImagePreProcessingProperties(
 ) {
     companion object Factory {
         val default =
-            ImagePreProcessingProperties(
-                maxWidth = null,
-                maxHeight = null,
-                width = null,
-                height = null,
-                format = null,
-                fit = Fit.default,
-                gravity = Gravity.default,
-                rotate = Rotate.default,
-                flip = Flip.default,
-                filter = Filter.default,
-                blur = null,
-                quality = null,
-                pad = null,
-                padColor = null,
-                strip = emptySet(),
-                colorSpace = TransformableColorSpace.default,
+            PreProcessingProperties(
+                enabled = false,
             )
     }
 

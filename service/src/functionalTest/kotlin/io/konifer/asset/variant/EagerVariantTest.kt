@@ -160,9 +160,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                   eager-variants = [small]
                   preprocessing {
                     enabled = true
-                    image {
-                      r = 180
-                    }
+                    r = 180
                   }
                 }
               }

@@ -192,9 +192,7 @@ class TriePathConfigurationRepositoryTest {
                 ]
                 transform {
                   preprocessing = {
-                    image {
-                      max-height = 10
-                    }
+                    max-height = 10
                   }
                 }
               }
@@ -202,9 +200,7 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [ ]
                 transform {
                   preprocessing = {
-                    image {
-                      max-width = 10
-                    }
+                    max-width = 10
                   }
                 }
               }
@@ -217,8 +213,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.transform.preProcessing.image.maxWidth shouldBe 10
-        pathConfiguration.transform.preProcessing.image.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.maxWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.maxHeight shouldBe 10
     }
 
     @Test
@@ -235,10 +231,8 @@ class TriePathConfigurationRepositoryTest {
                   }
                   preprocessing {
                     enabled = true
-                    image {
-                      w = 101
-                      h = 100
-                    }
+                    w = 101
+                    h = 100
                   }
                 }
               }
@@ -291,9 +285,7 @@ class TriePathConfigurationRepositoryTest {
                 ]
                 transform {
                   preprocessing = {
-                    image {
-                      max-height = 10
-                    }
+                    max-height = 10
                   }
                 }
               }
@@ -301,9 +293,7 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [ ]
                 transform {
                   preprocessing = {
-                    image {
-                      max-width = 10
-                    }
+                    max-width = 10
                   }
                 }
               }
@@ -316,8 +306,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.transform.preProcessing.image.maxWidth shouldBe 10
-        pathConfiguration.transform.preProcessing.image.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.maxWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.maxHeight shouldBe 10
     }
 
     @Test
@@ -670,9 +660,7 @@ class TriePathConfigurationRepositoryTest {
                 transform {
                   preprocessing {
                     enabled = true
-                    image {
-                      w = 200
-                    }
+                    w = 200
                   }
                 }
               }
@@ -696,7 +684,7 @@ class TriePathConfigurationRepositoryTest {
             labels.asMap() shouldBe mapOf("character" to "kermit", "source" to "ruleset")
         }
         pathConfiguration.transform.preProcessing.enabled shouldBe true
-        pathConfiguration.transform.preProcessing.image.width shouldBe 200
+        pathConfiguration.transform.preProcessing.width shouldBe 200
     }
 
     @Test

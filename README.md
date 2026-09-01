@@ -180,11 +180,9 @@ paths {
       eager-variants = [thumbnail]
       preprocessing {
         enabled = true
-        image {
-          max-width = 1024
-          max-height = 1024
-          fit = fit
-        }
+        max-width = 1024
+        max-height = 1024
+        fit = fit
       }
     }
     lqip = [blurhash, thumbhash]

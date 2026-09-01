@@ -14,12 +14,12 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.transformation.PreProcessingProperties
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.preprocessing.ImagePreProcessingProperties
 import org.hipparchus.transform.DctNormalization
 import org.hipparchus.transform.FastCosineTransformer
 import org.hipparchus.transform.TransformType
@@ -232,7 +232,8 @@ fun createRequestedImageTransformation(
         colorSpace = colorSpace,
     )
 
-fun createImagePreProcessingProperties(
+fun createPreProcessingProperties(
+    enabled: Boolean = false,
     maxWidth: Int? = null,
     maxHeight: Int? = null,
     width: Int? = null,
@@ -249,8 +250,9 @@ fun createImagePreProcessingProperties(
     padColor: String? = null,
     strip: Set<String> = emptySet(),
     colorSpace: TransformableColorSpace = TransformableColorSpace.default,
-): ImagePreProcessingProperties =
-    ImagePreProcessingProperties(
+): PreProcessingProperties =
+    PreProcessingProperties(
+        enabled = enabled,
         maxWidth = maxWidth,
         maxHeight = maxHeight,
         width = width,

@@ -1,11 +1,10 @@
 package io.konifer.domain.transformation
 
-import io.konifer.createImagePreProcessingProperties
+import io.konifer.createPreProcessingProperties
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.TransformationLimitProperties
-import io.konifer.domain.variant.preprocessing.PreProcessingProperties
 import io.konifer.domain.variant.toPixelCount
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -66,11 +65,7 @@ class TransformConfigurationValidatorTest {
             shouldThrow<ConfiguredTransformationValidationException> {
                 validator.validate(
                     TransformProperties(
-                        preProcessing =
-                            PreProcessingProperties(
-                                enabled = true,
-                                image = createImagePreProcessingProperties(height = 201),
-                            ),
+                        preProcessing = createPreProcessingProperties(enabled = true, height = 201),
                         limits = limits(),
                     ),
                 )
@@ -86,11 +81,7 @@ class TransformConfigurationValidatorTest {
         shouldNotThrowAny {
             validator.validate(
                 TransformProperties(
-                    preProcessing =
-                        PreProcessingProperties(
-                            enabled = false,
-                            image = createImagePreProcessingProperties(width = 101, height = 201),
-                        ),
+                    preProcessing = createPreProcessingProperties(enabled = false, width = 101, height = 201),
                     limits = limits(),
                 ),
             )

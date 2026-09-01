@@ -1,6 +1,6 @@
 package io.konifer.domain.variant
 
-import io.konifer.domain.variant.preprocessing.PreProcessingProperties
+import io.konifer.domain.transformation.PreProcessingProperties
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
