@@ -71,9 +71,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -111,9 +109,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),
@@ -160,9 +156,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             """
             paths {
               "/**" {
-                image {
-                  lqip = [ "thumbhash", "blurhash" ]
-                }
+                lqip = [ "thumbhash", "blurhash" ]
               }
             }
             """.trimIndent(),

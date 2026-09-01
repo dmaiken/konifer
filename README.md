@@ -187,9 +187,7 @@ paths {
         }
       }
     }
-    image {
-      lqip = [blurhash, thumbhash]
-    }
+    lqip = [blurhash, thumbhash]
     cache-control {
       enabled = true
       visibility = public
