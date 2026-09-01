@@ -30,7 +30,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         fun scalingNotNeededSource(): Stream<Arguments> =
             Stream.of(
                 Arguments.arguments(Named.named("No height or width supplied", null), null),
-                Arguments.arguments(Named.named("Height and width are too large", 5000), 5000),
+                Arguments.arguments(Named.named("Height and width are too large", 3000), 3000),
             )
 
         @JvmStatic
