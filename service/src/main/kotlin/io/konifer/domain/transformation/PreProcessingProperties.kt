@@ -17,10 +17,10 @@ import kotlinx.serialization.Serializable
 data class PreProcessingProperties(
     @SerialName(ENABLED)
     val enabled: Boolean = false,
-    @SerialName(PreProcessingPropertyKeys.MAX_WIDTH)
-    val maxWidth: Int? = null,
-    @SerialName(PreProcessingPropertyKeys.MAX_HEIGHT)
-    val maxHeight: Int? = null,
+    @SerialName(PreProcessingPropertyKeys.CLAMP_WIDTH)
+    val clampWidth: Int? = null,
+    @SerialName(PreProcessingPropertyKeys.CLAMP_HEIGHT)
+    val clampHeight: Int? = null,
     @SerialName(ManipulationParameters.WIDTH)
     val width: Int? = null,
     @SerialName(ManipulationParameters.HEIGHT)
@@ -61,14 +61,14 @@ data class PreProcessingProperties(
 
     private fun toRequestedImageTransformation(): RequestedTransformation =
         RequestedTransformation(
-            width = (width ?: maxWidth)?.toDimension(),
-            height = (height ?: maxHeight)?.toDimension(),
+            width = (width ?: clampWidth)?.toDimension(),
+            height = (height ?: clampHeight)?.toDimension(),
             format = format,
             fit = fit,
             gravity = gravity,
             rotate = rotate,
             flip = flip,
-            canUpscale = maxWidth == null && maxHeight == null,
+            canUpscale = clampWidth == null && clampHeight == null,
             filter = filter,
             blur = blur?.toBlur(),
             quality = quality?.toQuality(),
