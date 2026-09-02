@@ -384,6 +384,10 @@ export JAVA_HOME=$(/usr/libexec/java_home)
 
 On Apple Silicon, build the Docker image locally to get a native `arm64` image.
 
+## Contact me
+
+Questions or feedback? Email me at [daniel@konifer.io](mailto:daniel@konifer.io) or start a discussion in GitHub.
+
 ## License
 
 Konifer is released under the AGPL license in [LICENSE](LICENSE).
