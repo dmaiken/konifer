@@ -192,7 +192,7 @@ class TriePathConfigurationRepositoryTest {
                 ]
                 transform {
                   preprocessing = {
-                    max-height = 10
+                    clamp-height = 10
                   }
                 }
               }
@@ -200,7 +200,7 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [ ]
                 transform {
                   preprocessing = {
-                    max-width = 10
+                    clamp-width = 10
                   }
                 }
               }
@@ -213,8 +213,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.transform.preProcessing.maxWidth shouldBe 10
-        pathConfiguration.transform.preProcessing.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.clampWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.clampHeight shouldBe 10
     }
 
     @Test
@@ -285,7 +285,7 @@ class TriePathConfigurationRepositoryTest {
                 ]
                 transform {
                   preprocessing = {
-                    max-height = 10
+                    clamp-height = 10
                   }
                 }
               }
@@ -293,7 +293,7 @@ class TriePathConfigurationRepositoryTest {
                 allowed-content-types = [ ]
                 transform {
                   preprocessing = {
-                    max-width = 10
+                    clamp-width = 10
                   }
                 }
               }
@@ -306,8 +306,8 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
         pathConfiguration.allowedContentTypes shouldBe listOf()
-        pathConfiguration.transform.preProcessing.maxWidth shouldBe 10
-        pathConfiguration.transform.preProcessing.maxHeight shouldBe 10
+        pathConfiguration.transform.preProcessing.clampWidth shouldBe 10
+        pathConfiguration.transform.preProcessing.clampHeight shouldBe 10
     }
 
     @Test

@@ -52,7 +52,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    max-width = 100
+                    clamp-width = 100
                   }
                 }
               }
@@ -95,7 +95,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    max-height = 50
+                    clamp-height = 50
                   }
                 }
               }
@@ -143,8 +143,8 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
             transform {
               preprocessing {
                 enabled = true
-                ${maxHeight?.let { "max-height = $it" } ?: ""}
-                ${maxWidth?.let { "max-width = $it" } ?: ""}
+                ${maxHeight?.let { "clamp-height = $it" } ?: ""}
+                ${maxWidth?.let { "clamp-width = $it" } ?: ""}
               }
             }
           }
@@ -231,7 +231,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                   preprocessing {
                     enabled = true
                     format = jpg
-                    max-height = 55
+                    clamp-height = 55
                   }  
                 }
               }
@@ -239,7 +239,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     format = webp
-                    max-height = 50
+                    clamp-height = 50
                   }
                 }
               }
@@ -283,7 +283,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                   preprocessing {
                     enabled = false
                     format = jpg
-                    max-height = 55
+                    clamp-height = 55
                   }
                 }
               }
@@ -322,7 +322,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                   preprocessing {
                     enabled = false
                     format = jpg
-                    max-height = 55
+                    clamp-height = 55
                   }
                 }
               }
@@ -330,7 +330,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     format = webp
-                    max-height = 50
+                    clamp-height = 50
                   }
                 }
               }
@@ -368,7 +368,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    max-height = 50
+                    clamp-height = 50
                   }
                 }
               }
@@ -446,8 +446,8 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    max-width = 3000
-                      format = png
+                    clamp-width = 3000
+                    format = png
                   }
                 }
               }

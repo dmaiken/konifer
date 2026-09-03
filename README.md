@@ -180,8 +180,8 @@ paths {
       eager-variants = [thumbnail]
       preprocessing {
         enabled = true
-        max-width = 1024
-        max-height = 1024
+        clamp-width = 1024
+        clamp-height = 1024
         fit = fit
       }
     }

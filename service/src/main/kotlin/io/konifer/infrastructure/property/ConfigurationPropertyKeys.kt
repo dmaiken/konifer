@@ -114,8 +114,8 @@ object ConfigurationPropertyKeys {
 
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
-                const val MAX_HEIGHT = "max-height"
-                const val MAX_WIDTH = "max-width"
+                const val CLAMP_HEIGHT = "clamp-height"
+                const val CLAMP_WIDTH = "clamp-width"
             }
 
             object OnDemandVariantsPropertyKeys {

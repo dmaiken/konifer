@@ -91,8 +91,8 @@ class PreProcessingPropertiesTest {
     fun `PreProcessingProperties default contains default values`() {
         val default = PreProcessingProperties.default
         default.format shouldBe null
-        default.maxWidth shouldBe null
-        default.maxHeight shouldBe null
+        default.clampWidth shouldBe null
+        default.clampHeight shouldBe null
         default.width shouldBe null
         default.height shouldBe null
         default.rotate shouldBe Rotate.default

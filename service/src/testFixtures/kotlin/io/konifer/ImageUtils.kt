@@ -253,8 +253,8 @@ fun createPreProcessingProperties(
 ): PreProcessingProperties =
     PreProcessingProperties(
         enabled = enabled,
-        maxWidth = maxWidth,
-        maxHeight = maxHeight,
+        clampWidth = maxWidth,
+        clampHeight = maxHeight,
         width = width,
         height = height,
         format = format,
