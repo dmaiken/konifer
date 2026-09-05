@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://konifer.io/img/konifer-small.png" alt="Konifer logo" width="200"/>
+  <img src="https://konifer.io/img/konifer-small.png" alt="Konifer logo" width="100"/>
 </p>
 
 # Konifer
@@ -9,20 +9,126 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 
-Konifer is image infrastructure for applications that need to store, transform, and deliver images using their own
-domain model.
+Konifer is a backend for managing application-owned media. It manages the ingestion, storage, and lifecycle of images
+your application has to deal with. This can be profile pictures, avatars, listing photos, card art, anything that 
+your application has to take in, validate, transform, and otherwise manage. 
 
-It stores original images, generates and caches transformed variants, and returns content, links, redirects, downloads,
-or asset information from a single HTTP API. The core idea is straightforward: Konifer's URLs can follow your domain model.
+Konifer is not a CDN. Konifer is not [imgproxy](https://imgproxy.net/). While Konifer can support image delivery, your
+CDN is probably better positioned to handle this.
+
+Konifer goes to great lengths to support your existing domain model. It's 
+[Assets API](https://konifer.io/docs/concepts/Assets/concepts-assets) is flexible and hierarchical by 
+design. It binds a path-based URL structure with configuration you associate to that structure because your profile
+pictures need to be treated separately from photos added to a blog post. However your domain is modeled, Konifer does
+not care. It's your sandbox, Konifer merely brings the buckets and shovels.
+
+## Path structure
+
+Let the path define what your image is, and avoid having to store an `imageId`.
 
 ```http
 POST /assets/users/123/profile-picture
-GET  /assets/users/123/profile-picture/-/content?w=256&format=webp
+GET  /assets/users/123/profile-picture/-/redirect?profile=thumbnail
 GET  /assets/users/123/profile-picture/-/info
 ```
 
-Instead of storing `imageId = 2c3ee9c4-58b4-4d0c-8694-ab91125b5d3a` in your user service, you can address the image
-where it naturally belongs: `/assets/users/123/profile-picture`.
+If you prefer an `imageId`, use them.
+
+```http
+POST /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6
+GET  /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6/-/redirect?w=256&format=webp
+```
+
+Let's say your user has several images. Konifer lets you manage it seamlessly.
+
+```http
+POST /assets/users/123/profile-picture
+POST /assets/users/123/article/456
+POST /assets/users/123/article/789
+
+# User 123 closed their account
+# Delete users/123 and everything below it atomically
+DELETE /assets/users/123/-/recursive
+```
+
+Want your article assets treated differently than your profile pictures? Use the Path Configuration.
+
+```hocon
+# Custom transformations
+variant-profiles {
+  thumbnail {
+    w = 256
+    fit = fill
+  }
+}
+paths {
+  # Configuration is inherited with most-specific path's configuration winning
+  "/users/**" {
+    limits {
+      max-bytes = 20MB
+      max-pixels = 15MP # Reject uploads larger than 15 mega-pixels
+    }
+    transform {
+      preprocessing {
+        r = auto # Auto-rotate the image
+        enabled = true
+        clamp-width = 2048
+        clamp-height = 2048
+        fit = fit # fit inside a 2048x2048 bounding box
+      }
+    }
+  }
+  "/users/*/profile-pictures" {
+    transform {
+      object-store {
+        bucket = profiles
+      }
+      eager-variants = [thumbnail]
+      # Only allow transformations defined in variant-profiles
+      on-demand-variant {
+        mode = profile_only
+      }
+    }
+  }
+  "/users/*/article/**" {
+    object-store {
+      bucket = articles
+    }
+    # Disable Konifer on-demand variants and let your CDN handle the resizing
+    on-demand-variant {
+      mode = disabled
+    }
+    allowed-content-types = [ "image/png", "image/jpeg" ]
+  }
+}
+```
+
+## Why Konifer exists
+
+Konifer was built to solve a problem I have seen on several teams throughout my career. What started as a simple
+requirement to store a product photo has grown to a patchwork of S3 buckets, lambdas, queueing, and microservices. 
+You may even have different architectures for different types of images.
+
+Konifer exists to unify all of this. It brings to the table:
+
+- Multi-part uploads
+- URL uploads with a domain allow-list (which is enforced on URL-redirects)
+- Hardened state management between your S3-compatible object store (or filesystem) and it's metadata store
+- Efficient transformation of images powered by libvips
+- Guards to prevent images too large (file size, dimensions or pixel count), the wrong content-type type, or the 
+  wrong content using ML-powered image classification (SigLIP2)
+- Support for JPEG, PNG, WebP, HEIC, AVIF, Jpeg XL, and GIF as well as efficient format conversion between all types
+- Support for animated GIF and WebP
+- Powerful and secure redirection capabilities
+
+## When you should consider Konifer
+
+- You're about to add images into your application for the first time
+- You have several different places in your backend that handle different images (a thumbnail service, an upload service, etc)
+- Your service has crashed trying to accept an image that was too large or the wrong file-type (for example, by 
+  using Java's `BufferedImage`)
+- Managing your images is draining your engineering resources
+- You cannot or do not want to use a SaaS platform
 
 ## Try It
 
@@ -50,69 +156,6 @@ curl --request GET \
 The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus
 S3-compatible or filesystem storage.
 
-## Why Konifer Exists
-
-Many image platforms introduce a separate identity model for media. Your application uploads a file, receives a separate
-identifier, stores that identifier somewhere, then uses it later to ask the image service what to do.
-
-Konifer is built around a zero-state integration model. Your application does not need to persist Konifer-specific IDs
-just to render an image later. If your product already knows the user, post, organization, tenant, or document that owns
-an image, that knowledge is enough to construct the image URL.
-
-```http
-POST /assets/organizations/acme/users/123/avatar
-GET  /assets/organizations/acme/users/123/avatar/-/content
-```
-
-Multiple images can still live on the same path. Each stored image receives an `entryId` that is unique within that
-path, so the path can represent the domain concept while `entryId` can represent a specific version or historical item.
-
-```http
-GET /assets/organizations/acme/users/123/avatar/-/entry/4/content
-```
-
-## Who Konifer Is For
-
-Konifer is intended for developers and platform teams who want:
-
-- One API for image storage, transformation, and delivery.
-- A path-based API that fits an existing domain model instead of forcing a separate image identity model.
-- S3-compatible storage, local filesystem storage, or in-memory storage for development.
-- Control over when variants are generated, where they are stored, and how they are returned.
-- CDN-friendly behavior, including redirects, cache headers, ETags, and signed URLs.
-- An image pipeline that fits their existing infrastructure and cost model.
-
-It is especially useful for products where images already belong to clear domain resources: user avatars, organization
-logos, marketplace listings, CMS images, documents, galleries, generated media, and user-uploaded content.
-
-## What Konifer Does
-
-Konifer handles the image lifecycle behind an HTTP API:
-
-- Store images from multipart uploads or URLs.
-- Store information such as `alt`, labels, and tags.
-- Fetch the newest image at a path, a specific `entryId`, or multiple matching images.
-- Return images as direct content, object-store links, redirects, downloads, or asset information in JSON.
-- Generate transformed variants on demand and cache them in the configured object store.
-- Generate common variants eagerly after upload using named variant profiles.
-- Apply per-path rules for storage, validation, preprocessing, eager variants, redirects, caching, and LQIPs.
-- Generate low-quality image placeholders using BlurHash and ThumbHash.
-- Sign fetch URLs with HMAC to protect public transformation endpoints.
-
-Supported formats include JPEG, PNG, WebP, AVIF, JPEG XL, HEIC, and GIF, with support for animated WebP and GIF.
-
-## The Path Model
-
-Konifer paths are intentionally application-defined. The API does not care whether your hierarchy is user-based,
-tenant-based, CMS-based, or something else.
-
-```http
-POST /assets/users/123/profile-picture
-POST /assets/users/123/background
-POST /assets/blog/42/posts/5/hero
-POST /assets/products/sku-123/gallery
-```
-
 Query selectors live after the `/-/` separator. They let you choose the response shape, ordering, limit, or exact entry
 without making those controls part of your domain path.
 
@@ -127,88 +170,31 @@ GET /assets/users/123/profile-picture/-/entry/4/content
 
 By default, Konifer returns a `link` response for the newest image at a path.
 
-## Transformations And Variants
+## Upload Rules
 
-A variant is a transformed version of the original image. Konifer can resize, crop, rotate, flip, blur, pad, change
-formats, adjust quality, strip metadata, and manage color space.
-
-On-demand variants are generated when requested, stored, and reused on later requests:
-
-```http
-GET /assets/users/123/profile-picture/-/content?w=300&h=300&fit=crop&g=attention&format=webp
-```
-
-Variant profiles let you name transformations that your application uses often:
+Konifer lets your define prompt collections (ensembles) to be tested against uploaded images. Inference is done
+in-process by Google's SigLIP2 vision-language model, so images never leave the server.
 
 ```hocon
-variant-profiles {
-  thumbnail {
-    w = 128
-    fit = fill
-    r = auto
+rule-definitions {
+  "blood-and-gore" {
+    prompts = [
+      "graphic visible blood",
+      "open wound with blood",
+      "bloody injury scene",
+      "gore and severe injury"
+    ]
+    threshold = 0.72
   }
 }
 ```
 
-```http
-GET /assets/users/123/profile-picture/-/content?profile=thumbnail
-```
+## Rule Evaluation API 
 
-Profiles can also be used for eager variants, where Konifer starts background generation after upload. If an eager
-variant is not ready when requested, it can still be generated on demand.
-
-## Path Configuration
-
-Different parts of your image hierarchy can behave differently. Path configuration lets you define rules once in
-`konifer.conf` and apply them with wildcard matching and inheritance.
-
-```hocon
-variant-profiles {
-  thumbnail {
-    w = 256
-    fit = fill
-  }
-}
-paths {
-  "/public/avatars/**" {
-    transform {
-      limits {
-        max-width = 8192
-        max-height = 8192
-        max-pixels = 67108864
-      }
-      eager-variants = [thumbnail]
-      preprocessing {
-        enabled = true
-        clamp-width = 1024
-        clamp-height = 1024
-        fit = fit
-      }
-    }
-    lqip = [blurhash, thumbhash]
-    cache-control {
-      enabled = true
-      visibility = public
-      max-age = 31536000
-      immutable = true
-    }
-  }
-}
-```
-
-Transformation limits apply to preprocessing, eager variants, and on-demand variants. See the documentation for
-defaults, normalization behavior, and configuration-time validation.
-
-This is where Konifer becomes more than a transformation endpoint. Public avatars, private documents, CMS images, and
-generated media can share the same service while using different buckets, validation rules, dynamic labeling,
-preprocessing, cache behavior, redirect strategies, and eager variants.
-
-## Rule Evaluation API
-
-Konifer includes a production-ready Rule Evaluation API for testing rule definitions against real images before adding
-them to your Upload Rules. It can also be used independently to classify images with natural-language prompts. Each
-response reports whether the rule matched, its overall score, and the score for every prompt, making it easier to tune
-prompts and thresholds with representative content.
+Konifer includes a Rule Evaluation API for testing rule definitions against real images before adding
+them to your Upload Rules. It can also be used independently to classify images without the need to store the image
+in Konifer. Each response reports whether the rule matched, its overall score, and the score for every prompt, making 
+it easier to tune prompts and thresholds with representative content.
 
 Enable the API explicitly in `konifer.conf`:
 
@@ -238,25 +224,12 @@ curl --request POST \
   }'
 ```
 
-Image data can also be uploaded directly as multipart form data. Rule evaluation uses the same SigLIP2 model and rule
-semantics as Upload Rules, so a definition tested here can be moved into path configuration with confidence. Install
+Inference features require the model to be installed. Install
 the model pack using `./scripts/download-siglip2-models.sh` as described in
 [Running With Docker Compose](#running-with-docker-compose).
 
-## Storage And Architecture
-
-Konifer uses a dual-store architecture:
-
-- Object storage holds image bytes and generated variants.
-- PostgreSQL stores asset information, metadata, path hierarchy, labels, tags, and variant records.
-
-Object storage can be AWS S3, an S3-compatible provider such as MinIO or Cloudflare R2, a mounted filesystem, or
-in-memory storage for development. PostgreSQL is the production data store and uses the `ltree` extension for
-hierarchical path queries.
-
-The server is built with Kotlin and Ktor, and image processing is powered by libvips. Konifer avoids buffering entire
-assets in application memory where possible, uses temporary files during processing, and runs variant generation through
-bounded workers so expensive transformations do not overwhelm the service.
+The model is only loaded into memory if the Rule Evaluation API is enabled or rule definitions are defined. Text
+embeddings are cached on first-use.
 
 ## Documentation
 
@@ -277,54 +250,6 @@ Useful starting points:
 - [Storage configuration](https://konifer.io/docs/reference/reference-variant-storage)
 - [HTTP caching](https://konifer.io/docs/reference/http-caching)
 - [URL signing](https://konifer.io/docs/reference/url-signing)
-
-## Running With Docker Compose
-
-The included Compose file runs Konifer with PostgreSQL and MinIO. It expects a `konifer.conf` file at the repository
-root.
-
-If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
-
-```bash
-./scripts/download-siglip2-models.sh
-```
-
-Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
-
-Build the local base image, which contains Temurin JDK 25 and libvips:
-
-```bash
-docker build -f Dockerfile.base -t konifer-base:latest .
-```
-
-Rebuild the base image whenever `Dockerfile.base` or the libvips installation scripts change. Then build the Konifer
-application image:
-
-```bash
-./gradlew :service:shadowJar
-docker build . -t ghcr.io/dmaiken/konifer:latest
-```
-
-Then start the stack:
-
-```bash
-docker compose up
-```
-
-The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the
-`konifer-assets` MinIO bucket.
-
-## Acknowledgments
-
-A huge thank-you to these amazing open-source projects:
-
-- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for
-  high-performance image processing.
-- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the
-  libvips API.
-- **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
-- **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
-- **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Development
 
@@ -383,6 +308,49 @@ export JAVA_HOME=$(/usr/libexec/java_home)
 ```
 
 On Apple Silicon, build the Docker image locally to get a native `arm64` image.
+
+If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
+
+```bash
+./scripts/download-siglip2-models.sh
+```
+
+Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
+
+Build the local base image, which contains Temurin JDK 25 and libvips:
+
+```bash
+docker build -f Dockerfile.base -t konifer-base:latest .
+```
+
+Rebuild the base image whenever `Dockerfile.base` or the libvips installation scripts change. Then build the Konifer
+application image:
+
+```bash
+./gradlew :service:shadowJar
+docker build . -t ghcr.io/dmaiken/konifer:latest
+```
+
+Then start the stack:
+
+```bash
+docker compose up
+```
+
+The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the
+`konifer-assets` MinIO bucket.
+
+## Acknowledgments
+
+A huge thank-you to these amazing open-source projects:
+
+- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for
+  high-performance image processing.
+- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the
+  libvips API.
+- **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
+- **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
+- **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Contact me
 
