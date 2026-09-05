@@ -156,20 +156,6 @@ curl --request GET \
 The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus
 S3-compatible or filesystem storage.
 
-Query selectors live after the `/-/` separator. They let you choose the response shape, ordering, limit, or exact entry
-without making those controls part of your domain path.
-
-```http
-GET /assets/users/123/profile-picture/-/link
-GET /assets/users/123/profile-picture/-/content
-GET /assets/users/123/profile-picture/-/redirect
-GET /assets/users/123/profile-picture/-/download
-GET /assets/users/123/profile-picture/-/info
-GET /assets/users/123/profile-picture/-/entry/4/content
-```
-
-By default, Konifer returns a `link` response for the newest image at a path.
-
 ## Upload Rules
 
 Konifer lets your define prompt collections (ensembles) to be tested against uploaded images. Inference is done
