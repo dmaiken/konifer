@@ -2,9 +2,6 @@ package io.konifer.infrastructure.objectstore
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.image.ImageFormat
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
-import io.konifer.domain.path.TemplateProperties
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.getResourceAsFile
@@ -348,36 +345,5 @@ abstract class ObjectStoreTest {
     fun `exists returns false if the key does not exist in the object store`() =
         runTest {
             store.exists(BUCKET_1, UuidCreator.getRandomBasedFast().toString()) shouldBe false
-        }
-
-    @Test
-    fun `returns no url if redirect mode is disabled`() =
-        runTest {
-            store.generateObjectUrl(
-                bucket = BUCKET_1,
-                key = UuidCreator.getRandomBasedFast().toString(),
-                properties =
-                    RedirectProperties(
-                        strategy = RedirectStrategy.NONE,
-                    ),
-            ) shouldBe null
-        }
-
-    @Test
-    fun `can create templated url`() =
-        runTest {
-            val bucket = "bucket"
-            val key = UuidCreator.getRandomBasedFast().toString()
-
-            val properties =
-                RedirectProperties(
-                    strategy = RedirectStrategy.TEMPLATE,
-                    template =
-                        TemplateProperties(
-                            string = "https://localhost:9000/{bucket}/{key}",
-                        ),
-                )
-            val url = store.generateObjectUrl(bucket, key, properties)
-            url shouldBe "https://localhost:9000/$bucket/$key"
         }
 }

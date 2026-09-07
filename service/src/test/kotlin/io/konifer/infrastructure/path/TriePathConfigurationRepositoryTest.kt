@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.path
 
 import com.typesafe.config.ConfigFactory
+import io.konifer.domain.path.DeliveryStrategy
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.upload.DefaultRuleAction
@@ -13,9 +14,38 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import kotlin.time.Duration.Companion.minutes
 
 class TriePathConfigurationRepositoryTest {
     private val transformConfigurationValidator = mockk<TransformConfigurationValidator>(relaxed = true)
+
+    @Test
+    fun `delivery configuration is decoded from a path`() {
+        val config =
+            """
+            paths {
+              "/images/**" {
+                delivery {
+                  strategy = presigned
+                  presigned {
+                    ttl = 45m
+                  }
+                }
+              }
+            }
+            """.trimIndent()
+
+        val repository =
+            TriePathConfigurationRepository(
+                ConfigFactory.parseString(config),
+                transformConfigurationValidator,
+            )
+
+        repository.fetch("/images/profile").deliveryProperties.apply {
+            strategy shouldBe DeliveryStrategy.PRESIGNED
+            preSigned.ttl shouldBe 45.minutes
+        }
+    }
 
     @Test
     fun `fetch returns a path configuration when the path matches exactly`() {

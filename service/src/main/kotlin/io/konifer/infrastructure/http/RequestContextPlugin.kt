@@ -6,6 +6,7 @@ import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
 import io.ktor.http.HttpMethod
 import io.ktor.server.application.createRouteScopedPlugin
+import io.ktor.server.plugins.origin
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import org.koin.ktor.ext.getKoin
@@ -27,6 +28,7 @@ val RequestContextPlugin =
                             path = call.request.path(),
                             headers = call.request.headers,
                             queryParameters = call.parameters,
+                            origin = call.request.origin,
                         )
                 }
                 HttpMethod.Delete -> {

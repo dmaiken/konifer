@@ -7,13 +7,18 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-class RedirectPropertiesTest {
+class DeliveryPropertiesTest {
     @Test
-    fun `presigned url ttl cannot be negative if using presigned redirect mode`() {
+    fun `service delivery is the default`() {
+        DeliveryProperties.default.strategy shouldBe DeliveryStrategy.SERVICE
+    }
+
+    @Test
+    fun `presigned url ttl must be positive`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                RedirectProperties(
-                    strategy = RedirectStrategy.PRESIGNED,
+                DeliveryProperties(
+                    strategy = DeliveryStrategy.PRESIGNED,
                     preSigned =
                         PreSignedProperties(
                             ttl = (-1).minutes,
@@ -24,11 +29,11 @@ class RedirectPropertiesTest {
     }
 
     @Test
-    fun `presigned url ttl cannot be greater than 7 days if using presigned redirect mode`() {
+    fun `presigned url ttl cannot be greater than 7 days`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
-                RedirectProperties(
-                    strategy = RedirectStrategy.PRESIGNED,
+                DeliveryProperties(
+                    strategy = DeliveryStrategy.PRESIGNED,
                     preSigned =
                         PreSignedProperties(
                             ttl = 7.days.plus(1.seconds),

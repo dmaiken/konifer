@@ -4,16 +4,16 @@ import io.konifer.common.serializer.LowercaseEnumSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
-@Serializable(with = RedirectStrategySerializer::class)
-enum class RedirectStrategy {
-    NONE,
+@Serializable(with = DeliveryStrategySerializer::class)
+enum class DeliveryStrategy {
+    SERVICE,
     PRESIGNED,
     TEMPLATE,
     ;
 
     companion object Factory {
-        val default = NONE
+        val default = SERVICE
     }
 }
 
-class RedirectStrategySerializer : KSerializer<RedirectStrategy> by LowercaseEnumSerializer(RedirectStrategy.entries)
+class DeliveryStrategySerializer : KSerializer<DeliveryStrategy> by LowercaseEnumSerializer(DeliveryStrategy.entries)

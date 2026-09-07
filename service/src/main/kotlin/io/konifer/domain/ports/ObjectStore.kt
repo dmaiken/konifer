@@ -1,11 +1,12 @@
 package io.konifer.domain.ports
 
 import io.konifer.common.image.ImageFormat
-import io.konifer.domain.path.RedirectProperties
+import io.ktor.http.Url
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import java.nio.file.Path
 import java.time.LocalDateTime
+import kotlin.time.Duration
 
 interface ObjectStore {
     suspend fun persist(
@@ -42,11 +43,22 @@ interface ObjectStore {
         keys: List<String>,
     )
 
-    suspend fun generateObjectUrl(
+    /**
+     * Generate a presigned URL if supported. If not supported, [PresignedUrl.NotSupported] is returned.
+     */
+    suspend fun generatePresignedUrl(
         bucket: String,
         key: String,
-        properties: RedirectProperties,
-    ): String?
+        ttl: Duration,
+    ): PresignedUrl
+}
+
+sealed interface PresignedUrl {
+    data class Supported(
+        val url: Url,
+    ) : PresignedUrl
+
+    object NotSupported : PresignedUrl
 }
 
 data class FetchResult(

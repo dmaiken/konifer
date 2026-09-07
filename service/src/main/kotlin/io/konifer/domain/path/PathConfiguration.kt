@@ -21,8 +21,8 @@ data class PathConfiguration(
     val limits: AssetLimitProperties = AssetLimitProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.OBJECT_STORE)
     val objectStore: ObjectStoreProperties = ObjectStoreProperties.default,
-    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.RETURN_FORMAT)
-    val returnFormat: ReturnFormatProperties = ReturnFormatProperties.default,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.DELIVERY)
+    val deliveryProperties: DeliveryProperties = DeliveryProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.CACHE_CONTROL)
     val cacheControl: CacheControlProperties = CacheControlProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.UPLOAD_RULESET)
@@ -33,14 +33,7 @@ data class PathConfiguration(
     }
 
     companion object {
-        val default =
-            PathConfiguration(
-                allowedContentTypes = null,
-                objectStore = ObjectStoreProperties.default,
-                returnFormat = ReturnFormatProperties.default,
-                cacheControl = CacheControlProperties.default,
-                transform = TransformProperties.default,
-            )
+        val default = PathConfiguration()
     }
 
     private fun validate() {

@@ -36,10 +36,10 @@ class FetchAssetHandler(
         val variant = asset.variants.first()
 
         val url =
-            objectStore.generateObjectUrl(
-                bucket = variant.objectStoreBucket,
-                key = variant.objectStoreKey,
-                properties = context.pathConfiguration.returnFormat.redirect,
+            assetUrlGenerator.generateDeliveryUrl(
+                assetData = asset,
+                request = context.request,
+                pathConfiguration = context.pathConfiguration,
             )
         return VariantRedirect(
             url = url,
@@ -59,7 +59,12 @@ class FetchAssetHandler(
             alt = asset.alt,
             lqip = variant.lqips,
             cacheHit = cacheHit,
-            url = assetUrlGenerator.generateAbsoluteContentUrl(asset.path, asset.entryId, context.request.parameters),
+            url =
+                assetUrlGenerator.generateDeliveryUrl(
+                    assetData = asset,
+                    request = context.request,
+                    pathConfiguration = context.pathConfiguration,
+                ),
         )
     }
 

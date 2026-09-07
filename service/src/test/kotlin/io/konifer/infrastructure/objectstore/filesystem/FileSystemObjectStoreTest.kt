@@ -1,9 +1,8 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
 import com.github.f4b6a3.uuid.UuidCreator
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PresignedUrl
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -12,6 +11,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
+import kotlin.time.Duration.Companion.minutes
 
 open class FileSystemObjectStoreTest : ObjectStoreTest() {
     val mountPath: Path =
@@ -50,15 +50,12 @@ open class FileSystemObjectStoreTest : ObjectStoreTest() {
     }
 
     @Test
-    fun `no url is returned for presigned redirect strategy`() =
+    fun `presigned urls are not supported`() =
         runTest {
-            store.generateObjectUrl(
+            store.generatePresignedUrl(
                 bucket = BUCKET_1,
                 key = UuidCreator.getRandomBasedFast().toString(),
-                properties =
-                    RedirectProperties(
-                        strategy = RedirectStrategy.PRESIGNED,
-                    ),
-            ) shouldBe null
+                ttl = 30.minutes,
+            ) shouldBe PresignedUrl.NotSupported
         }
 }

@@ -1,6 +1,7 @@
 package io.konifer.domain.path
 
-import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.ObjectStorePropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.DeliveryPropertyKeys
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
@@ -8,16 +9,16 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 @Serializable
-data class RedirectProperties(
-    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.STRATEGY)
-    val strategy: RedirectStrategy = RedirectStrategy.default,
-    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.PRESIGNED)
+data class DeliveryProperties(
+    @SerialName(DeliveryPropertyKeys.STRATEGY)
+    val strategy: DeliveryStrategy = DeliveryStrategy.default,
+    @SerialName(DeliveryPropertyKeys.PRESIGNED)
     val preSigned: PreSignedProperties = PreSignedProperties.default,
-    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.TEMPLATE)
+    @SerialName(DeliveryPropertyKeys.TEMPLATE)
     val template: TemplateProperties = TemplateProperties.default,
 ) {
     init {
-        if (strategy == RedirectStrategy.PRESIGNED) {
+        if (strategy == DeliveryStrategy.PRESIGNED) {
             require(preSigned.ttl.isPositive()) {
                 "Presigned TTL must be positive"
             }
@@ -29,8 +30,8 @@ data class RedirectProperties(
 
     companion object Factory {
         val default =
-            RedirectProperties(
-                strategy = RedirectStrategy.default,
+            DeliveryProperties(
+                strategy = DeliveryStrategy.default,
                 preSigned = PreSignedProperties.default,
                 template = TemplateProperties.default,
             )
@@ -39,7 +40,7 @@ data class RedirectProperties(
 
 @Serializable
 data class PreSignedProperties(
-    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.PreSignedPropertyKeys.TTL)
+    @SerialName(DeliveryPropertyKeys.PreSignedPropertyKeys.TTL)
     val ttl: Duration = DEFAULT_TTL,
 ) {
     companion object Factory {
@@ -50,22 +51,26 @@ data class PreSignedProperties(
 
 @Serializable
 data class TemplateProperties(
-    @SerialName(ObjectStorePropertyKeys.RedirectPropertyKeys.TemplatePropertyKeys.STRING)
+    @SerialName(DeliveryPropertyKeys.TemplatePropertyKeys.STRING)
     val string: String,
 ) {
     init {
         require(string.isNotBlank()) {
-            "Redirect template must be populated"
+            "${ConfigurationPropertyKeys.PathPropertyKeys.DELIVERY}." +
+                "${DeliveryPropertyKeys.TEMPLATE}.${DeliveryPropertyKeys.TemplatePropertyKeys.STRING} " +
+                "must be populated"
         }
 
-        require(DISALLOWED_SCHEMES.none { string.startsWith(it) }) {
-            "Redirect template cannot start with: $DISALLOWED_SCHEMES"
+        require(DISALLOWED_SCHEMES.none { string.startsWith(it, ignoreCase = true) }) {
+            "${ConfigurationPropertyKeys.PathPropertyKeys.DELIVERY}." +
+                "${DeliveryPropertyKeys.TEMPLATE}.${DeliveryPropertyKeys.TemplatePropertyKeys.STRING} " +
+                "cannot start with: $DISALLOWED_SCHEMES"
         }
     }
 
     companion object Factory {
-        private const val TEMPLATE_BUCKET = "{bucket}"
-        private const val TEMPLATE_KEY = "{key}"
+        const val TEMPLATE_BUCKET = "{bucket}"
+        const val TEMPLATE_KEY = "{key}"
         private val DISALLOWED_SCHEMES = setOf("javascript:", "vbscript:", "data:")
 
         const val DEFAULT_STRING = "http://localhost"
@@ -74,9 +79,4 @@ data class TemplateProperties(
                 string = DEFAULT_STRING,
             )
     }
-
-    fun resolve(
-        bucket: String,
-        key: String,
-    ): String = string.replace(TEMPLATE_BUCKET, bucket).replace(TEMPLATE_KEY, key)
 }

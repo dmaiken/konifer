@@ -1,10 +1,9 @@
 package io.konifer.infrastructure.objectstore.inmemory
 
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PersistObjectStoreRequest
+import io.konifer.domain.ports.PresignedUrl
 import io.ktor.util.cio.readChannel
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
@@ -14,6 +13,7 @@ import io.ktor.utils.io.writeFully
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
+import kotlin.time.Duration
 
 class InMemoryObjectStore : ObjectStore {
     private val store = mutableMapOf<String, MutableMap<String, ByteArray>>()
@@ -84,19 +84,11 @@ class InMemoryObjectStore : ObjectStore {
         keys.forEach { delete(bucket, it) }
     }
 
-    override suspend fun generateObjectUrl(
+    override suspend fun generatePresignedUrl(
         bucket: String,
         key: String,
-        properties: RedirectProperties,
-    ): String? =
-        when (properties.strategy) {
-            RedirectStrategy.TEMPLATE ->
-                properties.template.resolve(
-                    bucket = bucket,
-                    key = key,
-                )
-            RedirectStrategy.PRESIGNED, RedirectStrategy.NONE -> null
-        }
+        ttl: Duration,
+    ): PresignedUrl = PresignedUrl.NotSupported
 
     fun clearObjectStore() {
         store.clear()

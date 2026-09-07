@@ -2,20 +2,16 @@ package io.konifer.asset
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
-import io.konifer.byteArrayToImage
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.infrastructure.http.APP_ALT
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetViaRedirect
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
-import org.apache.tika.Tika
 import org.junit.jupiter.api.Test
 
 class FetchAssetRedirectTest : BaseFunctionalTest() {
@@ -31,17 +27,15 @@ class FetchAssetRedirectTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `can fetch asset and render when redirect mode is template`() =
+    fun `can redirect to a templated delivery url`() =
         testInMemory(
             """
             paths {
               "/**" {
-                return-format {
-                  redirect {
-                    strategy = template
-                    template {
-                      string = "https://{bucket}.domain.com/{key}"
-                    }
+                delivery {
+                  strategy = template
+                  template {
+                    string = "https://{bucket}.domain.com/{key}"
                   }
                 }
               }
@@ -67,37 +61,20 @@ class FetchAssetRedirectTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `returns content without redirect when redirect strategy is none`() =
-        testInMemory(
-            """
-            paths {
-              "/**" {
-                return-format {
-                  redirect {
-                    strategy = none
-                  }
-                }
-              }
-            }
-            """.trimIndent(),
-        ) {
+    fun `service delivery redirects to the content endpoint`() =
+        testInMemory {
             configureClient { followRedirects = false }
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetMultipartSource(client, image, request, path = "profile").second
+            val storedAssetInfo = storeAssetMultipartSource(client, image, request, path = "profile").second
 
             client.get("/assets/profile/-/redirect").apply {
-                status shouldBe HttpStatusCode.OK
-                headers[HttpHeaders.Location] shouldBe null
-
-                val body = bodyAsBytes()
-                byteArrayToImage(body)
-                Tika().detect(body) shouldBe "image/png"
-
-                headers[APP_ALT] shouldBe request.alt
+                status shouldBe HttpStatusCode.TemporaryRedirect
+                headers[HttpHeaders.Location] shouldBe
+                    "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
             }
         }
 }

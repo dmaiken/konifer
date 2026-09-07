@@ -4,6 +4,7 @@ import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.transformation.Transformation
 import io.ktor.http.Parameters
+import io.ktor.http.RequestConnectionPoint
 
 data class QueryRequestContext(
     val path: String,
@@ -16,4 +17,5 @@ data class QueryRequestContext(
 
 data class HttpRequest(
     val parameters: Parameters,
+    val origin: RequestConnectionPoint,
 )
