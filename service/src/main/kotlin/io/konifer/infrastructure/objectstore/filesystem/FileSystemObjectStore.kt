@@ -1,10 +1,9 @@
 package io.konifer.infrastructure.objectstore.filesystem
 
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PersistObjectStoreRequest
+import io.konifer.domain.ports.PresignedUrl
 import io.ktor.util.cio.readChannel
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.logging.KtorSimpleLogger
@@ -19,6 +18,7 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
+import kotlin.time.Duration
 
 class FileSystemObjectStore(
     private val storeProperties: FileSystemProperties,
@@ -126,19 +126,11 @@ class FileSystemObjectStore(
         }
     }
 
-    override suspend fun generateObjectUrl(
+    override suspend fun generatePresignedUrl(
         bucket: String,
         key: String,
-        properties: RedirectProperties,
-    ): String? =
-        when (properties.strategy) {
-            RedirectStrategy.TEMPLATE ->
-                properties.template.resolve(
-                    bucket = bucket,
-                    key = key,
-                )
-            else -> null
-        }
+        ttl: Duration,
+    ): PresignedUrl = PresignedUrl.NotSupported
 
     private fun resolvePath(
         bucket: String,

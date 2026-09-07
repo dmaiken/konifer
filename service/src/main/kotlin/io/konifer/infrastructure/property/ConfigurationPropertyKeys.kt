@@ -92,7 +92,7 @@ object ConfigurationPropertyKeys {
         const val LIMITS = "limits"
         const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
         const val OBJECT_STORE = "object-store"
-        const val RETURN_FORMAT = "return-format"
+        const val DELIVERY = "delivery"
         const val TRANSFORM = "transform"
         const val CACHE_CONTROL = "cache-control"
         const val UPLOAD_RULESET = "upload-ruleset"
@@ -136,24 +136,20 @@ object ConfigurationPropertyKeys {
 
         object ObjectStorePropertyKeys {
             const val BUCKET = "bucket"
-
-            object RedirectPropertyKeys {
-                const val STRATEGY = "strategy"
-                const val PRESIGNED = "presigned"
-                const val TEMPLATE = "template"
-
-                object PreSignedPropertyKeys {
-                    const val TTL = "ttl"
-                }
-
-                object TemplatePropertyKeys {
-                    const val STRING = "string"
-                }
-            }
         }
 
-        object ReturnFormatPropertyKeys {
-            const val REDIRECT = "redirect"
+        object DeliveryPropertyKeys {
+            const val STRATEGY = "strategy"
+            const val PRESIGNED = "presigned"
+            const val TEMPLATE = "template"
+
+            object PreSignedPropertyKeys {
+                const val TTL = "ttl"
+            }
+
+            object TemplatePropertyKeys {
+                const val STRING = "string"
+            }
         }
 
         object CacheControlPropertyKeys {

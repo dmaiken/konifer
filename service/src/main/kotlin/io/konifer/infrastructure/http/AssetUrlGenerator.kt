@@ -1,36 +1,116 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.domain.asset.AssetData
+import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
+import io.konifer.domain.path.DeliveryStrategy
+import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.path.TemplateProperties
+import io.konifer.domain.path.TemplateProperties.Factory.TEMPLATE_BUCKET
+import io.konifer.domain.path.TemplateProperties.Factory.TEMPLATE_KEY
+import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PresignedUrl
 import io.konifer.infrastructure.HttpProperties
-import io.ktor.http.Parameters
+import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
+import io.ktor.http.parameters
 
 class AssetUrlGenerator(
     private val httpProperties: HttpProperties,
+    private val objectStore: ObjectStore,
 ) {
+    companion object {
+        const val ASSETS_API_PREFIX = "assets"
+        const val ENTRY_PATH_SEGMENT = "entry"
+    }
+
     /**
      * Generate a URL for an asset with an entry modifier. This URL is an absolute reference to the asset metadata.
      */
     fun generateAbsoluteLocationUrl(
         path: String,
         entryId: Long,
-    ): String =
-        URLBuilder(httpProperties.publicUrl)
+        origin: RequestConnectionPoint,
+    ): Url =
+        URLBuilder(resolveBaseUrl(origin))
             .apply {
-                appendPathSegments("assets", path.removePrefix("/"), PATH_NAMESPACE_SEPARATOR, "entry", entryId.toString())
+                appendPathSegments(
+                    ASSETS_API_PREFIX,
+                    path.removePrefix("/"),
+                    PATH_NAMESPACE_SEPARATOR,
+                    ENTRY_PATH_SEGMENT,
+                    entryId.toString(),
+                )
             }.build()
-            .toString()
 
-    fun generateAbsoluteContentUrl(
-        path: String,
-        entryId: Long,
-        parameters: Parameters,
-    ): String =
-        URLBuilder(httpProperties.publicUrl)
+    suspend fun generateDeliveryUrl(
+        assetData: AssetData,
+        request: HttpRequest,
+        pathConfiguration: PathConfiguration,
+    ): Url {
+        val variant = assetData.variants.first()
+
+        return when (pathConfiguration.deliveryProperties.strategy) {
+            DeliveryStrategy.SERVICE -> generateAbsoluteContentUrl(assetData, request)
+            DeliveryStrategy.PRESIGNED -> {
+                when (
+                    val presigned =
+                        objectStore.generatePresignedUrl(
+                            bucket = variant.objectStoreBucket,
+                            key = variant.objectStoreKey,
+                            ttl = pathConfiguration.deliveryProperties.preSigned.ttl,
+                        )
+                ) {
+                    is PresignedUrl.Supported -> presigned.url
+                    PresignedUrl.NotSupported -> generateAbsoluteContentUrl(assetData, request)
+                }
+            }
+            DeliveryStrategy.TEMPLATE -> {
+                resolve(
+                    templateProperties = pathConfiguration.deliveryProperties.template,
+                    bucket = variant.objectStoreBucket,
+                    key = variant.objectStoreKey,
+                )
+            }
+        }
+    }
+
+    private fun generateAbsoluteContentUrl(
+        assetData: AssetData,
+        request: HttpRequest,
+    ): Url =
+        URLBuilder(resolveBaseUrl(request.origin))
             .apply {
-                appendPathSegments("assets", path.removePrefix("/"), PATH_NAMESPACE_SEPARATOR, "entry", entryId.toString(), "content")
-                this.parameters.appendAll(parameters)
+                appendPathSegments(
+                    ASSETS_API_PREFIX,
+                    assetData.path.removePrefix("/"),
+                    PATH_NAMESPACE_SEPARATOR,
+                    ENTRY_PATH_SEGMENT,
+                    assetData.entryId.toString(),
+                    "content",
+                )
+                this.parameters.appendAll(request.parameters)
             }.build()
-            .toString()
+
+    private fun resolve(
+        templateProperties: TemplateProperties,
+        bucket: String,
+        key: String,
+    ): Url =
+        templateProperties.string
+            .replace(TEMPLATE_BUCKET, bucket)
+            .replace(TEMPLATE_KEY, key)
+            .let(::Url)
+
+    private fun resolveBaseUrl(origin: RequestConnectionPoint): Url =
+        httpProperties.publicUrl
+            ?: URLBuilder()
+                .apply {
+                    protocol = URLProtocol.createOrDefault(origin.scheme)
+                    host = origin.serverHost
+                    port = origin.serverPort
+                }.build()
 }

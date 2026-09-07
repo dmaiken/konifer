@@ -45,6 +45,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
+import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.parseAndSortContentTypeHeader
 
 class RequestContextFactory(
@@ -77,6 +78,7 @@ class RequestContextFactory(
         path: String,
         headers: Headers,
         queryParameters: Parameters,
+        origin: RequestConnectionPoint,
     ): QueryRequestContext {
         val segments = extractPathSegments(path)
         val querySelectors =
@@ -113,6 +115,7 @@ class RequestContextFactory(
             request =
                 HttpRequest(
                     parameters = queryParameters,
+                    origin = origin,
                 ),
         )
     }

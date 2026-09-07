@@ -31,10 +31,12 @@ import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.http.Headers
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
 import io.ktor.http.ParametersBuilder
+import io.ktor.http.RequestConnectionPoint
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -600,6 +602,19 @@ class RequestContextFactoryTest : BaseUnitTest() {
     private val requestContextValidator = RequestContextValidator(variantProfileRepository)
     private val requestContextFactory =
         RequestContextFactory(pathConfigurationRepository, variantProfileRepository, transformationNormalizer, requestContextValidator)
+    private val origin = mockk<RequestConnectionPoint>(relaxed = true)
+
+    private suspend fun RequestContextFactory.fromFetchRequest(
+        path: String,
+        headers: Headers,
+        queryParameters: Parameters,
+    ): QueryRequestContext =
+        fromFetchRequest(
+            path = path,
+            headers = headers,
+            queryParameters = queryParameters,
+            origin = origin,
+        )
 
     @BeforeEach
     fun beforeEach() {
@@ -627,6 +642,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
             context.labels shouldBe emptyMap()
+            context.request.origin shouldBe origin
         }
 
         @ParameterizedTest

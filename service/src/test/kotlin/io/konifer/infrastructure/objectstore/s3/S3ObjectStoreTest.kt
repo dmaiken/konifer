@@ -1,13 +1,11 @@
 package io.konifer.infrastructure.objectstore.s3
 
 import com.github.f4b6a3.uuid.UuidCreator
-import io.konifer.domain.path.PreSignedProperties
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.ports.PresignedUrl
 import io.konifer.infrastructure.objectstore.ObjectStoreTest
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -57,9 +55,9 @@ class S3ObjectStoreTest : ObjectStoreTest() {
     }
 
     @Nested
-    inner class GenerateS3ObjectUrlTests {
+    inner class GeneratePresignedUrlTests {
         @Test
-        fun `can create presignedUrl`() =
+        fun `can create a presigned URL`() =
             runTest {
                 val s3Clients = createS3Client()
                 val store =
@@ -71,17 +69,9 @@ class S3ObjectStoreTest : ObjectStoreTest() {
                 val bucket = "bucket"
                 val key = UuidCreator.getRandomBasedFast().toString()
 
-                val properties =
-                    RedirectProperties(
-                        strategy = RedirectStrategy.PRESIGNED,
-                        preSigned =
-                            PreSignedProperties(
-                                ttl = 7.days,
-                            ),
-                    )
-                val url = store.generateObjectUrl(bucket, key, properties)
-                url shouldNotBe null
-                URI.create(url!!).toURL().apply {
+                val presignedUrl = store.generatePresignedUrl(bucket, key, 7.days)
+                presignedUrl.shouldBeInstanceOf<PresignedUrl.Supported>()
+                URI.create(presignedUrl.url.toString()).toURL().apply {
                     query shouldContain "X-Amz-Algorithm"
                     query shouldContain "X-Amz-Credential"
                 }

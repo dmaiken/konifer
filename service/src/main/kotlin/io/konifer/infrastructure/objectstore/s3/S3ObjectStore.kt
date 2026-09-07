@@ -1,11 +1,11 @@
 package io.konifer.infrastructure.objectstore.s3
 
-import io.konifer.domain.path.RedirectProperties
-import io.konifer.domain.path.RedirectStrategy
 import io.konifer.domain.ports.FetchResult
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PersistObjectStoreRequest
+import io.konifer.domain.ports.PresignedUrl
 import io.konifer.infrastructure.consumeAsFlow
+import io.ktor.http.Url
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -219,31 +219,11 @@ class S3ObjectStore(
         }
     }
 
-    override suspend fun generateObjectUrl(
-        bucket: String,
-        key: String,
-        properties: RedirectProperties,
-    ): String? =
-        when (properties.strategy) {
-            RedirectStrategy.PRESIGNED ->
-                presignUrl(
-                    bucket = bucket,
-                    key = key,
-                    ttl = properties.preSigned.ttl,
-                )
-            RedirectStrategy.TEMPLATE ->
-                properties.template.resolve(
-                    bucket = bucket,
-                    key = key,
-                )
-            RedirectStrategy.NONE -> null
-        }
-
-    private suspend fun presignUrl(
+    override suspend fun generatePresignedUrl(
         bucket: String,
         key: String,
         ttl: Duration,
-    ): String =
+    ): PresignedUrl =
         withContext(Dispatchers.IO) {
             val getObjectRequest =
                 GetObjectRequest
@@ -259,6 +239,8 @@ class S3ObjectStore(
                     .getObjectRequest(getObjectRequest)
                     .build()
 
-            s3Presigner.presignGetObject(presignRequest).url().toString()
+            PresignedUrl.Supported(
+                url = Url(s3Presigner.presignGetObject(presignRequest).url().toString()),
+            )
         }
 }

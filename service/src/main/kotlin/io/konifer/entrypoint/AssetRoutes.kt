@@ -22,9 +22,11 @@ import io.konifer.infrastructure.http.getContentDispositionHeader
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
+import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
@@ -91,25 +93,11 @@ fun Application.configureAssetRouting() {
                     }
                     ReturnFormat.REDIRECT -> {
                         fetchAssetHandler.fetchRedirectByPath(requestContext)?.let { response ->
-                            if (response.url != null) {
-                                call.response.headers.append(HttpHeaders.Location, response.url)
-                                getAppStatusCacheHeader(response.cacheHit).let {
-                                    call.response.headers.append(it.first, it.second)
-                                }
-                                call.respond(HttpStatusCode.TemporaryRedirect)
-                            } else {
-                                call.respondContent(
-                                    objectStoreBucket = response.variant.objectStoreBucket,
-                                    objectStoreKey = response.variant.objectStoreKey,
-                                    cacheHit = response.cacheHit,
-                                    alt = response.asset.alt,
-                                    lqips = response.variant.lqips,
-                                    entryId = response.asset.entryId,
-                                    modifiedAt = response.asset.modifiedAt,
-                                    mimeType = response.variant.transformation.format.mimeType,
-                                    fetchAssetHandler = fetchAssetHandler,
-                                )
+                            call.response.headers.append(HttpHeaders.Location, response.url.toString())
+                            getAppStatusCacheHeader(response.cacheHit).let {
+                                call.response.headers.append(it.first, it.second)
                             }
+                            call.respond(HttpStatusCode.TemporaryRedirect)
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
                     ReturnFormat.LINK -> {
@@ -187,7 +175,7 @@ private suspend fun RoutingCall.storeNewAsset(
             storeMultipartAsset(
                 storeNewAssetUseCase = storeNewAssetUseCase,
             )?.let { asset ->
-                respondStoredAsset(assetUrlGenerator, asset)
+                respondStoredAsset(assetUrlGenerator, asset, request.origin)
             }
         }
         ContentType.Application.Json -> {
@@ -198,7 +186,7 @@ private suspend fun RoutingCall.storeNewAsset(
                     request = payload,
                     uriPath = request.path(),
                 )
-            respondStoredAsset(assetUrlGenerator, asset)
+            respondStoredAsset(assetUrlGenerator, asset, request.origin)
         }
         else -> respond(HttpStatusCode.UnsupportedMediaType)
     }
@@ -266,16 +254,19 @@ private suspend fun PartData.readStoreAssetRequestInto(assetData: CompletableDef
 private suspend fun RoutingCall.respondStoredAsset(
     assetUrlGenerator: AssetUrlGenerator,
     asset: AssetAndLocation,
+    origin: RequestConnectionPoint,
 ) {
     logger.info("Created asset under path: ${asset.locationPath}")
 
     response.headers.append(
         name = HttpHeaders.Location,
         value =
-            assetUrlGenerator.generateAbsoluteLocationUrl(
-                path = asset.locationPath,
-                entryId = checkNotNull(asset.asset.entryId),
-            ),
+            assetUrlGenerator
+                .generateAbsoluteLocationUrl(
+                    path = asset.locationPath,
+                    entryId = checkNotNull(asset.asset.entryId),
+                    origin = origin,
+                ).toString(),
     )
     respond(HttpStatusCode.Created, AssetResponse.fromAsset(asset.asset))
 }
