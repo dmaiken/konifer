@@ -93,7 +93,7 @@ fun Application.configureAssetRouting() {
                     }
                     ReturnFormat.REDIRECT -> {
                         fetchAssetHandler.fetchRedirectByPath(requestContext)?.let { response ->
-                            call.response.headers.append(HttpHeaders.Location, response.url.toString())
+                            call.response.headers.append(HttpHeaders.Location, response.deliveryUrl.url.toString())
                             getAppStatusCacheHeader(response.cacheHit).let {
                                 call.response.headers.append(it.first, it.second)
                             }

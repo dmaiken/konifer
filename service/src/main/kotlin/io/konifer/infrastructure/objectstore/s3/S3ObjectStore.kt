@@ -239,8 +239,13 @@ class S3ObjectStore(
                     .getObjectRequest(getObjectRequest)
                     .build()
 
+            val presign = s3Presigner.presignGetObject(presignRequest)
             PresignedUrl.Supported(
-                url = Url(s3Presigner.presignGetObject(presignRequest).url().toString()),
+                url = Url(presign.url().toString()),
+                expiresAt =
+                    presign.expiration()?.let {
+                        LocalDateTime.ofInstant(it, UTC)
+                    },
             )
         }
 }

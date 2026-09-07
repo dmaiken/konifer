@@ -56,6 +56,7 @@ interface ObjectStore {
 sealed interface PresignedUrl {
     data class Supported(
         val url: Url,
+        val expiresAt: LocalDateTime?,
     ) : PresignedUrl
 
     object NotSupported : PresignedUrl

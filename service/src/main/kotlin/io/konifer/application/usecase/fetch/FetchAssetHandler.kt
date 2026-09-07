@@ -42,7 +42,7 @@ class FetchAssetHandler(
                 pathConfiguration = context.pathConfiguration,
             )
         return VariantRedirect(
-            url = url,
+            deliveryUrl = url,
             asset = asset,
             cacheHit = cacheHit,
             variant = variant,
@@ -59,7 +59,7 @@ class FetchAssetHandler(
             alt = asset.alt,
             lqip = variant.lqips,
             cacheHit = cacheHit,
-            url =
+            deliveryUrl =
                 assetUrlGenerator.generateDeliveryUrl(
                     assetData = asset,
                     request = context.request,

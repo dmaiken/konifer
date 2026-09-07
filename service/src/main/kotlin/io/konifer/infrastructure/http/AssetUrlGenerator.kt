@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.application.usecase.fetch.DeliveryUrl
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
@@ -16,7 +17,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
-import io.ktor.http.parameters
+import kotlinx.datetime.toKotlinLocalDateTime
 
 class AssetUrlGenerator(
     private val httpProperties: HttpProperties,
@@ -50,11 +51,11 @@ class AssetUrlGenerator(
         assetData: AssetData,
         request: HttpRequest,
         pathConfiguration: PathConfiguration,
-    ): Url {
+    ): DeliveryUrl {
         val variant = assetData.variants.first()
 
         return when (pathConfiguration.deliveryProperties.strategy) {
-            DeliveryStrategy.SERVICE -> generateAbsoluteContentUrl(assetData, request)
+            DeliveryStrategy.SERVICE -> generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
             DeliveryStrategy.PRESIGNED -> {
                 when (
                     val presigned =
@@ -64,16 +65,17 @@ class AssetUrlGenerator(
                             ttl = pathConfiguration.deliveryProperties.preSigned.ttl,
                         )
                 ) {
-                    is PresignedUrl.Supported -> presigned.url
-                    PresignedUrl.NotSupported -> generateAbsoluteContentUrl(assetData, request)
+                    is PresignedUrl.Supported -> presigned.toDeliveryUrl()
+                    PresignedUrl.NotSupported -> generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
                 }
             }
+
             DeliveryStrategy.TEMPLATE -> {
                 resolve(
                     templateProperties = pathConfiguration.deliveryProperties.template,
                     bucket = variant.objectStoreBucket,
                     key = variant.objectStoreKey,
-                )
+                ).toDeliveryUrl()
             }
         }
     }
@@ -113,4 +115,8 @@ class AssetUrlGenerator(
                     host = origin.serverHost
                     port = origin.serverPort
                 }.build()
+
+    private fun Url.toDeliveryUrl() = DeliveryUrl(url = this, expiresAt = null)
+
+    private fun PresignedUrl.Supported.toDeliveryUrl() = DeliveryUrl(url = url, expiresAt = expiresAt?.toKotlinLocalDateTime())
 }

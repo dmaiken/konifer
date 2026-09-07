@@ -2,11 +2,10 @@ package io.konifer.application.usecase.fetch
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.domain.variant.LQIPs
-import io.ktor.http.Url
 
 data class VariantLink(
     val path: String,
-    val url: Url,
+    val deliveryUrl: DeliveryUrl,
     val entryId: Long,
     val lqip: LQIPs,
     val alt: String?,
@@ -15,7 +14,8 @@ data class VariantLink(
 ) {
     fun toResponse(): AssetLinkResponse =
         AssetLinkResponse(
-            url = url.toString(),
+            url = deliveryUrl.url.toString(),
+            expiresAt = deliveryUrl.expiresAt,
             alt = alt,
             lqip = lqip.toResponse(),
         )
