@@ -2,10 +2,12 @@ package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
-import io.konifer.client.fold
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.testInMemory
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -15,7 +17,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
-import kotlin.test.junit.JUnitAsserter.fail
 
 class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
     val mountPath: Path =
@@ -60,21 +61,23 @@ class AssetFilesystemRepositoryTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
+            configureClient { followRedirects = false }
             val (image, attributes) = testImage()
-            konifer()
-                .storeAsset(
-                    path = "profile",
-                    format = attributes.format,
-                    request = StoreAssetRequest(),
-                    bytes = image,
-                ).fold(
-                    onSuccess = { },
-                    onError = { _, _, _ -> fail("Request failed") },
-                )
+            val asset =
+                konifer()
+                    .storeAsset(
+                        path = "profile",
+                        format = attributes.format,
+                        request = StoreAssetRequest(),
+                        bytes = image,
+                    ).shouldBeSuccessful()
 
             client.get("/assets/profile/-/redirect").apply {
-                status shouldBe HttpStatusCode.OK
-                headers[HttpHeaders.Location] shouldBe null
+                status shouldBe HttpStatusCode.TemporaryRedirect
+                with(headers[HttpHeaders.Location]) {
+                    this shouldNotBe null
+                    this shouldContain "/-/entry/${asset.body.entryId}/content"
+                }
             }
         }
 
