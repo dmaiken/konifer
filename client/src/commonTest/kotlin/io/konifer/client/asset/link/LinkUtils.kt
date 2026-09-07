@@ -18,6 +18,7 @@ import kotlinx.serialization.json.Json
 fun createLinkResponse() =
     AssetLinkResponse(
         url = "https://localhost:9999",
+        expiresAt = null,
         alt = "an image",
         lqip =
             LQIPResponse(
