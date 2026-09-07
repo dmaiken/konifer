@@ -1,9 +1,10 @@
 package io.konifer.domain.ports
 
+import io.konifer.common.http.AssetSource
 import io.konifer.domain.asset.AssetDataContainer
 
 interface AssetContainerFactory {
-    suspend fun fromUrlSource(urlSource: String?): AssetDataContainer
+    suspend fun fromSource(source: AssetSource): AssetDataContainer
 }
 
 class InvalidAssetSourceException(

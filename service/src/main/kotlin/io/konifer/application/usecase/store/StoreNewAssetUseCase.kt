@@ -48,13 +48,13 @@ class StoreNewAssetUseCase(
             uriPath = uriPath,
         )
 
-    suspend fun handleFromUrl(
+    suspend fun handleFromSource(
         request: StoreAssetRequest,
         uriPath: String,
     ): AssetAndLocation =
         handle(
             request = request,
-            container = assetStreamContainerFactory.fromUrlSource(request.url),
+            container = assetStreamContainerFactory.fromSource(request.url),
             uriPath = uriPath,
         )
 

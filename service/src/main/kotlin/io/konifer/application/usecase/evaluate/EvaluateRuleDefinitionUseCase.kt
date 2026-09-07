@@ -34,7 +34,7 @@ class EvaluateRuleDefinitionUseCase(
     suspend fun handleFromUrl(request: EvaluateRuleDefinitionsRequest): EvaluateRuleDefinitionsResponse =
         handle(
             request = request,
-            assetDataContainer = assetStreamContainerFactory.fromUrlSource(request.url),
+            assetDataContainer = assetStreamContainerFactory.fromSource(request.url),
         )
 
     private suspend fun handle(

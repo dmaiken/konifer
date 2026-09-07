@@ -27,7 +27,7 @@ class UrlAssetStreamContainerFactoryTest {
             val engine = MockEngine { respond(content) }
             val factory = createFactory(engine, maxBytes = content.size.toLong())
 
-            val container = factory.fromUrlSource("https://assets.example/image")
+            val container = factory.fromSource("https://assets.example/image")
             val path = container.getTemporaryFile()
 
             container.isDumpedToFile shouldBe true
@@ -52,7 +52,7 @@ class UrlAssetStreamContainerFactoryTest {
                 }
             val factory = createFactory(engine)
 
-            factory.fromUrlSource("https://assets.example/start").use { container ->
+            factory.fromSource("https://assets.example/start").use { container ->
                 container.getTemporaryFile().readBytes() shouldBe content
             }
 
@@ -67,7 +67,7 @@ class UrlAssetStreamContainerFactoryTest {
             val factory = createFactory(engine)
 
             shouldThrow<AssetSourceForbiddenException> {
-                factory.fromUrlSource("https://assets.example/start")
+                factory.fromSource("https://assets.example/start")
             }
 
             engine.requestHistory.size shouldBe 1
@@ -81,7 +81,7 @@ class UrlAssetStreamContainerFactoryTest {
 
             val exception =
                 shouldThrow<InvalidAssetSourceException> {
-                    factory.fromUrlSource("https://assets.example/start")
+                    factory.fromSource("https://assets.example/start")
                 }
 
             exception.message shouldBe "Asset source cannot redirect from HTTPS to HTTP"
@@ -103,7 +103,7 @@ class UrlAssetStreamContainerFactoryTest {
 
             val exception =
                 shouldThrow<InvalidAssetSourceException> {
-                    factory.fromUrlSource("https://assets.example/one")
+                    factory.fromSource("https://assets.example/one")
                 }
 
             exception.message shouldBe "Asset source redirect loop detected"
@@ -125,7 +125,7 @@ class UrlAssetStreamContainerFactoryTest {
 
             val exception =
                 shouldThrow<InvalidAssetSourceException> {
-                    factory.fromUrlSource("https://assets.example/0")
+                    factory.fromSource("https://assets.example/0")
                 }
 
             exception.message shouldBe "Asset source exceeded the maximum of 5 redirects"
@@ -139,7 +139,7 @@ class UrlAssetStreamContainerFactoryTest {
             val factory = createFactory(engine, maxBytes = 5)
 
             shouldThrow<RemoteAssetTooLargeException> {
-                factory.fromUrlSource("https://assets.example/image")
+                factory.fromSource("https://assets.example/image")
             }
         }
 

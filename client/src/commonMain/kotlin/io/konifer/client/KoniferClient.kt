@@ -293,8 +293,8 @@ class KoniferClient internal constructor(
         path: String,
         request: StoreAssetRequest,
     ): KoniferResponse<AssetResponse> {
-        if (request.url.isNullOrBlank()) {
-            throw IllegalArgumentException("URL is required in request")
+        if (request.source?.http?.url.isNullOrBlank() && request.source?.s3?.arn.isNullOrBlank()) {
+            throw IllegalArgumentException("Either http.url or s3.arn is required in request")
         }
         return safeApiCall {
             httpClient
