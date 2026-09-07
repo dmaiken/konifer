@@ -33,6 +33,8 @@ dependencies {
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.serialization.kotlinx.json)
     testImplementation(libs.ktor.client.okhttp)
+
+    testImplementation(libs.kotlinx.datetime)
 }
 
 tasks.test {

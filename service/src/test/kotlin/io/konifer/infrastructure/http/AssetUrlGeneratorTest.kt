@@ -21,7 +21,9 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.toKotlinLocalDateTime
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.minutes
 
 class AssetUrlGeneratorTest {
@@ -36,10 +38,12 @@ class AssetUrlGeneratorTest {
 
             val result = generator.generateDeliveryUrl(asset, request, PathConfiguration.default)
 
-            result.protocol shouldBe URLProtocol.HTTPS
-            result.host shouldBe "images.example.com"
-            result.encodedPath shouldBe "/root/assets/profiles/avatar/-/entry/42/content"
-            result.parameters["w"] shouldBe "320"
+            result.expiresAt shouldBe null
+            val url = result.url
+            url.protocol shouldBe URLProtocol.HTTPS
+            url.host shouldBe "images.example.com"
+            url.encodedPath shouldBe "/root/assets/profiles/avatar/-/entry/42/content"
+            url.parameters["w"] shouldBe "320"
             coVerify(exactly = 0) { objectStore.generatePresignedUrl(any(), any(), any()) }
         }
 
@@ -51,7 +55,7 @@ class AssetUrlGeneratorTest {
 
             val result = generator.generateDeliveryUrl(assetData(), request, PathConfiguration.default)
 
-            result.toString() shouldBe "https://request.example.com:8443/assets/profile/-/entry/7/content"
+            result.url.toString() shouldBe "https://request.example.com:8443/assets/profile/-/entry/7/content"
         }
 
     @Test
@@ -79,13 +83,15 @@ class AssetUrlGeneratorTest {
                     preSigned = PreSignedProperties(ttl = 15.minutes),
                 )
             val presignedUrl = Url("https://objects.example.com/signed-image")
+            val expiresAt = LocalDateTime.now().plusHours(1)
             coEvery {
                 objectStore.generatePresignedUrl("variant-bucket", "variants/image.webp", 15.minutes)
-            } returns PresignedUrl.Supported(presignedUrl)
+            } returns PresignedUrl.Supported(url = presignedUrl, expiresAt = expiresAt)
 
             val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
 
-            result shouldBe presignedUrl
+            result.url shouldBe presignedUrl
+            result.expiresAt shouldBe expiresAt.toKotlinLocalDateTime()
             coVerify(exactly = 1) {
                 objectStore.generatePresignedUrl("variant-bucket", "variants/image.webp", 15.minutes)
             }
@@ -101,7 +107,8 @@ class AssetUrlGeneratorTest {
 
             val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
 
-            result.toString() shouldBe "http://localhost:8080/assets/profile/-/entry/7/content"
+            result.url.toString() shouldBe "http://localhost:8080/assets/profile/-/entry/7/content"
+            result.expiresAt shouldBe null
         }
 
     @Test
@@ -120,9 +127,10 @@ class AssetUrlGeneratorTest {
 
             val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
 
-            result.toString() shouldBe
+            result.url.toString() shouldBe
                 "https://variant-bucket.example.com/variant-bucket/variants/image.webp?source=variants/image.webp"
             coVerify(exactly = 0) { objectStore.generatePresignedUrl(any(), any(), any()) }
+            result.expiresAt shouldBe null
         }
 
     private fun assetData(

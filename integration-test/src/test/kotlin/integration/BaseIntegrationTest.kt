@@ -103,16 +103,21 @@ abstract class BaseIntegrationTest {
                         .withStartupTimeout(koniferStartupTimeout),
                 )
 
+        private val environmentStartup =
+            lazy {
+                postgres.startOrDumpLogs("postgres")
+
+                minio.startOrDumpLogs("minio")
+                createBuckets.startOrDumpLogs("createBuckets")
+
+                verifyModelMountVisibleToDocker()
+                konifer.startOrDumpLogs("konifer")
+            }
+
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
-            postgres.startOrDumpLogs("postgres")
-
-            minio.startOrDumpLogs("minio")
-            createBuckets.startOrDumpLogs("createBuckets")
-
-            verifyModelMountVisibleToDocker()
-            konifer.startOrDumpLogs("konifer")
+            environmentStartup.value
         }
 
         private fun GenericContainer<*>.startOrDumpLogs(name: String) {

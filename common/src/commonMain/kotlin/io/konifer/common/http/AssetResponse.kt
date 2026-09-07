@@ -85,6 +85,8 @@ data class LQIPResponse(
 @Serializable
 data class AssetLinkResponse(
     val url: String,
+    @Serializable(with = LocalDateTimeSerializer::class)
+    val expiresAt: LocalDateTime?,
     val alt: String?,
     val lqip: LQIPResponse,
 )
