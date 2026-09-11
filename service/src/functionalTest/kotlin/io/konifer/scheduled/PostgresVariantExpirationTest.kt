@@ -1,6 +1,6 @@
 package io.konifer.scheduled
 
-import io.konifer.BaseTestContainersTest
+import io.konifer.BasePostgresTestContainersTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Verifies the Postgres job configuration and metric writing works
  */
-class PostgresVariantExpirationTest : BaseTestContainersTest() {
+class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
     @ParameterizedTest
     @ValueSource(strings = ["ttl", "idle"])
     fun `on-demand variant expires in ttl mode`(strategy: String) =

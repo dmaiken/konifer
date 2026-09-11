@@ -32,6 +32,24 @@ class KoniferClientUrlEvaluateRulesTest :
             (actualResponse as KoniferResponse.Success<*>).body shouldBe expectedResponse
         }
 
+        test("should use the deprecated URL when source HTTP URL is not set") {
+            val request = createEvaluateRulesRequest(deprecatedUrl = "https://localhost/image.jpg")
+            val expectedResponse = createEvaluateRulesResponse()
+            val httpClient =
+                httpClient {
+                    configureMockUrlEngineHappy(
+                        request = request,
+                        response = expectedResponse,
+                    )
+                }
+            val koniferClient = KoniferClient(httpClient)
+
+            val actualResponse = koniferClient.evaluateRules(request)
+
+            actualResponse::class shouldBe KoniferResponse.Success::class
+            (actualResponse as KoniferResponse.Success<*>).body shouldBe expectedResponse
+        }
+
         withData(
             nameFn = { "URL supplied in request cannot be: [ $it ]" },
             ts = listOf(null, "", " "),
@@ -50,6 +68,6 @@ class KoniferClientUrlEvaluateRulesTest :
                 koniferClient.evaluateRules(
                     request = request,
                 )
-            }.message shouldBe "URL is required in request"
+            }.message shouldBe "Either http.url or s3.arn is required in request"
         }
     })

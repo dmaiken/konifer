@@ -5,7 +5,7 @@ import io.konifer.client.KoniferResponse
 import io.konifer.client.asset.content.readResourceBytes
 import io.konifer.client.asset.info.createInfoResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.common.http.AssetSource
+import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
 import io.konifer.common.http.StoreAssetRequest
@@ -74,9 +74,10 @@ class KoniferClientMultipartStoreTest :
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request =
                 StoreAssetRequest(
-                    source = AssetSource(
-                        http = HttpSource(url = "https://localhost/image.jpg")
-                    ),
+                    source =
+                        AssetSourceRequest(
+                            http = HttpSource(url = "https://localhost/image.jpg"),
+                        ),
                 )
             val expectedResponse = createInfoResponse()
             val httpClient =
@@ -97,16 +98,17 @@ class KoniferClientMultipartStoreTest :
                     request = request,
                     bytes = imageBytes,
                 )
-            }.message shouldBe "URL cannot be supplied when asset content is also supplied"
+            }.message shouldBe "External source cannot be supplied when asset content is also supplied"
         }
 
         test("throws if request contains an S3 ARN") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request =
                 StoreAssetRequest(
-                    source = AssetSource(
-                        s3 = S3Source(arn = "https://localhost/image.jpg")
-                    ),
+                    source =
+                        AssetSourceRequest(
+                            s3 = S3Source(arn = "https://localhost/image.jpg"),
+                        ),
                 )
             val expectedResponse = createInfoResponse()
             val httpClient =
@@ -127,6 +129,6 @@ class KoniferClientMultipartStoreTest :
                     request = request,
                     bytes = imageBytes,
                 )
-            }.message shouldBe "URL cannot be supplied when asset content is also supplied"
+            }.message shouldBe "External source cannot be supplied when asset content is also supplied"
         }
     })

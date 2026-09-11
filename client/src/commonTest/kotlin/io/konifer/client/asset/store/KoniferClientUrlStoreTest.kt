@@ -4,6 +4,8 @@ import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.asset.info.createInfoResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.HttpSource
 import io.konifer.common.http.StoreAssetRequest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -16,7 +18,10 @@ class KoniferClientUrlStoreTest :
         test("should be able to upload an asset supplied as a URL") {
             val request =
                 StoreAssetRequest(
-                    url = "https://localhost/image.jpg",
+                    source =
+                        AssetSourceRequest(
+                            http = HttpSource(url = "https://localhost/image.jpg"),
+                        ),
                 )
             val expectedResponse = createInfoResponse()
             val httpClient =
@@ -38,13 +43,40 @@ class KoniferClientUrlStoreTest :
             (actualResponse as KoniferResponse.Success<*>).body shouldBe expectedResponse
         }
 
+        test("should use the deprecated URL when source HTTP URL is not set") {
+            @Suppress("DEPRECATION")
+            val request = StoreAssetRequest(url = "https://localhost/image.jpg")
+            val expectedResponse = createInfoResponse()
+            val httpClient =
+                httpClient {
+                    configureMockUrlEngineHappy(
+                        expectedPath = "/assets/users/123",
+                        request = request,
+                        response = expectedResponse,
+                    )
+                }
+            val koniferClient = KoniferClient(httpClient)
+
+            val actualResponse =
+                koniferClient.storeAsset(
+                    path = "/users/123",
+                    request = request,
+                )
+
+            actualResponse::class shouldBe KoniferResponse.Success::class
+            (actualResponse as KoniferResponse.Success<*>).body shouldBe expectedResponse
+        }
+
         withData(
             nameFn = { "URL supplied in request cannot be: [ $it ]" },
             ts = listOf(null, "", " "),
         ) { url: String? ->
             val request =
                 StoreAssetRequest(
-                    url = url,
+                    source =
+                        AssetSourceRequest(
+                            http = HttpSource(url = url),
+                        ),
                 )
             val httpClient =
                 httpClient {
@@ -61,6 +93,6 @@ class KoniferClientUrlStoreTest :
                     path = "/users/123",
                     request = request,
                 )
-            }.message shouldBe "URL is required in request"
+            }.message shouldBe "Either http.url or s3.arn is required in request"
         }
     })

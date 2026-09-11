@@ -82,6 +82,6 @@ class KoniferClientMultipartEvaluateRulesTest :
                     request = request,
                     bytes = imageBytes,
                 )
-            }.message shouldBe "URL cannot be supplied when content is also supplied"
+            }.message shouldBe "External source cannot be supplied when content is also supplied"
         }
     })

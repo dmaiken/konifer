@@ -1,10 +1,21 @@
 package io.konifer.domain.ports
 
-import io.konifer.common.http.AssetSource
 import io.konifer.domain.asset.AssetDataContainer
+import java.net.URI
 
 interface AssetContainerFactory {
-    suspend fun fromSource(source: AssetSource): AssetDataContainer
+    suspend fun fromSource(source: ExternalContentReference): AssetDataContainer
+}
+
+sealed interface ExternalContentReference {
+    data class Url(
+        val url: URI,
+    ) : ExternalContentReference
+
+    data class S3Object(
+        val bucket: String,
+        val key: String,
+    ) : ExternalContentReference
 }
 
 class InvalidAssetSourceException(

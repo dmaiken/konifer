@@ -9,14 +9,11 @@ import io.ktor.http.Url
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.withContext
 import software.amazon.awssdk.core.async.AsyncRequestBody
-import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.Delete
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
@@ -103,46 +100,12 @@ class S3ObjectStore(
         key: String,
         channel: ByteWriteChannel,
     ): FetchResult =
-        withContext(Dispatchers.IO) {
-            try {
-                val request =
-                    GetObjectRequest
-                        .builder()
-                        .bucket(bucket)
-                        .key(key)
-                        .build()
-
-                val responsePublisher =
-                    s3Client
-                        .getObject(request, AsyncResponseTransformer.toPublisher())
-                        .await()
-
-                responsePublisher.asFlow().collect { byteBuffer ->
-                    channel.writeFully(byteBuffer)
-                }
-                channel.flushAndClose()
-
-                FetchResult.found(responsePublisher.response().contentLength())
-            } catch (e: NoSuchKeyException) {
-                logger.info("Object with key: $key in bucket: $bucket does not exist", e)
-                channel.flushAndClose()
-                FetchResult.NOT_FOUND
-            } catch (e: S3Exception) {
-                channel.flushAndClose()
-                // In case providers throw this
-                if (e.statusCode() == 404) {
-                    logger.info("Object with key: $key in bucket: $bucket does not exist", e)
-                    FetchResult.NOT_FOUND
-                } else {
-                    logger.warn("Threw exception when fetching", e)
-                    throw e
-                }
-            } catch (e: Exception) {
-                logger.warn("Threw exception when fetching", e)
-                channel.flushAndClose()
-                throw e
-            }
-        }
+        S3ResourceReader.fetch(
+            s3Client = s3Client,
+            bucket = bucket,
+            key = key,
+            channel = channel,
+        )
 
     override suspend fun exists(
         bucket: String,

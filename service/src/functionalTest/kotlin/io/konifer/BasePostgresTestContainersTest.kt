@@ -7,7 +7,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
-open class BaseTestContainersTest : BaseFunctionalTest() {
+open class BasePostgresTestContainersTest : BaseFunctionalTest() {
     companion object {
         @JvmStatic
         @Container

@@ -270,8 +270,8 @@ class KoniferClient internal constructor(
         request: StoreAssetRequest,
         channel: ByteReadChannel,
     ): KoniferResponse<AssetResponse> {
-        if (request.url?.isNotBlank() == true) {
-            throw IllegalArgumentException("URL cannot be supplied when asset content is also supplied")
+        if (request.hasExternalSource()) {
+            throw IllegalArgumentException("External source cannot be supplied when asset content is also supplied")
         }
         return safeApiCall {
             httpClient
@@ -287,13 +287,16 @@ class KoniferClient internal constructor(
     }
 
     /**
-     * Store an asset by providing the URL to the asset within the [request].
+     * Store an asset from the external source specified by the [request].
      */
     suspend fun storeAsset(
         path: String,
         request: StoreAssetRequest,
     ): KoniferResponse<AssetResponse> {
-        if (request.source?.http?.url.isNullOrBlank() && request.source?.s3?.arn.isNullOrBlank()) {
+        if (request.effectiveHttpUrl().isNullOrBlank() &&
+            request.source.s3.arn
+                .isNullOrBlank()
+        ) {
             throw IllegalArgumentException("Either http.url or s3.arn is required in request")
         }
         return safeApiCall {
@@ -366,11 +369,14 @@ class KoniferClient internal constructor(
         }
 
     /**
-     * Evaluate rules against content provided by the URL within the [request].
+     * Evaluate rules against content from the external source specified by the [request].
      */
     suspend fun evaluateRules(request: EvaluateRuleDefinitionsRequest): KoniferResponse<EvaluateRuleDefinitionsResponse> {
-        if (request.url.isNullOrBlank()) {
-            throw IllegalArgumentException("URL is required in request")
+        if (request.effectiveHttpUrl().isNullOrBlank() &&
+            request.source.s3.arn
+                .isNullOrBlank()
+        ) {
+            throw IllegalArgumentException("Either http.url or s3.arn is required in request")
         }
 
         return safeApiCall {
@@ -390,8 +396,8 @@ class KoniferClient internal constructor(
         format: ImageFormat,
         channel: ByteReadChannel,
     ): KoniferResponse<EvaluateRuleDefinitionsResponse> {
-        if (request.url?.isNotBlank() == true) {
-            throw IllegalArgumentException("URL cannot be supplied when content is also supplied")
+        if (request.hasExternalSource()) {
+            throw IllegalArgumentException("External source cannot be supplied when content is also supplied")
         }
         return safeApiCall {
             httpClient
@@ -491,3 +497,14 @@ class KoniferClient internal constructor(
                 }
             }
 }
+
+@Suppress("DEPRECATION")
+private fun StoreAssetRequest.effectiveHttpUrl(): String? = source.http.url ?: url
+
+@Suppress("DEPRECATION")
+private fun EvaluateRuleDefinitionsRequest.effectiveHttpUrl(): String? = source.http.url ?: url
+
+private fun StoreAssetRequest.hasExternalSource(): Boolean = !effectiveHttpUrl().isNullOrBlank() || !source.s3.arn.isNullOrBlank()
+
+private fun EvaluateRuleDefinitionsRequest.hasExternalSource(): Boolean =
+    !effectiveHttpUrl().isNullOrBlank() || !source.s3.arn.isNullOrBlank()

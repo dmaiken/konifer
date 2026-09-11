@@ -50,7 +50,7 @@ suspend fun ApplicationCall.respondContent(
         fetchAssetHandler.fetchContent(
             bucket = objectStoreBucket,
             storeKey = objectStoreKey,
-            stream = this,
+            channel = this,
         )
     }
 }

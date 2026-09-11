@@ -287,6 +287,7 @@ class StoreAssetTest : BaseFunctionalTest() {
             storeAssetResponse.entryId shouldBe 0
             storeAssetResponse.source shouldBe AssetSource.URL
             storeAssetResponse.sourceUrl shouldBe url
+            storeAssetResponse.externalSourceAddress shouldBe url
             fetchAssetInfo(client, path = "profile") shouldBe storeAssetResponse
         }
 
@@ -346,7 +347,7 @@ class StoreAssetTest : BaseFunctionalTest() {
                 StoreAssetRequest(
                     alt = "an image",
                 )
-            storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.UnprocessableEntity)
+            storeAssetUrlSource(client, request, path = "users/123/profile", expectedStatus = HttpStatusCode.BadRequest)
 
             fetchAssetInfo(client, path = "users/123/profile", expectedStatus = HttpStatusCode.NotFound)
         }

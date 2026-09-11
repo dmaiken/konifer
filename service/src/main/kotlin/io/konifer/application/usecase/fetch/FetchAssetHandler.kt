@@ -124,10 +124,10 @@ class FetchAssetHandler(
     suspend fun fetchContent(
         bucket: String,
         storeKey: String,
-        stream: ByteWriteChannel,
+        channel: ByteWriteChannel,
     ): Long =
         objectStore
-            .fetch(bucket, storeKey, stream)
+            .fetch(bucket, storeKey, channel)
             .takeIf { it.found }
             ?.contentLength
             ?: throw IllegalStateException("Asset not found in object store: $bucket/$storeKey")

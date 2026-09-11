@@ -20,7 +20,7 @@ sealed interface Asset {
     val labels: AssetLabels
     val tags: AssetTags
     val source: AssetSource
-    val sourceUrl: String?
+    val externalSourceAddress: String?
     val createdAt: LocalDateTime
     val modifiedAt: LocalDateTime
     val isReady: Boolean
@@ -37,7 +37,7 @@ sealed interface Asset {
         override val labels: AssetLabels,
         override val tags: AssetTags,
         override val source: AssetSource,
-        override val sourceUrl: String?,
+        override val externalSourceAddress: String?,
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
@@ -49,6 +49,13 @@ sealed interface Asset {
                 request: StoreAssetRequest,
             ): New {
                 val now = LocalDateTime.now(UTC)
+                val url = request.source.http.url ?: request.url
+                val source =
+                    when {
+                        url != null -> AssetSource.URL
+                        request.source.s3.arn != null -> AssetSource.ARN
+                        else -> AssetSource.UPLOAD
+                    }
                 return New(
                     id = AssetId(),
                     path = path,
@@ -56,11 +63,8 @@ sealed interface Asset {
                     alt = request.alt?.toAssetAlt(),
                     labels = request.labels.toAssetLabels(),
                     tags = request.tags.toAssetTags(),
-                    source =
-                        request.url?.let {
-                            AssetSource.URL
-                        } ?: AssetSource.UPLOAD,
-                    sourceUrl = request.url,
+                    source = source,
+                    externalSourceAddress = url ?: request.source.s3.arn,
                     createdAt = now,
                     modifiedAt = now,
                     isReady = false,
@@ -96,7 +100,7 @@ sealed interface Asset {
         override val labels: AssetLabels,
         override val tags: AssetTags,
         override val source: AssetSource,
-        override val sourceUrl: String?,
+        override val externalSourceAddress: String?,
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
@@ -116,7 +120,7 @@ sealed interface Asset {
                     labels = new.labels.merge(additionalLabels),
                     tags = new.tags,
                     source = new.source,
-                    sourceUrl = new.sourceUrl,
+                    externalSourceAddress = new.externalSourceAddress,
                     createdAt = new.createdAt,
                     modifiedAt = new.modifiedAt,
                     isReady = false,
@@ -138,7 +142,7 @@ sealed interface Asset {
         override val labels: AssetLabels,
         override val tags: AssetTags,
         override val source: AssetSource,
-        override val sourceUrl: String?,
+        override val externalSourceAddress: String?,
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
@@ -166,7 +170,7 @@ sealed interface Asset {
         override val labels: AssetLabels,
         override val tags: AssetTags,
         override val source: AssetSource,
-        override val sourceUrl: String?,
+        override val externalSourceAddress: String?,
         override val createdAt: LocalDateTime,
         override val modifiedAt: LocalDateTime,
         override val isReady: Boolean,
@@ -191,7 +195,7 @@ sealed interface Asset {
                     labels = persisted.labels,
                     tags = persisted.tags,
                     source = persisted.source,
-                    sourceUrl = persisted.sourceUrl,
+                    externalSourceAddress = persisted.externalSourceAddress,
                     createdAt = persisted.createdAt,
                     modifiedAt = LocalDateTime.now(UTC),
                     isReady = true,
@@ -207,7 +211,7 @@ sealed interface Asset {
                     labels = assetData.labels.toAssetLabels(),
                     tags = assetData.tags.toAssetTags(),
                     source = assetData.source,
-                    sourceUrl = assetData.sourceUrl,
+                    externalSourceAddress = assetData.externalSourceAddress,
                     createdAt = assetData.createdAt,
                     modifiedAt = assetData.modifiedAt,
                     isReady = true,
@@ -236,7 +240,7 @@ sealed interface Asset {
                 labels = labels.toAssetLabels(),
                 tags = tags.toAssetTags(),
                 source = source,
-                sourceUrl = sourceUrl,
+                externalSourceAddress = externalSourceAddress,
                 createdAt = createdAt,
                 modifiedAt = LocalDateTime.now(UTC),
                 isReady = isReady,

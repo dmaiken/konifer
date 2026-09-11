@@ -16,11 +16,10 @@ import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.VariantService
-import io.konifer.infrastructure.asset.assetContainerFactoryModule
+import io.konifer.infrastructure.asset.externalSourceModule
+import io.konifer.infrastructure.asset.httpModule
 import io.konifer.infrastructure.datastore.assetRepositoryModule
 import io.konifer.infrastructure.event.InMemoryEventBus
-import io.konifer.infrastructure.http.httpClientModule
-import io.konifer.infrastructure.http.httpModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
@@ -59,11 +58,10 @@ fun Application.configureKoin(
         val configuredModules =
             mutableListOf(
                 configModule(),
-                httpClientModule(),
+                externalSourceModule(),
                 httpModule(),
                 domainModule(),
                 appModule(),
-                assetContainerFactoryModule(),
                 mimeTypeDetectorModule(),
                 assetRepositoryModule(datastoreProvider),
                 workModule(),

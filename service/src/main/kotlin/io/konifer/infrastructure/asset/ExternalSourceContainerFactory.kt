@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.asset
 
-import io.konifer.common.http.AssetSource
 import io.konifer.domain.ByteSize
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.asset.AssetDataTooLargeException
@@ -8,10 +7,10 @@ import io.konifer.domain.ports.AssetContainerFactory
 import io.konifer.domain.ports.AssetSourceForbiddenException
 import io.konifer.domain.ports.AssetSourceTimeoutException
 import io.konifer.domain.ports.AssetSourceUnavailableException
+import io.konifer.domain.ports.ExternalContentReference
 import io.konifer.domain.ports.InvalidAssetSourceException
-import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.RemoteAssetTooLargeException
-import io.konifer.infrastructure.objectstore.s3.S3ObjectStore
+import io.konifer.infrastructure.objectstore.s3.AwsS3SourceReader
 import io.ktor.client.HttpClient
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
@@ -20,70 +19,92 @@ import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
+import io.ktor.utils.io.ByteChannel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
 import java.io.IOException
 import java.net.ConnectException
 import java.net.URI
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 
-class UrlAssetStreamContainerFactory(
-    allowedDomains: Set<String>,
+class ExternalSourceContainerFactory(
     private val maxBytes: ByteSize,
     private val httpClient: HttpClient,
-    private val objectStore: ObjectStore,
+    private val awsS3SourceReader: AwsS3SourceReader,
+    allowedDomains: Set<String>,
 ) : AssetContainerFactory {
     companion object {
         private const val MAX_REDIRECTS = 5
-        private val REDIRECT_STATUS_CODES = setOf(301, 302, 303, 307, 308)
         private val SUPPORTED_SCHEMES = setOf("http", "https")
-
-        private val S3_ARN_REGEX = Regex("""^arn:[^:]+:s3[^:]*:.*$""")
+        private val REDIRECT_STATUS_CODES = setOf(301, 302, 303, 307, 308)
     }
-
-    private val s3ObjectStore = objectStore as? S3ObjectStore
-    private val supportsS3Arn = s3ObjectStore != null
 
     private val normalizedAllowedDomains = allowedDomains.mapTo(mutableSetOf()) { it.lowercase() }
 
-    override suspend fun fromSource(source: AssetSource): AssetDataContainer {
-        if (source.http.url == null && source.s3.arn == null) {
-            throw InvalidAssetSourceException("URL or S3 ARN must be supplied")
-        }
-        if (!supportsS3Arn && source.s3.arn?.isNotEmpty() == true) {
-            throw InvalidAssetSourceException("S3 ARNs are not supported")
-        }
-        if (source.http.url != null && source.s3.arn != null) {
-            throw InvalidAssetSourceException("Only one of source.http.url or source.s3.arn can be supplied")
-        }
-        when {
-            source.http.url != null -> {
-                val uri =
-                    try {
-                        URI.create(checkNotNull(source.http.url)).normalize()
-                    } catch (cause: Exception) {
-                        throw InvalidAssetSourceException("${source.http.url} is not a valid URL", cause)
-                    }
-
-                validateSourceUri(uri)
-
+    override suspend fun fromSource(source: ExternalContentReference): AssetDataContainer =
+        when (source) {
+            is ExternalContentReference.Url -> {
                 translateRemoteFailure {
-                    fetchFollowingRedirects(uri)
+                    fetchFollowingRedirects(source.url)
                 }
             }
-            source.s3.arn != null -> {
-                validateSourceArn(checkNotNull(source.s3.arn))
+            is ExternalContentReference.S3Object -> {
+                fetchS3Object(
+                    bucket = source.bucket,
+                    key = source.key,
+                )
             }
         }
 
-    }
+    private suspend fun fetchS3Object(
+        bucket: String,
+        key: String,
+    ): AssetDataContainer =
+        supervisorScope {
+            val channel = ByteChannel()
+            val container = AssetDataContainer(channel = channel, maxBytes = maxBytes.bytes)
+            val fetchDeferred =
+                async {
+                    try {
+                        awsS3SourceReader.fetch(
+                            bucket = bucket,
+                            key = key,
+                            channel = channel,
+                        )
+                    } catch (cause: Throwable) {
+                        channel.close()
+                        throw cause
+                    }
+                }
+
+            try {
+                container.toTemporaryFile("")
+                val result = fetchDeferred.await()
+                if (!result.found) {
+                    throw InvalidAssetSourceException("S3 object not found")
+                }
+                if (result.contentLength > maxBytes.bytes) {
+                    throw RemoteAssetTooLargeException()
+                }
+
+                container
+            } catch (_: AssetDataTooLargeException) {
+                container.close()
+                throw RemoteAssetTooLargeException()
+            } catch (cause: Throwable) {
+                container.close()
+                throw cause
+            }
+        }
 
     private suspend fun fetchFollowingRedirects(initialUri: URI): AssetDataContainer {
+        validateSourceUri(initialUri)
         val visited = mutableSetOf<URI>()
         var currentUri = initialUri
         var redirectsFollowed = 0
 
         while (true) {
-            validateSourceUri(currentUri)
             if (!visited.add(currentUri)) {
                 throw InvalidAssetSourceException("Asset source redirect loop detected")
             }
@@ -162,10 +183,6 @@ class UrlAssetStreamContainerFactory(
         if (host !in normalizedAllowedDomains) {
             throw AssetSourceForbiddenException("Not permitted host domain: $host")
         }
-    }
-
-    private fun validateSourceArn(arn: String) {
-        if (!S3_ARN_REGEX.matches(arn)) throw InvalidAssetSourceException("Not an S3 ARN")
     }
 
     private fun validateContentLength(response: HttpResponse) {

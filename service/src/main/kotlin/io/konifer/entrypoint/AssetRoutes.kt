@@ -182,7 +182,7 @@ private suspend fun RoutingCall.storeNewAsset(
             logger.info("Received json request to store a new asset")
             val payload = receive(StoreAssetRequest::class)
             val asset =
-                storeNewAssetUseCase.handleFromSource(
+                storeNewAssetUseCase.handleFromExternalSource(
                     request = payload,
                     uriPath = request.path(),
                 )

@@ -52,6 +52,7 @@ class AssetLifecycleTest : BaseFunctionalTest() {
             storeAssetResponse.tags shouldContainExactly tags
             storeAssetResponse.source shouldBe AssetSource.UPLOAD
             storeAssetResponse.sourceUrl shouldBe null
+            storeAssetResponse.externalSourceAddress shouldBe null
             storeAssetResponse.variants shouldHaveSize 1
             Vips.run { arena ->
                 val vImage = VImage.newFromBytes(arena, image)
@@ -92,6 +93,7 @@ class AssetLifecycleTest : BaseFunctionalTest() {
             storeAssetResponse.tags shouldContainExactly tags
             storeAssetResponse.source shouldBe AssetSource.UPLOAD
             storeAssetResponse.sourceUrl shouldBe null
+            storeAssetResponse.externalSourceAddress shouldBe null
             storeAssetResponse.variants shouldHaveSize 1
             Vips.run { arena ->
                 // Load only one frame intentionally

@@ -107,7 +107,7 @@ fun assertFetchedAgainstAggregate(
     fetched.path shouldBe asset.path
     fetched.entryId shouldBe asset.entryId
     fetched.source shouldBe asset.source
-    fetched.sourceUrl shouldBe asset.sourceUrl
+    fetched.externalSourceAddress shouldBe asset.externalSourceAddress
     fetched.createdAt shouldBe asset.createdAt
     fetched.modifiedAt.truncatedTo(ChronoUnit.MILLIS) shouldBe asset.modifiedAt.truncatedTo(ChronoUnit.MILLIS)
 

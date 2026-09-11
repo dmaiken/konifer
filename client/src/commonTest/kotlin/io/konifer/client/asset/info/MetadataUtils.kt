@@ -43,6 +43,7 @@ fun createInfoResponse() =
         tags = setOf("phone", "fun"),
         source = AssetSource.UPLOAD,
         sourceUrl = null,
+        externalSourceAddress = null,
         variants =
             listOf(
                 VariantResponse(

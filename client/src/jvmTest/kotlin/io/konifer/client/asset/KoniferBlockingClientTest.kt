@@ -18,6 +18,8 @@ import io.konifer.client.asset.store.configureMockUrlEngineHappy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.HttpSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -270,7 +272,13 @@ class KoniferBlockingClientTest :
         }
 
         test("should store asset from url request") {
-            val request = StoreAssetRequest(url = "https://localhost/image.jpg")
+            val request =
+                StoreAssetRequest(
+                    source =
+                        AssetSourceRequest(
+                            http = HttpSource(url = "https://localhost/image.jpg"),
+                        ),
+                )
             val expectedResponse = createInfoResponse()
             val httpClient =
                 httpClient {
