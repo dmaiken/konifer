@@ -20,6 +20,7 @@ import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ObjectStoreKeyFactory
 import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.domain.variant.Variant
+import io.konifer.infrastructure.asset.ExternalSourceResolver
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -48,15 +49,18 @@ class StoreNewAssetUseCase(
             uriPath = uriPath,
         )
 
-    suspend fun handleFromUrl(
+    suspend fun handleFromExternalSource(
         request: StoreAssetRequest,
         uriPath: String,
-    ): AssetAndLocation =
-        handle(
+    ): AssetAndLocation {
+        val externalSource = ExternalSourceResolver.resolve(request.source, deprecatedUrl = request.url)
+
+        return handle(
             request = request,
-            container = assetStreamContainerFactory.fromUrlSource(request.url),
+            container = assetStreamContainerFactory.fromSource(externalSource),
             uriPath = uriPath,
         )
+    }
 
     private suspend fun handle(
         request: StoreAssetRequest,

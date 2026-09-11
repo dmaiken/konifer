@@ -1,9 +1,11 @@
 package io.konifer.client.rule
 
+import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.EvaluatedPromptResponse
 import io.konifer.common.http.EvaluatedRuleDefinitionResponse
+import io.konifer.common.http.HttpSource
 import io.konifer.common.http.RuleDefinitionRequest
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -22,9 +24,17 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
 
-fun createEvaluateRulesRequest(url: String? = null): EvaluateRuleDefinitionsRequest =
+@Suppress("DEPRECATION")
+fun createEvaluateRulesRequest(
+    url: String? = null,
+    deprecatedUrl: String? = null,
+): EvaluateRuleDefinitionsRequest =
     EvaluateRuleDefinitionsRequest(
-        url = url,
+        url = deprecatedUrl,
+        source =
+            AssetSourceRequest(
+                http = HttpSource(url = url),
+            ),
         definitions =
             listOf(
                 RuleDefinitionRequest(

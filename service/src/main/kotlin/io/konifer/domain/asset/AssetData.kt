@@ -12,7 +12,7 @@ data class AssetData(
     val labels: Map<String, String>,
     val tags: Set<String>,
     val source: AssetSource,
-    val sourceUrl: String?,
+    val externalSourceAddress: String?,
     val isReady: Boolean,
     val createdAt: LocalDateTime,
     val modifiedAt: LocalDateTime,

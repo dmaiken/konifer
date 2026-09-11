@@ -62,7 +62,7 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
             logger.info("Received json request to evaluate rule definitions")
             val payload = receive(EvaluateRuleDefinitionsRequest::class)
             val response =
-                evaluateRuleDefinitionUseCase.handleFromUrl(
+                evaluateRuleDefinitionUseCase.handleFromExternalSource(
                     request = payload,
                 )
             respond(HttpStatusCode.OK, response)

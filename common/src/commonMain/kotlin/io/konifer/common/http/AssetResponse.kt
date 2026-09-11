@@ -21,6 +21,8 @@ data class AssetResponse(
     val labels: Map<String, String>,
     val tags: Set<String>,
     val source: AssetSource,
+    val externalSourceAddress: String?,
+    @Deprecated("use externalSourceReference")
     val sourceUrl: String?,
     val variants: List<VariantResponse>,
     @Serializable(with = LocalDateTimeSerializer::class)

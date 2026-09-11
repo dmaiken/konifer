@@ -69,7 +69,7 @@ class PostgresAssetRepository(
                     .set(ASSET_TREE.SOURCE, asset.source.toString())
                     .set(ASSET_TREE.CREATED_AT, now)
                     .set(ASSET_TREE.MODIFIED_AT, now)
-            asset.sourceUrl?.let {
+            asset.externalSourceAddress?.let {
                 insert.set(ASSET_TREE.SOURCE_URL, it)
             }
             val persistedAsset = insert.returning().awaitFirst()

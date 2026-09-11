@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 private object AssetSourceParameterValues {
     const val UPLOAD = "upload"
     const val URL = "url"
+    const val ARN = "arn"
 }
 
 @Serializable
@@ -15,4 +16,7 @@ enum class AssetSource {
 
     @SerialName(AssetSourceParameterValues.URL)
     URL,
+
+    @SerialName(AssetSourceParameterValues.ARN)
+    ARN,
 }

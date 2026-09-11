@@ -5,6 +5,9 @@ import io.konifer.client.KoniferResponse
 import io.konifer.client.asset.content.readResourceBytes
 import io.konifer.client.asset.info.createInfoResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.HttpSource
+import io.konifer.common.http.S3Source
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.assertions.throwables.shouldThrow
@@ -67,11 +70,14 @@ class KoniferClientMultipartStoreTest :
             (actualResponse as KoniferResponse.Success<*>).body shouldBe expectedResponse
         }
 
-        test("throws if request does not contains a URL") {
+        test("throws if request contains a URL") {
             val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
             val request =
                 StoreAssetRequest(
-                    url = "https://localhost/image.jpg",
+                    source =
+                        AssetSourceRequest(
+                            http = HttpSource(url = "https://localhost/image.jpg"),
+                        ),
                 )
             val expectedResponse = createInfoResponse()
             val httpClient =
@@ -92,6 +98,37 @@ class KoniferClientMultipartStoreTest :
                     request = request,
                     bytes = imageBytes,
                 )
-            }.message shouldBe "URL cannot be supplied when asset content is also supplied"
+            }.message shouldBe "External source cannot be supplied when asset content is also supplied"
+        }
+
+        test("throws if request contains an S3 ARN") {
+            val imageBytes = readResourceBytes("/joshua-tree/joshua-tree.png")
+            val request =
+                StoreAssetRequest(
+                    source =
+                        AssetSourceRequest(
+                            s3 = S3Source(arn = "https://localhost/image.jpg"),
+                        ),
+                )
+            val expectedResponse = createInfoResponse()
+            val httpClient =
+                httpClient {
+                    configureMockMultipartEngineHappy(
+                        expectedPath = "/assets/users/123",
+                        assetBytes = imageBytes,
+                        request = request,
+                        response = expectedResponse,
+                    )
+                }
+            val koniferClient = KoniferClient(httpClient)
+
+            shouldThrow<IllegalArgumentException> {
+                koniferClient.storeAsset(
+                    path = "/users/123",
+                    format = ImageFormat.PNG,
+                    request = request,
+                    bytes = imageBytes,
+                )
+            }.message shouldBe "External source cannot be supplied when asset content is also supplied"
         }
     })

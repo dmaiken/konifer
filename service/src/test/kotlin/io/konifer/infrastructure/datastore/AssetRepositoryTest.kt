@@ -64,7 +64,7 @@ abstract class AssetRepositoryTest {
                     labels.asMap() shouldContainExactly pending.labels.asMap()
                     tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
-                    sourceUrl shouldBe pending.sourceUrl
+                    externalSourceAddress shouldBe pending.externalSourceAddress
                     createdAt shouldBe modifiedAt
                 }
                 val originalVariant = pendingPersisted.variants.first { it.isOriginalVariant }
@@ -97,7 +97,7 @@ abstract class AssetRepositoryTest {
                     labels.asMap() shouldContainExactly pending.labels.asMap()
                     tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
-                    sourceUrl shouldBe null
+                    externalSourceAddress shouldBe null
                     createdAt shouldBe modifiedAt
                 }
                 val fetched = repository.fetchByPath(persisted.path, persisted.entryId, null, Order.NEW)

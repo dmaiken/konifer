@@ -47,7 +47,7 @@ class InMemoryAssetRepository : AssetRepository {
                     labels = asset.labels,
                     tags = asset.tags,
                     source = asset.source,
-                    sourceUrl = asset.sourceUrl,
+                    externalSourceAddress = asset.externalSourceAddress,
                     createdAt = asset.createdAt,
                     modifiedAt = asset.modifiedAt,
                     isReady = false,

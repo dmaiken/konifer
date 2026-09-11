@@ -12,6 +12,7 @@ import io.konifer.domain.ports.MimeTypeDetector
 import io.konifer.domain.ports.RuleEvaluationProcessor
 import io.konifer.domain.rules.RuleEvaluationResult
 import io.konifer.domain.rules.toRuleDefinitions
+import io.konifer.infrastructure.asset.ExternalSourceResolver
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
 
@@ -31,11 +32,14 @@ class EvaluateRuleDefinitionUseCase(
             assetDataContainer = multiPartContainer,
         )
 
-    suspend fun handleFromUrl(request: EvaluateRuleDefinitionsRequest): EvaluateRuleDefinitionsResponse =
-        handle(
+    suspend fun handleFromExternalSource(request: EvaluateRuleDefinitionsRequest): EvaluateRuleDefinitionsResponse {
+        val externalSource = ExternalSourceResolver.resolve(request.source, deprecatedUrl = request.url)
+
+        return handle(
             request = request,
-            assetDataContainer = assetStreamContainerFactory.fromUrlSource(request.url),
+            assetDataContainer = assetStreamContainerFactory.fromSource(externalSource),
         )
+    }
 
     private suspend fun handle(
         assetDataContainer: AssetDataContainer,
