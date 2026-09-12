@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG UBUNTU_VERSION=24.04
-ARG TEMURIN_IMAGE=eclipse-temurin:25-jdk-noble
+# ARG TEMURIN_IMAGE=eclipse-temurin:25-jdk-noble
 
 # ==========================================
 # Build libvips
@@ -44,13 +44,55 @@ RUN chmod +x /usr/local/bin/install-vips.sh \
     && bash /usr/local/src/native-build/generate-sbom.sh
 
 # ==========================================
-# Use Temurin JDK
+# Install Temurin JDK
 # ==========================================
-FROM ${TEMURIN_IMAGE} AS temurin-build
+FROM ubuntu:${UBUNTU_VERSION} AS temurin-build
 
-RUN rm -f "$JAVA_HOME/lib/src.zip" \
-    && rm -rf "$JAVA_HOME/man" \
-    && rm -rf "$JAVA_HOME/jmods"
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
+
+# Temporary workaround: eclipse-temurin:25-jdk-noble still contains 25.0.4+7,
+# even though Adoptium has published the CVE-fixed 25.0.4.1+1 binaries. Restore
+# this stage to `FROM eclipse-temurin:25-jdk-noble` once that tag ships the fix.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && case "$TARGETARCH" in \
+      amd64) \
+        TEMURIN_ARCH="x64"; \
+        TEMURIN_SHA256="dbb698396d478e7fa2b1e50f4103324b2a99b90569ee27c33f2261f9215cf41e"; \
+        ;; \
+      arm64) \
+        TEMURIN_ARCH="aarch64"; \
+        TEMURIN_SHA256="69df11a02cfa3ef7d7ca645e03edce6778ec090e100f6ae2b42097865730ac52"; \
+        ;; \
+      *) \
+        echo "Unsupported target architecture: $TARGETARCH" >&2; \
+        exit 1; \
+        ;; \
+    esac \
+    && TEMURIN_ARCHIVE="OpenJDK25U-jdk_${TEMURIN_ARCH}_linux_hotspot_25.0.4.1_1.tar.gz" \
+    && curl --fail --location --show-error --silent --retry 3 \
+      --output /tmp/openjdk.tar.gz \
+      "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/${TEMURIN_ARCHIVE}" \
+    && echo "${TEMURIN_SHA256}  /tmp/openjdk.tar.gz" | sha256sum --check --strict \
+    && install -d /opt/java/openjdk \
+    && tar --extract \
+      --file /tmp/openjdk.tar.gz \
+      --directory /opt/java/openjdk \
+      --strip-components 1 \
+      --no-same-owner \
+    && rm -f /tmp/openjdk.tar.gz /opt/java/openjdk/lib/src.zip \
+    && rm -rf /opt/java/openjdk/man /opt/java/openjdk/jmods
+
+# Replace the whole stage with this
+# And uncomment TEMURIN_IMAGE above
+# FROM ${TEMURIN_IMAGE} AS temurin-build
+#
+# RUN rm -f "$JAVA_HOME/lib/src.zip" \
+#     && rm -rf "$JAVA_HOME/man" \
+#     && rm -rf "$JAVA_HOME/jmods"
 
 # ==========================================
 # Shared Runtime Base
