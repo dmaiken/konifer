@@ -1,0 +1,153 @@
+name: Image SBOM and Vulnerability Scan
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: GitHub-hosted runner for the image architecture
+        required: true
+        type: string
+      arch:
+        description: Image architecture name used in artifacts and dependency snapshots
+        required: true
+        type: string
+      image-tag:
+        description: Full temporary image tag
+        required: true
+        type: string
+      image-artifact-name:
+        description: Optional Docker image tar artifact to scan instead of the registry tag
+        required: false
+        default: ""
+        type: string
+      sbom-file-name:
+        description: File name for the generated SPDX SBOM
+        required: true
+        type: string
+      sbom-artifact-name:
+        description: Optional artifact name used to retain the generated SBOM
+        required: false
+        default: ""
+        type: string
+      attest:
+        description: Attach the SBOM as an OCI attestation on the pushed image
+        required: false
+        default: false
+        type: boolean
+      submit-dependency-snapshot:
+        description: Submit the SBOM to the GitHub Dependency Graph
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  image-security:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Download Image Artifact
+        if: ${{ inputs.image-artifact-name != '' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.image-artifact-name }}
+          path: /tmp/konifer-image
+
+      - name: Log in to the Container Registry
+        if: ${{ inputs.image-artifact-name == '' || inputs.attest }}
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Select Image Source
+        id: image
+        env:
+          IMAGE_ARTIFACT_NAME: ${{ inputs.image-artifact-name }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
+        run: |
+          if [[ -n "$IMAGE_ARTIFACT_NAME" ]]; then
+            mapfile -t image_archives < <(find /tmp/konifer-image -maxdepth 1 -type f -name '*.tar' -print)
+            if (( ${#image_archives[@]} != 1 )); then
+              echo "Expected exactly one Docker image archive, found ${#image_archives[@]}." >&2
+              exit 1
+            fi
+            echo "source=docker-archive:${image_archives[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=registry:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Syft
+        id: syft
+        uses: anchore/sbom-action/download-syft@v0
+        with:
+          syft-version: v1.51.1
+
+      - name: Generate and Validate Image SBOM
+        env:
+          IMAGE_SOURCE: ${{ steps.image.outputs.source }}
+          SBOM_FILE: ${{ inputs.sbom-file-name }}
+          SYFT_CMD: ${{ steps.syft.outputs.cmd }}
+        run: bash scripts/generate-docker-image-sbom.sh "$IMAGE_SOURCE" "$SBOM_FILE"
+
+      - name: Scan SBOM with Grype
+        uses: anchore/scan-action@v7.4.2
+        with:
+          sbom: ${{ inputs.sbom-file-name }}
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
+          grype-version: v0.118.0
+          cache-db: true
+
+      - name: Upload Image SBOM Artifact
+        if: ${{ inputs.sbom-artifact-name != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.sbom-artifact-name }}
+          path: ${{ inputs.sbom-file-name }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Submit SBOM to GitHub Dependency Graph
+        if: ${{ inputs.submit-dependency-snapshot }}
+        uses: advanced-security/spdx-dependency-submission-action@v0.3.2
+        with:
+          filePath: .
+          filePattern: ${{ inputs.sbom-file-name }}
+          correlator: konifer-container-${{ inputs.arch }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          repoSha: ${{ github.sha }}
+          repoRef: refs/heads/${{ github.event.repository.default_branch }}
+
+      - name: Set up Docker Buildx
+        if: ${{ inputs.attest }}
+        uses: docker/setup-buildx-action@v4
+
+      - name: Resolve Image Digest
+        if: ${{ inputs.attest }}
+        id: digest
+        env:
+          IMAGE_TAG: ${{ inputs.image-tag }}
+        run: |
+          digest="$(docker buildx imagetools inspect "$IMAGE_TAG" --format '{{json .Manifest}}' | jq --raw-output '.digest')"
+          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Could not resolve a valid digest for $IMAGE_TAG." >&2
+            exit 1
+          fi
+          echo "value=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Install Cosign
+        if: ${{ inputs.attest }}
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Attest Image SBOM
+        if: ${{ inputs.attest }}
+        env:
+          IMAGE_REFERENCE: ${{ inputs.image-tag }}@${{ steps.digest.outputs.value }}
+          SBOM_FILE: ${{ inputs.sbom-file-name }}
+        run: cosign attest --yes --type spdxjson --predicate "$SBOM_FILE" "$IMAGE_REFERENCE"
