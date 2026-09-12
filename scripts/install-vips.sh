@@ -1,9 +1,26 @@
-#!/bin/bash
-set -e # Exit immediately if a command exits with a non-zero status
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+
+versions_file="${NATIVE_VERSIONS_FILE:-$SCRIPT_DIR/native-build/native-versions.env}"
+if [[ ! -f "$versions_file" && -f /usr/local/src/native-build/native-versions.env ]]; then
+  versions_file=/usr/local/src/native-build/native-versions.env
+fi
+[[ -f "$versions_file" ]] || {
+  echo "Native versions file was not found: $versions_file" >&2
+  exit 1
+}
+
+# shellcheck source=native-build/native-versions.env
+source "$versions_file"
+: "${VIPS_VERSION:?VIPS_VERSION must be set in native-versions.env}"
+readonly VIPS_VERSION
 
 # Configuration
 PREFIX="/usr/local"
-VIPS_VERSION="8.18.5"
 VIPS_URL="https://github.com/libvips/libvips/releases/download"
 BUILD_DIR="/tmp/vips-build"
 
