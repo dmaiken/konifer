@@ -1,0 +1,16 @@
+exit-code: 1
+format: table
+list-all-pkgs: false
+pkg:
+  types:
+    - os
+    - library
+scan:
+  scanners:
+    - vuln
+severity:
+  - HIGH
+  - CRITICAL
+timeout: 10m
+vulnerability:
+  ignore-unfixed: true

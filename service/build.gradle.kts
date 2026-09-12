@@ -98,6 +98,25 @@ dependencies {
     implementation(libs.r2dbc.pool)
     implementation(libs.kotlinx.coroutines.reactive)
 
+    constraints {
+        // Patched transitive versions required by the container vulnerability policy.
+        implementation("com.ongres.scram:scram-client:3.3") {
+            because("CVE-2026-53712")
+        }
+        implementation("com.ongres.scram:scram-common:3.3") {
+            because("CVE-2026-53712")
+        }
+        implementation("io.netty:netty-codec-dns:4.1.137.Final") {
+            because("CVE-2026-42579")
+        }
+        implementation("io.netty:netty-resolver-dns:4.1.137.Final") {
+            because("CVE-2026-45674 and CVE-2026-47691")
+        }
+        implementation("io.netty:netty-handler:4.2.17.Final") {
+            because("CVE-2026-75595")
+        }
+    }
+
     implementation(libs.db.scheduler)
     implementation(libs.postresql)
     implementation(libs.hikari)
