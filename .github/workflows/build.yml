@@ -275,6 +275,7 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          pull: true
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}
           build-args: |
@@ -288,6 +289,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           load: true
+          pull: true
           tags: ghcr.io/dmaiken/konifer:latest
           build-args: |
             BASE_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:latest
