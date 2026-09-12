@@ -43,7 +43,7 @@ services:
       - konifer-net
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     container_name: konifer_minio
     command: server /data --console-address ":9001"
     ports:
@@ -64,7 +64,7 @@ services:
 
   # MinIO starts empty. This container creates the default bucket automatically.
   createbuckets:
-    image: minio/mc
+    image: quay.io/minio/mc
     depends_on:
       minio:
         condition: service_healthy

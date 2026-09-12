@@ -8,6 +8,7 @@
 ![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
+![Scanned with Trivy](https://img.shields.io/badge/scanned%20with-Trivy-1904DA?logo=trivy&logoColor=white)
 
 Konifer is a backend for managing application-owned media. It manages the ingestion, storage, and lifecycle of images
 your application has to deal with. This can be profile pictures, avatars, listing photos, card art, anything that 
@@ -268,6 +269,7 @@ Common Gradle tasks:
 | `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
 | `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
 | `./gradlew generateLicenseReport` | Generate the OSS license report                                      |
+| `./scripts/scan-image.sh`         | Scan the local `latest` image with Trivy                             |
 
 If you change the database schema or update JOOQ, run:
 
@@ -315,7 +317,11 @@ application image:
 ```bash
 ./gradlew :service:shadowJar
 docker build . -t ghcr.io/dmaiken/konifer:latest
+./scripts/scan-image.sh
 ```
+
+The Trivy scan checks OS and bundled library vulnerabilities. It fails for fixable HIGH or CRITICAL findings using the
+shared policy in `trivy.yaml`. Pass another image reference as the first argument to scan a different tag.
 
 Then start the stack:
 

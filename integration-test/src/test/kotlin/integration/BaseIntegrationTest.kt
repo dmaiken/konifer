@@ -50,7 +50,7 @@ abstract class BaseIntegrationTest {
         @Container
         @JvmStatic
         val minio: GenericContainer<*> =
-            GenericContainer(DockerImageName.parse("minio/minio:latest"))
+            GenericContainer(DockerImageName.parse("quay.io/minio/minio:latest"))
                 .withNetwork(network)
                 .withNetworkAliases("minio")
                 .withCommand("server /data")
@@ -65,7 +65,7 @@ abstract class BaseIntegrationTest {
         @Container
         @JvmStatic
         val createBuckets: GenericContainer<*> =
-            GenericContainer(DockerImageName.parse("minio/mc:latest"))
+            GenericContainer(DockerImageName.parse("quay.io/minio/mc:latest"))
                 .withNetwork(network)
                 .dependsOn(minio)
                 .withNetworkAliases("createbuckets")

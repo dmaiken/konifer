@@ -356,9 +356,36 @@ jobs:
         # Force execution so a cached result is never reused for a newly built image.
         run: ./gradlew :integration-test:cleanTest :integration-test:integrationTest --rerun-tasks -x detekt -x ktlintCheck
 
+  container-scan:
+    needs: docker-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Image Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: konifer-${{ matrix.arch }}-image
+          path: /tmp
+
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          input: /tmp/konifer-image-${{ matrix.arch }}.tar
+          trivy-config: trivy.yaml
+          version: v0.74.0
+
   merge:
     runs-on: ubuntu-latest
-    needs: [ docker-build, integration-test ]
+    needs: [ docker-build, integration-test, container-scan ]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       packages: write
