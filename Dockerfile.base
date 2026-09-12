@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     curl \
     glib2.0-dev \
+    jq \
     libbrotli-dev \
     libde265-dev \
     libexif-dev \
@@ -39,7 +40,8 @@ ENV CMAKE_PREFIX_PATH=/opt/konifer-native
 COPY scripts/install-vips.sh /usr/local/bin/install-vips.sh
 
 RUN chmod +x /usr/local/bin/install-vips.sh \
-    && /usr/local/bin/install-vips.sh --cleanup
+    && /usr/local/bin/install-vips.sh --cleanup \
+    && bash /usr/local/src/native-build/generate-sbom.sh
 
 # ==========================================
 # Use Temurin JDK
@@ -113,6 +115,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     gzip \
+    jq \
     openssh-client \
     tar \
     unzip \
