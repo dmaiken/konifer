@@ -193,6 +193,7 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          pull: true
           push: true
           # Pushes a temporary tag like konifer:a1b2c3d-amd64
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}

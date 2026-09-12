@@ -63,6 +63,7 @@ jobs:
           file: Dockerfile.base
           target: runtime
           platforms: ${{ matrix.platform }}
+          pull: true
           push: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           tags: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}
           cache-from: type=gha,scope=base-${{ matrix.arch }}
@@ -75,6 +76,7 @@ jobs:
           file: Dockerfile.base
           target: ci
           platforms: ${{ matrix.platform }}
+          pull: true
           push: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           tags: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}
           cache-from: type=gha,scope=base-${{ matrix.arch }}
