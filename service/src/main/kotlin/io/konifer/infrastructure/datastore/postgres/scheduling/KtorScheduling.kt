@@ -100,15 +100,17 @@ fun Application.configureScheduledJobs(
 
 fun jdbcPostgresDatasource(properties: PostgresProperties): HikariDataSource {
     val dataSource = PGSimpleDataSource()
-    dataSource.setServerNames(arrayOf(properties.host))
+    dataSource.serverNames = arrayOf(properties.host)
     dataSource.setPortNumbers(intArrayOf(properties.port))
     dataSource.databaseName = properties.database
     dataSource.user = properties.user
     dataSource.password = properties.password
+    dataSource.sslMode = properties.sslMode
 
     return HikariDataSource(
         HikariConfig().apply {
             this.dataSource = dataSource
+            // Limit pool size since this data source is only used for scheduled jobs
             maximumPoolSize = 3
             minimumIdle = 1
         },
