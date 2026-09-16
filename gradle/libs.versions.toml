@@ -35,7 +35,7 @@ metadata-extractor-version = "2.21.0"
 kover-version = "0.9.9"
 cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.29.0"
-huggingface-tokenizers-version = "0.36.0"
+huggingface-tokenizers-version = "0.38.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
