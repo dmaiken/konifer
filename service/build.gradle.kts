@@ -100,10 +100,10 @@ dependencies {
 
     constraints {
         // Patched transitive versions required by the container vulnerability policy.
-        implementation("com.ongres.scram:scram-client:3.3") {
+        implementation("com.ongres.scram:scram-client:3.4") {
             because("CVE-2026-53712")
         }
-        implementation("com.ongres.scram:scram-common:3.3") {
+        implementation("com.ongres.scram:scram-common:3.4") {
             because("CVE-2026-53712")
         }
         implementation("io.netty:netty-codec-dns:4.1.137.Final") {
