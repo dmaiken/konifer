@@ -8,7 +8,6 @@ import io.konifer.application.usecase.update.UpdateAssetUseCase
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.ReturnFormat
-import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
 import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
@@ -23,14 +22,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.RequestConnectionPoint
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentType
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
@@ -40,17 +36,12 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
 private val logger = KtorSimpleLogger("io.konifer.entrypoint.AssetRouting")
 
 const val ASSET_PATH_PREFIX = "/assets"
-
-private const val METADATA_PART_NAME = "metadata"
-private const val ASSET_PART_NAME = "asset"
 
 fun Application.configureAssetRouting() {
     logger.info("Initializing asset routes")
@@ -192,64 +183,29 @@ private suspend fun RoutingCall.storeNewAsset(
     }
 }
 
-private suspend fun RoutingCall.storeMultipartAsset(storeNewAssetUseCase: StoreNewAssetUseCase): AssetAndLocation? =
-    coroutineScope {
-        val assetData = CompletableDeferred<StoreAssetRequest>()
-        var assetPartReceived = false
-        var assetContainer: AssetDataContainer? = null
-        var duplicateAssetReceived = false
-
-        try {
-            receiveMultipart().forEachPart { part ->
-                when (part.name) {
-                    METADATA_PART_NAME -> part.readStoreAssetRequestInto(assetData)
-                    ASSET_PART_NAME -> {
-                        if (assetPartReceived) {
-                            duplicateAssetReceived = true
-                            part.release()
-                        } else {
-                            assetPartReceived = true
-                            assetContainer = part.copyAssetContentToTemporaryFile()
-                        }
-                    }
-                    else -> part.release()
-                }
+private suspend fun RoutingCall.storeMultipartAsset(storeNewAssetUseCase: StoreNewAssetUseCase): AssetAndLocation =
+    receiveMultipartUpload { Json.decodeFromString<StoreAssetRequest>(it) }.use { upload ->
+        when {
+            upload.duplicateAssetReceived -> {
+                throw IllegalArgumentException("Multiple asset payloads supplied")
             }
-
-            when {
-                duplicateAssetReceived -> {
-                    respond(HttpStatusCode.BadRequest, "Multiple asset payloads supplied")
-                    null
-                }
-                !assetData.isCompleted -> {
-                    respond(HttpStatusCode.BadRequest, "No asset metadata supplied")
-                    null
-                }
-                assetContainer == null -> {
-                    respond(HttpStatusCode.BadRequest, "No asset payload supplied")
-                    null
-                }
-                else ->
-                    storeNewAssetUseCase.handleFromUpload(
-                        deferredRequest = assetData,
-                        multiPartContainer = checkNotNull(assetContainer),
-                        uriPath = request.path(),
-                    )
+            upload.duplicateMetadataReceived -> {
+                throw IllegalArgumentException("Multiple metadata payloads supplied")
             }
-        } finally {
-            assetContainer?.close()
+            !upload.request.isCompleted -> {
+                throw IllegalArgumentException("No asset metadata supplied")
+            }
+            upload.assetContainer == null -> {
+                throw IllegalArgumentException("No asset payload supplied")
+            }
+            else ->
+                storeNewAssetUseCase.handleFromUpload(
+                    deferredRequest = upload.request,
+                    multiPartContainer = upload.assetContainer,
+                    uriPath = request.path(),
+                )
         }
     }
-
-private suspend fun PartData.readStoreAssetRequestInto(assetData: CompletableDeferred<StoreAssetRequest>) {
-    try {
-        if (this is PartData.FormItem) {
-            assetData.complete(Json.decodeFromString(value))
-        }
-    } finally {
-        release()
-    }
-}
 
 private suspend fun RoutingCall.respondStoredAsset(
     assetUrlGenerator: AssetUrlGenerator,

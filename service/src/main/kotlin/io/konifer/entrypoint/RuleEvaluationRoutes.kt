@@ -3,33 +3,21 @@ package io.konifer.entrypoint
 import io.konifer.application.usecase.evaluate.EvaluateRuleDefinitionUseCase
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
-import io.konifer.domain.asset.AssetDataContainer
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
 import io.ktor.server.application.Application
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receive
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
-import io.ktor.utils.io.ByteChannel
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import kotlin.coroutines.cancellation.CancellationException
 
 const val RULE_EVALUATIONS_PATH = "/rule-evaluations"
-
-private const val METADATA_PART_NAME = "metadata"
-private const val ASSET_PART_NAME = "asset"
 
 private val logger = KtorSimpleLogger("io.konifer.entrypoint.RuleEvaluationRoutes")
 
@@ -73,67 +61,25 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
 
 private suspend fun RoutingCall.evaluateMultipartRuleDefinitions(
     evaluateRuleDefinitionUseCase: EvaluateRuleDefinitionUseCase,
-): EvaluateRuleDefinitionsResponse? =
-    coroutineScope {
-        val evaluationRequest = CompletableDeferred<EvaluateRuleDefinitionsRequest>()
-        val contentChannel = ByteChannel(true)
-        var assetPartReceived = false
-        var assetReceived = false
-        var duplicateAssetReceived = false
-
-        val deferredResponse =
-            async {
-                evaluateRuleDefinitionUseCase.handleFromUpload(
-                    deferredRequest = evaluationRequest,
-                    multiPartContainer = AssetDataContainer(contentChannel),
-                )
-            }
-
-        receiveMultipart().forEachPart { part ->
-            when (part.name) {
-                METADATA_PART_NAME -> part.readEvaluationRequestInto(evaluationRequest)
-                ASSET_PART_NAME -> {
-                    if (assetPartReceived) {
-                        duplicateAssetReceived = true
-                        part.release()
-                    } else {
-                        assetPartReceived = true
-                        assetReceived = part.copyAssetContentTo(contentChannel)
-                    }
-                }
-                else -> part.release()
-            }
-        }
-
+): EvaluateRuleDefinitionsResponse =
+    receiveMultipartUpload { Json.decodeFromString<EvaluateRuleDefinitionsRequest>(it) }.use { upload ->
         when {
-            duplicateAssetReceived -> {
-                contentChannel.cancel(CancellationException("Duplicate request payload"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "Multiple request payloads supplied")
-                null
+            upload.duplicateAssetReceived -> {
+                throw IllegalArgumentException("Multiple asset payloads supplied")
             }
-            !evaluationRequest.isCompleted -> {
-                contentChannel.cancel(CancellationException("Missing metadata"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "No request metadata supplied")
-                null
+            upload.duplicateMetadataReceived -> {
+                throw IllegalArgumentException("Multiple metadata payloads supplied")
             }
-            !assetReceived -> {
-                contentChannel.cancel(CancellationException("Missing request payload"))
-                deferredResponse.cancel()
-                respond(HttpStatusCode.BadRequest, "No request payload supplied")
-                null
+            !upload.request.isCompleted -> {
+                throw IllegalArgumentException("No asset metadata supplied")
             }
-            else -> deferredResponse.await()
+            upload.assetContainer == null -> {
+                throw IllegalArgumentException("No asset payload supplied")
+            }
+            else ->
+                evaluateRuleDefinitionUseCase.handleFromUpload(
+                    deferredRequest = upload.request,
+                    multiPartContainer = upload.assetContainer,
+                )
         }
     }
-
-private suspend fun PartData.readEvaluationRequestInto(evaluationRequest: CompletableDeferred<EvaluateRuleDefinitionsRequest>) {
-    try {
-        if (this is PartData.FormItem) {
-            evaluationRequest.complete(Json.decodeFromString(value))
-        }
-    } finally {
-        release()
-    }
-}

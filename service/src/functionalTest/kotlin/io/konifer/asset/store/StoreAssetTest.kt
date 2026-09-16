@@ -1,6 +1,7 @@
 package io.konifer.asset.store
 
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory
 import io.konifer.client.ContentFetchMode
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
@@ -77,6 +78,90 @@ class StoreAssetTest : BaseFunctionalTest() {
 
             response.status shouldBe HttpStatusCode.Created
             fetchAssetInfo(client, path = "asset-first")!!.alt shouldBe "asset-first upload"
+        }
+
+    @Test
+    fun `rejects multiple asset parts in multipart upload`() =
+        testInMemory {
+            val (image, attributes) = ImageFactory.testImage()
+            val request = StoreAssetRequest(alt = "asset-first upload")
+            val boundary = "asset-first-boundary"
+
+            val response =
+                withTimeout(5_000.milliseconds) {
+                    client.post("/assets/asset-first") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    repeat(2) {
+                                        append(
+                                            "asset",
+                                            image,
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, attributes.format.mimeType)
+                                                append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                            },
+                                        )
+                                    }
+                                    append(
+                                        "metadata",
+                                        Json.encodeToString(request),
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                        },
+                                    )
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
+
+    @Test
+    fun `rejects multiple metadata parts in multipart upload`() =
+        testInMemory {
+            val (image, attributes) = ImageFactory.testImage()
+            val request = StoreAssetRequest(alt = "asset-first upload")
+            val boundary = "asset-first-boundary"
+
+            val response =
+                withTimeout(5_000.milliseconds) {
+                    client.post("/assets/asset-first") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    append(
+                                        "asset",
+                                        image,
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, attributes.format.mimeType)
+                                            append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                        },
+                                    )
+                                    repeat(2) {
+                                        append(
+                                            "metadata",
+                                            Json.encodeToString(request),
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                            },
+                                        )
+                                    }
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.BadRequest
         }
 
     @Test
