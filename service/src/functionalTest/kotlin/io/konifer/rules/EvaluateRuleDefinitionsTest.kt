@@ -5,6 +5,7 @@ import io.konifer.ImageFactory
 import io.konifer.KoniferTestHandle
 import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
+import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.http.S3Source
@@ -18,6 +19,18 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -26,6 +39,7 @@ import org.koin.dsl.module
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import kotlin.time.Duration.Companion.seconds
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EvaluateRuleDefinitionsTest : BaseLocalstackTestContainersTest() {
@@ -65,6 +79,165 @@ class EvaluateRuleDefinitionsTest : BaseLocalstackTestContainersTest() {
     fun stopKonifer() {
         handle.close()
     }
+
+    @Test
+    fun `can evaluate multipart asset when asset is sent before metadata`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            val request =
+                EvaluateRuleDefinitionsRequest(
+                    definitions =
+                        listOf(
+                            RuleDefinitionRequest(
+                                name = "asset-first",
+                                prompts = listOf("a tree"),
+                                threshold = 0.7,
+                            ),
+                        ),
+                )
+            val boundary = "asset-first-rule-evaluation-boundary"
+
+            val response =
+                withTimeout(60.seconds) {
+                    client.post("/rule-evaluations") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    append(
+                                        "asset",
+                                        image,
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, attributes.format.mimeType)
+                                            append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                        },
+                                    )
+                                    append(
+                                        "metadata",
+                                        Json.encodeToString(request),
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                        },
+                                    )
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.OK
+            response
+                .body<EvaluateRuleDefinitionsResponse>()
+                .results
+                .single()
+                .name shouldBe "asset-first"
+        }
+
+    @Test
+    fun `rejects multiple asset parts in multipart request`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            val request =
+                EvaluateRuleDefinitionsRequest(
+                    definitions =
+                        listOf(
+                            RuleDefinitionRequest(
+                                name = "asset-first",
+                                prompts = listOf("a tree"),
+                                threshold = 0.7,
+                            ),
+                        ),
+                )
+            val boundary = "asset-first-rule-evaluation-boundary"
+
+            val response =
+                withTimeout(60.seconds) {
+                    client.post("/rule-evaluations") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    repeat(2) {
+                                        append(
+                                            "asset",
+                                            image,
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, attributes.format.mimeType)
+                                                append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                            },
+                                        )
+                                    }
+                                    append(
+                                        "metadata",
+                                        Json.encodeToString(request),
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                        },
+                                    )
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
+
+    @Test
+    fun `rejects multiple metadata parts in multipart request`() =
+        handle.test {
+            val (image, attributes) = ImageFactory.testImage()
+            val request =
+                EvaluateRuleDefinitionsRequest(
+                    definitions =
+                        listOf(
+                            RuleDefinitionRequest(
+                                name = "asset-first",
+                                prompts = listOf("a tree"),
+                                threshold = 0.7,
+                            ),
+                        ),
+                )
+            val boundary = "asset-first-rule-evaluation-boundary"
+
+            val response =
+                withTimeout(60.seconds) {
+                    client.post("/rule-evaluations") {
+                        contentType(ContentType.MultiPart.FormData)
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    append(
+                                        "asset",
+                                        image,
+                                        Headers.build {
+                                            append(HttpHeaders.ContentType, attributes.format.mimeType)
+                                            append(HttpHeaders.ContentDisposition, "filename=\"asset-first.png\"")
+                                        },
+                                    )
+                                    repeat(2) {
+                                        append(
+                                            "metadata",
+                                            Json.encodeToString(request),
+                                            Headers.build {
+                                                append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                            },
+                                        )
+                                    }
+                                },
+                                boundary,
+                                ContentType.MultiPart.FormData.withParameter("boundary", boundary),
+                            ),
+                        )
+                    }
+                }
+
+            response.status shouldBe HttpStatusCode.BadRequest
+        }
 
     @Test
     fun `can evaluate one rule definition that matches`() =
