@@ -24,15 +24,6 @@ readonly KVAZAAR_LIBRARY="$INSTALL_PREFIX/lib/libkvazaar.so.7"
 readonly SHARPYUV_LIBRARY="$INSTALL_PREFIX/lib/libsharpyuv.so.0"
 readonly SVT_AV1_LIBRARY="$INSTALL_PREFIX/lib/libSvtAv1Enc.so.4"
 
-for library_path in \
-  "$DAV1D_LIBRARY" \
-  "$KVAZAAR_LIBRARY" \
-  "$SHARPYUV_LIBRARY" \
-  "$SVT_AV1_LIBRARY"; do
-  [[ -e "$library_path" ]] || \
-    native_die "Required native dependency was not found: $library_path"
-done
-
 native_create_work_dir "$DEPENDENCY_NAME"
 
 readonly WORK_DIR="$NATIVE_BUILD_WORK_DIR"
@@ -46,6 +37,15 @@ native_download_source \
   "$SOURCE_URL" \
   "$ARCHIVE"
 native_verify_sha256 "$DEPENDENCY_NAME" "$ARCHIVE" "$SOURCE_SHA256"
+
+for library_path in \
+  "$DAV1D_LIBRARY" \
+  "$KVAZAAR_LIBRARY" \
+  "$SHARPYUV_LIBRARY" \
+  "$SVT_AV1_LIBRARY"; do
+  [[ -e "$library_path" ]] || \
+    native_die "Required native dependency was not found: $library_path"
+done
 
 mkdir -p "$SOURCE_DIR"
 tar --extract --gzip --file "$ARCHIVE" --directory "$SOURCE_DIR" --strip-components=1
