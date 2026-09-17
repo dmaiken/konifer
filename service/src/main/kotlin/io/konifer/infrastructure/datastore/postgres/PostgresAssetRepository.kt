@@ -113,6 +113,7 @@ class PostgresAssetRepository(
                 .dsl()
                 .update(ASSET_VARIANT)
                 .set(ASSET_VARIANT.UPLOADED_AT, originalVariant.uploadedAt)
+                .set(ASSET_VARIANT.LAST_ACCESSED_AT, originalVariant.uploadedAt)
                 .where(ASSET_VARIANT.ASSET_ID.eq(originalVariant.assetId.value))
                 .and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
                 .awaitFirstOrNull()
@@ -123,6 +124,7 @@ class PostgresAssetRepository(
         dslContext
             .update(ASSET_VARIANT)
             .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt)
+            .set(ASSET_VARIANT.LAST_ACCESSED_AT, variant.uploadedAt)
             .where(ASSET_VARIANT.ID.eq(variant.id.value))
             .awaitFirstOrNull()
     }
