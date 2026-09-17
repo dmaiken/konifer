@@ -21,7 +21,38 @@ Konifer goes to great lengths to support your existing domain model. It's
 [Assets API](https://konifer.io/docs/concepts/Assets/concepts-assets) is flexible and hierarchical by 
 design. It binds a path-based URL structure with configuration you associate to that structure because your profile
 pictures need to be treated separately from photos added to a blog post. However your domain is modeled, Konifer does
-not care. It's your sandbox, Konifer merely brings the buckets and shovels.
+not care. It's your sandbox, Konifer just provides the buckets and shovels.
+
+## Why Konifer exists
+
+Konifer was built to solve a problem I have seen on several teams throughout my career. What started as a simple
+requirement to store a product photo has grown to a patchwork of S3 buckets, lambdas, queueing, and microservices.
+You may even have different architectures for different types of images.
+
+Konifer exists to unify all of this. It brings to the table:
+
+- Multi-part uploads
+- URL uploads with a domain allow-list (which is enforced on URL-redirects)
+- Hardened state management between your S3-compatible object store (or filesystem) and it's metadata store
+- Efficient transformation of images powered by libvips
+- Guards to prevent images too large (file size, dimensions or pixel count), the wrong content-type type, or the
+  wrong content using ML-powered image classification (SigLIP2)
+- Support for JPEG, PNG, WebP, HEIC, AVIF, Jpeg XL, and GIF as well as efficient format conversion between all types
+- Support for animated GIF and WebP
+- Powerful and secure redirection capabilities
+
+## When you should consider Konifer
+
+- You're about to add images into your application for the first time
+- You have several different places in your backend that handle different images (a thumbnail service, an upload service, etc)
+- Your service has crashed trying to accept an image that was too large or the wrong file-type (for example, by
+  using Java's `BufferedImage`)
+- Managing your images is draining your engineering resources
+- You cannot or do not want to use a SaaS platform
+
+## Try It
+
+Check out the 10 minute Quickstart here: [Getting started](https://konifer.io/docs/start-here/getting-started)
 
 ## Path structure
 
@@ -103,59 +134,6 @@ paths {
   }
 }
 ```
-
-## Why Konifer exists
-
-Konifer was built to solve a problem I have seen on several teams throughout my career. What started as a simple
-requirement to store a product photo has grown to a patchwork of S3 buckets, lambdas, queueing, and microservices. 
-You may even have different architectures for different types of images.
-
-Konifer exists to unify all of this. It brings to the table:
-
-- Multi-part uploads
-- URL uploads with a domain allow-list (which is enforced on URL-redirects)
-- Hardened state management between your S3-compatible object store (or filesystem) and it's metadata store
-- Efficient transformation of images powered by libvips
-- Guards to prevent images too large (file size, dimensions or pixel count), the wrong content-type type, or the 
-  wrong content using ML-powered image classification (SigLIP2)
-- Support for JPEG, PNG, WebP, HEIC, AVIF, Jpeg XL, and GIF as well as efficient format conversion between all types
-- Support for animated GIF and WebP
-- Powerful and secure redirection capabilities
-
-## When you should consider Konifer
-
-- You're about to add images into your application for the first time
-- You have several different places in your backend that handle different images (a thumbnail service, an upload service, etc)
-- Your service has crashed trying to accept an image that was too large or the wrong file-type (for example, by 
-  using Java's `BufferedImage`)
-- Managing your images is draining your engineering resources
-- You cannot or do not want to use a SaaS platform
-
-## Try It
-
-```bash
-docker run -e IN_MEMORY=true -p 8080:8080 ghcr.io/dmaiken/konifer:latest
-```
-
-Then upload an image:
-
-```bash
-curl --request POST \
-  --url 'http://localhost:8080/assets/my-images/' \
-  --header 'Content-Type: multipart/form-data' \
-  --form 'metadata={"alt":"moon"}' \
-  --form file=/path/to/your/image.png
-```
-
-Fetch it back, transformed on demand:
-
-```bash
-curl --request GET \
-  --url 'http://localhost:8080/assets/my-images/-/content?w=800&format=webp'
-```
-
-The in-memory mode is for development and evaluation only. For persistent deployments, configure PostgreSQL plus
-S3-compatible or filesystem storage.
 
 ## Upload Rules
 
