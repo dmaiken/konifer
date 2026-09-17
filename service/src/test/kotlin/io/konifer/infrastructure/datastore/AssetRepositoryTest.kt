@@ -83,6 +83,7 @@ abstract class AssetRepositoryTest {
                 val fetched = repository.fetchByPath(pendingPersisted.path, pendingPersisted.entryId, null, Order.NEW)
 
                 fetched?.id shouldBe pendingPersisted.id
+                fetched?.variants?.single()?.lastAccessedAt shouldNotBe null
             }
 
         @Test
@@ -218,6 +219,7 @@ abstract class AssetRepositoryTest {
                 assetData shouldNotBe null
                 assetData!!.id shouldBe persisted.id
                 assetData.variants shouldHaveSize 2
+                assetData.variants.forAll { it.lastAccessedAt shouldNotBe null }
             }
 
         @Test
@@ -2032,6 +2034,7 @@ abstract class AssetRepositoryTest {
                     .first()
                     .uploadedAt
                     ?.truncatedTo(ChronoUnit.MILLIS) shouldBe uploadedAt.truncatedTo(ChronoUnit.MILLIS)
+                ready.variants.first().lastAccessedAt shouldNotBe null
             }
     }
 

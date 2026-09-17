@@ -42,7 +42,7 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
             logger.info("Received multipart request to evaluate rule definitions")
             evaluateMultipartRuleDefinitions(
                 evaluateRuleDefinitionUseCase = evaluateRuleDefinitionUseCase,
-            )?.let { response ->
+            ).let { response ->
                 respond(HttpStatusCode.OK, response)
             }
         }

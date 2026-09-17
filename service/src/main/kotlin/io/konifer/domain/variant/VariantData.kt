@@ -14,4 +14,5 @@ data class VariantData(
     val createdAt: LocalDateTime,
     val uploadedAt: LocalDateTime?,
     val expiresAt: LocalDateTime?,
+    val lastAccessedAt: LocalDateTime?,
 )

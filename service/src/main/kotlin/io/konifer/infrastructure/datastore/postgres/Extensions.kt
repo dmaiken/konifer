@@ -62,6 +62,7 @@ fun AssetVariantRecord.toVariantData(): VariantData =
         createdAt = checkNotNull(createdAt),
         uploadedAt = uploadedAt,
         expiresAt = expiresAt,
+        lastAccessedAt = lastAccessedAt,
     )
 
 fun AssetTreeRecord.toPendingPersisted(

@@ -165,7 +165,7 @@ private suspend fun RoutingCall.storeNewAsset(
             logger.info("Received multipart request to store a new asset")
             storeMultipartAsset(
                 storeNewAssetUseCase = storeNewAssetUseCase,
-            )?.let { asset ->
+            ).let { asset ->
                 respondStoredAsset(assetUrlGenerator, asset, request.origin)
             }
         }
