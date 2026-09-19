@@ -45,6 +45,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
             ObjectStoreProvider.IN_MEMORY -> {
                 single<InMemoryObjectStore>() bind ObjectStore::class
             }
+
             ObjectStoreProvider.S3 -> {
                 val s3ConfigurationProperties = objectStoreConfig?.tryGetConfig(S3)
                 val s3ClientProperties =
@@ -74,6 +75,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                 }
                 single<S3ObjectStore>() bind ObjectStore::class
             }
+
             ObjectStoreProvider.FILESYSTEM -> {
                 val fileSystemProperties = objectStoreConfig?.tryGetConfig(FILESYSTEM)
                 val properties =

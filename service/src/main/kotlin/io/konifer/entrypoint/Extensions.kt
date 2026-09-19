@@ -55,7 +55,10 @@ suspend fun ApplicationCall.respondContent(
 suspend fun PartData.copyAssetContentToTemporaryFile(): AssetDataContainer? {
     val source =
         when (this) {
-            is PartData.FileItem -> provider()
+            is PartData.FileItem -> {
+                provider()
+            }
+
             else -> {
                 release()
                 return null

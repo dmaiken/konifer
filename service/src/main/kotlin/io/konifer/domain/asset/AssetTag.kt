@@ -26,7 +26,7 @@ class AssetTags private constructor(
 
     fun asSet(): Set<String> = values.map { it.value }.toSet()
 
-    fun isNotEmpty(): Boolean = values.isNotEmpty()
+    fun isEmpty(): Boolean = values.isEmpty()
 
     companion object Factory {
         val EMPTY = AssetTags(emptySet())

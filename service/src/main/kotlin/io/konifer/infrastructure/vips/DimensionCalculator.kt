@@ -34,20 +34,26 @@ object DimensionCalculator {
                         val scale = width.toDouble() / sourceWidth
                         Pair(width, (sourceHeight * scale).roundToInt())
                     }
+
                     width == null && height != null -> {
                         // Height specified, calculate width
                         val scale = height.toDouble() / sourceHeight
                         Pair((sourceWidth * scale).roundToInt(), height)
                     }
+
                     width != null && height != null -> {
                         // Both specified: scale to fit inside box while preserving aspect ratio
                         val scale = minOf(width.toDouble() / sourceWidth, height.toDouble() / sourceHeight)
                         Pair((sourceWidth * scale).roundToInt(), (sourceHeight * scale).roundToInt())
                     }
-                    else -> Pair(sourceWidth, sourceHeight)
+
+                    else -> {
+                        Pair(sourceWidth, sourceHeight)
+                    }
                 }
             }
-            Fit.FILL, Fit.STRETCH, Fit.CROP ->
+
+            Fit.FILL, Fit.STRETCH, Fit.CROP -> {
                 Pair(
                     requireNotNull(width) {
                         "Width must be specified if fit is '${Fit.FILL.name.lowercase()}', " +
@@ -58,5 +64,6 @@ object DimensionCalculator {
                             "'${Fit.STRETCH.name.lowercase()}', or '${Fit.CROP.name.lowercase()}'"
                     },
                 )
+            }
         }
 }

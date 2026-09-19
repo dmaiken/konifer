@@ -84,7 +84,7 @@ class AssetLabels private constructor(
             .mapKeys { it.key.key }
             .mapValues { it.value.value }
 
-    fun isNotEmpty(): Boolean = values.isNotEmpty()
+    fun isEmpty(): Boolean = values.isEmpty()
 
     fun merge(other: AssetLabels): AssetLabels = AssetLabels(values + other.values)
 }

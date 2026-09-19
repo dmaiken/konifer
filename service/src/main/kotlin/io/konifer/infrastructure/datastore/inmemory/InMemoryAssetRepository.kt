@@ -117,15 +117,22 @@ class InMemoryAssetRepository : AssetRepository {
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
             when {
-                transformation == null -> asset.variants
-                transformation.originalVariant -> asset.variants.filter { it.isOriginalVariant }
-                else ->
+                transformation == null -> {
+                    asset.variants
+                }
+
+                transformation.originalVariant -> {
+                    asset.variants.filter { it.isOriginalVariant }
+                }
+
+                else -> {
                     asset.variants
                         .firstOrNull { variant ->
                             transformation == variant.transformation
                         }?.let { matched ->
                             listOf(matched)
                         } ?: emptyList()
+                }
             }.filter {
                 (it.expiresAt == null || it.expiresAt!! > now) && it.uploadedAt != null
             }
@@ -210,6 +217,7 @@ class InMemoryAssetRepository : AssetRepository {
                             ?.let(::listOf)
                             ?: emptyList()
                     }
+
                     is DeleteAssetsCommand.AtPath -> {
                         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
                         logger.info(
@@ -223,6 +231,7 @@ class InMemoryAssetRepository : AssetRepository {
                             limit = command.limit,
                         )
                     }
+
                     is DeleteAssetsCommand.Recursively -> {
                         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
                         logger.info("Deleting assets (recursively) at path: $path with labels: ${command.labels}")
@@ -247,10 +256,7 @@ class InMemoryAssetRepository : AssetRepository {
             objectReferences
         }
 
-    override suspend fun update(asset: Asset): Asset {
-        if (asset !is Asset.Ready) {
-            throw IllegalArgumentException("Asset must be in ready state")
-        }
+    override suspend fun update(asset: Asset.Ready): Asset {
         fetch(asset.path, asset.entryId, Order.NEW, emptyMap(), true)
             ?: throw IllegalStateException("Asset does not exist")
         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)

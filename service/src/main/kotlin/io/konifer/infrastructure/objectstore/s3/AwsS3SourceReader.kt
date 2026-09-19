@@ -33,22 +33,25 @@ class AwsS3SourceReader(
             throw AssetSourceTimeoutException(cause)
         } catch (cause: S3Exception) {
             when (cause.statusCode()) {
-                401, 403 ->
+                401, 403 -> {
                     throw AssetSourceForbiddenException(
                         "Amazon S3 denied access to the asset source",
                     )
+                }
 
-                in 400..499 ->
+                in 400..499 -> {
                     throw InvalidAssetSourceException(
                         "Amazon S3 rejected the asset source",
                         cause,
                     )
+                }
 
-                else ->
+                else -> {
                     throw AssetSourceUnavailableException(
                         "Amazon S3 could not retrieve the asset source",
                         cause,
                     )
+                }
             }
         } catch (cause: SdkClientException) {
             // Includes missing credentials, signing failures, DNS and connection failures.

@@ -66,6 +66,7 @@ data class RequestedTransformation(
         }
         when (fit) {
             Fit.FIT -> {}
+
             Fit.FILL, Fit.STRETCH, Fit.CROP -> {
                 require(height != null && width != null) {
                     "Height or width must be supplied for fit: $fit"

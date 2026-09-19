@@ -46,6 +46,7 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
                 respond(HttpStatusCode.OK, response)
             }
         }
+
         ContentType.Application.Json -> {
             logger.info("Received json request to evaluate rule definitions")
             val payload = receive(EvaluateRuleDefinitionsRequest::class)
@@ -55,7 +56,10 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
                 )
             respond(HttpStatusCode.OK, response)
         }
-        else -> respond(HttpStatusCode.UnsupportedMediaType)
+
+        else -> {
+            respond(HttpStatusCode.UnsupportedMediaType)
+        }
     }
 }
 
@@ -67,19 +71,24 @@ private suspend fun RoutingCall.evaluateMultipartRuleDefinitions(
             upload.duplicateAssetReceived -> {
                 throw IllegalArgumentException("Multiple asset payloads supplied")
             }
+
             upload.duplicateMetadataReceived -> {
                 throw IllegalArgumentException("Multiple metadata payloads supplied")
             }
+
             !upload.request.isCompleted -> {
                 throw IllegalArgumentException("No asset metadata supplied")
             }
+
             upload.assetContainer == null -> {
                 throw IllegalArgumentException("No asset payload supplied")
             }
-            else ->
+
+            else -> {
                 evaluateRuleDefinitionUseCase.handleFromUpload(
                     deferredRequest = upload.request,
                     multiPartContainer = upload.assetContainer,
                 )
+            }
         }
     }

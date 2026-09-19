@@ -41,6 +41,7 @@ internal suspend fun <T> RoutingCall.receiveMultipartUpload(decodeMetadata: (Str
                         part.readMetadataInto(request, decodeMetadata)
                     }
                 }
+
                 ASSET_PART_NAME -> {
                     if (assetPartReceived) {
                         duplicateAssetReceived = true
@@ -50,7 +51,10 @@ internal suspend fun <T> RoutingCall.receiveMultipartUpload(decodeMetadata: (Str
                         assetContainer = part.copyAssetContentToTemporaryFile()
                     }
                 }
-                else -> part.release()
+
+                else -> {
+                    part.release()
+                }
             }
         }
     } catch (e: Throwable) {

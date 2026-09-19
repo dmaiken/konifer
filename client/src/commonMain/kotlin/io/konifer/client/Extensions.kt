@@ -29,7 +29,10 @@ private const val PATH_SEPARATOR = "-"
 
 suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse<T> =
     when {
-        status.isSuccess() -> KoniferResponse.Success(body())
+        status.isSuccess() -> {
+            KoniferResponse.Success(body())
+        }
+
         else -> {
             val errorMessage =
                 runCatching {
@@ -55,16 +58,19 @@ fun URLBuilder.appendQuerySelectors(
             pathSeparatorAppended = true
             appendPathSegments("entry", querySelectors.entryId.toString())
         }
+
         is OrderBy -> {
             appendPathSegments(PATH_SEPARATOR)
             pathSeparatorAppended = true
             appendPathSegments(querySelectors.orderBy.name.lowercase())
         }
+
         is Recursive -> {
             appendPathSegments(PATH_SEPARATOR)
             pathSeparatorAppended = true
             appendPathSegments("recursive")
         }
+
         is None -> { } // Nothing
     }
     returnFormat?.let {

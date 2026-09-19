@@ -14,34 +14,27 @@ object VariantParameterGenerator {
      *
      * @return the attributes as a json string
      */
-    fun generateImageVariantTransformations(imageTransformation: Transformation): String {
-        val transformations = postgresJson.encodeToString(ImageVariantTransformation.from(imageTransformation))
-
-        return transformations
-    }
+    fun generateImageVariantTransformations(transformation: Transformation): String =
+        postgresJson.encodeToString(ImageVariantTransformation.from(transformation))
 
     /**
      * Generate [ImageVariantTransformation] using [Attributes]. This should only be used when persisting
      * the original variant since there will be no [Transformation] to use. The attributes "represent" the transformation.
      */
-    fun generateImageVariantTransformations(attributes: Attributes): String {
-        val transformations =
-            postgresJson.encodeToString(
-                ImageVariantTransformation.originalTransformation(attributes),
-            )
+    fun generateImageVariantTransformations(attributes: Attributes): String =
+        postgresJson.encodeToString(
+            ImageVariantTransformation.originalTransformation(attributes),
+        )
 
-        return transformations
-    }
-
-    fun generateImageVariantAttributes(imageAttributes: Attributes): String =
+    fun generateImageVariantAttributes(attributes: Attributes): String =
         postgresJson.encodeToString(
             ImageVariantAttributes(
-                width = imageAttributes.width.value,
-                height = imageAttributes.height.value,
-                format = imageAttributes.format,
-                colorSpace = imageAttributes.colorSpace,
-                pageCount = imageAttributes.pageCount,
-                loop = imageAttributes.loop,
+                width = attributes.width.value,
+                height = attributes.height.value,
+                format = attributes.format,
+                colorSpace = attributes.colorSpace,
+                pageCount = attributes.pageCount,
+                loop = attributes.loop,
             ),
         )
 }

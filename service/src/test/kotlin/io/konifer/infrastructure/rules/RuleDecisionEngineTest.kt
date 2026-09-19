@@ -35,6 +35,7 @@ class RuleDecisionEngineTest {
                 result.violationResponses shouldHaveSize 0
                 result.labels.asMap() shouldBe AssetLabels.empty.asMap()
             }
+
             DefaultRuleAction.ACCEPT -> {
                 result.accept shouldBe true
                 result.violationResponses shouldHaveSize 0
@@ -85,6 +86,7 @@ class RuleDecisionEngineTest {
                 result.violationResponses shouldHaveSize 0
                 result.labels.asMap() shouldBe mapOf("phone" to "iphone")
             }
+
             DefaultRuleAction.ACCEPT -> {
                 result.accept shouldBe true
                 result.violationResponses shouldHaveSize 0

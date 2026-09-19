@@ -83,12 +83,14 @@ class OriginalVariantContentService(
                 )
             }
             when (checkNotNull(preprocessOutput)) {
-                PreprocessOutput.SourceTransformed -> Unit
-                PreprocessOutput.SourceNotTransformed ->
+                PreprocessOutput.SourceTransformed -> {}
+
+                PreprocessOutput.SourceNotTransformed -> {
                     sourceFile
                         .toFile()
                         .readChannel()
                         .copyAndClose(transformationDataContainer.output)
+                }
             }
             UploadRuleDecision.Success(
                 labels = decision.labels,

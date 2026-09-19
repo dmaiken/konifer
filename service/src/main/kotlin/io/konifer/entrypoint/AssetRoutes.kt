@@ -82,6 +82,7 @@ fun Application.configureAssetRouting() {
                                 }
                         }
                     }
+
                     ReturnFormat.REDIRECT -> {
                         fetchAssetHandler.fetchRedirectByPath(requestContext)?.let { response ->
                             call.response.headers.append(HttpHeaders.Location, response.deliveryUrl.url.toString())
@@ -91,6 +92,7 @@ fun Application.configureAssetRouting() {
                             call.respond(HttpStatusCode.TemporaryRedirect)
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
+
                     ReturnFormat.LINK -> {
                         fetchAssetHandler.fetchLinkByPath(requestContext)?.let { response ->
                             getAppStatusCacheHeader(response.cacheHit).let {
@@ -99,6 +101,7 @@ fun Application.configureAssetRouting() {
                             call.respond(HttpStatusCode.OK, response.toResponse())
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
+
                     ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
                         fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = true)?.let { response ->
                             getContentDispositionHeader(
@@ -169,6 +172,7 @@ private suspend fun RoutingCall.storeNewAsset(
                 respondStoredAsset(assetUrlGenerator, asset, request.origin)
             }
         }
+
         ContentType.Application.Json -> {
             logger.info("Received json request to store a new asset")
             val payload = receive(StoreAssetRequest::class)
@@ -179,7 +183,10 @@ private suspend fun RoutingCall.storeNewAsset(
                 )
             respondStoredAsset(assetUrlGenerator, asset, request.origin)
         }
-        else -> respond(HttpStatusCode.UnsupportedMediaType)
+
+        else -> {
+            respond(HttpStatusCode.UnsupportedMediaType)
+        }
     }
 }
 
@@ -189,21 +196,26 @@ private suspend fun RoutingCall.storeMultipartAsset(storeNewAssetUseCase: StoreN
             upload.duplicateAssetReceived -> {
                 throw IllegalArgumentException("Multiple asset payloads supplied")
             }
+
             upload.duplicateMetadataReceived -> {
                 throw IllegalArgumentException("Multiple metadata payloads supplied")
             }
+
             !upload.request.isCompleted -> {
                 throw IllegalArgumentException("No asset metadata supplied")
             }
+
             upload.assetContainer == null -> {
                 throw IllegalArgumentException("No asset payload supplied")
             }
-            else ->
+
+            else -> {
                 storeNewAssetUseCase.handleFromUpload(
                     deferredRequest = upload.request,
                     multiPartContainer = upload.assetContainer,
                     uriPath = request.path(),
                 )
+            }
         }
     }
 

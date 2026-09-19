@@ -55,7 +55,10 @@ class AssetUrlGenerator(
         val variant = assetData.variants.first()
 
         return when (pathConfiguration.deliveryProperties.strategy) {
-            DeliveryStrategy.SERVICE -> generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
+            DeliveryStrategy.SERVICE -> {
+                generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
+            }
+
             DeliveryStrategy.PRESIGNED -> {
                 when (
                     val presigned =

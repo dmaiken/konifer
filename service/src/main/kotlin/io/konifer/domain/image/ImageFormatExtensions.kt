@@ -22,7 +22,7 @@ fun ImageFormat.Factory.fromExtension(extension: String): ImageFormat =
 val ImageFormat.vipsProperties: VipsProperties
     get() =
         when (this) {
-            ImageFormat.JPEG ->
+            ImageFormat.JPEG -> {
                 VipsProperties(
                     supportsQuality = true,
                     // Sharp's default quality setting
@@ -30,7 +30,9 @@ val ImageFormat.vipsProperties: VipsProperties
                     supportsAlpha = false,
                     supportsPaging = false,
                 )
-            ImageFormat.PNG ->
+            }
+
+            ImageFormat.PNG -> {
                 VipsProperties(
                     supportsQuality = false,
                     // Not used since PNG does not support lossy compression
@@ -38,7 +40,9 @@ val ImageFormat.vipsProperties: VipsProperties
                     supportsAlpha = true,
                     supportsPaging = false,
                 )
-            ImageFormat.WEBP ->
+            }
+
+            ImageFormat.WEBP -> {
                 VipsProperties(
                     supportsQuality = true,
                     // Sharp's default quality setting
@@ -46,37 +50,46 @@ val ImageFormat.vipsProperties: VipsProperties
                     supportsAlpha = true,
                     supportsPaging = true,
                 )
-            ImageFormat.AVIF ->
+            }
+
+            ImageFormat.AVIF -> {
                 VipsProperties(
                     supportsQuality = true,
                     // Sharp's default quality setting
                     defaultQuality = 50,
                     supportsAlpha = true,
                     supportsPaging = false,
-                    /**
+                    /*
                      * 100 for SVT1 encoder means lossless compression which is not supported
                      */
                     maxQuality = 99,
                 )
-            ImageFormat.JPEG_XL ->
+            }
+
+            ImageFormat.JPEG_XL -> {
                 VipsProperties(
                     supportsQuality = true,
                     defaultQuality = 90,
                     supportsAlpha = true,
                     supportsPaging = false,
                 )
-            ImageFormat.HEIC ->
+            }
+
+            ImageFormat.HEIC -> {
                 VipsProperties(
                     supportsQuality = true,
                     defaultQuality = 50,
                     supportsAlpha = true,
                     supportsPaging = false,
                 )
-            ImageFormat.GIF ->
+            }
+
+            ImageFormat.GIF -> {
                 VipsProperties(
                     supportsQuality = false,
                     defaultQuality = 100,
                     supportsAlpha = false,
                     supportsPaging = true,
                 )
+            }
         }

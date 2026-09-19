@@ -4,7 +4,8 @@ koin-version = "4.2.2"
 koin-plugin-version = "1.2.1"
 kotlin-version = "2.4.10"
 kotlinx-serialization-version = "1.11.0"
-ktlint-version = "14.2.0"
+ktlint-gradle-version = "14.2.0"
+ktlint-engine-version = "1.8.0"
 ktor-version = "3.5.2"
 logback-version = "1.6.3"
 r2dbc-migrate-version = "4.1.0"
@@ -118,7 +119,7 @@ huggingface-tokenizers = {  module = "ai.djl.huggingface:tokenizers", version.re
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-version" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-version" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-version" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle-version" }
 detekt = { id = "dev.detekt", version.ref = "detekt-version" }
 license = { id = "com.github.jk1.dependency-license-report", version.ref = "license-version" }
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "google-devtools-ksp-version" }

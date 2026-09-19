@@ -43,6 +43,7 @@ object RuleDecisionEngine {
                     labels = matchedLabelRules.merge(),
                 )
             }
+
             DefaultRuleAction.REJECT -> {
                 // Matched means we accept
                 RuleDecision(

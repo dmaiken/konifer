@@ -3,3 +3,6 @@ ktlint = disabled
 
 [*]
 insert_final_newline = true
+
+[*.{kt,kts}]
+ktlint_standard_no-unused-imports = enabled
