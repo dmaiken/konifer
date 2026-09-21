@@ -22,6 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -131,7 +132,10 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
 
             // Mock a failure on the first delete
             coEvery {
-                dslContext.transactionCoroutine(any<suspend (Configuration) -> Any?>())
+                dslContext.transactionCoroutine(
+                    any<CoroutineContext>(),
+                    any<suspend (Configuration) -> Any?>(),
+                )
             } throws RuntimeException() andThenAnswer { callOriginal() }
 
             FailedAssetSweeper.invoke(
