@@ -112,7 +112,7 @@ dependencies {
         implementation("io.netty:netty-resolver-dns:4.1.137.Final") {
             because("CVE-2026-45674 and CVE-2026-47691")
         }
-        implementation("io.netty:netty-handler:4.2.17.Final") {
+        implementation("io.netty:netty-handler:4.2.18.Final") {
             because("CVE-2026-75595")
         }
     }
