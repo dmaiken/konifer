@@ -106,10 +106,10 @@ dependencies {
         implementation("com.ongres.scram:scram-common:3.4") {
             because("CVE-2026-53712")
         }
-        implementation("io.netty:netty-codec-dns:4.1.137.Final") {
+        implementation("io.netty:netty-codec-dns:4.2.18.Final") {
             because("CVE-2026-42579")
         }
-        implementation("io.netty:netty-resolver-dns:4.1.137.Final") {
+        implementation("io.netty:netty-resolver-dns:4.2.18.Final") {
             because("CVE-2026-45674 and CVE-2026-47691")
         }
         implementation("io.netty:netty-handler:4.2.18.Final") {
