@@ -25,11 +25,17 @@ sealed class ColorSpace(
 fun String.toColorSpace(): ColorSpace =
     when (this.lowercase()) {
         "srgb" -> ColorSpace.SRGB
+
         "p3" -> ColorSpace.P3
+
         "adobe_rgb" -> ColorSpace.AdobeRGB
+
         "cymk" -> ColorSpace.CMYK
+
         "grayscale" -> ColorSpace.Grayscale
+
         "unknown" -> ColorSpace.Unknown
+
         // If it doesn't match our known enums, wrap it in the Custom class
         else -> ColorSpace.Custom(this.lowercase())
     }

@@ -28,6 +28,7 @@ class RequestContextValidator(
                     throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
                 }
             }
+
             ReturnFormat.LINK, ReturnFormat.CONTENT, ReturnFormat.REDIRECT, ReturnFormat.DOWNLOAD -> {
                 if (requestedTransformation == null || requestedTransformation == RequestedTransformation.ORIGINAL_VARIANT) return
                 validateOnDemandVariantMode(
@@ -50,6 +51,7 @@ class RequestContextValidator(
                     throw IllegalRequestedTransformationException("Only '${ManipulationParameters.VARIANT_PROFILE}' can be specified")
                 }
             }
+
             OnDemandVariantMode.DISABLED -> {
                 val allowedTransformations =
                     pathConfiguration.transform.eagerVariants.map { profileName ->
@@ -60,6 +62,7 @@ class RequestContextValidator(
                     throw IllegalRequestedTransformationException("Transformation not allowed")
                 }
             }
+
             OnDemandVariantMode.ENABLED -> {}
         }
     }

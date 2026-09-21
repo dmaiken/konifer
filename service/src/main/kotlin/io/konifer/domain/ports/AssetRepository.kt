@@ -79,5 +79,5 @@ interface AssetRepository {
     /**
      * @throws IllegalStateException if asset cannot be found with the given path and entryId
      */
-    suspend fun update(asset: Asset): Asset
+    suspend fun update(asset: Asset.Ready): Asset
 }

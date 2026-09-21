@@ -30,6 +30,7 @@ object ExternalSourceResolver {
 
                 ExternalContentReference.Url(uri)
             }
+
             source.s3.arn != null -> {
                 val (bucket, key) = parseS3ObjectArn(checkNotNull(source.s3.arn))
                 ExternalContentReference.S3Object(
@@ -37,7 +38,10 @@ object ExternalSourceResolver {
                     key = key,
                 )
             }
-            else -> throw IllegalStateException("Invalid source configuration")
+
+            else -> {
+                throw IllegalStateException("Invalid source configuration")
+            }
         }
     }
 

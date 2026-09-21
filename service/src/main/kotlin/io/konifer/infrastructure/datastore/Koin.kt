@@ -42,6 +42,7 @@ fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Mod
                 single<InMemoryAssetRepository>() bind AssetRepository::class
                 single<InMemoryAssetDeleter>() bind AssetDeleter::class
             }
+
             DataStoreProvider.POSTGRES -> {
                 val properties = createPostgresProperties()
                 val connectionFactory = postgres(properties)

@@ -16,11 +16,26 @@ import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetTreeRecord
 import konifer.jooq.tables.records.AssetVariantRecord
+import org.jooq.Configuration
+import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record
+import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.LocalDateTime
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 fun <T : Any> Record.getNonNull(field: Field<T?>): T = checkNotNull(this.get(field)) { "Field '${field.name}' is null" }
+
+suspend fun <T> DSLContext.contextualizedTransactionCoroutine(
+    coroutineContext: CoroutineContext = EmptyCoroutineContext,
+    transactional: suspend context(DSLContext) (Configuration) -> T,
+): T =
+    transactionCoroutine(coroutineContext) { trx ->
+        context(trx.dsl()) {
+            transactional(trx)
+        }
+    }
 
 fun AssetTreeRecord.toAssetData(
     variants: List<AssetVariantRecord>,

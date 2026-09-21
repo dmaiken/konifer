@@ -23,6 +23,7 @@ object ImageFactory {
                     attributes = bytes.toAttributes(format),
                 )
             }
+
             TestImageType.LARGE -> {
                 require(format == ImageFormat.JPEG) { "Large images are only supported in JPEG format" }
                 val bytes = javaClass.getResourceAsStream("$LARGE_PATH${format.extension}")!!.readBytes()
@@ -31,6 +32,7 @@ object ImageFactory {
                     attributes = bytes.toAttributes(format),
                 )
             }
+
             TestImageType.MOON -> {
                 require(format == ImageFormat.PNG) { "Moon images are only supported in PNG format" }
                 val bytes = javaClass.getResourceAsStream("$MOON_PATH${format.extension}")!!.readBytes()

@@ -61,28 +61,40 @@ object Resize : VipsTransformer {
 
         val (targetWidth, targetHeight) =
             when {
-                transformation.canUpscale -> Pair(calculatedWidth, calculatedHeight)
-                transformation.fit == Fit.STRETCH ->
+                transformation.canUpscale -> {
+                    Pair(calculatedWidth, calculatedHeight)
+                }
+
+                transformation.fit == Fit.STRETCH -> {
                     Pair(
                         min(calculatedWidth, sourceWidth),
                         min(calculatedHeight, sourceHeight),
                     )
+                }
+
                 transformation.fit == Fit.FIT &&
-                    (calculatedWidth > sourceWidth || calculatedHeight > sourceHeight) ->
+                    (calculatedWidth > sourceWidth || calculatedHeight > sourceHeight) -> {
                     Pair(sourceWidth, sourceHeight)
-                else -> Pair(calculatedWidth, calculatedHeight)
+                }
+
+                else -> {
+                    Pair(calculatedWidth, calculatedHeight)
+                }
             }
 
         val requiresTransformation =
             when (transformation.fit) {
-                Fit.FILL ->
+                Fit.FILL -> {
                     if (transformation.canUpscale) {
                         targetWidth != sourceWidth || targetHeight != sourceHeight
                     } else {
                         targetWidth < sourceWidth || targetHeight < sourceHeight
                     }
-                Fit.FIT, Fit.STRETCH, Fit.CROP ->
+                }
+
+                Fit.FIT, Fit.STRETCH, Fit.CROP -> {
                     targetWidth != sourceWidth || targetHeight != sourceHeight
+                }
             }
 
         return ResizePlan(
@@ -107,7 +119,7 @@ object Resize : VipsTransformer {
         }
         val scaled =
             when (transformation.fit) {
-                Fit.FIT ->
+                Fit.FIT -> {
                     source.thumbnailImage(
                         plan.width,
                         VipsOption.Int(OPTION_HEIGHT, plan.height),
@@ -115,6 +127,8 @@ object Resize : VipsTransformer {
                         VipsOption.Boolean(OPTION_NO_ROTATE, true),
                         VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
+                }
+
                 Fit.FILL -> {
                     source.thumbnailImage(
                         plan.width,
@@ -124,7 +138,8 @@ object Resize : VipsTransformer {
                         VipsOption.Enum(OPTION_SIZE, if (transformation.canUpscale) VipsSize.SIZE_BOTH else VipsSize.SIZE_DOWN),
                     )
                 }
-                Fit.STRETCH ->
+
+                Fit.STRETCH -> {
                     source.thumbnailImage(
                         plan.width,
                         VipsOption.Int(OPTION_HEIGHT, plan.height),
@@ -132,6 +147,8 @@ object Resize : VipsTransformer {
                         VipsOption.Boolean(OPTION_NO_ROTATE, true),
                         VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_FORCE),
                     )
+                }
+
                 Fit.CROP -> {
                     source.smartcrop(
                         plan.width,

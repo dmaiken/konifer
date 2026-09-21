@@ -13,23 +13,28 @@ class PostgresAssetDeleter(
      */
     override suspend fun delete(command: DeleteAssetsCommand) {
         when (command) {
-            is DeleteAssetsCommand.Entry ->
+            is DeleteAssetsCommand.Entry -> {
                 assetRepository.deleteByPath(
                     path = command.path,
                     entryId = command.entryId,
                 )
-            is DeleteAssetsCommand.AtPath ->
+            }
+
+            is DeleteAssetsCommand.AtPath -> {
                 assetRepository.deleteAllByPath(
                     path = command.path,
                     labels = command.labels,
                     order = command.order,
                     limit = command.limit,
                 )
-            is DeleteAssetsCommand.Recursively ->
+            }
+
+            is DeleteAssetsCommand.Recursively -> {
                 assetRepository.deleteRecursivelyByPath(
                     path = command.path,
                     labels = command.labels,
                 )
+            }
         }
     }
 }

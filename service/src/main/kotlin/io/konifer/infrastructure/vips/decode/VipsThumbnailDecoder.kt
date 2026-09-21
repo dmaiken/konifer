@@ -134,10 +134,14 @@ object VipsThumbnailDecoder {
             transformation.fit == Fit.STRETCH -> {
                 VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_FORCE)
             }
+
             !transformation.canUpscale -> {
                 VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_DOWN)
             }
-            else -> VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_BOTH)
+
+            else -> {
+                VipsOption.Enum(OPTION_SIZE, VipsSize.SIZE_BOTH)
+            }
         }
 
     private fun cropOption(transformation: Transformation): VipsOption? =

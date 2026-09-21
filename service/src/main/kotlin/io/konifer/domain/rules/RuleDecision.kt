@@ -11,16 +11,19 @@ data class RuleDecision(
 
 fun DefaultRuleAction.toDecision(): RuleDecision =
     when (this) {
-        DefaultRuleAction.ACCEPT ->
+        DefaultRuleAction.ACCEPT -> {
             RuleDecision(
                 accept = true,
                 violationResponses = emptyList(),
                 labels = AssetLabels.empty,
             )
-        DefaultRuleAction.REJECT ->
+        }
+
+        DefaultRuleAction.REJECT -> {
             RuleDecision(
                 accept = false,
                 violationResponses = emptyList(),
                 labels = AssetLabels.empty,
             )
+        }
     }

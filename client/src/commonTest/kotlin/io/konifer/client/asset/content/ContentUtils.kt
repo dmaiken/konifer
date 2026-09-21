@@ -79,6 +79,7 @@ fun configureMockEngineHappyRedirect(
                     headers = headersOf(HttpHeaders.Location, REDIRECT_URL),
                 )
             }
+
             requestUrl == REDIRECT_URL -> {
                 respond(
                     content = bytes,
@@ -86,10 +87,12 @@ fun configureMockEngineHappyRedirect(
                     headers = headersOf(HttpHeaders.ContentType, mimeType),
                 )
             }
-            else ->
+
+            else -> {
                 respond(
                     content = "Not Found",
                     status = HttpStatusCode.NotFound,
                 )
+            }
         }
     }

@@ -57,6 +57,7 @@ object PathSelectorExtractor {
                             throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
                         }
                     }
+
                     2 -> {
                         if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
                             QuerySelectors(
@@ -83,7 +84,8 @@ object PathSelectorExtractor {
                             throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
                         }
                     }
-                    1 ->
+
+                    1 -> {
                         if (ReturnFormat.valueOfOrNull(querySelectorSegments[0]) != null) {
                             QuerySelectors(
                                 returnFormat = ReturnFormat.valueOf(querySelectorSegments[0]),
@@ -107,7 +109,11 @@ object PathSelectorExtractor {
                         } else {
                             throw IllegalArgumentException("Invalid query modifiers: $querySelectorSegments")
                         }
-                    else -> QuerySelectors() // Defaults
+                    }
+
+                    else -> {
+                        QuerySelectors()
+                    } // Defaults
                 }
             } catch (e: Exception) {
                 throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments", e)
@@ -145,6 +151,7 @@ object PathSelectorExtractor {
                             throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                         }
                     }
+
                     1 -> {
                         if (deleteModifierSegments[0] == RECURSIVE_MODIFIER) {
                             DeleteModifiers(
@@ -160,7 +167,10 @@ object PathSelectorExtractor {
                             throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                         }
                     }
-                    else -> DeleteModifiers()
+
+                    else -> {
+                        DeleteModifiers()
+                    }
                 }
             } catch (e: Exception) {
                 throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments", e)

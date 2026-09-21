@@ -67,6 +67,7 @@ object TransformationValidator {
                 Rotate.NINETY,
                 Rotate.TWO_HUNDRED_SEVENTY,
                 -> contentHeight to contentWidth
+
                 // We don't know what kind of rotation will take place, so don't bother validating dimensions
                 Rotate.AUTO -> null to null
 

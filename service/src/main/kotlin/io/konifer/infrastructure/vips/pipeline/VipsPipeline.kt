@@ -129,12 +129,16 @@ class VipsPipeline(
                         it.first
                     }
                 }
+
                 AlphaRequirement.UN_PREMULTIPLIED -> {
                     processed.unPremultiplyIfNecessary(isAlphaPremultiplied).also {
                         newAlphaState = false
                     }
                 }
-                AlphaRequirement.EITHER -> processed
+
+                AlphaRequirement.EITHER -> {
+                    processed
+                }
             }
         val requiresRandomAccess =
             pixelAccess == PixelAccess.SEQUENTIAL && decision.requiredPixelAccess == PixelAccess.RANDOM

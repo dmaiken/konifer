@@ -49,8 +49,11 @@ object TransformColorSpace : VipsTransformer {
                 val profileName =
                     when (transformation.colorSpace) {
                         ColorSpace.P3 -> DISPLAY_P3
+
                         ColorSpace.SRGB -> SRGB
+
                         ColorSpace.Grayscale -> GRAYSCALE
+
                         else -> throw IllegalArgumentException(
                             "Invalid ICC profile. Transformation to ${transformation.colorSpace.name} is not supported.",
                         )

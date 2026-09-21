@@ -25,22 +25,29 @@ object TransformationDimensionNormalizer {
                         )
 
                     when {
-                        requested.width != null ->
+                        requested.width != null -> {
                             Pair(
                                 requested.width,
                                 ((orientedHeight * requested.width.value) / orientedWidth).roundToInt().toDimension(),
                             )
-                        requested.height != null ->
+                        }
+
+                        requested.height != null -> {
                             Pair(
                                 ((orientedWidth * requested.height.value) / orientedHeight).roundToInt().toDimension(),
                                 requested.height,
                             )
-                        else -> Pair(orientedWidth.roundToInt().toDimension(), orientedHeight.roundToInt().toDimension())
+                        }
+
+                        else -> {
+                            Pair(orientedWidth.roundToInt().toDimension(), orientedHeight.roundToInt().toDimension())
+                        }
                     }
                 } else {
                     Pair(requested.width, requested.height)
                 }
             }
+
             Fit.FILL, Fit.STRETCH, Fit.CROP -> {
                 Pair(requireNotNull(requested.width), requireNotNull(requested.height))
             }

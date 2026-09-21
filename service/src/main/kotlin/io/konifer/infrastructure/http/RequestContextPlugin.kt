@@ -31,6 +31,7 @@ val RequestContextPlugin =
                             origin = call.request.origin,
                         )
                 }
+
                 HttpMethod.Delete -> {
                     call.attributes[deleteRequestContextKey] =
                         requestContextFactory.fromDeleteRequest(
@@ -38,6 +39,7 @@ val RequestContextPlugin =
                             queryParameters = call.parameters,
                         )
                 }
+
                 HttpMethod.Put -> {
                     call.attributes[updateRequestContextKey] =
                         requestContextFactory.fromUpdateRequest(

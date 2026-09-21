@@ -42,7 +42,7 @@ class AssetTagTest {
     @Test
     fun `empty asset tags has empty set and is empty`() {
         AssetTags.EMPTY.asSet().shouldBeEmpty()
-        AssetTags.EMPTY.isNotEmpty() shouldBe false
+        AssetTags.EMPTY.isEmpty() shouldBe true
     }
 
     @Test
@@ -56,7 +56,7 @@ class AssetTagTest {
             )
 
         tags.asSet() shouldContainExactly setOf("hero", "landing")
-        tags.isNotEmpty() shouldBe true
+        tags.isEmpty() shouldBe false
     }
 
     @Test

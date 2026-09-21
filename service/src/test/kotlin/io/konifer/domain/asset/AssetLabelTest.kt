@@ -74,7 +74,7 @@ class AssetLabelTest {
     @Test
     fun `default asset labels has empty map and is empty`() {
         AssetLabels.empty.asMap().shouldBeEmpty()
-        AssetLabels.empty.isNotEmpty() shouldBe false
+        AssetLabels.empty.isEmpty() shouldBe true
     }
 
     @Test
@@ -92,7 +92,7 @@ class AssetLabelTest {
                 "color" to "blue",
                 "source" to "camera",
             )
-        labels.isNotEmpty() shouldBe true
+        labels.isEmpty() shouldBe false
     }
 
     @Test

@@ -22,6 +22,7 @@ object ImageFactory {
                     attributes = bytes.toAttributes(format),
                 )
             }
+
             TestImageType.LARGE -> {
                 require(format == ImageFormat.JPEG) { "Large images are only supported in JPEG format" }
                 val bytes = javaClass.getResourceAsStream("$LARGE_PATH${format.extension}")!!.readBytes()
@@ -30,6 +31,7 @@ object ImageFactory {
                     attributes = bytes.toAttributes(format),
                 )
             }
+
             TestImageType.KERMIT -> {
                 require(format in listOf(ImageFormat.GIF, ImageFormat.WEBP)) { "Kermit images are only supported in animated formats" }
                 val bytes = javaClass.getResourceAsStream("$KERMIT_PATH${format.extension}")!!.readBytes()

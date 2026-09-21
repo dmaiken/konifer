@@ -36,7 +36,7 @@ class VariantParameterGeneratorTest {
             )
         val attributes =
             VariantParameterGenerator.generateImageVariantAttributes(
-                imageAttributes =
+                attributes =
                     Attributes(
                         width = 100.toDimension(),
                         height = 100.toDimension(),
@@ -77,7 +77,7 @@ class VariantParameterGeneratorTest {
             )
         val transformations1 =
             VariantParameterGenerator.generateImageVariantTransformations(
-                imageTransformation =
+                transformation =
                     Transformation(
                         height = 100.toDimension(),
                         width = 100.toDimension(),
@@ -103,7 +103,7 @@ class VariantParameterGeneratorTest {
             )
         val transformations2 =
             VariantParameterGenerator.generateImageVariantTransformations(
-                imageTransformation =
+                transformation =
                     Transformation(
                         height = 100.toDimension(),
                         width = 100.toDimension(),

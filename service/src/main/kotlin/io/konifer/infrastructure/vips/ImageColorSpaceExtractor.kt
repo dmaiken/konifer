@@ -45,9 +45,17 @@ object ImageColorSpaceExtractor {
         // We only really need to check the 'X' coordinate of Red and Green
         // to uniquely identify the major spaces.
         return when {
-            isClose(redXyz[0], 0.515) && isClose(greenXyz[0], 0.292) -> ColorSpace.P3
-            isClose(redXyz[0], 0.609) && isClose(greenXyz[0], 0.205) -> ColorSpace.AdobeRGB
-            isClose(redXyz[0], 0.436) && isClose(greenXyz[0], 0.385) -> ColorSpace.SRGB
+            isClose(redXyz[0], 0.515) && isClose(greenXyz[0], 0.292) -> {
+                ColorSpace.P3
+            }
+
+            isClose(redXyz[0], 0.609) && isClose(greenXyz[0], 0.205) -> {
+                ColorSpace.AdobeRGB
+            }
+
+            isClose(redXyz[0], 0.436) && isClose(greenXyz[0], 0.385) -> {
+                ColorSpace.SRGB
+            }
 
             else -> {
                 val rawDescription = iccDirectory.getDescription(IccDirectory.TAG_TAG_desc)
@@ -63,10 +71,13 @@ object ImageColorSpaceExtractor {
             VipsInterpretation.INTERPRETATION_sRGB.rawValue,
             VipsInterpretation.INTERPRETATION_RGB16.rawValue,
             -> ColorSpace.SRGB
+
             VipsInterpretation.INTERPRETATION_B_W.rawValue,
             VipsInterpretation.INTERPRETATION_GREY16.rawValue,
             -> ColorSpace.Grayscale
+
             VipsInterpretation.INTERPRETATION_CMYK.rawValue -> ColorSpace.CMYK
+
             else -> ColorSpace.Unknown
         }
 

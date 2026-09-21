@@ -6,6 +6,7 @@ import com.github.jk1.license.render.JsonReportRenderer
 import com.github.jk1.license.render.ReportRenderer
 import dev.detekt.gradle.Detekt
 import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -30,6 +31,14 @@ application {
 
 repositories {
     mavenCentral()
+}
+
+allprojects {
+    pluginManager.withPlugin("org.jlleitschuh.gradle.ktlint") {
+        extensions.configure<KtlintExtension> {
+            version.set(libs.versions.ktlint.engine.version)
+        }
+    }
 }
 
 val detektId: String =

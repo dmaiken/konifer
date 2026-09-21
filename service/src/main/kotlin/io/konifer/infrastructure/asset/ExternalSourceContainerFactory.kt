@@ -49,6 +49,7 @@ class ExternalSourceContainerFactory(
                     fetchFollowingRedirects(source.url)
                 }
             }
+
             is ExternalContentReference.S3Object -> {
                 fetchS3Object(
                     bucket = source.bucket,
@@ -110,7 +111,10 @@ class ExternalSourceContainerFactory(
             }
 
             when (val result = fetchOnce(currentUri)) {
-                is FetchResult.Asset -> return result.container
+                is FetchResult.Asset -> {
+                    return result.container
+                }
+
                 is FetchResult.Redirect -> {
                     if (redirectsFollowed >= MAX_REDIRECTS) {
                         throw InvalidAssetSourceException(
@@ -216,20 +220,23 @@ class ExternalSourceContainerFactory(
 
     private fun validateRemoteStatus(response: HttpResponse) {
         when (response.status.value) {
-            in 300..399 ->
+            in 300..399 -> {
                 throw InvalidAssetSourceException(
                     "Asset source returned unsupported redirect ${response.status.value}",
                 )
+            }
 
-            in 400..499 ->
+            in 400..499 -> {
                 throw InvalidAssetSourceException(
                     "Asset source returned ${response.status.value}",
                 )
+            }
 
-            in 500..599 ->
+            in 500..599 -> {
                 throw AssetSourceUnavailableException(
                     "Asset source returned ${response.status.value}",
                 )
+            }
         }
     }
 
