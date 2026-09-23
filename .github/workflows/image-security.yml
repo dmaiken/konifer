@@ -114,7 +114,7 @@ jobs:
 
       - name: Submit SBOM to GitHub Dependency Graph
         if: ${{ inputs.submit-dependency-snapshot }}
-        uses: advanced-security/spdx-dependency-submission-action@v0.3.2
+        uses: advanced-security/spdx-dependency-submission-action@v0.4.0
         with:
           filePath: .
           filePattern: ${{ inputs.sbom-file-name }}
