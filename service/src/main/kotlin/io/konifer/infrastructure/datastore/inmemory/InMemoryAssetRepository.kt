@@ -9,6 +9,7 @@ import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.retention.CacheProperties
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -67,7 +68,10 @@ class InMemoryAssetRepository : AssetRepository {
         }
     }
 
-    override suspend fun markUploaded(variant: Variant.Ready) {
+    override suspend fun markUploaded(
+        variant: Variant.Ready,
+        cacheProperties: CacheProperties,
+    ) {
         storeMutex.withLock {
             val asset = idReference[variant.assetId] ?: return
             val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
@@ -76,6 +80,12 @@ class InMemoryAssetRepository : AssetRepository {
                 ?.let { asset ->
                     asset.variants.removeIf { it.id == variant.id }
                     asset.variants.add(variant)
+                    // + 1 to include original variant
+                    if (asset.variants.size > cacheProperties.maxVariants + 1) {
+                        // Evict oldest variant
+                        val variantToEvict = asset.variants.minBy { it.createdAt }
+                        asset.variants.remove(variantToEvict)
+                    }
                 }
         }
     }
@@ -314,23 +324,11 @@ class InMemoryAssetRepository : AssetRepository {
         return assets
             .asSequence()
             .filter {
-                if (includeOnlyReady) {
-                    it.isReady
-                } else {
-                    true
-                }
+                !includeOnlyReady || it.isReady
             }.filter { asset ->
-                if (entryId != null) {
-                    asset.entryId == entryId
-                } else {
-                    true
-                }
+                entryId == null || asset.entryId == entryId
             }.filter { asset ->
-                if (labels.isNotEmpty()) {
-                    labels.all { asset.labels.asMap()[it.key] == it.value }
-                } else {
-                    true
-                }
+                labels.isEmpty() || labels.all { asset.labels.asMap()[it.key] == it.value }
             }.maxByOrNull { asset ->
                 when (order) {
                     Order.NEW -> asset.createdAt
@@ -351,11 +349,7 @@ class InMemoryAssetRepository : AssetRepository {
         return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.asSequence()
             ?.filter {
-                if (includeOnlyReady) {
-                    it.isReady
-                } else {
-                    true
-                }
+                !includeOnlyReady || it.isReady
             }?.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             ?.map { asset ->
                 val variants =

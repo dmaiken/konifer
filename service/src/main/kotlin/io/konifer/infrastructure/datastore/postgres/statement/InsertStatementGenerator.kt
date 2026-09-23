@@ -116,6 +116,8 @@ object InsertStatementGenerator {
             .set(ASSET_VARIANT.ORIGINAL_VARIANT, variant.isOriginalVariant)
             .set(ASSET_VARIANT.CREATED_AT, variant.createdAt)
             .set(ASSET_VARIANT.EXPIRES_AT, variant.expiresAt)
+            .set(ASSET_VARIANT.ACCESS_SCORE, 1.0)
+            .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, variant.createdAt)
             .returning()
     }
 }

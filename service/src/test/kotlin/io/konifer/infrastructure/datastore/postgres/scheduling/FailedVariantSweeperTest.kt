@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
@@ -89,7 +90,10 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                 ).let {
                     assetRepository.storeNewVariant(it)
                 }.also {
-                    assetRepository.markUploaded(it.markReady(LocalDateTime.now(UTC)))
+                    assetRepository.markUploaded(
+                        variant = it.markReady(LocalDateTime.now(UTC)),
+                        cacheProperties = CacheProperties(),
+                    )
                 }
 
             FailedVariantSweeper.invoke(dslContext, olderThan = Duration.ZERO)

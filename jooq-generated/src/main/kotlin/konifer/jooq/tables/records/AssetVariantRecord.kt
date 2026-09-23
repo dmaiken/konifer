@@ -68,6 +68,14 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(11, value)
         get(): LocalDateTime? = get(11) as LocalDateTime?
 
+    open var accessScore: Double?
+        set(value): Unit = set(12, value)
+        get(): Double? = get(12) as Double?
+
+    open var accessScoreAsOf: LocalDateTime?
+        set(value): Unit = set(13, value)
+        get(): LocalDateTime? = get(13) as LocalDateTime?
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -77,7 +85,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null, lastAccessedAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null, lastAccessedAt: LocalDateTime? = null, accessScore: Double? = null, accessScoreAsOf: LocalDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket
@@ -90,6 +98,8 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         this.uploadedAt = uploadedAt
         this.expiresAt = expiresAt
         this.lastAccessedAt = lastAccessedAt
+        this.accessScore = accessScore
+        this.accessScoreAsOf = accessScoreAsOf
         resetTouchedOnNotNull()
     }
 
@@ -110,6 +120,8 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
             this.uploadedAt = value.uploadedAt
             this.expiresAt = value.expiresAt
             this.lastAccessedAt = value.lastAccessedAt
+            this.accessScore = value.accessScore
+            this.accessScoreAsOf = value.accessScoreAsOf
             resetTouchedOnNotNull()
         }
     }

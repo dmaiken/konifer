@@ -22,9 +22,11 @@ class ExpiringVariantTest : BaseFunctionalTest() {
             paths {
               "/**" {
                 transform {
-                  expire {
-                    strategy = ttl
-                    ttl = 500ms
+                  retention {
+                    expire {
+                      strategy = ttl
+                      ttl = 500ms
+                    }
                   }
                 }
               }
@@ -81,9 +83,11 @@ class ExpiringVariantTest : BaseFunctionalTest() {
             paths {
               "/**" {
                 transform {
-                  expire {
-                    strategy = ttl
-                    ttl = 500ms
+                  retention {
+                    expire {
+                      strategy = ttl
+                      ttl = 500ms
+                    }
                   }
                   eager-variants = [ small ]
                 }

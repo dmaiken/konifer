@@ -32,9 +32,11 @@ class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
             paths {
               "/**" {
                 transform {
-                  expire {
-                    strategy = $strategy
-                    ttl = 1s
+                  retention {
+                    expire {
+                      strategy = $strategy
+                      ttl = 1s
+                    }
                   }
                 }
               }
@@ -94,9 +96,11 @@ class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
             paths {
               "/**" {
                 transform {
-                  expire {
-                    strategy = ttl
-                    ttl = 1s
+                  retention {
+                    expire {
+                      strategy = ttl
+                      ttl = 1s
+                    }
                   }
                   eager-variants = [ small ] 
                 }
@@ -152,9 +156,11 @@ class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
             paths {
               "/**" {
                 transform {
-                  expire {
-                    strategy = idle
-                    ttl = 1s
+                  retention {
+                    expire {
+                      strategy = idle
+                      ttl = 1s
+                    }
                   }
                   eager-variants = [ small ] 
                 }

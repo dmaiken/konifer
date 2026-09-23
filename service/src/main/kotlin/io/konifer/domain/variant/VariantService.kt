@@ -2,7 +2,6 @@ package io.konifer.domain.variant
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
@@ -14,6 +13,8 @@ import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
+import io.konifer.domain.variant.retention.RetentionProperties
+import io.konifer.domain.variant.retention.VariantExpirationStrategy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -53,17 +54,9 @@ class VariantService(
             originalVariantFile = originalVariantFile,
             transformations = transformations,
             assetId = assetId,
-            lqipImplementations = pathConfiguration.lqip,
             originalVariantLQIPs = originalVariantLQIPs,
-            bucket = pathConfiguration.objectStore.bucket,
             variantType = VariantType.EAGER,
-            expiresAt =
-                if (pathConfiguration.transform.expire.strategy == VariantExpirationStrategy.TTL) {
-                    pathConfiguration.transform.expire.expiresAt()
-                } else {
-                    // We don't want to expire if strategy is idle since the variant has not been accessed yet
-                    null
-                },
+            pathConfiguration = pathConfiguration,
         )
     }
 
@@ -78,11 +71,9 @@ class VariantService(
             originalVariantFile = originalVariantFile,
             transformations = listOf(transformation),
             assetId = assetId,
-            lqipImplementations = pathConfiguration.lqip,
             originalVariantLQIPs = originalVariantLQIPs,
-            bucket = pathConfiguration.objectStore.bucket,
             variantType = VariantType.ON_DEMAND,
-            expiresAt = pathConfiguration.transform.expire.expiresAt(),
+            pathConfiguration = pathConfiguration,
         )
     }
 
@@ -90,11 +81,9 @@ class VariantService(
         originalVariantFile: Path,
         transformations: List<Transformation>,
         assetId: AssetId,
-        lqipImplementations: Set<LQIPImplementation>,
         originalVariantLQIPs: LQIPs,
-        bucket: String,
         variantType: VariantType,
-        expiresAt: LocalDateTime?,
+        pathConfiguration: PathConfiguration,
     ): Unit =
         coroutineScope {
             val transformationDataContainers =
@@ -106,9 +95,14 @@ class VariantService(
                     .generateVariantsFromSource(
                         source = originalVariantFile,
                         transformationDataContainers = transformationDataContainers,
-                        lqipImplementations = lqipImplementations,
+                        lqipImplementations = pathConfiguration.lqip,
                         variantType = variantType,
                     )
+            val expiresAt =
+                calculateVariantExpiration(
+                    retention = pathConfiguration.transform.retention,
+                    variantType = variantType,
+                )
 
             val variantGenerationJobs =
                 transformationDataContainers
@@ -120,7 +114,7 @@ class VariantService(
                                     assetId = assetId,
                                     attributes = attributes,
                                     transformation = container.transformation,
-                                    objectStoreBucket = bucket,
+                                    objectStoreBucket = pathConfiguration.objectStore.bucket,
                                     objectStoreKey = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
                                     lqip = container.lqips.await() ?: originalVariantLQIPs,
                                     expiresAt = expiresAt,
@@ -151,6 +145,7 @@ class VariantService(
                             val uploadedAt = uploadJob.await()
                             assetRepository.markUploaded(
                                 variant = pendingVariant.markReady(uploadJob.await()),
+                                cacheProperties = pathConfiguration.transform.retention.cache,
                             )
                             logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
                         }
@@ -164,5 +159,24 @@ class VariantService(
             TransformationDataContainer(
                 transformation = transformation,
             )
+        }
+
+    private fun calculateVariantExpiration(
+        retention: RetentionProperties,
+        variantType: VariantType,
+    ): LocalDateTime? =
+        when (variantType) {
+            VariantType.EAGER -> {
+                if (retention.expire.strategy == VariantExpirationStrategy.TTL) {
+                    retention.expire.expiresAt()
+                } else {
+                    // We don't want to expire if strategy is idle since the variant has not been accessed yet
+                    null
+                }
+            }
+
+            VariantType.ON_DEMAND -> {
+                retention.expire.expiresAt()
+            }
         }
 }

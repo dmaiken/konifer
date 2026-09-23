@@ -25,11 +25,13 @@ class InMemoryVariantMetricsRepository(
                     VariantAccessedInformation(
                         accessedAt = accessedAt,
                         path = path,
+                        accessCount = 1,
                     )
                 } else {
                     VariantAccessedInformation(
                         accessedAt = maxOf(accessedInformation.accessedAt, accessedAt),
                         path = path,
+                        accessCount = accessedInformation.accessCount + 1,
                     )
                 }
 
@@ -50,4 +52,5 @@ class InMemoryVariantMetricsRepository(
 data class VariantAccessedInformation(
     val accessedAt: Instant,
     val path: String,
+    val accessCount: Long,
 )

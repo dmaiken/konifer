@@ -112,6 +112,18 @@ object ConfigurationPropertyKeys {
             const val EXPIRE = "expire"
             const val LIMITS = "limits"
 
+            const val RETENTION = "retention"
+
+            object RetentionPropertyKeys {
+                const val EXPIRE = "expire"
+                const val CACHE = "cache"
+
+                object CachePropertyKeys {
+                    const val MAX_VARIANTS = "max-variants"
+                    const val ACCESS_SCORE_HALF_LIFE = "access-score-half-life"
+                }
+            }
+
             object PreProcessingPropertyKeys {
                 const val ENABLED = "enabled"
                 const val CLAMP_HEIGHT = "clamp-height"

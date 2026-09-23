@@ -10,12 +10,14 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets
 import io.konifer.infrastructure.datastore.postgres.statement.DeleteStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.InsertStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.SelectForUpdateStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.SelectStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.UpdateStatementGenerator
+import io.konifer.infrastructure.datastore.postgres.statement.VariantEvictionHelper
 import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
@@ -81,11 +83,21 @@ class PostgresAssetRepository(
         }
     }
 
-    override suspend fun markUploaded(variant: Variant.Ready) {
-        with(dslContext) {
+    override suspend fun markUploaded(
+        variant: Variant.Ready,
+        cacheProperties: CacheProperties,
+    ) {
+        dslContext.contextualizedTransactionCoroutine(
+            advisoryLockKey = AdvisoryLockKeyProvider.assetLockKey(variant.assetId),
+        ) {
             UpdateStatementGenerator
                 .updateVariantUploaded(variant)
                 .awaitFirst()
+            VariantEvictionHelper.evictIfNecessary(
+                assetId = variant.assetId,
+                uploadedVariantId = variant.id,
+                cacheProperties = cacheProperties,
+            )
         }
     }
 

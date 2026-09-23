@@ -27,7 +27,9 @@ data class AssetVariant(
     var createdAt: LocalDateTime,
     var uploadedAt: LocalDateTime? = null,
     var expiresAt: LocalDateTime? = null,
-    var lastAccessedAt: LocalDateTime? = null
+    var lastAccessedAt: LocalDateTime? = null,
+    var accessScore: Double? = null,
+    var accessScoreAsOf: LocalDateTime? = null
 ): Serializable {
 
 
@@ -75,6 +77,18 @@ data class AssetVariant(
         }
         else if (this.lastAccessedAt != o.lastAccessedAt)
             return false
+        if (this.accessScore == null) {
+            if (o.accessScore != null)
+                return false
+        }
+        else if (this.accessScore != o.accessScore)
+            return false
+        if (this.accessScoreAsOf == null) {
+            if (o.accessScoreAsOf != null)
+                return false
+        }
+        else if (this.accessScoreAsOf != o.accessScoreAsOf)
+            return false
         return true
     }
 
@@ -93,6 +107,8 @@ data class AssetVariant(
         result = prime * result + (if (this.uploadedAt == null) 0 else this.uploadedAt.hashCode())
         result = prime * result + (if (this.expiresAt == null) 0 else this.expiresAt.hashCode())
         result = prime * result + (if (this.lastAccessedAt == null) 0 else this.lastAccessedAt.hashCode())
+        result = prime * result + (if (this.accessScore == null) 0 else this.accessScore.hashCode())
+        result = prime * result + (if (this.accessScoreAsOf == null) 0 else this.accessScoreAsOf.hashCode())
         return result
     }
 
@@ -111,6 +127,8 @@ data class AssetVariant(
         sb.append(", ").append(uploadedAt)
         sb.append(", ").append(expiresAt)
         sb.append(", ").append(lastAccessedAt)
+        sb.append(", ").append(accessScore)
+        sb.append(", ").append(accessScoreAsOf)
 
         sb.append(")")
         return sb.toString()

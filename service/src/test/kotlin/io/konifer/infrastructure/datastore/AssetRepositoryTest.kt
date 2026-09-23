@@ -8,6 +8,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.selector.Order
+import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
@@ -21,6 +22,7 @@ import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.retention.CacheProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
@@ -193,7 +195,10 @@ abstract class AssetRepositoryTest {
                             objectStoreKey = key,
                         ),
                     )
-                repository.markUploaded(newVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = newVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
                 newVariant.assetId shouldBe persisted.id
                 newVariant.apply {
                     this.attributes.height shouldBe attributes.height
@@ -258,7 +263,10 @@ abstract class AssetRepositoryTest {
                             expiresAt = expiry,
                         ),
                     )
-                repository.markUploaded(newVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = newVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
                 newVariant.assetId shouldBe persisted.id
                 newVariant.apply {
                     this.expiresAt?.toEpochSecond(UTC) shouldBe expiry.toEpochSecond(UTC)
@@ -463,7 +471,10 @@ abstract class AssetRepositoryTest {
                     )
                 val persistedVariant = repository.storeNewVariant(variant)
                 val readyVariant = persistedVariant.markReady(LocalDateTime.now(UTC))
-                repository.markUploaded(readyVariant)
+                repository.markUploaded(
+                    variant = readyVariant,
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -910,7 +921,10 @@ abstract class AssetRepositoryTest {
                                 ),
                         )
                     val persistedVariant = repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                    repository.markUploaded(
+                        variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                        cacheProperties = CacheProperties(),
+                    )
                 }
 
                 val fetched =
@@ -955,7 +969,10 @@ abstract class AssetRepositoryTest {
                                 ),
                         )
                     val persistedVariant = repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                    repository.markUploaded(
+                        variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                        cacheProperties = CacheProperties(),
+                    )
                 }
 
                 val fetched = repository.fetchAllByPath("/users/123", null, limit = 10)
@@ -1396,7 +1413,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1445,7 +1465,10 @@ abstract class AssetRepositoryTest {
                     )
 
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1488,7 +1511,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1531,7 +1557,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1574,7 +1603,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1617,7 +1649,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1659,7 +1694,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1701,7 +1739,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1747,7 +1788,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1800,7 +1844,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1852,7 +1899,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1899,7 +1949,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetchedAsset =
                     repository.fetchByPath(
@@ -1958,7 +2011,10 @@ abstract class AssetRepositoryTest {
                         transformation = transformation,
                     )
                 val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = persistedVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val assetData =
                     repository.fetchByPath(
@@ -2076,6 +2132,7 @@ abstract class AssetRepositoryTest {
                     repository
                         .markUploaded(
                             variant = persistedVariant.markReady(uploadedAt),
+                            cacheProperties = CacheProperties(),
                         ).let {
                             repository.fetchByPath(
                                 path = ready!!.path,
@@ -2131,8 +2188,10 @@ abstract class AssetRepositoryTest {
                         ),
                     )
                 val firstUploadedAt = LocalDateTime.now(UTC)
-
-                repository.markUploaded(firstVariant.markReady(firstUploadedAt))
+                repository.markUploaded(
+                    variant = firstVariant.markReady(firstUploadedAt),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetched =
                     repository.fetchByPath(
@@ -2160,5 +2219,90 @@ abstract class AssetRepositoryTest {
                     )!!
                     .variants shouldHaveSize 0
             }
+
+        @ParameterizedTest
+        @ValueSource(ints = [1, 5])
+        fun `mark uploaded evicts a variant if the max is exceeded`(maxVariants: Int) =
+            runTest {
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+
+                persisted.markReady(uploadedAt = LocalDateTime.now(UTC)).let {
+                    repository.markReady(it)
+                }
+
+                repeat(maxVariants) { idx ->
+                    val transformation =
+                        Transformation(
+                            format = ImageFormat.HEIC,
+                            height = (400 + idx).toDimension(),
+                            width = (400 + idx).toDimension(),
+                            colorSpace = ColorSpace.SRGB,
+                        )
+                    createAndUploadVariant(
+                        asset = persisted,
+                        transformation = transformation,
+                        maxVariants = maxVariants,
+                    )
+                }
+                val variantsBeforeEviction =
+                    repository
+                        .fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
+                            transformation = null,
+                        )?.variants shouldNotBe null
+                variantsBeforeEviction!! shouldHaveSize maxVariants + 1 // including original variant
+
+                val transformation =
+                    Transformation(
+                        format = ImageFormat.HEIC,
+                        height = (400 - maxVariants).toDimension(),
+                        width = (400 - maxVariants).toDimension(),
+                        colorSpace = ColorSpace.SRGB,
+                    )
+                createAndUploadVariant(
+                    asset = persisted,
+                    transformation = transformation,
+                    maxVariants = maxVariants,
+                )
+                val variantsAfterEviction =
+                    repository
+                        .fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        )?.variants shouldNotBe null
+                variantsAfterEviction!! shouldHaveSize maxVariants + 1 // including original variant
+            }
+
+        private suspend fun createAndUploadVariant(
+            asset: Asset,
+            transformation: Transformation,
+            maxVariants: Int,
+        ) {
+            val pendingVariant =
+                createPendingVariant(
+                    assetId = asset.id,
+                    transformation = transformation,
+                )
+
+            val persistedVariant = repository.storeNewVariant(pendingVariant)
+            persistedVariant.uploadedAt shouldBe null
+            val uploadedAt = LocalDateTime.now(UTC)
+            val readyVariant =
+                repository
+                    .markUploaded(
+                        variant = persistedVariant.markReady(uploadedAt),
+                        cacheProperties = CacheProperties(maxVariants = maxVariants),
+                    ).let {
+                        repository.fetchByPath(
+                            path = asset.path,
+                            entryId = asset.entryId,
+                            transformation = transformation,
+                        )
+                    }
+            readyVariant shouldNotBe null
+        }
     }
 }

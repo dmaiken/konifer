@@ -21,6 +21,52 @@ import java.util.UUID
 
 object DeleteStatementGenerator {
     context(trx: DSLContext)
+    fun deleteTargetVariantsAndEnqueueOutbox(targets: Select<Record1<UUID?>>): Select<Record1<Int>> {
+        val targetCte =
+            DSL
+                .name("target_variants")
+                .fields(ASSET_VARIANT.ID.name)
+                .`as`(targets)
+        val targetVariantId = checkNotNull(targetCte.field(ASSET_VARIANT.ID.name, ASSET_VARIANT.ID.dataType))
+        val deletedVariants: CommonTableExpression<AssetVariantRecord> =
+            DSL.name("deleted_variants").`as`(
+                DSL
+                    .deleteFrom(ASSET_VARIANT)
+                    .where(
+                        ASSET_VARIANT.ID.`in`(
+                            DSL.select(targetVariantId).from(targetCte),
+                        ),
+                    ).returning(
+                        ASSET_VARIANT.ID,
+                        ASSET_VARIANT.OBJECT_STORE_BUCKET,
+                        ASSET_VARIANT.OBJECT_STORE_KEY,
+                    ),
+            )
+        val insertedOutbox =
+            DSL.name("inserted_outbox").`as`(
+                DSL
+                    .insertInto(OUTBOX)
+                    .columns(OUTBOX.ID, OUTBOX.EVENT_TYPE, OUTBOX.PAYLOAD, OUTBOX.CREATED_AT)
+                    .select(
+                        DSL
+                            .select(
+                                DSL.function("gen_random_uuid", UUID::class.java),
+                                DSL.inline(VariantDeletedEvent.TYPE),
+                                VariantDeletedEvent.jsonJooqFunction(deletedVariants),
+                                DSL.currentLocalDateTime(),
+                            ).from(deletedVariants),
+                    ).returning(OUTBOX.ID),
+            )
+
+        return trx
+            .with(targetCte)
+            .with(deletedVariants)
+            .with(insertedOutbox)
+            .selectCount()
+            .from(deletedVariants)
+    }
+
+    context(trx: DSLContext)
     fun deleteVariantsAndEnqueueOutbox(targets: Select<Record1<UUID?>>): Select<Record1<UUID?>> {
         val targetCte = DSL.name("targets").`as`(targets)
         val deletedVariants: CommonTableExpression<AssetVariantRecord> =

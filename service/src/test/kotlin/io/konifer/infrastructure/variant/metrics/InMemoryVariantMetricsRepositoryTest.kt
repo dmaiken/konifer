@@ -33,6 +33,7 @@ class InMemoryVariantMetricsRepositoryTest {
                         VariantAccessedInformation(
                             accessedAt = accessedAt,
                             path = path,
+                            accessCount = 1,
                         ),
                 )
             repository.drainLastAccessed().shouldBeEmpty()
@@ -61,7 +62,10 @@ class InMemoryVariantMetricsRepositoryTest {
                 accessedAt = firstAccessedAt,
             )
 
-            repository.drainLastAccessed().getValue(variantId).accessedAt shouldBe laterAccessedAt
+            val accessedInformation = repository.drainLastAccessed().getValue(variantId)
+
+            accessedInformation.accessedAt shouldBe laterAccessedAt
+            accessedInformation.accessCount shouldBe 3
         }
 
     @Test
