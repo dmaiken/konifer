@@ -20,7 +20,7 @@
     "node": ">=24.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "8.0.1",
+    "@babel/eslint-parser": "8.0.5",
     "@babel/preset-typescript": "8.0.1",
     "@eslint/js": "10.0.1",
     "@fontsource/geist-mono": "5.3.0",
