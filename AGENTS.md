@@ -58,3 +58,5 @@ The project attempts to follow DDD architecture, but it is not perfect. Follow t
 This is not a Spring Boot project. Explicitness in the code is favored. Prefer Kotlin semantics and avoid java-like Kotlin.
 Prefer the use of Value classes to represent domain value objects and the use of sealed classes/interfaces to define state
 and control state transitions.
+
+If necessary, lint at the end of the task using: `./gradlew ktlintFormat detekt`
