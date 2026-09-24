@@ -12,6 +12,7 @@ r2dbc-migrate-version = "4.1.0"
 r2dbc-pool-version = "1.0.2.RELEASE"
 r2dbc-postgresql-version = "1.1.2.RELEASE"
 testcontainers-version = "2.0.5"
+testcontainers-floci-version = "2.15.0"
 kotest-version = "6.2.5"
 photofix-libvips-version = "1.9.8"
 mockk-version = "1.14.11"
@@ -91,7 +92,7 @@ kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref =
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers-version" }
 testcontainers-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers-version" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers-version" }
-testcontainers-localstack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testcontainers-version" }
+testcontainers-floci = { module = "io.floci:testcontainers-floci", version.ref = "testcontainers-floci-version" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin-version" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk-version" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility-version" }

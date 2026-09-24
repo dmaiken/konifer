@@ -1,6 +1,6 @@
 package io.konifer.asset.store
 
-import io.konifer.BaseLocalstackTestContainersTest
+import io.konifer.BaseFlociTestContainersTest
 import io.konifer.ImageFactory
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetSourceRequest
@@ -19,7 +19,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
-class StoreAssetExternalArnTest : BaseLocalstackTestContainersTest() {
+class StoreAssetExternalArnTest : BaseFlociTestContainersTest() {
     @Test
     fun `can upload an asset by supplying an arn`() {
         val bucket = "external-assets"
@@ -27,7 +27,7 @@ class StoreAssetExternalArnTest : BaseLocalstackTestContainersTest() {
         val arn = "arn:aws:s3:::$bucket/$key"
         val (image, attributes) = ImageFactory.testImage()
 
-        createLocalstackS3Client().use { s3Client ->
+        createFlociS3Client().use { s3Client ->
             s3Client
                 .createBucket(CreateBucketRequest.builder().bucket(bucket).build())
                 .join()
@@ -114,7 +114,7 @@ class StoreAssetExternalArnTest : BaseLocalstackTestContainersTest() {
         val arn = "arn:aws:s3:::$bucket/$key"
         val (image, attributes) = ImageFactory.testImage()
 
-        createLocalstackS3Client().use { s3Client ->
+        createFlociS3Client().use { s3Client ->
             s3Client
                 .createBucket(CreateBucketRequest.builder().bucket(bucket).build())
                 .join()

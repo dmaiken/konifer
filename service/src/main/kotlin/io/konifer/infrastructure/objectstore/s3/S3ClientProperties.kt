@@ -9,9 +9,9 @@ data class S3ClientProperties(
     val providerHint: S3Provider? = null,
 ) {
     init {
-        if (providerHint == S3Provider.LOCALSTACK) {
+        if (providerHint == S3Provider.FLOCI) {
             require(endpointUrl != null && region != null) {
-                "If using localstack you must specify endpointUrl and region"
+                "If using Floci you must specify endpointUrl and region"
             }
         }
     }

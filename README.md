@@ -238,6 +238,9 @@ local Gradle runs.
 
 Common Gradle tasks:
 
+S3-backed tests start an isolated `floci/floci:latest` instance through Testcontainers; no separately managed AWS
+emulator is required.
+
 | Task                              | Description                                                          |
 |-----------------------------------|----------------------------------------------------------------------|
 | `./gradlew test`                  | Run tests                                                            |

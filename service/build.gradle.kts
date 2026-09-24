@@ -131,7 +131,7 @@ dependencies {
 
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
-    testImplementation(libs.testcontainers.localstack)
+    testImplementation(libs.testcontainers.floci)
     testImplementation(libs.testcontainers.jupiter)
     testImplementation(libs.junit.pioneer)
     testImplementation(libs.junit.params)
@@ -160,7 +160,7 @@ dependencies {
     testFixturesImplementation(project(":client"))
     testFixturesImplementation(libs.testcontainers)
     testFixturesImplementation(libs.testcontainers.postgresql)
-    testFixturesImplementation(libs.testcontainers.localstack)
+    testFixturesImplementation(libs.testcontainers.floci)
     testFixturesImplementation(libs.testcontainers.jupiter)
     testFixturesImplementation(libs.jooq)
     testFixturesImplementation(libs.junit.params)

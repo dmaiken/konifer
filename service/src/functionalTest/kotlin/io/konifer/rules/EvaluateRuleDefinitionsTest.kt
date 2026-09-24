@@ -1,6 +1,6 @@
 package io.konifer.rules
 
-import io.konifer.BaseLocalstackTestContainersTest
+import io.konifer.BaseFlociTestContainersTest
 import io.konifer.ImageFactory
 import io.konifer.KoniferTestHandle
 import io.konifer.common.http.AssetSourceRequest
@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import kotlin.time.Duration.Companion.seconds
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EvaluateRuleDefinitionsTest : BaseLocalstackTestContainersTest() {
+class EvaluateRuleDefinitionsTest : BaseFlociTestContainersTest() {
     private lateinit var handle: KoniferTestHandle
 
     @BeforeAll
@@ -67,7 +67,7 @@ class EvaluateRuleDefinitionsTest : BaseLocalstackTestContainersTest() {
                     listOf(
                         module {
                             single<AwsS3SourceReader> {
-                                AwsS3SourceReader(lazy { createLocalstackS3Client() })
+                                AwsS3SourceReader(lazy { createFlociS3Client() })
                             }
                         },
                     ),
@@ -350,7 +350,7 @@ class EvaluateRuleDefinitionsTest : BaseLocalstackTestContainersTest() {
         val key = "images/joshua-tree.png"
         val arn = "arn:aws:s3:::$bucket/$key"
         val (image, attributes) = ImageFactory.testImage()
-        createLocalstackS3Client().use { s3Client ->
+        createFlociS3Client().use { s3Client ->
             s3Client
                 .createBucket(CreateBucketRequest.builder().bucket(bucket).build())
                 .join()
