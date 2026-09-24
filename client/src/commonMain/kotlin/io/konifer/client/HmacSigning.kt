@@ -15,7 +15,7 @@ enum class HmacSigningAlgorithm {
     HMAC_SHA512,
 }
 
-internal fun HmacSigningAlgorithm.toAlgorithm() =
+fun HmacSigningAlgorithm.toAlgorithm() =
     when (this) {
         HmacSigningAlgorithm.HMAC_SHA256 -> SHA256
         HmacSigningAlgorithm.HMAC_SHA384 -> SHA384
@@ -77,7 +77,7 @@ class KoniferUrlSigner private constructor(
     }
 }
 
-internal fun ByteArray.base64UrlWithoutPadding(): String =
+fun ByteArray.base64UrlWithoutPadding(): String =
     Base64.UrlSafe
         .withPadding(Base64.PaddingOption.ABSENT)
         .encode(this)

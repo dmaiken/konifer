@@ -11,12 +11,13 @@ import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
+import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.mockk.spyk
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 
 abstract class BaseUnitTest {
-    protected val assetRepository = spyk(InMemoryAssetRepository())
+    protected val assetRepository = spyk(InMemoryAssetRepository(InMemoryObjectStore()))
 
     protected suspend fun storePersistedAsset(
         path: String = "/users/123",

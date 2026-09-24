@@ -22,6 +22,13 @@ data class TransformProperties(
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.LIMITS)
     val limits: TransformationLimitProperties = TransformationLimitProperties.default,
 ) {
+    init {
+        require(eagerVariants.size < retention.cache.maxVariants) {
+            "max-variants (${retention.cache.maxVariants}) cannot be less than number of " +
+                "eager-variants (${eagerVariants.size}) defined for path"
+        }
+    }
+
     companion object Factory {
         val default = TransformProperties()
     }

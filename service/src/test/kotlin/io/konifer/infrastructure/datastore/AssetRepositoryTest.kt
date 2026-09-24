@@ -21,12 +21,14 @@ import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.retention.CacheProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.maps.shouldContainExactly
@@ -2276,33 +2278,147 @@ abstract class AssetRepositoryTest {
                 variantsAfterEviction!! shouldHaveSize maxVariants + 1 // including original variant
             }
 
-        private suspend fun createAndUploadVariant(
-            asset: Asset,
-            transformation: Transformation,
-            maxVariants: Int,
-        ) {
-            val pendingVariant =
-                createPendingVariant(
-                    assetId = asset.id,
-                    transformation = transformation,
+        @Test
+        fun `mark uploaded removes every cached variant beyond a reduced max`() =
+            runTest {
+                val persisted = repository.storeNew(createPendingAsset())
+                repository.markReady(persisted.markReady(uploadedAt = LocalDateTime.now(UTC)))
+
+                val previouslyReadyVariantIds =
+                    (1..3).map { index ->
+                        createAndUploadVariant(
+                            asset = persisted,
+                            transformation =
+                                Transformation(
+                                    format = ImageFormat.HEIC,
+                                    height = (500 + index).toDimension(),
+                                    width = (500 + index).toDimension(),
+                                    colorSpace = ColorSpace.SRGB,
+                                ),
+                            maxVariants = 3,
+                        ).id
+                    }
+
+                val newlyUploadedVariantId =
+                    createAndUploadVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 700.toDimension(),
+                                width = 700.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 1,
+                    ).id
+
+                val retainedAssetData =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        ),
+                    )
+                val retainedVariantIds = retainedAssetData.variants.map { it.id }
+
+                retainedVariantIds shouldContainExactlyInAnyOrder
+                    listOf(
+                        persisted.variants.single().id,
+                        newlyUploadedVariantId,
+                    )
+                retainedVariantIds.none { it in previouslyReadyVariantIds } shouldBe true
+            }
+
+        @Test
+        fun `pending variants do not count toward the max`() =
+            runTest {
+                val persisted = repository.storeNew(createPendingAsset())
+                repository.markReady(persisted.markReady(uploadedAt = LocalDateTime.now(UTC)))
+
+                val firstReadyVariantId =
+                    createAndUploadVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 800.toDimension(),
+                                width = 800.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 2,
+                    ).id
+                repository.storeNewVariant(
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 900.toDimension(),
+                                width = 900.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                    ),
                 )
 
-            val persistedVariant = repository.storeNewVariant(pendingVariant)
-            persistedVariant.uploadedAt shouldBe null
-            val uploadedAt = LocalDateTime.now(UTC)
-            val readyVariant =
-                repository
-                    .markUploaded(
-                        variant = persistedVariant.markReady(uploadedAt),
-                        cacheProperties = CacheProperties(maxVariants = maxVariants),
-                    ).let {
+                val secondReadyVariantId =
+                    createAndUploadVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 1_000.toDimension(),
+                                width = 1_000.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 2,
+                    ).id
+
+                val retainedVariantIds =
+                    checkNotNull(
                         repository.fetchByPath(
-                            path = asset.path,
-                            entryId = asset.entryId,
-                            transformation = transformation,
-                        )
-                    }
-            readyVariant shouldNotBe null
-        }
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        ),
+                    ).variants.map { it.id }
+
+                retainedVariantIds shouldContainExactlyInAnyOrder
+                    listOf(
+                        persisted.variants.single().id,
+                        firstReadyVariantId,
+                        secondReadyVariantId,
+                    )
+            }
+    }
+
+    protected suspend fun createAndUploadVariant(
+        asset: Asset,
+        transformation: Transformation,
+        maxVariants: Int,
+    ): Variant {
+        val pendingVariant =
+            createPendingVariant(
+                assetId = asset.id,
+                transformation = transformation,
+            )
+
+        val persistedVariant = repository.storeNewVariant(pendingVariant)
+        persistedVariant.uploadedAt shouldBe null
+        val uploadedAt = LocalDateTime.now(UTC)
+        val readyVariant =
+            repository
+                .markUploaded(
+                    variant = persistedVariant.markReady(uploadedAt),
+                    cacheProperties = CacheProperties(maxVariants = maxVariants),
+                ).let {
+                    repository.fetchByPath(
+                        path = asset.path,
+                        entryId = asset.entryId,
+                        transformation = transformation,
+                    )
+                }
+        readyVariant shouldNotBe null
+        return persistedVariant
     }
 }

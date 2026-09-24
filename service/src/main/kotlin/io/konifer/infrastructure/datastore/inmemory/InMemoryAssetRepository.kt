@@ -6,6 +6,7 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
@@ -19,12 +20,14 @@ import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 
-internal data class ObjectStoreReference(
+data class ObjectStoreReference(
     val bucket: String,
     val key: String,
 )
 
-class InMemoryAssetRepository : AssetRepository {
+class InMemoryAssetRepository(
+    private val objectStore: ObjectStore,
+) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
@@ -80,12 +83,28 @@ class InMemoryAssetRepository : AssetRepository {
                 ?.let { asset ->
                     asset.variants.removeIf { it.id == variant.id }
                     asset.variants.add(variant)
-                    // + 1 to include original variant
-                    if (asset.variants.size > cacheProperties.maxVariants + 1) {
-                        // Evict oldest variant
-                        val variantToEvict = asset.variants.minBy { it.createdAt }
-                        asset.variants.remove(variantToEvict)
-                    }
+                    val readyCachedVariants =
+                        asset.variants.filter {
+                            !it.isOriginalVariant && it.uploadedAt != null
+                        }
+                    val variantsToEvict =
+                        (readyCachedVariants.size - cacheProperties.maxVariants)
+                            .coerceAtLeast(0)
+                    readyCachedVariants
+                        .asSequence()
+                        .filter { it.id != variant.id }
+                        .sortedBy { it.createdAt }
+                        .take(variantsToEvict)
+                        .toSet()
+                        .let { variantsToEvict ->
+                            asset.variants.removeAll(variantsToEvict)
+                            variantsToEvict.forEach { variant ->
+                                objectStore.delete(
+                                    bucket = variant.objectStoreBucket,
+                                    key = variant.objectStoreKey,
+                                )
+                            }
+                        }
                 }
         }
     }
@@ -215,7 +234,7 @@ class InMemoryAssetRepository : AssetRepository {
         }
     }
 
-    internal suspend fun deleteAndReturnObjectReferences(command: DeleteAssetsCommand): List<ObjectStoreReference> =
+    suspend fun deleteAndReturnObjectReferences(command: DeleteAssetsCommand): List<ObjectStoreReference> =
         storeMutex.withLock {
             val assets =
                 when (command) {

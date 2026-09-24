@@ -6,7 +6,9 @@ import io.konifer.client.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.testInMemory
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class MaxVariantEvictionTest : BaseFunctionalTest() {
@@ -69,5 +71,11 @@ class MaxVariantEvictionTest : BaseFunctionalTest() {
                     ).shouldBeSuccessful()
 
             infoAfterEviction.body.variants shouldHaveSize 4 // cache doesn't grow
+            infoAfterEviction.body.variants.forExactly(1) {
+                it.isOriginalVariant shouldBe true
+            }
+            infoAfterEviction.body.variants.forExactly(1) {
+                it.transformation?.height shouldBe 200
+            }
         }
 }
