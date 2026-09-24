@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.objectstore.s3
 
+import io.floci.testcontainers.FlociContainer
 import io.konifer.domain.ports.AssetSourceForbiddenException
 import io.konifer.domain.ports.AssetSourceTimeoutException
 import io.konifer.domain.ports.AssetSourceUnavailableException
@@ -16,8 +17,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.localstack.LocalStackContainer
-import org.testcontainers.utility.DockerImageName
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException
@@ -34,38 +33,35 @@ class AwsS3SourceReaderTest {
 
         @JvmStatic
         @Container
-        private val localstack =
-            LocalStackContainer(DockerImageName.parse("localstack/localstack:4.14"))
-                .withEnv("LOCALSTACK_DISABLE_CHECKSUM_VALIDATION", "1")
-                .withServices("s3")
+        private val floci = FlociContainer("floci/floci:latest")
 
-        private lateinit var localstackClient: S3AsyncClient
+        private lateinit var flociClient: S3AsyncClient
         private lateinit var reader: AwsS3SourceReader
 
         @JvmStatic
         @BeforeAll
         fun createReader() {
-            localstackClient =
+            flociClient =
                 s3Client(
                     S3ClientProperties(
-                        endpointUrl = localstack.endpoint.toString(),
-                        region = localstack.region,
-                        accessKey = localstack.accessKey,
-                        secretKey = localstack.secretKey,
+                        endpointUrl = floci.endpoint,
+                        region = floci.region,
+                        accessKey = floci.accessKey,
+                        secretKey = floci.secretKey,
                         forcePathStyle = true,
-                        providerHint = S3Provider.LOCALSTACK,
+                        providerHint = S3Provider.FLOCI,
                     ),
                 )
-            localstackClient
+            flociClient
                 .createBucket(CreateBucketRequest.builder().bucket(BUCKET).build())
                 .join()
-            reader = AwsS3SourceReader(lazy { localstackClient })
+            reader = AwsS3SourceReader(lazy { flociClient })
         }
 
         @JvmStatic
         @AfterAll
         fun closeClient() {
-            localstackClient.close()
+            flociClient.close()
         }
     }
 
@@ -74,7 +70,7 @@ class AwsS3SourceReaderTest {
         runTest {
             val key = "nested/source.txt"
             val expected = "content fetched through the source reader".encodeToByteArray()
-            localstackClient
+            flociClient
                 .putObject(
                     PutObjectRequest
                         .builder()

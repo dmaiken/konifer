@@ -31,7 +31,7 @@ class S3ClientPropertiesTest {
     }
 
     @Test
-    fun `if provider hint is localstack then region must be supplied`() {
+    fun `if provider hint is Floci then region must be supplied`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
                 S3ClientProperties(
@@ -39,14 +39,14 @@ class S3ClientPropertiesTest {
                     accessKey = null,
                     secretKey = null,
                     region = null,
-                    providerHint = S3Provider.LOCALSTACK,
+                    providerHint = S3Provider.FLOCI,
                 )
             }
-        exception.message shouldBe "If using localstack you must specify endpointUrl and region"
+        exception.message shouldBe "If using Floci you must specify endpointUrl and region"
     }
 
     @Test
-    fun `if provider hint is localstack then endpoint url must be supplied`() {
+    fun `if provider hint is Floci then endpoint url must be supplied`() {
         val exception =
             shouldThrow<IllegalArgumentException> {
                 S3ClientProperties(
@@ -54,9 +54,9 @@ class S3ClientPropertiesTest {
                     accessKey = null,
                     secretKey = null,
                     region = "us-east-1",
-                    providerHint = S3Provider.LOCALSTACK,
+                    providerHint = S3Provider.FLOCI,
                 )
             }
-        exception.message shouldBe "If using localstack you must specify endpointUrl and region"
+        exception.message shouldBe "If using Floci you must specify endpointUrl and region"
     }
 }
