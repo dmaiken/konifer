@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
@@ -43,7 +44,12 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetRepository
                         .storeNewVariant(pending)
                         .markReady(LocalDateTime.now(UTC))
-                        .also { assetRepository.markUploaded(it) }
+                        .also {
+                            assetRepository.markUploaded(
+                                variant = it,
+                                cacheProperties = CacheProperties(),
+                            )
+                        }
                 }
             val longExpiringVariant =
                 createPendingVariant(
@@ -60,7 +66,12 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetRepository
                         .storeNewVariant(pending)
                         .markReady(LocalDateTime.now(UTC))
-                        .also { assetRepository.markUploaded(it) }
+                        .also {
+                            assetRepository.markUploaded(
+                                variant = it,
+                                cacheProperties = CacheProperties(),
+                            )
+                        }
                 }
 
             ExpiredVariantSweeper.invoke(postgresVariantRepository)
@@ -104,7 +115,12 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                     assetRepository
                         .storeNewVariant(pending)
                         .markReady(LocalDateTime.now(UTC))
-                        .also { assetRepository.markUploaded(it) }
+                        .also {
+                            assetRepository.markUploaded(
+                                variant = it,
+                                cacheProperties = CacheProperties(),
+                            )
+                        }
                 }
 
             ExpiredVariantSweeper.invoke(postgresVariantRepository)

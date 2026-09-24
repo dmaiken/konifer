@@ -143,6 +143,16 @@ open class AssetVariant(
      */
     val LAST_ACCESSED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("last_accessed_at"), SQLDataType.LOCALDATETIME(6), this, "")
 
+    /**
+     * The column <code>public.asset_variant.access_score</code>.
+     */
+    val ACCESS_SCORE: TableField<AssetVariantRecord, Double?> = createField(DSL.name("access_score"), SQLDataType.DOUBLE.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.DOUBLE)), this, "")
+
+    /**
+     * The column <code>public.asset_variant.access_score_as_of</code>.
+     */
+    val ACCESS_SCORE_AS_OF: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("access_score_as_of"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"), SQLDataType.LOCALDATETIME)), this, "")
+
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, where: Condition?): this(alias, null, null, null, aliased, null, where)

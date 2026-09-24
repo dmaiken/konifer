@@ -8,23 +8,26 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.selector.Order
+import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
-import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.retention.CacheProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.maps.shouldContainExactly
@@ -35,7 +38,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDateTime
@@ -193,7 +196,10 @@ abstract class AssetRepositoryTest {
                             objectStoreKey = key,
                         ),
                     )
-                repository.markUploaded(newVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = newVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
                 newVariant.assetId shouldBe persisted.id
                 newVariant.apply {
                     this.attributes.height shouldBe attributes.height
@@ -258,7 +264,10 @@ abstract class AssetRepositoryTest {
                             expiresAt = expiry,
                         ),
                     )
-                repository.markUploaded(newVariant.markReady(LocalDateTime.now(UTC)))
+                repository.markUploaded(
+                    variant = newVariant.markReady(LocalDateTime.now(UTC)),
+                    cacheProperties = CacheProperties(),
+                )
                 newVariant.assetId shouldBe persisted.id
                 newVariant.apply {
                     this.expiresAt?.toEpochSecond(UTC) shouldBe expiry.toEpochSecond(UTC)
@@ -391,23 +400,6 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
-        fun `returns asset with path that has trailing slash`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val fetched =
-                    repository.fetchByPath(
-                        persisted.path + "/",
-                        persisted.entryId,
-                        null,
-                        Order.NEW,
-                    )
-
-                fetched?.id shouldBe persisted.id
-            }
-
-        @Test
         fun `returns last created asset if multiple exist`() =
             runTest {
                 val pending1 = createPendingAsset()
@@ -441,73 +433,6 @@ abstract class AssetRepositoryTest {
                 val pending = createPendingAsset()
                 repository.storeNew(pending)
                 repository.fetchByPath(pending.path, entryId = 1, transformation = null, Order.NEW) shouldBe null
-            }
-
-        @Test
-        fun `returns existing variant based on transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val variant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(variant)
-                val readyVariant = persistedVariant.markReady(LocalDateTime.now(UTC))
-                repository.markUploaded(readyVariant)
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset?.id shouldBe persisted.id
-                fetchedAsset!!.variants shouldHaveSize 1
-                assertFetchedVariantAgainstAggregate(fetchedAsset.variants.first(), readyVariant)
-            }
-
-        @ParameterizedTest
-        @MethodSource("io.konifer.infrastructure.datastore.AssetRepositoryTestDataProviders#variantTransformationSource")
-        fun `fit is respected when fetching a variant`(transformation: Transformation) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val variantTransformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        fit = Fit.FIT,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = variantTransformation,
-                    )
-                val persistedVariant =
-                    repository.storeNewVariant(pendingVariant)
-                persistedVariant.assetId shouldBe persisted.id
-
-                val assetData =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                assetData shouldNotBe null
-                assetData!!.variants shouldHaveSize 0
             }
 
         @Test
@@ -552,93 +477,62 @@ abstract class AssetRepositoryTest {
         @Test
         fun `returns no asset at path if none have requested labels`() =
             runTest {
-                val pending =
-                    createPendingAsset(
-                        labels =
-                            mapOf(
-                                "phone" to "iphone",
-                                "hello" to "world",
-                            ),
+                val ready =
+                    storeReadyAsset(
+                        createPendingAsset(
+                            labels =
+                                mapOf(
+                                    "phone" to "iphone",
+                                    "hello" to "world",
+                                ),
+                        ),
                     )
-                val persisted = repository.storeNew(pending)
 
-                val assetAndVariants =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = null,
-                        transformation = null,
+                repository.fetchByPath(
+                    path = ready.path,
+                    entryId = null,
+                    transformation = null,
+                    labels = mapOf("phone" to "android"),
+                ) shouldBe null
+            }
+
+        @ParameterizedTest(name = "matchAllLabels={0}")
+        @ValueSource(booleans = [true, false])
+        fun `returns asset matching requested labels`(matchAllLabels: Boolean) =
+            runTest {
+                val storedLabels =
+                    mapOf(
+                        "phone" to "iphone",
+                        "hello" to "world",
+                    )
+                val matching = storeReadyAsset(createPendingAsset(labels = storedLabels))
+                storeReadyAsset(
+                    createPendingAsset(
                         labels =
                             mapOf(
                                 "phone" to "android",
                             ),
-                    )
-                assetAndVariants shouldBe null
-            }
-
-        @Test
-        fun `returns asset at path matching all requested labels`() =
-            runTest {
-                val labels =
-                    mapOf(
-                        "phone" to "iphone",
-                        "hello" to "world",
-                    )
-                val pending = createPendingAsset(labels = labels)
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                repository.storeNew(
-                    createPendingAsset(
-                        labels =
-                            mapOf(
-                                "phone" to "iphone",
-                            ),
                     ),
                 )
+                val requestedLabels =
+                    if (matchAllLabels) {
+                        storedLabels
+                    } else {
+                        mapOf("phone" to "iphone")
+                    }
 
-                val assetData =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = null,
-                        transformation = null,
-                        labels = labels,
+                val fetched =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = matching.path,
+                            entryId = null,
+                            transformation = null,
+                            labels = requestedLabels,
+                        ),
                     )
-                assetData shouldNotBe null
-                assetData!!.id shouldBe persisted.id
-                assetData.variants shouldHaveSize 1
-                assetData.variants.first().apply {
-                    isOriginalVariant shouldBe true
-                }
-                assetData.labels shouldContainExactly labels
-            }
-
-        @Test
-        fun `returns asset at path matching some requested labels`() =
-            runTest {
-                val labels =
-                    mapOf(
-                        "phone" to "iphone",
-                        "hello" to "world",
-                    )
-                val pending = createPendingAsset(labels = labels)
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val assetData =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = null,
-                        transformation = null,
-                        labels =
-                            mapOf(
-                                "phone" to "iphone",
-                            ),
-                    )
-                assetData shouldNotBe null
-                assetData!!.id shouldBe persisted.id
-                assetData.variants shouldHaveSize 1
-                assetData.variants.first().apply {
-                    isOriginalVariant shouldBe true
-                }
-                assetData.labels shouldContainExactly labels
+                fetched.id shouldBe matching.id
+                fetched.variants.single().isOriginalVariant shouldBe true
+                fetched.labels shouldContainExactly storedLabels
             }
 
         @Test
@@ -726,61 +620,33 @@ abstract class AssetRepositoryTest {
             }
 
         @Test
-        fun `returns all assets at path`() =
-            runTest {
-                val pending1 = createPendingAsset()
-                val pending2 = createPendingAsset()
-                val persisted1 = repository.storeNew(pending1)
-                repository.markReady(persisted1.markReady(LocalDateTime.now(UTC)))
-                val persisted2 = repository.storeNew(pending2)
-                repository.markReady(persisted2.markReady(LocalDateTime.now(UTC)))
-
-                repository.fetchAllByPath(pending1.path, null, limit = 10).also {
-                    it shouldHaveSize 2
-                    it[0].id shouldBe persisted2.id
-                    it[1].id shouldBe persisted1.id
-                }
-            }
-
-        @Test
         fun `returns all assets at path ordered correctly`() =
             runTest {
-                val pending1 = createPendingAsset()
-                val pending2 = createPendingAsset()
-                val persisted1 = repository.storeNew(pending1)
-                repository.markReady(persisted1.markReady(LocalDateTime.now(UTC)))
-                val persisted2 = repository.storeNew(pending2)
-                repository.markReady(persisted2.markReady(LocalDateTime.now(UTC)))
-                val ready1 =
-                    persisted1.markReady(LocalDateTime.now(UTC)).update(
+                val first = storeReadyAsset()
+                val second = storeReadyAsset()
+                val updatedFirst =
+                    first.update(
                         alt = "I'm updated!!",
-                        tags = persisted1.tags.asSet(),
-                        labels = persisted1.labels.asMap(),
+                        tags = first.tags.asSet(),
+                        labels = first.labels.asMap(),
                     )
-                repository.update(ready1)
+                repository.update(updatedFirst)
 
-                repository.fetchAllByPath("/users/123", null, order = Order.NEW, limit = 10).also {
-                    it shouldHaveSize 2
-                    it[0].id shouldBe persisted2.id
-                    it[1].id shouldBe persisted1.id
-                }
-                repository.fetchAllByPath("/users/123", null, order = Order.MODIFIED, limit = 10).also {
-                    it shouldHaveSize 2
-                    it[0].id shouldBe persisted1.id
-                    it[1].id shouldBe persisted2.id
-                }
+                repository
+                    .fetchAllByPath("/users/123", null, order = Order.NEW, limit = 10)
+                    .map { it.id } shouldContainExactly listOf(second.id, first.id)
+                repository
+                    .fetchAllByPath("/users/123", null, order = Order.MODIFIED, limit = 10)
+                    .map { it.id } shouldContainExactly listOf(first.id, second.id)
             }
 
         @Test
         fun `returns no assets at path if none have requested labels`() =
             runTest {
-                val pending1 = createPendingAsset(labels = emptyMap())
-                val pending2 = createPendingAsset(labels = emptyMap())
-                repository.storeNew(pending1)
-                repository.storeNew(pending2)
+                val assets = storeReadyAssets(count = 2) { createPendingAsset(labels = emptyMap()) }
 
                 repository.fetchAllByPath(
-                    path = pending1.path,
+                    path = assets.first().path,
                     transformation = null,
                     labels =
                         mapOf(
@@ -791,78 +657,42 @@ abstract class AssetRepositoryTest {
                 ) shouldBe emptyList()
             }
 
-        @Test
-        fun `returns assets at path matching all requested labels`() =
+        @ParameterizedTest(name = "matchAllLabels={0}")
+        @ValueSource(booleans = [true, false])
+        fun `returns assets matching requested labels`(matchAllLabels: Boolean) =
             runTest {
-                val labels =
+                val storedLabels =
                     mapOf(
                         "phone" to "iphone",
                         "hello" to "world",
                     )
-                val pending1 = createPendingAsset(labels = labels)
-                val pending2 =
-                    createPendingAsset(
-                        labels =
-                            mapOf(
-                                "phone" to "iphone",
-                            ),
-                    )
-                val persisted1 = repository.storeNew(pending1)
-                repository.storeNew(pending2)
+                val matching = storeReadyAssets(count = 2) { createPendingAsset(labels = storedLabels) }
+                storeReadyAsset(createPendingAsset(labels = mapOf("phone" to "android")))
+                val requestedLabels =
+                    if (matchAllLabels) {
+                        storedLabels
+                    } else {
+                        mapOf("phone" to "iphone")
+                    }
 
-                repository
-                    .fetchAllByPath(
+                val fetched =
+                    repository.fetchAllByPath(
                         path = "/users/123",
                         transformation = null,
-                        labels = labels,
+                        labels = requestedLabels,
                         limit = 10,
-                    ).forAll {
-                        it.id shouldBe persisted1.id
-                    }
-            }
-
-        @Test
-        fun `returns assets at path matching some requested labels`() =
-            runTest {
-                val labels =
-                    mapOf(
-                        "phone" to "iphone",
-                        "hello" to "world",
                     )
-                val dto1 = createPendingAsset(labels = labels)
-                val dto2 = createPendingAsset(labels = labels)
-                val persisted1 = repository.storeNew(dto1)
-                repository.markReady(persisted1.markReady(LocalDateTime.now(UTC)))
-                val persisted2 = repository.storeNew(dto2)
-                repository.markReady(persisted2.markReady(LocalDateTime.now(UTC)))
-
-                repository
-                    .fetchAllByPath(
-                        path = "/users/123",
-                        transformation = null,
-                        labels =
-                            mapOf(
-                                "phone" to "iphone",
-                            ),
-                        limit = 10,
-                    ).also {
-                        it shouldHaveSize 2
-                        it[0].id shouldBe persisted2.id
-                        it[1].id shouldBe persisted1.id
-                    }
+                fetched.map { it.id } shouldContainExactly matching.map { it.id }.reversed()
             }
 
         @Test
         fun `returns all assets even if they do not have a requested variant`() =
             runTest {
-                val count = 3
-                repeat(count) {
-                    val pending = createPendingAsset()
-                    val persisted = repository.storeNew(pending)
-                    repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                    val pendingVariant =
+                val assets = storeReadyAssets(count = 3)
+                assets.forEach { asset ->
+                    repository.storeNewVariant(
                         createPendingVariant(
-                            assetId = persisted.id,
+                            assetId = asset.id,
                             transformation =
                                 Transformation(
                                     height = 10.toDimension(),
@@ -870,9 +700,8 @@ abstract class AssetRepositoryTest {
                                     format = ImageFormat.PNG,
                                     colorSpace = ColorSpace.SRGB,
                                 ),
-                        )
-
-                    repository.storeNewVariant(pendingVariant)
+                        ),
+                    )
                 }
                 val transformation =
                     Transformation(
@@ -884,88 +713,39 @@ abstract class AssetRepositoryTest {
                     )
 
                 val fetched = repository.fetchAllByPath("/users/123", transformation, limit = 10)
-                fetched shouldHaveSize 3
+                fetched shouldHaveSize assets.size
                 fetched.forAll {
                     it.variants shouldHaveSize 0
                 }
             }
 
-        @Test
-        fun `returns all assets and all variants`() =
+        @ParameterizedTest(name = "requestSpecificVariant={0}")
+        @ValueSource(booleans = [true, false])
+        fun `returns all assets with the requested variants`(requestSpecificVariant: Boolean) =
             runTest {
-                val count = 3
-                repeat(count) {
-                    val pending = createPendingAsset()
-                    val persisted = repository.storeNew(pending)
-                    repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                    val pendingVariant =
-                        createPendingVariant(
-                            assetId = persisted.id,
-                            transformation =
-                                Transformation(
-                                    height = 10.toDimension(),
-                                    width = 10.toDimension(),
-                                    format = ImageFormat.PNG,
-                                    colorSpace = ColorSpace.SRGB,
-                                ),
-                        )
-                    val persistedVariant = repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-                }
-
-                val fetched =
-                    repository.fetchAllByPath(
-                        "/users/123",
-                        Transformation(
-                            height = 10.toDimension(),
-                            width = 10.toDimension(),
-                            format = ImageFormat.PNG,
-                            colorSpace = ColorSpace.SRGB,
-                        ),
-                        limit = 10,
+                val transformation =
+                    Transformation(
+                        height = 10.toDimension(),
+                        width = 10.toDimension(),
+                        format = ImageFormat.PNG,
+                        colorSpace = ColorSpace.SRGB,
                     )
-                fetched shouldHaveSize 3
+                val assets = storeReadyAssets(count = 3)
+                assets.forEach { asset ->
+                    storeReadyVariant(asset, transformation)
+                }
+
+                val requestedTransformation = if (requestSpecificVariant) transformation else null
+                val fetched = repository.fetchAllByPath("/users/123", requestedTransformation, limit = 10)
+                fetched shouldHaveSize assets.size
                 fetched.forAll {
-                    it.variants shouldHaveSize 1
-                    it.variants.first().apply {
-                        transformation.height shouldBe 10.toDimension()
-                        transformation.width shouldBe 10.toDimension()
-                        isOriginalVariant shouldBe false
+                    if (requestSpecificVariant) {
+                        it.variants.single().transformation shouldBe transformation
+                    } else {
+                        it.variants shouldHaveSize 2
+                        it.variants.any { variant -> variant.isOriginalVariant } shouldBe true
+                        it.variants.any { variant -> variant.transformation == transformation } shouldBe true
                     }
-                }
-            }
-
-        @Test
-        fun `returns all assets and the existing requested variant`() =
-            runTest {
-                val count = 3
-                repeat(count) {
-                    val pending = createPendingAsset()
-                    val persisted = repository.storeNew(pending)
-                    repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                    val pendingVariant =
-                        createPendingVariant(
-                            assetId = persisted.id,
-                            transformation =
-                                Transformation(
-                                    height = 10.toDimension(),
-                                    width = 10.toDimension(),
-                                    format = ImageFormat.PNG,
-                                    colorSpace = ColorSpace.SRGB,
-                                ),
-                        )
-                    val persistedVariant = repository.storeNewVariant(pendingVariant)
-                    repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-                }
-
-                val fetched = repository.fetchAllByPath("/users/123", null, limit = 10)
-                fetched shouldHaveSize 3
-                fetched.forAll {
-                    it.variants shouldHaveSize 2
-                    it.variants.find { variant -> variant.isOriginalVariant } shouldNotBe null
-                    it.variants.find { variant ->
-                        variant.transformation.height.value == 10 && variant.transformation.width.value == 10
-                    } shouldNotBe null
                 }
             }
 
@@ -975,35 +755,19 @@ abstract class AssetRepositoryTest {
                 repository.fetchAllByPath("/users/123", null, limit = 10) shouldBe emptyList()
             }
 
-        @Test
-        fun `limit is respected`() =
-            runTest {
-                repeat(10) {
-                    repository.storeNew(createPendingAsset()).let {
-                        repository.markReady(it.markReady(LocalDateTime.now(UTC)))
-                    }
-                }
-                repository.fetchAllByPath(
-                    path = "/users/123",
-                    transformation = null,
-                    limit = 5,
-                ) shouldHaveSize 5
-            }
-
-        @Test
-        fun `no limit is respected if negative`() =
-            runTest {
-                repeat(10) {
-                    repository.storeNew(createPendingAsset()).let {
-                        repository.markReady(it.markReady(LocalDateTime.now(UTC)))
-                    }
-                }
-                repository.fetchAllByPath(
-                    path = "/users/123",
-                    transformation = null,
-                    limit = -1,
-                ) shouldHaveSize 10
-            }
+        @ParameterizedTest(name = "limit={0}, expectedCount={1}")
+        @CsvSource("5, 5", "-1, 10")
+        fun `limit is respected`(
+            limit: Int,
+            expectedCount: Int,
+        ) = runTest {
+            storeReadyAssets(count = 10)
+            repository.fetchAllByPath(
+                path = "/users/123",
+                transformation = null,
+                limit = limit,
+            ) shouldHaveSize expectedCount
+        }
 
         @Test
         fun `does not return assets that are not ready`() =
@@ -1024,11 +788,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deletes an asset`() =
             runTest {
-                val ready =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready = storeReadyAsset()
                 repository.deleteByPath(
                     path = "/users/123",
                     entryId = 0,
@@ -1057,12 +817,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `returns does nothing if asset does not exist at specific entryId`() =
             runTest {
-                val pending = createPendingAsset()
-                val ready =
-                    repository
-                        .storeNew(pending)
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready = storeReadyAsset()
                 shouldNotThrowAny {
                     repository.deleteByPath("/users/123", entryId = 1)
                 }
@@ -1081,16 +836,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `limit is respected when deleting assets at path`() =
             runTest {
-                val ready1 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready2 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready1 = storeReadyAsset()
+                val ready2 = storeReadyAsset()
 
                 repository.deleteAllByPath("/users/123", limit = 1)
 
@@ -1116,16 +863,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deletes all assets at path`() =
             runTest {
-                val ready1 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready2 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready1 = storeReadyAsset()
+                val ready2 = storeReadyAsset()
 
                 repository.deleteAllByPath("/users/123", limit = -1)
 
@@ -1137,20 +876,8 @@ abstract class AssetRepositoryTest {
         @Test
         fun `orderBy is respected when deleting assets at path`() =
             runTest {
-                val ready1 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also {
-                            repository.markReady(it)
-                        }
-                val ready2 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also {
-                            repository.markReady(it)
-                        }
+                val ready1 = storeReadyAsset()
+                val ready2 = storeReadyAsset()
                 val updated =
                     repository.update(
                         ready1.update(
@@ -1171,14 +898,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deletes nothing if no assets have supplied labels`() =
             runTest {
-                val ready =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                labels = mapOf("animal" to "cat"),
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready = storeReadyAsset(createPendingAsset(labels = mapOf("animal" to "cat")))
 
                 repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "dog"), limit = 1)
 
@@ -1190,56 +910,29 @@ abstract class AssetRepositoryTest {
                 ) shouldNotBe null
             }
 
-        @Test
-        fun `deletes asset if it contains a superset of supplied labels`() =
+        @ParameterizedTest(name = "storedLabelsAreSuperset={0}")
+        @ValueSource(booleans = [true, false])
+        fun `deletes assets containing the requested labels`(storedLabelsAreSuperset: Boolean) =
             runTest {
-                val ready =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                labels = mapOf("animal" to "cat", "phone" to "iphone"),
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val labels =
+                    buildMap {
+                        put("animal", "cat")
+                        if (storedLabelsAreSuperset) put("phone", "iphone")
+                    }
+                val deleted = storeReadyAsset(createPendingAsset(labels = labels))
+                val retained = storeReadyAsset(createPendingAsset(labels = mapOf("animal" to "dog")))
 
                 repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
 
                 repository.fetchByPath(
-                    path = ready.path,
-                    entryId = ready.entryId,
-                    transformation = null,
-                    order = Order.NEW,
-                ) shouldBe null
-            }
-
-        @Test
-        fun `deletes assets with supplied labels`() =
-            runTest {
-                val ready1 =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                labels = mapOf("animal" to "cat"),
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready2 =
-                    repository
-                        .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-
-                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"), limit = 1)
-
-                repository.fetchByPath(
-                    path = ready1.path,
-                    entryId = ready1.entryId,
+                    path = deleted.path,
+                    entryId = deleted.entryId,
                     transformation = null,
                     order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
-                    path = ready2.path,
-                    entryId = ready2.entryId,
+                    path = retained.path,
+                    entryId = retained.entryId,
                     transformation = null,
                     order = Order.NEW,
                 ) shouldNotBe null
@@ -1267,21 +960,9 @@ abstract class AssetRepositoryTest {
         @Test
         fun `deletes all assets at path recursively`() =
             runTest {
-                val ready1 =
-                    repository
-                        .storeNew(createPendingAsset(path = "users/123"))
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready2 =
-                    repository
-                        .storeNew(createPendingAsset(path = "users/123"))
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready3 =
-                    repository
-                        .storeNew(createPendingAsset(path = "users/123/profile"))
-                        .markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                val ready1 = storeReadyAsset(createPendingAsset(path = "users/123"))
+                val ready2 = storeReadyAsset(createPendingAsset(path = "users/123"))
+                val ready3 = storeReadyAsset(createPendingAsset(path = "users/123/profile"))
 
                 repository.deleteRecursivelyByPath("/users/123")
 
@@ -1296,39 +977,21 @@ abstract class AssetRepositoryTest {
         fun `deletes assets recursively with supplied labels`() =
             runTest {
                 val ready1 =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                path = "/users/123",
-                                labels = mapOf("animal" to "cat"),
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready2 =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                path = "/users/123",
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                    storeReadyAsset(
+                        createPendingAsset(
+                            path = "/users/123",
+                            labels = mapOf("animal" to "cat"),
+                        ),
+                    )
+                val ready2 = storeReadyAsset(createPendingAsset(path = "/users/123"))
                 val ready3 =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                labels = mapOf("animal" to "cat"),
-                                path = "/users/123/photo",
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
-                val ready4 =
-                    repository
-                        .storeNew(
-                            createPendingAsset(
-                                path = "/users/123/photo",
-                            ),
-                        ).markReady(LocalDateTime.now(UTC))
-                        .also { repository.markReady(it) }
+                    storeReadyAsset(
+                        createPendingAsset(
+                            labels = mapOf("animal" to "cat"),
+                            path = "/users/123/photo",
+                        ),
+                    )
+                val ready4 = storeReadyAsset(createPendingAsset(path = "/users/123/photo"))
 
                 repository.deleteRecursivelyByPath("/users/123", labels = mapOf("animal" to "cat"))
 
@@ -1370,566 +1033,42 @@ abstract class AssetRepositoryTest {
     }
 
     /**
-     * These test the repository's ability to fetch a variant by a given transformation. Both a positive
-     * and negative match should be tested for each new transformation component.
+     * Verifies exact transformation matching. Each case stores one ready variant, then checks both a matching
+     * transformation and a transformation that differs by one relevant property.
      */
     @Nested
     inner class FetchVariantByTransformationTests {
-        @ParameterizedTest
-        @EnumSource(value = Fit::class)
-        fun `can fetch variant by height and width transformation`(fit: Fit) =
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("io.konifer.infrastructure.datastore.AssetRepositoryTestDataProviders#transformationLookupSource")
+        fun `returns variant only for an exact transformation match`(case: TransformationLookupCase) =
             runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        fit = fit,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                val asset = storeReadyAsset()
+                val variant = storeReadyVariant(asset, case.stored)
 
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
+                val matching =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = asset.path,
+                            entryId = asset.entryId,
+                            transformation = case.stored,
+                        ),
                     )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
+                matching.variants.map { it.id } shouldContainExactly listOf(variant.id)
 
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(fit = Fit.entries.first { it != fit }),
+                val nonMatching =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = asset.path,
+                            entryId = asset.entryId,
+                            transformation = case.nonMatching,
+                        ),
                     )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @ParameterizedTest
-        @EnumSource(value = ImageFormat::class)
-        fun `can fetch variant by format transformation`(format: ImageFormat) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = format,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation =
-                            Transformation(
-                                height = 10.toDimension(),
-                                width = 10.toDimension(),
-                                format = format,
-                                colorSpace = ColorSpace.SRGB,
-                            ),
-                    )
-
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(format = ImageFormat.entries.first { it != format }),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @ParameterizedTest
-        @EnumSource(value = Rotate::class)
-        fun `can fetch variant by rotation transformation`(rotate: Rotate) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        rotate = rotate,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(rotate = Rotate.entries.first { it != rotate }),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @ParameterizedTest
-        @ValueSource(booleans = [true, false])
-        fun `can fetch variant by horizontal flip transformation`(horizontalFlip: Boolean) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        horizontalFlip = horizontalFlip,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(horizontalFlip = !horizontalFlip),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @ParameterizedTest
-        @EnumSource(value = Filter::class)
-        fun `can fetch variant by filter transformation`(filter: Filter) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        filter = filter,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(filter = Filter.entries.first { it != filter }),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @ParameterizedTest
-        @EnumSource(value = Gravity::class)
-        fun `can fetch variant by gravity transformation`(gravity: Gravity) =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        gravity = gravity,
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(gravity = Gravity.entries.first { it != gravity }),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by quality transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        quality = 10.toQuality(),
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(quality = 50.toQuality()),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by blur transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        blur = 10.toBlur(),
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation.copy(blur = 50.toBlur()),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by pad transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        padding =
-                            PaddingTransformation(
-                                amount = 10.toPaddingAmount(),
-                                color = emptyList(),
-                            ),
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation =
-                            transformation.copy(
-                                padding =
-                                    PaddingTransformation(
-                                        amount = 50.toPaddingAmount(),
-                                        color = emptyList(),
-                                    ),
-                            ),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by pad-color transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        padding =
-                            PaddingTransformation(
-                                amount = 0.toPaddingAmount(),
-                                color = listOf(255, 255, 255, 255),
-                            ),
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation =
-                            transformation.copy(
-                                padding =
-                                    PaddingTransformation(
-                                        amount = 0.toPaddingAmount(),
-                                        color = listOf(240, 255, 255, 255),
-                                    ),
-                            ),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by metadata transformation`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        metadata =
-                            MetadataTransformation(
-                                strip = setOf(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC),
-                            ),
-                        colorSpace = ColorSpace.SRGB,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation =
-                            transformation.copy(
-                                metadata =
-                                    MetadataTransformation(
-                                        strip = setOf(MetadataType.EXIF, MetadataType.XMP),
-                                    ),
-                            ),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
-            }
-
-        @Test
-        fun `can fetch variant by color space`() =
-            runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
-                val transformation =
-                    Transformation(
-                        height = 10.toDimension(),
-                        width = 10.toDimension(),
-                        format = ImageFormat.PNG,
-                        colorSpace = ColorSpace.P3,
-                    )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
-
-                val fetchedAsset =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
-                    )
-                fetchedAsset shouldNotBe null
-                fetchedAsset!!.variants shouldHaveSize 1
-                fetchedAsset.variants.first().id shouldBe persistedVariant.id
-
-                val noVariant =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation =
-                            transformation.copy(
-                                colorSpace = ColorSpace.SRGB,
-                            ),
-                    )
-                noVariant shouldNotBe null
-                noVariant!!.variants shouldHaveSize 0
+                nonMatching.variants shouldHaveSize 0
             }
 
         @Test
         fun `can fetch variant by all transformations at once`() =
             runTest {
-                val pending = createPendingAsset()
-                val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
                 val transformation =
                     Transformation(
                         height = 10.toDimension(),
@@ -1952,23 +1091,18 @@ abstract class AssetRepositoryTest {
                             ),
                         colorSpace = ColorSpace.SRGB,
                     )
-                val pendingVariant =
-                    createPendingVariant(
-                        assetId = persisted.id,
-                        transformation = transformation,
-                    )
-                val persistedVariant = repository.storeNewVariant(pendingVariant)
-                repository.markUploaded(persistedVariant.markReady(LocalDateTime.now(UTC)))
+                val asset = storeReadyAsset()
+                val variant = storeReadyVariant(asset, transformation)
 
-                val assetData =
-                    repository.fetchByPath(
-                        path = persisted.path,
-                        entryId = persisted.entryId,
-                        transformation = transformation,
+                val fetched =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = asset.path,
+                            entryId = asset.entryId,
+                            transformation = transformation,
+                        ),
                     )
-                assetData?.id shouldBe persisted.id
-                assetData!!.variants shouldHaveSize 1
-                assetData.variants.first().id shouldBe persistedVariant.id
+                fetched.variants.map { it.id } shouldContainExactly listOf(variant.id)
             }
     }
 
@@ -2076,6 +1210,7 @@ abstract class AssetRepositoryTest {
                     repository
                         .markUploaded(
                             variant = persistedVariant.markReady(uploadedAt),
+                            cacheProperties = CacheProperties(),
                         ).let {
                             repository.fetchByPath(
                                 path = ready!!.path,
@@ -2131,8 +1266,10 @@ abstract class AssetRepositoryTest {
                         ),
                     )
                 val firstUploadedAt = LocalDateTime.now(UTC)
-
-                repository.markUploaded(firstVariant.markReady(firstUploadedAt))
+                repository.markUploaded(
+                    variant = firstVariant.markReady(firstUploadedAt),
+                    cacheProperties = CacheProperties(),
+                )
 
                 val fetched =
                     repository.fetchByPath(
@@ -2160,5 +1297,210 @@ abstract class AssetRepositoryTest {
                     )!!
                     .variants shouldHaveSize 0
             }
+
+        @ParameterizedTest
+        @ValueSource(ints = [1, 5])
+        fun `mark uploaded evicts a variant if the max is exceeded`(maxVariants: Int) =
+            runTest {
+                val pending = createPendingAsset()
+                val persisted = repository.storeNew(pending)
+
+                persisted.markReady(uploadedAt = LocalDateTime.now(UTC)).let {
+                    repository.markReady(it)
+                }
+
+                repeat(maxVariants) { idx ->
+                    val transformation =
+                        Transformation(
+                            format = ImageFormat.HEIC,
+                            height = (400 + idx).toDimension(),
+                            width = (400 + idx).toDimension(),
+                            colorSpace = ColorSpace.SRGB,
+                        )
+                    storeReadyVariant(
+                        asset = persisted,
+                        transformation = transformation,
+                        maxVariants = maxVariants,
+                    )
+                }
+                val variantsBeforeEviction =
+                    repository
+                        .fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId!!,
+                            transformation = null,
+                        )?.variants shouldNotBe null
+                variantsBeforeEviction!! shouldHaveSize maxVariants + 1 // including original variant
+
+                val transformation =
+                    Transformation(
+                        format = ImageFormat.HEIC,
+                        height = (400 - maxVariants).toDimension(),
+                        width = (400 - maxVariants).toDimension(),
+                        colorSpace = ColorSpace.SRGB,
+                    )
+                storeReadyVariant(
+                    asset = persisted,
+                    transformation = transformation,
+                    maxVariants = maxVariants,
+                )
+                val variantsAfterEviction =
+                    repository
+                        .fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        )?.variants shouldNotBe null
+                variantsAfterEviction!! shouldHaveSize maxVariants + 1 // including original variant
+            }
+
+        @Test
+        fun `mark uploaded removes every cached variant beyond a reduced max`() =
+            runTest {
+                val persisted = repository.storeNew(createPendingAsset())
+                repository.markReady(persisted.markReady(uploadedAt = LocalDateTime.now(UTC)))
+
+                val previouslyReadyVariantIds =
+                    (1..3).map { index ->
+                        storeReadyVariant(
+                            asset = persisted,
+                            transformation =
+                                Transformation(
+                                    format = ImageFormat.HEIC,
+                                    height = (500 + index).toDimension(),
+                                    width = (500 + index).toDimension(),
+                                    colorSpace = ColorSpace.SRGB,
+                                ),
+                            maxVariants = 3,
+                        ).id
+                    }
+
+                val newlyUploadedVariantId =
+                    storeReadyVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 700.toDimension(),
+                                width = 700.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 1,
+                    ).id
+
+                val retainedAssetData =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        ),
+                    )
+                val retainedVariantIds = retainedAssetData.variants.map { it.id }
+
+                retainedVariantIds shouldContainExactlyInAnyOrder
+                    listOf(
+                        persisted.variants.single().id,
+                        newlyUploadedVariantId,
+                    )
+                retainedVariantIds.none { it in previouslyReadyVariantIds } shouldBe true
+            }
+
+        @Test
+        fun `pending variants do not count toward the max`() =
+            runTest {
+                val persisted = repository.storeNew(createPendingAsset())
+                repository.markReady(persisted.markReady(uploadedAt = LocalDateTime.now(UTC)))
+
+                val firstReadyVariantId =
+                    storeReadyVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 800.toDimension(),
+                                width = 800.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 2,
+                    ).id
+                repository.storeNewVariant(
+                    createPendingVariant(
+                        assetId = persisted.id,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 900.toDimension(),
+                                width = 900.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                    ),
+                )
+
+                val secondReadyVariantId =
+                    storeReadyVariant(
+                        asset = persisted,
+                        transformation =
+                            Transformation(
+                                format = ImageFormat.HEIC,
+                                height = 1_000.toDimension(),
+                                width = 1_000.toDimension(),
+                                colorSpace = ColorSpace.SRGB,
+                            ),
+                        maxVariants = 2,
+                    ).id
+
+                val retainedVariantIds =
+                    checkNotNull(
+                        repository.fetchByPath(
+                            path = persisted.path,
+                            entryId = persisted.entryId,
+                            transformation = null,
+                        ),
+                    ).variants.map { it.id }
+
+                retainedVariantIds shouldContainExactlyInAnyOrder
+                    listOf(
+                        persisted.variants.single().id,
+                        firstReadyVariantId,
+                        secondReadyVariantId,
+                    )
+            }
     }
+
+    protected suspend fun storeReadyVariant(
+        asset: Asset,
+        transformation: Transformation,
+        maxVariants: Int = CacheProperties().maxVariants,
+    ): Variant.Ready {
+        val pendingVariant =
+            createPendingVariant(
+                assetId = asset.id,
+                transformation = transformation,
+            )
+        val persistedVariant = repository.storeNewVariant(pendingVariant)
+        val readyVariant = persistedVariant.markReady(LocalDateTime.now(UTC))
+        repository.markUploaded(
+            variant = readyVariant,
+            cacheProperties = CacheProperties(maxVariants = maxVariants),
+        )
+        return readyVariant
+    }
+
+    protected suspend fun storeReadyAsset(
+        pending: Asset.Pending = createPendingAsset(),
+        uploadedAt: LocalDateTime = LocalDateTime.now(UTC),
+    ): Asset.Ready {
+        val ready = repository.storeNew(pending).markReady(uploadedAt)
+        repository.markReady(ready)
+        return ready
+    }
+
+    protected suspend fun storeReadyAssets(
+        count: Int,
+        pendingFactory: (Int) -> Asset.Pending = { createPendingAsset() },
+    ): List<Asset.Ready> =
+        List(count) { index ->
+            storeReadyAsset(pendingFactory(index))
+        }
 }

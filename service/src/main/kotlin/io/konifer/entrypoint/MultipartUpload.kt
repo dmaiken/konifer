@@ -10,7 +10,7 @@ import kotlinx.coroutines.CompletableDeferred
 private const val METADATA_PART_NAME = "metadata"
 private const val ASSET_PART_NAME = "asset"
 
-internal class MultipartUpload<T>(
+class MultipartUpload<T>(
     val request: CompletableDeferred<T>,
     val assetContainer: AssetDataContainer?,
     val duplicateAssetReceived: Boolean,
@@ -21,7 +21,7 @@ internal class MultipartUpload<T>(
     }
 }
 
-internal suspend fun <T> RoutingCall.receiveMultipartUpload(decodeMetadata: (String) -> T): MultipartUpload<T> {
+suspend fun <T> RoutingCall.receiveMultipartUpload(decodeMetadata: (String) -> T): MultipartUpload<T> {
     val request = CompletableDeferred<T>()
     var assetPartReceived = false
     var metadataPartReceived = false

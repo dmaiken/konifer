@@ -1,4 +1,4 @@
-package io.konifer.domain.variant
+package io.konifer.domain.variant.retention
 
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.ExpirePropertyKeys
 import kotlinx.serialization.SerialName

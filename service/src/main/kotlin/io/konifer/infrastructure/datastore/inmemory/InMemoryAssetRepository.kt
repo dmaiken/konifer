@@ -6,9 +6,11 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
+import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.retention.CacheProperties
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -18,12 +20,14 @@ import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 
-internal data class ObjectStoreReference(
+data class ObjectStoreReference(
     val bucket: String,
     val key: String,
 )
 
-class InMemoryAssetRepository : AssetRepository {
+class InMemoryAssetRepository(
+    private val objectStore: ObjectStore,
+) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
@@ -67,7 +71,10 @@ class InMemoryAssetRepository : AssetRepository {
         }
     }
 
-    override suspend fun markUploaded(variant: Variant.Ready) {
+    override suspend fun markUploaded(
+        variant: Variant.Ready,
+        cacheProperties: CacheProperties,
+    ) {
         storeMutex.withLock {
             val asset = idReference[variant.assetId] ?: return
             val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
@@ -76,6 +83,28 @@ class InMemoryAssetRepository : AssetRepository {
                 ?.let { asset ->
                     asset.variants.removeIf { it.id == variant.id }
                     asset.variants.add(variant)
+                    val readyCachedVariants =
+                        asset.variants.filter {
+                            !it.isOriginalVariant && it.uploadedAt != null
+                        }
+                    val variantsToEvict =
+                        (readyCachedVariants.size - cacheProperties.maxVariants)
+                            .coerceAtLeast(0)
+                    readyCachedVariants
+                        .asSequence()
+                        .filter { it.id != variant.id }
+                        .sortedBy { it.createdAt }
+                        .take(variantsToEvict)
+                        .toSet()
+                        .let { variantsToEvict ->
+                            asset.variants.removeAll(variantsToEvict)
+                            variantsToEvict.forEach { variant ->
+                                objectStore.delete(
+                                    bucket = variant.objectStoreBucket,
+                                    key = variant.objectStoreKey,
+                                )
+                            }
+                        }
                 }
         }
     }
@@ -205,7 +234,7 @@ class InMemoryAssetRepository : AssetRepository {
         }
     }
 
-    internal suspend fun deleteAndReturnObjectReferences(command: DeleteAssetsCommand): List<ObjectStoreReference> =
+    suspend fun deleteAndReturnObjectReferences(command: DeleteAssetsCommand): List<ObjectStoreReference> =
         storeMutex.withLock {
             val assets =
                 when (command) {
@@ -314,23 +343,11 @@ class InMemoryAssetRepository : AssetRepository {
         return assets
             .asSequence()
             .filter {
-                if (includeOnlyReady) {
-                    it.isReady
-                } else {
-                    true
-                }
+                !includeOnlyReady || it.isReady
             }.filter { asset ->
-                if (entryId != null) {
-                    asset.entryId == entryId
-                } else {
-                    true
-                }
+                entryId == null || asset.entryId == entryId
             }.filter { asset ->
-                if (labels.isNotEmpty()) {
-                    labels.all { asset.labels.asMap()[it.key] == it.value }
-                } else {
-                    true
-                }
+                labels.isEmpty() || labels.all { asset.labels.asMap()[it.key] == it.value }
             }.maxByOrNull { asset ->
                 when (order) {
                     Order.NEW -> asset.createdAt
@@ -351,11 +368,7 @@ class InMemoryAssetRepository : AssetRepository {
         return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.asSequence()
             ?.filter {
-                if (includeOnlyReady) {
-                    it.isReady
-                } else {
-                    true
-                }
+                !includeOnlyReady || it.isReady
             }?.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             ?.map { asset ->
                 val variants =

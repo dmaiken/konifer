@@ -1,4 +1,4 @@
-package io.konifer.domain.variant
+package io.konifer.domain.variant.retention
 
 import io.konifer.common.serializer.LowercaseEnumSerializer
 import kotlinx.serialization.KSerializer

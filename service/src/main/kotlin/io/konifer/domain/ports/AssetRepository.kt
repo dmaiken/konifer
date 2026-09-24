@@ -6,13 +6,17 @@ import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.retention.CacheProperties
 
 interface AssetRepository {
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
 
     suspend fun markReady(asset: Asset.Ready)
 
-    suspend fun markUploaded(variant: Variant.Ready)
+    suspend fun markUploaded(
+        variant: Variant.Ready,
+        cacheProperties: CacheProperties,
+    )
 
     suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending
 

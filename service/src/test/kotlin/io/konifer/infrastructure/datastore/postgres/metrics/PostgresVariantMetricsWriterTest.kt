@@ -8,6 +8,7 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantId
+import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
@@ -15,6 +16,7 @@ import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.metrics.ChannelVariantMetricsDrainSignal
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.kotest.assertions.fail
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import konifer.jooq.tables.references.ASSET_VARIANT
@@ -44,17 +46,27 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 paths {
                   "/ttl/**" {
                     transform {
-                      expire {
-                        strategy = ttl
-                        ttl = 1h
+                      retention {
+                        expire {
+                          strategy = ttl
+                          ttl = 1h
+                        }
+                        cache {
+                          access-score-half-life = 1h
+                        }
                       }
                     }
                   }
                   "/idle/**" {
                     transform {
-                      expire {
-                        strategy = idle
-                        ttl = 1h
+                      retention {
+                        expire {
+                          strategy = idle
+                          ttl = 1h
+                        }
+                        cache {
+                          access-score-half-life = 1h
+                        }
                       }
                     }
                   }
@@ -100,6 +112,11 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                         LocalDateTime.ofInstant(accessedAt, UTC).truncatedTo(ChronoUnit.MILLIS)
                     persistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe
                         initiallyPersistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS)
+                    persistedVariant.accessScore shouldBe (2.0 plusOrMinus 0.001)
+                    (
+                        checkNotNull(persistedVariant.accessScoreAsOf) >=
+                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf)
+                    ) shouldBe true
                 }
             }
         }
@@ -117,6 +134,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
             val variant =
                 createReadyVariant(path = "/idle/asset", expiresAt = LocalDateTime.now(UTC).plusMinutes(5), transformationWidth = 400)
+            val initiallyPersistedVariant = fetchVariant(variant.id)
             val accessedAt = Instant.now()
             val accessedAtLocal = LocalDateTime.ofInstant(accessedAt, UTC).truncatedTo(ChronoUnit.MILLIS)
 
@@ -133,6 +151,50 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
                     persistedVariant.lastAccessedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe accessedAtLocal
                     persistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe accessedAtLocal.plusHours(1)
+                    persistedVariant.accessScore shouldBe (2.0 plusOrMinus 0.001)
+                    (
+                        checkNotNull(persistedVariant.accessScoreAsOf) >=
+                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf)
+                    ) shouldBe true
+                }
+            }
+        }
+
+    @Test
+    fun `flush decays the existing access score and adds buffered access counts`() =
+        runTest {
+            PostgresVariantMetricsWriter(
+                scope = scope,
+                dslContext = dslContext,
+                drainSignal = signal,
+                variantMetricsRepository = metricsRepository,
+                pathConfigurationRepository = pathConfigurationRepository,
+            )
+
+            val variant = createReadyVariant(path = "/ttl/asset", expiresAt = null, transformationWidth = 450)
+            val previousAccessScoreAsOf = LocalDateTime.now(UTC).minusHours(1)
+            dslContext
+                .update(ASSET_VARIANT)
+                .set(ASSET_VARIANT.ACCESS_SCORE, 8.0)
+                .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, previousAccessScoreAsOf)
+                .where(ASSET_VARIANT.ID.eq(variant.id.value))
+                .awaitFirstOrNull()
+
+            repeat(3) {
+                metricsRepository.recordVariantAccess(
+                    variantId = variant.id,
+                    path = "/ttl/asset",
+                    accessedAt = Instant.now(),
+                )
+            }
+            signal.requestDrain()
+
+            await().atMost(5, SECONDS).untilAsserted {
+                runBlocking {
+                    val persistedVariant = fetchVariant(variant.id)
+
+                    persistedVariant.accessScore shouldBe (7.0 plusOrMinus 0.05)
+                    (checkNotNull(persistedVariant.accessScoreAsOf) > previousAccessScoreAsOf) shouldBe true
                 }
             }
         }
@@ -158,6 +220,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 .update(ASSET_VARIANT)
                 .set(ASSET_VARIANT.LAST_ACCESSED_AT, currentLastAccessedAt)
                 .set(ASSET_VARIANT.EXPIRES_AT, currentExpiresAt)
+                .set(ASSET_VARIANT.ACCESS_SCORE, 0.0)
                 .where(ASSET_VARIANT.ID.eq(variant.id.value))
                 .awaitFirstOrNull()
 
@@ -174,6 +237,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
                     persistedVariant.lastAccessedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe currentLastAccessedAt
                     persistedVariant.expiresAt shouldBe currentExpiresAt
+                    persistedVariant.accessScore shouldBe (1.0 plusOrMinus 0.000_001)
                 }
             }
         }
@@ -205,7 +269,12 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
         return assetRepository
             .storeNewVariant(pendingVariant)
             .markReady(LocalDateTime.now(UTC))
-            .also { assetRepository.markUploaded(it) }
+            .also {
+                assetRepository.markUploaded(
+                    variant = it,
+                    cacheProperties = CacheProperties(),
+                )
+            }
     }
 
     private suspend fun fetchVariant(variantId: VariantId) =
