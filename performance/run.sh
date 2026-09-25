@@ -206,12 +206,12 @@ validate_models() {
 wait_for_konifer() {
   local attempt
   for attempt in {1..60}; do
-    if curl --silent --fail --output /dev/null "$base_url/health"; then
+    if curl --silent --fail --output /dev/null "$base_url/health/ready"; then
       return 0
     fi
     sleep 1
   done
-  echo "Konifer did not become ready at $base_url/health" >&2
+  echo "Konifer did not become ready at $base_url/health/ready" >&2
   return 1
 }
 

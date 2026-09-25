@@ -20,6 +20,7 @@ import io.konifer.infrastructure.asset.externalSourceModule
 import io.konifer.infrastructure.asset.httpModule
 import io.konifer.infrastructure.datastore.assetRepositoryModule
 import io.konifer.infrastructure.event.InMemoryEventBus
+import io.konifer.infrastructure.health.healthModule
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.objectstore.objectStoreModule
 import io.konifer.infrastructure.path.extractRawHocon
@@ -35,9 +36,11 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.createdAtStart
+import org.koin.core.module.dsl.onClose
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
@@ -69,6 +72,7 @@ fun Application.configureKoin(
                 objectStoreModule(objectStoreProvider),
                 pathModule(),
                 vipsModule(),
+                healthModule(),
             )
 
         if (ruleDefinitions.isNotEmpty() || shouldEnableEvaluationApi) {
@@ -115,7 +119,11 @@ fun appModule(): Module =
         single<UpdateAssetUseCase>()
         single<StoreNewAssetUseCase>()
         single<OriginalVariantProcessorPipeline>()
-        single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+        single<CoroutineScope> {
+            CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        } withOptions {
+            onClose { scope -> scope?.cancel() }
+        }
         single<AssetEventListener>() withOptions {
             createdAtStart()
         }

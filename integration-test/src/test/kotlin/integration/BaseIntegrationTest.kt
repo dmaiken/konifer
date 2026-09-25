@@ -98,7 +98,7 @@ abstract class BaseIntegrationTest {
                 .withLogConsumer(::logContainerFrame)
                 .waitingFor(
                     Wait
-                        .forHttp("/health")
+                        .forHttp("/health/ready")
                         .forStatusCode(200)
                         .withStartupTimeout(koniferStartupTimeout),
                 )

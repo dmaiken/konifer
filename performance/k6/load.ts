@@ -108,7 +108,7 @@ export function uploadRules(): void {
 }
 
 export function recovery(): void {
-    const health = http.get(`${baseUrl}/health`, requestParameters('health', 'health', 'health'));
+    const health = http.get(`${baseUrl}/health/ready`, requestParameters('health', 'health', 'health'));
     const healthPassed = check(health, { 'post-load health returned 200': (value) => value.status === 200 });
     recoveryHealth.add(healthPassed);
     const eager = runEagerReadiness(recoveryContext);

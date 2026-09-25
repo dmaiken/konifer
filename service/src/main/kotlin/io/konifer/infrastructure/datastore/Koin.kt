@@ -4,8 +4,10 @@ import io.konifer.domain.ports.AssetDeleter
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetDeleter
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
+import io.konifer.infrastructure.datastore.inmemory.InMemoryDataStoreHealthIndicator
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetDeleter
 import io.konifer.infrastructure.datastore.postgres.PostgresAssetRepository
+import io.konifer.infrastructure.datastore.postgres.PostgresHealthIndicator
 import io.konifer.infrastructure.datastore.postgres.PostgresVariantRepository
 import io.konifer.infrastructure.datastore.postgres.createPostgresProperties
 import io.konifer.infrastructure.datastore.postgres.metrics.PostgresFlushVariantMetricsTimer
@@ -13,6 +15,7 @@ import io.konifer.infrastructure.datastore.postgres.metrics.PostgresVariantMetri
 import io.konifer.infrastructure.datastore.postgres.postgres
 import io.konifer.infrastructure.datastore.postgres.scheduling.ScheduledJobProperties
 import io.konifer.infrastructure.datastore.postgres.scheduling.configureScheduledJobs
+import io.konifer.infrastructure.health.HealthIndicator
 import io.konifer.infrastructure.path.extractRawHocon
 import io.ktor.server.application.Application
 import io.r2dbc.spi.ConnectionFactory
@@ -41,6 +44,7 @@ fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Mod
             DataStoreProvider.IN_MEMORY -> {
                 single<InMemoryAssetRepository>() bind AssetRepository::class
                 single<InMemoryAssetDeleter>() bind AssetDeleter::class
+                single<InMemoryDataStoreHealthIndicator>() bind HealthIndicator::class
             }
 
             DataStoreProvider.POSTGRES -> {
@@ -78,6 +82,7 @@ fun Application.assetRepositoryModule(datastoreProvider: DataStoreProvider): Mod
                     createdAtStart()
                 }
                 single<PostgresAssetDeleter>() bind AssetDeleter::class
+                single<PostgresHealthIndicator>() bind HealthIndicator::class
             }
         }
     }
