@@ -59,4 +59,4 @@ This is not a Spring Boot project. Explicitness in the code is favored. Prefer K
 Prefer the use of Value classes to represent domain value objects and the use of sealed classes/interfaces to define state
 and control state transitions.
 
-If necessary, lint at the end of the task using: `./gradlew ktlintFormat detekt`
+Do not manually lint/format files. Instead, use this command at the end of the task: `./gradlew ktlintFormat detekt`

@@ -10,11 +10,11 @@ services:
       - konifer-tmp:/app/tmp
     environment:
       PG_PASSWORD: konifer_password
-      S3_SECRET_KEY: minio_secret_key
+      S3_SECRET_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     depends_on:
       perf-postgres:
         condition: service_healthy
-      perf-minio:
+      perf-garage:
         condition: service_healthy
     deploy:
       resources:
@@ -52,21 +52,27 @@ services:
     security_opt:
       - apparmor:unconfined
 
-  perf-minio:
-    image: quay.io/minio/minio
-    container_name: perf_konifer_minio
-    command: server /data --console-address ":9001"
+  perf-garage:
+    image: dxflrs/garage:v2.4.1
+    container_name: perf_konifer_garage
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
     ports:
-      - "9000:9000" # S3 API Port
-      - "9001:9001" # Web Console Port
+      - "3900:3900" # S3 API Port
+      - "3903:3903" # Admin API Port
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
     environment:
-      MINIO_ROOT_USER: minio_admin
-      MINIO_ROOT_PASSWORD: minio_secret_key
+      GARAGE_DEFAULT_ACCESS_KEY: GK0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_SECRET_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_BUCKET: assets
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 20s
-      retries: 3
+      # The Garage image is built from scratch (no curl or sh), so invoke /garage directly
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     deploy:
       resources:
         limits:
@@ -77,25 +83,11 @@ services:
     security_opt:
       - apparmor:unconfined
 
-  # MinIO starts empty. This container creates the default bucket automatically.
-  createbuckets:
-    image: quay.io/minio/mc
-    depends_on:
-      perf-minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      set -e;
-      /usr/bin/mc alias set myminio http://perf-minio:9000 minio_admin minio_secret_key;
-      /usr/bin/mc mb --ignore-existing myminio/assets;
-      /usr/bin/mc anonymous set public myminio/assets;
-      "
-    networks:
-      - konifer-perf-net
-
 networks:
   konifer-perf-net:
     driver: bridge
 
 volumes:
   konifer-tmp:
+  garage-meta:
+  garage-data:

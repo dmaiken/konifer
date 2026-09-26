@@ -77,7 +77,7 @@ limitation of local results.
     history. Failed cases are published as unavailable rather than as latency
     measurements.
 
-The runner does not purge the entire PostgreSQL or MinIO volume. Isolation comes
+The runner does not purge the entire PostgreSQL or object-storage volume. Isolation comes
 from unique run-scoped asset paths, followed after each repetition by recursive
 deletion through Konifer's API so database and object-storage state remain
 consistent and storage use does not accumulate across repetitions.

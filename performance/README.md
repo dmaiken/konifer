@@ -5,7 +5,7 @@ release history, and customer-facing report.
 
 The harness is a private npm project using Node.js 24 and TypeScript 7, matching
 the Konifer documentation project. Docker Compose provides Konifer, PostgreSQL,
-and MinIO; k6 runs on the host.
+and Garage; k6 runs on the host.
 
 ## Prerequisites
 
@@ -309,10 +309,12 @@ definition, and result checks.
 
 ## Local reference environment
 
-`local-compose-v2` runs on my (Daniel) laptop described in
+`local-compose-v3` runs on my (Daniel) laptop described in
 `config/environments.json`. Konifer is limited to 2 CPUs and 8 GiB; PostgreSQL
-and MinIO are each limited to 1 CPU and 1 GiB. Konifer uses a Docker-managed,
-disk-backed `/app/tmp` volume, and the SigLIP2 model is mounted read-only.
+and Garage are each limited to 1 CPU and 1 GiB. Konifer uses a Docker-managed,
+disk-backed `/app/tmp` volume, and the SigLIP2 model is mounted read-only. The
+MinIO-based `local-compose-v2` profile remains in the catalog so its historical
+results retain their original environment identity.
 
 The services and host-based k6 process compete for the same laptop CPU, memory,
 storage, and network stack. Local results are useful for repeatable development

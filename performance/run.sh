@@ -236,10 +236,8 @@ validate_models
 
 if [[ $start_runtime == true ]]; then
   echo "Starting performance runtime with $KONIFER_IMAGE"
-  # Compose --wait expects every selected service to remain running or healthy,
-  # so run the successful one-shot bucket initializer separately.
-  docker compose -f "$compose_file" up -d --wait perf-postgres perf-minio
-  docker compose -f "$compose_file" run --rm --no-deps createbuckets
+  # Garage creates the benchmark access key and bucket during single-node startup.
+  docker compose -f "$compose_file" up -d --wait perf-postgres perf-garage
   docker compose -f "$compose_file" up -d --wait perf-konifer
 fi
 

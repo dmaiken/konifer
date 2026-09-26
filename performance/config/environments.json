@@ -1,6 +1,29 @@
 {
-  "default": "local-compose-v2",
+  "default": "local-compose-v3",
   "profiles": {
+    "local-compose-v3": {
+      "displayName": "Daniel's laptop (Garage)",
+      "description": "Reference environment for release-over-release benchmarks using Garage object storage. It is not representative of production server capacity.",
+      "hardware": {
+        "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
+        "architecture": "x86_64",
+        "processor": "Intel Core i7-8550U @ 1.80 GHz",
+        "physicalCores": 4,
+        "logicalCpus": 8,
+        "memoryGiB": 16
+      },
+      "interpretation": [
+        "Konifer is limited to 2 CPUs and 8 GiB of memory; PostgreSQL and Garage are each limited to 1 CPU and 1 GiB.",
+        "Konifer, PostgreSQL, Garage, and the host-based k6 load generator compete for the same physical CPU, memory, and storage.",
+        "Use these results to compare releases measured under this same profile, not to estimate production capacity or compare against other hardware or the MinIO-based local-compose-v2 profile."
+      ],
+      "composeFile": "runtime/docker-compose.yml",
+      "services": [
+        {"container": "perf_konifer", "cpus": 2, "memoryBytes": 8589934592},
+        {"container": "perf_konifer_postgres", "cpus": 1, "memoryBytes": 1073741824},
+        {"container": "perf_konifer_garage", "cpus": 1, "memoryBytes": 1073741824}
+      ]
+    },
     "local-compose-v2": {
       "displayName": "Daniel's laptop",
       "description": "Reference environment for release-over-release benchmarks. It is not representative of production server capacity.",
