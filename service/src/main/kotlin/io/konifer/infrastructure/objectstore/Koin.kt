@@ -2,11 +2,15 @@ package io.konifer.infrastructure.objectstore
 
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.infrastructure.EnvironmentVariable
+import io.konifer.infrastructure.health.HealthIndicator
 import io.konifer.infrastructure.objectstore.filesystem.FileSystemObjectStore
 import io.konifer.infrastructure.objectstore.filesystem.FileSystemProperties
+import io.konifer.infrastructure.objectstore.filesystem.FilesystemObjectStoreHealthIndicator
 import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
+import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStoreHealthIndicator
 import io.konifer.infrastructure.objectstore.s3.S3ClientProperties
 import io.konifer.infrastructure.objectstore.s3.S3ObjectStore
+import io.konifer.infrastructure.objectstore.s3.S3ObjectStoreHealthIndicator
 import io.konifer.infrastructure.objectstore.s3.s3Client
 import io.konifer.infrastructure.objectstore.s3.s3Presigner
 import io.konifer.infrastructure.objectstore.s3.s3TransferManager
@@ -44,6 +48,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
         when (provider) {
             ObjectStoreProvider.IN_MEMORY -> {
                 single<InMemoryObjectStore>() bind ObjectStore::class
+                single<InMemoryObjectStoreHealthIndicator>() bind HealthIndicator::class
             }
 
             ObjectStoreProvider.S3 -> {
@@ -74,6 +79,7 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                     s3Presigner(s3ClientProperties)
                 }
                 single<S3ObjectStore>() bind ObjectStore::class
+                single<S3ObjectStoreHealthIndicator>() bind HealthIndicator::class
             }
 
             ObjectStoreProvider.FILESYSTEM -> {
@@ -91,6 +97,12 @@ fun Application.objectStoreModule(provider: ObjectStoreProvider): Module =
                 single<ObjectStore> {
                     FileSystemObjectStore(properties)
                 }
+                single<FilesystemObjectStoreHealthIndicator> {
+                    FilesystemObjectStoreHealthIndicator(
+                        scope = get(),
+                        fileSystemProperties = properties,
+                    )
+                } bind HealthIndicator::class
             }
         }
     }

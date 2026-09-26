@@ -47,53 +47,52 @@ class S3ObjectStore(
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         channel: ByteChannel,
-    ): LocalDateTime =
-        withContext(Dispatchers.IO) {
-            val publisher = channel.consumeAsFlow().asPublisher()
-            val requestBody = AsyncRequestBody.fromPublisher(publisher)
+    ): LocalDateTime {
+        val publisher = channel.consumeAsFlow().asPublisher()
+        val requestBody = AsyncRequestBody.fromPublisher(publisher)
 
-            val uploadRequest =
-                UploadRequest
-                    .builder()
-                    .putObjectRequest { b: PutObjectRequest.Builder ->
-                        b
-                            .bucket(request.bucket)
-                            .key(request.key)
-                            .contentType(request.contentType.mimeType)
-                            .contentDisposition(inlineContentDisposition)
-                    }.requestBody(requestBody)
-                    .build()
-            runCatching {
-                s3TransferManager.upload(uploadRequest).completionFuture().await()
-            }.onFailure { e ->
-                if (e is NoSuchBucketException) {
-                    logger.error("S3 bucket does not exist: ${request.bucket}, key: ${request.key}", e)
-                }
-            }.getOrThrow()
+        val uploadRequest =
+            UploadRequest
+                .builder()
+                .putObjectRequest { builder: PutObjectRequest.Builder ->
+                    builder
+                        .bucket(request.bucket)
+                        .key(request.key)
+                        .contentType(request.contentType.mimeType)
+                        .contentDisposition(inlineContentDisposition)
+                }.requestBody(requestBody)
+                .build()
 
-            LocalDateTime.now(UTC)
-        }
+        runCatching {
+            s3TransferManager.upload(uploadRequest).completionFuture().await()
+        }.onFailure { e ->
+            if (e is NoSuchBucketException) {
+                logger.error("S3 bucket does not exist: ${request.bucket}, key: ${request.key}", e)
+            }
+        }.getOrThrow()
+
+        return LocalDateTime.now(UTC)
+    }
 
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         file: Path,
-    ): LocalDateTime =
-        withContext(Dispatchers.IO) {
-            val uploadFileRequest =
-                UploadFileRequest
-                    .builder()
-                    .putObjectRequest { b: PutObjectRequest.Builder ->
-                        b
-                            .bucket(request.bucket)
-                            .key(request.key)
-                            .contentType(request.contentType.mimeType)
-                            .contentDisposition(inlineContentDisposition)
-                    }.source(file)
-                    .build()
-            s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
+    ): LocalDateTime {
+        val uploadFileRequest =
+            UploadFileRequest
+                .builder()
+                .putObjectRequest { builder: PutObjectRequest.Builder ->
+                    builder
+                        .bucket(request.bucket)
+                        .key(request.key)
+                        .contentType(request.contentType.mimeType)
+                        .contentDisposition(inlineContentDisposition)
+                }.source(file)
+                .build()
+        s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
 
-            LocalDateTime.now(UTC)
-        }
+        return LocalDateTime.now(UTC)
+    }
 
     override suspend fun fetch(
         bucket: String,

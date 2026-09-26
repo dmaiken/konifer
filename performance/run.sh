@@ -206,12 +206,12 @@ validate_models() {
 wait_for_konifer() {
   local attempt
   for attempt in {1..60}; do
-    if curl --silent --fail --output /dev/null "$base_url/health"; then
+    if curl --silent --fail --output /dev/null "$base_url/health/ready"; then
       return 0
     fi
     sleep 1
   done
-  echo "Konifer did not become ready at $base_url/health" >&2
+  echo "Konifer did not become ready at $base_url/health/ready" >&2
   return 1
 }
 
@@ -236,10 +236,8 @@ validate_models
 
 if [[ $start_runtime == true ]]; then
   echo "Starting performance runtime with $KONIFER_IMAGE"
-  # Compose --wait expects every selected service to remain running or healthy,
-  # so run the successful one-shot bucket initializer separately.
-  docker compose -f "$compose_file" up -d --wait perf-postgres perf-minio
-  docker compose -f "$compose_file" run --rm --no-deps createbuckets
+  # Garage creates the benchmark access key and bucket during single-node startup.
+  docker compose -f "$compose_file" up -d --wait perf-postgres perf-garage
   docker compose -f "$compose_file" up -d --wait perf-konifer
 fi
 
