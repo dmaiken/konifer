@@ -1,3 +1,4 @@
+import org.gradle.api.plugins.jvm.JvmTestSuite
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
@@ -23,31 +24,6 @@ application {
 
 repositories {
     mavenCentral()
-}
-
-val functionalTestSourceSet =
-    sourceSets.create("functionalTest") {
-        kotlin.srcDir("src/functionalTest/kotlin")
-        resources.srcDir("src/functionalTest/resources")
-    }
-
-sourceSets.named("testFixtures") {
-    resources.srcDir("src/testFixtures/resources")
-}
-
-configurations {
-    // Make functionalTest see main + test + testFixtures
-    named("functionalTestImplementation") {
-        extendsFrom(configurations["implementation"])
-        extendsFrom(configurations["testImplementation"])
-        extendsFrom(configurations["testFixturesImplementation"])
-    }
-
-    named("functionalTestRuntimeOnly") {
-        extendsFrom(configurations["runtimeOnly"])
-        extendsFrom(configurations["testRuntimeOnly"])
-        extendsFrom(configurations["testFixturesRuntimeOnly"])
-    }
 }
 
 detekt {
@@ -164,10 +140,30 @@ dependencies {
     testFixturesImplementation(libs.testcontainers.jupiter)
     testFixturesImplementation(libs.jooq)
     testFixturesImplementation(libs.junit.params)
+}
 
-    "functionalTestImplementation"(testFixtures(project(":service")))
-    "functionalTestImplementation"(project(":common"))
-    "functionalTestImplementation"(project(":client"))
+val functionalTest =
+    testing.suites.register<JvmTestSuite>("functionalTest") {
+        dependencies {
+            implementation(project())
+            implementation(testFixtures(project()))
+            implementation(project(":common"))
+            implementation(project(":client"))
+        }
+
+        targets.configureEach {
+            testTask {
+                shouldRunAfter(tasks.test)
+            }
+        }
+    }
+
+configurations.named("functionalTestImplementation") {
+    extendsFrom(configurations.testImplementation.get())
+}
+
+configurations.named("functionalTestRuntimeOnly") {
+    extendsFrom(configurations.testRuntimeOnly.get())
 }
 
 tasks.withType<Test>().configureEach {
@@ -198,15 +194,6 @@ tasks.withType<Test>().configureEach {
     }
 }
 
-tasks.register<Test>("functionalTest") {
-    description = "Runs functional tests"
-    group = "verification"
-
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = functionalTestSourceSet.runtimeClasspath
-    shouldRunAfter(tasks.test)
-}
-
 kover {
     currentProject {
         sources {
@@ -217,14 +204,6 @@ kover {
     }
 }
 
-tasks.named<ProcessResources>("processFunctionalTestResources") {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.named<ProcessResources>("processTestFixturesResources") {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
 tasks.named("check") {
-    dependsOn("functionalTest")
+    dependsOn(functionalTest)
 }
