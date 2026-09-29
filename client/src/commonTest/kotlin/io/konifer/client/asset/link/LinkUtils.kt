@@ -5,7 +5,9 @@ import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertRequestedTransformation
 import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.common.http.AssetLinkResponse
+import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse
+import io.konifer.common.image.ImageFormat
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -24,6 +26,15 @@ fun createLinkResponse() =
             LQIPResponse(
                 blurhash = "blurhash",
                 thumbhash = "thumbhash",
+            ),
+        attributes =
+            AttributeResponse(
+                height = 100,
+                width = 200,
+                format = ImageFormat.PNG.format,
+                colorSpace = "srgb",
+                loop = null,
+                pageCount = 1,
             ),
     )
 
