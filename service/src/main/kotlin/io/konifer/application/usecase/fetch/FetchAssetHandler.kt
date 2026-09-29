@@ -59,6 +59,7 @@ class FetchAssetHandler(
             alt = asset.alt,
             lqip = variant.lqips,
             cacheHit = cacheHit,
+            attributes = variant.attributes,
             deliveryUrl =
                 assetUrlGenerator.generateDeliveryUrl(
                     assetData = asset,
