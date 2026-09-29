@@ -6,57 +6,45 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmaiken/konifer/build.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](https://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 ![Scanned with Trivy](https://img.shields.io/badge/scanned%20with-Trivy-1904DA?logo=trivy&logoColor=white)
 
-Konifer is a backend for managing application-owned media. It manages the ingestion, storage, and lifecycle of images
-your application has to deal with. This can be profile pictures, avatars, listing photos, card art, anything that 
-your application has to take in, validate, transform, and otherwise manage. 
+Konifer is a self-hosted backend for images your application owns. It handles uploads, validation, storage,
+transformations, and deletion. Name assets the way your application already thinks about them, then give each path its
+own rules.
 
-Konifer is not a CDN. Konifer is not [imgproxy](https://imgproxy.net/). While Konifer can support image delivery, your
-CDN is probably better positioned to handle this.
+[10-minute quickstart](https://konifer.io/docs/start-here/getting-started) ·
+[Documentation](https://konifer.io/) ·
+[Performance report](https://dmaiken.github.io/konifer/performance/report/)
 
-Konifer goes to great lengths to support your existing domain model. It's 
-[Assets API](https://konifer.io/docs/concepts/Assets/concepts-assets) is flexible and hierarchical by 
-design. It binds a path-based URL structure with configuration you associate to that structure because your profile
-pictures need to be treated separately from photos added to a blog post. However your domain is modeled, Konifer does
-not care. It's your sandbox, Konifer just provides the buckets and shovels.
+Konifer handles the image lifecycle. Put a CDN in front of it for delivery. If all you need is on-demand resizing,
+[imgproxy](https://imgproxy.net/) or whatever your CDN offers may be a better fit.
 
-## Why Konifer exists
+## Why I built it
 
-Konifer was built to solve a problem I have seen on several teams throughout my career. What started as a simple
-requirement to store a product photo has grown to a patchwork of S3 buckets, lambdas, queueing, and microservices.
-You may even have different architectures for different types of images.
+I've seen the same story on several teams: someone needs to store a product photo, then another feature needs
+thumbnails, then a third needs different upload limits. Before long, image handling is spread across S3 buckets,
+Lambdas, queues, and services. Konifer puts those jobs behind one API while letting each part of your application keep
+its own rules.
 
-Konifer exists to unify all of this. It brings to the table:
+It supports:
 
-- Multi-part uploads
-- URL uploads with a domain allow-list (which is enforced on URL-redirects)
-- Hardened state management between your S3-compatible object store (or filesystem) and it's metadata store
-- Efficient transformation of images powered by libvips
-- Guards to prevent images too large (file size, dimensions or pixel count), the wrong content-type type, or the
-  wrong content using ML-powered image classification (SigLIP2)
-- Support for JPEG, PNG, WebP, HEIC, AVIF, Jpeg XL, and GIF as well as efficient format conversion between all types
-- Support for animated GIF and WebP
-- Powerful and secure redirection capabilities
+- Multipart uploads, S3 object ARN imports, and URL uploads with a domain allow-list enforced after redirects
+- Image storage in S3-compatible buckets or a filesystem, coordinated with asset metadata
+- Image transformations through libvips, including format conversion and animated GIF and WebP support
+- JPEG, PNG, WebP, HEIC, AVIF, JPEG XL, and GIF
+- Limits on image dimensions and pixel count, plus upload size limits
+- In-process image classification with SigLIP2 to accept, reject, or label uploads
+- Redirect-based image delivery when you want a CDN in front
 
-## When you should consider Konifer
+Konifer is worth a look if you're adding images to an application, maintaining several image-handling services, or
+spending more engineering time on image plumbing than the feature that needed the images in the first place. You can
+run it yourself as a Docker image; there is no SaaS dependency.
 
-- You're about to add images into your application for the first time
-- You have several different places in your backend that handle different images (a thumbnail service, an upload service, etc)
-- Your service has crashed trying to accept an image that was too large or the wrong file-type (for example, by
-  using Java's `BufferedImage`)
-- Managing your images is draining your engineering resources
-- You cannot or do not want to use a SaaS platform
+## Paths are part of the model
 
-## Try It
-
-Check out the 10 minute Quickstart here: [Getting started](https://konifer.io/docs/start-here/getting-started)
-
-## Path structure
-
-Let the path define what your image is, and avoid having to store an `imageId`.
+You can use a path that already means something to your application:
 
 ```http
 POST /assets/users/123/profile-picture
@@ -64,59 +52,46 @@ GET  /assets/users/123/profile-picture/-/redirect?profile=thumbnail
 GET  /assets/users/123/profile-picture/-/info
 ```
 
-If you prefer an `imageId`, use them.
+An opaque ID works too:
 
 ```http
 POST /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6
 GET  /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6/-/redirect?w=256&format=webp
 ```
 
-Let's say your user has several images. Konifer lets you manage it seamlessly.
+Paths give you a way to work with related assets. If user 123 closes their account, you can delete the assets below
+`users/123` with one request:
 
 ```http
-POST /assets/users/123/profile-picture
-POST /assets/users/123/article/456
-POST /assets/users/123/article/789
-
-# User 123 closed their account
-# Delete users/123 and everything below it atomically
+POST   /assets/users/123/profile-picture
+POST   /assets/users/123/article/456
+POST   /assets/users/123/article/789
 DELETE /assets/users/123/-/recursive
 ```
 
-Want your article assets treated differently than your profile pictures? Use the Path Configuration.
+The same paths can choose how Konifer treats each image. This example gives every user image a pixel limit, creates a
+thumbnail for profile pictures, and leaves article resizing to the CDN:
 
 ```hocon
-# Custom transformations
 variant-profiles {
   thumbnail {
     w = 256
     fit = fill
   }
 }
+
 paths {
-  # Configuration is inherited with most-specific path's configuration winning
   "/users/**" {
     limits {
-      max-bytes = 20MB
-      max-pixels = 15MP # Reject uploads larger than 15 mega-pixels
-    }
-    transform {
-      preprocessing {
-        r = auto # Auto-rotate the image
-        enabled = true
-        clamp-width = 2048
-        clamp-height = 2048
-        fit = fit # fit inside a 2048x2048 bounding box
-      }
+      max-pixels = 15MP
     }
   }
-  "/users/*/profile-pictures" {
+  "/users/*/profile-picture" {
+    object-store {
+      bucket = profiles
+    }
     transform {
-      object-store {
-        bucket = profiles
-      }
       eager-variants = [thumbnail]
-      # Only allow transformations defined in variant-profiles
       on-demand-variant {
         mode = profile_only
       }
@@ -126,19 +101,23 @@ paths {
     object-store {
       bucket = articles
     }
-    # Disable Konifer on-demand variants and let your CDN handle the resizing
-    on-demand-variant {
-      mode = disabled
+    allowed-content-types = ["image/png", "image/jpeg"]
+    transform {
+      on-demand-variant {
+        mode = disabled
+      }
     }
-    allowed-content-types = [ "image/png", "image/jpeg" ]
   }
 }
 ```
 
-## Upload Rules
+Path rules inherit from broader matches, so both specific paths get the `/users/**` pixel limit. The
+[path configuration docs](https://konifer.io/docs/concepts/concepts-path-configuration) cover matching and inheritance.
 
-Konifer lets your define prompt collections (ensembles) to be tested against uploaded images. Inference is done
-in-process by Google's SigLIP2 vision-language model, so images never leave the server.
+## Upload rules
+
+Some uploads need a content check as well as a file type check. Konifer can compare an image with a collection of
+prompts using SigLIP2 in the server process. For example:
 
 ```hocon
 rule-definitions {
@@ -154,177 +133,65 @@ rule-definitions {
 }
 ```
 
-## Rule Evaluation API 
+You can attach a definition to a path's upload ruleset to reject or label matching images. The image stays on your
+server during inference. See [upload rules](https://konifer.io/docs/concepts/concepts-upload-rules) for the full setup.
 
-Konifer includes a Rule Evaluation API for testing rule definitions against real images before adding
-them to your Upload Rules. It can also be used independently to classify images without the need to store the image
-in Konifer. Each response reports whether the rule matched, its overall score, and the score for every prompt, making 
-it easier to tune prompts and thresholds with representative content.
+## Try a rule against real images
 
-Enable the API explicitly in `konifer.conf`:
+The [Rule Evaluation API](https://konifer.io/docs/concepts/concepts-rule-evaluation) lets you test prompts and
+thresholds before enforcing a rule. Send a URL or image bytes to `POST /rule-evaluations` without storing an asset. The
+response shows which prompts drove the score:
 
-```hocon
-api {
-  rule-evaluation {
-    enabled = true
-  }
+```json
+{
+  "results": [
+    {
+      "name": "outdoor-landscape",
+      "threshold": 0.7,
+      "score": 0.83,
+      "matched": true,
+      "promptScores": [
+        { "prompt": "a mountain", "score": 0.83 },
+        { "prompt": "a forest", "score": 0.41 }
+      ]
+    }
+  ]
 }
 ```
 
-Then submit up to ten rule definitions with an image URL:
+Those numbers illustrate the response shape. The scores depend on the image and model; they are not confidence
+percentages. The docs cover enabling the API and installing the model pack.
 
-```bash
-curl --request POST \
-  --url 'http://localhost:8080/rule-evaluations' \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "url": "https://example.com/image.jpg",
-    "definitions": [
-      {
-        "name": "outdoor-landscape",
-        "prompts": ["a mountain", "a forest", "an outdoor landscape"],
-        "threshold": 0.7
-      }
-    ]
-  }'
-```
+## Documentation and performance
 
-Inference features require the model to be installed. Install
-the model pack using `./scripts/download-siglip2-models.sh` as described in
-[Running With Docker Compose](#running-with-docker-compose).
+Start with the [quickstart](https://konifer.io/docs/start-here/getting-started), then see the
+[asset model](https://konifer.io/docs/concepts/Assets/concepts-assets),
+[image transformation reference](https://konifer.io/docs/reference/image-transformation-reference), and
+[storage configuration](https://konifer.io/docs/reference/reference-variant-storage). The [full documentation](https://konifer.io/)
+also covers caching, URL signing, and deployment.
 
-The model is only loaded into memory if the Rule Evaluation API is enabled or rule definitions are defined. Text
-embeddings are cached on first-use.
-
-## Documentation
-
-The full documentation is available at [konifer.io](https://konifer.io/).
-
-Release-over-release latency and mixed-load results are available in the
-[interactive performance report](https://dmaiken.github.io/konifer/performance/report/).
-
-> [!NOTE] 
-> Performance testing on AWS hardware is on the road map and will replace a laptop as the testing hardware.
-
-Useful starting points:
-
-- [Getting started](https://konifer.io/docs/start-here/getting-started)
-- [Path configuration](https://konifer.io/docs/concepts/concepts-path-configuration)
-- [Asset storage and retrieval concepts](https://konifer.io/docs/concepts/Assets/concepts-assets)
-- [Image transformation reference](https://konifer.io/docs/reference/image-transformation-reference)
-- [Storage configuration](https://konifer.io/docs/reference/reference-variant-storage)
-- [HTTP caching](https://konifer.io/docs/reference/http-caching)
-- [URL signing](https://konifer.io/docs/reference/url-signing)
+The [interactive performance report](https://dmaiken.github.io/konifer/performance/report/) tracks latency across
+releases and mixed workloads. Its current runs use a laptop; AWS hardware testing is planned.
 
 ## Development
 
-For normal use, run Konifer in Docker. Local development requires libvips to be installed in a way that matches the
-container environment as closely as possible.
-
-```bash
-chmod +x ./scripts/install-vips.sh
-./scripts/install-vips.sh --with-deps
-```
-
-Some service tests and upload content rules use SigLIP2 ONNX models. Download the local model pack once before running
-those tests:
-
-```bash
-./scripts/download-siglip2-models.sh
-```
-
-This creates `models/siglip2-base-patch16-224` at the repository root. The directory is ignored by Git and reused by
-local Gradle runs.
-
-Common Gradle tasks:
-
-| Task                              | Description                                                          |
-|-----------------------------------|----------------------------------------------------------------------|
-| `./gradlew test`                  | Run tests                                                            |
-| `./gradlew build`                 | Build the project                                                    |
-| `./gradlew :service:shadowJar`    | Build the executable server JAR used by the Docker image             |
-| `./gradlew run`                   | Run the server locally                                               |
-| `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
-| `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
-| `./gradlew generateLicenseReport` | Generate the OSS license report                                      |
-| `./scripts/scan-image.sh`         | Scan the local `latest` image with Trivy                             |
-
-If you change the database schema or update JOOQ, run:
-
-```bash
-./gradlew generateJooq
-```
-
-The generator starts a PostgreSQL testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes
-generated code into the `jooq-generated` module.
-
-## macOS Notes
-
-If the libvips installer fails with `Compiler cc cannot compile programs`, install Xcode Command Line Tools:
-
-```bash
-xcode-select --install
-```
-
-If Gradle or Docker image builds fail because Java cannot be found, install Temurin and set `JAVA_HOME`:
-
-```bash
-brew install --cask temurin@25
-export JAVA_HOME=$(/usr/libexec/java_home)
-```
-
-On Apple Silicon, build the Docker image locally to get a native `arm64` image.
-
-If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
-
-```bash
-./scripts/download-siglip2-models.sh
-```
-
-Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
-
-Build the local base image, which contains Temurin JDK 25 and libvips:
-
-```bash
-docker build -f Dockerfile.base -t konifer-base:latest .
-```
-
-Rebuild the base image whenever `Dockerfile.base` or the libvips installation scripts change. Then build the Konifer
-application image:
-
-```bash
-./gradlew :service:shadowJar
-docker build . -t ghcr.io/dmaiken/konifer:latest
-./scripts/scan-image.sh
-```
-
-The Trivy scan checks OS and bundled library vulnerabilities. It fails for fixable HIGH or CRITICAL findings using the
-shared policy in `trivy.yaml`. Pass another image reference as the first argument to scan a different tag.
-
-Then start the stack:
-
-```bash
-docker compose up
-```
-
-The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the
-`konifer-assets` MinIO bucket.
+Konifer ships as a Docker image. For local development, install the native dependencies and download the SigLIP2
+model pack if you work on inference or its tests. [CONTRIBUTING.md](CONTRIBUTING.md) has the setup steps, Gradle tasks,
+and macOS notes.
 
 ## Acknowledgments
 
-A huge thank-you to these amazing open-source projects:
+A huge thank-you to these open-source projects:
 
-- **[libvips](https://github.com/libvips/libvips)**: _The_ cutting-edge, demand-driven image processor for
-  high-performance image processing.
-- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings that Konifer uses to interact with the
-  libvips API.
-- **[jOOQ](https://github.com/jooq/jooq)**: The best way to interact with a DB in the JVM environment.
-- **[ktor](https://github.com/ktorio/ktor)**: A simple and robust non-blocking web framework for Kotlin.
-- **[Onnx](https://onnxruntime.ai/)**: In-process model inference.
+- **[libvips](https://github.com/libvips/libvips)**: The image processor behind Konifer's transformations.
+- **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings Konifer uses to call libvips.
+- **[jOOQ](https://github.com/jooq/jooq)**: Database access and generated query code.
+- **[Ktor](https://github.com/ktorio/ktor)**: The Kotlin server framework.
+- **[ONNX Runtime](https://onnxruntime.ai/)**: In-process model inference.
 
 ## Contact me
 
-Questions or feedback? Email me at [daniel@konifer.io](mailto:daniel@konifer.io) or start a discussion in GitHub.
+Questions or feedback? Email me at [daniel@konifer.io](mailto:daniel@konifer.io) or start a discussion on GitHub.
 
 ## License
 

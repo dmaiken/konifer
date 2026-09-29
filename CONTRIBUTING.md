@@ -1,0 +1,88 @@
+# Developing Konifer
+
+Konifer ships as a Docker image. Local development requires libvips to be installed in a way that matches the
+container environment as closely as possible.
+
+```bash
+chmod +x ./scripts/install-vips.sh
+./scripts/install-vips.sh --with-deps
+```
+
+Some service tests and upload content rules use SigLIP2 ONNX models. Download the local model pack once before running
+those tests:
+
+```bash
+./scripts/download-siglip2-models.sh
+```
+
+This creates `models/siglip2-base-patch16-224` at the repository root. Git ignores the directory, and local Gradle
+runs reuse it.
+
+## Common tasks
+
+| Task                              | Description                                                          |
+|-----------------------------------|----------------------------------------------------------------------|
+| `./gradlew test`                  | Run tests                                                            |
+| `./gradlew build`                 | Build the project                                                    |
+| `./gradlew :service:shadowJar`    | Build the executable server JAR used by the Docker image             |
+| `./gradlew run`                   | Run the server locally                                               |
+| `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
+| `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
+| `./gradlew generateLicenseReport` | Generate the OSS license report                                      |
+| `./scripts/scan-image.sh`         | Scan the local `latest` image with Trivy                             |
+
+If you change the database schema or update JOOQ, run `./gradlew generateJooq`. The generator starts a PostgreSQL
+testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes generated code into the
+`jooq-generated` module.
+
+## macOS notes
+
+If the libvips installer fails with `Compiler cc cannot compile programs`, install Xcode Command Line Tools:
+
+```bash
+xcode-select --install
+```
+
+If Gradle or Docker image builds fail because Java cannot be found, install Temurin and set `JAVA_HOME`:
+
+```bash
+brew install --cask temurin@25
+export JAVA_HOME=$(/usr/libexec/java_home)
+```
+
+On Apple Silicon, build the Docker image locally to get a native `arm64` image.
+
+If your configuration uses upload content rules, download the SigLIP2 model pack before starting Compose:
+
+```bash
+./scripts/download-siglip2-models.sh
+```
+
+Then mount `./models/siglip2-base-patch16-224` into the container at `/app/models/siglip2-base-patch16-224`.
+
+Build the local base image, which contains Temurin JDK 25 and libvips:
+
+```bash
+docker build -f Dockerfile.base -t konifer-base:latest .
+```
+
+Rebuild the base image whenever `Dockerfile.base` or the libvips installation scripts change. Then build the Konifer
+application image:
+
+```bash
+./gradlew :service:shadowJar
+docker build . -t ghcr.io/dmaiken/konifer:latest
+./scripts/scan-image.sh
+```
+
+The Trivy scan checks OS and bundled library vulnerabilities. It fails for fixable HIGH or CRITICAL findings using the
+shared policy in `trivy.yaml`. Pass another image reference as the first argument to scan a different tag.
+
+Then start the stack:
+
+```bash
+docker compose up
+```
+
+The default sample configuration in `konifer.conf` targets the Compose services and stores objects in the
+`konifer-assets` MinIO bucket.
