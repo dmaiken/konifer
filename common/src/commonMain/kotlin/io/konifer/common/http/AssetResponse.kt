@@ -91,6 +91,7 @@ data class AssetLinkResponse(
     val expiresAt: LocalDateTime?,
     val alt: String?,
     val lqip: LQIPResponse,
+    val attributes: AttributeResponse,
 )
 
 @Serializable

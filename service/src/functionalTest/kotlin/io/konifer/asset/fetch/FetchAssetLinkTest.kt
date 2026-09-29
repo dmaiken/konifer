@@ -1,10 +1,12 @@
-package io.konifer.asset
+package io.konifer.asset.fetch
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory
 import io.konifer.byteArrayToImage
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetLink
@@ -33,8 +35,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
     @Test
     fun `can fetch asset and render`() =
         testInMemory {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
@@ -49,6 +50,13 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                     lqip.blurhash shouldBe null
                     lqip.thumbhash shouldBe null
                     alt shouldBe request.alt
+                    with(this.attributes) {
+                        height shouldBe attributes.height
+                        width shouldBe attributes.width
+                        format shouldBe attributes.format.format
+                        loop shouldBe null
+                        pageCount shouldBe 1
+                    }
 
                     url shouldBe "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
                     val location =
@@ -58,9 +66,9 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                     val storeResponse = client.get(location)
                     storeResponse.status shouldBe HttpStatusCode.OK
                     val rendered = byteArrayToImage(storeResponse.bodyAsBytes())
-                    rendered.width shouldBe bufferedImage.width
-                    rendered.height shouldBe bufferedImage.height
-                    Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/png"
+                    rendered.width shouldBe attributes.width
+                    rendered.height shouldBe attributes.height
+                    Tika().detect(storeResponse.bodyAsBytes()) shouldBe attributes.format.mimeType
                 }
             }
         }
@@ -76,8 +84,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
@@ -97,9 +104,9 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                 val storeResponse = client.get(location)
                 storeResponse.status shouldBe HttpStatusCode.OK
                 val rendered = byteArrayToImage(storeResponse.bodyAsBytes())
-                rendered.width shouldBe bufferedImage.width
-                rendered.height shouldBe bufferedImage.height
-                Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/png"
+                rendered.width shouldBe attributes.width
+                rendered.height shouldBe attributes.height
+                Tika().detect(storeResponse.bodyAsBytes()) shouldBe attributes.format.mimeType
             }
         }
 
@@ -114,8 +121,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
+            val (image, attributes) = ImageFactory.testImage()
             val request =
                 StoreAssetRequest(
                     alt = "an image",
@@ -127,7 +133,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                 fetchAssetLink(
                     client,
                     path = "profile",
-                    format = "jpg",
+                    format = "png",
                     expectCacheHit = (count == 1),
                 )!!.apply {
                     lqip.blurhash shouldNotBe null
@@ -142,9 +148,9 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                     val storeResponse = client.get(location)
                     storeResponse.status shouldBe HttpStatusCode.OK
                     val rendered = byteArrayToImage(storeResponse.bodyAsBytes())
-                    rendered.width shouldBe bufferedImage.width
-                    rendered.height shouldBe bufferedImage.height
-                    Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/jpeg"
+                    rendered.width shouldBe attributes.width
+                    rendered.height shouldBe attributes.height
+                    Tika().detect(storeResponse.bodyAsBytes()) shouldBe ImageFormat.PNG.mimeType
                 }
                 count++
             }
@@ -161,8 +167,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             }
             """.trimIndent(),
         ) {
-            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
-            val bufferedImage = byteArrayToImage(image)
+            val (image, attributes) = ImageFactory.testImage()
             val labels =
                 mapOf(
                     "phone" to "iphone",
@@ -177,7 +182,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
             fetchAssetLink(
                 client,
                 path = "profile",
-                format = "jpg",
+                format = "png",
                 labels = labels,
             )!!.apply {
                 lqip.blurhash shouldNotBe null
@@ -192,9 +197,9 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                 val storeResponse = client.get(location)
                 storeResponse.status shouldBe HttpStatusCode.OK
                 val rendered = byteArrayToImage(storeResponse.bodyAsBytes())
-                rendered.width shouldBe bufferedImage.width
-                rendered.height shouldBe bufferedImage.height
-                Tika().detect(storeResponse.bodyAsBytes()) shouldBe "image/jpeg"
+                rendered.width shouldBe attributes.width
+                rendered.height shouldBe attributes.height
+                Tika().detect(storeResponse.bodyAsBytes()) shouldBe ImageFormat.PNG.mimeType
             }
         }
 }

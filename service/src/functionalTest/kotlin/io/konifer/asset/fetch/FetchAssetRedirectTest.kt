@@ -1,4 +1,4 @@
-package io.konifer.asset
+package io.konifer.asset.fetch
 
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest

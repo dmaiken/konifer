@@ -1,4 +1,4 @@
-package io.konifer.asset
+package io.konifer.asset.fetch
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
