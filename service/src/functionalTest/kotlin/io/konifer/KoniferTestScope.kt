@@ -1,8 +1,8 @@
 package io.konifer
 
-import io.konifer.client.HmacSigningAlgorithm
 import io.konifer.client.KoniferClient
-import io.konifer.client.KoniferInternalTestApi
+import io.konifer.clientV2.KoniferInternalTestApi
+import io.konifer.clientV2.internal.HmacSigningAlgorithm
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig

@@ -1,8 +1,8 @@
 package io.konifer.client.harness
 
-import io.konifer.client.HmacSigningConfig
 import io.konifer.client.KoniferClient
-import io.konifer.client.KoniferUrlSigner
+import io.konifer.clientV2.internal.HmacSigningConfig
+import io.konifer.clientV2.internal.KoniferUrlSigner
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

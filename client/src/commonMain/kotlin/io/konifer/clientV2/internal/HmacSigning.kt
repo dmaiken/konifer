@@ -1,4 +1,4 @@
-package io.konifer.client
+package io.konifer.clientV2.internal
 
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.HMAC

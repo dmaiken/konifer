@@ -5,7 +5,7 @@ import io.konifer.ImageFactory.testImage
 import io.konifer.PHash
 import io.konifer.client.KoniferResponse
 import io.konifer.client.fold
-import io.konifer.client.requestedTransformation
+import io.konifer.clientV2.model.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL

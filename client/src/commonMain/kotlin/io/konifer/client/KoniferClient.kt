@@ -1,5 +1,20 @@
 package io.konifer.client
 
+import io.konifer.clientV2.KoniferInternalTestApi
+import io.konifer.clientV2.internal.HmacSigningAlgorithm
+import io.konifer.clientV2.internal.HmacSigningConfig
+import io.konifer.clientV2.internal.KoniferUrlSigner
+import io.konifer.clientV2.internal.appendLabels
+import io.konifer.clientV2.internal.appendLimit
+import io.konifer.clientV2.internal.appendQuerySelectors
+import io.konifer.clientV2.internal.appendTransformationParameters
+import io.konifer.clientV2.internal.safeApiCall
+import io.konifer.clientV2.internal.toKoniferResponse
+import io.konifer.clientV2.model.DeleteQuerySelector
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.FetchQuerySelector
+import io.konifer.clientV2.model.None
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
@@ -33,7 +48,6 @@ import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.json.Json
@@ -109,7 +123,7 @@ class KoniferClient internal constructor(
 
     suspend fun fetchAssetInfo(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         safeApiCall {
@@ -130,7 +144,7 @@ class KoniferClient internal constructor(
     suspend fun fetchAssetInfo(
         path: String,
         limit: Int,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         safeApiCall {
@@ -151,7 +165,7 @@ class KoniferClient internal constructor(
 
     suspend fun fetchAssetContent(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         byteChannel: ByteChannel,
@@ -182,7 +196,7 @@ class KoniferClient internal constructor(
 
     suspend fun fetchAssetContentBytes(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         fetchMode: ContentFetchMode = ContentFetchMode.CONTENT,
@@ -210,7 +224,7 @@ class KoniferClient internal constructor(
 
     suspend fun fetchAssetRedirectLocation(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
@@ -241,7 +255,7 @@ class KoniferClient internal constructor(
 
     suspend fun fetchAssetLink(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
@@ -348,7 +362,7 @@ class KoniferClient internal constructor(
 
     suspend fun deleteAsset(
         path: String,
-        querySelectors: DeleteQuerySelector = None(),
+        querySelectors: DeleteQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         limit: Int = 1,
     ): KoniferResponse<Unit> =
@@ -428,18 +442,6 @@ class KoniferClient internal constructor(
     }
 
     private fun String.splitPath() = this.removePrefix("/").removeSuffix("/").split("/")
-
-    private inline fun <T> safeApiCall(apiCall: () -> KoniferResponse<T>): KoniferResponse<T> =
-        try {
-            apiCall()
-        } catch (e: CancellationException) {
-            // Always re-throw cancellation exceptions so coroutines can cancel!
-            throw e
-        } catch (e: IllegalArgumentException) {
-            throw e
-        } catch (e: Exception) {
-            KoniferResponse.NetworkError(e)
-        }
 
     private inline fun <reified T> assetUploadFormData(
         request: T,

@@ -1,7 +1,7 @@
 package integration
 
 import io.konifer.client.KoniferResponse
-import io.konifer.client.requestedTransformation
+import io.konifer.clientV2.model.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.TransformableColorSpace
 import io.kotest.matchers.shouldBe

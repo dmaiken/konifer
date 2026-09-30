@@ -1,11 +1,11 @@
 package io.konifer.client.asset.delete
 
-import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.OrderBy
-import io.konifer.client.Recursive
 import io.konifer.client.harness.httpClient
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.model.Recursive
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -39,7 +39,7 @@ class KoniferClientDeleteTest :
 
             koniferClient.deleteAsset(
                 path = "/users/123",
-                querySelectors = Recursive(),
+                querySelectors = Recursive,
             )::class shouldBe KoniferResponse.Success::class
         }
 

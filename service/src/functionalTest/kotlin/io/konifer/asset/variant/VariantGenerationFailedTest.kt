@@ -2,8 +2,8 @@ package io.konifer.asset.variant
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.client.EntryId
-import io.konifer.client.requestedTransformation
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.matchers.shouldBeSuccessful

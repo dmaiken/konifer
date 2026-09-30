@@ -1,6 +1,6 @@
 package io.konifer.client.harness
 
-import io.konifer.client.RequestedTransformation
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters

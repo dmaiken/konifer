@@ -3,13 +3,12 @@ package io.konifer.asset.variant
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.byteArrayToImage
-import io.konifer.client.requestedTransformation
+import io.konifer.clientV2.model.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetLink
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.apache.tika.Tika

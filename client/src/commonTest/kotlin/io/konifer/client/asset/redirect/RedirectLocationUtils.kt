@@ -1,9 +1,9 @@
 package io.konifer.client.asset.redirect
 
-import io.konifer.client.RequestedTransformation
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertRequestedTransformation
 import io.konifer.client.harness.assertSignatureParameter
+import io.konifer.clientV2.model.RequestedTransformation
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

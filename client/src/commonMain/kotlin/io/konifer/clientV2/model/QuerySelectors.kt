@@ -1,4 +1,4 @@
-package io.konifer.client
+package io.konifer.clientV2.model
 
 import io.konifer.common.selector.Order
 
@@ -18,8 +18,8 @@ class EntryId(
 ) : FetchQuerySelector,
     DeleteQuerySelector
 
-class None :
+data object None :
     FetchQuerySelector,
     DeleteQuerySelector
 
-class Recursive : DeleteQuerySelector
+data object Recursive : DeleteQuerySelector

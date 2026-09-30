@@ -3,9 +3,9 @@ package io.konifer.asset.delete
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.client.EntryId
-import io.konifer.client.OrderBy
-import io.konifer.client.Recursive
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.model.Recursive
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.konifer.matchers.shouldBeSuccessful
@@ -402,7 +402,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
             konifer()
                 .deleteAsset(
                     path = "user/123",
-                    querySelectors = Recursive(),
+                    querySelectors = Recursive,
                 ).shouldBeSuccessful()
 
             konifer().fetchAssetInfo(
@@ -564,7 +564,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
                 .deleteAsset(
                     path = "user/123",
                     labels = mapOf("phone" to "iphone"),
-                    querySelectors = Recursive(),
+                    querySelectors = Recursive,
                 ).shouldBeSuccessful()
 
             konifer().fetchAssetInfo(

@@ -2,12 +2,9 @@ package io.konifer.client.asset
 
 import io.konifer.client.AssetContentRequestOptions
 import io.konifer.client.ContentFetchMode
-import io.konifer.client.EntryId
 import io.konifer.client.KoniferBlockingClient
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.OrderBy
-import io.konifer.client.RequestedTransformation
 import io.konifer.client.asset.content.configureMockEngineHappy
 import io.konifer.client.asset.content.configureMockEngineHappyRedirect
 import io.konifer.client.asset.content.readResourceBytes
@@ -18,6 +15,9 @@ import io.konifer.client.asset.store.configureMockUrlEngineHappy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.StoreAssetRequest

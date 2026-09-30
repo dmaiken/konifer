@@ -1,4 +1,4 @@
-package io.konifer.client.asset
+package io.konifer.clientV2.asset.variant
 
 import io.konifer.client.harness.allTransformationsBuilder
 import io.konifer.client.harness.allTransformationsDsl

@@ -1,5 +1,9 @@
 package io.konifer.client
 
+import io.konifer.clientV2.model.FetchQuerySelector
+import io.konifer.clientV2.model.None
+import io.konifer.clientV2.model.RequestedTransformation
+
 class AssetContentRequestOptions private constructor(
     val querySelectors: FetchQuerySelector,
     val requestedTransformation: RequestedTransformation,
@@ -7,7 +11,7 @@ class AssetContentRequestOptions private constructor(
     val fetchMode: ContentFetchMode,
 ) {
     class Builder {
-        private var querySelectors: FetchQuerySelector = None()
+        private var querySelectors: FetchQuerySelector = None
         private var requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant
         private var fetchMode: ContentFetchMode = ContentFetchMode.CONTENT
         private var labels: Map<String, String> = emptyMap()

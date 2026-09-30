@@ -23,11 +23,6 @@ kotlin {
             }
         }
     }
-    js {
-        outputModuleName = "konifer-client"
-        generateTypeScriptDefinitions()
-        nodejs()
-    }
 
     sourceSets {
         commonMain.dependencies {
@@ -53,10 +48,6 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
             implementation(libs.logback.classic)
-        }
-
-        jsMain.dependencies {
-            implementation(libs.ktor.client.js)
         }
     }
 }

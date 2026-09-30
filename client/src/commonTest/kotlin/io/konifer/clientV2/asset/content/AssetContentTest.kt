@@ -1,0 +1,162 @@
+package io.konifer.clientV2.asset.content
+
+import io.konifer.client.harness.assertLabels
+import io.konifer.client.harness.assertRequestedTransformation
+import io.konifer.client.harness.assertSignatureParameter
+import io.konifer.client.harness.httpClient
+import io.konifer.clientV2.KoniferClientV2
+import io.konifer.clientV2.internal.HmacSigningConfig
+import io.konifer.clientV2.internal.KoniferUrlSigner
+import io.konifer.clientV2.model.KoniferV2Result
+import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.common.http.ErrorResponse
+import io.konifer.common.selector.Order
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.toByteArray
+import kotlinx.coroutines.async
+import kotlinx.io.IOException
+import kotlinx.serialization.json.Json
+
+class AssetContentTest :
+    FunSpec({
+        test("contentBytes fetches the newest variant by default") {
+            val bytes = byteArrayOf(1, 2, 3, 4)
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.method shouldBe HttpMethod.Get
+                        request.url.encodedPath shouldBe "/assets/users/123/-/new/content"
+                        respond(bytes, headers = headersOf(HttpHeaders.ContentType, "image/png"))
+                    }
+                }
+
+            KoniferClientV2(httpClient)
+                .assets("/users/123")
+                .variant(requestedTransformation {})
+                .contentBytes() shouldBe KoniferV2Result.Success(bytes)
+        }
+
+        test("contentBytes uses labels, order, and transformation") {
+            val bytes = byteArrayOf(5, 6)
+            val transformation = requestedTransformation { width = 80 }
+            val labels = mapOf("Camera" to "phone", "format" to "display")
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.url.encodedPath shouldBe "/assets/users/123/-/modified/content"
+                        assertLabels(request.url.parameters, labels)
+                        assertRequestedTransformation(request.url.parameters, transformation)
+                        respond(bytes, headers = headersOf(HttpHeaders.ContentType, "image/png"))
+                    }
+                }
+
+            KoniferClientV2(httpClient)
+                .assets("users/123")
+                .matchingLabels(labels)
+                .orderBy(Order.MODIFIED)
+                .variant(transformation)
+                .contentBytes() shouldBe KoniferV2Result.Success(bytes)
+        }
+
+        test("writeContentTo streams an entry variant and closes the destination") {
+            val bytes = ByteArray(100_000) { (it % 256).toByte() }
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.url.encodedPath shouldBe "/assets/users/123/-/entry/42/content"
+                        respond(bytes, headers = headersOf(HttpHeaders.ContentType, "image/png"))
+                    }
+                }
+            val destination = ByteChannel()
+            val received = async { destination.toByteArray() }
+
+            val result =
+                KoniferClientV2(httpClient)
+                    .assets("users/123")
+                    .entry(42)
+                    .variant(requestedTransformation {})
+                    .writeContentTo(destination)
+
+            result shouldBe KoniferV2Result.Success(Unit)
+            received.await() shouldBe bytes
+            destination.isClosedForWrite shouldBe true
+        }
+
+        test("HTTP errors retain status and server message") {
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.url.encodedPath shouldBe "/assets/users/123/-/new/content"
+                        respond(
+                            Json.encodeToString(ErrorResponse("not found")),
+                            status = HttpStatusCode.NotFound,
+                            headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                        )
+                    }
+                }
+
+            KoniferClientV2(httpClient)
+                .assets("users/123")
+                .variant(requestedTransformation {})
+                .contentBytes() shouldBe KoniferV2Result.Failure.Http(404, "not found")
+        }
+
+        test("writeContentTo closes the destination on an HTTP error") {
+            val httpClient =
+                httpClient {
+                    MockEngine {
+                        respond(
+                            Json.encodeToString(ErrorResponse("not found")),
+                            status = HttpStatusCode.NotFound,
+                            headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                        )
+                    }
+                }
+            val destination = ByteChannel()
+
+            val result =
+                KoniferClientV2(httpClient)
+                    .assets("users/123")
+                    .variant(requestedTransformation {})
+                    .writeContentTo(destination)
+
+            result shouldBe KoniferV2Result.Failure.Http(404, "not found")
+            destination.isClosedForWrite shouldBe true
+        }
+
+        test("contentBytes signs a request for a specified entry") {
+            val bytes = byteArrayOf(1, 2, 3)
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.url.encodedPath shouldBe "/assets/users/123/-/entry/42/content"
+                        assertSignatureParameter(request.url.parameters, true)
+                        respond(bytes, headers = headersOf(HttpHeaders.ContentType, "image/png"))
+                    }
+                }
+            val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
+
+            client
+                .assets("users/123")
+                .entry(42)
+                .variant(requestedTransformation {})
+                .contentBytes() shouldBe
+                KoniferV2Result.Success(bytes)
+        }
+
+        test("contentBytes returns a transport failure when the request fails") {
+            val httpClient = httpClient { MockEngine { throw IOException("offline") } }
+
+            val result = KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).contentBytes()
+
+            (result is KoniferV2Result.Failure.Transport) shouldBe true
+        }
+    })

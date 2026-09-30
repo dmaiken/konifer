@@ -1,9 +1,9 @@
 package io.konifer.client.asset.link
 
-import io.konifer.client.RequestedTransformation
 import io.konifer.client.harness.assertLabels
 import io.konifer.client.harness.assertRequestedTransformation
 import io.konifer.client.harness.assertSignatureParameter
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse

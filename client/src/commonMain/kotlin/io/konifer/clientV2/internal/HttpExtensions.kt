@@ -1,5 +1,12 @@
-package io.konifer.client
+package io.konifer.clientV2.internal
 
+import io.konifer.client.KoniferResponse
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.None
+import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.model.QuerySelector
+import io.konifer.clientV2.model.Recursive
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.LIMIT_PARAMETER
@@ -25,7 +32,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 
-private const val PATH_SEPARATOR = "-"
+internal const val PATH_SEPARATOR = "-"
 
 suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse<T> =
     when {
@@ -54,19 +61,19 @@ fun URLBuilder.appendQuerySelectors(
     var pathSeparatorAppended = false
     when (querySelectors) {
         is EntryId -> {
-            appendPathSegments(PATH_SEPARATOR)
+            appendPathSeparator()
             pathSeparatorAppended = true
             appendPathSegments("entry", querySelectors.entryId.toString())
         }
 
         is OrderBy -> {
-            appendPathSegments(PATH_SEPARATOR)
+            appendPathSeparator()
             pathSeparatorAppended = true
             appendPathSegments(querySelectors.orderBy.name.lowercase())
         }
 
         is Recursive -> {
-            appendPathSegments(PATH_SEPARATOR)
+            appendPathSeparator()
             pathSeparatorAppended = true
             appendPathSegments("recursive")
         }
@@ -75,7 +82,7 @@ fun URLBuilder.appendQuerySelectors(
     }
     returnFormat?.let {
         if (!pathSeparatorAppended) {
-            appendPathSegments(PATH_SEPARATOR)
+            appendPathSeparator()
         }
         appendPathSegments(it.name.lowercase())
     }

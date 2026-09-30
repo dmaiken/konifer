@@ -1,5 +1,10 @@
 package io.konifer.client
 
+import io.konifer.clientV2.internal.HmacSigningAlgorithm
+import io.konifer.clientV2.model.DeleteQuerySelector
+import io.konifer.clientV2.model.FetchQuerySelector
+import io.konifer.clientV2.model.None
+import io.konifer.clientV2.model.RequestedTransformation
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
@@ -42,7 +47,7 @@ class KoniferBlockingClient internal constructor(
 
     fun fetchAssetMetadata(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<AssetResponse> =
         runBlocking {
@@ -56,7 +61,7 @@ class KoniferBlockingClient internal constructor(
     fun fetchAssetMetadata(
         path: String,
         limit: Int,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
     ): KoniferResponse<List<AssetResponse>> =
         runBlocking {
@@ -99,7 +104,7 @@ class KoniferBlockingClient internal constructor(
 
     fun fetchAssetRedirectLocation(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<String> =
@@ -128,7 +133,7 @@ class KoniferBlockingClient internal constructor(
 
     fun fetchAssetLink(
         path: String,
-        querySelectors: FetchQuerySelector = None(),
+        querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
     ): KoniferResponse<AssetLinkResponse> =
@@ -195,7 +200,7 @@ class KoniferBlockingClient internal constructor(
 
     fun deleteAsset(
         path: String,
-        querySelectors: DeleteQuerySelector = None(),
+        querySelectors: DeleteQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         limit: Int = 1,
     ): KoniferResponse<Unit> =

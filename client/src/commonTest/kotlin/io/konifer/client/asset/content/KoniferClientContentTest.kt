@@ -1,17 +1,17 @@
 package io.konifer.client.asset.content
 
 import io.konifer.client.ContentFetchMode
-import io.konifer.client.EntryId
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
-import io.konifer.client.None
-import io.konifer.client.OrderBy
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
 import io.konifer.client.harness.signedKoniferClient
-import io.konifer.client.requestedTransformation
+import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.model.None
+import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.model.requestedTransformation
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -382,7 +382,7 @@ class KoniferClientContentTest :
                 koniferClient.fetchAssetContent(
                     path = "/users/123",
                     byteChannel = responseChannel,
-                    querySelectors = None(),
+                    querySelectors = None,
                     requestedTransformation = allTransformationsDsl,
                     fetchMode = ContentFetchMode.CONTENT,
                 )

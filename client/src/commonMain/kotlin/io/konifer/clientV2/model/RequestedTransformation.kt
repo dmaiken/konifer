@@ -1,4 +1,4 @@
-package io.konifer.client
+package io.konifer.clientV2.model
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -50,7 +50,7 @@ class RequestedTransformationDsl {
             pad = pad,
             padColor = padColor,
             profile = profile,
-            strip = strip,
+            strip = strip.toSet(),
             colorSpace = colorSpace,
         )
 }
@@ -154,7 +154,7 @@ class RequestedTransformation internal constructor(
                 pad = pad,
                 padColor = padColor,
                 profile = profile,
-                strip = strip,
+                strip = strip.toSet(),
                 colorSpace = colorSpace,
             )
     }
