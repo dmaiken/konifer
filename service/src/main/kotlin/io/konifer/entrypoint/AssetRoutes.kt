@@ -5,6 +5,7 @@ import io.konifer.application.usecase.fetch.FetchAssetHandler
 import io.konifer.application.usecase.store.AssetAndLocation
 import io.konifer.application.usecase.store.StoreNewAssetUseCase
 import io.konifer.application.usecase.update.UpdateAssetUseCase
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.ReturnFormat
@@ -64,23 +65,19 @@ fun Application.configureAssetRouting() {
                 )
                 when (requestContext.selectors.returnFormat) {
                     ReturnFormat.INFO -> {
-                        if (requestContext.selectors.limit == 1) {
-                            fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
-                                getAppStatusCacheHeader(response.cacheHit).let {
-                                    call.response.headers.append(it.first, it.second)
-                                }
-                                call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
-                            } ?: call.respond(HttpStatusCode.NotFound)
-                            return@get
-                        } else {
-                            fetchAssetHandler
-                                .fetchMetadataAtPath(requestContext)
-                                .map {
-                                    AssetResponse.fromAssetData(it)
-                                }.let {
-                                    call.respond(HttpStatusCode.OK, it)
-                                }
-                        }
+                        fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
+                            getAppStatusCacheHeader(response.cacheHit).let {
+                                call.response.headers.append(it.first, it.second)
+                            }
+                            call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
+                        } ?: call.respond(HttpStatusCode.NotFound)
+                    }
+
+                    ReturnFormat.ENTRIES -> {
+                        fetchAssetHandler
+                            .fetchMetadataAtPath(requestContext)
+                            .map { AssetResponse.fromAssetData(it) }
+                            .let { call.respond(HttpStatusCode.OK, AssetEntriesResponse(it)) }
                     }
 
                     ReturnFormat.REDIRECT -> {

@@ -3,6 +3,7 @@ package io.konifer.common.selector
 enum class ReturnFormat {
     CONTENT,
     INFO,
+    ENTRIES,
     REDIRECT,
     DOWNLOAD,
     LINK,

@@ -200,7 +200,7 @@ class RequestContextFactory(
                     parameters.contains(it)
                 } &&
                 variantProfile == null
-        return if (querySelectors.returnFormat == ReturnFormat.INFO && requestedOriginalVariant) {
+        return if (querySelectors.returnFormat in setOf(ReturnFormat.INFO, ReturnFormat.ENTRIES) && requestedOriginalVariant) {
             null
         } else if (requestedOriginalVariant) {
             RequestedTransformation.ORIGINAL_VARIANT

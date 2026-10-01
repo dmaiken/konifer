@@ -59,7 +59,8 @@ class RuleEvaluationTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.ruleEvaluation()
+            client
+                .ruleEvaluation()
                 .fromUrl("https://example.com/image.png")
                 .withDefinition(landscape)
                 .withDefinitions(listOf(portrait))
@@ -81,7 +82,8 @@ class RuleEvaluationTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).ruleEvaluation()
+            KoniferClientV2(httpClient)
+                .ruleEvaluation()
                 .fromS3Arn("arn:aws:s3:::images/example.png")
                 .withDefinition(landscape)
                 .evaluate() shouldBe KoniferV2Result.Success(response)
@@ -108,8 +110,11 @@ class RuleEvaluationTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.ruleEvaluation().fromBytes(bytes, ImageFormat.PNG)
-                .withDefinition(landscape).evaluate() shouldBe KoniferV2Result.Success(response)
+            client
+                .ruleEvaluation()
+                .fromBytes(bytes, ImageFormat.PNG)
+                .withDefinition(landscape)
+                .evaluate() shouldBe KoniferV2Result.Success(response)
         }
 
         test("channel upload sends the supplied image content type") {
@@ -126,9 +131,11 @@ class RuleEvaluationTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).ruleEvaluation()
+            KoniferClientV2(httpClient)
+                .ruleEvaluation()
                 .fromChannel(ByteReadChannel(bytes), ImageFormat.JPEG)
-                .withDefinition(landscape).evaluate() shouldBe KoniferV2Result.Success(response)
+                .withDefinition(landscape)
+                .evaluate() shouldBe KoniferV2Result.Success(response)
         }
 
         test("evaluation requires a source and one to ten definitions before making a request") {
@@ -136,43 +143,70 @@ class RuleEvaluationTest :
             val client = KoniferClientV2(httpClient)
 
             shouldThrow<IllegalArgumentException> {
-                client.ruleEvaluation().fromUrl(" ").withDefinition(landscape).evaluate()
+                client
+                    .ruleEvaluation()
+                    .fromUrl(" ")
+                    .withDefinition(landscape)
+                    .evaluate()
             }
             shouldThrow<IllegalArgumentException> {
-                client.ruleEvaluation().fromS3Arn(" ").withDefinition(landscape).evaluate()
+                client
+                    .ruleEvaluation()
+                    .fromS3Arn(" ")
+                    .withDefinition(landscape)
+                    .evaluate()
             }
             shouldThrow<IllegalArgumentException> {
                 client.ruleEvaluation().fromBytes(byteArrayOf(1), ImageFormat.PNG).evaluate()
             }
             shouldThrow<IllegalArgumentException> {
-                client.ruleEvaluation().fromBytes(byteArrayOf(1), ImageFormat.PNG)
-                    .withDefinitions(List(11) { landscape }).evaluate()
+                client
+                    .ruleEvaluation()
+                    .fromBytes(byteArrayOf(1), ImageFormat.PNG)
+                    .withDefinitions(List(11) { landscape })
+                    .evaluate()
             }
         }
 
         test("evaluation maps HTTP errors and malformed responses") {
-            val errorClient = httpClient {
-                MockEngine {
-                    respond(Json.encodeToString(ErrorResponse("rules unavailable")), status = HttpStatusCode.BadRequest,
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"))
+            val errorClient =
+                httpClient {
+                    MockEngine {
+                        respond(
+                            Json.encodeToString(ErrorResponse("rules unavailable")),
+                            status = HttpStatusCode.BadRequest,
+                            headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                        )
+                    }
                 }
-            }
-            KoniferClientV2(errorClient).ruleEvaluation().fromUrl("https://example.com/image.png")
-                .withDefinition(landscape).evaluate() shouldBe KoniferV2Result.Failure.Http(400, "rules unavailable")
+            KoniferClientV2(errorClient)
+                .ruleEvaluation()
+                .fromUrl("https://example.com/image.png")
+                .withDefinition(landscape)
+                .evaluate() shouldBe KoniferV2Result.Failure.Http(400, "rules unavailable")
 
-            val malformedClient = httpClient {
-                MockEngine { respond("not-json", headers = headersOf(HttpHeaders.ContentType, "application/json")) }
-            }
-            val malformed = KoniferClientV2(malformedClient).ruleEvaluation().fromUrl("https://example.com/image.png")
-                .withDefinition(landscape).evaluate()
+            val malformedClient =
+                httpClient {
+                    MockEngine { respond("not-json", headers = headersOf(HttpHeaders.ContentType, "application/json")) }
+                }
+            val malformed =
+                KoniferClientV2(malformedClient)
+                    .ruleEvaluation()
+                    .fromUrl("https://example.com/image.png")
+                    .withDefinition(landscape)
+                    .evaluate()
             (malformed is KoniferV2Result.Failure.InvalidResponse) shouldBe true
         }
 
         test("evaluation maps connection failures to transport failures") {
             val httpClient = httpClient { MockEngine { throw IOException("offline") } }
 
-            val result = KoniferClientV2(httpClient).ruleEvaluation().fromUrl("https://example.com/image.png")
-                .withDefinition(landscape).evaluate()
+            val result =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromUrl("https://example.com/image.png")
+                    .withDefinition(landscape)
+                    .evaluate()
             (result is KoniferV2Result.Failure.Transport) shouldBe true
         }
     })

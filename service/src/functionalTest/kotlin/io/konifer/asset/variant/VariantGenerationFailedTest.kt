@@ -4,12 +4,15 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.clientV2.assets.fetch.EntryId
 import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.infrastructure.vips.processor.VipsImageProcessor
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.kotest.matchers.collections.shouldHaveSize
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -62,12 +65,10 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                 bytes = image,
             ) shouldHaveHttpError HttpStatusCode.InternalServerError.value
 
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                    limit = 10,
-                ).shouldBeSuccessful()
-                .body shouldHaveSize 0
+            client
+                .get("/assets/profile/-/new/entries?limit=10")
+                .body<AssetEntriesResponse>()
+                .entries shouldHaveSize 0
         }
     }
 

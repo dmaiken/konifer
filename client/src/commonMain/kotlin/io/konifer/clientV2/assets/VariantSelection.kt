@@ -1,7 +1,7 @@
 package io.konifer.clientV2.assets
 
-import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.clientV2.assets.fetch.fetchAssetContentBytes
 import io.konifer.clientV2.assets.fetch.fetchAssetContentTo
@@ -17,10 +17,8 @@ class VariantSelection internal constructor(
     suspend fun writeContentTo(destination: ByteWriteChannel): KoniferV2Result<Unit> =
         fetchAssetContentTo(infra, asset, requestedTransformation, destination)
 
-    suspend fun contentBytes(): KoniferV2Result<ByteArray> =
-        fetchAssetContentBytes(infra, asset, requestedTransformation)
+    suspend fun contentBytes(): KoniferV2Result<ByteArray> = fetchAssetContentBytes(infra, asset, requestedTransformation)
 
     // link and redirect modes return the same delivery URL, so I am not exposing a redirect() method
-    suspend fun link(): KoniferV2Result<AssetLinkResponse> =
-        fetchAssetLink(infra, asset, requestedTransformation)
+    suspend fun link(): KoniferV2Result<AssetLinkResponse> = fetchAssetLink(infra, asset, requestedTransformation)
 }

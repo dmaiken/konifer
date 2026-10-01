@@ -1,5 +1,6 @@
 package io.konifer.util
 
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
@@ -502,7 +503,7 @@ suspend fun fetchAllAssetMetadata(
     limit: Int = 1,
     expectedStatus: HttpStatusCode = HttpStatusCode.OK,
 ): List<AssetResponse> {
-    val requestPath = "/assets/$path/-/${order.name.lowercase()}/info/"
+    val requestPath = "/assets/$path/-/${order.name.lowercase()}/entries/"
     val response =
         client.get(requestPath) {
             parameter("limit", limit.toString())
@@ -512,7 +513,7 @@ suspend fun fetchAllAssetMetadata(
     return if (response.status == HttpStatusCode.NotFound) {
         emptyList()
     } else {
-        response.body<List<AssetResponse>>()
+        response.body<AssetEntriesResponse>().entries
     }
 }
 

@@ -74,6 +74,7 @@ class FetchAssetHandler(
         return assetRepository.fetchAllByPath(
             path = context.path,
             transformation = null,
+            labels = context.labels,
             order = context.selectors.order,
             limit = context.selectors.limit,
         )

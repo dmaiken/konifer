@@ -33,7 +33,10 @@ internal suspend fun evaluateRules(
         )
     if (source is RuleEvaluationSource.External) {
         require(
-            !request.source.http.url.isNullOrBlank() || !request.source.s3.arn.isNullOrBlank(),
+            !request.source.http.url
+                .isNullOrBlank() ||
+                !request.source.s3.arn
+                    .isNullOrBlank(),
         ) { "Either http.url or s3.arn is required in request" }
     }
     return try {
@@ -73,10 +76,11 @@ private fun ruleEvaluationFormData(
             append(
                 key = "asset",
                 value = ChannelProvider { source.channel() },
-                headers = Headers.build {
-                    append(HttpHeaders.ContentType, source.format.mimeType)
-                    append(HttpHeaders.ContentDisposition, "filename=\"upload.bin\"")
-                },
+                headers =
+                    Headers.build {
+                        append(HttpHeaders.ContentType, source.format.mimeType)
+                        append(HttpHeaders.ContentDisposition, "filename=\"upload.bin\"")
+                    },
             )
         },
     )

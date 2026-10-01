@@ -16,10 +16,16 @@ data class QuerySelectors(
     val specifiedModifiers: SpecifiedInRequest = SpecifiedInRequest(),
 ) {
     init {
-        if (returnFormat != ReturnFormat.INFO && limit > 1) {
+        if (returnFormat != ReturnFormat.ENTRIES && limit > 1) {
             throw InvalidQuerySelectorsException(
                 "Cannot have limit > 1 with return format of: ${returnFormat.name.lowercase()}",
             )
+        }
+        if (returnFormat == ReturnFormat.INFO && limit != 1) {
+            throw InvalidQuerySelectorsException("Info requests must select a single entry")
+        }
+        if (returnFormat == ReturnFormat.ENTRIES && entryId != null) {
+            throw InvalidQuerySelectorsException("Entries cannot be selected by entry ID")
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.konifer.clientV2.assets.delete
 
+import io.konifer.clientV2.KoniferV2Result
 import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.internal.appendAssetPath
 import io.konifer.clientV2.internal.appendEntrySelector
@@ -7,7 +8,6 @@ import io.konifer.clientV2.internal.appendLabels
 import io.konifer.clientV2.internal.appendLimit
 import io.konifer.clientV2.internal.appendPathSeparator
 import io.konifer.clientV2.internal.appendRecursiveSelector
-import io.konifer.clientV2.KoniferV2Result
 import io.konifer.clientV2.toKoniferV2Result
 import io.konifer.common.selector.Order
 import io.ktor.client.request.delete

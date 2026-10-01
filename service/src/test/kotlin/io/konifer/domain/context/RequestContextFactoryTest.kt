@@ -57,13 +57,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun queryModifierSource(): List<Arguments> =
             listOf(
                 arguments(
-                    "/assets/profile/-/new/info",
+                    "/assets/profile/-/new/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -75,13 +75,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/modified/info",
+                    "/assets/profile/-/modified/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.MODIFIED,
                         limit = 10,
                         specifiedModifiers =
@@ -129,13 +129,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/iNfO/",
+                    "/assets/profile/-/new/eNtRiEs/",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -147,13 +147,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/info",
+                    "/assets/profile/-/new/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
@@ -179,13 +179,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/info",
+                    "/assets/profile/-/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -196,13 +196,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/info",
+                    "/assets/profile/-/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "-1")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = -1,
                         specifiedModifiers =
@@ -295,13 +295,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/new/info",
+                    "/assets/profile/-/new/entries",
                     ParametersBuilder()
                         .apply {
                             append("limit", "10")
                         }.build(),
                     QuerySelectors(
-                        returnFormat = ReturnFormat.INFO,
+                        returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
                         limit = 10,
                         specifiedModifiers =
@@ -907,7 +907,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             runTest {
                 val context =
                     requestContextFactory.fromFetchRequest(
-                        path = "/assets/profile/123/-/info/",
+                        path = "/assets/profile/123/-/entries/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
                             ParametersBuilder()
@@ -1217,7 +1217,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             }
 
         @ParameterizedTest
-        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
         fun `profile_only mode applies to all return formats that support variants`(returnFormat: ReturnFormat) =
             runTest {
                 every {
@@ -1246,7 +1246,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
             }
 
         @ParameterizedTest
-        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
+        @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
         fun `can specify profile with profile_only mode`(returnFormat: ReturnFormat) =
             runTest {
                 storePersistedAsset(

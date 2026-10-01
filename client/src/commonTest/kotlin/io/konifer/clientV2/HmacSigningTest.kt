@@ -6,12 +6,12 @@ import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.asset.link.createLinkResponse
 import io.konifer.client.harness.httpClient
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.clientV2.internal.HmacSigningAlgorithm
 import io.konifer.clientV2.internal.HmacSigningConfig
 import io.konifer.clientV2.internal.KoniferUrlSigner
 import io.konifer.clientV2.internal.base64UrlWithoutPadding
 import io.konifer.clientV2.internal.toAlgorithm
-import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe

@@ -42,6 +42,21 @@ class RequestContextValidatorTest {
     }
 
     @Test
+    fun `entries requests cannot specify image attributes`() {
+        val exception =
+            shouldThrow<InvalidPathException> {
+                validator.validateFetchRequest(
+                    pathConfiguration = pathConfiguration(),
+                    querySelectors = QuerySelectors(returnFormat = ReturnFormat.ENTRIES),
+                    requestedTransformation = createRequestedImageTransformation(width = 100),
+                    queryParameters = Parameters.Empty,
+                )
+            }
+
+        exception.message shouldBe "Cannot specify image attributes when requesting asset metadata"
+    }
+
+    @Test
     fun `metadata requests allow the original variant`() {
         shouldNotThrowAny {
             validator.validateFetchRequest(
@@ -54,7 +69,7 @@ class RequestContextValidatorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
     fun `non-metadata requests allow omitted transformations`(returnFormat: ReturnFormat) {
         shouldNotThrowAny {
             validator.validateFetchRequest(
@@ -67,7 +82,7 @@ class RequestContextValidatorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
     fun `non-metadata requests allow the original variant`(returnFormat: ReturnFormat) {
         shouldNotThrowAny {
             validator.validateFetchRequest(

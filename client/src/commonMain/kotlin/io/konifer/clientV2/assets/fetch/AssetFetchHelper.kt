@@ -1,7 +1,7 @@
 package io.konifer.clientV2.assets.fetch
 
-import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.AssetSelection
 import io.konifer.clientV2.internal.appendAssetPath
 import io.konifer.clientV2.internal.appendLabels

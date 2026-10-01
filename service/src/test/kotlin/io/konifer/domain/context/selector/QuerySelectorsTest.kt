@@ -12,8 +12,8 @@ import org.junit.jupiter.params.provider.EnumSource
 
 class QuerySelectorsTest {
     @ParameterizedTest
-    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO"])
-    fun `limit cannot be greater than one if format is not metadata`(format: ReturnFormat) {
+    @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["ENTRIES"])
+    fun `limit cannot be greater than one if format is not entries`(format: ReturnFormat) {
         shouldThrow<InvalidQuerySelectorsException> {
             QuerySelectors(
                 returnFormat = format,
@@ -23,16 +23,30 @@ class QuerySelectorsTest {
     }
 
     @Test
-    fun `limit can be greater than one if format is metadata`() {
+    fun `limit can be greater than one if format is entries`() {
         shouldNotThrowAny {
             QuerySelectors(
-                returnFormat = ReturnFormat.INFO,
+                returnFormat = ReturnFormat.ENTRIES,
                 limit = 2,
             ).apply {
                 limit shouldBe 2
-                returnFormat shouldBe ReturnFormat.INFO
+                returnFormat shouldBe ReturnFormat.ENTRIES
             }
         }
+    }
+
+    @Test
+    fun `info cannot request all entries`() {
+        shouldThrow<InvalidQuerySelectorsException> {
+            QuerySelectors(returnFormat = ReturnFormat.INFO, limit = -1)
+        }.message shouldBe "Info requests must select a single entry"
+    }
+
+    @Test
+    fun `entries cannot select an explicit entry ID`() {
+        shouldThrow<InvalidQuerySelectorsException> {
+            QuerySelectors(returnFormat = ReturnFormat.ENTRIES, entryId = 42)
+        }.message shouldBe "Entries cannot be selected by entry ID"
     }
 
     @Test
