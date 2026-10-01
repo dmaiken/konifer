@@ -2,10 +2,10 @@ package io.konifer.clientV2.internal
 
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.assertRequestedTransformation
-import io.konifer.clientV2.model.EntryId
-import io.konifer.clientV2.model.None
-import io.konifer.clientV2.model.OrderBy
-import io.konifer.clientV2.model.Recursive
+import io.konifer.clientV2.assets.fetch.EntryId
+import io.konifer.clientV2.assets.fetch.None
+import io.konifer.clientV2.assets.fetch.OrderBy
+import io.konifer.clientV2.assets.fetch.Recursive
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.kotest.core.spec.style.FunSpec

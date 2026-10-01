@@ -1,10 +1,18 @@
-package io.konifer.clientV2.internal
+package io.konifer.clientV2.assets.delete
 
 import io.konifer.clientV2.RequestInfrastructure
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.toKoniferV2Result
+import io.konifer.clientV2.internal.appendAssetPath
+import io.konifer.clientV2.internal.appendEntrySelector
+import io.konifer.clientV2.internal.appendLabels
+import io.konifer.clientV2.internal.appendLimit
+import io.konifer.clientV2.internal.appendPathSeparator
+import io.konifer.clientV2.internal.appendRecursiveSelector
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.toKoniferV2Result
 import io.konifer.common.selector.Order
 import io.ktor.client.request.delete
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import kotlinx.io.IOException
@@ -33,7 +41,7 @@ internal suspend fun deleteAsset(
 ): KoniferV2Result<Unit> =
     try {
         val requestUrl =
-            signedUrl(infra.urlSigner) {
+            URLBuilder().apply {
                 appendAssetPath(path)
                 when (target) {
                     is AssetDeleteTarget.Entry -> {
@@ -43,7 +51,7 @@ internal suspend fun deleteAsset(
 
                     is AssetDeleteTarget.AtPath -> {
                         appendPathSeparator()
-                        appendOrderSelector(target.order)
+                        appendPathSegments(target.order.name.lowercase())
                         appendLabels(target.labels)
                         appendLimit(target.limit)
                     }

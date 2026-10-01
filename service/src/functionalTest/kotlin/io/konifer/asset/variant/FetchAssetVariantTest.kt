@@ -6,7 +6,7 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.client.KoniferResponse
 import io.konifer.client.fold
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.matchers.shouldBeFormat

@@ -2,7 +2,7 @@ package io.konifer.asset.fetch
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.clientV2.model.EntryId
+import io.konifer.clientV2.assets.fetch.EntryId
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful

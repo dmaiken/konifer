@@ -7,8 +7,8 @@ import io.konifer.client.harness.httpClient
 import io.konifer.clientV2.KoniferClientV2
 import io.konifer.clientV2.internal.HmacSigningConfig
 import io.konifer.clientV2.internal.KoniferUrlSigner
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
@@ -39,7 +39,7 @@ class AssetContentTest :
                 }
 
             KoniferClientV2(httpClient)
-                .assets("/users/123")
+                .asset("/users/123")
                 .variant(requestedTransformation {})
                 .contentBytes() shouldBe KoniferV2Result.Success(bytes)
         }
@@ -59,7 +59,7 @@ class AssetContentTest :
                 }
 
             KoniferClientV2(httpClient)
-                .assets("users/123")
+                .asset("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
                 .variant(transformation)
@@ -80,7 +80,7 @@ class AssetContentTest :
 
             val result =
                 KoniferClientV2(httpClient)
-                    .assets("users/123")
+                    .asset("users/123")
                     .entry(42)
                     .variant(requestedTransformation {})
                     .writeContentTo(destination)
@@ -88,6 +88,31 @@ class AssetContentTest :
             result shouldBe KoniferV2Result.Success(Unit)
             received.await() shouldBe bytes
             destination.isClosedForWrite shouldBe true
+        }
+
+        test("writeContentTo includes labels, order, and transformation") {
+            val bytes = byteArrayOf(7, 8, 9)
+            val labels = mapOf("Camera" to "phone")
+            val transformation = requestedTransformation { width = 80 }
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.url.encodedPath shouldBe "/assets/users/123/-/modified/content"
+                        assertLabels(request.url.parameters, labels)
+                        assertRequestedTransformation(request.url.parameters, transformation)
+                        respond(bytes, headers = headersOf(HttpHeaders.ContentType, "image/png"))
+                    }
+                }
+            val destination = ByteChannel()
+            val received = async { destination.toByteArray() }
+
+            KoniferClientV2(httpClient)
+                .asset("users/123")
+                .matchingLabels(labels)
+                .orderBy(Order.MODIFIED)
+                .variant(transformation)
+                .writeContentTo(destination) shouldBe KoniferV2Result.Success(Unit)
+            received.await() shouldBe bytes
         }
 
         test("HTTP errors retain status and server message") {
@@ -104,7 +129,7 @@ class AssetContentTest :
                 }
 
             KoniferClientV2(httpClient)
-                .assets("users/123")
+                .asset("users/123")
                 .variant(requestedTransformation {})
                 .contentBytes() shouldBe KoniferV2Result.Failure.Http(404, "not found")
         }
@@ -124,7 +149,7 @@ class AssetContentTest :
 
             val result =
                 KoniferClientV2(httpClient)
-                    .assets("users/123")
+                    .asset("users/123")
                     .variant(requestedTransformation {})
                     .writeContentTo(destination)
 
@@ -145,7 +170,7 @@ class AssetContentTest :
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
             client
-                .assets("users/123")
+                .asset("users/123")
                 .entry(42)
                 .variant(requestedTransformation {})
                 .contentBytes() shouldBe
@@ -155,7 +180,7 @@ class AssetContentTest :
         test("contentBytes returns a transport failure when the request fails") {
             val httpClient = httpClient { MockEngine { throw IOException("offline") } }
 
-            val result = KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).contentBytes()
+            val result = KoniferClientV2(httpClient).asset("users/123").variant(requestedTransformation {}).contentBytes()
 
             (result is KoniferV2Result.Failure.Transport) shouldBe true
         }

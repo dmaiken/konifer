@@ -1,4 +1,4 @@
-package io.konifer.clientV2.model
+package io.konifer.clientV2
 
 import io.konifer.common.http.ErrorResponse
 import io.ktor.client.call.NoTransformationFoundException

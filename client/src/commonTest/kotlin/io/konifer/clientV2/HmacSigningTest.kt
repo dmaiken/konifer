@@ -11,7 +11,7 @@ import io.konifer.clientV2.internal.HmacSigningConfig
 import io.konifer.clientV2.internal.KoniferUrlSigner
 import io.konifer.clientV2.internal.base64UrlWithoutPadding
 import io.konifer.clientV2.internal.toAlgorithm
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe

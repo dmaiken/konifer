@@ -3,7 +3,8 @@ package io.konifer.clientV2
 import io.konifer.clientV2.internal.HmacSigningAlgorithm
 import io.konifer.clientV2.internal.HmacSigningConfig
 import io.konifer.clientV2.internal.KoniferUrlSigner
-import io.konifer.clientV2.request.AssetAtPath
+import io.konifer.clientV2.assets.AssetAtPath
+import io.konifer.clientV2.rules.BlankRuleEvaluation
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -80,11 +81,13 @@ class KoniferClientV2 internal constructor(
             urlSigner = urlSigner,
         )
 
-    fun assets(path: String): AssetAtPath =
+    fun asset(path: String): AssetAtPath =
         AssetAtPath(
             infra = requestInfrastructure,
             path = path,
         )
+
+    fun ruleEvaluation(): BlankRuleEvaluation = BlankRuleEvaluation(requestInfrastructure)
 
     fun close() {
         httpClient.close()

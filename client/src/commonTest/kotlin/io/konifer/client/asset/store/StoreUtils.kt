@@ -56,7 +56,6 @@ fun configureMockMultipartEngineHappy(
         )
     }
 
-@OptIn(InternalAPI::class)
 fun configureMockUrlEngineHappy(
     expectedPath: String,
     request: StoreAssetRequest,

@@ -2,7 +2,7 @@ package io.konifer.asset.variant
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.matchers.shouldBeSuccessful

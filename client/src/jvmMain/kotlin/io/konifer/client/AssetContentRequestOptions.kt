@@ -1,8 +1,8 @@
 package io.konifer.client
 
-import io.konifer.clientV2.model.FetchQuerySelector
-import io.konifer.clientV2.model.None
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.assets.fetch.FetchQuerySelector
+import io.konifer.clientV2.assets.fetch.None
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 
 class AssetContentRequestOptions private constructor(
     val querySelectors: FetchQuerySelector,

@@ -1,10 +1,10 @@
 package io.konifer.client
 
 import io.konifer.clientV2.internal.HmacSigningAlgorithm
-import io.konifer.clientV2.model.DeleteQuerySelector
-import io.konifer.clientV2.model.FetchQuerySelector
-import io.konifer.clientV2.model.None
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.assets.fetch.DeleteQuerySelector
+import io.konifer.clientV2.assets.fetch.FetchQuerySelector
+import io.konifer.clientV2.assets.fetch.None
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest

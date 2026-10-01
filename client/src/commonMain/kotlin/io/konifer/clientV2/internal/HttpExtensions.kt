@@ -1,12 +1,12 @@
 package io.konifer.clientV2.internal
 
 import io.konifer.client.KoniferResponse
-import io.konifer.clientV2.model.EntryId
-import io.konifer.clientV2.model.None
-import io.konifer.clientV2.model.OrderBy
-import io.konifer.clientV2.model.QuerySelector
-import io.konifer.clientV2.model.Recursive
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.assets.fetch.EntryId
+import io.konifer.clientV2.assets.fetch.None
+import io.konifer.clientV2.assets.fetch.OrderBy
+import io.konifer.clientV2.assets.fetch.QuerySelector
+import io.konifer.clientV2.assets.fetch.Recursive
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.LIMIT_PARAMETER

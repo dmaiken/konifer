@@ -2,7 +2,7 @@ package io.konifer.scheduled
 
 import io.konifer.BasePostgresTestContainersTest
 import io.konifer.ImageFactory.testImage
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.testPostgres

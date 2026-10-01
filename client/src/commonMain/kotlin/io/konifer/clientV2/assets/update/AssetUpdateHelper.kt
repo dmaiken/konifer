@@ -1,13 +1,17 @@
-package io.konifer.clientV2.internal
+package io.konifer.clientV2.assets.update
 
 import io.konifer.clientV2.RequestInfrastructure
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.toKoniferV2Result
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.internal.appendAssetPath
+import io.konifer.clientV2.internal.appendEntrySelector
+import io.konifer.clientV2.internal.appendPathSeparator
+import io.konifer.clientV2.toKoniferV2Result
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import io.ktor.http.takeFrom
 import kotlinx.io.IOException
@@ -21,7 +25,7 @@ internal suspend fun updateAsset(
 ): KoniferV2Result<AssetResponse> =
     try {
         val requestUrl =
-            signedUrl(infra.urlSigner) {
+            URLBuilder().apply {
                 appendAssetPath(path)
                 appendPathSeparator()
                 appendEntrySelector(entryId)

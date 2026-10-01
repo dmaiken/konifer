@@ -15,9 +15,9 @@ import io.konifer.client.asset.store.configureMockUrlEngineHappy
 import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.clientV2.model.EntryId
-import io.konifer.clientV2.model.OrderBy
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.assets.fetch.EntryId
+import io.konifer.clientV2.assets.fetch.OrderBy
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.StoreAssetRequest

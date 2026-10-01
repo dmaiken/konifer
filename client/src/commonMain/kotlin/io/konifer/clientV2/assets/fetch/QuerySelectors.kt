@@ -1,4 +1,4 @@
-package io.konifer.clientV2.model
+package io.konifer.clientV2.assets.fetch
 
 import io.konifer.common.selector.Order
 

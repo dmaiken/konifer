@@ -3,9 +3,9 @@ package io.konifer.client.asset.delete
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResponse
 import io.konifer.client.harness.httpClient
-import io.konifer.clientV2.model.EntryId
-import io.konifer.clientV2.model.OrderBy
-import io.konifer.clientV2.model.Recursive
+import io.konifer.clientV2.assets.fetch.EntryId
+import io.konifer.clientV2.assets.fetch.OrderBy
+import io.konifer.clientV2.assets.fetch.Recursive
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

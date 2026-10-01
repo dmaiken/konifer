@@ -1,13 +1,12 @@
-package io.konifer.clientV2.request
+package io.konifer.clientV2.assets
 
 import io.konifer.clientV2.RequestInfrastructure
-import io.konifer.clientV2.VariantSelection
-import io.konifer.clientV2.internal.AssetDeleteTarget
-import io.konifer.clientV2.internal.deleteAsset
-import io.konifer.clientV2.internal.fetchAssetInfo
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.OrderBy
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.assets.delete.AssetDeleteTarget
+import io.konifer.clientV2.assets.delete.deleteAsset
+import io.konifer.clientV2.assets.fetch.fetchAssetInfo
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.assets.fetch.OrderBy
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.selector.Order
 

@@ -1,8 +1,7 @@
-package io.konifer.clientV2.request
+package io.konifer.clientV2.assets
 
-import io.konifer.clientV2.VariantSelection
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.RequestedTransformation
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.common.http.AssetResponse
 
 sealed interface AssetSelection {

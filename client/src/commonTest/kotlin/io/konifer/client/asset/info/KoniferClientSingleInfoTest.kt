@@ -6,8 +6,8 @@ import io.konifer.client.harness.configureMockEngineError
 import io.konifer.client.harness.createErrorResponse
 import io.konifer.client.harness.httpClient
 import io.konifer.client.harness.signedKoniferClient
-import io.konifer.clientV2.model.EntryId
-import io.konifer.clientV2.model.OrderBy
+import io.konifer.clientV2.assets.fetch.EntryId
+import io.konifer.clientV2.assets.fetch.OrderBy
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

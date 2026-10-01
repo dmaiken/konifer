@@ -8,8 +8,8 @@ import io.konifer.client.harness.httpClient
 import io.konifer.clientV2.KoniferClientV2
 import io.konifer.clientV2.internal.HmacSigningConfig
 import io.konifer.clientV2.internal.KoniferUrlSigner
-import io.konifer.clientV2.model.KoniferV2Result
-import io.konifer.clientV2.model.requestedTransformation
+import io.konifer.clientV2.KoniferV2Result
+import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
@@ -41,26 +41,28 @@ class AssetLinkTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.assets("users/123").variant(transformation).link() shouldBe KoniferV2Result.Success(link)
+            client.asset("users/123").variant(transformation).link() shouldBe KoniferV2Result.Success(link)
         }
 
         test("link includes labels and modified ordering") {
             val link = createLinkResponse()
             val labels = mapOf("Camera" to "phone", "format" to "display")
+            val transformation = requestedTransformation { width = 80 }
             val httpClient =
                 httpClient {
                     MockEngine { request ->
                         request.url.encodedPath shouldBe "/assets/users/123/-/modified/link"
                         assertLabels(request.url.parameters, labels)
+                        assertRequestedTransformation(request.url.parameters, transformation)
                         respond(Json.encodeToString(link), headers = headersOf(HttpHeaders.ContentType, "application/json"))
                     }
                 }
 
             KoniferClientV2(httpClient)
-                .assets("users/123")
+                .asset("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .variant(requestedTransformation {})
+                .variant(transformation)
                 .link() shouldBe KoniferV2Result.Success(link)
         }
 
@@ -75,7 +77,7 @@ class AssetLinkTest :
                 }
 
             KoniferClientV2(httpClient)
-                .assets("users/123")
+                .asset("users/123")
                 .entry(42)
                 .variant(requestedTransformation {})
                 .link() shouldBe
@@ -94,7 +96,7 @@ class AssetLinkTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).link() shouldBe
+            KoniferClientV2(httpClient).asset("users/123").variant(requestedTransformation {}).link() shouldBe
                 KoniferV2Result.Failure.Http(404, "not found")
         }
 
@@ -106,7 +108,7 @@ class AssetLinkTest :
                     }
                 }
 
-            val result = KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).link()
+            val result = KoniferClientV2(httpClient).asset("users/123").variant(requestedTransformation {}).link()
 
             (result is KoniferV2Result.Failure.InvalidResponse) shouldBe true
         }
