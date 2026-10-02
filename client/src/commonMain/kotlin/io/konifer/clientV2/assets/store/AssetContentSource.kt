@@ -6,10 +6,11 @@ import io.konifer.common.http.S3Source
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.CoroutineScope
 
-sealed interface AssetContentSource
+internal sealed interface AssetContentSource
 
-interface AssetReferenceContentSource : AssetContentSource {
+internal interface AssetReferenceContentSource : AssetContentSource {
     fun applyToRequest(request: StoreAssetRequest): StoreAssetRequest
 
     data class AssetUrlContentSource(
@@ -43,22 +44,22 @@ interface AssetReferenceContentSource : AssetContentSource {
     }
 }
 
-interface AssetByteContentSource : AssetContentSource {
+internal interface AssetByteContentSource : AssetContentSource {
     val format: ImageFormat
 
-    fun channel(): ByteReadChannel
+    fun channel(scope: CoroutineScope): ByteReadChannel
 
     data class AssetByteArrayContentSource(
         private val bytes: ByteArray,
         override val format: ImageFormat,
     ) : AssetByteContentSource {
-        override fun channel(): ByteReadChannel = ByteReadChannel(bytes)
+        override fun channel(scope: CoroutineScope): ByteReadChannel = ByteReadChannel(bytes)
     }
 
-    data class AssetByteChannelContentSource(
-        private val channel: ByteReadChannel,
+    class AssetByteChannelContentSource(
+        private val open: (CoroutineScope) -> ByteReadChannel,
         override val format: ImageFormat,
     ) : AssetByteContentSource {
-        override fun channel(): ByteReadChannel = channel
+        override fun channel(scope: CoroutineScope): ByteReadChannel = open(scope)
     }
 }

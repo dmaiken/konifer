@@ -7,6 +7,8 @@ import io.konifer.common.http.AssetResponse
 sealed interface AssetSelection {
     fun variant(requestedTransformation: RequestedTransformation): VariantSelection
 
+    fun originalVariant(): VariantSelection = variant(RequestedTransformation.OriginalVariant)
+
     suspend fun info(): KoniferV2Result<AssetResponse>
 
     suspend fun delete(): KoniferV2Result<Unit>

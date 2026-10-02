@@ -1,7 +1,6 @@
 package integration
 
-import io.konifer.client.KoniferResponse
-import io.konifer.common.http.StoreAssetRequest
+import io.konifer.clientV2.KoniferV2Result
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.prepareGet
@@ -19,18 +18,17 @@ class RedirectIntegrationTest : BaseIntegrationTest() {
             val path = "presigned/${UUID.randomUUID()}"
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
-                client.storeAsset(
-                    path = path,
-                    format = attributes.format,
-                    bytes = image,
-                    request =
-                        StoreAssetRequest(
-                            alt = "image",
-                            tags = setOf("tag1", "tag2"),
-                            labels = mapOf("key1" to "value1", "key2" to "value2"),
-                        ),
-                )
-            storeResponse::class shouldBe KoniferResponse.Success::class
+                clientV2
+                    .asset(path)
+                    .newAsset()
+                    .fromBytes(
+                        bytes = image,
+                        format = attributes.format,
+                    ).withAlt("image")
+                    .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
+                    .withTags(setOf("tag1", "tag2"))
+                    .store()
+            storeResponse::class shouldBe KoniferV2Result.Success::class
 
             httpClient
                 .prepareGet {

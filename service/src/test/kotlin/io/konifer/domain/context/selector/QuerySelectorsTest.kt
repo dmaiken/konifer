@@ -36,6 +36,13 @@ class QuerySelectorsTest {
     }
 
     @Test
+    fun `entries defaults to twenty while single-result formats default to one`() {
+        QuerySelectors(returnFormat = ReturnFormat.ENTRIES).limit shouldBe 20
+        QuerySelectors(returnFormat = ReturnFormat.INFO).limit shouldBe 1
+        QuerySelectors().limit shouldBe 1
+    }
+
+    @Test
     fun `info cannot request all entries`() {
         shouldThrow<InvalidQuerySelectorsException> {
             QuerySelectors(returnFormat = ReturnFormat.INFO, limit = -1)

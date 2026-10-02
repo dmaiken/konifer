@@ -1,5 +1,7 @@
 package io.konifer.common.selector
 
+const val DEFAULT_ENTRIES_LIMIT = 20
+
 enum class ReturnFormat {
     CONTENT,
     INFO,

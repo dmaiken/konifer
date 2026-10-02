@@ -3,6 +3,7 @@ package integration
 import integration.GarageContainer.Companion.ADMIN_PORT
 import integration.GarageContainer.Companion.S3_PORT
 import io.konifer.client.KoniferClient
+import io.konifer.clientV2.KoniferClientV2
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -173,6 +174,11 @@ abstract class BaseIntegrationTest {
     protected val client =
         runBlocking {
             KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
+        }
+
+    protected val clientV2 =
+        runBlocking {
+            KoniferClientV2.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
         }
 
     protected val httpClient =

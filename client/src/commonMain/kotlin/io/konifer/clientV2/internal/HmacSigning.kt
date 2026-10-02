@@ -15,14 +15,14 @@ enum class HmacSigningAlgorithm {
     HMAC_SHA512,
 }
 
-fun HmacSigningAlgorithm.toAlgorithm() =
+internal fun HmacSigningAlgorithm.toAlgorithm() =
     when (this) {
         HmacSigningAlgorithm.HMAC_SHA256 -> SHA256
         HmacSigningAlgorithm.HMAC_SHA384 -> SHA384
         HmacSigningAlgorithm.HMAC_SHA512 -> SHA512
     }
 
-data class HmacSigningConfig(
+internal data class HmacSigningConfig(
     val secretKey: String,
     val algorithm: HmacSigningAlgorithm = HmacSigningAlgorithm.HMAC_SHA256,
     val signatureParameter: String = "s",
@@ -33,7 +33,7 @@ data class HmacSigningConfig(
     }
 }
 
-class KoniferUrlSigner private constructor(
+internal class KoniferUrlSigner private constructor(
     private val key: HMAC.Key,
     val signatureParameter: String,
 ) {
@@ -77,7 +77,7 @@ class KoniferUrlSigner private constructor(
     }
 }
 
-fun ByteArray.base64UrlWithoutPadding(): String =
+internal fun ByteArray.base64UrlWithoutPadding(): String =
     Base64.UrlSafe
         .withPadding(Base64.PaddingOption.ABSENT)
         .encode(this)

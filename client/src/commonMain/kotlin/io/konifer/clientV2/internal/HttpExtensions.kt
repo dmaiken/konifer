@@ -54,7 +54,7 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
         }
     }
 
-fun URLBuilder.appendQuerySelectors(
+internal fun URLBuilder.appendQuerySelectors(
     returnFormat: ReturnFormat?,
     querySelectors: QuerySelector,
 ) {
@@ -88,11 +88,11 @@ fun URLBuilder.appendQuerySelectors(
     }
 }
 
-fun URLBuilder.appendLimit(limit: Int) {
+internal fun URLBuilder.appendLimit(limit: Int) {
     parameters.append(LIMIT_PARAMETER, limit.toString())
 }
 
-fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
+internal fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
     requestedTransformation.width?.let { width -> parameters.append(WIDTH, width.toString()) }
     requestedTransformation.height?.let { height -> parameters.append(HEIGHT, height.toString()) }
     requestedTransformation.format?.let { format -> parameters.append(FORMAT, format.queryParameterValue) }
@@ -113,7 +113,7 @@ fun URLBuilder.appendTransformationParameters(requestedTransformation: Requested
     requestedTransformation.colorSpace?.let { colorSpace -> parameters.append(COLOR_SPACE, colorSpace.queryParameterValue) }
 }
 
-fun URLBuilder.appendLabels(labels: Map<String, String>) {
+internal fun URLBuilder.appendLabels(labels: Map<String, String>) {
     labels
         .map { (key, value) -> Pair(key.lowercase(), value) }
         .forEach { (key, value) ->

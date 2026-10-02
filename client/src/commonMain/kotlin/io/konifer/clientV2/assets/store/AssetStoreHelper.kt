@@ -17,6 +17,11 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.contentType
 import io.ktor.http.takeFrom
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.cancellation.CancellationException
@@ -37,6 +42,8 @@ internal suspend fun storeAsset(
             "Either http.url or s3.arn is required in request"
         }
     }
+    val uploadJob = SupervisorJob(currentCoroutineContext()[Job])
+    val uploadScope = CoroutineScope(currentCoroutineContext() + uploadJob)
     return try {
         val requestUrl = URLBuilder().apply { appendAssetPath(path) }
         infra.httpClient
@@ -50,7 +57,7 @@ internal suspend fun storeAsset(
 
                     is AssetByteContentSource -> {
                         contentType(ContentType.MultiPart.FormData)
-                        setBody(assetUploadFormData(request, source))
+                        setBody(assetUploadFormData(request, source, uploadScope))
                     }
                 }
             }.toKoniferV2Result()
@@ -58,12 +65,15 @@ internal suspend fun storeAsset(
         throw e
     } catch (e: IOException) {
         KoniferV2Result.Failure.Transport(e)
+    } finally {
+        uploadScope.cancel()
     }
 }
 
 private fun assetUploadFormData(
     request: StoreAssetRequest,
     source: AssetByteContentSource,
+    scope: CoroutineScope,
 ): MultiPartFormDataContent =
     MultiPartFormDataContent(
         formData {
@@ -74,7 +84,7 @@ private fun assetUploadFormData(
             )
             append(
                 key = "asset",
-                value = ChannelProvider { source.channel() },
+                value = ChannelProvider { source.channel(scope) },
                 headers =
                     Headers.build {
                         append(HttpHeaders.ContentType, source.format.mimeType)

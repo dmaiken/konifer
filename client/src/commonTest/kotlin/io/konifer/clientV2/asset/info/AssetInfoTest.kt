@@ -72,38 +72,6 @@ class AssetInfoTest :
             client.asset("users/123").entry(42).info() shouldBe KoniferV2Result.Success(info)
         }
 
-        test("limited info fetches a list and includes limit and labels") {
-            val info = listOf(createInfoResponse(), createInfoResponse())
-            val labels = mapOf("limit" to "important")
-            val httpClient =
-                httpClient {
-                    MockEngine { request ->
-                        request.url.encodedPath shouldBe "/assets/users/123/-/new/info"
-                        request.url.parameters["limit"] shouldBe "2"
-                        assertLabels(request.url.parameters, labels)
-                        respond(Json.encodeToString(info), headers = headersOf(HttpHeaders.ContentType, "application/json"))
-                    }
-                }
-
-            KoniferClientV2(httpClient)
-                .asset("users/123")
-                .matchingLabels(labels)
-                .info(2) shouldBe KoniferV2Result.Success(info)
-        }
-
-        test("a limit of one returns a list from the server's single asset response") {
-            val info = createInfoResponse()
-            val httpClient =
-                httpClient {
-                    MockEngine { request ->
-                        request.url.encodedPath shouldBe "/assets/users/123/-/new/info"
-                        respond(Json.encodeToString(info), headers = headersOf(HttpHeaders.ContentType, "application/json"))
-                    }
-                }
-
-            KoniferClientV2(httpClient).asset("users/123").info(1) shouldBe KoniferV2Result.Success(listOf(info))
-        }
-
         test("info maps HTTP errors to V2 failures") {
             val httpClient =
                 httpClient {

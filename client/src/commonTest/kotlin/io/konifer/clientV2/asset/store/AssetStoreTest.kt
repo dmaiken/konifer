@@ -29,6 +29,7 @@ import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.toByteArray
+import kotlinx.coroutines.flow.flow
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 
@@ -62,7 +63,7 @@ class AssetStoreTest :
 
             KoniferClientV2(httpClient)
                 .asset("/users/123")
-                .new()
+                .newAsset()
                 .fromUrl("https://example.com/image.png")
                 .withAlt("An image")
                 .withLabel("camera", "phone")
@@ -90,7 +91,7 @@ class AssetStoreTest :
 
             KoniferClientV2(httpClient)
                 .asset("users/123")
-                .new()
+                .newAsset()
                 .fromS3Arn(arn)
                 .store() shouldBe
                 KoniferV2Result.Success(asset)
@@ -121,22 +122,24 @@ class AssetStoreTest :
 
             KoniferClientV2(httpClient)
                 .asset("users/123")
-                .new()
+                .newAsset()
                 .fromBytes(bytes, ImageFormat.PNG)
                 .withLabels(mapOf("camera" to "phone"))
                 .withTag("featured")
                 .store() shouldBe KoniferV2Result.Success(asset)
         }
 
-        test("store from channel sends the supplied image content type") {
+        test("store from channel opens a fresh channel for each read and request") {
             val asset = createInfoResponse()
             val bytes = byteArrayOf(9, 8, 7)
+            var opens = 0
             val httpClient =
                 httpClient {
                     MockEngine { request ->
                         val parts = request.body.shouldBeInstanceOf<MultiPartFormDataContent>().parts
                         val content = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
                         content.headers[HttpHeaders.ContentType] shouldBe ImageFormat.JPEG.mimeType
+                        content.provider().toByteArray() shouldBe bytes
                         content.provider().toByteArray() shouldBe bytes
                         respond(
                             Json.encodeToString(asset),
@@ -146,11 +149,52 @@ class AssetStoreTest :
                     }
                 }
 
-            KoniferClientV2(httpClient)
-                .asset("users/123")
-                .new()
-                .fromChannel(ByteReadChannel(bytes), ImageFormat.JPEG)
-                .store() shouldBe KoniferV2Result.Success(asset)
+            val upload =
+                KoniferClientV2(httpClient)
+                    .asset("users/123")
+                    .newAsset()
+                    .fromChannel({
+                        opens++
+                        ByteReadChannel(bytes)
+                    }, ImageFormat.JPEG)
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            opens shouldBe 4
+        }
+
+        test("store from chunks collects a fresh flow for each read") {
+            val asset = createInfoResponse()
+            val bytes = byteArrayOf(1, 2, 3, 4)
+            var collections = 0
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        val parts = request.body.shouldBeInstanceOf<MultiPartFormDataContent>().parts
+                        val content = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
+                        content.headers[HttpHeaders.ContentType] shouldBe ImageFormat.PNG.mimeType
+                        content.provider().toByteArray() shouldBe bytes
+                        content.provider().toByteArray() shouldBe bytes
+                        respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+
+            val upload =
+                KoniferClientV2(httpClient)
+                    .asset("users/123")
+                    .newAsset()
+                    .fromChunks(
+                        chunks = {
+                            flow {
+                                collections++
+                                emit(byteArrayOf(1, 2))
+                                emit(byteArrayOf(3, 4))
+                            }
+                        },
+                        format = ImageFormat.PNG,
+                    )
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            collections shouldBe 4
         }
 
         test("store does not sign the asset path even with a signed client") {
@@ -171,7 +215,7 @@ class AssetStoreTest :
 
             client
                 .asset("users/123")
-                .new()
+                .newAsset()
                 .fromUrl("https://example.com/image.png")
                 .store() shouldBe
                 KoniferV2Result.Success(asset)
@@ -197,7 +241,7 @@ class AssetStoreTest :
 
             client
                 .asset("users/123")
-                .new()
+                .newAsset()
                 .fromBytes(byteArrayOf(1, 2, 3), ImageFormat.PNG)
                 .store() shouldBe
                 KoniferV2Result.Success(asset)
@@ -209,7 +253,7 @@ class AssetStoreTest :
             shouldThrow<IllegalArgumentException> {
                 KoniferClientV2(httpClient)
                     .asset("users/123")
-                    .new()
+                    .newAsset()
                     .fromUrl(" ")
                     .store()
             }
@@ -229,7 +273,7 @@ class AssetStoreTest :
 
             KoniferClientV2(httpClient)
                 .asset("users/123")
-                .new()
+                .newAsset()
                 .fromS3Arn("arn:aws:s3:::images/image.png")
                 .store() shouldBe
                 KoniferV2Result.Failure.Http(400, "invalid asset")
@@ -250,7 +294,7 @@ class AssetStoreTest :
             val result =
                 KoniferClientV2(httpClient)
                     .asset("users/123")
-                    .new()
+                    .newAsset()
                     .fromUrl("https://example.com/image.png")
                     .store()
             (result is KoniferV2Result.Failure.InvalidResponse) shouldBe true
@@ -262,7 +306,7 @@ class AssetStoreTest :
             val result =
                 KoniferClientV2(httpClient)
                     .asset("users/123")
-                    .new()
+                    .newAsset()
                     .fromUrl("https://example.com/image.png")
                     .store()
             (result is KoniferV2Result.Failure.Transport) shouldBe true

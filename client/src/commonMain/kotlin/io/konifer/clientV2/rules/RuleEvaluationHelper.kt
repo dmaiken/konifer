@@ -17,6 +17,11 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.cancellation.CancellationException
@@ -39,6 +44,8 @@ internal suspend fun evaluateRules(
                     .isNullOrBlank(),
         ) { "Either http.url or s3.arn is required in request" }
     }
+    val uploadJob = SupervisorJob(currentCoroutineContext()[Job])
+    val uploadScope = CoroutineScope(currentCoroutineContext() + uploadJob)
     return try {
         infra.httpClient
             .post {
@@ -51,7 +58,7 @@ internal suspend fun evaluateRules(
 
                     is RuleEvaluationSource.Upload -> {
                         contentType(ContentType.MultiPart.FormData)
-                        setBody(ruleEvaluationFormData(request, source))
+                        setBody(ruleEvaluationFormData(request, source, uploadScope))
                     }
                 }
             }.toKoniferV2Result()
@@ -59,12 +66,15 @@ internal suspend fun evaluateRules(
         throw e
     } catch (e: IOException) {
         KoniferV2Result.Failure.Transport(e)
+    } finally {
+        uploadScope.cancel()
     }
 }
 
 private fun ruleEvaluationFormData(
     request: EvaluateRuleDefinitionsRequest,
     source: RuleEvaluationSource.Upload,
+    scope: CoroutineScope,
 ): MultiPartFormDataContent =
     MultiPartFormDataContent(
         formData {
@@ -75,7 +85,7 @@ private fun ruleEvaluationFormData(
             )
             append(
                 key = "asset",
-                value = ChannelProvider { source.channel() },
+                value = ChannelProvider { source.channel(scope) },
                 headers =
                     Headers.build {
                         append(HttpHeaders.ContentType, source.format.mimeType)

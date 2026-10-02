@@ -1,8 +1,11 @@
 package io.konifer.clientV2.assets.store
 
 import io.konifer.clientV2.RequestInfrastructure
+import io.konifer.clientV2.internal.flowUploadChannel
 import io.konifer.common.image.ImageFormat
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 
 class BlankAssetAtPath internal constructor(
     private val infra: RequestInfrastructure,
@@ -41,8 +44,20 @@ class BlankAssetAtPath internal constructor(
                 ),
         )
 
+    /** [open] must return a fresh channel whenever an upload is sent or replayed. */
     fun fromChannel(
-        channel: ByteReadChannel,
+        open: () -> ByteReadChannel,
+        format: ImageFormat,
+    ): NewAssetAtPath = fromChannelSource({ open() }, format)
+
+    /** [chunks] must provide a new, collectable flow for each upload attempt. */
+    fun fromChunks(
+        chunks: () -> Flow<ByteArray>,
+        format: ImageFormat,
+    ): NewAssetAtPath = fromChannelSource({ scope -> flowUploadChannel(scope, chunks) }, format)
+
+    internal fun fromChannelSource(
+        open: (CoroutineScope) -> ByteReadChannel,
         format: ImageFormat,
     ): NewAssetAtPath =
         NewAssetAtPath(
@@ -50,7 +65,7 @@ class BlankAssetAtPath internal constructor(
             path = path,
             requestBuilder =
                 AssetRequestBuilder(
-                    assetSource = AssetByteContentSource.AssetByteChannelContentSource(channel, format),
+                    assetSource = AssetByteContentSource.AssetByteChannelContentSource(open, format),
                 ),
         )
 }

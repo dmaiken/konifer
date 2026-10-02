@@ -2,7 +2,7 @@ package io.konifer.clientV2.assets.store
 
 import io.konifer.common.http.StoreAssetRequest
 
-class AssetRequestBuilder(
+internal class AssetRequestBuilder(
     val assetSource: AssetContentSource,
 ) {
     var alt: String? = null

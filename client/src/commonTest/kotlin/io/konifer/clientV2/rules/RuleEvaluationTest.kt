@@ -30,6 +30,7 @@ import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.toByteArray
+import kotlinx.coroutines.flow.flow
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 
@@ -117,9 +118,10 @@ class RuleEvaluationTest :
                 .evaluate() shouldBe KoniferV2Result.Success(response)
         }
 
-        test("channel upload sends the supplied image content type") {
+        test("channel upload opens a fresh channel for each read and evaluation") {
             val response = createEvaluateRulesResponse()
             val bytes = byteArrayOf(4, 5, 6)
+            var opens = 0
             val httpClient =
                 httpClient {
                     MockEngine { request ->
@@ -127,15 +129,56 @@ class RuleEvaluationTest :
                         val asset = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
                         asset.headers[HttpHeaders.ContentType] shouldBe ImageFormat.JPEG.mimeType
                         asset.provider().toByteArray() shouldBe bytes
+                        asset.provider().toByteArray() shouldBe bytes
                         respond(Json.encodeToString(response), headers = headersOf(HttpHeaders.ContentType, "application/json"))
                     }
                 }
 
-            KoniferClientV2(httpClient)
-                .ruleEvaluation()
-                .fromChannel(ByteReadChannel(bytes), ImageFormat.JPEG)
-                .withDefinition(landscape)
-                .evaluate() shouldBe KoniferV2Result.Success(response)
+            val evaluation =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromChannel({
+                        opens++
+                        ByteReadChannel(bytes)
+                    }, ImageFormat.JPEG)
+                    .withDefinition(landscape)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            opens shouldBe 4
+        }
+
+        test("chunk upload collects a fresh flow for each read") {
+            val response = createEvaluateRulesResponse()
+            val bytes = byteArrayOf(4, 5, 6)
+            var collections = 0
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        val parts = request.body.shouldBeInstanceOf<MultiPartFormDataContent>().parts
+                        val asset = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
+                        asset.headers[HttpHeaders.ContentType] shouldBe ImageFormat.JPEG.mimeType
+                        asset.provider().toByteArray() shouldBe bytes
+                        asset.provider().toByteArray() shouldBe bytes
+                        respond(Json.encodeToString(response), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+
+            val evaluation =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromChunks(
+                        chunks = {
+                            flow {
+                                collections++
+                                emit(byteArrayOf(4, 5))
+                                emit(byteArrayOf(6))
+                            }
+                        },
+                        format = ImageFormat.JPEG,
+                    ).withDefinition(landscape)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            collections shouldBe 4
         }
 
         test("evaluation requires a source and one to ten definitions before making a request") {

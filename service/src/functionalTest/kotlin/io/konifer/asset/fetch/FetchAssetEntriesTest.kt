@@ -22,6 +22,13 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
             storeAssetMultipartSource(client, image, StoreAssetRequest(labels = mapOf("camera" to "dslr")))
             val newestPhone = storeAssetMultipartSource(client, image, StoreAssetRequest(labels = mapOf("camera" to "phone"))).second!!
 
+            val defaultResponse =
+                client.get("/assets/profile/-/new/entries") {
+                    parameter("camera", "phone")
+                }
+            defaultResponse.status shouldBe HttpStatusCode.OK
+            defaultResponse.body<AssetEntriesResponse>().entries.map { it.entryId } shouldBe listOf(newestPhone.entryId, first.entryId)
+
             val response =
                 client.get("/assets/profile/-/new/entries") {
                     parameter("limit", "1")

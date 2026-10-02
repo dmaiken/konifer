@@ -5,6 +5,7 @@ import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
 import io.konifer.common.image.ImageFormat
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.CoroutineScope
 
 internal sealed interface RuleEvaluationSource {
     sealed interface External : RuleEvaluationSource {
@@ -26,20 +27,20 @@ internal sealed interface RuleEvaluationSource {
     sealed interface Upload : RuleEvaluationSource {
         val format: ImageFormat
 
-        fun channel(): ByteReadChannel
+        fun channel(scope: CoroutineScope): ByteReadChannel
     }
 
     data class Bytes(
         private val value: ByteArray,
         override val format: ImageFormat,
     ) : Upload {
-        override fun channel(): ByteReadChannel = ByteReadChannel(value)
+        override fun channel(scope: CoroutineScope): ByteReadChannel = ByteReadChannel(value)
     }
 
-    data class Channel(
-        private val value: ByteReadChannel,
+    class Channel(
+        private val open: (CoroutineScope) -> ByteReadChannel,
         override val format: ImageFormat,
     ) : Upload {
-        override fun channel(): ByteReadChannel = value
+        override fun channel(scope: CoroutineScope): ByteReadChannel = open(scope)
     }
 }

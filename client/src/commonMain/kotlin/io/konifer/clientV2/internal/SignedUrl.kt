@@ -2,7 +2,7 @@ package io.konifer.clientV2.internal
 
 import io.ktor.http.URLBuilder
 
-suspend fun signedUrl(
+internal suspend fun signedUrl(
     urlSigner: KoniferUrlSigner?,
     block: URLBuilder.() -> Unit,
 ): URLBuilder =

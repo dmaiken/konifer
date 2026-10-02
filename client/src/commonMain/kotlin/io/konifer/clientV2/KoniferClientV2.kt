@@ -16,12 +16,6 @@ class KoniferClientV2 internal constructor(
     private val urlSigner: KoniferUrlSigner? = null,
 ) {
     companion object {
-        private const val ASSETS_BASE_PATH = "assets"
-        private const val RULE_EVALUATIONS_PATH = "/rule-evaluations"
-        private const val BOUNDARY = "boundary"
-        private const val ASSET_FORM_KEY = "asset"
-        private const val METADATA_FORM_KEY = "metadata"
-
         suspend fun build(
             baseUrl: String,
             hmacKey: String? = null,
@@ -90,6 +84,6 @@ class KoniferClientV2 internal constructor(
     fun ruleEvaluation(): BlankRuleEvaluation = BlankRuleEvaluation(requestInfrastructure)
 
     fun close() {
-        httpClient.close()
+        requestInfrastructure.close()
     }
 }

@@ -24,5 +24,10 @@ class NewRuleEvaluation internal constructor(
             definitions = this.definitions + definitions.map { it.copy(prompts = it.prompts.toList()) },
         )
 
-    suspend fun evaluate(): KoniferV2Result<EvaluateRuleDefinitionsResponse> = evaluateRules(infra, source, definitions)
+    suspend fun evaluate(): KoniferV2Result<EvaluateRuleDefinitionsResponse> =
+        evaluateRules(
+            infra = infra,
+            source = source,
+            definitions = definitions,
+        )
 }

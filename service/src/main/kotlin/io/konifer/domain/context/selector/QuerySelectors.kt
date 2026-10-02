@@ -1,5 +1,6 @@
 package io.konifer.domain.context.selector
 
+import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.InvalidQuerySelectorsException
@@ -11,7 +12,7 @@ const val DEFAULT_LIMIT = 1
 data class QuerySelectors(
     val returnFormat: ReturnFormat = DEFAULT_RETURN_FORMAT,
     val order: Order = DEFAULT_ORDER_BY,
-    val limit: Int = DEFAULT_LIMIT,
+    val limit: Int = if (returnFormat == ReturnFormat.ENTRIES) DEFAULT_ENTRIES_LIMIT else DEFAULT_LIMIT,
     val entryId: Long? = null,
     val specifiedModifiers: SpecifiedInRequest = SpecifiedInRequest(),
 ) {

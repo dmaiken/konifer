@@ -14,16 +14,11 @@ repositories {
 
 kotlin {
     jvm()
-    js {
-        generateTypeScriptDefinitions()
-        browser()
-        nodejs()
-    }
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.kotlinx.datetime)
+            api(libs.kotlinx.serialization.core)
+            api(libs.kotlinx.datetime)
         }
     }
 }

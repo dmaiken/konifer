@@ -41,7 +41,7 @@ inline fun <T, R> KoniferV2Result<T>.fold(
         is KoniferV2Result.Failure -> onFailure(this)
     }
 
-suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): KoniferV2Result<T> {
+internal suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): KoniferV2Result<T> {
     if (status.isSuccess()) {
         return try {
             KoniferV2Result.Success(body<T>())
@@ -67,7 +67,6 @@ suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): KoniferV2Result
     )
 }
 
-@PublishedApi
 internal fun Throwable.toResponseReadFailure(): KoniferV2Result.Failure =
     when (this) {
         is CancellationException -> {

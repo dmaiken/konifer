@@ -25,6 +25,7 @@ runs reuse it.
 | `./gradlew test`                  | Run tests                                                            |
 | `./gradlew build`                 | Build the project                                                    |
 | `./gradlew :service:shadowJar`    | Build the executable server JAR used by the Docker image             |
+| `./gradlew :client:assemble`      | Build the client JAR, sources, and API documentation                 |
 | `./gradlew run`                   | Run the server locally                                               |
 | `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
 | `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
@@ -48,6 +49,24 @@ and refreshes the build cache. Ordinary builds continue to use the cache unless 
 After the base workflow succeeds, rerun the application build or release workflow so the application image uses
 the refreshed base, then check its Trivy scan. A clean rebuild picks up available updates; it does not guarantee
 that every inherited package is upgraded or that every reported vulnerability has a published fix.
+
+## Client artifacts
+
+Run `./gradlew :client:assemble` to build the JVM client artifacts in `client/build/libs`:
+
+- `konifer-client-jvm-<version>.jar`
+- `konifer-client-jvm-<version>-sources.jar`
+- `konifer-client-jvm-<version>-javadoc.jar` (Dokka HTML API documentation)
+
+The client compiles the shared model sources from `common/src/commonMain/kotlin` into its own artifact.
+The sources and documentation include those models as well. Consumers do not need a separate `common` artifact.
+Third-party dependencies, including OkHttp and signing support, remain external dependencies rather than being
+bundled into the JAR. Their API/runtime declarations remain in the Gradle configurations for future publication.
+
+The multiplatform plugin may also produce metadata and common-source archives. The three JVM artifacts above are
+the JVM distribution. Repository publishing, POM metadata, credentials, and signing are not configured yet.
+
+The current JVM artifacts target Java 25, matching the project's Java toolchain.
 
 ## macOS notes
 

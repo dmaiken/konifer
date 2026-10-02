@@ -2,9 +2,8 @@ package integration
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.konifer.client.KoniferResponse
+import io.konifer.clientV2.KoniferV2Result
 import io.konifer.clientV2.assets.fetch.requestedTransformation
-import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
@@ -25,28 +24,28 @@ class QualityIntegrationTest : BaseIntegrationTest() {
                             val path = UUID.randomUUID().toString()
                             val (image, attributes) = ImageFactory.testImage(format)
                             val storeResponse =
-                                client.storeAsset(
-                                    path = path,
-                                    format = format,
-                                    bytes = image,
-                                    request =
-                                        StoreAssetRequest(
-                                            alt = "image",
-                                            tags = setOf("tag1", "tag2"),
-                                            labels = mapOf("key1" to "value1", "key2" to "value2"),
-                                        ),
-                                )
-                            storeResponse::class shouldBe KoniferResponse.Success::class
+                                clientV2
+                                    .asset(path)
+                                    .newAsset()
+                                    .fromBytes(
+                                        bytes = image,
+                                        format = format,
+                                    ).withAlt("image")
+                                    .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
+                                    .withTags(setOf("tag1", "tag2"))
+                                    .store()
+                            storeResponse::class shouldBe KoniferV2Result.Success::class
+
                             val fetchResponse =
-                                client.fetchAssetContentBytes(
-                                    path = path,
-                                    requestedTransformation =
+                                clientV2
+                                    .asset(path)
+                                    .variant(
                                         requestedTransformation {
                                             this.quality = quality
                                         },
-                                )
-                            fetchResponse::class shouldBe KoniferResponse.Success::class
-                            val content = (fetchResponse as KoniferResponse.Success).body
+                                    ).contentBytes()
+                            fetchResponse::class shouldBe KoniferV2Result.Success::class
+                            val content = (fetchResponse as KoniferV2Result.Success).value
                             tika.detect(content) shouldBe format.mimeType
 
                             Vips.run { arena ->

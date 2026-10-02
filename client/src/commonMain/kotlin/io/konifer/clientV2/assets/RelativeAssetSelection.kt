@@ -6,8 +6,11 @@ import io.konifer.clientV2.assets.delete.AssetDeleteTarget
 import io.konifer.clientV2.assets.delete.deleteAsset
 import io.konifer.clientV2.assets.fetch.OrderBy
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
+import io.konifer.clientV2.assets.fetch.fetchAssetEntries
 import io.konifer.clientV2.assets.fetch.fetchAssetInfo
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
+import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
 import io.konifer.common.selector.Order
 
 class RelativeAssetSelection internal constructor(
@@ -58,17 +61,18 @@ class RelativeAssetSelection internal constructor(
             target = AssetDeleteTarget.AtPath(orderBy, labels, limit),
         )
 
-    suspend fun deleteRecursively(): KoniferV2Result<Unit> = deleteAsset(infra, path, AssetDeleteTarget.Recursive(labels))
+    suspend fun deleteRecursively(): KoniferV2Result<Unit> =
+        deleteAsset(
+            infra = infra,
+            path = path,
+            target = AssetDeleteTarget.Recursive(labels),
+        )
 
-    suspend fun info(limit: Int): KoniferV2Result<List<AssetResponse>> {
+    suspend fun entries(): KoniferV2Result<AssetEntriesResponse> = entries(limit = DEFAULT_ENTRIES_LIMIT)
+
+    suspend fun entries(limit: Int): KoniferV2Result<AssetEntriesResponse> {
         require(limit > 0) { "Limit must be positive" }
-        if (limit == 1) {
-            return when (val result = info()) {
-                is KoniferV2Result.Success -> KoniferV2Result.Success(listOf(result.value))
-                is KoniferV2Result.Failure -> result
-            }
-        }
-        return fetchAssetInfo(
+        return fetchAssetEntries(
             infra = infra,
             path = path,
             selector = OrderBy(orderBy),

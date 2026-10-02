@@ -1,3 +1,5 @@
+import org.gradle.jvm.tasks.Jar
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.serialization)
@@ -6,6 +8,7 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 group = "io.konifer"
@@ -16,6 +19,8 @@ repositories {
 }
 
 kotlin {
+    withSourcesJar()
+
     jvm {
         testRuns.configureEach {
             executionTask.configure {
@@ -25,13 +30,22 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
-            implementation(project(":common"))
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.cryptography.core)
-            implementation(libs.cryptography.provider.optimal)
+        commonMain {
+            // Compile the shared models into the SDK, including their Kotlin metadata and serializers.
+            // The service still uses :common, but SDK consumers do not need that unpublished artifact.
+            kotlin.srcDir(rootProject.layout.projectDirectory.dir("common/src/commonMain/kotlin"))
+
+            dependencies {
+                api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.datetime)
+                api(libs.kotlinx.coroutines.core)
+                api(libs.ktor.io)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.cryptography.core)
+                implementation(libs.cryptography.provider.optimal)
+            }
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -42,7 +56,6 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(project(":common"))
             implementation(libs.ktor.client.okhttp)
         }
         jvmTest.dependencies {
@@ -50,4 +63,29 @@ kotlin {
             implementation(libs.logback.classic)
         }
     }
+}
+
+dokka {
+    moduleName.set("konifer-client")
+}
+
+tasks.withType<Jar>().configureEach {
+    archiveBaseName.set("konifer-client")
+}
+
+tasks.named<Jar>("jvmSourcesJar") {
+    archiveFileName.set("konifer-client-jvm-${project.version}-sources.jar")
+}
+
+val jvmJavadocJar =
+    tasks.register<Jar>("jvmJavadocJar") {
+        group = "build"
+        description = "Assembles the client API documentation, including the shared models."
+        archiveAppendix.set("jvm")
+        archiveClassifier.set("javadoc")
+        from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    }
+
+tasks.named("assemble") {
+    dependsOn("jvmSourcesJar", jvmJavadocJar)
 }

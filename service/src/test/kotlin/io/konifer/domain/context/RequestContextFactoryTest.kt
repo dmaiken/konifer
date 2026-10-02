@@ -57,6 +57,16 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun queryModifierSource(): List<Arguments> =
             listOf(
                 arguments(
+                    "/assets/profile/-/entries",
+                    Parameters.Empty,
+                    QuerySelectors(
+                        returnFormat = ReturnFormat.ENTRIES,
+                        order = Order.NEW,
+                        limit = 20,
+                        specifiedModifiers = SpecifiedInRequest(returnFormat = true),
+                    ),
+                ),
+                arguments(
                     "/assets/profile/-/new/entries",
                     ParametersBuilder()
                         .apply {

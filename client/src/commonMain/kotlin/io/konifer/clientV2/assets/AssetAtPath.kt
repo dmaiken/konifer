@@ -4,6 +4,7 @@ import io.konifer.clientV2.KoniferV2Result
 import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.clientV2.assets.store.BlankAssetAtPath
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.selector.Order
 
@@ -29,7 +30,9 @@ class AssetAtPath internal constructor(
 
     override suspend fun info(): KoniferV2Result<AssetResponse> = relativeSelection.info()
 
-    suspend fun info(limit: Int): KoniferV2Result<List<AssetResponse>> = relativeSelection.info(limit)
+    suspend fun entries(): KoniferV2Result<AssetEntriesResponse> = relativeSelection.entries()
+
+    suspend fun entries(limit: Int): KoniferV2Result<AssetEntriesResponse> = relativeSelection.entries(limit)
 
     override suspend fun delete(): KoniferV2Result<Unit> = relativeSelection.delete()
 
@@ -37,5 +40,5 @@ class AssetAtPath internal constructor(
 
     suspend fun deleteRecursively(): KoniferV2Result<Unit> = relativeSelection.deleteRecursively()
 
-    fun new(): BlankAssetAtPath = BlankAssetAtPath(infra = infra, path = path)
+    fun newAsset(): BlankAssetAtPath = BlankAssetAtPath(infra = infra, path = path)
 }

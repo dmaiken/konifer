@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.EnumSource
 
 class UrlSigningTest : BaseFunctionalTest() {
     @Test
-    fun `signature is required when url-signing is enabled`() =
+    fun `signature on link request is required when url-signing is enabled`() =
         testInMemory(
             """
             url-signing {
@@ -37,6 +37,32 @@ class UrlSigningTest : BaseFunctionalTest() {
                 ).shouldBeSuccessful()
 
             konifer().fetchAssetLink(path = "profile") shouldHaveHttpError 403
+        }
+
+    @Test
+    fun `signature on info request is required when url-signing is enabled`() =
+        testInMemory(
+            """
+            url-signing {
+                enabled = true
+                secret-key = secret
+            }
+            """.trimIndent(),
+        ) {
+            val (image, attributes) = ImageFactory.testImage()
+            val request =
+                StoreAssetRequest(
+                    alt = "an image",
+                )
+            konifer()
+                .storeAsset(
+                    path = "profile",
+                    format = attributes.format,
+                    request = request,
+                    bytes = image,
+                ).shouldBeSuccessful()
+
+            konifer().fetchAssetInfo(path = "profile") shouldHaveHttpError 403
         }
 
     @ParameterizedTest

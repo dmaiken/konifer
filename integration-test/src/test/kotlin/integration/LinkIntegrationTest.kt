@@ -1,7 +1,6 @@
 package integration
 
-import io.konifer.client.KoniferResponse
-import io.konifer.common.http.StoreAssetRequest
+import io.konifer.clientV2.KoniferV2Result
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
@@ -22,30 +21,30 @@ class LinkIntegrationTest : BaseIntegrationTest() {
             val path = "presigned/${UUID.randomUUID()}"
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
-                client.storeAsset(
-                    path = path,
-                    format = attributes.format,
-                    bytes = image,
-                    request =
-                        StoreAssetRequest(
-                            alt = "image",
-                            tags = setOf("tag1", "tag2"),
-                            labels = mapOf("key1" to "value1", "key2" to "value2"),
-                        ),
-                )
-            storeResponse::class shouldBe KoniferResponse.Success::class
+                clientV2
+                    .asset(path)
+                    .newAsset()
+                    .fromBytes(
+                        bytes = image,
+                        format = attributes.format,
+                    ).withAlt("image")
+                    .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
+                    .withTags(setOf("tag1", "tag2"))
+                    .store()
+            storeResponse::class shouldBe KoniferV2Result.Success::class
 
             val linkResponse =
-                client.fetchAssetLink(
-                    path = path,
-                )
+                clientV2
+                    .asset(path)
+                    .originalVariant()
+                    .link()
             val receivedAt = Clock.System.now()
 
-            linkResponse::class shouldBe KoniferResponse.Success::class
-            with(linkResponse as KoniferResponse.Success) {
-                shouldNotThrowAny { Url(body.url) }
+            linkResponse::class shouldBe KoniferV2Result.Success::class
+            with(linkResponse as KoniferV2Result.Success) {
+                shouldNotThrowAny { Url(value.url) }
 
-                val expiresAt = requireNotNull(body.expiresAt).toInstant(TimeZone.UTC)
+                val expiresAt = requireNotNull(value.expiresAt).toInstant(TimeZone.UTC)
                 expiresAt shouldBeIn (requestedAt + 30.minutes)..(receivedAt + 30.minutes)
             }
         }
