@@ -61,7 +61,27 @@ Run `./gradlew :client:assemble` to build the JVM client artifacts in `client/bu
 The client compiles the shared model sources from `common/src/commonMain/kotlin` into its own artifact.
 The sources and documentation include those models as well.
 
-The current JVM artifacts target Java 25, matching the project's Java toolchain.
+The JVM client targets Java 17. The service uses the project's Java 25 toolchain.
+
+The client has two Maven publications: `io.konifer:konifer-client` (multiplatform metadata) and
+`io.konifer:konifer-client-jvm` (JVM implementation). Both include sources, Dokka HTML documentation
+with the `javadoc` classifier, and POM metadata. The publishing plugin generates and attaches the
+documentation JARs; no separate custom Javadoc archive is needed.
+
+To inspect the generated publication metadata without uploading artifacts or requiring signing credentials:
+
+```bash
+./gradlew :client:assemble \
+  :client:generatePomFileForJvmPublication \
+  :client:generatePomFileForKotlinMultiplatformPublication \
+  :client:generateMetadataFileForJvmPublication \
+  :client:generateMetadataFileForKotlinMultiplatformPublication \
+  :client:checkPomFileForJvmPublication \
+  :client:checkPomFileForKotlinMultiplatformPublication
+```
+
+The generated POM and Gradle module metadata files are in `client/build/publications/jvm` and
+`client/build/publications/kotlinMultiplatform`.
 
 ## macOS notes
 

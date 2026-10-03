@@ -39,6 +39,7 @@ dokka-version = "2.2.0"
 cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.30.0"
 huggingface-tokenizers-version = "0.38.0"
+maven-publish-version = "0.37.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -131,3 +132,4 @@ kotest = { id = "io.kotest", version.ref = "kotest-version" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover-version" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka-version" }
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin-version" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish-version" }

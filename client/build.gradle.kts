@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import dev.detekt.gradle.Detekt
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -13,6 +15,7 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kover)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.maven.publish)
 }
 
 group = "io.konifer"
@@ -20,6 +23,50 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
+}
+
+mavenPublishing {
+    configure(
+        KotlinMultiplatform(
+            javadocJar = JavadocJar.Dokka(tasks.dokkaGeneratePublicationHtml),
+        ),
+    )
+    coordinates(
+        groupId = "io.konifer",
+        artifactId = "konifer-client",
+        version = project.version.toString(),
+    )
+    publishToMavenCentral()
+    signAllPublications()
+
+    pom {
+        name = "Konifer Client"
+        description = "Client for accessing a Konifer server"
+        inceptionYear = "2026"
+        url = "https://github.com/dmaiken/konifer/"
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "repo"
+            }
+        }
+        developers {
+            developer {
+                id = "dmaiken"
+                name = "Daniel Aiken"
+                email = "daniel@konifer.io"
+                url = "https://github.com/dmaiken/"
+                organization = "Konifer"
+                organizationUrl = "https://github.com/dmaiken/konifer/"
+            }
+        }
+        scm {
+            url = "https://github.com/dmaiken/konifer/"
+            connection = "scm:git:https://github.com/dmaiken/konifer.git"
+            developerConnection = "scm:git:ssh://git@github.com/dmaiken/konifer.git"
+        }
+    }
 }
 
 kotlin {
@@ -99,7 +146,7 @@ dokka {
     moduleName.set("konifer-client")
 }
 
-tasks.withType<Jar>().configureEach {
+tasks.named<Jar>("jvmJar") {
     archiveBaseName.set("konifer-client")
 }
 
@@ -107,15 +154,13 @@ tasks.named<Jar>("jvmSourcesJar") {
     archiveFileName.set("konifer-client-jvm-${project.version}-sources.jar")
 }
 
-val jvmJavadocJar =
-    tasks.register<Jar>("jvmJavadocJar") {
-        group = "build"
-        description = "Assembles the client API documentation, including the shared models."
-        archiveAppendix.set("jvm")
-        archiveClassifier.set("javadoc")
-        from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+tasks.named<Jar>("sourcesJar") {
+    // With only a JVM target, KMP's root sources JAR otherwise contains no common sources.
+    from(kotlin.sourceSets.named("commonMain").map { it.kotlin }) {
+        into("commonMain")
     }
+}
 
 tasks.named("assemble") {
-    dependsOn("jvmSourcesJar", jvmJavadocJar)
+    dependsOn("sourcesJar", "jvmSourcesJar", "jvmDokkaJavadocJar", "kotlinMultiplatformDokkaJavadocJar")
 }
