@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
+// Cancellation must terminate the upload channel before it propagates from the producer.
+@Suppress("SuspendFunSwallowedCancellation")
 internal fun flowUploadChannel(
     scope: CoroutineScope,
     chunks: () -> Flow<ByteArray>,

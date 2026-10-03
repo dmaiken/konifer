@@ -76,6 +76,8 @@ internal suspend fun fetchAssetEntries(
         KoniferV2Result.Failure.Transport(e)
     }
 
+// Cancellation must terminate the destination before it propagates to the caller.
+@Suppress("SuspendFunSwallowedCancellation")
 internal suspend fun fetchAssetContentTo(
     infra: RequestInfrastructure,
     asset: AssetSelection,

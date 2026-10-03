@@ -47,10 +47,10 @@ class BlockingVariantSelection internal constructor(
                     try {
                         channel.copyTo(output)
                         KoniferV2Result.Success(Unit)
-                    } catch (failure: Throwable) {
+                    } catch (failure: IOException) {
                         channel.cancel(failure)
                         // Returning an I/O failure lets the producer finish without cancelling its parent scope.
-                        if (failure is IOException) KoniferV2Result.Failure.Transport(failure) else throw failure
+                        KoniferV2Result.Failure.Transport(failure)
                     }
                 }
             try {

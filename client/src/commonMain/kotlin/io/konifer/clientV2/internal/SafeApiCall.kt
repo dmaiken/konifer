@@ -3,7 +3,7 @@ package io.konifer.clientV2.internal
 import io.konifer.client.KoniferResponse
 import io.ktor.utils.io.CancellationException
 
-inline fun <T> safeApiCall(apiCall: () -> KoniferResponse<T>): KoniferResponse<T> =
+internal inline fun <T> safeApiCall(apiCall: () -> KoniferResponse<T>): KoniferResponse<T> =
     try {
         apiCall()
     } catch (e: CancellationException) {

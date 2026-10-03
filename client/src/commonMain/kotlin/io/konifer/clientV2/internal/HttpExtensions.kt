@@ -31,10 +31,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
+import kotlin.coroutines.cancellation.CancellationException
 
 internal const val PATH_SEPARATOR = "-"
 
-suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse<T> =
+internal suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse<T> =
     when {
         status.isSuccess() -> {
             KoniferResponse.Success(body())
@@ -42,9 +43,11 @@ suspend inline fun <reified T> HttpResponse.toKoniferResponse(): KoniferResponse
 
         else -> {
             val errorMessage =
-                runCatching {
+                try {
                     body<ErrorResponse>().message
-                }.getOrElse {
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
                     "An unexpected server error occurred: ${status.description}"
                 }
             KoniferResponse.HttpError(

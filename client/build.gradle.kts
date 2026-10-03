@@ -1,3 +1,4 @@
+import dev.detekt.gradle.Detekt
 import org.gradle.jvm.tasks.Jar
 
 plugins {
@@ -63,6 +64,20 @@ kotlin {
             implementation(libs.logback.classic)
         }
     }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.file("config/detekt/client.yml"))
+}
+
+tasks.named("detekt") {
+    dependsOn("detektMainJvm")
+}
+
+tasks.named<Detekt>("detektMainJvm") {
+    // The embedded shared models remain owned and linted by :common.
+    setSource(files("src/commonMain/kotlin", "src/jvmMain/kotlin"))
 }
 
 dokka {

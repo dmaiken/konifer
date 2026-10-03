@@ -1,0 +1,50 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+comments:
+  active: true
+  KDocReferencesNonPublicProperty:
+    active: true
+  OutdatedDocumentation:
+    active: true
+    exhaustive: false
+    matchTypeParameters: true
+    matchDeclarationsOrder: true
+  UndocumentedPublicClass:
+    active: true
+    ignoreDefaultCompanionObject: true
+    excludes:
+      - '**/io/konifer/client/**'
+      - '**/io/konifer/common/**'
+  UndocumentedPublicFunction:
+    active: true
+    excludes:
+      - '**/io/konifer/client/**'
+      - '**/io/konifer/common/**'
+  UndocumentedPublicProperty:
+    active: false
+
+complexity:
+  active: false
+
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: true
+  InjectDispatcher:
+    active: false
+  SuspendFunInFinallySection:
+    active: true
+  SuspendFunSwallowedCancellation:
+    active: true
+
+exceptions:
+  active: true
+  InstanceOfCheckForException:
+    active: false
+  TooGenericExceptionCaught:
+    active: false
+
+style:
+  active: false

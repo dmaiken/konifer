@@ -59,6 +59,8 @@ internal suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): Konife
     if (status.isSuccess()) {
         return try {
             KoniferV2Result.Success(body<T>())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             e.toResponseReadFailure()
         }
@@ -67,6 +69,8 @@ internal suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): Konife
     val errorMessage =
         try {
             body<ErrorResponse>().message
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             when (val failure = e.toResponseReadFailure()) {
                 is KoniferV2Result.Failure.InvalidResponse -> null
