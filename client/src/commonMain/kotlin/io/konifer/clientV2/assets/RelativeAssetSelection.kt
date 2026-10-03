@@ -1,13 +1,13 @@
 package io.konifer.clientV2.assets
 
 import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.delete.AssetDeleteTarget
 import io.konifer.clientV2.assets.delete.deleteAsset
 import io.konifer.clientV2.assets.fetch.OrderBy
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.clientV2.assets.fetch.fetchAssetEntries
 import io.konifer.clientV2.assets.fetch.fetchAssetInfo
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
@@ -19,7 +19,7 @@ class RelativeAssetSelection internal constructor(
     labels: Map<String, String> = emptyMap(),
     internal val orderBy: Order = Order.NEW,
 ) : AssetSelection {
-    internal val labels = labels.toMap()
+    internal val labels: Map<String, String> = labels.toMap()
 
     fun matchingLabels(labels: Map<String, String>): RelativeAssetSelection =
         RelativeAssetSelection(
@@ -37,7 +37,7 @@ class RelativeAssetSelection internal constructor(
             orderBy = order,
         )
 
-    override fun variant(requestedTransformation: RequestedTransformation) =
+    override fun variant(requestedTransformation: RequestedTransformation): VariantSelection =
         VariantSelection(
             asset = this,
             infra = infra,

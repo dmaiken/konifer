@@ -1,6 +1,6 @@
 package io.konifer.clientV2.assets.store
 
-import io.konifer.clientV2.RequestInfrastructure
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.clientV2.internal.flowUploadChannel
 import io.konifer.common.image.ImageFormat
 import io.ktor.utils.io.ByteReadChannel

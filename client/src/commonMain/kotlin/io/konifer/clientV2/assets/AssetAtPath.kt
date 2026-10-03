@@ -1,10 +1,10 @@
 package io.konifer.clientV2.assets
 
 import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.clientV2.assets.store.BlankAssetAtPath
 import io.konifer.clientV2.assets.update.AssetUpdateAtPath
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
@@ -14,7 +14,7 @@ class AssetAtPath internal constructor(
     private val infra: RequestInfrastructure,
     private val path: String,
 ) : AssetSelection {
-    private val relativeSelection = RelativeAssetSelection(infra = infra, path = path)
+    private val relativeSelection: RelativeAssetSelection = RelativeAssetSelection(infra = infra, path = path)
 
     fun entry(entryId: Long): AbsoluteAssetSelection =
         AbsoluteAssetSelection(

@@ -1,8 +1,8 @@
 package io.konifer.clientV2.assets.fetch
 
 import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.clientV2.assets.AssetSelection
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.clientV2.internal.appendAssetPath
 import io.konifer.clientV2.internal.appendLabels
 import io.konifer.clientV2.internal.appendLimit
@@ -82,8 +82,7 @@ internal suspend fun fetchAssetContentTo(
     transformation: RequestedTransformation,
     destination: ByteWriteChannel,
     delivery: ContentDelivery,
-): KoniferV2Result<Unit> {
-    var completed = false
+): KoniferV2Result<Unit> =
     try {
         val result =
             safelyFetch {
@@ -100,14 +99,21 @@ internal suspend fun fetchAssetContentTo(
                         }
                     }
             }
-        completed = result is KoniferV2Result.Success
-        return result
-    } finally {
-        if (!completed) {
-            destination.cancel(CancellationException("Variant transfer failed"))
+        if (result is KoniferV2Result.Failure) {
+            destination.cancel(result.transferFailureCause())
         }
+        result
+    } catch (failure: Throwable) {
+        destination.cancel(failure)
+        throw failure
     }
-}
+
+private fun KoniferV2Result.Failure.transferFailureCause(): Throwable =
+    when (this) {
+        is KoniferV2Result.Failure.Http -> IOException("Variant transfer failed with HTTP status $statusCode")
+        is KoniferV2Result.Failure.Transport -> cause
+        is KoniferV2Result.Failure.InvalidResponse -> cause
+    }
 
 internal suspend fun fetchAssetContentBytes(
     infra: RequestInfrastructure,

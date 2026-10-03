@@ -1,7 +1,6 @@
-package io.konifer.clientV2
+package io.konifer.clientV2.internal
 
 import io.konifer.clientV2.assets.fetch.ContentDelivery
-import io.konifer.clientV2.internal.KoniferUrlSigner
 import io.ktor.client.HttpClient
 
 internal class RequestInfrastructure(

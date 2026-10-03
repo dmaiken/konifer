@@ -59,12 +59,7 @@ Run `./gradlew :client:assemble` to build the JVM client artifacts in `client/bu
 - `konifer-client-jvm-<version>-javadoc.jar` (Dokka HTML API documentation)
 
 The client compiles the shared model sources from `common/src/commonMain/kotlin` into its own artifact.
-The sources and documentation include those models as well. Consumers do not need a separate `common` artifact.
-Third-party dependencies, including OkHttp and signing support, remain external dependencies rather than being
-bundled into the JAR. Their API/runtime declarations remain in the Gradle configurations for future publication.
-
-The multiplatform plugin may also produce metadata and common-source archives. The three JVM artifacts above are
-the JVM distribution. Repository publishing, POM metadata, credentials, and signing are not configured yet.
+The sources and documentation include those models as well.
 
 The current JVM artifacts target Java 25, matching the project's Java toolchain.
 

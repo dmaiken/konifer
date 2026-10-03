@@ -63,19 +63,19 @@ internal fun URLBuilder.appendQuerySelectors(
         is EntryId -> {
             appendPathSeparator()
             pathSeparatorAppended = true
-            appendPathSegments("entry", querySelectors.entryId.toString())
+            appendEntrySelector(querySelectors.entryId)
         }
 
         is OrderBy -> {
             appendPathSeparator()
             pathSeparatorAppended = true
-            appendPathSegments(querySelectors.orderBy.name.lowercase())
+            appendOrderSelector(querySelectors.orderBy)
         }
 
         is Recursive -> {
             appendPathSeparator()
             pathSeparatorAppended = true
-            appendPathSegments("recursive")
+            appendRecursiveSelector()
         }
 
         is None -> { } // Nothing

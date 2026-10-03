@@ -8,18 +8,18 @@ sealed interface FetchQuerySelector : QuerySelector
 
 sealed interface DeleteQuerySelector : QuerySelector
 
-class OrderBy(
+internal class OrderBy(
     val orderBy: Order,
 ) : FetchQuerySelector,
     DeleteQuerySelector
 
-class EntryId(
+internal class EntryId(
     val entryId: Long,
 ) : FetchQuerySelector,
     DeleteQuerySelector
 
-data object None :
+internal data object None :
     FetchQuerySelector,
     DeleteQuerySelector
 
-data object Recursive : DeleteQuerySelector
+internal data object Recursive : DeleteQuerySelector

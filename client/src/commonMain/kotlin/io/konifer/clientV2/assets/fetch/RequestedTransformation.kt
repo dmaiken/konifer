@@ -29,13 +29,13 @@ class RequestedTransformationDsl {
     var profile: String? = null
     var colorSpace: TransformableColorSpace? = null
 
-    private val strip = mutableSetOf<MetadataType>()
+    private val strip: MutableSet<MetadataType> = mutableSetOf()
 
     fun strip(vararg types: MetadataType) {
         strip += types
     }
 
-    fun build() =
+    fun build(): RequestedTransformation =
         RequestedTransformation(
             width = width,
             height = height,
@@ -81,65 +81,65 @@ class RequestedTransformation internal constructor(
     class Builder {
         private var width: Int? = null
 
-        fun width(width: Int) = apply { this.width = width }
+        fun width(width: Int): Builder = apply { this.width = width }
 
         private var height: Int? = null
 
-        fun height(height: Int) = apply { this.height = height }
+        fun height(height: Int): Builder = apply { this.height = height }
 
         private var format: ImageFormat? = null
 
-        fun format(format: ImageFormat) = apply { this.format = format }
+        fun format(format: ImageFormat): Builder = apply { this.format = format }
 
         private var fit: Fit? = null
 
-        fun fit(fit: Fit) = apply { this.fit = fit }
+        fun fit(fit: Fit): Builder = apply { this.fit = fit }
 
         private var gravity: Gravity? = null
 
-        fun gravity(gravity: Gravity) = apply { this.gravity = gravity }
+        fun gravity(gravity: Gravity): Builder = apply { this.gravity = gravity }
 
         private var rotate: Rotate? = null
 
-        fun rotate(rotate: Rotate) = apply { this.rotate = rotate }
+        fun rotate(rotate: Rotate): Builder = apply { this.rotate = rotate }
 
         private var filter: Filter? = null
 
-        fun filter(filter: Filter) = apply { this.filter = filter }
+        fun filter(filter: Filter): Builder = apply { this.filter = filter }
 
         private var flip: Flip? = null
 
-        fun flip(flip: Flip) = apply { this.flip = flip }
+        fun flip(flip: Flip): Builder = apply { this.flip = flip }
 
         private var blur: Int? = null
 
-        fun blur(blur: Int) = apply { this.blur = blur }
+        fun blur(blur: Int): Builder = apply { this.blur = blur }
 
         private var quality: Int? = null
 
-        fun quality(quality: Int) = apply { this.quality = quality }
+        fun quality(quality: Int): Builder = apply { this.quality = quality }
 
         private var pad: Int? = null
 
-        fun pad(pad: Int) = apply { this.pad = pad }
+        fun pad(pad: Int): Builder = apply { this.pad = pad }
 
         private var padColor: String? = null
 
-        fun padColor(padColor: String) = apply { this.padColor = padColor }
+        fun padColor(padColor: String): Builder = apply { this.padColor = padColor }
 
         private var profile: String? = null
 
-        fun profile(profile: String) = apply { this.profile = profile }
+        fun profile(profile: String): Builder = apply { this.profile = profile }
 
         private val strip = mutableSetOf<MetadataType>()
 
-        fun strip(vararg types: MetadataType) = apply { strip.addAll(types) }
+        fun strip(vararg types: MetadataType): Builder = apply { strip.addAll(types) }
 
         private var colorSpace: TransformableColorSpace? = null
 
-        fun colorSpace(colorSpace: TransformableColorSpace) = apply { this.colorSpace = colorSpace }
+        fun colorSpace(colorSpace: TransformableColorSpace): Builder = apply { this.colorSpace = colorSpace }
 
-        fun build() =
+        fun build(): RequestedTransformation =
             RequestedTransformation(
                 width = width,
                 height = height,

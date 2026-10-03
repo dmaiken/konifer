@@ -1,7 +1,7 @@
 package io.konifer.clientV2.assets.update
 
 import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.RequestInfrastructure
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 

@@ -1,21 +1,18 @@
 package io.konifer.clientV2.internal
 
+import dev.whyoleg.cryptography.CryptographyAlgorithmId
 import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.Digest
 import dev.whyoleg.cryptography.algorithms.HMAC
 import dev.whyoleg.cryptography.algorithms.SHA256
 import dev.whyoleg.cryptography.algorithms.SHA384
 import dev.whyoleg.cryptography.algorithms.SHA512
+import io.konifer.clientV2.HmacSigningAlgorithm
 import io.ktor.http.URLBuilder
 import io.ktor.http.encodedPath
 import kotlin.io.encoding.Base64
 
-enum class HmacSigningAlgorithm {
-    HMAC_SHA256,
-    HMAC_SHA384,
-    HMAC_SHA512,
-}
-
-internal fun HmacSigningAlgorithm.toAlgorithm() =
+internal fun HmacSigningAlgorithm.toAlgorithm(): CryptographyAlgorithmId<Digest> =
     when (this) {
         HmacSigningAlgorithm.HMAC_SHA256 -> SHA256
         HmacSigningAlgorithm.HMAC_SHA384 -> SHA384
@@ -82,4 +79,4 @@ internal fun ByteArray.base64UrlWithoutPadding(): String =
         .withPadding(Base64.PaddingOption.ABSENT)
         .encode(this)
 
-private fun String.withLeadingSlash() = if (startsWith("/")) this else "/$this"
+private fun String.withLeadingSlash(): String = if (startsWith("/")) this else "/$this"

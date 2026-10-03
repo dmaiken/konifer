@@ -40,7 +40,7 @@ kotlin {
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.ktor.io)
-                implementation(libs.ktor.client.core)
+                api(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.cryptography.core)

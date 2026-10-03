@@ -1,7 +1,7 @@
 package io.konifer.clientV2.rules
 
 import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.RequestInfrastructure
+import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.RuleDefinitionRequest
 

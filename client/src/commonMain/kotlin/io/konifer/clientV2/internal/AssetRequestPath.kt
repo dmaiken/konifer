@@ -18,7 +18,7 @@ internal fun URLBuilder.appendEntrySelector(entryId: Long) {
 }
 
 internal fun URLBuilder.appendOrderSelector(order: Order) {
-    appendPathSegments("order", order.name.lowercase())
+    appendPathSegments(order.name.lowercase())
 }
 
 internal fun URLBuilder.appendRecursiveSelector() {

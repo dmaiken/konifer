@@ -14,6 +14,7 @@ import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -130,6 +131,7 @@ class AssetContentTest :
             result shouldBe KoniferV2Result.Success(Unit)
             received.await() shouldBe bytes
             destination.isClosedForWrite shouldBe true
+            destination.closedCause shouldBe null
         }
 
         test("writeContentTo includes labels, order, and transformation") {
@@ -293,6 +295,7 @@ class AssetContentTest :
                     }
                 }
             val destination = ByteChannel()
+            val received = async { runCatching { destination.toByteArray() } }
 
             val result =
                 KoniferClientV2(httpClient)
@@ -302,6 +305,13 @@ class AssetContentTest :
 
             result shouldBe KoniferV2Result.Failure.Http(404, "not found")
             destination.isClosedForWrite shouldBe true
+            destination.closedCause.shouldBeInstanceOf<IOException>().message shouldBe "Variant transfer failed with HTTP status 404"
+            received
+                .await()
+                .exceptionOrNull()
+                .shouldBeInstanceOf<IOException>()
+                .message shouldBe
+                "Variant transfer failed with HTTP status 404"
         }
 
         test("contentBytes signs a request for a specified entry") {
