@@ -15,10 +15,13 @@ class AssetUpdateAtPath internal constructor(
     private val entryId: Long,
     private val request: StoreAssetRequest,
 ) {
+    /** Returns an independent update with [alt] as the image's alternative text. */
     fun withAlt(alt: String): AssetUpdateAtPath = withRequest(request.copy(alt = alt))
 
+    /** Returns an independent update that clears the image's alternative text. */
     fun clearAlt(): AssetUpdateAtPath = withRequest(request.copy(alt = null))
 
+    /** Adds or replaces the label identified by [key]. */
     fun withLabel(
         key: String,
         value: String,
@@ -27,16 +30,19 @@ class AssetUpdateAtPath internal constructor(
     /** Adds [labels], replacing the values of existing keys. */
     fun withLabels(labels: Map<String, String>): AssetUpdateAtPath = withRequest(request.copy(labels = request.labels + labels))
 
+    /** Removes the label identified by [key]. */
     fun withoutLabel(key: String): AssetUpdateAtPath = withRequest(request.copy(labels = request.labels - key))
 
     /** Replaces all labels with a snapshot of [labels]. An empty map clears them. */
     fun replaceLabels(labels: Map<String, String>): AssetUpdateAtPath = withRequest(request.copy(labels = labels.toMap()))
 
+    /** Adds [tag] to the existing tags. */
     fun withTag(tag: String): AssetUpdateAtPath = withRequest(request.copy(tags = request.tags + tag))
 
     /** Adds [tags] to the existing tags. */
     fun withTags(tags: Set<String>): AssetUpdateAtPath = withRequest(request.copy(tags = request.tags + tags))
 
+    /** Removes [tag] from the existing tags. */
     fun withoutTag(tag: String): AssetUpdateAtPath = withRequest(request.copy(tags = request.tags - tag))
 
     /** Replaces all tags with a snapshot of [tags]. An empty set clears them. */

@@ -244,7 +244,7 @@ class RuleEvaluationTest :
                 KoniferClientV2(httpClient)
                     .ruleEvaluation()
                     .fromChunks(
-                        chunks = {
+                        provider = {
                             flow {
                                 collections++
                                 emit(byteArrayOf(4, 5))

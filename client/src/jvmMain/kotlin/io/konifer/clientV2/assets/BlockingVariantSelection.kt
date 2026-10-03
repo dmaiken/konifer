@@ -11,11 +11,14 @@ import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.io.OutputStream
 
+/** Blocking counterpart to [VariantSelection]. */
 class BlockingVariantSelection internal constructor(
     private val selection: VariantSelection,
 ) {
+    /** Fetches the selected image through Konifer and buffers it in memory. */
     fun fetchContentBytes(): KoniferV2Result<ByteArray> = runBlocking { selection.fetchContentBytes() }
 
+    /** Fetches the selected image using [delivery] and buffers it in memory. */
     fun fetchContentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> = runBlocking { selection.fetchContentBytes(delivery) }
 
     /**
@@ -59,5 +62,6 @@ class BlockingVariantSelection internal constructor(
             }
         }
 
+    /** Fetches a delivery URL for the selected image. */
     fun fetchLink(): KoniferV2Result<AssetLinkResponse> = runBlocking { selection.fetchLink() }
 }

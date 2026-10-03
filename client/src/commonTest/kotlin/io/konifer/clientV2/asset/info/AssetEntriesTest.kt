@@ -21,7 +21,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
 
 class AssetEntriesTest :
     FunSpec({

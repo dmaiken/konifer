@@ -10,6 +10,7 @@ import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.AssetLinkResponse
 import io.ktor.utils.io.ByteWriteChannel
 
+/** Selects original or transformed image content for an [AssetSelection]. */
 class VariantSelection internal constructor(
     private val infra: RequestInfrastructure,
     private val asset: AssetSelection,
@@ -36,11 +37,15 @@ class VariantSelection internal constructor(
         delivery: ContentDelivery,
     ): KoniferV2Result<Unit> = fetchAssetContentTo(infra, asset, requestedTransformation, destination, delivery)
 
+    /** Fetches the selected image through Konifer and buffers it in memory. */
     suspend fun fetchContentBytes(): KoniferV2Result<ByteArray> = fetchContentBytes(ContentDelivery.THROUGH_KONIFER)
 
+    /** Fetches the selected image using [delivery] and buffers it in memory. */
     suspend fun fetchContentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> =
         fetchAssetContentBytes(infra, asset, requestedTransformation, delivery)
 
     // link and redirect modes return the same delivery URL, so I am not exposing a redirect() method
+
+    /** Fetches a delivery URL for the selected image. */
     suspend fun fetchLink(): KoniferV2Result<AssetLinkResponse> = fetchAssetLink(infra, asset, requestedTransformation)
 }

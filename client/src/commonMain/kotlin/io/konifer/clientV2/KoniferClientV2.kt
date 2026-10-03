@@ -14,6 +14,11 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
+/**
+ * Coroutine-based client for storing, selecting, transforming, and evaluating images in Konifer.
+ *
+ * Create an instance with [build] and call [close] when the client is no longer needed.
+ */
 class KoniferClientV2 internal constructor(
     private val httpClient: HttpClient,
     private val urlSigner: KoniferUrlSigner? = null,
@@ -25,6 +30,13 @@ class KoniferClientV2 internal constructor(
          * An omitted [engine] is created and owned by this client. A supplied engine (for example,
          * Ktor's MockEngine for customer tests) remains caller-owned and must be closed separately
          * after all clients using it have been closed. No preconfigured HttpClient is required.
+         *
+         * @param baseUrl base URL of the Konifer server.
+         * @param hmacKey shared secret used to sign asset retrieval URLs, or `null` to disable signing.
+         * @param hmacSigningAlgorithm digest algorithm used when [hmacKey] is present.
+         * @param httpConfiguration request timeout configuration.
+         * @param engine optional caller-owned Ktor engine.
+         * @throws IllegalArgumentException if [hmacKey] is empty.
          */
         suspend fun build(
             baseUrl: String,
@@ -75,12 +87,14 @@ class KoniferClientV2 internal constructor(
             urlSigner = urlSigner,
         )
 
+    /** Selects the assets stored at [path]. */
     fun assets(path: String): AssetAtPath =
         AssetAtPath(
             infra = requestInfrastructure,
             path = path,
         )
 
+    /** Starts a rule evaluation by selecting an image source. */
     fun ruleEvaluation(): BlankRuleEvaluation = BlankRuleEvaluation(requestInfrastructure)
 
     /** Closes this client's HTTP resources, but not an engine supplied to [build]. */

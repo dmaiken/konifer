@@ -30,6 +30,7 @@ class KoniferHttpConfiguration(
     }
 
     companion object {
+        /** Configuration that preserves the selected HTTP engine's timeout defaults. */
         @JvmField
         val Default: KoniferHttpConfiguration = KoniferHttpConfiguration()
 
@@ -43,18 +44,22 @@ class KoniferHttpConfiguration(
         }
     }
 
-    /** Java-friendly builder. Null retains engine defaults; [Long.MAX_VALUE] disables a timeout. */
+    /** Java-friendly builder. `null` retains engine defaults; [Long.MAX_VALUE] disables a timeout. */
     class Builder {
         private var requestTimeout: Duration? = null
         private var connectTimeout: Duration? = null
         private var socketTimeout: Duration? = null
 
+        /** Sets the request timeout in milliseconds, or retains the engine default when `null`. */
         fun requestTimeoutMillis(timeoutMillis: Long?): Builder = apply { requestTimeout = timeoutMillis?.milliseconds }
 
+        /** Sets the connection timeout in milliseconds, or retains the engine default when `null`. */
         fun connectTimeoutMillis(timeoutMillis: Long?): Builder = apply { connectTimeout = timeoutMillis?.milliseconds }
 
+        /** Sets the socket inactivity timeout in milliseconds, or retains the engine default when `null`. */
         fun socketTimeoutMillis(timeoutMillis: Long?): Builder = apply { socketTimeout = timeoutMillis?.milliseconds }
 
+        /** Creates an immutable timeout configuration from the current builder values. */
         fun build(): KoniferHttpConfiguration =
             KoniferHttpConfiguration(
                 requestTimeout = requestTimeout,

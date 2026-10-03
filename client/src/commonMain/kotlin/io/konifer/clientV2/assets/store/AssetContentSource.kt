@@ -10,10 +10,10 @@ import kotlinx.coroutines.CoroutineScope
 
 internal sealed interface AssetContentSource
 
-internal interface AssetReferenceContentSource : AssetContentSource {
+internal sealed interface AssetReferenceContentSource : AssetContentSource {
     fun applyToRequest(request: StoreAssetRequest): StoreAssetRequest
 
-    data class AssetUrlContentSource(
+    data class UrlSource(
         private val url: String,
     ) : AssetReferenceContentSource {
         override fun applyToRequest(request: StoreAssetRequest): StoreAssetRequest =
@@ -28,7 +28,7 @@ internal interface AssetReferenceContentSource : AssetContentSource {
             )
     }
 
-    data class AssetS3ArnContentSource(
+    data class S3ArnSource(
         private val s3Arn: String,
     ) : AssetReferenceContentSource {
         override fun applyToRequest(request: StoreAssetRequest): StoreAssetRequest =
@@ -44,12 +44,12 @@ internal interface AssetReferenceContentSource : AssetContentSource {
     }
 }
 
-internal interface AssetByteContentSource : AssetContentSource {
+internal sealed interface AssetByteContentSource : AssetContentSource {
     val format: ImageFormat
 
     fun channel(scope: CoroutineScope): ByteReadChannel
 
-    class AssetByteArrayContentSource(
+    class ByteArraySource(
         bytes: ByteArray,
         override val format: ImageFormat,
     ) : AssetByteContentSource {
@@ -58,7 +58,7 @@ internal interface AssetByteContentSource : AssetContentSource {
         override fun channel(scope: CoroutineScope): ByteReadChannel = ByteReadChannel(bytes)
     }
 
-    class AssetByteChannelContentSource(
+    class ByteChannelSource(
         private val open: (CoroutineScope) -> ByteReadChannel,
         override val format: ImageFormat,
     ) : AssetByteContentSource {

@@ -2,24 +2,31 @@ package io.konifer.clientV2.assets.fetch
 
 import io.konifer.common.selector.Order
 
+/** Selector encoded into a Konifer asset request path. */
 sealed interface QuerySelector
 
+/** Selector accepted by asset metadata fetch operations. */
 sealed interface FetchQuerySelector : QuerySelector
 
+/** Selector accepted by asset deletion operations. */
 sealed interface DeleteQuerySelector : QuerySelector
 
-internal class OrderBy(
+/** Selects entries using [orderBy]. */
+class OrderBy(
     val orderBy: Order,
 ) : FetchQuerySelector,
     DeleteQuerySelector
 
-internal class EntryId(
+/** Selects the entry identified by [entryId]. */
+class EntryId(
     val entryId: Long,
 ) : FetchQuerySelector,
     DeleteQuerySelector
 
-internal data object None :
+/** Applies no entry selector. */
+data object None :
     FetchQuerySelector,
     DeleteQuerySelector
 
-internal data object Recursive : DeleteQuerySelector
+/** Selects a path and all of its descendants for deletion. */
+data object Recursive : DeleteQuerySelector

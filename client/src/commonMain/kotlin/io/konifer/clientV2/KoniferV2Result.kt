@@ -11,27 +11,41 @@ import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Result of a Konifer client operation.
+ *
+ * The client returns expected HTTP, transport, and response-decoding failures as [Failure].
+ * Coroutine cancellation and unexpected programming errors remain exceptions.
+ */
 sealed interface KoniferV2Result<out T> {
+    /** A successful operation containing its decoded [value]. */
     data class Success<out T>(
         val value: T,
     ) : KoniferV2Result<T>
 
+    /** A failure produced while sending a request or reading its response. */
     sealed interface Failure : KoniferV2Result<Nothing> {
+        /** A non-success HTTP response from Konifer. */
         data class Http(
+            /** Numeric HTTP status code. */
             val statusCode: Int,
+            /** Error message decoded from the response body, when available. */
             val message: String?,
         ) : Failure
 
+        /** A network or response-body I/O failure. */
         data class Transport(
             val cause: Throwable,
         ) : Failure
 
+        /** A response that could not be decoded as the expected type. */
         data class InvalidResponse(
             val cause: Throwable,
         ) : Failure
     }
 }
 
+/** Applies [onSuccess] or [onFailure] and returns the selected callback's result. */
 inline fun <T, R> KoniferV2Result<T>.fold(
     onSuccess: (T) -> R,
     onFailure: (KoniferV2Result.Failure) -> R,

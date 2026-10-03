@@ -46,7 +46,7 @@ class EvaluateRuleDefinitionUseCase(
         request: EvaluateRuleDefinitionsRequest,
     ): EvaluateRuleDefinitionsResponse {
         assetDataContainer.use { container ->
-            val ruleDefinitions = request.toRuleDefinitions().associateBy { it.name }
+            val ruleDefinitions = request.toRuleDefinitions().definitions.associateBy { it.name }
             logger.info("Evaluating rule definitions for rule definitions: ${ruleDefinitions.keys}")
 
             // Ensure content is a supported content type

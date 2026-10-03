@@ -5,7 +5,7 @@ import io.konifer.clientV2.rules.BlockingBlankRuleEvaluation
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.coroutines.runBlocking
 
-/** JVM entry point for callers that cannot use suspending functions. */
+/** JVM client for callers that cannot use suspending functions. */
 class KoniferBlockingClientV2 internal constructor(
     private val client: KoniferClientV2,
 ) : AutoCloseable {
@@ -28,10 +28,13 @@ class KoniferBlockingClientV2 internal constructor(
             )
     }
 
+    /** Selects the assets stored at [path]. */
     fun assets(path: String): BlockingAssetAtPath = BlockingAssetAtPath(client.assets(path))
 
+    /** Starts a rule evaluation by selecting an image source. */
     fun ruleEvaluation(): BlockingBlankRuleEvaluation = BlockingBlankRuleEvaluation(client.ruleEvaluation())
 
+    /** Closes this client's HTTP resources, but **not** an engine supplied to [build]. */
     override fun close() {
         client.close()
     }

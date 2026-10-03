@@ -9,6 +9,7 @@ import io.konifer.clientV2.assets.fetch.fetchAssetInfo
 import io.konifer.clientV2.internal.RequestInfrastructure
 import io.konifer.common.http.AssetResponse
 
+/** Selects one asset entry by its path and entry ID. */
 class AbsoluteAssetSelection internal constructor(
     private val infra: RequestInfrastructure,
     internal val path: String,

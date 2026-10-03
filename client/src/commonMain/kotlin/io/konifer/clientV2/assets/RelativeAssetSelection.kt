@@ -13,6 +13,11 @@ import io.konifer.common.http.AssetResponse
 import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
 import io.konifer.common.selector.Order
 
+/**
+ * Selects asset entries relative to a path using label filters and server-defined ordering.
+ *
+ * Operations that require one asset use the first matching entry in [orderBy].
+ */
 class RelativeAssetSelection internal constructor(
     private val infra: RequestInfrastructure,
     internal val path: String,
@@ -21,6 +26,7 @@ class RelativeAssetSelection internal constructor(
 ) : AssetSelection {
     internal val labels: Map<String, String> = labels.toMap()
 
+    /** Replaces the current label filter with a snapshot of [labels]. */
     fun matchingLabels(labels: Map<String, String>): RelativeAssetSelection =
         RelativeAssetSelection(
             infra = infra,
@@ -29,6 +35,7 @@ class RelativeAssetSelection internal constructor(
             orderBy = orderBy,
         )
 
+    /** Returns an independent selection that uses [order]. */
     fun orderBy(order: Order): RelativeAssetSelection =
         RelativeAssetSelection(
             infra = infra,
@@ -54,6 +61,7 @@ class RelativeAssetSelection internal constructor(
 
     override suspend fun deleteFirst(): KoniferV2Result<Unit> = deleteFirst(limit = 1)
 
+    /** Deletes at most [limit] matching entries in the selected order. */
     suspend fun deleteFirst(limit: Int): KoniferV2Result<Unit> =
         deleteAsset(
             infra = infra,
@@ -61,6 +69,7 @@ class RelativeAssetSelection internal constructor(
             target = AssetDeleteTarget.AtPath(orderBy, labels, limit),
         )
 
+    /** Deletes matching assets at this path and its descendant paths. */
     suspend fun deleteRecursively(): KoniferV2Result<Unit> =
         deleteAsset(
             infra = infra,
@@ -68,8 +77,14 @@ class RelativeAssetSelection internal constructor(
             target = AssetDeleteTarget.Recursive(labels),
         )
 
+    /** Fetches metadata for matching entries using [DEFAULT_ENTRIES_LIMIT]. */
     suspend fun fetchEntries(): KoniferV2Result<AssetEntriesResponse> = fetchEntries(limit = DEFAULT_ENTRIES_LIMIT)
 
+    /**
+     * Fetches metadata for at most [limit] matching entries in the selected order.
+     *
+     * @throws IllegalArgumentException if [limit] is not positive.
+     */
     suspend fun fetchEntries(limit: Int): KoniferV2Result<AssetEntriesResponse> {
         require(limit > 0) { "Limit must be positive" }
         return fetchAssetEntries(
