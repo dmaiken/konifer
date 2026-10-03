@@ -66,6 +66,8 @@ mavenPublishing {
             connection = "scm:git:https://github.com/dmaiken/konifer.git"
             developerConnection = "scm:git:ssh://git@github.com/dmaiken/konifer.git"
         }
+        properties.put("kotlin.compiler.languageVersion", "2.3")
+        properties.put("kotlin.compiler.apiVersion", "2.3")
     }
 }
 
@@ -117,7 +119,6 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlinx.datetime)
         }
-
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
@@ -147,6 +148,10 @@ dokka {
 }
 
 tasks.named<Jar>("jvmJar") {
+    from(projectDir) {
+        include("LICENSE")
+        into("META-INF")
+    }
     archiveBaseName.set("konifer-client")
 }
 
