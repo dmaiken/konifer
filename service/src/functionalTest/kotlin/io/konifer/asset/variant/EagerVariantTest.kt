@@ -3,8 +3,6 @@ package io.konifer.asset.variant
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.PHash
-import io.konifer.client.KoniferResponse
-import io.konifer.client.fold
 import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
@@ -59,19 +57,22 @@ class EagerVariantTest : BaseFunctionalTest() {
                     onSuccess = { _ ->
                         await().untilCallTo {
                             runBlocking {
-                                val response =
-                                    konifer().fetchAssetInfo(
-                                        path = "users/123",
+                                konifer()
+                                    .fetchAssetInfo(path = "users/123")
+                                    .fold(
+                                        onSuccess = { it.variants.size },
+                                        onError = { _, _, _ -> fail("Request failed") },
                                     )
-                                (response as KoniferResponse.Success).body.variants.size
                             }
                         } matches { count -> count == 3 }
 
-                        val response =
-                            konifer().fetchAssetInfo(
-                                path = "users/123",
-                            )
-                        val variants = (response as KoniferResponse.Success).body.variants
+                        val variants =
+                            konifer()
+                                .fetchAssetInfo(path = "users/123")
+                                .fold(
+                                    onSuccess = { it.variants },
+                                    onError = { _, _, _ -> fail("Request failed") },
+                                )
                         variants.forExactly(1) {
                             it.attributes.height shouldBe 15
                             it.attributes.width shouldNotBe 15
@@ -191,12 +192,16 @@ class EagerVariantTest : BaseFunctionalTest() {
                         val actualContent = fetchAssetContent(client, path = "users/123", profile = "small").second!!
 
                         // Store same asset without preprocessing and fetch r = 180 + small variant profile
-                        konifer().storeAsset(
-                            path = "apple/123",
-                            format = attributes.format,
-                            request = StoreAssetRequest(),
-                            bytes = image,
-                        )::class shouldBe KoniferResponse.Success::class
+                        konifer()
+                            .storeAsset(
+                                path = "apple/123",
+                                format = attributes.format,
+                                request = StoreAssetRequest(),
+                                bytes = image,
+                            ).fold(
+                                onSuccess = { },
+                                onError = { _, _, _ -> fail("Request failed") },
+                            )
                         konifer()
                             .fetchAssetContentBytes(
                                 path = "apple/123",

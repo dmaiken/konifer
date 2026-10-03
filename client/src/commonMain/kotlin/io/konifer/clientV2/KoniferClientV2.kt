@@ -79,6 +79,30 @@ class KoniferClientV2 internal constructor(
                 urlSigner = urlSigner,
             )
         }
+
+        /**
+         * Creates a client that uses an existing HTTP client supplied by an internal test harness.
+         *
+         * The supplied client must include any test-server configuration required to route requests.
+         */
+        @KoniferInternalTestApi
+        suspend fun buildForTesting(
+            testClient: HttpClient,
+            hmacKey: String? = null,
+            hmacSigningAlgorithm: HmacSigningAlgorithm = HmacSigningAlgorithm.HMAC_SHA256,
+        ): KoniferClientV2 =
+            KoniferClientV2(
+                httpClient = testClient,
+                urlSigner =
+                    hmacKey?.let {
+                        KoniferUrlSigner.create(
+                            HmacSigningConfig(
+                                secretKey = it,
+                                algorithm = hmacSigningAlgorithm,
+                            ),
+                        )
+                    },
+            )
     }
 
     private val requestInfrastructure: RequestInfrastructure =

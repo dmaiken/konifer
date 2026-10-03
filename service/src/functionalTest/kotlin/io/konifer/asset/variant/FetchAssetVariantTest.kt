@@ -4,8 +4,6 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
-import io.konifer.client.KoniferResponse
-import io.konifer.client.fold
 import io.konifer.clientV2.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
@@ -51,15 +49,19 @@ class FetchAssetVariantTest : BaseFunctionalTest() {
                 )
 
             val response =
-                konifer().fetchAssetContentBytes(
-                    path = "users/123",
-                    requestedTransformation =
-                        requestedTransformation {
-                            height = 100
-                            width = 100
-                        },
-                ) as KoniferResponse.Success
-            response.body shouldBeFormat ImageFormat.JPEG
+                konifer()
+                    .fetchAssetContentBytes(
+                        path = "users/123",
+                        requestedTransformation =
+                            requestedTransformation {
+                                height = 100
+                                width = 100
+                            },
+                    ).fold(
+                        onSuccess = { it },
+                        onError = { _, _, _ -> fail("Request failed") },
+                    )
+            response shouldBeFormat ImageFormat.JPEG
 
             konifer()
                 .fetchAssetInfo(

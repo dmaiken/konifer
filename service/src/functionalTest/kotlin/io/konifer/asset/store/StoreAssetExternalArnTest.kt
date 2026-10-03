@@ -4,6 +4,7 @@ import io.konifer.BaseFlociTestContainersTest
 import io.konifer.ImageFactory
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
 import io.konifer.common.http.StoreAssetRequest
@@ -12,7 +13,12 @@ import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import org.junit.jupiter.api.Test
 import org.koin.dsl.module
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -173,21 +179,23 @@ class StoreAssetExternalArnTest : BaseFlociTestContainersTest() {
             """.trimIndent(),
         ) {
             val path = "external-arn"
+            // KoniferClientV2 prevents callers from constructing this invalid source combination.
             val response =
-                konifer()
-                    .storeAsset(
-                        path = path,
-                        request =
-                            StoreAssetRequest(
-                                alt = "asset supplied by ARN",
-                                source =
-                                    AssetSourceRequest(
-                                        s3 = S3Source(arn = "arn:aws:s3:::bucket/key"),
-                                        http = HttpSource(url = "https://konifer.io/img/konifer-small.png"),
-                                    ),
-                            ),
-                    ) shouldHaveHttpError HttpStatusCode.BadRequest.value
+                client.post("/assets/$path") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        StoreAssetRequest(
+                            alt = "asset supplied by ARN",
+                            source =
+                                AssetSourceRequest(
+                                    s3 = S3Source(arn = "arn:aws:s3:::bucket/key"),
+                                    http = HttpSource(url = "https://konifer.io/img/konifer-small.png"),
+                                ),
+                        ),
+                    )
+                }
 
-            response.message shouldBe "Only one of source.http.url or source.s3.arn, or url can be supplied"
+            response.status shouldBe HttpStatusCode.BadRequest
+            response.body<ErrorResponse>().message shouldBe "Only one of source.http.url or source.s3.arn, or url can be supplied"
         }
 }

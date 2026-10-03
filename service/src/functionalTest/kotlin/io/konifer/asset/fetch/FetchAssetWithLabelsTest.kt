@@ -2,12 +2,12 @@ package io.konifer.asset.fetch
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.clientV2.assets.fetch.EntryId
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
+import io.konifer.util.fetchAssetInfo
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
@@ -51,8 +51,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     request = request,
                     bytes = image,
                 )
-            response.shouldBeSuccessful()
-            val entryIdWithLabels = response.body.entryId
+            val entryIdWithLabels = response.shouldBeSuccessful().body.entryId
 
             konifer()
                 .storeAsset(
@@ -67,8 +66,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     path = "profile",
                     labels = labels,
                 )
-            metadata.shouldBeSuccessful()
-            with(metadata.body) {
+            with(metadata.shouldBeSuccessful().body) {
                 this.tags shouldContainExactly tags
                 this.labels shouldContainExactly labels
                 this.alt shouldBe request.alt
@@ -125,14 +123,14 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
+            // KoniferClientV2 does not yet model entry-id and label selection together.
             val metadata =
-                konifer()
-                    .fetchAssetInfo(
-                        path = "profile",
-                        querySelectors = EntryId(entryIdWithLabels),
-                        labels = labels,
-                    ).shouldBeSuccessful()
-                    .body
+                fetchAssetInfo(
+                    client = client,
+                    path = "profile",
+                    entryId = entryIdWithLabels,
+                    labels = labels,
+                )!!
             with(metadata) {
                 this.tags shouldContainExactly tags
                 this.labels shouldContainExactly labels
@@ -143,11 +141,13 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
             }
 
             // Verify wrong entryId with right labels returns NotFound
-            konifer().fetchAssetInfo(
+            fetchAssetInfo(
+                client = client,
                 path = "profile",
-                querySelectors = EntryId(entryIdWithLabels + 1),
+                entryId = entryIdWithLabels + 1,
                 labels = labels,
-            ) shouldHaveHttpError HttpStatusCode.NotFound.value
+                expectedStatus = HttpStatusCode.NotFound,
+            )
         }
 
     @Test

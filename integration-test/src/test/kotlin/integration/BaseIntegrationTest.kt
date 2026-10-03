@@ -2,7 +2,6 @@ package integration
 
 import integration.GarageContainer.Companion.ADMIN_PORT
 import integration.GarageContainer.Companion.S3_PORT
-import io.konifer.client.KoniferClient
 import io.konifer.clientV2.KoniferClientV2
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -170,11 +169,6 @@ abstract class BaseIntegrationTest {
 
         private const val SIGLIP2_MODEL_DIR = "siglip2-base-patch16-224"
     }
-
-    protected val client =
-        runBlocking {
-            KoniferClient.build("http://${konifer.host}:${konifer.getMappedPort(8080)}")
-        }
 
     protected val clientV2 =
         runBlocking {
