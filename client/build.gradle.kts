@@ -1,5 +1,8 @@
 import dev.detekt.gradle.Detekt
 import org.gradle.jvm.tasks.Jar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     kotlin("multiplatform")
@@ -20,9 +23,21 @@ repositories {
 }
 
 kotlin {
+    jvmToolchain(17)
     withSourcesJar()
 
+    @OptIn(ExperimentalAbiValidation::class)
+    abiValidation()
+
+    compilerOptions {
+        languageVersion = KotlinVersion.KOTLIN_2_3
+        apiVersion = KotlinVersion.KOTLIN_2_3
+    }
+
     jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
         testRuns.configureEach {
             executionTask.configure {
                 useJUnitPlatform()

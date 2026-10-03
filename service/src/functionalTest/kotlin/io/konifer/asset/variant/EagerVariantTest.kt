@@ -3,7 +3,7 @@ package io.konifer.asset.variant
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.PHash
-import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL

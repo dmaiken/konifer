@@ -3,9 +3,9 @@ package io.konifer.asset.delete
 import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.clientV2.assets.fetch.EntryId
-import io.konifer.clientV2.assets.fetch.OrderBy
-import io.konifer.clientV2.assets.fetch.Recursive
+import io.konifer.client.assets.fetch.EntryId
+import io.konifer.client.assets.fetch.OrderBy
+import io.konifer.client.assets.fetch.Recursive
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.konifer.matchers.shouldBeSuccessful

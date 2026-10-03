@@ -1,6 +1,6 @@
 package integration
 
-import io.konifer.clientV2.KoniferV2Result
+import io.konifer.client.KoniferResult
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
@@ -21,7 +21,7 @@ class LinkIntegrationTest : BaseIntegrationTest() {
             val path = "presigned/${UUID.randomUUID()}"
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
-                clientV2
+                client
                     .assets(path)
                     .newAsset()
                     .fromBytes(
@@ -31,17 +31,17 @@ class LinkIntegrationTest : BaseIntegrationTest() {
                     .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
                     .withTags(setOf("tag1", "tag2"))
                     .store()
-            storeResponse::class shouldBe KoniferV2Result.Success::class
+            storeResponse::class shouldBe KoniferResult.Success::class
 
             val linkResponse =
-                clientV2
+                client
                     .assets(path)
                     .originalVariant()
                     .fetchLink()
             val receivedAt = Clock.System.now()
 
-            linkResponse::class shouldBe KoniferV2Result.Success::class
-            with(linkResponse as KoniferV2Result.Success) {
+            linkResponse::class shouldBe KoniferResult.Success::class
+            with(linkResponse as KoniferResult.Success) {
                 shouldNotThrowAny { Url(value.url) }
 
                 val expiresAt = requireNotNull(value.expiresAt).toInstant(TimeZone.UTC)

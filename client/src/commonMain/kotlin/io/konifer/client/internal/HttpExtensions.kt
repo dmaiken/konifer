@@ -1,0 +1,104 @@
+package io.konifer.client.internal
+
+import io.konifer.client.assets.fetch.EntryId
+import io.konifer.client.assets.fetch.None
+import io.konifer.client.assets.fetch.OrderBy
+import io.konifer.client.assets.fetch.QuerySelector
+import io.konifer.client.assets.fetch.Recursive
+import io.konifer.client.assets.fetch.RequestedTransformation
+import io.konifer.common.image.ALL_RESERVED_PARAMETERS
+import io.konifer.common.image.LIMIT_PARAMETER
+import io.konifer.common.image.ManipulationParameters.BLUR
+import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
+import io.konifer.common.image.ManipulationParameters.FILTER
+import io.konifer.common.image.ManipulationParameters.FIT
+import io.konifer.common.image.ManipulationParameters.FLIP
+import io.konifer.common.image.ManipulationParameters.FORMAT
+import io.konifer.common.image.ManipulationParameters.GRAVITY
+import io.konifer.common.image.ManipulationParameters.HEIGHT
+import io.konifer.common.image.ManipulationParameters.PAD
+import io.konifer.common.image.ManipulationParameters.PAD_COLOR
+import io.konifer.common.image.ManipulationParameters.QUALITY
+import io.konifer.common.image.ManipulationParameters.ROTATE
+import io.konifer.common.image.ManipulationParameters.STRIP
+import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
+import io.konifer.common.image.ManipulationParameters.WIDTH
+import io.konifer.common.selector.ReturnFormat
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
+
+internal const val PATH_SEPARATOR = "-"
+
+internal fun URLBuilder.appendQuerySelectors(
+    returnFormat: ReturnFormat?,
+    querySelectors: QuerySelector,
+) {
+    var pathSeparatorAppended = false
+    when (querySelectors) {
+        is EntryId -> {
+            appendPathSeparator()
+            pathSeparatorAppended = true
+            appendEntrySelector(querySelectors.entryId)
+        }
+
+        is OrderBy -> {
+            appendPathSeparator()
+            pathSeparatorAppended = true
+            appendOrderSelector(querySelectors.orderBy)
+        }
+
+        is Recursive -> {
+            appendPathSeparator()
+            pathSeparatorAppended = true
+            appendRecursiveSelector()
+        }
+
+        is None -> { } // Nothing
+    }
+    returnFormat?.let {
+        if (!pathSeparatorAppended) {
+            appendPathSeparator()
+        }
+        appendPathSegments(it.name.lowercase())
+    }
+}
+
+internal fun URLBuilder.appendLimit(limit: Int) {
+    parameters.append(LIMIT_PARAMETER, limit.toString())
+}
+
+internal fun URLBuilder.appendTransformationParameters(requestedTransformation: RequestedTransformation) {
+    requestedTransformation.width?.let { width -> parameters.append(WIDTH, width.toString()) }
+    requestedTransformation.height?.let { height -> parameters.append(HEIGHT, height.toString()) }
+    requestedTransformation.format?.let { format -> parameters.append(FORMAT, format.queryParameterValue) }
+    requestedTransformation.fit?.let { fit -> parameters.append(FIT, fit.queryParameterValue) }
+    requestedTransformation.flip?.let { flip -> parameters.append(FLIP, flip.queryParameterValue) }
+    requestedTransformation.gravity?.let { gravity -> parameters.append(GRAVITY, gravity.queryParameterValue) }
+    requestedTransformation.rotate?.let { rotate -> parameters.append(ROTATE, rotate.queryParameterValue) }
+    requestedTransformation.filter?.let { filter -> parameters.append(FILTER, filter.queryParameterValue) }
+    requestedTransformation.blur?.let { blur -> parameters.append(BLUR, blur.toString()) }
+    requestedTransformation.quality?.let { quality -> parameters.append(QUALITY, quality.toString()) }
+    requestedTransformation.pad?.let { pad -> parameters.append(PAD, pad.toString()) }
+    requestedTransformation.padColor?.let { padColor -> parameters.append(PAD_COLOR, padColor) }
+    requestedTransformation.profile?.let { profile -> parameters.append(VARIANT_PROFILE, profile) }
+    requestedTransformation.strip
+        .joinToString(",") { it.name.lowercase() }
+        .takeIf { it.isNotBlank() }
+        ?.let { strip -> parameters.append(STRIP, strip) }
+    requestedTransformation.colorSpace?.let { colorSpace -> parameters.append(COLOR_SPACE, colorSpace.queryParameterValue) }
+}
+
+internal fun URLBuilder.appendLabels(labels: Map<String, String>) {
+    labels
+        .map { (key, value) -> Pair(key.lowercase(), value) }
+        .forEach { (key, value) ->
+            val prefixedKey =
+                if (key in ALL_RESERVED_PARAMETERS) {
+                    "label:$key"
+                } else {
+                    key
+                }
+
+            parameters.append(prefixedKey, value)
+        }
+}

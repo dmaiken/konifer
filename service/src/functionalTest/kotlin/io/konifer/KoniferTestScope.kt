@@ -1,19 +1,19 @@
 package io.konifer
 
-import io.konifer.clientV2.HmacSigningAlgorithm
-import io.konifer.clientV2.KoniferClientV2
-import io.konifer.clientV2.KoniferInternalTestApi
-import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.assets.AssetSelection
-import io.konifer.clientV2.assets.fetch.ContentDelivery
-import io.konifer.clientV2.assets.fetch.DeleteQuerySelector
-import io.konifer.clientV2.assets.fetch.EntryId
-import io.konifer.clientV2.assets.fetch.FetchQuerySelector
-import io.konifer.clientV2.assets.fetch.None
-import io.konifer.clientV2.assets.fetch.OrderBy
-import io.konifer.clientV2.assets.fetch.Recursive
-import io.konifer.clientV2.assets.fetch.RequestedTransformation
-import io.konifer.clientV2.assets.store.NewAssetAtPath
+import io.konifer.client.HmacSigningAlgorithm
+import io.konifer.client.KoniferClient
+import io.konifer.client.KoniferInternalTestApi
+import io.konifer.client.KoniferResult
+import io.konifer.client.assets.AssetSelection
+import io.konifer.client.assets.fetch.ContentDelivery
+import io.konifer.client.assets.fetch.DeleteQuerySelector
+import io.konifer.client.assets.fetch.EntryId
+import io.konifer.client.assets.fetch.FetchQuerySelector
+import io.konifer.client.assets.fetch.None
+import io.konifer.client.assets.fetch.OrderBy
+import io.konifer.client.assets.fetch.Recursive
+import io.konifer.client.assets.fetch.RequestedTransformation
+import io.konifer.client.assets.store.NewAssetAtPath
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
@@ -40,11 +40,11 @@ class KoniferTestScope(
     val client: HttpClient get() = currentClient
 
     // Backing field to cache the initialized client
-    private var cachedKoniferClient: KoniferClientV2? = null
+    private var cachedKoniferClient: KoniferClient? = null
 
     @OptIn(KoniferInternalTestApi::class)
-    suspend fun konifer(): KoniferClientV2 =
-        cachedKoniferClient ?: KoniferClientV2
+    suspend fun konifer(): KoniferClient =
+        cachedKoniferClient ?: KoniferClient
             .buildForTesting(
                 testClient = client,
                 hmacKey = hmacKey,
@@ -81,22 +81,22 @@ class KoniferTestScope(
             block()
         }
 
-    suspend fun KoniferClientV2.storeAsset(
+    suspend fun KoniferClient.storeAsset(
         path: String,
         format: ImageFormat,
         request: StoreAssetRequest,
         bytes: ByteArray,
-    ): KoniferV2Result<AssetResponse> =
+    ): KoniferResult<AssetResponse> =
         assets(path)
             .newAsset()
             .fromBytes(bytes, format)
             .withMetadata(request)
             .store()
 
-    suspend fun KoniferClientV2.storeAsset(
+    suspend fun KoniferClient.storeAsset(
         path: String,
         request: StoreAssetRequest,
-    ): KoniferV2Result<AssetResponse> {
+    ): KoniferResult<AssetResponse> {
         val source = assets(path).newAsset()
         val url = request.source.http.url ?: request.url
         return when {
@@ -109,39 +109,39 @@ class KoniferTestScope(
         }.withMetadata(request).store()
     }
 
-    suspend fun KoniferClientV2.fetchAssetInfo(
+    suspend fun KoniferClient.fetchAssetInfo(
         path: String,
         querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
-    ): KoniferV2Result<AssetResponse> = assetSelection(path, querySelectors, labels).fetchInfo()
+    ): KoniferResult<AssetResponse> = assetSelection(path, querySelectors, labels).fetchInfo()
 
-    suspend fun KoniferClientV2.fetchAssetContentBytes(
+    suspend fun KoniferClient.fetchAssetContentBytes(
         path: String,
         querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
         delivery: ContentDelivery = ContentDelivery.THROUGH_KONIFER,
-    ): KoniferV2Result<ByteArray> =
+    ): KoniferResult<ByteArray> =
         assetSelection(path, querySelectors, labels)
             .variant(requestedTransformation)
             .fetchContentBytes(delivery)
 
-    suspend fun KoniferClientV2.fetchAssetLink(
+    suspend fun KoniferClient.fetchAssetLink(
         path: String,
         querySelectors: FetchQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
-    ): KoniferV2Result<AssetLinkResponse> =
+    ): KoniferResult<AssetLinkResponse> =
         assetSelection(path, querySelectors, labels)
             .variant(requestedTransformation)
             .fetchLink()
 
-    suspend fun KoniferClientV2.deleteAsset(
+    suspend fun KoniferClient.deleteAsset(
         path: String,
         querySelectors: DeleteQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
         limit: Int = 1,
-    ): KoniferV2Result<Unit> =
+    ): KoniferResult<Unit> =
         when (querySelectors) {
             is EntryId -> {
                 require(labels.isEmpty()) { "Entry selection with labels is not supported by KoniferClientV2" }
@@ -161,17 +161,17 @@ class KoniferTestScope(
             }
         }
 
-    suspend fun KoniferClientV2.evaluateRules(
+    suspend fun KoniferClient.evaluateRules(
         format: ImageFormat,
         request: EvaluateRuleDefinitionsRequest,
         bytes: ByteArray,
-    ): KoniferV2Result<EvaluateRuleDefinitionsResponse> =
+    ): KoniferResult<EvaluateRuleDefinitionsResponse> =
         ruleEvaluation()
             .fromBytes(bytes, format)
             .withDefinitions(request.definitions)
             .evaluate()
 
-    suspend fun KoniferClientV2.evaluateRules(request: EvaluateRuleDefinitionsRequest): KoniferV2Result<EvaluateRuleDefinitionsResponse> {
+    suspend fun KoniferClient.evaluateRules(request: EvaluateRuleDefinitionsRequest): KoniferResult<EvaluateRuleDefinitionsResponse> {
         val url = request.source.http.url ?: request.url
         val source =
             when {
@@ -185,21 +185,21 @@ class KoniferTestScope(
         return source.withDefinitions(request.definitions).evaluate()
     }
 
-    inline fun <T, R> KoniferV2Result<T>.fold(
+    inline fun <T, R> KoniferResult<T>.fold(
         onSuccess: (T) -> R,
         onError: (statusCode: Int?, message: String?, cause: Throwable?) -> R,
     ): R =
         when (this) {
-            is KoniferV2Result.Success -> onSuccess(value)
-            is KoniferV2Result.Failure.Http -> onError(statusCode, message, null)
-            is KoniferV2Result.Failure.Transport -> onError(null, null, cause)
-            is KoniferV2Result.Failure.InvalidResponse -> onError(null, null, cause)
+            is KoniferResult.Success -> onSuccess(value)
+            is KoniferResult.Failure.Http -> onError(statusCode, message, null)
+            is KoniferResult.Failure.Transport -> onError(null, null, cause)
+            is KoniferResult.Failure.InvalidResponse -> onError(null, null, cause)
         }
 
-    val <T> KoniferV2Result.Success<T>.body: T
+    val <T> KoniferResult.Success<T>.body: T
         get() = value
 
-    private fun KoniferClientV2.assetSelection(
+    private fun KoniferClient.assetSelection(
         path: String,
         querySelector: FetchQuerySelector,
         labels: Map<String, String>,

@@ -1,7 +1,7 @@
 package integration
 
-import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.client.KoniferResult
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.image.TransformableColorSpace
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
@@ -17,7 +17,7 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
             val path = UUID.randomUUID().toString()
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
-                clientV2
+                client
                     .assets(path)
                     .newAsset()
                     .fromBytes(
@@ -27,18 +27,18 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
                     .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
                     .withTags(setOf("tag1", "tag2"))
                     .store()
-            storeResponse::class shouldBe KoniferV2Result.Success::class
+            storeResponse::class shouldBe KoniferResult.Success::class
 
             val fetchResponse =
-                clientV2
+                client
                     .assets(path)
                     .variant(
                         requestedTransformation {
                             this.colorSpace = colorSpace
                         },
                     ).fetchContentBytes()
-            fetchResponse::class shouldBe KoniferV2Result.Success::class
-            val content = (fetchResponse as KoniferV2Result.Success).value
+            fetchResponse::class shouldBe KoniferResult.Success::class
+            val content = (fetchResponse as KoniferResult.Success).value
             tika.detect(content) shouldBe attributes.format.mimeType
         }
     }

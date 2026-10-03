@@ -2,8 +2,8 @@ package integration
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import io.konifer.clientV2.KoniferV2Result
-import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.client.KoniferResult
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.image.ImageFormat
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
@@ -26,7 +26,7 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                             val path = UUID.randomUUID().toString()
                             val (image, attributes) = ImageFactory.testImage(sourceFormat)
                             val storeResponse =
-                                clientV2
+                                client
                                     .assets(path)
                                     .newAsset()
                                     .fromBytes(
@@ -36,17 +36,17 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                                     .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
                                     .withTags(setOf("tag1", "tag2"))
                                     .store()
-                            storeResponse::class shouldBe KoniferV2Result.Success::class
+                            storeResponse::class shouldBe KoniferResult.Success::class
 
                             val fetchResponse =
-                                clientV2
+                                client
                                     .assets(path)
                                     .variant(
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
                                     ).fetchContentBytes()
-                            val content = (fetchResponse as KoniferV2Result.Success).value
+                            val content = (fetchResponse as KoniferResult.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
                             Vips.run { arena ->

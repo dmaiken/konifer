@@ -1,6 +1,6 @@
 package integration
 
-import io.konifer.clientV2.KoniferV2Result
+import io.konifer.client.KoniferResult
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.inspectors.forExactly
@@ -18,7 +18,7 @@ class RuleEvaluationIntegrationTest : BaseIntegrationTest() {
         runBlocking {
             val (image, _) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE, format = format)
             val storeResponse =
-                clientV2
+                client
                     .ruleEvaluation()
                     .fromBytes(image, format)
                     .withDefinition(
@@ -33,9 +33,9 @@ class RuleEvaluationIntegrationTest : BaseIntegrationTest() {
                             threshold = 0.7,
                         ),
                     ).evaluate()
-            storeResponse::class shouldBe KoniferV2Result.Success::class
+            storeResponse::class shouldBe KoniferResult.Success::class
 
-            val body = (storeResponse as KoniferV2Result.Success).value
+            val body = (storeResponse as KoniferResult.Success).value
             body.results shouldHaveSize 1
             body.results.forExactly(1) {
                 it.name shouldBe "one"

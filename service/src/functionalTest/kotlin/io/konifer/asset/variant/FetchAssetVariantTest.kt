@@ -4,7 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
-import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.matchers.shouldBeFormat

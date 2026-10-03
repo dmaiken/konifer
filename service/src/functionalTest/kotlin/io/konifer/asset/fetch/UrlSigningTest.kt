@@ -2,8 +2,8 @@ package io.konifer.asset.fetch
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.clientV2.HmacSigningAlgorithm
-import io.konifer.clientV2.assets.fetch.requestedTransformation
+import io.konifer.client.HmacSigningAlgorithm
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
