@@ -30,7 +30,7 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
                             val (image, attributes) = ImageFactory.testImage(sourceFormat, type = TestImageType.KERMIT)
                             val storeResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .newAsset()
                                     .fromBytes(
                                         bytes = image,
@@ -43,12 +43,12 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
 
                             val fetchResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .variant(
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).contentBytes()
+                                    ).fetchContentBytes()
                             fetchResponse::class shouldBe KoniferV2Result.Success::class
                             val content = (fetchResponse as KoniferV2Result.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
@@ -82,7 +82,7 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
                             val (image, attributes) = ImageFactory.testImage(sourceFormat, type = TestImageType.KERMIT)
                             val storeResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .newAsset()
                                     .fromBytes(
                                         bytes = image,
@@ -95,12 +95,12 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
 
                             val fetchResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .variant(
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).contentBytes()
+                                    ).fetchContentBytes()
                             fetchResponse::class shouldBe KoniferV2Result.Success::class
                             val content = (fetchResponse as KoniferV2Result.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType

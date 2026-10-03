@@ -2,13 +2,12 @@ package io.konifer.clientV2.assets.store
 
 import io.konifer.common.http.StoreAssetRequest
 
-internal class AssetRequestBuilder(
+internal data class AssetRequestBuilder(
     val assetSource: AssetContentSource,
+    val alt: String? = null,
+    val labels: Map<String, String> = emptyMap(),
+    val tags: Set<String> = emptySet(),
 ) {
-    var alt: String? = null
-    val labels: MutableMap<String, String> = mutableMapOf()
-    val tags: MutableSet<String> = mutableSetOf()
-
     fun build(): StoreAssetRequest {
         val requestWithoutContent =
             StoreAssetRequest(

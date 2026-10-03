@@ -25,7 +25,7 @@ class QualityIntegrationTest : BaseIntegrationTest() {
                             val (image, attributes) = ImageFactory.testImage(format)
                             val storeResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .newAsset()
                                     .fromBytes(
                                         bytes = image,
@@ -38,12 +38,12 @@ class QualityIntegrationTest : BaseIntegrationTest() {
 
                             val fetchResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .variant(
                                         requestedTransformation {
                                             this.quality = quality
                                         },
-                                    ).contentBytes()
+                                    ).fetchContentBytes()
                             fetchResponse::class shouldBe KoniferV2Result.Success::class
                             val content = (fetchResponse as KoniferV2Result.Success).value
                             tika.detect(content) shouldBe format.mimeType

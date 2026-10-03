@@ -29,12 +29,12 @@ class RelativeAssetSelection internal constructor(
             orderBy = orderBy,
         )
 
-    fun orderBy(orderBy: Order): RelativeAssetSelection =
+    fun orderBy(order: Order): RelativeAssetSelection =
         RelativeAssetSelection(
             infra = infra,
             path = path,
             labels = labels,
-            orderBy = orderBy,
+            orderBy = order,
         )
 
     override fun variant(requestedTransformation: RequestedTransformation) =
@@ -44,7 +44,7 @@ class RelativeAssetSelection internal constructor(
             requestedTransformation = requestedTransformation,
         )
 
-    override suspend fun info(): KoniferV2Result<AssetResponse> =
+    override suspend fun fetchInfo(): KoniferV2Result<AssetResponse> =
         fetchAssetInfo(
             infra = infra,
             path = path,
@@ -52,9 +52,9 @@ class RelativeAssetSelection internal constructor(
             labels = labels,
         )
 
-    override suspend fun delete(): KoniferV2Result<Unit> = delete(limit = 1)
+    override suspend fun deleteFirst(): KoniferV2Result<Unit> = deleteFirst(limit = 1)
 
-    suspend fun delete(limit: Int): KoniferV2Result<Unit> =
+    suspend fun deleteFirst(limit: Int): KoniferV2Result<Unit> =
         deleteAsset(
             infra = infra,
             path = path,
@@ -68,9 +68,9 @@ class RelativeAssetSelection internal constructor(
             target = AssetDeleteTarget.Recursive(labels),
         )
 
-    suspend fun entries(): KoniferV2Result<AssetEntriesResponse> = entries(limit = DEFAULT_ENTRIES_LIMIT)
+    suspend fun fetchEntries(): KoniferV2Result<AssetEntriesResponse> = fetchEntries(limit = DEFAULT_ENTRIES_LIMIT)
 
-    suspend fun entries(limit: Int): KoniferV2Result<AssetEntriesResponse> {
+    suspend fun fetchEntries(limit: Int): KoniferV2Result<AssetEntriesResponse> {
         require(limit > 0) { "Limit must be positive" }
         return fetchAssetEntries(
             infra = infra,

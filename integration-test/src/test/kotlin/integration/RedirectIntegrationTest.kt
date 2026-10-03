@@ -19,7 +19,7 @@ class RedirectIntegrationTest : BaseIntegrationTest() {
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
                 clientV2
-                    .asset(path)
+                    .assets(path)
                     .newAsset()
                     .fromBytes(
                         bytes = image,

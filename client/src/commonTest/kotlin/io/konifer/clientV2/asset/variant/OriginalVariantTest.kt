@@ -26,9 +26,9 @@ class OriginalVariantTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .originalVariant()
-                .contentBytes() shouldBe KoniferV2Result.Success(bytes)
+                .fetchContentBytes() shouldBe KoniferV2Result.Success(bytes)
         }
 
         test("entry selection fetches an original variant link without transformation parameters") {
@@ -43,9 +43,9 @@ class OriginalVariantTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .entry(42)
                 .originalVariant()
-                .link() shouldBe KoniferV2Result.Success(link)
+                .fetchLink() shouldBe KoniferV2Result.Success(link)
         }
     })

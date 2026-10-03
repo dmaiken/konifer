@@ -21,7 +21,7 @@ class KoniferBlockingClientV2 internal constructor(
             )
     }
 
-    fun asset(path: String): BlockingAssetAtPath = BlockingAssetAtPath(client.asset(path))
+    fun assets(path: String): BlockingAssetAtPath = BlockingAssetAtPath(client.assets(path))
 
     fun ruleEvaluation(): BlockingBlankRuleEvaluation = BlockingBlankRuleEvaluation(client.ruleEvaluation())
 

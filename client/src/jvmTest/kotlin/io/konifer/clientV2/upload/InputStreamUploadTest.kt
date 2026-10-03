@@ -45,7 +45,7 @@ class InputStreamUploadTest :
                     }
                 }
             val upload =
-                KoniferClientV2(httpClient).asset("users/123").newAsset().fromInputStream(
+                KoniferClientV2(httpClient).assets("users/123").newAsset().fromInputStream(
                     open = {
                         opens++
                         object : ByteArrayInputStream(bytes) {

@@ -15,19 +15,19 @@ class VariantSelection internal constructor(
     private val asset: AssetSelection,
     private val requestedTransformation: RequestedTransformation = RequestedTransformation.OriginalVariant,
 ) {
-    suspend fun writeContentTo(destination: ByteWriteChannel): KoniferV2Result<Unit> =
-        writeContentTo(destination, ContentDelivery.THROUGH_KONIFER)
+    suspend fun fetchAndWriteContentTo(destination: ByteWriteChannel): KoniferV2Result<Unit> =
+        fetchAndWriteContentTo(destination, ContentDelivery.THROUGH_KONIFER)
 
-    suspend fun writeContentTo(
+    suspend fun fetchAndWriteContentTo(
         destination: ByteWriteChannel,
         delivery: ContentDelivery,
     ): KoniferV2Result<Unit> = fetchAssetContentTo(infra, asset, requestedTransformation, destination, delivery)
 
-    suspend fun contentBytes(): KoniferV2Result<ByteArray> = contentBytes(ContentDelivery.THROUGH_KONIFER)
+    suspend fun fetchContentBytes(): KoniferV2Result<ByteArray> = fetchContentBytes(ContentDelivery.THROUGH_KONIFER)
 
-    suspend fun contentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> =
+    suspend fun fetchContentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> =
         fetchAssetContentBytes(infra, asset, requestedTransformation, delivery)
 
     // link and redirect modes return the same delivery URL, so I am not exposing a redirect() method
-    suspend fun link(): KoniferV2Result<AssetLinkResponse> = fetchAssetLink(infra, asset, requestedTransformation)
+    suspend fun fetchLink(): KoniferV2Result<AssetLinkResponse> = fetchAssetLink(infra, asset, requestedTransformation)
 }

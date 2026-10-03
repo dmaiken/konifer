@@ -4,6 +4,7 @@ import io.konifer.clientV2.KoniferV2Result
 import io.konifer.clientV2.RequestInfrastructure
 import io.konifer.common.http.AssetResponse
 
+/** Metadata modifiers return independent requests, leaving the original unchanged. */
 class NewAssetAtPath internal constructor(
     private val infra: RequestInfrastructure,
     private val path: String,
@@ -13,7 +14,7 @@ class NewAssetAtPath internal constructor(
         NewAssetAtPath(
             infra = infra,
             path = path,
-            requestBuilder = requestBuilder.apply { this.alt = alt },
+            requestBuilder = requestBuilder.copy(alt = alt),
         )
 
     fun withLabel(
@@ -23,28 +24,28 @@ class NewAssetAtPath internal constructor(
         NewAssetAtPath(
             infra = infra,
             path = path,
-            requestBuilder = requestBuilder.apply { this.labels[key] = value },
+            requestBuilder = requestBuilder.copy(labels = requestBuilder.labels + (key to value)),
         )
 
     fun withLabels(labels: Map<String, String>): NewAssetAtPath =
         NewAssetAtPath(
             infra = infra,
             path = path,
-            requestBuilder = requestBuilder.apply { this.labels.putAll(labels) },
+            requestBuilder = requestBuilder.copy(labels = requestBuilder.labels + labels),
         )
 
     fun withTag(tag: String): NewAssetAtPath =
         NewAssetAtPath(
             infra = infra,
             path = path,
-            requestBuilder = requestBuilder.apply { this.tags.add(tag) },
+            requestBuilder = requestBuilder.copy(tags = requestBuilder.tags + tag),
         )
 
     fun withTags(tags: Set<String>): NewAssetAtPath =
         NewAssetAtPath(
             infra = infra,
             path = path,
-            requestBuilder = requestBuilder.apply { this.tags.addAll(tags) },
+            requestBuilder = requestBuilder.copy(tags = requestBuilder.tags + tags),
         )
 
     suspend fun store(): KoniferV2Result<AssetResponse> =

@@ -49,10 +49,12 @@ internal interface AssetByteContentSource : AssetContentSource {
 
     fun channel(scope: CoroutineScope): ByteReadChannel
 
-    data class AssetByteArrayContentSource(
-        private val bytes: ByteArray,
+    class AssetByteArrayContentSource(
+        bytes: ByteArray,
         override val format: ImageFormat,
     ) : AssetByteContentSource {
+        private val bytes = bytes.copyOf()
+
         override fun channel(scope: CoroutineScope): ByteReadChannel = ByteReadChannel(bytes)
     }
 

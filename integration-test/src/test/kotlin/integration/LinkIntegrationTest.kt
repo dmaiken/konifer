@@ -22,7 +22,7 @@ class LinkIntegrationTest : BaseIntegrationTest() {
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
                 clientV2
-                    .asset(path)
+                    .assets(path)
                     .newAsset()
                     .fromBytes(
                         bytes = image,
@@ -35,9 +35,9 @@ class LinkIntegrationTest : BaseIntegrationTest() {
 
             val linkResponse =
                 clientV2
-                    .asset(path)
+                    .assets(path)
                     .originalVariant()
-                    .link()
+                    .fetchLink()
             val receivedAt = Clock.System.now()
 
             linkResponse::class shouldBe KoniferV2Result.Success::class

@@ -30,10 +30,12 @@ internal sealed interface RuleEvaluationSource {
         fun channel(scope: CoroutineScope): ByteReadChannel
     }
 
-    data class Bytes(
-        private val value: ByteArray,
+    class Bytes(
+        value: ByteArray,
         override val format: ImageFormat,
     ) : Upload {
+        private val value = value.copyOf()
+
         override fun channel(scope: CoroutineScope): ByteReadChannel = ByteReadChannel(value)
     }
 

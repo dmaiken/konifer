@@ -18,7 +18,7 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
                 clientV2
-                    .asset(path)
+                    .assets(path)
                     .newAsset()
                     .fromBytes(
                         bytes = image,
@@ -31,12 +31,12 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
 
             val fetchResponse =
                 clientV2
-                    .asset(path)
+                    .assets(path)
                     .variant(
                         requestedTransformation {
                             this.colorSpace = colorSpace
                         },
-                    ).contentBytes()
+                    ).fetchContentBytes()
             fetchResponse::class shouldBe KoniferV2Result.Success::class
             val content = (fetchResponse as KoniferV2Result.Success).value
             tika.detect(content) shouldBe attributes.format.mimeType

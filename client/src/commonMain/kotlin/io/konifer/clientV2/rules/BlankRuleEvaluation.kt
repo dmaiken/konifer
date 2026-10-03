@@ -18,6 +18,7 @@ class BlankRuleEvaluation internal constructor(
 
     fun fromS3Arn(s3Arn: String): NewRuleEvaluation = NewRuleEvaluation(infra, S3Arn(s3Arn))
 
+    /** Copies [bytes] so subsequent changes to the array do not affect evaluations. */
     fun fromBytes(
         bytes: ByteArray,
         format: ImageFormat,

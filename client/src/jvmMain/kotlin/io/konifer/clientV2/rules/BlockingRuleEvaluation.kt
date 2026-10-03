@@ -13,7 +13,7 @@ class BlockingBlankRuleEvaluation internal constructor(
 ) {
     fun fromUrl(url: String): BlockingNewRuleEvaluation = BlockingNewRuleEvaluation(selection.fromUrl(url))
 
-    fun fromS3Arn(arn: String): BlockingNewRuleEvaluation = BlockingNewRuleEvaluation(selection.fromS3Arn(arn))
+    fun fromS3Arn(s3Arn: String): BlockingNewRuleEvaluation = BlockingNewRuleEvaluation(selection.fromS3Arn(s3Arn))
 
     fun fromBytes(
         bytes: ByteArray,

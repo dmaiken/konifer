@@ -68,6 +68,54 @@ class RuleEvaluationTest :
                 .evaluate() shouldBe KoniferV2Result.Success(response)
         }
 
+        test("evaluation branches preserve their base and snapshot definition collections") {
+            val response = createEvaluateRulesResponse()
+            val requests = mutableListOf<EvaluateRuleDefinitionsRequest>()
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        val body = request.body.shouldBeInstanceOf<TextContent>()
+                        requests += Json.decodeFromString<EvaluateRuleDefinitionsRequest>(body.text)
+                        respond(Json.encodeToString(response), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+            val prompts = mutableListOf("a desert landscape")
+            val definition = landscape.copy(prompts = prompts)
+            val definitions = mutableListOf(portrait)
+            val base =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromUrl("https://example.com/image.png")
+                    .withDefinition(definition)
+            val combined = base.withDefinitions(definitions)
+            val portraitOnly =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromUrl("https://example.com/image.png")
+                    .withDefinitions(definitions)
+
+            prompts.clear()
+            definitions.clear()
+
+            base.evaluate() shouldBe KoniferV2Result.Success(response)
+            combined.evaluate() shouldBe KoniferV2Result.Success(response)
+            portraitOnly.evaluate() shouldBe KoniferV2Result.Success(response)
+            base.evaluate() shouldBe KoniferV2Result.Success(response)
+
+            val expectedBase =
+                EvaluateRuleDefinitionsRequest(
+                    source = AssetSourceRequest(http = HttpSource(url = "https://example.com/image.png")),
+                    definitions = listOf(landscape),
+                )
+            requests shouldBe
+                listOf(
+                    expectedBase,
+                    expectedBase.copy(definitions = listOf(landscape, portrait)),
+                    expectedBase.copy(definitions = listOf(portrait)),
+                    expectedBase,
+                )
+        }
+
         test("S3 ARN evaluation posts the S3 source") {
             val response = createEvaluateRulesResponse()
             val httpClient =
@@ -116,6 +164,35 @@ class RuleEvaluationTest :
                 .fromBytes(bytes, ImageFormat.PNG)
                 .withDefinition(landscape)
                 .evaluate() shouldBe KoniferV2Result.Success(response)
+        }
+
+        test("byte evaluations preserve their snapshot across caller mutations and repeated evaluations") {
+            val response = createEvaluateRulesResponse()
+            val bytes = byteArrayOf(1, 2, 3)
+            val expected = bytes.copyOf()
+            var requests = 0
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        requests++
+                        val parts = request.body.shouldBeInstanceOf<MultiPartFormDataContent>().parts
+                        val asset = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
+                        asset.provider().toByteArray() shouldBe expected
+                        asset.provider().toByteArray() shouldBe expected
+                        respond(Json.encodeToString(response), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+            val evaluation =
+                KoniferClientV2(httpClient)
+                    .ruleEvaluation()
+                    .fromBytes(bytes, ImageFormat.PNG)
+                    .withDefinition(landscape)
+
+            bytes.fill(0)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            bytes.fill(9)
+            evaluation.evaluate() shouldBe KoniferV2Result.Success(response)
+            requests shouldBe 2
         }
 
         test("channel upload opens a fresh channel for each read and evaluation") {

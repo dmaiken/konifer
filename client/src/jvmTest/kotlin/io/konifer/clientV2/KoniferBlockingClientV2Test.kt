@@ -21,6 +21,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.toByteArray
@@ -34,7 +35,7 @@ import java.util.function.Supplier
 class KoniferBlockingClientV2Test :
     FunSpec({
         test("asset selections delegate info, entries, update, and delete") {
-            val asset = createInfoResponse()
+            val asset = createInfoResponse().copy(entryId = 42)
             val httpClient =
                 httpClient {
                     MockEngine { request ->
@@ -55,6 +56,9 @@ class KoniferBlockingClientV2Test :
 
                             request.method == HttpMethod.Put -> {
                                 request.url.encodedPath shouldBe "/assets/users/123/-/entry/42"
+                                val body = request.body.shouldBeInstanceOf<TextContent>()
+                                Json.decodeFromString<StoreAssetRequest>(body.text) shouldBe
+                                    StoreAssetRequest(alt = "updated", labels = asset.labels, tags = asset.tags)
                                 respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
                             }
 
@@ -71,12 +75,63 @@ class KoniferBlockingClientV2Test :
                 }
             val client = KoniferBlockingClientV2(KoniferClientV2(httpClient))
 
-            val relative = client.asset("users/123").matchingLabels(mapOf("camera" to "phone")).orderBy(Order.MODIFIED)
-            relative.info() shouldBe KoniferV2Result.Success(asset)
-            relative.entries(2) shouldBe KoniferV2Result.Success(AssetEntriesResponse(listOf(asset)))
-            val absolute = client.asset("users/123").entry(42)
-            absolute.update(StoreAssetRequest(alt = "updated")) shouldBe KoniferV2Result.Success(asset)
-            absolute.delete() shouldBe KoniferV2Result.Success(Unit)
+            val relative = client.assets("users/123").matchingLabels(mapOf("camera" to "phone")).orderBy(Order.MODIFIED)
+            relative.fetchInfo() shouldBe KoniferV2Result.Success(asset)
+            relative.fetchEntries(2) shouldBe KoniferV2Result.Success(AssetEntriesResponse(listOf(asset)))
+            val absolute = client.assets("users/123").entry(42)
+            client
+                .assets("users/123")
+                .updateAsset(asset)
+                .withAlt("updated")
+                .update() shouldBe KoniferV2Result.Success(asset)
+            absolute.deleteFirst() shouldBe KoniferV2Result.Success(Unit)
+            client.close()
+        }
+
+        test("blocking update builders preserve metadata and support independent edits and clearing") {
+            val asset =
+                createInfoResponse().copy(
+                    entryId = 42,
+                    labels = mapOf("category" to "photo", "camera" to "phone"),
+                    tags = setOf("draft", "shared"),
+                )
+            val requests = mutableListOf<StoreAssetRequest>()
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.method shouldBe HttpMethod.Put
+                        request.url.encodedPath shouldBe "/assets/users/123/-/entry/42"
+                        val body = request.body.shouldBeInstanceOf<TextContent>()
+                        requests += Json.decodeFromString<StoreAssetRequest>(body.text)
+                        respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+            val client = KoniferBlockingClientV2(KoniferClientV2(httpClient))
+            val base = client.assets("users/123").updateAsset(asset)
+            val edited =
+                base
+                    .withAlt("Avatar")
+                    .withLabel("category", "avatar")
+                    .withLabels(mapOf("campaign" to "fall"))
+                    .withoutLabel("camera")
+                    .withTag("portrait")
+                    .withTags(setOf("featured"))
+                    .withoutTag("draft")
+            val cleared = base.clearAlt().replaceLabels(emptyMap()).replaceTags(emptySet())
+
+            edited.update() shouldBe KoniferV2Result.Success(asset)
+            cleared.update() shouldBe KoniferV2Result.Success(asset)
+            base.update() shouldBe KoniferV2Result.Success(asset)
+            requests shouldBe
+                listOf(
+                    StoreAssetRequest(
+                        alt = "Avatar",
+                        labels = mapOf("category" to "avatar", "campaign" to "fall"),
+                        tags = setOf("shared", "portrait", "featured"),
+                    ),
+                    StoreAssetRequest(),
+                    StoreAssetRequest(alt = asset.alt, labels = asset.labels, tags = asset.tags),
+                )
             client.close()
         }
 
@@ -104,13 +159,13 @@ class KoniferBlockingClientV2Test :
                     }
                 }
             val client = KoniferBlockingClientV2(KoniferClientV2(httpClient))
-            val variant = client.asset("users/123").originalVariant()
+            val variant = client.assets("users/123").originalVariant()
 
-            variant.contentBytes() shouldBe KoniferV2Result.Success(bytes)
-            variant.contentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferV2Result.Success(bytes)
-            variant.link() shouldBe KoniferV2Result.Success(link)
+            variant.fetchContentBytes() shouldBe KoniferV2Result.Success(bytes)
+            variant.fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferV2Result.Success(bytes)
+            variant.fetchLink() shouldBe KoniferV2Result.Success(link)
             val output = ByteArrayOutputStream()
-            variant.writeContentTo(output) shouldBe KoniferV2Result.Success(Unit)
+            variant.fetchAndWriteContentTo(output) shouldBe KoniferV2Result.Success(Unit)
             output.toByteArray() shouldBe bytes
             client.close()
         }
@@ -129,7 +184,7 @@ class KoniferBlockingClientV2Test :
             val client = KoniferBlockingClientV2(KoniferClientV2(httpClient))
             val output = ByteArrayOutputStream()
 
-            client.asset("users/123").originalVariant().writeContentTo(output) shouldBe
+            client.assets("users/123").originalVariant().fetchAndWriteContentTo(output) shouldBe
                 KoniferV2Result.Failure.Http(404, "not found")
             output.size() shouldBe 0
             client.close()
@@ -157,7 +212,7 @@ class KoniferBlockingClientV2Test :
             val client = KoniferBlockingClientV2(KoniferClientV2(httpClient))
 
             client
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromBytes(bytes, ImageFormat.PNG)
                 .withAlt("image")
@@ -165,7 +220,7 @@ class KoniferBlockingClientV2Test :
                 KoniferV2Result.Success(asset)
             val upload =
                 client
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromInputStream(
                         Supplier<InputStream> {

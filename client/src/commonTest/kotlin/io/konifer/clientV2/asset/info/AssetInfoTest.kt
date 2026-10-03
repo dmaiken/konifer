@@ -35,7 +35,7 @@ class AssetInfoTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("/users/123").info() shouldBe KoniferV2Result.Success(info)
+            KoniferClientV2(httpClient).assets("/users/123").fetchInfo() shouldBe KoniferV2Result.Success(info)
         }
 
         test("relative selection includes order and labels") {
@@ -51,10 +51,10 @@ class AssetInfoTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .info() shouldBe KoniferV2Result.Success(info)
+                .fetchInfo() shouldBe KoniferV2Result.Success(info)
         }
 
         test("absolute selection fetches the specified entry and signs the request") {
@@ -69,7 +69,7 @@ class AssetInfoTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.asset("users/123").entry(42).info() shouldBe KoniferV2Result.Success(info)
+            client.assets("users/123").entry(42).fetchInfo() shouldBe KoniferV2Result.Success(info)
         }
 
         test("info maps HTTP errors to V2 failures") {
@@ -84,7 +84,7 @@ class AssetInfoTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").entry(42).info() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").entry(42).fetchInfo() shouldBe
                 KoniferV2Result.Failure.Http(404, "not found")
         }
 
@@ -96,7 +96,7 @@ class AssetInfoTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").info() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").fetchInfo() shouldBe
                 KoniferV2Result.Failure.Http(404, null)
         }
 
@@ -108,7 +108,7 @@ class AssetInfoTest :
                     }
                 }
 
-            val result = KoniferClientV2(httpClient).asset("users/123").info()
+            val result = KoniferClientV2(httpClient).assets("users/123").fetchInfo()
             (result is KoniferV2Result.Failure.InvalidResponse) shouldBe true
         }
     })

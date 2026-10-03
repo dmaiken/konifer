@@ -9,7 +9,7 @@ sealed interface AssetSelection {
 
     fun originalVariant(): VariantSelection = variant(RequestedTransformation.OriginalVariant)
 
-    suspend fun info(): KoniferV2Result<AssetResponse>
+    suspend fun fetchInfo(): KoniferV2Result<AssetResponse>
 
-    suspend fun delete(): KoniferV2Result<Unit>
+    suspend fun deleteFirst(): KoniferV2Result<Unit>
 }

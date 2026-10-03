@@ -41,7 +41,7 @@ class AssetLinkTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.asset("users/123").variant(transformation).link() shouldBe KoniferV2Result.Success(link)
+            client.assets("users/123").variant(transformation).fetchLink() shouldBe KoniferV2Result.Success(link)
         }
 
         test("link includes labels and modified ordering") {
@@ -59,11 +59,11 @@ class AssetLinkTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
                 .variant(transformation)
-                .link() shouldBe KoniferV2Result.Success(link)
+                .fetchLink() shouldBe KoniferV2Result.Success(link)
         }
 
         test("link can select an entry by ID") {
@@ -77,10 +77,10 @@ class AssetLinkTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .entry(42)
                 .variant(requestedTransformation {})
-                .link() shouldBe
+                .fetchLink() shouldBe
                 KoniferV2Result.Success(link)
         }
 
@@ -96,7 +96,7 @@ class AssetLinkTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").variant(requestedTransformation {}).link() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).fetchLink() shouldBe
                 KoniferV2Result.Failure.Http(404, "not found")
         }
 
@@ -108,7 +108,7 @@ class AssetLinkTest :
                     }
                 }
 
-            val result = KoniferClientV2(httpClient).asset("users/123").variant(requestedTransformation {}).link()
+            val result = KoniferClientV2(httpClient).assets("users/123").variant(requestedTransformation {}).fetchLink()
 
             (result is KoniferV2Result.Failure.InvalidResponse) shouldBe true
         }

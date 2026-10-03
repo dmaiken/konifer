@@ -33,7 +33,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("/users/123").delete() shouldBe KoniferV2Result.Success(Unit)
+            KoniferClientV2(httpClient).assets("/users/123").deleteFirst() shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("delete at a path supports labels, ordering, and a limit") {
@@ -50,10 +50,10 @@ class AssetDeleteTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .delete(3) shouldBe KoniferV2Result.Success(Unit)
+                .deleteFirst(3) shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("delete with a limit is available directly at a path") {
@@ -66,7 +66,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").delete(2) shouldBe KoniferV2Result.Success(Unit)
+            KoniferClientV2(httpClient).assets("users/123").deleteFirst(2) shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("delete by entry ID does not send relative options") {
@@ -80,7 +80,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").entry(42).delete() shouldBe KoniferV2Result.Success(Unit)
+            KoniferClientV2(httpClient).assets("users/123").entry(42).deleteFirst() shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("recursive delete is available directly at a path without a limit") {
@@ -94,7 +94,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").deleteRecursively() shouldBe KoniferV2Result.Success(Unit)
+            KoniferClientV2(httpClient).assets("users/123").deleteRecursively() shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("recursive delete filters by labels without a limit or ordering") {
@@ -110,7 +110,7 @@ class AssetDeleteTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .deleteRecursively() shouldBe KoniferV2Result.Success(Unit)
         }
@@ -127,7 +127,7 @@ class AssetDeleteTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.asset("users/123").delete(2) shouldBe KoniferV2Result.Success(Unit)
+            client.assets("users/123").deleteFirst(2) shouldBe KoniferV2Result.Success(Unit)
         }
 
         test("delete maps an HTTP error and its message") {
@@ -142,7 +142,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").delete() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").deleteFirst() shouldBe
                 KoniferV2Result.Failure.Http(400, "cannot delete")
         }
 
@@ -154,14 +154,14 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").entry(42).delete() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").entry(42).deleteFirst() shouldBe
                 KoniferV2Result.Failure.Http(404, null)
         }
 
         test("delete returns a transport failure when the request fails") {
             val httpClient = httpClient { MockEngine { throw IOException("offline") } }
 
-            val result = KoniferClientV2(httpClient).asset("users/123").deleteRecursively()
+            val result = KoniferClientV2(httpClient).assets("users/123").deleteRecursively()
 
             (result is KoniferV2Result.Failure.Transport) shouldBe true
         }

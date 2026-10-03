@@ -31,6 +31,7 @@ class BlankAssetAtPath internal constructor(
                 ),
         )
 
+    /** Copies [bytes] so subsequent changes to the array do not affect uploads. */
     fun fromBytes(
         bytes: ByteArray,
         format: ImageFormat,

@@ -62,13 +62,69 @@ class AssetStoreTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("/users/123")
+                .assets("/users/123")
                 .newAsset()
                 .fromUrl("https://example.com/image.png")
                 .withAlt("An image")
                 .withLabel("camera", "phone")
                 .withTags(setOf("featured"))
                 .store() shouldBe KoniferV2Result.Success(asset)
+        }
+
+        test("metadata branches preserve their base and snapshot caller collections") {
+            val asset = createInfoResponse()
+            val requests = mutableListOf<StoreAssetRequest>()
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        val body = request.body.shouldBeInstanceOf<TextContent>()
+                        requests += Json.decodeFromString<StoreAssetRequest>(body.text)
+                        respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+            val url = "https://example.com/image.png"
+            val base =
+                KoniferClientV2(httpClient)
+                    .assets("users/123")
+                    .newAsset()
+                    .fromUrl(url)
+                    .withAlt("Base")
+                    .withLabel("role", "base")
+                    .withTag("shared")
+            val avatar = base.withAlt("Avatar").withLabel("role", "avatar").withTag("portrait")
+            val labels = mutableMapOf("role" to "banner", "campaign" to "fall")
+            val tags = mutableSetOf("shared", "featured")
+            val banner = base.withAlt("Banner").withLabels(labels).withTags(tags)
+
+            labels.clear()
+            tags.clear()
+
+            base.store() shouldBe KoniferV2Result.Success(asset)
+            avatar.store() shouldBe KoniferV2Result.Success(asset)
+            banner.store() shouldBe KoniferV2Result.Success(asset)
+            avatar.store() shouldBe KoniferV2Result.Success(asset)
+            base.store() shouldBe KoniferV2Result.Success(asset)
+
+            val expectedBase =
+                StoreAssetRequest(
+                    alt = "Base",
+                    labels = mapOf("role" to "base"),
+                    tags = setOf("shared"),
+                    source = AssetSourceRequest(http = HttpSource(url = url)),
+                )
+            val expectedAvatar =
+                expectedBase.copy(
+                    alt = "Avatar",
+                    labels = mapOf("role" to "avatar"),
+                    tags = setOf("shared", "portrait"),
+                )
+            val expectedBanner =
+                expectedBase.copy(
+                    alt = "Banner",
+                    labels = mapOf("role" to "banner", "campaign" to "fall"),
+                    tags = setOf("shared", "featured"),
+                )
+            requests shouldBe listOf(expectedBase, expectedAvatar, expectedBanner, expectedAvatar, expectedBase)
         }
 
         test("store from S3 ARN posts the S3 source") {
@@ -90,7 +146,7 @@ class AssetStoreTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromS3Arn(arn)
                 .store() shouldBe
@@ -121,12 +177,41 @@ class AssetStoreTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromBytes(bytes, ImageFormat.PNG)
                 .withLabels(mapOf("camera" to "phone"))
                 .withTag("featured")
                 .store() shouldBe KoniferV2Result.Success(asset)
+        }
+
+        test("byte uploads preserve their snapshot across caller mutations and repeated stores") {
+            val asset = createInfoResponse()
+            val bytes = byteArrayOf(1, 2, 3, 4)
+            val expected = bytes.copyOf()
+            var requests = 0
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        requests++
+                        val parts = request.body.shouldBeInstanceOf<MultiPartFormDataContent>().parts
+                        val content = parts.filterIsInstance<PartData.BinaryChannelItem>().single { it.name == "asset" }
+                        content.provider().toByteArray() shouldBe expected
+                        content.provider().toByteArray() shouldBe expected
+                        respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    }
+                }
+            val upload =
+                KoniferClientV2(httpClient)
+                    .assets("users/123")
+                    .newAsset()
+                    .fromBytes(bytes, ImageFormat.PNG)
+
+            bytes.fill(0)
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            bytes.fill(9)
+            upload.store() shouldBe KoniferV2Result.Success(asset)
+            requests shouldBe 2
         }
 
         test("store from channel opens a fresh channel for each read and request") {
@@ -151,7 +236,7 @@ class AssetStoreTest :
 
             val upload =
                 KoniferClientV2(httpClient)
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromChannel({
                         opens++
@@ -180,7 +265,7 @@ class AssetStoreTest :
 
             val upload =
                 KoniferClientV2(httpClient)
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromChunks(
                         chunks = {
@@ -214,7 +299,7 @@ class AssetStoreTest :
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
             client
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromUrl("https://example.com/image.png")
                 .store() shouldBe
@@ -240,7 +325,7 @@ class AssetStoreTest :
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
             client
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromBytes(byteArrayOf(1, 2, 3), ImageFormat.PNG)
                 .store() shouldBe
@@ -252,7 +337,7 @@ class AssetStoreTest :
 
             shouldThrow<IllegalArgumentException> {
                 KoniferClientV2(httpClient)
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromUrl(" ")
                     .store()
@@ -272,7 +357,7 @@ class AssetStoreTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .newAsset()
                 .fromS3Arn("arn:aws:s3:::images/image.png")
                 .store() shouldBe
@@ -293,7 +378,7 @@ class AssetStoreTest :
 
             val result =
                 KoniferClientV2(httpClient)
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromUrl("https://example.com/image.png")
                     .store()
@@ -305,7 +390,7 @@ class AssetStoreTest :
 
             val result =
                 KoniferClientV2(httpClient)
-                    .asset("users/123")
+                    .assets("users/123")
                     .newAsset()
                     .fromUrl("https://example.com/image.png")
                     .store()

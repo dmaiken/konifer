@@ -12,7 +12,7 @@ class BlockingBlankAssetAtPath internal constructor(
 ) {
     fun fromUrl(url: String): BlockingNewAssetAtPath = BlockingNewAssetAtPath(selection.fromUrl(url))
 
-    fun fromS3Arn(arn: String): BlockingNewAssetAtPath = BlockingNewAssetAtPath(selection.fromS3Arn(arn))
+    fun fromS3Arn(s3Arn: String): BlockingNewAssetAtPath = BlockingNewAssetAtPath(selection.fromS3Arn(s3Arn))
 
     fun fromBytes(
         bytes: ByteArray,

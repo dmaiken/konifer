@@ -75,7 +75,7 @@ class KoniferClientV2 internal constructor(
             urlSigner = urlSigner,
         )
 
-    fun asset(path: String): AssetAtPath =
+    fun assets(path: String): AssetAtPath =
         AssetAtPath(
             infra = requestInfrastructure,
             path = path,

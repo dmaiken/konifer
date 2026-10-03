@@ -39,7 +39,7 @@ class AssetEntriesTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").entries() shouldBe
+            KoniferClientV2(httpClient).assets("users/123").fetchEntries() shouldBe
                 KoniferV2Result.Success(AssetEntriesResponse(listOf(info)))
         }
 
@@ -59,10 +59,10 @@ class AssetEntriesTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .entries() shouldBe KoniferV2Result.Success(AssetEntriesResponse(emptyList()))
+                .fetchEntries() shouldBe KoniferV2Result.Success(AssetEntriesResponse(emptyList()))
         }
 
         test("entries at a path fetches the newest entry in a collection envelope") {
@@ -81,7 +81,7 @@ class AssetEntriesTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("/users/123").entries(1) shouldBe
+            KoniferClientV2(httpClient).assets("/users/123").fetchEntries(1) shouldBe
                 KoniferV2Result.Success(AssetEntriesResponse(listOf(info)))
         }
 
@@ -102,10 +102,10 @@ class AssetEntriesTest :
                 }
 
             KoniferClientV2(httpClient)
-                .asset("users/123")
+                .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .entries(2) shouldBe KoniferV2Result.Success(AssetEntriesResponse(info))
+                .fetchEntries(2) shouldBe KoniferV2Result.Success(AssetEntriesResponse(info))
         }
 
         test("entries returns an empty list when the collection is empty") {
@@ -119,7 +119,8 @@ class AssetEntriesTest :
                     }
                 }
 
-            KoniferClientV2(httpClient).asset("users/123").entries(1) shouldBe KoniferV2Result.Success(AssetEntriesResponse(emptyList()))
+            KoniferClientV2(httpClient).assets("users/123").fetchEntries(1) shouldBe
+                KoniferV2Result.Success(AssetEntriesResponse(emptyList()))
         }
 
         test("entries signs the complete URL when the client is configured to sign fetches") {
@@ -140,14 +141,15 @@ class AssetEntriesTest :
                 }
             val client = KoniferClientV2(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.asset("users/123").matchingLabels(labels).entries(3) shouldBe KoniferV2Result.Success(AssetEntriesResponse(listOf(info)))
+            client.assets("users/123").matchingLabels(labels).fetchEntries(3) shouldBe
+                KoniferV2Result.Success(AssetEntriesResponse(listOf(info)))
         }
 
         test("entries requires a positive limit before making a request") {
             val httpClient = httpClient { MockEngine { error("No request expected") } }
 
-            shouldThrow<IllegalArgumentException> { KoniferClientV2(httpClient).asset("users/123").entries(0) }
-            shouldThrow<IllegalArgumentException> { KoniferClientV2(httpClient).asset("users/123").entries(-1) }
+            shouldThrow<IllegalArgumentException> { KoniferClientV2(httpClient).assets("users/123").fetchEntries(0) }
+            shouldThrow<IllegalArgumentException> { KoniferClientV2(httpClient).assets("users/123").fetchEntries(-1) }
         }
 
         test("entries maps HTTP failures and invalid success bodies") {
@@ -161,21 +163,21 @@ class AssetEntriesTest :
                         )
                     }
                 }
-            KoniferClientV2(errorClient).asset("users/123").entries(2) shouldBe
+            KoniferClientV2(errorClient).assets("users/123").fetchEntries(2) shouldBe
                 KoniferV2Result.Failure.Http(400, "unavailable")
 
             val malformedClient =
                 httpClient {
                     MockEngine { respond("{}", headers = headersOf(HttpHeaders.ContentType, "application/json")) }
                 }
-            val malformed = KoniferClientV2(malformedClient).asset("users/123").entries(2)
+            val malformed = KoniferClientV2(malformedClient).assets("users/123").fetchEntries(2)
             (malformed is KoniferV2Result.Failure.InvalidResponse) shouldBe true
         }
 
         test("entries maps transport failures") {
             val httpClient = httpClient { MockEngine { throw IOException("offline") } }
 
-            val result = KoniferClientV2(httpClient).asset("users/123").entries(2)
+            val result = KoniferClientV2(httpClient).assets("users/123").fetchEntries(2)
             (result is KoniferV2Result.Failure.Transport) shouldBe true
         }
     })

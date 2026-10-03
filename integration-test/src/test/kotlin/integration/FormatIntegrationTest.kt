@@ -27,7 +27,7 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                             val (image, attributes) = ImageFactory.testImage(sourceFormat)
                             val storeResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .newAsset()
                                     .fromBytes(
                                         bytes = image,
@@ -40,12 +40,12 @@ class FormatIntegrationTest : BaseIntegrationTest() {
 
                             val fetchResponse =
                                 clientV2
-                                    .asset(path)
+                                    .assets(path)
                                     .variant(
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).contentBytes()
+                                    ).fetchContentBytes()
                             val content = (fetchResponse as KoniferV2Result.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
 

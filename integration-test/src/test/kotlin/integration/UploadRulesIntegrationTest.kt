@@ -19,7 +19,7 @@ class UploadRulesIntegrationTest : BaseIntegrationTest() {
             val (image, attributes) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE, format = format)
             val storeResponse =
                 clientV2
-                    .asset("/accept/$path")
+                    .assets("/accept/$path")
                     .newAsset()
                     .fromBytes(
                         bytes = image,
@@ -31,9 +31,9 @@ class UploadRulesIntegrationTest : BaseIntegrationTest() {
             storeResponse::class shouldBe KoniferV2Result.Success::class
             val fetchResponse =
                 clientV2
-                    .asset("/accept/$path")
+                    .assets("/accept/$path")
                     .originalVariant()
-                    .contentBytes()
+                    .fetchContentBytes()
             fetchResponse::class shouldBe KoniferV2Result.Success::class
             val content = (fetchResponse as KoniferV2Result.Success).value
             tika.detect(content) shouldBe format.mimeType

@@ -8,10 +8,10 @@ import io.konifer.clientV2.assets.VariantSelection
 import io.konifer.clientV2.assets.fetch.ContentDelivery
 import io.konifer.clientV2.assets.fetch.RequestedTransformation
 import io.konifer.clientV2.assets.store.BlockingBlankAssetAtPath
+import io.konifer.clientV2.assets.update.BlockingAssetUpdateAtPath
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
-import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.Order
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.copyTo
@@ -23,14 +23,14 @@ import java.io.OutputStream
 open class BlockingAssetSelection internal constructor(
     private val selection: AssetSelection,
 ) {
-    fun variant(transformation: RequestedTransformation): BlockingVariantSelection =
-        BlockingVariantSelection(selection.variant(transformation))
+    fun variant(requestedTransformation: RequestedTransformation): BlockingVariantSelection =
+        BlockingVariantSelection(selection.variant(requestedTransformation))
 
     fun originalVariant(): BlockingVariantSelection = BlockingVariantSelection(selection.originalVariant())
 
-    fun info(): KoniferV2Result<AssetResponse> = runBlocking { selection.info() }
+    fun fetchInfo(): KoniferV2Result<AssetResponse> = runBlocking { selection.fetchInfo() }
 
-    fun delete(): KoniferV2Result<Unit> = runBlocking { selection.delete() }
+    fun deleteFirst(): KoniferV2Result<Unit> = runBlocking { selection.deleteFirst() }
 }
 
 class BlockingAssetAtPath internal constructor(
@@ -43,16 +43,18 @@ class BlockingAssetAtPath internal constructor(
 
     fun orderBy(order: Order): BlockingRelativeAssetSelection = BlockingRelativeAssetSelection(selection.orderBy(order))
 
-    fun entries(): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.entries() }
+    fun fetchEntries(): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.fetchEntries() }
 
-    fun entries(limit: Int): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.entries(limit) }
+    fun fetchEntries(limit: Int): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.fetchEntries(limit) }
 
-    fun delete(limit: Int): KoniferV2Result<Unit> = runBlocking { selection.delete(limit) }
+    fun deleteFirst(limit: Int): KoniferV2Result<Unit> = runBlocking { selection.deleteFirst(limit) }
 
     fun deleteRecursively(): KoniferV2Result<Unit> = runBlocking { selection.deleteRecursively() }
 
-    /** Java-friendly name for the underlying `new()` operation. */
     fun newAsset(): BlockingBlankAssetAtPath = BlockingBlankAssetAtPath(selection.newAsset())
+
+    /** Starts a metadata update for [current]'s entry, preserving a snapshot of its editable fields. */
+    fun updateAsset(current: AssetResponse): BlockingAssetUpdateAtPath = BlockingAssetUpdateAtPath(selection.updateAsset(current))
 }
 
 class BlockingRelativeAssetSelection internal constructor(
@@ -63,31 +65,30 @@ class BlockingRelativeAssetSelection internal constructor(
 
     fun orderBy(order: Order): BlockingRelativeAssetSelection = BlockingRelativeAssetSelection(selection.orderBy(order))
 
-    fun entries(): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.entries() }
+    fun fetchEntries(): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.fetchEntries() }
 
-    fun entries(limit: Int): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.entries(limit) }
+    fun fetchEntries(limit: Int): KoniferV2Result<AssetEntriesResponse> = runBlocking { selection.fetchEntries(limit) }
 
-    fun delete(limit: Int): KoniferV2Result<Unit> = runBlocking { selection.delete(limit) }
+    fun deleteFirst(limit: Int): KoniferV2Result<Unit> = runBlocking { selection.deleteFirst(limit) }
 
     fun deleteRecursively(): KoniferV2Result<Unit> = runBlocking { selection.deleteRecursively() }
 }
 
 class BlockingAbsoluteAssetSelection internal constructor(
-    private val selection: AbsoluteAssetSelection,
-) : BlockingAssetSelection(selection) {
-    fun update(request: StoreAssetRequest): KoniferV2Result<AssetResponse> = runBlocking { selection.update(request) }
-}
+    selection: AbsoluteAssetSelection,
+) : BlockingAssetSelection(selection)
 
 class BlockingVariantSelection internal constructor(
     private val selection: VariantSelection,
 ) {
-    fun contentBytes(): KoniferV2Result<ByteArray> = runBlocking { selection.contentBytes() }
+    fun fetchContentBytes(): KoniferV2Result<ByteArray> = runBlocking { selection.fetchContentBytes() }
 
-    fun contentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> = runBlocking { selection.contentBytes(delivery) }
+    fun fetchContentBytes(delivery: ContentDelivery): KoniferV2Result<ByteArray> = runBlocking { selection.fetchContentBytes(delivery) }
 
-    fun writeContentTo(output: OutputStream): KoniferV2Result<Unit> = writeContentTo(output, ContentDelivery.THROUGH_KONIFER)
+    fun fetchAndWriteContentTo(output: OutputStream): KoniferV2Result<Unit> =
+        fetchAndWriteContentTo(output, ContentDelivery.THROUGH_KONIFER)
 
-    fun writeContentTo(
+    fun fetchAndWriteContentTo(
         output: OutputStream,
         delivery: ContentDelivery,
     ): KoniferV2Result<Unit> =
@@ -103,7 +104,7 @@ class BlockingVariantSelection internal constructor(
                     }
                 }
             try {
-                val result = selection.writeContentTo(channel, delivery)
+                val result = selection.fetchAndWriteContentTo(channel, delivery)
                 if (result is KoniferV2Result.Success) copy.await() else copy.cancel()
                 result
             } finally {
@@ -112,5 +113,5 @@ class BlockingVariantSelection internal constructor(
             }
         }
 
-    fun link(): KoniferV2Result<AssetLinkResponse> = runBlocking { selection.link() }
+    fun fetchLink(): KoniferV2Result<AssetLinkResponse> = runBlocking { selection.fetchLink() }
 }
