@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "io.konifer"
-version = "0.1.0"
+version = providers.gradleProperty("clientVersion").orElse("0.1.0").get()
 
 repositories {
     mavenCentral()

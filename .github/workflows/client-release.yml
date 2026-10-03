@@ -1,0 +1,101 @@
+name: Release Konifer Client
+
+on:
+  push:
+    tags:
+      - 'client-v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048M -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+
+jobs:
+  release-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Derive client version from tag
+        id: version
+        env:
+          CLIENT_RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          number='(0|[1-9][0-9]*)'
+          identifier="($number|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+          pattern="^client-v$number\.$number\.$number(-$identifier(\.$identifier)*)?$"
+          if [[ ! "$CLIENT_RELEASE_TAG" =~ $pattern || "$CLIENT_RELEASE_TAG" == *-SNAPSHOT ]]; then
+            echo '::error::Expected client-vMAJOR.MINOR.PATCH with an optional SemVer prerelease suffix; snapshots are not releases.'
+            exit 1
+          fi
+
+          version="${CLIENT_RELEASE_TAG#client-v}"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+          printf 'ORG_GRADLE_PROJECT_clientVersion=%s\n' "$version" >> "$GITHUB_ENV"
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Check client and assemble publications
+        run: |
+          ./gradlew :client:check :client:assemble :common:ktlintCheck \
+            :client:checkPomFileForJvmPublication \
+            :client:checkPomFileForKotlinMultiplatformPublication
+
+      - name: Upload client test reports after failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: client-release-test-reports
+          path: |
+            client/build/test-results
+            client/build/reports/tests
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish and release client to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralDeploymentValidation: PUBLISHED
+        run: |
+          for secret_name in ORG_GRADLE_PROJECT_mavenCentralUsername ORG_GRADLE_PROJECT_mavenCentralPassword ORG_GRADLE_PROJECT_signingInMemoryKey; do
+            if [[ -z "${!secret_name}" ]]; then
+              echo "::error::Missing publishing credential: $secret_name"
+              exit 1
+            fi
+          done
+
+          ./gradlew :client:publishAndReleaseToMavenCentral --no-configuration-cache
+
+      - name: Create client GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Konifer Client ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          make_latest: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          body: |
+            Maven coordinates:
+            - `io.konifer:konifer-client:${{ steps.version.outputs.version }}`
+            - `io.konifer:konifer-client-jvm:${{ steps.version.outputs.version }}`
