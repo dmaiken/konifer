@@ -2,6 +2,12 @@ name: Build Base Image
 
 on:
   workflow_dispatch:
+    inputs:
+      clean_rebuild:
+        description: "Rebuild runtime and CI base images without Docker layer cache"
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [ "main" ]
     paths:
@@ -64,6 +70,7 @@ jobs:
           target: runtime
           platforms: ${{ matrix.platform }}
           pull: true
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.clean_rebuild }}
           push: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           tags: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}
           cache-from: type=gha,scope=base-${{ matrix.arch }}
@@ -77,6 +84,7 @@ jobs:
           target: ci
           platforms: ${{ matrix.platform }}
           pull: true
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.clean_rebuild }}
           push: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           tags: ${{ env.REGISTRY }}/${{ env.BASE_CI_IMAGE_NAME }}:${{ github.sha }}-${{ matrix.arch }}
           cache-from: type=gha,scope=base-${{ matrix.arch }}

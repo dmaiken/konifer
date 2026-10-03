@@ -35,6 +35,20 @@ If you change the database schema or update JOOQ, run `./gradlew generateJooq`. 
 testcontainer, applies migrations, runs JOOQ against the resulting schema, and writes generated code into the
 `jooq-generated` module.
 
+## Clean base image rebuilds
+
+To refresh the Docker base images after an OS security update, open GitHub Actions, select **Build Base Image**, and
+choose **Run workflow** on `main`. Enable **Rebuild runtime and CI base images without Docker layer cache** before
+starting the run.
+
+This pulls the current Ubuntu image and rebuilds all Docker layers for both the runtime and CI base images on
+`amd64` and `arm64`. The workflow publishes the rebuilt images to GHCR under the existing commit and `latest` tags
+and refreshes the build cache. Ordinary builds continue to use the cache unless this option is enabled.
+
+After the base workflow succeeds, rerun the application build or release workflow so the application image uses
+the refreshed base, then check its Trivy scan. A clean rebuild picks up available updates; it does not guarantee
+that every inherited package is upgraded or that every reported vulnerability has a published fix.
+
 ## macOS notes
 
 If the libvips installer fails with `Compiler cc cannot compile programs`, install Xcode Command Line Tools:
