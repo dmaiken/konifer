@@ -12,7 +12,6 @@ import io.konifer.domain.variant.Variant
 import io.konifer.infrastructure.event.InMemoryEventBus
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest

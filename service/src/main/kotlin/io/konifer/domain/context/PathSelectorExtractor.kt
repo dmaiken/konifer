@@ -1,6 +1,7 @@
 package io.konifer.domain.context
 
 import io.konifer.common.image.LIMIT_PARAMETER
+import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.RequestContextFactory.Companion.ENTRY_ID_MODIFIER
@@ -118,9 +119,15 @@ object PathSelectorExtractor {
             } catch (e: Exception) {
                 throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments", e)
             }
-        logger.debug { "Parsed query modifiers for path: $path - $querySelectors" }
+        val effectiveSelectors =
+            if (!isLimitSpecified && querySelectors.returnFormat == ReturnFormat.ENTRIES) {
+                querySelectors.copy(limit = DEFAULT_ENTRIES_LIMIT)
+            } else {
+                querySelectors
+            }
+        logger.debug { "Parsed query modifiers for path: $path - $effectiveSelectors" }
 
-        return querySelectors
+        return effectiveSelectors
     }
 
     fun extractDeleteSelectors(

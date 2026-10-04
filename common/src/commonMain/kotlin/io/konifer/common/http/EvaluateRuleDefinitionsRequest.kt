@@ -8,12 +8,7 @@ data class EvaluateRuleDefinitionsRequest(
     val url: String? = null,
     val source: AssetSourceRequest = AssetSourceRequest(),
     val definitions: List<RuleDefinitionRequest>,
-) {
-    init {
-        require(definitions.isNotEmpty()) { "At least one rule request is required" }
-        require(definitions.size <= 10) { "Maximum of 10 rule definitions allowed per request" }
-    }
-}
+)
 
 @Serializable
 data class RuleDefinitionRequest(

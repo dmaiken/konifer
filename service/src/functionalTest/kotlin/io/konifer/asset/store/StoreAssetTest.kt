@@ -2,7 +2,6 @@ package io.konifer.asset.store
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
-import io.konifer.client.ContentFetchMode
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
@@ -265,11 +264,10 @@ class StoreAssetTest : BaseFunctionalTest() {
                     }
                 }
             konifer()
-                .fetchAssetContent(
-                    path = "users/123/profile",
-                    byteChannel = byteChannel,
-                    fetchMode = ContentFetchMode.CONTENT,
-                ).shouldBeSuccessful()
+                .assets("users/123/profile")
+                .originalVariant()
+                .fetchAndWriteContentTo(byteChannel)
+                .shouldBeSuccessful()
 
             Tika().detect(content.await()) shouldBe ImageFormat.PNG.mimeType
         }

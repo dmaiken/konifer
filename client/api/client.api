@@ -1,0 +1,1315 @@
+public final class io/konifer/client/HmacSigningAlgorithm : java/lang/Enum {
+	public static final field HMAC_SHA256 Lio/konifer/client/HmacSigningAlgorithm;
+	public static final field HMAC_SHA384 Lio/konifer/client/HmacSigningAlgorithm;
+	public static final field HMAC_SHA512 Lio/konifer/client/HmacSigningAlgorithm;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/client/HmacSigningAlgorithm;
+	public static fun values ()[Lio/konifer/client/HmacSigningAlgorithm;
+}
+
+public final class io/konifer/client/KoniferBlockingClient : java/lang/AutoCloseable {
+	public static final field Companion Lio/konifer/client/KoniferBlockingClient$Companion;
+	public final fun assets (Ljava/lang/String;)Lio/konifer/client/assets/BlockingAssetAtPath;
+	public static final fun build (Ljava/lang/String;)Lio/konifer/client/KoniferBlockingClient;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/KoniferBlockingClient;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;)Lio/konifer/client/KoniferBlockingClient;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;)Lio/konifer/client/KoniferBlockingClient;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;Lio/ktor/client/engine/HttpClientEngine;)Lio/konifer/client/KoniferBlockingClient;
+	public fun close ()V
+	public final fun ruleEvaluation ()Lio/konifer/client/rules/BlockingBlankRuleEvaluation;
+}
+
+public final class io/konifer/client/KoniferBlockingClient$Companion {
+	public final fun build (Ljava/lang/String;)Lio/konifer/client/KoniferBlockingClient;
+	public final fun build (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/KoniferBlockingClient;
+	public final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;)Lio/konifer/client/KoniferBlockingClient;
+	public final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;)Lio/konifer/client/KoniferBlockingClient;
+	public final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;Lio/ktor/client/engine/HttpClientEngine;)Lio/konifer/client/KoniferBlockingClient;
+	public static synthetic fun build$default (Lio/konifer/client/KoniferBlockingClient$Companion;Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;Lio/ktor/client/engine/HttpClientEngine;ILjava/lang/Object;)Lio/konifer/client/KoniferBlockingClient;
+}
+
+public final class io/konifer/client/KoniferClient {
+	public static final field Companion Lio/konifer/client/KoniferClient$Companion;
+	public final fun assets (Ljava/lang/String;)Lio/konifer/client/assets/AssetAtPath;
+	public final fun close ()V
+	public final fun ruleEvaluation ()Lio/konifer/client/rules/BlankRuleEvaluation;
+}
+
+public final class io/konifer/client/KoniferClient$Companion {
+	public final fun build (Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun build$default (Lio/konifer/client/KoniferClient$Companion;Ljava/lang/String;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lio/konifer/client/KoniferHttpConfiguration;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun buildForTesting (Lio/ktor/client/HttpClient;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun buildForTesting$default (Lio/konifer/client/KoniferClient$Companion;Lio/ktor/client/HttpClient;Ljava/lang/String;Lio/konifer/client/HmacSigningAlgorithm;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/konifer/client/KoniferHttpConfiguration {
+	public static final field Companion Lio/konifer/client/KoniferHttpConfiguration$Companion;
+	public static final field Default Lio/konifer/client/KoniferHttpConfiguration;
+	public synthetic fun <init> (Lkotlin/time/Duration;Lkotlin/time/Duration;Lkotlin/time/Duration;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Duration;Lkotlin/time/Duration;Lkotlin/time/Duration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getConnectTimeout-FghU774 ()Lkotlin/time/Duration;
+	public final fun getRequestTimeout-FghU774 ()Lkotlin/time/Duration;
+	public final fun getSocketTimeout-FghU774 ()Lkotlin/time/Duration;
+}
+
+public final class io/konifer/client/KoniferHttpConfiguration$Builder {
+	public fun <init> ()V
+	public final fun build ()Lio/konifer/client/KoniferHttpConfiguration;
+	public final fun connectTimeoutMillis (Ljava/lang/Long;)Lio/konifer/client/KoniferHttpConfiguration$Builder;
+	public final fun requestTimeoutMillis (Ljava/lang/Long;)Lio/konifer/client/KoniferHttpConfiguration$Builder;
+	public final fun socketTimeoutMillis (Ljava/lang/Long;)Lio/konifer/client/KoniferHttpConfiguration$Builder;
+}
+
+public final class io/konifer/client/KoniferHttpConfiguration$Companion {
+}
+
+public abstract interface annotation class io/konifer/client/KoniferInternalTestApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface class io/konifer/client/KoniferResult {
+}
+
+public abstract interface class io/konifer/client/KoniferResult$Failure : io/konifer/client/KoniferResult {
+}
+
+public final class io/konifer/client/KoniferResult$Failure$Http : io/konifer/client/KoniferResult$Failure {
+	public fun <init> (ILjava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;)Lio/konifer/client/KoniferResult$Failure$Http;
+	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Failure$Http;ILjava/lang/String;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Failure$Http;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getStatusCode ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/KoniferResult$Failure$InvalidResponse : io/konifer/client/KoniferResult$Failure {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lio/konifer/client/KoniferResult$Failure$InvalidResponse;
+	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Failure$InvalidResponse;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Failure$InvalidResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/KoniferResult$Failure$Transport : io/konifer/client/KoniferResult$Failure {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lio/konifer/client/KoniferResult$Failure$Transport;
+	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Failure$Transport;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Failure$Transport;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/KoniferResult$Success : io/konifer/client/KoniferResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lio/konifer/client/KoniferResult$Success;
+	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Success;Ljava/lang/Object;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/KoniferResultKt {
+	public static final fun fold (Lio/konifer/client/KoniferResult;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/konifer/client/assets/AbsoluteAssetSelection : io/konifer/client/assets/AssetSelection {
+	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
+	public fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
+}
+
+public final class io/konifer/client/assets/AssetAtPath : io/konifer/client/assets/AssetSelection {
+	public final fun deleteFirst (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteRecursively (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun entry (J)Lio/konifer/client/assets/AbsoluteAssetSelection;
+	public final fun fetchEntries (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchEntries (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun matchingLabels (Ljava/util/Map;)Lio/konifer/client/assets/RelativeAssetSelection;
+	public final fun newAsset ()Lio/konifer/client/assets/store/BlankAssetAtPath;
+	public final fun orderBy (Lio/konifer/common/selector/Order;)Lio/konifer/client/assets/RelativeAssetSelection;
+	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
+	public final fun updateAsset (Lio/konifer/common/http/AssetResponse;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
+}
+
+public abstract interface class io/konifer/client/assets/AssetSelection {
+	public abstract fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
+	public abstract fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
+}
+
+public final class io/konifer/client/assets/AssetSelection$DefaultImpls {
+	public static fun originalVariant (Lio/konifer/client/assets/AssetSelection;)Lio/konifer/client/assets/VariantSelection;
+}
+
+public final class io/konifer/client/assets/BlockingAbsoluteAssetSelection : io/konifer/client/assets/BlockingAssetSelection {
+}
+
+public final class io/konifer/client/assets/BlockingAssetAtPath : io/konifer/client/assets/BlockingAssetSelection {
+	public final fun deleteFirst (I)Lio/konifer/client/KoniferResult;
+	public final fun deleteRecursively ()Lio/konifer/client/KoniferResult;
+	public final fun entry (J)Lio/konifer/client/assets/BlockingAbsoluteAssetSelection;
+	public final fun fetchEntries ()Lio/konifer/client/KoniferResult;
+	public final fun fetchEntries (I)Lio/konifer/client/KoniferResult;
+	public final fun matchingLabels (Ljava/util/Map;)Lio/konifer/client/assets/BlockingRelativeAssetSelection;
+	public final fun newAsset ()Lio/konifer/client/assets/store/BlockingBlankAssetAtPath;
+	public final fun orderBy (Lio/konifer/common/selector/Order;)Lio/konifer/client/assets/BlockingRelativeAssetSelection;
+	public final fun updateAsset (Lio/konifer/common/http/AssetResponse;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+}
+
+public class io/konifer/client/assets/BlockingAssetSelection {
+	public final fun deleteFirst ()Lio/konifer/client/KoniferResult;
+	public final fun fetchInfo ()Lio/konifer/client/KoniferResult;
+	public final fun originalVariant ()Lio/konifer/client/assets/BlockingVariantSelection;
+	public final fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/BlockingVariantSelection;
+}
+
+public final class io/konifer/client/assets/BlockingRelativeAssetSelection : io/konifer/client/assets/BlockingAssetSelection {
+	public final fun deleteFirst (I)Lio/konifer/client/KoniferResult;
+	public final fun deleteRecursively ()Lio/konifer/client/KoniferResult;
+	public final fun fetchEntries ()Lio/konifer/client/KoniferResult;
+	public final fun fetchEntries (I)Lio/konifer/client/KoniferResult;
+	public final fun matchingLabels (Ljava/util/Map;)Lio/konifer/client/assets/BlockingRelativeAssetSelection;
+	public final fun orderBy (Lio/konifer/common/selector/Order;)Lio/konifer/client/assets/BlockingRelativeAssetSelection;
+}
+
+public final class io/konifer/client/assets/BlockingVariantSelection {
+	public final fun fetchAndWriteContentTo (Ljava/io/OutputStream;)Lio/konifer/client/KoniferResult;
+	public final fun fetchAndWriteContentTo (Ljava/io/OutputStream;Lio/konifer/client/assets/fetch/ContentDelivery;)Lio/konifer/client/KoniferResult;
+	public final fun fetchContentBytes ()Lio/konifer/client/KoniferResult;
+	public final fun fetchContentBytes (Lio/konifer/client/assets/fetch/ContentDelivery;)Lio/konifer/client/KoniferResult;
+	public final fun fetchLink ()Lio/konifer/client/KoniferResult;
+}
+
+public final class io/konifer/client/assets/RelativeAssetSelection : io/konifer/client/assets/AssetSelection {
+	public final fun deleteFirst (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteRecursively (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchEntries (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchEntries (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun matchingLabels (Ljava/util/Map;)Lio/konifer/client/assets/RelativeAssetSelection;
+	public final fun orderBy (Lio/konifer/common/selector/Order;)Lio/konifer/client/assets/RelativeAssetSelection;
+	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
+	public fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
+}
+
+public final class io/konifer/client/assets/VariantSelection {
+	public final fun fetchAndWriteContentTo (Lio/ktor/utils/io/ByteWriteChannel;Lio/konifer/client/assets/fetch/ContentDelivery;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchAndWriteContentTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchContentBytes (Lio/konifer/client/assets/fetch/ContentDelivery;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchContentBytes (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchLink (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/konifer/client/assets/fetch/ContentDelivery : java/lang/Enum {
+	public static final field FOLLOW_REDIRECT Lio/konifer/client/assets/fetch/ContentDelivery;
+	public static final field THROUGH_KONIFER Lio/konifer/client/assets/fetch/ContentDelivery;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/client/assets/fetch/ContentDelivery;
+	public static fun values ()[Lio/konifer/client/assets/fetch/ContentDelivery;
+}
+
+public abstract interface class io/konifer/client/assets/fetch/DeleteQuerySelector : io/konifer/client/assets/fetch/QuerySelector {
+}
+
+public final class io/konifer/client/assets/fetch/EntryId : io/konifer/client/assets/fetch/DeleteQuerySelector, io/konifer/client/assets/fetch/FetchQuerySelector {
+	public fun <init> (J)V
+	public final fun getEntryId ()J
+}
+
+public abstract interface class io/konifer/client/assets/fetch/FetchQuerySelector : io/konifer/client/assets/fetch/QuerySelector {
+}
+
+public final class io/konifer/client/assets/fetch/None : io/konifer/client/assets/fetch/DeleteQuerySelector, io/konifer/client/assets/fetch/FetchQuerySelector {
+	public static final field INSTANCE Lio/konifer/client/assets/fetch/None;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/assets/fetch/OrderBy : io/konifer/client/assets/fetch/DeleteQuerySelector, io/konifer/client/assets/fetch/FetchQuerySelector {
+	public fun <init> (Lio/konifer/common/selector/Order;)V
+	public final fun getOrderBy ()Lio/konifer/common/selector/Order;
+}
+
+public abstract interface class io/konifer/client/assets/fetch/QuerySelector {
+}
+
+public final class io/konifer/client/assets/fetch/Recursive : io/konifer/client/assets/fetch/DeleteQuerySelector {
+	public static final field INSTANCE Lio/konifer/client/assets/fetch/Recursive;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/konifer/client/assets/fetch/RequestedTransformation {
+	public static final field Companion Lio/konifer/client/assets/fetch/RequestedTransformation$Companion;
+	public static final field OriginalVariant Lio/konifer/client/assets/fetch/RequestedTransformation;
+	public final fun getBlur ()Ljava/lang/Integer;
+	public final fun getColorSpace ()Lio/konifer/common/image/TransformableColorSpace;
+	public final fun getFilter ()Lio/konifer/common/image/Filter;
+	public final fun getFit ()Lio/konifer/common/image/Fit;
+	public final fun getFlip ()Lio/konifer/common/image/Flip;
+	public final fun getFormat ()Lio/konifer/common/image/ImageFormat;
+	public final fun getGravity ()Lio/konifer/common/image/Gravity;
+	public final fun getHeight ()Ljava/lang/Integer;
+	public final fun getPad ()Ljava/lang/Integer;
+	public final fun getPadColor ()Ljava/lang/String;
+	public final fun getProfile ()Ljava/lang/String;
+	public final fun getQuality ()Ljava/lang/Integer;
+	public final fun getRotate ()Lio/konifer/common/image/Rotate;
+	public final fun getStrip ()Ljava/util/Set;
+	public final fun getWidth ()Ljava/lang/Integer;
+}
+
+public final class io/konifer/client/assets/fetch/RequestedTransformation$Builder {
+	public fun <init> ()V
+	public final fun blur (I)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun build ()Lio/konifer/client/assets/fetch/RequestedTransformation;
+	public final fun colorSpace (Lio/konifer/common/image/TransformableColorSpace;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun filter (Lio/konifer/common/image/Filter;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun fit (Lio/konifer/common/image/Fit;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun flip (Lio/konifer/common/image/Flip;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun format (Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun gravity (Lio/konifer/common/image/Gravity;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun height (I)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun pad (I)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun padColor (Ljava/lang/String;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun profile (Ljava/lang/String;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun quality (I)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun rotate (Lio/konifer/common/image/Rotate;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun strip ([Lio/konifer/common/image/MetadataType;)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+	public final fun width (I)Lio/konifer/client/assets/fetch/RequestedTransformation$Builder;
+}
+
+public final class io/konifer/client/assets/fetch/RequestedTransformation$Companion {
+}
+
+public final class io/konifer/client/assets/fetch/RequestedTransformationDsl {
+	public fun <init> ()V
+	public final fun build ()Lio/konifer/client/assets/fetch/RequestedTransformation;
+	public final fun getBlur ()Ljava/lang/Integer;
+	public final fun getColorSpace ()Lio/konifer/common/image/TransformableColorSpace;
+	public final fun getFilter ()Lio/konifer/common/image/Filter;
+	public final fun getFit ()Lio/konifer/common/image/Fit;
+	public final fun getFlip ()Lio/konifer/common/image/Flip;
+	public final fun getFormat ()Lio/konifer/common/image/ImageFormat;
+	public final fun getGravity ()Lio/konifer/common/image/Gravity;
+	public final fun getHeight ()Ljava/lang/Integer;
+	public final fun getPad ()Ljava/lang/Integer;
+	public final fun getPadColor ()Ljava/lang/String;
+	public final fun getProfile ()Ljava/lang/String;
+	public final fun getQuality ()Ljava/lang/Integer;
+	public final fun getRotate ()Lio/konifer/common/image/Rotate;
+	public final fun getWidth ()Ljava/lang/Integer;
+	public final fun setBlur (Ljava/lang/Integer;)V
+	public final fun setColorSpace (Lio/konifer/common/image/TransformableColorSpace;)V
+	public final fun setFilter (Lio/konifer/common/image/Filter;)V
+	public final fun setFit (Lio/konifer/common/image/Fit;)V
+	public final fun setFlip (Lio/konifer/common/image/Flip;)V
+	public final fun setFormat (Lio/konifer/common/image/ImageFormat;)V
+	public final fun setGravity (Lio/konifer/common/image/Gravity;)V
+	public final fun setHeight (Ljava/lang/Integer;)V
+	public final fun setPad (Ljava/lang/Integer;)V
+	public final fun setPadColor (Ljava/lang/String;)V
+	public final fun setProfile (Ljava/lang/String;)V
+	public final fun setQuality (Ljava/lang/Integer;)V
+	public final fun setRotate (Lio/konifer/common/image/Rotate;)V
+	public final fun setWidth (Ljava/lang/Integer;)V
+	public final fun strip ([Lio/konifer/common/image/MetadataType;)V
+}
+
+public final class io/konifer/client/assets/fetch/RequestedTransformationKt {
+	public static final fun requestedTransformation (Lkotlin/jvm/functions/Function1;)Lio/konifer/client/assets/fetch/RequestedTransformation;
+}
+
+public final class io/konifer/client/assets/store/BlankAssetAtPath {
+	public final fun fromBytes ([BLio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun fromChannel (Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun fromChunks (Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun fromS3Arn (Ljava/lang/String;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun fromUrl (Ljava/lang/String;)Lio/konifer/client/assets/store/NewAssetAtPath;
+}
+
+public final class io/konifer/client/assets/store/BlockingBlankAssetAtPath {
+	public final fun fromBytes ([BLio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun fromInputStream (Ljava/util/function/Supplier;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun fromS3Arn (Ljava/lang/String;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun fromUrl (Ljava/lang/String;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+}
+
+public final class io/konifer/client/assets/store/BlockingNewAssetAtPath {
+	public final fun store ()Lio/konifer/client/KoniferResult;
+	public final fun withAlt (Ljava/lang/String;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun withLabel (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun withLabels (Ljava/util/Map;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun withTag (Ljava/lang/String;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+	public final fun withTags (Ljava/util/Set;)Lio/konifer/client/assets/store/BlockingNewAssetAtPath;
+}
+
+public final class io/konifer/client/assets/store/InputStreamUploadKt {
+	public static final fun fromInputStream (Lio/konifer/client/assets/store/BlankAssetAtPath;Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/assets/store/NewAssetAtPath;
+}
+
+public final class io/konifer/client/assets/store/NewAssetAtPath {
+	public final fun store (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun withAlt (Ljava/lang/String;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun withLabel (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun withLabels (Ljava/util/Map;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun withTag (Ljava/lang/String;)Lio/konifer/client/assets/store/NewAssetAtPath;
+	public final fun withTags (Ljava/util/Set;)Lio/konifer/client/assets/store/NewAssetAtPath;
+}
+
+public final class io/konifer/client/assets/update/AssetUpdateAtPath {
+	public final fun clearAlt ()Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun replaceLabels (Ljava/util/Map;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun replaceTags (Ljava/util/Set;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun update (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun withAlt (Ljava/lang/String;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withLabel (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withLabels (Ljava/util/Map;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withTag (Ljava/lang/String;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withTags (Ljava/util/Set;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withoutLabel (Ljava/lang/String;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+	public final fun withoutTag (Ljava/lang/String;)Lio/konifer/client/assets/update/AssetUpdateAtPath;
+}
+
+public final class io/konifer/client/assets/update/BlockingAssetUpdateAtPath {
+	public final fun clearAlt ()Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun replaceLabels (Ljava/util/Map;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun replaceTags (Ljava/util/Set;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun update ()Lio/konifer/client/KoniferResult;
+	public final fun withAlt (Ljava/lang/String;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withLabel (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withLabels (Ljava/util/Map;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withTag (Ljava/lang/String;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withTags (Ljava/util/Set;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withoutLabel (Ljava/lang/String;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+	public final fun withoutTag (Ljava/lang/String;)Lio/konifer/client/assets/update/BlockingAssetUpdateAtPath;
+}
+
+public final class io/konifer/client/rules/BlankRuleEvaluation {
+	public final fun fromBytes ([BLio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/NewRuleEvaluation;
+	public final fun fromChannel (Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/NewRuleEvaluation;
+	public final fun fromChunks (Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/NewRuleEvaluation;
+	public final fun fromS3Arn (Ljava/lang/String;)Lio/konifer/client/rules/NewRuleEvaluation;
+	public final fun fromUrl (Ljava/lang/String;)Lio/konifer/client/rules/NewRuleEvaluation;
+}
+
+public final class io/konifer/client/rules/BlockingBlankRuleEvaluation {
+	public final fun fromBytes ([BLio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+	public final fun fromInputStream (Ljava/util/function/Supplier;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+	public final fun fromS3Arn (Ljava/lang/String;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+	public final fun fromUrl (Ljava/lang/String;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+}
+
+public final class io/konifer/client/rules/BlockingNewRuleEvaluation {
+	public final fun evaluate ()Lio/konifer/client/KoniferResult;
+	public final fun withDefinition (Lio/konifer/common/http/RuleDefinitionRequest;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+	public final fun withDefinitions (Ljava/util/List;)Lio/konifer/client/rules/BlockingNewRuleEvaluation;
+}
+
+public final class io/konifer/client/rules/InputStreamEvaluationKt {
+	public static final fun fromInputStream (Lio/konifer/client/rules/BlankRuleEvaluation;Lkotlin/jvm/functions/Function0;Lio/konifer/common/image/ImageFormat;)Lio/konifer/client/rules/NewRuleEvaluation;
+}
+
+public final class io/konifer/client/rules/NewRuleEvaluation {
+	public final fun evaluate (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun withDefinition (Lio/konifer/common/http/RuleDefinitionRequest;)Lio/konifer/client/rules/NewRuleEvaluation;
+	public final fun withDefinitions (Ljava/util/List;)Lio/konifer/client/rules/NewRuleEvaluation;
+}
+
+public final class io/konifer/common/asset/AssetClass : java/lang/Enum {
+	public static final field Companion Lio/konifer/common/asset/AssetClass$Companion;
+	public static final field IMAGE Lio/konifer/common/asset/AssetClass;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/asset/AssetClass;
+	public static fun values ()[Lio/konifer/common/asset/AssetClass;
+}
+
+public final class io/konifer/common/asset/AssetClass$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/asset/AssetSource : java/lang/Enum {
+	public static final field ARN Lio/konifer/common/asset/AssetSource;
+	public static final field Companion Lio/konifer/common/asset/AssetSource$Companion;
+	public static final field UPLOAD Lio/konifer/common/asset/AssetSource;
+	public static final field URL Lio/konifer/common/asset/AssetSource;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/asset/AssetSource;
+	public static fun values ()[Lio/konifer/common/asset/AssetSource;
+}
+
+public final class io/konifer/common/asset/AssetSource$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetEntriesResponse {
+	public static final field Companion Lio/konifer/common/http/AssetEntriesResponse$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/konifer/common/http/AssetEntriesResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetEntriesResponse;Ljava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/AssetEntriesResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEntries ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/AssetEntriesResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/AssetEntriesResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/AssetEntriesResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/AssetEntriesResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetEntriesResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetLinkResponse {
+	public static final field Companion Lio/konifer/common/http/AssetLinkResponse$Companion;
+	public fun <init> (Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributeResponse;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/konifer/common/http/LQIPResponse;
+	public final fun component5 ()Lio/konifer/common/http/AttributeResponse;
+	public final fun copy (Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributeResponse;)Lio/konifer/common/http/AssetLinkResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetLinkResponse;Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributeResponse;ILjava/lang/Object;)Lio/konifer/common/http/AssetLinkResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlt ()Ljava/lang/String;
+	public final fun getAttributes ()Lio/konifer/common/http/AttributeResponse;
+	public final fun getExpiresAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getLqip ()Lio/konifer/common/http/LQIPResponse;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/AssetLinkResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/AssetLinkResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/AssetLinkResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/AssetLinkResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetLinkResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetResponse {
+	public static final field Factory Lio/konifer/common/http/AssetResponse$Factory;
+	public fun <init> (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;)V
+	public final fun component1 ()Lio/konifer/common/asset/AssetClass;
+	public final fun component10 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component11 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/util/Map;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun component6 ()Lio/konifer/common/asset/AssetSource;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;)Lio/konifer/common/http/AssetResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetResponse;Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;ILjava/lang/Object;)Lio/konifer/common/http/AssetResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlt ()Ljava/lang/String;
+	public final fun getClass ()Lio/konifer/common/asset/AssetClass;
+	public final fun getCreatedAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getEntryId ()J
+	public final fun getExternalSourceAddress ()Ljava/lang/String;
+	public final fun getLabels ()Ljava/util/Map;
+	public final fun getModifiedAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getSource ()Lio/konifer/common/asset/AssetSource;
+	public final fun getSourceUrl ()Ljava/lang/String;
+	public final fun getTags ()Ljava/util/Set;
+	public final fun getVariants ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/AssetResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/AssetResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/AssetResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/AssetResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetResponse$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetSourceRequest {
+	public static final field Companion Lio/konifer/common/http/AssetSourceRequest$Companion;
+	public fun <init> ()V
+	public fun <init> (Lio/konifer/common/http/HttpSource;Lio/konifer/common/http/S3Source;)V
+	public synthetic fun <init> (Lio/konifer/common/http/HttpSource;Lio/konifer/common/http/S3Source;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/konifer/common/http/HttpSource;
+	public final fun component2 ()Lio/konifer/common/http/S3Source;
+	public final fun copy (Lio/konifer/common/http/HttpSource;Lio/konifer/common/http/S3Source;)Lio/konifer/common/http/AssetSourceRequest;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetSourceRequest;Lio/konifer/common/http/HttpSource;Lio/konifer/common/http/S3Source;ILjava/lang/Object;)Lio/konifer/common/http/AssetSourceRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHttp ()Lio/konifer/common/http/HttpSource;
+	public final fun getS3 ()Lio/konifer/common/http/S3Source;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/AssetSourceRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/AssetSourceRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/AssetSourceRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/AssetSourceRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AssetSourceRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AttributeResponse {
+	public static final field Factory Lio/konifer/common/http/AttributeResponse$Factory;
+	public fun <init> (IILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun copy (IILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lio/konifer/common/http/AttributeResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AttributeResponse;IILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lio/konifer/common/http/AttributeResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColorSpace ()Ljava/lang/String;
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getHeight ()I
+	public final fun getLoop ()Ljava/lang/Integer;
+	public final fun getPageCount ()Ljava/lang/Integer;
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/AttributeResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/AttributeResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/AttributeResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/AttributeResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/AttributeResponse$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/ErrorResponse {
+	public static final field Companion Lio/konifer/common/http/ErrorResponse$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/konifer/common/http/ErrorResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/ErrorResponse;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/ErrorResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/ErrorResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/ErrorResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/ErrorResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/ErrorResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/ErrorResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluateRuleDefinitionsRequest {
+	public static final field Companion Lio/konifer/common/http/EvaluateRuleDefinitionsRequest$Companion;
+	public fun <init> (Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/konifer/common/http/AssetSourceRequest;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/List;)Lio/konifer/common/http/EvaluateRuleDefinitionsRequest;
+	public static synthetic fun copy$default (Lio/konifer/common/http/EvaluateRuleDefinitionsRequest;Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/EvaluateRuleDefinitionsRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefinitions ()Ljava/util/List;
+	public final fun getSource ()Lio/konifer/common/http/AssetSourceRequest;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/EvaluateRuleDefinitionsRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/EvaluateRuleDefinitionsRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/EvaluateRuleDefinitionsRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/EvaluateRuleDefinitionsRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluateRuleDefinitionsRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluateRuleDefinitionsResponse {
+	public static final field Companion Lio/konifer/common/http/EvaluateRuleDefinitionsResponse$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/konifer/common/http/EvaluateRuleDefinitionsResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/EvaluateRuleDefinitionsResponse;Ljava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/EvaluateRuleDefinitionsResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResults ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/EvaluateRuleDefinitionsResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/EvaluateRuleDefinitionsResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/EvaluateRuleDefinitionsResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/EvaluateRuleDefinitionsResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluateRuleDefinitionsResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluatedPromptResponse {
+	public static final field Companion Lio/konifer/common/http/EvaluatedPromptResponse$Companion;
+	public fun <init> (Ljava/lang/String;D)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()D
+	public final fun copy (Ljava/lang/String;D)Lio/konifer/common/http/EvaluatedPromptResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/EvaluatedPromptResponse;Ljava/lang/String;DILjava/lang/Object;)Lio/konifer/common/http/EvaluatedPromptResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPrompt ()Ljava/lang/String;
+	public final fun getScore ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/EvaluatedPromptResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/EvaluatedPromptResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/EvaluatedPromptResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/EvaluatedPromptResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluatedPromptResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluatedRuleDefinitionResponse {
+	public static final field Companion Lio/konifer/common/http/EvaluatedRuleDefinitionResponse$Companion;
+	public fun <init> (Ljava/lang/String;DDZLjava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()Z
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;DDZLjava/util/List;)Lio/konifer/common/http/EvaluatedRuleDefinitionResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/EvaluatedRuleDefinitionResponse;Ljava/lang/String;DDZLjava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/EvaluatedRuleDefinitionResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMatched ()Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPromptScores ()Ljava/util/List;
+	public final fun getScore ()D
+	public final fun getThreshold ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/EvaluatedRuleDefinitionResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/EvaluatedRuleDefinitionResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/EvaluatedRuleDefinitionResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/EvaluatedRuleDefinitionResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/EvaluatedRuleDefinitionResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/HttpSource {
+	public static final field Companion Lio/konifer/common/http/HttpSource$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/konifer/common/http/HttpSource;
+	public static synthetic fun copy$default (Lio/konifer/common/http/HttpSource;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/HttpSource;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/HttpSource$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/HttpSource$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/HttpSource;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/HttpSource;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/HttpSource$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/LQIPResponse {
+	public static final field Factory Lio/konifer/common/http/LQIPResponse$Factory;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/konifer/common/http/LQIPResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/LQIPResponse;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/LQIPResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlurhash ()Ljava/lang/String;
+	public final fun getThumbhash ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/LQIPResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/LQIPResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/LQIPResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/LQIPResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/LQIPResponse$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/MetadataResponse {
+	public static final field Companion Lio/konifer/common/http/MetadataResponse$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/konifer/common/http/MetadataResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/MetadataResponse;Ljava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/MetadataResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getStrip ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/MetadataResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/MetadataResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/MetadataResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/MetadataResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/MetadataResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/PaddingResponse {
+	public static final field Companion Lio/konifer/common/http/PaddingResponse$Companion;
+	public fun <init> (ILjava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (ILjava/util/List;)Lio/konifer/common/http/PaddingResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/PaddingResponse;ILjava/util/List;ILjava/lang/Object;)Lio/konifer/common/http/PaddingResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAmount ()I
+	public final fun getColor ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/PaddingResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/PaddingResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/PaddingResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/PaddingResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/PaddingResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/RuleDefinitionRequest {
+	public static final field Companion Lio/konifer/common/http/RuleDefinitionRequest$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;D)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()D
+	public final fun copy (Ljava/lang/String;Ljava/util/List;D)Lio/konifer/common/http/RuleDefinitionRequest;
+	public static synthetic fun copy$default (Lio/konifer/common/http/RuleDefinitionRequest;Ljava/lang/String;Ljava/util/List;DILjava/lang/Object;)Lio/konifer/common/http/RuleDefinitionRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPrompts ()Ljava/util/List;
+	public final fun getThreshold ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/RuleDefinitionRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/RuleDefinitionRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/RuleDefinitionRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/RuleDefinitionRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/RuleDefinitionRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/S3Source {
+	public static final field Companion Lio/konifer/common/http/S3Source$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/konifer/common/http/S3Source;
+	public static synthetic fun copy$default (Lio/konifer/common/http/S3Source;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/S3Source;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArn ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/S3Source$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/S3Source$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/S3Source;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/S3Source;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/S3Source$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/StoreAssetRequest {
+	public static final field Companion Lio/konifer/common/http/StoreAssetRequest$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/Map;Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/Map;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/konifer/common/http/AssetSourceRequest;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/Map;Ljava/util/Set;)Lio/konifer/common/http/StoreAssetRequest;
+	public static synthetic fun copy$default (Lio/konifer/common/http/StoreAssetRequest;Ljava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AssetSourceRequest;Ljava/util/Map;Ljava/util/Set;ILjava/lang/Object;)Lio/konifer/common/http/StoreAssetRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlt ()Ljava/lang/String;
+	public final fun getLabels ()Ljava/util/Map;
+	public final fun getSource ()Lio/konifer/common/http/AssetSourceRequest;
+	public final fun getTags ()Ljava/util/Set;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/StoreAssetRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/StoreAssetRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/StoreAssetRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/StoreAssetRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/StoreAssetRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/TransformationResponse {
+	public static final field Factory Lio/konifer/common/http/TransformationResponse$Factory;
+	public fun <init> (IILio/konifer/common/image/Fit;Lio/konifer/common/image/Gravity;Ljava/lang/String;Lio/konifer/common/image/Rotate;Lio/konifer/common/image/Flip;Lio/konifer/common/image/Filter;IILio/konifer/common/http/PaddingResponse;Lio/konifer/common/http/MetadataResponse;Ljava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component10 ()I
+	public final fun component11 ()Lio/konifer/common/http/PaddingResponse;
+	public final fun component12 ()Lio/konifer/common/http/MetadataResponse;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Lio/konifer/common/image/Fit;
+	public final fun component4 ()Lio/konifer/common/image/Gravity;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Lio/konifer/common/image/Rotate;
+	public final fun component7 ()Lio/konifer/common/image/Flip;
+	public final fun component8 ()Lio/konifer/common/image/Filter;
+	public final fun component9 ()I
+	public final fun copy (IILio/konifer/common/image/Fit;Lio/konifer/common/image/Gravity;Ljava/lang/String;Lio/konifer/common/image/Rotate;Lio/konifer/common/image/Flip;Lio/konifer/common/image/Filter;IILio/konifer/common/http/PaddingResponse;Lio/konifer/common/http/MetadataResponse;Ljava/lang/String;)Lio/konifer/common/http/TransformationResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/TransformationResponse;IILio/konifer/common/image/Fit;Lio/konifer/common/image/Gravity;Ljava/lang/String;Lio/konifer/common/image/Rotate;Lio/konifer/common/image/Flip;Lio/konifer/common/image/Filter;IILio/konifer/common/http/PaddingResponse;Lio/konifer/common/http/MetadataResponse;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/TransformationResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlur ()I
+	public final fun getColorSpace ()Ljava/lang/String;
+	public final fun getFilter ()Lio/konifer/common/image/Filter;
+	public final fun getFit ()Lio/konifer/common/image/Fit;
+	public final fun getFlip ()Lio/konifer/common/image/Flip;
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getGravity ()Lio/konifer/common/image/Gravity;
+	public final fun getHeight ()I
+	public final fun getMetadata ()Lio/konifer/common/http/MetadataResponse;
+	public final fun getPadding ()Lio/konifer/common/http/PaddingResponse;
+	public final fun getQuality ()I
+	public final fun getRotate ()Lio/konifer/common/image/Rotate;
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/TransformationResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/TransformationResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/TransformationResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/TransformationResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/TransformationResponse$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/VariantResponse {
+	public static final field Factory Lio/konifer/common/http/VariantResponse$Factory;
+	public fun <init> (ZLjava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AttributeResponse;Lio/konifer/common/http/TransformationResponse;Lio/konifer/common/http/LQIPResponse;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/konifer/common/http/AttributeResponse;
+	public final fun component5 ()Lio/konifer/common/http/TransformationResponse;
+	public final fun component6 ()Lio/konifer/common/http/LQIPResponse;
+	public final fun copy (ZLjava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AttributeResponse;Lio/konifer/common/http/TransformationResponse;Lio/konifer/common/http/LQIPResponse;)Lio/konifer/common/http/VariantResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/VariantResponse;ZLjava/lang/String;Ljava/lang/String;Lio/konifer/common/http/AttributeResponse;Lio/konifer/common/http/TransformationResponse;Lio/konifer/common/http/LQIPResponse;ILjava/lang/Object;)Lio/konifer/common/http/VariantResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Lio/konifer/common/http/AttributeResponse;
+	public final fun getLqip ()Lio/konifer/common/http/LQIPResponse;
+	public final fun getStoreBucket ()Ljava/lang/String;
+	public final fun getStoreKey ()Ljava/lang/String;
+	public final fun getTransformation ()Lio/konifer/common/http/TransformationResponse;
+	public fun hashCode ()I
+	public final fun isOriginalVariant ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class io/konifer/common/http/VariantResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/konifer/common/http/VariantResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/konifer/common/http/VariantResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/konifer/common/http/VariantResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/http/VariantResponse$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/Filter : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field BLACK_WHITE Lio/konifer/common/image/Filter;
+	public static final field Factory Lio/konifer/common/image/Filter$Factory;
+	public static final field GRAYSCALE Lio/konifer/common/image/Filter;
+	public static final field NONE Lio/konifer/common/image/Filter;
+	public static final field SEPIA Lio/konifer/common/image/Filter;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/Filter;
+	public static fun values ()[Lio/konifer/common/image/Filter;
+}
+
+public final class io/konifer/common/image/Filter$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/Filter;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/Fit : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field CROP Lio/konifer/common/image/Fit;
+	public static final field FILL Lio/konifer/common/image/Fit;
+	public static final field FIT Lio/konifer/common/image/Fit;
+	public static final field Factory Lio/konifer/common/image/Fit$Factory;
+	public static final field STRETCH Lio/konifer/common/image/Fit;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/Fit;
+	public static fun values ()[Lio/konifer/common/image/Fit;
+}
+
+public final class io/konifer/common/image/Fit$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/Fit;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/Flip : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field Factory Lio/konifer/common/image/Flip$Factory;
+	public static final field H Lio/konifer/common/image/Flip;
+	public static final field NONE Lio/konifer/common/image/Flip;
+	public static final field V Lio/konifer/common/image/Flip;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/Flip;
+	public static fun values ()[Lio/konifer/common/image/Flip;
+}
+
+public final class io/konifer/common/image/Flip$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/Flip;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/Gravity : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field ATTENTION Lio/konifer/common/image/Gravity;
+	public static final field CENTER Lio/konifer/common/image/Gravity;
+	public static final field ENTROPY Lio/konifer/common/image/Gravity;
+	public static final field Factory Lio/konifer/common/image/Gravity$Factory;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/Gravity;
+	public static fun values ()[Lio/konifer/common/image/Gravity;
+}
+
+public final class io/konifer/common/image/Gravity$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/Gravity;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/ImageFormat : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field AVIF Lio/konifer/common/image/ImageFormat;
+	public static final field Factory Lio/konifer/common/image/ImageFormat$Factory;
+	public static final field GIF Lio/konifer/common/image/ImageFormat;
+	public static final field HEIC Lio/konifer/common/image/ImageFormat;
+	public static final field JPEG Lio/konifer/common/image/ImageFormat;
+	public static final field JPEG_XL Lio/konifer/common/image/ImageFormat;
+	public static final field PNG Lio/konifer/common/image/ImageFormat;
+	public static final field WEBP Lio/konifer/common/image/ImageFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getExtension ()Ljava/lang/String;
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getMimeType ()Ljava/lang/String;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/ImageFormat;
+	public static fun values ()[Lio/konifer/common/image/ImageFormat;
+}
+
+public final class io/konifer/common/image/ImageFormat$Factory {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class io/konifer/common/image/Manipulation {
+	public abstract fun getQueryParameterValue ()Ljava/lang/String;
+}
+
+public final class io/konifer/common/image/ManipulationParameters {
+	public static final field BLUR Ljava/lang/String;
+	public static final field COLOR_SPACE Ljava/lang/String;
+	public static final field FILTER Ljava/lang/String;
+	public static final field FIT Ljava/lang/String;
+	public static final field FLIP Ljava/lang/String;
+	public static final field FORMAT Ljava/lang/String;
+	public static final field GRAVITY Ljava/lang/String;
+	public static final field HEIGHT Ljava/lang/String;
+	public static final field INSTANCE Lio/konifer/common/image/ManipulationParameters;
+	public static final field PAD Ljava/lang/String;
+	public static final field PAD_COLOR Ljava/lang/String;
+	public static final field QUALITY Ljava/lang/String;
+	public static final field ROTATE Ljava/lang/String;
+	public static final field STRIP Ljava/lang/String;
+	public static final field VARIANT_PROFILE Ljava/lang/String;
+	public static final field WIDTH Ljava/lang/String;
+	public final fun getALL_TRANSFORMATION_PARAMETERS ()Ljava/util/Set;
+}
+
+public final class io/konifer/common/image/ManipulationParametersKt {
+	public static final field LIMIT_PARAMETER Ljava/lang/String;
+	public static final fun getALL_RESERVED_PARAMETERS ()Ljava/util/Set;
+}
+
+public final class io/konifer/common/image/MetadataType : java/lang/Enum {
+	public static final field Companion Lio/konifer/common/image/MetadataType$Companion;
+	public static final field EXIF Lio/konifer/common/image/MetadataType;
+	public static final field ICC Lio/konifer/common/image/MetadataType;
+	public static final field IPTC Lio/konifer/common/image/MetadataType;
+	public static final field XMP Lio/konifer/common/image/MetadataType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/MetadataType;
+	public static fun values ()[Lio/konifer/common/image/MetadataType;
+}
+
+public final class io/konifer/common/image/MetadataType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/image/Rotate : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field AUTO Lio/konifer/common/image/Rotate;
+	public static final field Factory Lio/konifer/common/image/Rotate$Factory;
+	public static final field NINETY Lio/konifer/common/image/Rotate;
+	public static final field ONE_HUNDRED_EIGHTY Lio/konifer/common/image/Rotate;
+	public static final field TWO_HUNDRED_SEVENTY Lio/konifer/common/image/Rotate;
+	public static final field ZERO Lio/konifer/common/image/Rotate;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/Rotate;
+	public static fun values ()[Lio/konifer/common/image/Rotate;
+}
+
+public final class io/konifer/common/image/Rotate$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/Rotate;
+}
+
+public final class io/konifer/common/image/SortedMetadataTypeSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lio/konifer/common/image/SortedMetadataTypeSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/util/List;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/util/List;)V
+}
+
+public final class io/konifer/common/image/TransformableColorSpace : java/lang/Enum, io/konifer/common/image/Manipulation {
+	public static final field Factory Lio/konifer/common/image/TransformableColorSpace$Factory;
+	public static final field GRAYSCALE Lio/konifer/common/image/TransformableColorSpace;
+	public static final field ORIGIN Lio/konifer/common/image/TransformableColorSpace;
+	public static final field P3 Lio/konifer/common/image/TransformableColorSpace;
+	public static final field SRGB Lio/konifer/common/image/TransformableColorSpace;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getQueryParameterValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/image/TransformableColorSpace;
+	public static fun values ()[Lio/konifer/common/image/TransformableColorSpace;
+}
+
+public final class io/konifer/common/image/TransformableColorSpace$Factory {
+	public final fun getDefault ()Lio/konifer/common/image/TransformableColorSpace;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/konifer/common/selector/Order : java/lang/Enum {
+	public static final field Companion Lio/konifer/common/selector/Order$Companion;
+	public static final field MODIFIED Lio/konifer/common/selector/Order;
+	public static final field NEW Lio/konifer/common/selector/Order;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/selector/Order;
+	public static fun values ()[Lio/konifer/common/selector/Order;
+}
+
+public final class io/konifer/common/selector/Order$Companion {
+	public final fun valueOfOrNull (Ljava/lang/String;)Lio/konifer/common/selector/Order;
+}
+
+public final class io/konifer/common/selector/ReturnFormat : java/lang/Enum {
+	public static final field CONTENT Lio/konifer/common/selector/ReturnFormat;
+	public static final field Companion Lio/konifer/common/selector/ReturnFormat$Companion;
+	public static final field DOWNLOAD Lio/konifer/common/selector/ReturnFormat;
+	public static final field ENTRIES Lio/konifer/common/selector/ReturnFormat;
+	public static final field INFO Lio/konifer/common/selector/ReturnFormat;
+	public static final field LINK Lio/konifer/common/selector/ReturnFormat;
+	public static final field REDIRECT Lio/konifer/common/selector/ReturnFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/selector/ReturnFormat;
+	public static fun values ()[Lio/konifer/common/selector/ReturnFormat;
+}
+
+public final class io/konifer/common/selector/ReturnFormat$Companion {
+	public final fun valueOfOrNull (Ljava/lang/String;)Lio/konifer/common/selector/ReturnFormat;
+}
+
+public final class io/konifer/common/selector/ReturnFormatKt {
+	public static final field DEFAULT_ENTRIES_LIMIT I
+}
+
+public final class io/konifer/common/serializer/LocalDateTimeSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lio/konifer/common/serializer/LocalDateTimeSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lkotlinx/datetime/LocalDateTime;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lkotlinx/datetime/LocalDateTime;)V
+}
+
+public final class io/konifer/common/serializer/LowercaseEnumSerializer : kotlinx/serialization/KSerializer {
+	public fun <init> (Lkotlin/enums/EnumEntries;)V
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Enum;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Enum;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+

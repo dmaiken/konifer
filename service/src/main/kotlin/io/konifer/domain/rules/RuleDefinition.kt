@@ -23,6 +23,16 @@ data class RuleDefinition(
 }
 
 @JvmInline
+value class RuleDefinitions(
+    val definitions: List<RuleDefinition>,
+) {
+    init {
+        require(definitions.isNotEmpty()) { "At least one rule request is required" }
+        require(definitions.size <= 10) { "Maximum of 10 rule definitions allowed per request" }
+    }
+}
+
+@JvmInline
 @Serializable
 value class RuleDefinitionThreshold(
     val value: Double,
@@ -39,7 +49,10 @@ fun RuleDefinitionRequest.toRuleDefinition(): RuleDefinition =
         threshold = RuleDefinitionThreshold(threshold),
     )
 
-fun EvaluateRuleDefinitionsRequest.toRuleDefinitions(): List<RuleDefinition> =
-    definitions.map { definition ->
-        definition.toRuleDefinition()
-    }
+fun EvaluateRuleDefinitionsRequest.toRuleDefinitions(): RuleDefinitions =
+    RuleDefinitions(
+        definitions =
+            definitions.map { definition ->
+                definition.toRuleDefinition()
+            },
+    )

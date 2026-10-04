@@ -1,8 +1,7 @@
 package integration
 
-import io.konifer.client.KoniferResponse
-import io.konifer.client.requestedTransformation
-import io.konifer.common.http.StoreAssetRequest
+import io.konifer.client.KoniferResult
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.image.TransformableColorSpace
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
@@ -18,28 +17,28 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
             val path = UUID.randomUUID().toString()
             val (image, attributes) = ImageFactory.testImage()
             val storeResponse =
-                client.storeAsset(
-                    path = path,
-                    format = attributes.format,
-                    bytes = image,
-                    request =
-                        StoreAssetRequest(
-                            alt = "image",
-                            tags = setOf("tag1", "tag2"),
-                            labels = mapOf("key1" to "value1", "key2" to "value2"),
-                        ),
-                )
-            storeResponse::class shouldBe KoniferResponse.Success::class
+                client
+                    .assets(path)
+                    .newAsset()
+                    .fromBytes(
+                        bytes = image,
+                        format = attributes.format,
+                    ).withAlt("image")
+                    .withLabels(mapOf("key1" to "value1", "key2" to "value2"))
+                    .withTags(setOf("tag1", "tag2"))
+                    .store()
+            storeResponse::class shouldBe KoniferResult.Success::class
+
             val fetchResponse =
-                client.fetchAssetContentBytes(
-                    path = path,
-                    requestedTransformation =
+                client
+                    .assets(path)
+                    .variant(
                         requestedTransformation {
                             this.colorSpace = colorSpace
                         },
-                )
-            fetchResponse::class shouldBe KoniferResponse.Success::class
-            val content = (fetchResponse as KoniferResponse.Success).body
+                    ).fetchContentBytes()
+            fetchResponse::class shouldBe KoniferResult.Success::class
+            val content = (fetchResponse as KoniferResult.Success).value
             tika.detect(content) shouldBe attributes.format.mimeType
         }
     }

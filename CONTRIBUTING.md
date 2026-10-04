@@ -25,6 +25,7 @@ runs reuse it.
 | `./gradlew test`                  | Run tests                                                            |
 | `./gradlew build`                 | Build the project                                                    |
 | `./gradlew :service:shadowJar`    | Build the executable server JAR used by the Docker image             |
+| `./gradlew :client:assemble`      | Build the client JAR, sources, and API documentation                 |
 | `./gradlew run`                   | Run the server locally                                               |
 | `./gradlew ktlintFormat detekt`   | Format and lint the codebase                                         |
 | `./gradlew generateJooq`          | Regenerate JOOQ code after schema changes or JOOQ dependency updates |
@@ -48,6 +49,62 @@ and refreshes the build cache. Ordinary builds continue to use the cache unless 
 After the base workflow succeeds, rerun the application build or release workflow so the application image uses
 the refreshed base, then check its Trivy scan. A clean rebuild picks up available updates; it does not guarantee
 that every inherited package is upgraded or that every reported vulnerability has a published fix.
+
+## Client artifacts
+
+Run `./gradlew :client:assemble` to build the JVM client artifacts in `client/build/libs`:
+
+- `konifer-client-jvm-<version>.jar`
+- `konifer-client-jvm-<version>-sources.jar`
+- `konifer-client-jvm-<version>-javadoc.jar` (Dokka HTML API documentation)
+
+The client compiles the shared model sources from `common/src/commonMain/kotlin` into its own artifact.
+The sources and documentation include those models as well.
+
+The JVM client targets Java 17. The service uses the project's Java 25 toolchain.
+
+The client has two Maven publications: `io.konifer:konifer-client` (multiplatform metadata) and
+`io.konifer:konifer-client-jvm` (JVM implementation). Both include sources, Dokka HTML documentation
+with the `javadoc` classifier, and POM metadata. The publishing plugin generates and attaches the
+documentation JARs; no separate custom Javadoc archive is needed.
+
+To inspect the generated publication metadata without uploading artifacts or requiring signing credentials:
+
+```bash
+./gradlew :client:assemble \
+  :client:generatePomFileForJvmPublication \
+  :client:generatePomFileForKotlinMultiplatformPublication \
+  :client:generateMetadataFileForJvmPublication \
+  :client:generateMetadataFileForKotlinMultiplatformPublication \
+  :client:checkPomFileForJvmPublication \
+  :client:checkPomFileForKotlinMultiplatformPublication
+```
+
+The generated POM and Gradle module metadata files are in `client/build/publications/jvm` and
+`client/build/publications/kotlinMultiplatform`.
+
+## Client releases
+
+The client is versioned independently of the service. Pushing a tag such as `client-v0.1.0` runs
+`.github/workflows/client-release.yml`; service releases continue to use `v*` tags.
+Client tags must contain a SemVer version, optionally with a prerelease suffix such as
+`client-v0.2.0-rc.1`. Snapshot versions and build metadata (`+...`) are not accepted by the release workflow.
+
+The workflow takes the client version from the tag, runs the client checks (including JVM tests,
+lint, and the committed ABI baseline), validates both POMs, and assembles the publications. It then signs
+and publishes both artifacts to Maven Central, waits for the deployment to be published, and creates a
+GitHub release. Client releases do not replace the service's latest GitHub release.
+
+To check a candidate version locally without publishing:
+
+```bash
+./gradlew :client:check :client:assemble -PclientVersion=0.2.0-rc.1
+```
+
+The client's default development version remains in `client/build.gradle.kts`. The `clientVersion`
+Gradle property overrides only the client version, including both Maven publications and their archives.
+Review and commit intentional ABI baseline updates before tagging; the release workflow does not
+regenerate the baseline. Published Maven Central versions cannot be overwritten.
 
 ## macOS notes
 

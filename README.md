@@ -195,4 +195,7 @@ Questions or feedback? Email me at [daniel@konifer.io](mailto:daniel@konifer.io)
 
 ## License
 
-Konifer is released under the AGPL license in [LICENSE](LICENSE).
+The Konifer server is released under the AGPL license in [LICENSE](LICENSE).
+
+The Konifer client and common module are licensed under Apache 2.0 license in [LICENSE](client/LICENSE) and
+[LICENSE](common/LICENSE), respectively.

@@ -2,7 +2,6 @@ package io.konifer.asset.limit
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
-import io.konifer.client.fold
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.testInMemory

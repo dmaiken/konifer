@@ -1,7 +1,7 @@
 package io.konifer.client.harness
 
-import io.konifer.client.RequestedTransformation
-import io.konifer.client.requestedTransformation
+import io.konifer.client.assets.fetch.RequestedTransformation
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip

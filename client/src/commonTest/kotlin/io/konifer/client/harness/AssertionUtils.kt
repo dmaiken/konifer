@@ -1,6 +1,6 @@
 package io.konifer.client.harness
 
-import io.konifer.client.RequestedTransformation
+import io.konifer.client.assets.fetch.RequestedTransformation
 import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -50,17 +50,6 @@ fun assertLabels(
             }
 
         parameters[expectedParameterName] shouldBe value
-    }
-}
-
-fun assertLimit(
-    parameters: Parameters,
-    expectedLimit: Int = 1,
-) {
-    if (expectedLimit == 1) {
-        (parameters["limit"] ?: "1") shouldBe "1"
-    } else {
-        parameters["limit"] shouldBe expectedLimit.toString()
     }
 }
 

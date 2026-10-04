@@ -1,7 +1,6 @@
 package integration
 
-import io.konifer.client.KoniferResponse
-import io.konifer.common.http.EvaluateRuleDefinitionsRequest
+import io.konifer.client.KoniferResult
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.image.ImageFormat
 import io.kotest.inspectors.forExactly
@@ -19,29 +18,24 @@ class RuleEvaluationIntegrationTest : BaseIntegrationTest() {
         runBlocking {
             val (image, _) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE, format = format)
             val storeResponse =
-                client.evaluateRules(
-                    format = format,
-                    bytes = image,
-                    request =
-                        EvaluateRuleDefinitionsRequest(
-                            definitions =
+                client
+                    .ruleEvaluation()
+                    .fromBytes(image, format)
+                    .withDefinition(
+                        RuleDefinitionRequest(
+                            name = "one",
+                            prompts =
                                 listOf(
-                                    RuleDefinitionRequest(
-                                        name = "one",
-                                        prompts =
-                                            listOf(
-                                                "a joshua tree",
-                                                "a tree",
-                                                "joshua tree national park",
-                                            ),
-                                        threshold = 0.7,
-                                    ),
+                                    "a joshua tree",
+                                    "a tree",
+                                    "joshua tree national park",
                                 ),
+                            threshold = 0.7,
                         ),
-                )
-            storeResponse::class shouldBe KoniferResponse.Success::class
+                    ).evaluate()
+            storeResponse::class shouldBe KoniferResult.Success::class
 
-            val body = (storeResponse as KoniferResponse.Success).body
+            val body = (storeResponse as KoniferResult.Success).value
             body.results shouldHaveSize 1
             body.results.forExactly(1) {
                 it.name shouldBe "one"

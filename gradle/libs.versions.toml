@@ -35,9 +35,11 @@ google-devtools-ksp-version = "2.3.12"
 kotlinx-datetime-version = "0.8.0"
 metadata-extractor-version = "2.21.0"
 kover-version = "0.9.9"
+dokka-version = "2.2.0"
 cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.30.0"
 huggingface-tokenizers-version = "0.38.0"
+maven-publish-version = "0.37.0"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -50,6 +52,7 @@ jooq-codegen-meta-extensions = { module = "org.jooq:jooq-meta-extensions", versi
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-version" }
 kotlinx-serialization-hocon = { module = "org.jetbrains.kotlinx:kotlinx-serialization-hocon", version.ref = "kotlinx-serialization-version" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-version" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor-version" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor-version" }
@@ -62,8 +65,8 @@ ktor-server-body-limit = { module = "io.ktor:ktor-server-body-limit", version.re
 
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-version" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-version" }
+ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor-version" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-version" }
-ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor-version" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor-version" }
 
 koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin-version" }
@@ -77,6 +80,7 @@ r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool-version
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgresql-version" }
 
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlin-coroutine-reactive-version" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutine-reactive-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-version" }
 uuid-creator = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator-version" }
 hipparchus-fft = { module = "org.hipparchus:hipparchus-fft", version.ref = "hipparchus-version"}
@@ -126,4 +130,6 @@ license = { id = "com.github.jk1.dependency-license-report", version.ref = "lice
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "google-devtools-ksp-version" }
 kotest = { id = "io.kotest", version.ref = "kotest-version" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover-version" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka-version" }
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin-version" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish-version" }
