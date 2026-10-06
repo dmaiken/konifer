@@ -8,7 +8,9 @@ on:
 
 jobs:
   update-yarn-lock:
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    # Disabled until JS/TS target of Konifer client is enabled again
+    # if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
