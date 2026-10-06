@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 @OptIn(InternalAPI::class)
-class KoniferBlockingClientV2Test :
+class KoniferBlockingClientTest :
     FunSpec({
         test("asset selections delegate info, entries, update, and delete") {
             val asset = createInfoResponse().copy(entryId = 42)
@@ -168,7 +168,7 @@ class KoniferBlockingClientV2Test :
             client.close()
         }
 
-        test("OutputStream transfer returns a V2 failure on an HTTP error") {
+        test("OutputStream transfer returns a failure on an HTTP error") {
             val httpClient =
                 httpClient {
                     MockEngine {

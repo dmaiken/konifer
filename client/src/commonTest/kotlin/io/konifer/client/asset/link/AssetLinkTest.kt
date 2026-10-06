@@ -83,7 +83,7 @@ class AssetLinkTest :
                 KoniferResult.Success(link)
         }
 
-        test("link maps HTTP errors to V2 failures") {
+        test("link maps HTTP errors to failures") {
             val httpClient =
                 httpClient {
                     MockEngine {

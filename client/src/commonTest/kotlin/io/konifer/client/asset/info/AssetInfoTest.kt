@@ -71,7 +71,7 @@ class AssetInfoTest :
             client.assets("users/123").entry(42).fetchInfo() shouldBe KoniferResult.Success(info)
         }
 
-        test("info maps HTTP errors to V2 failures") {
+        test("info maps HTTP errors to failures") {
             val httpClient =
                 httpClient {
                     MockEngine {

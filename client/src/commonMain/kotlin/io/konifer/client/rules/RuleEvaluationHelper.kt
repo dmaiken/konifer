@@ -2,7 +2,7 @@ package io.konifer.client.rules
 
 import io.konifer.client.KoniferResult
 import io.konifer.client.internal.RequestInfrastructure
-import io.konifer.client.toKoniferV2Result
+import io.konifer.client.toKoniferResult
 import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
@@ -61,7 +61,7 @@ internal suspend fun evaluateRules(
                         setBody(ruleEvaluationFormData(request, source, uploadScope))
                     }
                 }
-            }.toKoniferV2Result()
+            }.toKoniferResult()
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {

@@ -3,7 +3,7 @@ package io.konifer.client.assets.store
 import io.konifer.client.KoniferResult
 import io.konifer.client.internal.RequestInfrastructure
 import io.konifer.client.internal.appendAssetPath
-import io.konifer.client.toKoniferV2Result
+import io.konifer.client.toKoniferResult
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.ktor.client.request.forms.ChannelProvider
@@ -60,7 +60,7 @@ internal suspend fun storeAsset(
                         setBody(assetUploadFormData(request, source, uploadScope))
                     }
                 }
-            }.toKoniferV2Result()
+            }.toKoniferResult()
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {

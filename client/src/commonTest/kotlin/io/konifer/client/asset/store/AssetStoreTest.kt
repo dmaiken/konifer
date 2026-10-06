@@ -344,7 +344,7 @@ class AssetStoreTest :
             }
         }
 
-        test("store maps an HTTP error to a V2 failure") {
+        test("store maps an HTTP error to a failure") {
             val httpClient =
                 httpClient {
                     MockEngine {

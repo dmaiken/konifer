@@ -174,7 +174,7 @@ class AssetUpdateTest :
                 .update() shouldBe KoniferResult.Success(asset)
         }
 
-        test("update maps an HTTP error to a V2 failure") {
+        test("update maps an HTTP error to a failure") {
             val httpClient =
                 httpClient {
                     MockEngine {

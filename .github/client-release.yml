@@ -1,0 +1,14 @@
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - question
+      - invalid
+    authors:
+      - github-actions[bot]
+      - dependabot[bot]
+
+  categories:
+    - title: "💻 Client"
+      labels:
+        - client

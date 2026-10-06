@@ -9,7 +9,7 @@ import io.konifer.client.internal.appendLimit
 import io.konifer.client.internal.appendOrderSelector
 import io.konifer.client.internal.appendPathSeparator
 import io.konifer.client.internal.appendRecursiveSelector
-import io.konifer.client.toKoniferV2Result
+import io.konifer.client.toKoniferResult
 import io.ktor.client.request.delete
 import io.ktor.http.URLBuilder
 import io.ktor.http.isSuccess
@@ -50,7 +50,7 @@ internal suspend fun deleteAsset(
         if (response.status.isSuccess()) {
             KoniferResult.Success(Unit)
         } else {
-            response.toKoniferV2Result()
+            response.toKoniferResult()
         }
     } catch (e: CancellationException) {
         throw e

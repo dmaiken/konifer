@@ -14,6 +14,7 @@ permissions:
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048M -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+  INITIAL_CLIENT_RELEASE_BASE: v0.13.0
 
 jobs:
   release-client:
@@ -24,6 +25,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Derive client version from tag
         id: version
@@ -87,15 +90,34 @@ jobs:
 
           ./gradlew :client:publishAndReleaseToMavenCentral --no-configuration-cache
 
+      - name: Generate client release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          previous_tag="$(git describe --tags --match 'client-v*' --abbrev=0 "${GITHUB_SHA}^" 2>/dev/null || true)"
+          if [[ -z "$previous_tag" ]]; then
+            previous_tag="$INITIAL_CLIENT_RELEASE_BASE"
+          fi
+          request=(
+            --method POST
+            "repos/${GITHUB_REPOSITORY}/releases/generate-notes"
+            -f "tag_name=${GITHUB_REF_NAME}"
+            -f 'configuration_file_path=.github/client-release.yml'
+            -f "previous_tag_name=$previous_tag"
+          )
+
+          {
+            printf 'Maven coordinates:\n'
+            printf -- '- `io.konifer:konifer-client:%s`\n' "${{ steps.version.outputs.version }}"
+            printf -- '- `io.konifer:konifer-client-jvm:%s`\n\n' "${{ steps.version.outputs.version }}"
+            gh api "${request[@]}" --jq .body
+          } > "${RUNNER_TEMP}/client-release-notes.md"
+
       - name: Create client GitHub release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Konifer Client ${{ steps.version.outputs.version }}
-          generate_release_notes: true
+          body_path: ${{ runner.temp }}/client-release-notes.md
           make_latest: false
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
-          body: |
-            Maven coordinates:
-            - `io.konifer:konifer-client:${{ steps.version.outputs.version }}`
-            - `io.konifer:konifer-client-jvm:${{ steps.version.outputs.version }}`

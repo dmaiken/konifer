@@ -9,7 +9,7 @@ import io.konifer.client.internal.appendLimit
 import io.konifer.client.internal.appendQuerySelectors
 import io.konifer.client.internal.appendVariantRequest
 import io.konifer.client.internal.signedUrl
-import io.konifer.client.toKoniferV2Result
+import io.konifer.client.toKoniferResult
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.selector.ReturnFormat
@@ -43,7 +43,7 @@ internal suspend inline fun <reified T> fetchAssetInfo(
             .get {
                 url.takeFrom(requestUrl)
                 accept(ContentType.Application.Json)
-            }.toKoniferV2Result()
+            }.toKoniferResult()
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {
@@ -69,7 +69,7 @@ internal suspend fun fetchAssetEntries(
             .get {
                 url.takeFrom(requestUrl)
                 accept(ContentType.Application.Json)
-            }.toKoniferV2Result<AssetEntriesResponse>()
+            }.toKoniferResult<AssetEntriesResponse>()
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {
@@ -97,7 +97,7 @@ internal suspend fun fetchAssetContentTo(
                             response.bodyAsChannel().copyAndClose(destination)
                             KoniferResult.Success(Unit)
                         } else {
-                            response.toKoniferV2Result<Unit>()
+                            response.toKoniferResult<Unit>()
                         }
                     }
             }
@@ -132,7 +132,7 @@ internal suspend fun fetchAssetContentBytes(
                 if (response.status.isSuccess()) {
                     KoniferResult.Success(response.bodyAsBytes())
                 } else {
-                    response.toKoniferV2Result<ByteArray>()
+                    response.toKoniferResult<ByteArray>()
                 }
             }
     }
@@ -147,7 +147,7 @@ internal suspend fun fetchAssetLink(
             .get {
                 url.takeFrom(variantRequestUrl(infra, asset, ReturnFormat.LINK, transformation))
                 accept(ContentType.Application.Json)
-            }.toKoniferV2Result()
+            }.toKoniferResult()
     }
 
 private suspend fun variantRequestUrl(

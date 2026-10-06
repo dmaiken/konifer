@@ -1,6 +1,7 @@
 changelog:
   exclude:
     labels:
+      - client
       - duplicate
       - question
       - invalid
@@ -20,9 +21,6 @@ changelog:
     - title: "📦 Dependencies"
       labels:
         - dependencies
-    - title: "💻 Client"
-      labels:
-        - client
     - title: "📝 Documentation"
       labels:
         - documentation

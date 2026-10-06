@@ -64,7 +64,7 @@ inline fun <T, R> KoniferResult<T>.fold(
         is KoniferResult.Failure -> onFailure(this)
     }
 
-internal suspend inline fun <reified T> HttpResponse.toKoniferV2Result(): KoniferResult<T> {
+internal suspend inline fun <reified T> HttpResponse.toKoniferResult(): KoniferResult<T> {
     if (status.isSuccess()) {
         return try {
             KoniferResult.Success(body<T>())
