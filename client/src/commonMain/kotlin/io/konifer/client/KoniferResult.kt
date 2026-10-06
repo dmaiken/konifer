@@ -43,6 +43,15 @@ sealed interface KoniferResult<out T> {
             val cause: Throwable,
         ) : Failure
     }
+
+    /**
+     * Return the value if result is [Success], otherwise throw a [KoniferRequestException].
+     */
+    fun valueOrThrow(): T =
+        when (this) {
+            is Success -> value
+            is Failure -> throw KoniferRequestException(this)
+        }
 }
 
 /** Applies [onSuccess] or [onFailure] and returns the selected callback's result. */
