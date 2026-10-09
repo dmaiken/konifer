@@ -13,7 +13,7 @@ class FormatValidator(
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    suspend fun validateImageFormat(
+    suspend fun validateInputFormat(
         pathConfiguration: PathConfiguration,
         container: AssetDataContainer,
     ): ImageFormat {
@@ -22,12 +22,37 @@ class FormatValidator(
         validateIsImage(mimeType)
 
         pathConfiguration.allowedContentTypes?.let {
-            if (!it.contains(mimeType)) {
-                throw ContentTypeNotPermittedException("Content type: $mimeType not permitted")
-            }
+            validateContentTypeAllowed(
+                allowedContentTypes = it,
+                mimeType = mimeType,
+            )
         }
 
         return ImageFormat.fromMimeType(mimeType)
+    }
+
+    fun validateOutputFormat(
+        allowedFormats: List<String>?,
+        format: ImageFormat,
+    ) {
+        if (ImageFormat.FormatAction.OUTPUT !in format.allowedFor) {
+            throw ContentTypeNotPermittedException("Content type: ${format.mimeType} not permitted ${ImageFormat.FormatAction.OUTPUT}")
+        }
+        allowedFormats?.let {
+            validateContentTypeAllowed(
+                allowedContentTypes = it,
+                mimeType = format.mimeType,
+            )
+        }
+    }
+
+    private fun validateContentTypeAllowed(
+        allowedContentTypes: List<String>,
+        mimeType: String,
+    ) {
+        if (mimeType !in allowedContentTypes) {
+            throw ContentTypeNotPermittedException("Content type: $mimeType not permitted")
+        }
     }
 
     private fun validateIsImage(mimeType: String) {

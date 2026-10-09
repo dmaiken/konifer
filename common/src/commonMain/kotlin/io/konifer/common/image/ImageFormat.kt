@@ -11,6 +11,7 @@ private object ImageFormatParameterValues {
     const val JPEG_XL = "jxl"
     const val HEIC = "heic"
     const val GIF = "gif"
+    const val PIXELS = "pixels"
 }
 
 @Serializable
@@ -18,6 +19,7 @@ enum class ImageFormat(
     val format: String,
     val mimeType: String,
     val extension: String,
+    val allowedFor: Set<FormatAction> = setOf(FormatAction.INPUT, FormatAction.OUTPUT),
     override val queryParameterValue: String = format,
 ) : Manipulation {
     @SerialName(ImageFormatParameterValues.JPEG)
@@ -68,7 +70,20 @@ enum class ImageFormat(
         mimeType = "image/gif",
         extension = ".gif",
     ),
+
+    @SerialName(ImageFormatParameterValues.PIXELS)
+    PIXELS(
+        format = ImageFormatParameterValues.PIXELS,
+        mimeType = "application/octet-stream",
+        extension = "",
+        allowedFor = setOf(FormatAction.OUTPUT),
+    ),
     ;
 
     companion object Factory
+
+    enum class FormatAction {
+        INPUT,
+        OUTPUT,
+    }
 }

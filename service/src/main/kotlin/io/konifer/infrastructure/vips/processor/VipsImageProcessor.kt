@@ -2,7 +2,6 @@ package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import app.photofox.vipsffm.VipsImageCopyMemory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
@@ -15,9 +14,9 @@ import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
-import io.konifer.infrastructure.vips.VipsEncoder
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
+import io.konifer.infrastructure.vips.encode.VipsEncoderSelector
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -77,7 +76,7 @@ class VipsImageProcessor {
             if (shouldEncode && shouldGeneratePreview) {
                 when (preProcessed.processedPixelAccess) {
                     PixelAccess.RANDOM -> preProcessed.processed.copy()
-                    PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, preProcessed.processed)
+                    PixelAccess.SEQUENTIAL -> preProcessed.processed.copyMemory()
                 }
             } else {
                 preProcessed.processed
@@ -103,13 +102,14 @@ class VipsImageProcessor {
             transformationDataContainer.lqips.complete(null)
         }
         return if (shouldEncode) {
-            VipsEncoder.writeToStream(
-                arena = arena,
-                source = outputSource,
-                format = transformation.format,
-                quality = transformation.quality.value,
-                outputChannel = transformationDataContainer.output,
-            )
+            VipsEncoderSelector
+                .getEncoder(transformation.format)
+                .writeToStream(
+                    arena = arena,
+                    source = outputSource,
+                    transformation = transformation,
+                    outputChannel = transformationDataContainer.output,
+                )
             PreprocessOutput.SourceTransformed
         } else {
             // Encoding is where all the work is done - don't bother if the image was not transformed
@@ -142,7 +142,7 @@ class VipsImageProcessor {
                         if (shouldGeneratePreview) {
                             when (variantResult.processedPixelAccess) {
                                 PixelAccess.RANDOM -> variantResult.processed.copy()
-                                PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, variantResult.processed)
+                                PixelAccess.SEQUENTIAL -> variantResult.processed.copyMemory()
                             }
                         } else {
                             variantResult.processed
@@ -166,13 +166,14 @@ class VipsImageProcessor {
                         ),
                     )
 
-                    VipsEncoder.writeToStream(
-                        arena = arena,
-                        source = outputSource,
-                        format = transformation.format,
-                        quality = transformation.quality.value,
-                        outputChannel = output,
-                    )
+                    VipsEncoderSelector
+                        .getEncoder(transformation.format)
+                        .writeToStream(
+                            arena = arena,
+                            source = outputSource,
+                            transformation = transformation,
+                            outputChannel = output,
+                        )
                 }.onFailure {
                     output.cancel(it)
                 }.getOrThrow()

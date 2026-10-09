@@ -16,7 +16,7 @@ class AssetContentValidator(
         container: AssetDataContainer,
     ): Attributes {
         val imageFormat =
-            formatValidator.validateImageFormat(
+            formatValidator.validateInputFormat(
                 pathConfiguration = pathConfiguration,
                 container = container,
             )

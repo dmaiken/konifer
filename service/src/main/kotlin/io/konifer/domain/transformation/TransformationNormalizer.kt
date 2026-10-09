@@ -7,6 +7,7 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
 import io.konifer.domain.variant.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -101,6 +102,7 @@ class TransformationNormalizer(
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
         val format = normalizeFormat(requested, originalAttributesDeferred)
+        val colorspace = normalizeColorSpace(requested, originalAttributesDeferred)
         return Transformation(
             width = width,
             height = height,
@@ -119,9 +121,15 @@ class TransformationNormalizer(
                     color = normalizeBackground(requested, format),
                 ),
             metadata = normalizeMetadata(requested),
-            colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
+            colorSpace = colorspace,
             isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
             isAutoRotate = isAutoRotate,
+            pixel =
+                normalizePixelTransformation(
+                    requested = requested,
+                    normalizedColorSpace = colorspace,
+                    normalizedFormat = format,
+                ),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {

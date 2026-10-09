@@ -21,6 +21,8 @@ object ManipulationParameters {
 
     const val VARIANT_PROFILE = "profile"
 
+    const val PIXEL_LAYOUT = "pixel-layout"
+
     /**
      * All parameters minus [VARIANT_PROFILE]. New manipulation parameters must go in here for proper variant
      * request identification.
@@ -41,6 +43,7 @@ object ManipulationParameters {
             PAD_COLOR,
             STRIP,
             COLOR_SPACE,
+            PIXEL_LAYOUT,
         )
 }
 

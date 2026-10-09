@@ -2,7 +2,7 @@ package io.konifer.application.usecase.fetch
 
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.context.ContentTypeNotPermittedException
+import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.QueryRequestContext
 import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
@@ -28,6 +28,7 @@ class FetchAssetHandler(
     private val variantService: VariantService,
     private val assetUrlGenerator: AssetUrlGenerator,
     private val eventPublisher: EventPublisher,
+    private val formatValidator: FormatValidator,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -139,11 +140,10 @@ class FetchAssetHandler(
         context: QueryRequestContext,
     ): Unit =
         coroutineScope {
-            context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
-                    throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
-                }
-            }
+            formatValidator.validateOutputFormat(
+                allowedFormats = context.pathConfiguration.allowedContentTypes,
+                format = checkNotNull(context.transformation).format,
+            )
             val originalVariant =
                 assetRepository
                     .fetchByPath(

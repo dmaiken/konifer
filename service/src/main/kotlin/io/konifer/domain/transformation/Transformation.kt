@@ -8,6 +8,7 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
+import io.konifer.domain.transformation.pixel.PixelTransformation
 import kotlin.collections.emptyList
 
 data class Transformation(
@@ -35,6 +36,7 @@ data class Transformation(
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
     val isAutoRotate: Boolean = false,
+    val pixel: PixelTransformation? = null,
 ) {
     companion object Factory {
         val ORIGINAL_VARIANT =
@@ -64,7 +66,8 @@ data class Transformation(
                 quality == it.quality &&
                 padding == it.padding &&
                 metadata == it.metadata &&
-                colorSpace == it.colorSpace
+                colorSpace == it.colorSpace &&
+                pixel == it.pixel
         }
     }
 
@@ -83,6 +86,9 @@ data class Transformation(
         result = 31 * result + filter.hashCode()
         result = 31 * result + padding.hashCode()
         result = 31 * result + metadata.hashCode()
+        result = 31 * result + colorSpace.hashCode()
+        result = 31 * result + isColorSpaceLocked.hashCode()
+        result = 31 * result + pixel.hashCode()
         return result
     }
 }

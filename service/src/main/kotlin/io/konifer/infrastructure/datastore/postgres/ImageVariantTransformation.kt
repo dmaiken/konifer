@@ -11,6 +11,7 @@ import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
@@ -37,6 +38,7 @@ data class ImageVariantTransformation(
     val metadata: ImageVariantMetadata = ImageVariantMetadata.default,
     @Serializable(with = ColorSpaceSerializer::class)
     val colorSpace: ColorSpace = ColorSpace.SRGB,
+    val pixels: ImageVariantPixels? = null,
 ) {
     companion object Factory {
         fun originalTransformation(attributes: Attributes) =
@@ -71,6 +73,7 @@ data class ImageVariantTransformation(
                 padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
                 metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
                 colorSpace = transformation.colorSpace,
+                pixels = transformation.pixel?.let(ImageVariantPixels::fromPixelTransformation),
             )
     }
 
@@ -133,6 +136,18 @@ data class ImageVariantMetadata(
             // IMPORTANT: this must be sorted alphabetically to ensure proper variant querying!!
             ImageVariantMetadata(
                 strip = transformation.strip.toList().sortedBy { it.name },
+            )
+    }
+}
+
+@Serializable
+data class ImageVariantPixels(
+    val pixelLayout: String,
+) {
+    companion object Factory {
+        fun fromPixelTransformation(pixelTransformation: PixelTransformation): ImageVariantPixels =
+            ImageVariantPixels(
+                pixelLayout = pixelTransformation.layout.value,
             )
     }
 }

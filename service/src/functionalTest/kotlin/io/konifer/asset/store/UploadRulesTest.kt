@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -172,7 +171,7 @@ class UploadRulesTest : BaseFunctionalTest() {
     }
 
     @ParameterizedTest
-    @EnumSource(ImageFormat::class)
+    @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
     fun `accept rule allows matching images in every format`(format: ImageFormat) =
         handle.test {
             val (image, attributes) =

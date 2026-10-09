@@ -9,7 +9,6 @@ import io.konifer.infrastructure.rules.inference.embedding.OnnxEmbeddingExtracto
 import io.konifer.infrastructure.rules.l2Normalize
 import io.konifer.infrastructure.vips.processor.ImageTensor
 import io.ktor.util.logging.KtorSimpleLogger
-import java.nio.FloatBuffer
 
 class Siglip2ContentEmbeddingService(
     private val ortEnvironment: OrtEnvironment,
@@ -28,7 +27,7 @@ class Siglip2ContentEmbeddingService(
         OnnxTensor
             .createTensor(
                 ortEnvironment,
-                FloatBuffer.wrap(tensor.values),
+                tensor.values,
                 tensor.shape,
             ).use { tensor ->
                 ortSession

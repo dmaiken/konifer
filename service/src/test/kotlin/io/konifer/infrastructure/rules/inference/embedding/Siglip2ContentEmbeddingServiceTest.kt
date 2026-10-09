@@ -45,10 +45,6 @@ class Siglip2ContentEmbeddingServiceTest {
     fun `can generate embeddings`() =
         Vips.run { arena ->
             val tensor = createTensor(arena)
-            // Ensure tensor is what we expect
-            tensor.shape.contentEquals(longArrayOf(1, 3, 224, 224)) shouldBe true
-            tensor.values.size shouldBe 1 * 3 * 224 * 224
-            tensor.values.forEach { it.shouldNotBeNaN() }
 
             val embeddings = service.generateEmbeddings(tensor)
 

@@ -13,7 +13,7 @@ data class QueryRequestContext(
     val transformation: Transformation?,
     val labels: Map<String, String>,
     val request: HttpRequest,
-)
+) : RequestContext
 
 data class HttpRequest(
     val parameters: Parameters,

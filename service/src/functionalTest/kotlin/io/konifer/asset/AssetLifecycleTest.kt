@@ -23,11 +23,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 
 class AssetLifecycleTest : BaseFunctionalTest() {
     @ParameterizedTest
-    @EnumSource(ImageFormat::class)
+    @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
     fun `can create and get still image`(format: ImageFormat) =
         testInMemory {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readBytes()
