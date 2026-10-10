@@ -17,7 +17,7 @@ import io.konifer.common.image.ManipulationParameters.GRAVITY
 import io.konifer.common.image.ManipulationParameters.HEIGHT
 import io.konifer.common.image.ManipulationParameters.PAD
 import io.konifer.common.image.ManipulationParameters.PAD_COLOR
-import io.konifer.common.image.ManipulationParameters.PIXEL_LAYOUT
+import io.konifer.common.image.ManipulationParameters.PIXEL_CHANNELS
 import io.konifer.common.image.ManipulationParameters.QUALITY
 import io.konifer.common.image.ManipulationParameters.ROTATE
 import io.konifer.common.image.ManipulationParameters.STRIP
@@ -38,7 +38,7 @@ import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
-import io.konifer.domain.transformation.pixel.toPixelLayout
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
@@ -227,7 +227,7 @@ class RequestContextFactory(
                     TransformableColorSpace.fromQueryParameters(parameters, COLOR_SPACE)
                         ?: variantProfile?.colorSpace
                         ?: TransformableColorSpace.default,
-                pixelLayout = parameters[PIXEL_LAYOUT]?.toPixelLayout() ?: variantProfile?.pixelLayout,
+                pixelChannels = parameters[PIXEL_CHANNELS]?.toPixelChannels() ?: variantProfile?.pixelChannels,
             )
         }
     }

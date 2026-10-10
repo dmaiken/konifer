@@ -10,10 +10,10 @@ import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

@@ -11,8 +11,8 @@ import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
@@ -87,6 +87,7 @@ class VipsImageProcessor {
                 image = outputSource,
                 sourceFormat = sourceFormat,
                 destinationFormat = transformation.format,
+                pixelTransformation = transformation.pixels,
             ),
         )
         // we always want to generate lqips if configured when preprocessing even if the pipeline
@@ -163,6 +164,7 @@ class VipsImageProcessor {
                             image = outputSource,
                             sourceFormat = sourceFormat,
                             destinationFormat = transformation.format,
+                            pixelTransformation = transformation.pixels,
                         ),
                     )
 

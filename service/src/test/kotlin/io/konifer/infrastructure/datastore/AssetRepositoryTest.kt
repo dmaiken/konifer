@@ -18,10 +18,10 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.retention.CacheProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

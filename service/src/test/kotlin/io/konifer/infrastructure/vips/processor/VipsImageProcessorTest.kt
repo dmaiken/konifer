@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
@@ -123,8 +124,8 @@ class VipsImageProcessorTest {
 
         @CartesianTest
         fun `formats can be converted to supported image formats`(
-            @CartesianTest.Enum(ImageFormat::class) source: ImageFormat,
-            @CartesianTest.Enum(ImageFormat::class) destination: ImageFormat,
+            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PIXELS"]) source: ImageFormat,
+            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PIXELS"]) destination: ImageFormat,
         ) = runTest {
             testImageFormatConversion(source, destination)
         }
@@ -286,7 +287,7 @@ class VipsImageProcessorTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `image lqips are generated regardless of image format when preprocessing`(format: ImageFormat) =
             runTest {
                 testImageFormatConversion(ImageFormat.JPEG, format, LQIPImplementation.entries.toSet())

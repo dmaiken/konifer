@@ -10,6 +10,7 @@ object ImageFactory {
     private const val LARGE_PATH = "/images/large/large"
     private const val MOON_PATH = "/images/moon_transparency"
     private const val KERMIT_PATH = "/images/kermit/kermit"
+    private const val GRAYSCALE_PATH = "/images/colorspace/gray"
 
     fun testImage(
         format: ImageFormat = ImageFormat.JPEG,
@@ -45,6 +46,15 @@ object ImageFactory {
             TestImageType.KERMIT -> {
                 require(format.vipsProperties.supportsPaging) { "Kermit formats must support paging!" }
                 val bytes = javaClass.getResourceAsStream("$KERMIT_PATH${format.extension}")!!.readBytes()
+                TestImage(
+                    bytes = bytes,
+                    attributes = bytes.toAttributes(format),
+                )
+            }
+
+            TestImageType.GRAY -> {
+                require(format == ImageFormat.JPEG) { "Grayscale images are only supported in JPEG format" }
+                val bytes = javaClass.getResourceAsStream("$GRAYSCALE_PATH${format.extension}")!!.readBytes()
                 TestImage(
                     bytes = bytes,
                     attributes = bytes.toAttributes(format),
@@ -121,4 +131,9 @@ enum class TestImageType {
      * Multi-paged images
      */
     KERMIT,
+
+    /**
+     * Grayscale image
+     */
+    GRAY,
 }

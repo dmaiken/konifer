@@ -19,7 +19,7 @@ object PixelTransformationNormalizer {
         }
 
         return PixelTransformation(
-            layout = requested.pixelLayout ?: PixelLayout.default,
+            channels = requested.pixelChannels ?: PixelChannels.default,
         )
     }
 }

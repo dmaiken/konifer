@@ -2,8 +2,8 @@ package io.konifer.domain.ports
 
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.transformation.Transformation
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path

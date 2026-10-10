@@ -7,7 +7,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelTransformation
-import io.konifer.domain.transformation.pixel.toPixelLayout
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -124,7 +124,7 @@ class RawPixelEncoderTest {
             val source = VImage.black(arena, 2, 1).bandjoinConst(listOf(0.0, 0.0))
 
             shouldThrow<IllegalStateException> {
-                RawPixelEncoder.writeToStream(arena, source, transformation("RGB").copy(pixel = null), ByteChannel())
+                RawPixelEncoder.writeToStream(arena, source, transformation("RGB").copy(pixels = null), ByteChannel())
             }.message shouldBe "Pixel layout missing despite format of pixels"
         }
     }
@@ -155,7 +155,7 @@ class RawPixelEncoderTest {
             height = 1.toDimension(),
             format = ImageFormat.PIXELS,
             colorSpace = ColorSpace.SRGB,
-            pixel = PixelTransformation(layout.toPixelLayout()),
+            pixels = PixelTransformation(layout.toPixelChannels()),
         )
 
     private suspend fun encode(

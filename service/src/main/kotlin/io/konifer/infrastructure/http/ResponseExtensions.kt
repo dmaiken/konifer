@@ -6,16 +6,17 @@ import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
+import io.konifer.common.http.PixelAttributesResponse
 import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
 import io.konifer.common.image.Flip
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.transformation.Transformation
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.datetime.toKotlinLocalDateTime
 
 fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
@@ -86,6 +87,12 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
         colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
         loop = attributes.loop,
+        pixels =
+            attributes.pixels?.let {
+                PixelAttributesResponse(
+                    channels = it.channels.value.lowercase(),
+                )
+            },
     )
 
 fun TransformationResponse.Factory.fromTransformation(transformation: Transformation): TransformationResponse =

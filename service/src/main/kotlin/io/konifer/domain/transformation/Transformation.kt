@@ -36,8 +36,16 @@ data class Transformation(
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
     val isAutoRotate: Boolean = false,
-    val pixel: PixelTransformation? = null,
+    val pixels: PixelTransformation? = null,
 ) {
+    init {
+        if (format != ImageFormat.PIXELS) {
+            require(pixels == null) {
+                "Cannot have pixel transformation if format is not pixels"
+            }
+        }
+    }
+
     companion object Factory {
         val ORIGINAL_VARIANT =
             Transformation(
@@ -67,7 +75,7 @@ data class Transformation(
                 padding == it.padding &&
                 metadata == it.metadata &&
                 colorSpace == it.colorSpace &&
-                pixel == it.pixel
+                pixels == it.pixels
         }
     }
 
@@ -88,7 +96,7 @@ data class Transformation(
         result = 31 * result + metadata.hashCode()
         result = 31 * result + colorSpace.hashCode()
         result = 31 * result + isColorSpaceLocked.hashCode()
-        result = 31 * result + pixel.hashCode()
+        result = 31 * result + pixels.hashCode()
         return result
     }
 }

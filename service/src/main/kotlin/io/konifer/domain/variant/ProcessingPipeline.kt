@@ -1,6 +1,7 @@
 package io.konifer.domain.variant
 
 import io.konifer.domain.rules.UploadRuleDecision
+import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.Deferred
 import java.nio.file.Path

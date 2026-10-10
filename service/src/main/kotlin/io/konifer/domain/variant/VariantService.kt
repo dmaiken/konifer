@@ -13,6 +13,7 @@ import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.retention.RetentionProperties
 import io.konifer.domain.variant.retention.VariantExpirationStrategy
 import io.ktor.util.logging.KtorSimpleLogger

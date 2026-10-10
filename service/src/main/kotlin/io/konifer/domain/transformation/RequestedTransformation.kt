@@ -9,7 +9,7 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.transformation.pixel.PixelLayout
+import io.konifer.domain.transformation.pixel.PixelChannels
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -48,8 +48,8 @@ data class RequestedTransformation(
     val stripMetadata: String? = null,
     @SerialName(ManipulationParameters.COLOR_SPACE)
     val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
-    @SerialName(ManipulationParameters.PIXEL_LAYOUT)
-    val pixelLayout: PixelLayout? = null,
+    @SerialName(ManipulationParameters.PIXEL_CHANNELS)
+    val pixelChannels: PixelChannels? = null,
 ) {
     init {
         validate()

@@ -64,7 +64,7 @@ class ColorFilterTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `when filter is greyscale then image is converted to greyscale`(format: ImageFormat) =
             runTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
@@ -154,7 +154,7 @@ class ColorFilterTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class, mode = Mode.EXCLUDE, names = ["PNG"])
+        @EnumSource(ImageFormat::class, mode = Mode.EXCLUDE, names = ["PNG", "PIXELS"])
         fun `when filter is black white then image is converted to black and white for alpha-supporting formats`(format: ImageFormat) =
             runTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
@@ -280,7 +280,7 @@ class ColorFilterTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `when filter is sepia then image is converted to sepia`(format: ImageFormat) =
             runTest {
                 val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()

@@ -5,6 +5,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.assertions.throwables.shouldThrow
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

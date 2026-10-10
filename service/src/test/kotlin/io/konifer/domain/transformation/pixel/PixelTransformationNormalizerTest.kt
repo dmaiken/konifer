@@ -15,7 +15,7 @@ class PixelTransformationNormalizerTest {
     @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
     fun `does not normalize pixel layout for other output formats`(format: ImageFormat) {
         PixelTransformationNormalizer.normalizePixelTransformation(
-            requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelLayout = "BGRA".toPixelLayout()),
+            requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = "BGRA".toPixelChannels()),
             normalizedColorSpace = ColorSpace.Grayscale,
             normalizedFormat = format,
         ) shouldBe null
@@ -27,24 +27,24 @@ class PixelTransformationNormalizerTest {
             requested = RequestedTransformation(),
             normalizedColorSpace = ColorSpace.SRGB,
             normalizedFormat = ImageFormat.PIXELS,
-        ) shouldBe PixelTransformation(layout = "RGB".toPixelLayout())
+        ) shouldBe PixelTransformation(channels = "RGB".toPixelChannels())
     }
 
     @ParameterizedTest
     @ValueSource(strings = ["RGB", "RGBA", "BGR", "BGRA", "ARGB", "ABGR"])
     fun `preserves requested pixel layout`(layout: String) {
         PixelTransformationNormalizer.normalizePixelTransformation(
-            requested = RequestedTransformation(pixelLayout = layout.toPixelLayout()),
+            requested = RequestedTransformation(pixelChannels = layout.toPixelChannels()),
             normalizedColorSpace = ColorSpace.P3,
             normalizedFormat = ImageFormat.PIXELS,
-        ) shouldBe PixelTransformation(layout = layout.toPixelLayout())
+        ) shouldBe PixelTransformation(channels = layout.toPixelChannels())
     }
 
     @Test
     fun `rejects normalized grayscale color space for pixels`() {
         shouldThrow<IllegalArgumentException> {
             PixelTransformationNormalizer.normalizePixelTransformation(
-                requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelLayout = "RGBA".toPixelLayout()),
+                requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = "RGBA".toPixelChannels()),
                 normalizedColorSpace = ColorSpace.Grayscale,
                 normalizedFormat = ImageFormat.PIXELS,
             )

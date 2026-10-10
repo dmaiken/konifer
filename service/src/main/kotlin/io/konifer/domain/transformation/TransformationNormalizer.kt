@@ -8,7 +8,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -124,7 +124,7 @@ class TransformationNormalizer(
             colorSpace = colorspace,
             isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
             isAutoRotate = isAutoRotate,
-            pixel =
+            pixels =
                 normalizePixelTransformation(
                     requested = requested,
                     normalizedColorSpace = colorspace,

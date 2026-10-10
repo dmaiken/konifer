@@ -21,7 +21,7 @@ object ManipulationParameters {
 
     const val VARIANT_PROFILE = "profile"
 
-    const val PIXEL_LAYOUT = "pixel-layout"
+    const val PIXEL_CHANNELS = "pixel-channels"
 
     /**
      * All parameters minus [VARIANT_PROFILE]. New manipulation parameters must go in here for proper variant
@@ -43,7 +43,7 @@ object ManipulationParameters {
             PAD_COLOR,
             STRIP,
             COLOR_SPACE,
-            PIXEL_LAYOUT,
+            PIXEL_CHANNELS,
         )
 }
 

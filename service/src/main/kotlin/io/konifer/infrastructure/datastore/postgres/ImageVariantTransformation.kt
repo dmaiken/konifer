@@ -12,15 +12,18 @@ import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.serialization.Serializable
 
 /**
  * This class exists separately from [Attributes] because it will be serialized into the datastore.
+ *
+ * EVERY NEW FIELD REQUIRES A DEFAULT VALUE FOR BACKWARDS COMPATABILITY.
  */
 @Serializable
 data class ImageVariantTransformation(
@@ -56,6 +59,7 @@ data class ImageVariantTransformation(
                 padding = ImageVariantPadding.default,
                 metadata = ImageVariantMetadata.default,
                 colorSpace = attributes.colorSpace,
+                pixels = null,
             )
 
         fun from(transformation: Transformation): ImageVariantTransformation =
@@ -73,7 +77,7 @@ data class ImageVariantTransformation(
                 padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
                 metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
                 colorSpace = transformation.colorSpace,
-                pixels = transformation.pixel?.let(ImageVariantPixels::fromPixelTransformation),
+                pixels = transformation.pixels?.let(ImageVariantPixels::fromPixelTransformation),
             )
     }
 
@@ -99,6 +103,12 @@ data class ImageVariantTransformation(
                     strip = this.metadata.strip.toSet(),
                 ),
             colorSpace = this.colorSpace,
+            pixels =
+                this.pixels?.let {
+                    PixelTransformation(
+                        channels = it.channels.toPixelChannels(),
+                    )
+                },
         )
 }
 
@@ -142,12 +152,12 @@ data class ImageVariantMetadata(
 
 @Serializable
 data class ImageVariantPixels(
-    val pixelLayout: String,
+    val channels: String,
 ) {
     companion object Factory {
         fun fromPixelTransformation(pixelTransformation: PixelTransformation): ImageVariantPixels =
             ImageVariantPixels(
-                pixelLayout = pixelTransformation.layout.value,
+                channels = pixelTransformation.channels.value,
             )
     }
 }

@@ -86,11 +86,14 @@ class Siglip2ContentEmbeddingServiceTest {
         val sourceFile = Files.createTempFile("siglip2-content-embedding", format.extension)
         Files.write(sourceFile, image.bytes)
         sourceFile.toFile().deleteOnExit()
-        return tensorProcessor.process(
-            arena = arena,
-            sourceFile = sourceFile,
-            sourceFormat = format,
-            tensorTransformation = Siglip2TensorTransformation,
-        )
+        return tensorProcessor
+            .process(
+                arena = arena,
+                sourceFile = sourceFile,
+                sourceFormat = format,
+                tensorTransformation = Siglip2TensorTransformation,
+            ).also {
+                it.values.isDirect shouldBe true
+            }
     }
 }

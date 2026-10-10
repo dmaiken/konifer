@@ -93,7 +93,6 @@ class VipsTensorProcessor {
             }
         }
 
-        tensorBuffer
         return tensorBuffer
     }
 

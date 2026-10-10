@@ -25,9 +25,9 @@ object RawPixelEncoder : VipsEncoder {
             source.getInt(OPTION_BANDS)
                 ?: throw IllegalStateException("Unable to determine image band count")
         val pixelLayout =
-            checkNotNull(transformation.pixel) {
+            checkNotNull(transformation.pixels) {
                 "Pixel layout missing despite format of ${transformation.format.format}"
-            }.layout.value.toCharArray()
+            }.channels.value.toCharArray()
 
         require(bands in (3..4)) {
             "Expected 3 or 4 RGB bands when normalizing image tensor but found $bands bands"
