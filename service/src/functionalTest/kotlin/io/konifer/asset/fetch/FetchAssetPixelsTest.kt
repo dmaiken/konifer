@@ -283,4 +283,54 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     },
                 ).fetchLink() shouldHaveHttpError 400
         }
+
+    @Test
+    fun `quality is ignored when requesting pixel format`() =
+        testInMemory {
+            val (image, attributes) = ImageFactory.testImage()
+
+            konifer()
+                .assets("/users/123/profile-picture")
+                .newAsset()
+                .fromBytes(image, attributes.format)
+                .store()
+
+            val variantWithoutQualitySpecified =
+                konifer()
+                    .assets("/users/123/profile-picture")
+                    .variant(
+                        requestedTransformation {
+                            format = ImageFormat.PIXELS
+                        },
+                    )
+            val variantWithQualitySpecified =
+                konifer()
+                    .assets("/users/123/profile-picture")
+                    .variant(
+                        requestedTransformation {
+                            format = ImageFormat.PIXELS
+                            quality = 50
+                        },
+                    )
+            val noQualityVariant =
+                variantWithoutQualitySpecified
+                    .fetchContentBytes()
+                    .shouldBeSuccessful()
+                    .body
+            val withQualityVariant =
+                variantWithQualitySpecified
+                    .fetchContentBytes()
+                    .shouldBeSuccessful()
+                    .body
+            withQualityVariant.contentEquals(noQualityVariant) shouldBe true
+
+            // Ensure only one non-original variant exists
+            konifer()
+                .assets("/users/123/profile-picture")
+                .fetchInfo()
+                .shouldBeSuccessful()
+                .body
+                .variants
+                .filterNot { it.isOriginalVariant } shouldHaveSize 1
+        }
 }

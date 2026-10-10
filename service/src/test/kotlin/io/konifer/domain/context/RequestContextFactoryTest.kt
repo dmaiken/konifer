@@ -746,8 +746,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
                 context.pathConfiguration shouldBe PathConfiguration.default
                 (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
+                context.specification.transformation.width shouldBe 500.toDimension()
+                context.specification.transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldBe emptyMap()
             }
 
@@ -980,8 +980,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
+                context.specification.transformation.width shouldBe 500.toDimension()
+                context.specification.transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainExactly
                     mapOf(
                         "phone" to "iphone",
@@ -1017,8 +1017,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
+                context.specification.transformation.width shouldBe 500.toDimension()
+                context.specification.transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1051,8 +1051,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
+                context.specification.transformation.width shouldBe 500.toDimension()
+                context.specification.transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1161,7 +1161,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe variantConfig.format
+                context.specification.transformation.format shouldBe variantConfig.format
             }
 
         @Test
@@ -1189,7 +1189,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.HEIC
+                context.specification.transformation.format shouldBe ImageFormat.HEIC
             }
 
         @ParameterizedTest

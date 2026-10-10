@@ -12,11 +12,16 @@ import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.variant.attribute.Attributes
 import kotlin.collections.emptyList
 
+// Is there a better way to match transformations here? I feel this
+// is starting to grow and may become spaghetti (if it's not already)
 data class Transformation(
     val width: Dimension,
     val height: Dimension,
     val fit: Fit = Fit.default,
     val gravity: Gravity = Gravity.default,
+    /**
+     * Not included in equals() or hashcode()
+     */
     val canUpscale: Boolean = true,
     val format: ImageFormat,
     /**
@@ -31,10 +36,15 @@ data class Transformation(
     /**
      * Whether the customer explicitly requested this color space or if it was derived from the
      * source image's attributes
+     *
+     * Not included in equals() or hashcode()
      */
     val isColorSpaceLocked: Boolean = false,
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
+    /**
+     * Not included in equals() or hashcode()
+     */
     val isAutoRotate: Boolean = false,
     val pixels: PixelTransformation? = null,
 ) {
@@ -56,6 +66,48 @@ data class Transformation(
                 colorSpace = attributes.colorSpace,
                 pixels = attributes.pixels?.let { PixelTransformation(channels = it.channels) },
             )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Transformation
+
+        if (horizontalFlip != other.horizontalFlip) return false
+        if (width != other.width) return false
+        if (height != other.height) return false
+        if (fit != other.fit) return false
+        if (gravity != other.gravity) return false
+        if (format != other.format) return false
+        if (rotate != other.rotate) return false
+        if (filter != other.filter) return false
+        if (blur != other.blur) return false
+        if (quality != other.quality) return false
+        if (colorSpace != other.colorSpace) return false
+        if (padding != other.padding) return false
+        if (metadata != other.metadata) return false
+        if (pixels != other.pixels) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = horizontalFlip.hashCode()
+        result = 31 * result + width.hashCode()
+        result = 31 * result + height.hashCode()
+        result = 31 * result + fit.hashCode()
+        result = 31 * result + gravity.hashCode()
+        result = 31 * result + format.hashCode()
+        result = 31 * result + rotate.hashCode()
+        result = 31 * result + filter.hashCode()
+        result = 31 * result + blur.hashCode()
+        result = 31 * result + quality.hashCode()
+        result = 31 * result + colorSpace.hashCode()
+        result = 31 * result + padding.hashCode()
+        result = 31 * result + metadata.hashCode()
+        result = 31 * result + pixels.hashCode()
+        return result
     }
 }
 

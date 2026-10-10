@@ -278,7 +278,7 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
                 pixels = content,
                 height = originalVariantAttributes.height,
                 width = originalVariantAttributes.width,
-                channels = pixelChannels.uppercase(),
+                channels = pixelChannels,
                 format = format,
             )
         PHash.hammingDistance(reconstructed, image) shouldBeLessThanOrEqual
