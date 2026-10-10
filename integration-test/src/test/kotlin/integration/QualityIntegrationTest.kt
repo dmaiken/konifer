@@ -17,6 +17,8 @@ class QualityIntegrationTest : BaseIntegrationTest() {
     fun `can request variant in specified qualities`(): List<DynamicTest> {
         val tests = mutableListOf<DynamicTest>()
         for (format in ImageFormat.entries) {
+            // PIXELS is not a supported input format
+            if (format == ImageFormat.PIXELS) continue
             listOf(1, 100).forEach { quality ->
                 tests.add(
                     dynamicTest("can request ${format.name} with quality $quality") {

@@ -2,7 +2,10 @@ package io.konifer.infrastructure.vips.transformer
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import io.konifer.common.image.ImageFormat
+import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.pipeline.AppliedTransformation
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldContainAll
@@ -13,6 +16,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class StripThumbnailExifTest {
+    private val transformation =
+        Transformation(
+            width = 1.toDimension(),
+            height = 1.toDimension(),
+            format = ImageFormat.PNG,
+            colorSpace = ColorSpace.SRGB,
+        )
+
     @Nested
     inner class TransformTests {
         @Test
@@ -34,7 +45,7 @@ class StripThumbnailExifTest {
                         arena = arena,
                         source = source,
                         // Transformation doesn't matter here
-                        transformation = Transformation.ORIGINAL_VARIANT,
+                        transformation = transformation,
                     )
 
                 result.requiresLqipRegeneration shouldBe false
@@ -64,7 +75,7 @@ class StripThumbnailExifTest {
                             arena = arena,
                             source = source,
                             // Transformation doesn't matter here
-                            transformation = Transformation.ORIGINAL_VARIANT,
+                            transformation = transformation,
                         )
                     }
 
@@ -88,7 +99,7 @@ class StripThumbnailExifTest {
                     TransformationContext(
                         arena = arena,
                         source = source,
-                        transformation = Transformation.ORIGINAL_VARIANT,
+                        transformation = transformation,
                         appliedTransformations =
                             listOf(
                                 AppliedTransformation(
@@ -115,7 +126,7 @@ class StripThumbnailExifTest {
                 val source = VImage.newFromBytes(arena, image)
 
                 StripThumbnailExif.decide(
-                    TransformationContext(arena, source, Transformation.ORIGINAL_VARIANT, emptyList()),
+                    TransformationContext(arena, source, transformation, emptyList()),
                 ) shouldBe TransformationDecision.Skip
             }
         }
@@ -133,7 +144,7 @@ class StripThumbnailExifTest {
                     TransformationContext(
                         arena = arena,
                         source = source,
-                        transformation = Transformation.ORIGINAL_VARIANT,
+                        transformation = transformation,
                         appliedTransformations =
                             listOf(
                                 AppliedTransformation(
@@ -159,7 +170,7 @@ class StripThumbnailExifTest {
                     TransformationContext(
                         arena = arena,
                         source = source,
-                        transformation = Transformation.ORIGINAL_VARIANT,
+                        transformation = transformation,
                         appliedTransformations =
                             listOf(
                                 AppliedTransformation(

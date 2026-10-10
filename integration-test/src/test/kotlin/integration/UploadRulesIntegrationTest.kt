@@ -12,7 +12,7 @@ import java.util.UUID
 
 class UploadRulesIntegrationTest : BaseIntegrationTest() {
     @ParameterizedTest
-    @EnumSource(value = ImageFormat::class)
+    @EnumSource(value = ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
     fun `can store asset that passes upload rules`(format: ImageFormat) {
         runBlocking {
             val path = UUID.randomUUID().toString()

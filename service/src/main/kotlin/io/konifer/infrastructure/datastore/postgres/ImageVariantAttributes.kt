@@ -2,8 +2,10 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.attribute.PixelAttributes
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +20,7 @@ data class ImageVariantAttributes(
     val colorSpace: ColorSpace = ColorSpace.Unknown,
     val pageCount: Int? = null,
     val loop: Int? = null,
+    val pixels: ImageVariantPixelAttributes? = null,
 ) {
     companion object Factory {
         fun from(attributes: Attributes) =
@@ -28,6 +31,12 @@ data class ImageVariantAttributes(
                 colorSpace = attributes.colorSpace,
                 pageCount = attributes.pageCount,
                 loop = attributes.loop,
+                pixels =
+                    attributes.pixels?.let {
+                        ImageVariantPixelAttributes(
+                            channels = it.channels,
+                        )
+                    },
             )
     }
 
@@ -39,5 +48,16 @@ data class ImageVariantAttributes(
             pageCount = this.pageCount ?: 1,
             loop = this.loop,
             colorSpace = this.colorSpace,
+            pixels = this.pixels?.toPixelAttributes(),
+        )
+}
+
+@Serializable
+data class ImageVariantPixelAttributes(
+    val channels: PixelChannels,
+) {
+    fun toPixelAttributes(): PixelAttributes =
+        PixelAttributes(
+            channels = channels,
         )
 }

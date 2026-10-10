@@ -6,16 +6,18 @@ import io.konifer.common.http.AttributeResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
+import io.konifer.common.http.PixelAttributesResponse
 import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
 import io.konifer.common.image.Flip
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.transformation.Transformation
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.datetime.toKotlinLocalDateTime
 
 fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
@@ -56,10 +58,9 @@ fun VariantResponse.Factory.fromVariantData(variantData: VariantData): VariantRe
         attributes = AttributeResponse.fromAttributes(variantData.attributes),
         lqip = LQIPResponse.fromLqips(variantData.lqips),
         transformation =
-            if (variantData.isOriginalVariant) {
-                null
-            } else {
-                TransformationResponse.fromTransformation(variantData.transformation)
+            when (val specification = variantData.specification) {
+                VariantSpecification.Original -> null
+                is VariantSpecification.Transformed -> TransformationResponse.fromTransformation(specification.transformation)
             },
     )
 
@@ -71,10 +72,9 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
         attributes = AttributeResponse.fromAttributes(variant.attributes),
         lqip = LQIPResponse.fromLqips(variant.lqips),
         transformation =
-            if (variant.isOriginalVariant) {
-                null
-            } else {
-                TransformationResponse.fromTransformation(variant.transformation)
+            when (val specification = variant.specification) {
+                VariantSpecification.Original -> null
+                is VariantSpecification.Transformed -> TransformationResponse.fromTransformation(specification.transformation)
             },
     )
 
@@ -86,6 +86,12 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
         colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
         loop = attributes.loop,
+        pixels =
+            attributes.pixels?.let {
+                PixelAttributesResponse(
+                    channels = it.channels.value.lowercase(),
+                )
+            },
     )
 
 fun TransformationResponse.Factory.fromTransformation(transformation: Transformation): TransformationResponse =

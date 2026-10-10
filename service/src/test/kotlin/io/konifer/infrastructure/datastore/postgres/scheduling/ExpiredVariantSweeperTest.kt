@@ -80,7 +80,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                 assetRepository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    transformation = null,
+                    specification = null,
                 ) shouldNotBe null
 
             val variants = asset!!.variants shouldHaveSize 2
@@ -129,7 +129,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                 assetRepository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    transformation = null,
+                    specification = null,
                 ) shouldNotBe null
 
             val variants = asset!!.variants shouldHaveSize 2

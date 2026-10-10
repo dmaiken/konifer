@@ -2,17 +2,19 @@ package io.konifer.infrastructure.vips.decode
 
 import app.photofox.vipsffm.VImage
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.createDecoderOptions
 import java.lang.foreign.Arena
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
-object VipsFileDecoder {
-    fun decodeSource(
+object VipsFileDecoder : VipsDecoder {
+    override fun decodeSource(
         arena: Arena,
         destinationFormat: ImageFormat,
         sourceFormat: ImageFormat,
         source: Path,
+        sourceAttributes: Attributes?,
     ): VImage {
         val decoderOptions =
             createDecoderOptions(

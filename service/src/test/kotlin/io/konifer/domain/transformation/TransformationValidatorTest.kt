@@ -16,16 +16,6 @@ import org.junit.jupiter.params.provider.EnumSource
 
 class TransformationValidatorTest {
     @Test
-    fun `original variant bypasses transformation limits`() {
-        shouldNotThrowAny {
-            TransformationValidator.validateNormalizedTransformation(
-                transformProperties = transformProperties(maxWidth = 1, maxHeight = 1, maxPixels = 1),
-                transformation = transformation(width = 100, height = 200).copy(originalVariant = true),
-            )
-        }
-    }
-
-    @Test
     fun `dimensions and pixels can equal their limits`() {
         shouldNotThrowAny {
             TransformationValidator.validateNormalizedTransformation(

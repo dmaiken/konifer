@@ -6,7 +6,7 @@ import io.konifer.domain.rules.upload.DefaultRuleAction
 data class StoreRequestContext(
     val path: String,
     val pathConfiguration: PathConfiguration,
-) {
+) : RequestContext {
     /**
      * Does the asset require preprocessing? This is false only when processing is disabled within
      * path configuration and there are no lqips to generate.

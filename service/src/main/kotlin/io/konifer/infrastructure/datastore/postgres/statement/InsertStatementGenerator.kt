@@ -6,6 +6,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetTags
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
 import io.konifer.infrastructure.datastore.postgres.VariantParameterGenerator
 import io.konifer.infrastructure.datastore.postgres.postgresJson
@@ -97,10 +98,16 @@ object InsertStatementGenerator {
     context(trx: DSLContext)
     fun insertVariant(variant: Variant): InsertResultStep<AssetVariantRecord> {
         val transformations =
-            if (variant.isOriginalVariant) {
-                VariantParameterGenerator.generateImageVariantTransformations(variant.attributes)
-            } else {
-                VariantParameterGenerator.generateImageVariantTransformations(variant.transformation)
+            when (val specification = variant.specification) {
+                VariantSpecification.Original -> {
+                    VariantParameterGenerator.generateImageVariantTransformations(variant.attributes)
+                }
+
+                is VariantSpecification.Transformed -> {
+                    VariantParameterGenerator.generateImageVariantTransformations(
+                        specification.transformation,
+                    )
+                }
             }
         val attributes = VariantParameterGenerator.generateImageVariantAttributes(variant.attributes)
         val lqip = postgresJson.encodeToString(variant.lqips)

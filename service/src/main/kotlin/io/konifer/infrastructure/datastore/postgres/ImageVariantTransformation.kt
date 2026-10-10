@@ -11,15 +11,19 @@ import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.serialization.Serializable
 
 /**
  * This class exists separately from [Attributes] because it will be serialized into the datastore.
+ *
+ * EVERY NEW FIELD REQUIRES A DEFAULT VALUE FOR BACKWARDS COMPATABILITY.
  */
 @Serializable
 data class ImageVariantTransformation(
@@ -37,24 +41,10 @@ data class ImageVariantTransformation(
     val metadata: ImageVariantMetadata = ImageVariantMetadata.default,
     @Serializable(with = ColorSpaceSerializer::class)
     val colorSpace: ColorSpace = ColorSpace.SRGB,
+    val pixels: ImageVariantPixels? = null,
 ) {
     companion object Factory {
-        fun originalTransformation(attributes: Attributes) =
-            ImageVariantTransformation(
-                width = attributes.width.value,
-                height = attributes.height.value,
-                format = attributes.format,
-                fit = Fit.default,
-                gravity = Gravity.default,
-                rotate = Rotate.default,
-                horizontalFlip = false,
-                filter = Filter.default,
-                blur = 0,
-                quality = attributes.format.vipsProperties.defaultQuality,
-                padding = ImageVariantPadding.default,
-                metadata = ImageVariantMetadata.default,
-                colorSpace = attributes.colorSpace,
-            )
+        fun originalTransformation(attributes: Attributes) = from(Transformation.fromAttributes(attributes))
 
         fun from(transformation: Transformation): ImageVariantTransformation =
             ImageVariantTransformation(
@@ -71,6 +61,7 @@ data class ImageVariantTransformation(
                 padding = ImageVariantPadding.fromPaddingTransformation(transformation.padding),
                 metadata = ImageVariantMetadata.fromMetadataTransformation(transformation.metadata),
                 colorSpace = transformation.colorSpace,
+                pixels = transformation.pixels?.let(ImageVariantPixels::fromPixelTransformation),
             )
     }
 
@@ -96,6 +87,12 @@ data class ImageVariantTransformation(
                     strip = this.metadata.strip.toSet(),
                 ),
             colorSpace = this.colorSpace,
+            pixels =
+                this.pixels?.let {
+                    PixelTransformation(
+                        channels = it.channels.toPixelChannels(),
+                    )
+                },
         )
 }
 
@@ -133,6 +130,18 @@ data class ImageVariantMetadata(
             // IMPORTANT: this must be sorted alphabetically to ensure proper variant querying!!
             ImageVariantMetadata(
                 strip = transformation.strip.toList().sortedBy { it.name },
+            )
+    }
+}
+
+@Serializable
+data class ImageVariantPixels(
+    val channels: String,
+) {
+    companion object Factory {
+        fun fromPixelTransformation(pixelTransformation: PixelTransformation): ImageVariantPixels =
+            ImageVariantPixels(
+                channels = pixelTransformation.channels.value,
             )
     }
 }

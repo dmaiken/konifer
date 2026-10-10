@@ -8,10 +8,11 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.variant.attribute.Attributes
 import kotlin.collections.emptyList
 
 data class Transformation(
-    val originalVariant: Boolean = false,
     val width: Dimension,
     val height: Dimension,
     val fit: Fit = Fit.default,
@@ -35,55 +36,26 @@ data class Transformation(
     val padding: PaddingTransformation = PaddingTransformation.default,
     val metadata: MetadataTransformation = MetadataTransformation.default,
     val isAutoRotate: Boolean = false,
+    val pixels: PixelTransformation? = null,
 ) {
-    companion object Factory {
-        val ORIGINAL_VARIANT =
-            Transformation(
-                originalVariant = true,
-                width = 1.toDimension(),
-                height = 1.toDimension(),
-                format = ImageFormat.PNG,
-                colorSpace = ColorSpace.SRGB,
-                isColorSpaceLocked = false,
-            )
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        (other as Transformation).let {
-            return width == it.width &&
-                height == it.height &&
-                fit == it.fit &&
-                gravity == it.gravity &&
-                format == it.format &&
-                rotate == it.rotate &&
-                horizontalFlip == it.horizontalFlip &&
-                filter == it.filter &&
-                blur == it.blur &&
-                quality == it.quality &&
-                padding == it.padding &&
-                metadata == it.metadata &&
-                colorSpace == it.colorSpace
+    init {
+        if (format != ImageFormat.PIXELS) {
+            require(pixels == null) {
+                "Cannot have pixel transformation if format is not pixels"
+            }
         }
     }
 
-    override fun hashCode(): Int {
-        var result = originalVariant.hashCode()
-        result = 31 * result + width.value
-        result = 31 * result + height.value
-        result = 31 * result + canUpscale.hashCode()
-        result = 31 * result + horizontalFlip.hashCode()
-        result = 31 * result + blur.value
-        result = 31 * result + quality.value
-        result = 31 * result + fit.hashCode()
-        result = 31 * result + gravity.hashCode()
-        result = 31 * result + format.hashCode()
-        result = 31 * result + rotate.hashCode()
-        result = 31 * result + filter.hashCode()
-        result = 31 * result + padding.hashCode()
-        result = 31 * result + metadata.hashCode()
-        return result
+    companion object {
+        /** Describes the transformation identity of stored original content for variant matching. */
+        fun fromAttributes(attributes: Attributes): Transformation =
+            Transformation(
+                width = attributes.width,
+                height = attributes.height,
+                format = attributes.format,
+                colorSpace = attributes.colorSpace,
+                pixels = attributes.pixels?.let { PixelTransformation(channels = it.channels) },
+            )
     }
 }
 

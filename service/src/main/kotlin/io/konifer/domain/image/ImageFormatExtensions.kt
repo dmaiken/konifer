@@ -92,4 +92,13 @@ val ImageFormat.vipsProperties: VipsProperties
                     supportsPaging = true,
                 )
             }
+
+            ImageFormat.PIXELS -> {
+                VipsProperties(
+                    supportsQuality = false,
+                    defaultQuality = 100,
+                    supportsAlpha = false,
+                    supportsPaging = false,
+                )
+            }
         }

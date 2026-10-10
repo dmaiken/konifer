@@ -27,11 +27,10 @@ fun Variant.toVariantData(): VariantData =
         objectStoreBucket = objectStoreBucket,
         objectStoreKey = objectStoreKey,
         attributes = attributes,
-        transformation = transformation,
+        specification = specification,
         lqips = lqips,
         createdAt = createdAt,
         uploadedAt = uploadedAt,
-        isOriginalVariant = isOriginalVariant,
         expiresAt = expiresAt,
         lastAccessedAt = uploadedAt,
     )

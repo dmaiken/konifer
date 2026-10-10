@@ -10,9 +10,9 @@ import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ProcessingPipeline
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.teeStream
 import io.ktor.util.cio.readChannel

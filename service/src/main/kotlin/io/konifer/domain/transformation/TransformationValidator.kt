@@ -9,8 +9,6 @@ object TransformationValidator {
         transformProperties: TransformProperties,
         transformation: Transformation,
     ) {
-        if (transformation.originalVariant) return
-
         val limits = transformProperties.limits
         val (outputWidth, outputHeight) = calculateOutputDimensions(transformation)
 

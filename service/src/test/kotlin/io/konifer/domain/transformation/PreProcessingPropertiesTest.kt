@@ -4,6 +4,7 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.Rotate
 import io.konifer.createPreProcessingProperties
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -161,5 +162,16 @@ class PreProcessingPropertiesTest {
                 )
             }
         properties.requestedImageTransformation.canUpscale shouldBe true
+    }
+
+    @Test
+    fun `toRequestedImageTransformation contains pixel channels if supplied`() {
+        val properties =
+            shouldNotThrowAny {
+                createPreProcessingProperties(
+                    pixelChannels = "rgba",
+                )
+            }
+        properties.requestedImageTransformation.pixelChannels shouldBe "rgba".toPixelChannels()
     }
 }

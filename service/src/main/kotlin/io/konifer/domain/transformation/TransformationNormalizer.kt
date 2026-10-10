@@ -7,7 +7,9 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
+import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
 import kotlinx.coroutines.CoroutineStart
@@ -31,18 +33,13 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
     ): Transformation =
         coroutineScope {
-            if (requested.originalVariant) {
-                logger.debug { "Requested original variant for path: $treePath, entryId: ${entryId ?: "Not specified"}" }
-                return@coroutineScope Transformation.ORIGINAL_VARIANT
-            }
-
             val originalVariantDeferred =
                 async(start = CoroutineStart.LAZY) {
                     assetRepository
                         .fetchByPath(
                             path = treePath,
                             entryId = entryId,
-                            transformation = Transformation.ORIGINAL_VARIANT,
+                            specification = VariantSpecification.Original,
                             includeOnlyReady = false,
                         )?.variants
                         ?.firstOrNull { it.isOriginalVariant }
@@ -95,12 +92,10 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): Transformation {
-        if (requested.originalVariant) {
-            return Transformation.ORIGINAL_VARIANT
-        }
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
         val format = normalizeFormat(requested, originalAttributesDeferred)
+        val colorspace = normalizeColorSpace(requested, originalAttributesDeferred)
         return Transformation(
             width = width,
             height = height,
@@ -119,9 +114,15 @@ class TransformationNormalizer(
                     color = normalizeBackground(requested, format),
                 ),
             metadata = normalizeMetadata(requested),
-            colorSpace = normalizeColorSpace(requested, originalAttributesDeferred),
+            colorSpace = colorspace,
             isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
             isAutoRotate = isAutoRotate,
+            pixels =
+                normalizePixelTransformation(
+                    requested = requested,
+                    normalizedColorSpace = colorspace,
+                    normalizedFormat = format,
+                ),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {

@@ -21,6 +21,7 @@ import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.TransformationLimitProperties
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -700,7 +701,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation shouldBe
+                (context.specification as VariantSpecification.Transformed).transformation shouldBe
                     Transformation(
                         height = variantConfig.height!!,
                         width = variantConfig.width!!,
@@ -744,9 +745,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100.toDimension()
-                context.transformation?.width shouldBe 500.toDimension()
-                context.transformation?.format shouldBe ImageFormat.JPEG
+                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldBe emptyMap()
             }
 
@@ -851,7 +852,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     headers = HeadersBuilder().build(),
                     queryParameters = parameters,
                 )
-            context.transformation shouldBe transformation
+            context.specification shouldBe VariantSpecification.Transformed(transformation)
             context.labels shouldBe emptyMap()
         }
 
@@ -978,9 +979,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100.toDimension()
-                context.transformation?.width shouldBe 500.toDimension()
-                context.transformation?.format shouldBe ImageFormat.JPEG
+                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainExactly
                     mapOf(
                         "phone" to "iphone",
@@ -1015,9 +1016,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100.toDimension()
-                context.transformation?.width shouldBe 500.toDimension()
-                context.transformation?.format shouldBe ImageFormat.JPEG
+                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1049,9 +1050,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                context.transformation?.height shouldBe 100.toDimension()
-                context.transformation?.width shouldBe 500.toDimension()
-                context.transformation?.format shouldBe ImageFormat.JPEG
+                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.width shouldBe 500.toDimension()
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1077,7 +1078,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                context.transformation?.format shouldBe ImageFormat.AVIF
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.AVIF
             }
 
         @Test
@@ -1100,7 +1101,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                context.transformation?.format shouldBe ImageFormat.GIF
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.GIF
             }
 
         @ParameterizedTest
@@ -1109,15 +1110,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 "*/*", "image/*",
             ],
         )
-        fun `original variant format is set in context if accept header is generic`(accept: String) =
+        fun `original variant is selected if accept header is generic`(accept: String) =
             runTest {
-                val asset =
-                    storePersistedAsset(
-                        height = 100,
-                        width = 100,
-                        format = ImageFormat.PNG,
-                        path = "/profile/",
-                    )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
@@ -1129,10 +1123,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                context.transformation?.format shouldBe
-                    asset.variants
-                        .first { it.isOriginalVariant }
-                        .transformation.format
+                context.specification shouldBe VariantSpecification.Original
             }
 
         @Test
@@ -1169,8 +1160,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                context.transformation?.format shouldNotBe null
-                context.transformation?.format shouldBe variantConfig.format
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe variantConfig.format
             }
 
         @Test
@@ -1197,8 +1188,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                context.transformation?.format shouldNotBe null
-                context.transformation?.format shouldBe ImageFormat.HEIC
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
+                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.HEIC
             }
 
         @ParameterizedTest

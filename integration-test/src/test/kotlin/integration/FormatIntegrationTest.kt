@@ -17,6 +17,8 @@ class FormatIntegrationTest : BaseIntegrationTest() {
     fun `can request asset in supported formats`(): List<DynamicTest> {
         val tests = mutableListOf<DynamicTest>()
         for (sourceFormat in ImageFormat.entries) {
+            // PIXEL source input is not supported
+            if (sourceFormat == ImageFormat.PIXELS) continue
             for (destinationFormat in ImageFormat.entries) {
                 if (sourceFormat == destinationFormat) continue
 

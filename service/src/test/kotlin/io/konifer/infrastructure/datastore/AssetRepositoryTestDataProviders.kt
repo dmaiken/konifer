@@ -10,6 +10,8 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
@@ -124,6 +126,19 @@ object AssetRepositoryTestDataProviders {
                 name = "color space",
                 stored = baseTransformation.copy(colorSpace = ColorSpace.P3),
                 nonMatching = baseTransformation.copy(colorSpace = ColorSpace.SRGB),
+            )
+            addCase(
+                name = "pixels",
+                stored =
+                    baseTransformation.copy(
+                        format = ImageFormat.PIXELS,
+                        pixels = PixelTransformation(channels = "RGBA".toPixelChannels()),
+                    ),
+                nonMatching =
+                    baseTransformation.copy(
+                        format = ImageFormat.PIXELS,
+                        pixels = PixelTransformation(channels = "BGR".toPixelChannels()),
+                    ),
             )
         }
 

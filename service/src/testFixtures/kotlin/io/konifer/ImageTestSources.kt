@@ -16,7 +16,13 @@ class ImageTestSources {
         @JvmStatic
         fun notSupportsPagedSource(): List<Arguments> =
             ImageFormat.entries
-                .filter { !it.vipsProperties.supportsPaging }
+                .filter { !it.vipsProperties.supportsPaging && it != ImageFormat.PIXELS }
+                .map { arguments(it) }
+
+        @JvmStatic
+        fun supportedInputSources(): List<Arguments> =
+            ImageFormat.entries
+                .filter { it.allowedFor.contains(ImageFormat.FormatAction.INPUT) }
                 .map { arguments(it) }
     }
 }

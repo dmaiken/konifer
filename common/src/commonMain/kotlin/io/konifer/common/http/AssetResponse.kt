@@ -53,9 +53,15 @@ data class AttributeResponse(
     val colorSpace: String,
     val pageCount: Int?,
     val loop: Int?,
+    val pixels: PixelAttributesResponse?,
 ) {
     companion object Factory
 }
+
+@Serializable
+data class PixelAttributesResponse(
+    val channels: String,
+)
 
 @Serializable
 data class TransformationResponse(

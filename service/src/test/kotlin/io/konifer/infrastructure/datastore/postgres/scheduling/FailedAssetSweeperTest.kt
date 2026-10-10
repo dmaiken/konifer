@@ -71,7 +71,7 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
             assetRepository.fetchByPath(
                 path = ready.path,
                 entryId = ready.entryId,
-                transformation = null,
+                specification = null,
             ) shouldNotBe null
             fetchVariantDeletedEvents(dslContext, 0)
         }
@@ -117,7 +117,7 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
             assetRepository.fetchByPath(
                 path = pendingPersisted.path,
                 entryId = pendingPersisted.entryId,
-                transformation = null,
+                specification = null,
             ) shouldBe null
 
             fetchVariantDeletedEvents(dslContext, 0)

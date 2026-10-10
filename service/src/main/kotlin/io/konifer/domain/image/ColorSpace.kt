@@ -1,19 +1,28 @@
 package io.konifer.domain.image
 
+object ColorSpaceNames {
+    const val SRGB = "srgb"
+    const val P3 = "p3"
+    const val ADOBE_RGB = "adobe_rgb"
+    const val CYMK = "cymk"
+    const val GRAYSCALE = "grayscale"
+    const val UNKNOWN = "unknown"
+}
+
 sealed class ColorSpace(
     val name: String,
 ) {
-    object SRGB : ColorSpace(name = "srgb")
+    object SRGB : ColorSpace(ColorSpaceNames.SRGB)
 
-    object P3 : ColorSpace("p3")
+    object P3 : ColorSpace(ColorSpaceNames.P3)
 
-    object AdobeRGB : ColorSpace("adobe_rgb")
+    object AdobeRGB : ColorSpace(ColorSpaceNames.ADOBE_RGB)
 
-    object CMYK : ColorSpace("cymk")
+    object CMYK : ColorSpace(ColorSpaceNames.CYMK)
 
-    object Grayscale : ColorSpace("grayscale")
+    object Grayscale : ColorSpace(ColorSpaceNames.GRAYSCALE)
 
-    object Unknown : ColorSpace("unknown")
+    object Unknown : ColorSpace(ColorSpaceNames.UNKNOWN)
 
     data class Custom(
         val profileName: String,
@@ -24,17 +33,17 @@ sealed class ColorSpace(
 
 fun String.toColorSpace(): ColorSpace =
     when (this.lowercase()) {
-        "srgb" -> ColorSpace.SRGB
+        ColorSpaceNames.SRGB -> ColorSpace.SRGB
 
-        "p3" -> ColorSpace.P3
+        ColorSpaceNames.P3 -> ColorSpace.P3
 
-        "adobe_rgb" -> ColorSpace.AdobeRGB
+        ColorSpaceNames.ADOBE_RGB -> ColorSpace.AdobeRGB
 
-        "cymk" -> ColorSpace.CMYK
+        ColorSpaceNames.CYMK -> ColorSpace.CMYK
 
-        "grayscale" -> ColorSpace.Grayscale
+        ColorSpaceNames.GRAYSCALE -> ColorSpace.Grayscale
 
-        "unknown" -> ColorSpace.Unknown
+        ColorSpaceNames.UNKNOWN -> ColorSpace.Unknown
 
         // If it doesn't match our known enums, wrap it in the Custom class
         else -> ColorSpace.Custom(this.lowercase())

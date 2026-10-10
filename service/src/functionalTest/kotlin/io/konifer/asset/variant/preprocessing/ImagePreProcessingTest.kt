@@ -1,4 +1,4 @@
-package io.konifer.asset.variant
+package io.konifer.asset.variant.preprocessing
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips

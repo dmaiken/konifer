@@ -3,7 +3,7 @@ package io.konifer.domain.asset
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.InvalidAssetSourceException
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
@@ -11,33 +11,33 @@ import java.nio.file.Path
 class AssetContentValidator(
     private val formatValidator: FormatValidator,
 ) {
-    suspend fun validateAssetContent(
+    suspend fun validateSourceContent(
         pathConfiguration: PathConfiguration,
         container: AssetDataContainer,
     ): Attributes {
         val imageFormat =
-            formatValidator.validateImageFormat(
+            formatValidator.validateInputFormat(
                 pathConfiguration = pathConfiguration,
                 container = container,
             )
 
         container.toTemporaryFile("")
 
-        return validateAttributes(
+        return validateSourceAttributes(
             sourceFile = container.getTemporaryFile(),
             format = imageFormat,
             limits = pathConfiguration.limits,
         )
     }
 
-    private suspend fun validateAttributes(
+    private suspend fun validateSourceAttributes(
         sourceFile: Path,
         format: ImageFormat,
         limits: AssetLimitProperties,
     ): Attributes =
         withContext(Dispatchers.IO) {
             val attributes =
-                Attributes.createAttributes(
+                Attributes.createSourceAttributes(
                     path = sourceFile,
                     format = format,
                 )

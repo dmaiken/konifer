@@ -2,8 +2,8 @@ package io.konifer.application.usecase.fetch
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AttributeResponse
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.http.fromAttributes
 
 data class VariantLink(
