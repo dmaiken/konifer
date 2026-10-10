@@ -16,6 +16,7 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.datetime.toKotlinLocalDateTime
 
@@ -57,10 +58,9 @@ fun VariantResponse.Factory.fromVariantData(variantData: VariantData): VariantRe
         attributes = AttributeResponse.fromAttributes(variantData.attributes),
         lqip = LQIPResponse.fromLqips(variantData.lqips),
         transformation =
-            if (variantData.isOriginalVariant) {
-                null
-            } else {
-                TransformationResponse.fromTransformation(variantData.transformation)
+            when (val specification = variantData.specification) {
+                VariantSpecification.Original -> null
+                is VariantSpecification.Transformed -> TransformationResponse.fromTransformation(specification.transformation)
             },
     )
 
@@ -72,10 +72,9 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
         attributes = AttributeResponse.fromAttributes(variant.attributes),
         lqip = LQIPResponse.fromLqips(variant.lqips),
         transformation =
-            if (variant.isOriginalVariant) {
-                null
-            } else {
-                TransformationResponse.fromTransformation(variant.transformation)
+            when (val specification = variant.specification) {
+                VariantSpecification.Original -> null
+                is VariantSpecification.Transformed -> TransformationResponse.fromTransformation(specification.transformation)
             },
     )
 

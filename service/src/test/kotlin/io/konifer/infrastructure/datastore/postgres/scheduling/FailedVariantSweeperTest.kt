@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
@@ -102,12 +103,12 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                 assetRepository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    transformation = null,
+                    specification = null,
                 )
 
             assetData shouldNotBe null
             assetData!!.variants.forAtLeastOne {
-                it.transformation shouldBe transformation
+                it.specification shouldBe VariantSpecification.Transformed(transformation)
                 it.id shouldBe readyVariant.id
             }
 

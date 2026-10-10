@@ -12,7 +12,6 @@ import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -120,29 +119,5 @@ class PrioritizedChannelVariantGeneratorTest {
             highPriorityChannel.shouldBeEmpty()
             backgroundChannel.shouldBeEmpty()
             shouldNotThrowAny { deferred.await() }
-        }
-
-    @ParameterizedTest
-    @EnumSource(VariantType::class)
-    fun `throws if no transformations are for original variants`(variantType: VariantType) =
-        runTest {
-            val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformationDataContainer =
-                TransformationDataContainer(
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    output = ByteChannel(),
-                )
-            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
-
-            shouldThrow<IllegalArgumentException> {
-                scheduler.generateVariantsFromSource(
-                    source = source,
-                    transformationDataContainers = listOf(transformationDataContainer),
-                    lqipImplementations = lqipImplementations,
-                    variantType = variantType,
-                )
-            }
-            highPriorityChannel.shouldBeEmpty()
-            backgroundChannel.shouldBeEmpty()
         }
 }

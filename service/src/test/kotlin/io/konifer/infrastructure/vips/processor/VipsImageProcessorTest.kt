@@ -145,7 +145,13 @@ class VipsImageProcessorTest {
                 AssetDataContainer(imageChannel).use { container ->
                     val transformationDataContainer =
                         TransformationDataContainer(
-                            transformation = Transformation.ORIGINAL_VARIANT,
+                            transformation =
+                                Transformation(
+                                    width = 1.toDimension(),
+                                    height = 1.toDimension(),
+                                    format = ImageFormat.PNG,
+                                    colorSpace = ColorSpace.SRGB,
+                                ),
                         )
                     container.toTemporaryFile(ImageFormat.JPEG.extension)
                     Vips.run { arena ->
@@ -162,8 +168,8 @@ class VipsImageProcessorTest {
                     val outputBytes = transformationDataContainer.output.toByteArray()
                     val attributes = transformationDataContainer.attributes.await()
                     val lqips = transformationDataContainer.lqips.await()
-                    attributes.format shouldBe Transformation.ORIGINAL_VARIANT.format
-                    Tika().detect(outputBytes) shouldBe Transformation.ORIGINAL_VARIANT.format.mimeType
+                    attributes.format shouldBe ImageFormat.PNG
+                    Tika().detect(outputBytes) shouldBe ImageFormat.PNG.mimeType
                     lqips?.blurhash shouldBe null
                     lqips?.thumbhash shouldBe null
                 }

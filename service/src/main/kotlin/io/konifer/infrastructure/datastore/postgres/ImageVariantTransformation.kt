@@ -44,23 +44,7 @@ data class ImageVariantTransformation(
     val pixels: ImageVariantPixels? = null,
 ) {
     companion object Factory {
-        fun originalTransformation(attributes: Attributes) =
-            ImageVariantTransformation(
-                width = attributes.width.value,
-                height = attributes.height.value,
-                format = attributes.format,
-                fit = Fit.default,
-                gravity = Gravity.default,
-                rotate = Rotate.default,
-                horizontalFlip = false,
-                filter = Filter.default,
-                blur = 0,
-                quality = attributes.format.vipsProperties.defaultQuality,
-                padding = ImageVariantPadding.default,
-                metadata = ImageVariantMetadata.default,
-                colorSpace = attributes.colorSpace,
-                pixels = null,
-            )
+        fun originalTransformation(attributes: Attributes) = from(Transformation.fromAttributes(attributes))
 
         fun from(transformation: Transformation): ImageVariantTransformation =
             ImageVariantTransformation(

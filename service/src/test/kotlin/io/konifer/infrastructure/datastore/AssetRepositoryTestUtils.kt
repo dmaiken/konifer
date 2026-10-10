@@ -129,7 +129,7 @@ fun assertFetchedVariantAgainstAggregate(
     fetched!!.id shouldBe variant.id
     fetched.createdAt shouldBe variant.createdAt
     fetched.attributes shouldBe variant.attributes
-    fetched.transformation shouldBe variant.transformation
+    fetched.specification shouldBe variant.specification
     fetched.isOriginalVariant shouldBe variant.isOriginalVariant
     fetched.uploadedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe variant.uploadedAt?.truncatedTo(ChronoUnit.MILLIS)
     fetched.objectStoreKey shouldBe variant.objectStoreKey

@@ -18,8 +18,9 @@ sealed interface Variant {
     val objectStoreBucket: String
     val objectStoreKey: String
     val isOriginalVariant: Boolean
+        get() = specification == VariantSpecification.Original
     val attributes: Attributes
-    val transformation: Transformation
+    val specification: VariantSpecification
     val lqips: LQIPs
     val createdAt: LocalDateTime
     val uploadedAt: LocalDateTime?
@@ -30,9 +31,8 @@ sealed interface Variant {
         override val assetId: AssetId,
         override val objectStoreBucket: String,
         override val objectStoreKey: String,
-        override val isOriginalVariant: Boolean,
         override val attributes: Attributes,
-        override val transformation: Transformation,
+        override val specification: VariantSpecification,
         override val lqips: LQIPs,
         override val createdAt: LocalDateTime,
         override val uploadedAt: LocalDateTime? = null,
@@ -59,16 +59,8 @@ sealed interface Variant {
                     assetId = assetId,
                     objectStoreBucket = objectStoreBucket,
                     objectStoreKey = objectStoreKey,
-                    isOriginalVariant = true,
                     attributes = attributes,
-                    transformation =
-                        Transformation(
-                            height = attributes.height,
-                            width = attributes.width,
-                            format = attributes.format,
-                            originalVariant = true,
-                            colorSpace = attributes.colorSpace,
-                        ),
+                    specification = VariantSpecification.Original,
                     lqips = lqip,
                     createdAt = LocalDateTime.now(UTC),
                     expiresAt = null,
@@ -88,9 +80,8 @@ sealed interface Variant {
                     assetId = assetId,
                     objectStoreBucket = objectStoreBucket,
                     objectStoreKey = objectStoreKey,
-                    isOriginalVariant = false,
                     attributes = attributes,
-                    transformation = transformation,
+                    specification = VariantSpecification.Transformed(transformation),
                     lqips = lqip,
                     createdAt = LocalDateTime.now(UTC),
                     expiresAt = expiresAt,
@@ -105,9 +96,8 @@ sealed interface Variant {
                     assetId = assetId,
                     objectStoreBucket = variantData.objectStoreBucket,
                     objectStoreKey = variantData.objectStoreKey,
-                    isOriginalVariant = variantData.isOriginalVariant,
                     attributes = variantData.attributes,
-                    transformation = variantData.transformation,
+                    specification = variantData.specification,
                     lqips = variantData.lqips,
                     createdAt = variantData.createdAt,
                     uploadedAt = variantData.uploadedAt,
@@ -127,9 +117,8 @@ sealed interface Variant {
         override val assetId: AssetId,
         override val objectStoreBucket: String,
         override val objectStoreKey: String,
-        override val isOriginalVariant: Boolean,
         override val attributes: Attributes,
-        override val transformation: Transformation,
+        override val specification: VariantSpecification,
         override val lqips: LQIPs,
         override val createdAt: LocalDateTime,
         override val uploadedAt: LocalDateTime?,
@@ -149,9 +138,8 @@ sealed interface Variant {
                     assetId = pending.assetId,
                     objectStoreBucket = pending.objectStoreBucket,
                     objectStoreKey = pending.objectStoreKey,
-                    isOriginalVariant = pending.isOriginalVariant,
                     attributes = pending.attributes,
-                    transformation = pending.transformation,
+                    specification = pending.specification,
                     lqips = pending.lqips,
                     createdAt = pending.createdAt,
                     uploadedAt = uploadedAt,
@@ -167,9 +155,8 @@ sealed interface Variant {
                     assetId = assetId,
                     objectStoreBucket = variantData.objectStoreBucket,
                     objectStoreKey = variantData.objectStoreKey,
-                    isOriginalVariant = variantData.isOriginalVariant,
                     attributes = variantData.attributes,
-                    transformation = variantData.transformation,
+                    specification = variantData.specification,
                     lqips = variantData.lqips,
                     createdAt = variantData.createdAt,
                     uploadedAt = variantData.uploadedAt,

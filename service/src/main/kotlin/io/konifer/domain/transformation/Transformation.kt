@@ -9,10 +9,10 @@ import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.variant.attribute.Attributes
 import kotlin.collections.emptyList
 
 data class Transformation(
-    val originalVariant: Boolean = false,
     val width: Dimension,
     val height: Dimension,
     val fit: Fit = Fit.default,
@@ -46,15 +46,15 @@ data class Transformation(
         }
     }
 
-    companion object Factory {
-        val ORIGINAL_VARIANT =
+    companion object {
+        /** Describes the transformation identity of stored original content for variant matching. */
+        fun fromAttributes(attributes: Attributes): Transformation =
             Transformation(
-                originalVariant = true,
-                width = 1.toDimension(),
-                height = 1.toDimension(),
-                format = ImageFormat.PNG,
-                colorSpace = ColorSpace.SRGB,
-                isColorSpaceLocked = false,
+                width = attributes.width,
+                height = attributes.height,
+                format = attributes.format,
+                colorSpace = attributes.colorSpace,
+                pixels = attributes.pixels?.let { PixelTransformation(channels = it.channels) },
             )
     }
 
@@ -80,8 +80,7 @@ data class Transformation(
     }
 
     override fun hashCode(): Int {
-        var result = originalVariant.hashCode()
-        result = 31 * result + width.value
+        var result = width.value
         result = 31 * result + height.value
         result = 31 * result + canUpscale.hashCode()
         result = 31 * result + horizontalFlip.hashCode()

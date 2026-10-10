@@ -16,8 +16,6 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class RequestedTransformation(
-    @Transient
-    val originalVariant: Boolean = false,
     @SerialName(ManipulationParameters.WIDTH)
     val width: Dimension? = null,
     @SerialName(ManipulationParameters.HEIGHT)
@@ -55,18 +53,8 @@ data class RequestedTransformation(
         validate()
     }
 
-    companion object Factory {
-        val ORIGINAL_VARIANT =
-            RequestedTransformation(
-                originalVariant = true,
-            )
-    }
-
     /** Validates relationships and structured values that are not owned by the numeric value classes. */
     private fun validate() {
-        if (originalVariant) {
-            return
-        }
         when (fit) {
             Fit.FIT -> {}
 

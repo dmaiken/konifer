@@ -22,15 +22,14 @@ class RequestContextValidator(
         when (querySelectors.returnFormat) {
             ReturnFormat.INFO, ReturnFormat.ENTRIES -> {
                 if (
-                    requestedTransformation != null &&
-                    !requestedTransformation.originalVariant
+                    requestedTransformation != null
                 ) {
                     throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
                 }
             }
 
             ReturnFormat.LINK, ReturnFormat.CONTENT, ReturnFormat.REDIRECT, ReturnFormat.DOWNLOAD -> {
-                if (requestedTransformation == null || requestedTransformation == RequestedTransformation.ORIGINAL_VARIANT) return
+                if (requestedTransformation == null) return
                 validateOnDemandVariantMode(
                     pathConfiguration = pathConfiguration,
                     requestedTransformation = requestedTransformation,

@@ -6,6 +6,7 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.PHash
 import io.konifer.byteArrayToImage
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
@@ -509,18 +510,55 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
         originalVariantAttributes.format shouldBe ImageFormat.PIXELS.name.lowercase()
         originalVariantAttributes.pixels?.channels shouldBe pixelChannels.lowercase()
 
-        val content = konifer().assets("/")
-            .originalVariant()
-            .fetchContentBytes().shouldBeSuccessful().body
+        val content =
+            konifer()
+                .assets("/")
+                .originalVariant()
+                .fetchContentBytes()
+                .shouldBeSuccessful()
+                .body
 
-        val reconstructed = pixelsToEncoded(
-            pixels = content,
-            height = originalVariantAttributes.height,
-            width = originalVariantAttributes.width,
-            channels = pixelChannels,
-            format = format,
-        )
+        val emptyRequestContent =
+            konifer()
+                .assets("/")
+                .variant(requestedTransformation { })
+                .fetchContentBytes()
+                .shouldBeSuccessful()
+                .body
+        emptyRequestContent.contentEquals(content) shouldBe true
+
+        val matchingContent =
+            konifer()
+                .assets("/")
+                .variant(
+                    requestedTransformation {
+                        this.format = ImageFormat.PIXELS
+                        this.pixelChannels = pixelChannels
+                    },
+                ).fetchContentBytes()
+                .shouldBeSuccessful()
+                .body
+        matchingContent.contentEquals(content) shouldBe true
+
+        val fetchedVariants =
+            konifer()
+                .assets("/")
+                .fetchInfo()
+                .shouldBeSuccessful()
+                .body.variants
+        fetchedVariants shouldHaveSize 1
+        fetchedVariants.single().isOriginalVariant shouldBe true
+        fetchedVariants.single().transformation shouldBe null
+
+        val reconstructed =
+            pixelsToEncoded(
+                pixels = content,
+                height = originalVariantAttributes.height,
+                width = originalVariantAttributes.width,
+                channels = pixelChannels.uppercase(),
+                format = format,
+            )
         PHash.hammingDistance(reconstructed, image) shouldBeLessThanOrEqual
-                HAMMING_DISTANCE_IDENTICAL
+            HAMMING_DISTANCE_IDENTICAL
     }
 }

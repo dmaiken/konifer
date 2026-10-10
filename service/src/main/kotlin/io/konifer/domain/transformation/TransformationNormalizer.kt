@@ -8,6 +8,7 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
@@ -32,18 +33,13 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
     ): Transformation =
         coroutineScope {
-            if (requested.originalVariant) {
-                logger.debug { "Requested original variant for path: $treePath, entryId: ${entryId ?: "Not specified"}" }
-                return@coroutineScope Transformation.ORIGINAL_VARIANT
-            }
-
             val originalVariantDeferred =
                 async(start = CoroutineStart.LAZY) {
                     assetRepository
                         .fetchByPath(
                             path = treePath,
                             entryId = entryId,
-                            transformation = Transformation.ORIGINAL_VARIANT,
+                            specification = VariantSpecification.Original,
                             includeOnlyReady = false,
                         )?.variants
                         ?.firstOrNull { it.isOriginalVariant }
@@ -96,9 +92,6 @@ class TransformationNormalizer(
         requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
     ): Transformation {
-        if (requested.originalVariant) {
-            return Transformation.ORIGINAL_VARIANT
-        }
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
         val format = normalizeFormat(requested, originalAttributesDeferred)

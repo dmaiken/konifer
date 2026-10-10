@@ -4,7 +4,6 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
-import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
 import kotlinx.coroutines.CompletableDeferred
@@ -23,9 +22,6 @@ class PrioritizedChannelVariantGenerator(
     ): CompletableDeferred<Unit> {
         if (transformationDataContainers.isEmpty()) {
             return CompletableDeferred(Unit)
-        }
-        if (transformationDataContainers.all { it.transformation == Transformation.ORIGINAL_VARIANT }) {
-            throw IllegalArgumentException("Cannot create variant using original variant transformation")
         }
         val deferred = CompletableDeferred<Unit>()
         val job =

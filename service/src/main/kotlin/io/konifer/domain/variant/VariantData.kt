@@ -1,6 +1,5 @@
 package io.konifer.domain.variant
 
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.attribute.Attributes
 import java.time.LocalDateTime
 
@@ -8,12 +7,14 @@ data class VariantData(
     val id: VariantId,
     val objectStoreBucket: String,
     val objectStoreKey: String,
-    val isOriginalVariant: Boolean,
     val attributes: Attributes,
-    val transformation: Transformation,
+    val specification: VariantSpecification,
     val lqips: LQIPs,
     val createdAt: LocalDateTime,
     val uploadedAt: LocalDateTime?,
     val expiresAt: LocalDateTime?,
     val lastAccessedAt: LocalDateTime?,
-)
+) {
+    val isOriginalVariant: Boolean
+        get() = specification == VariantSpecification.Original
+}

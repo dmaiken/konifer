@@ -3,8 +3,8 @@ package io.konifer.domain.variant
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.assertions.throwables.shouldThrow
 import org.junit.jupiter.api.Test
@@ -20,7 +20,6 @@ class VariantAggregateTest {
                 assetId = AssetId(),
                 objectStoreBucket = "bucket",
                 objectStoreKey = "key",
-                isOriginalVariant = true,
                 attributes =
                     Attributes(
                         width = 10.toDimension(),
@@ -28,7 +27,7 @@ class VariantAggregateTest {
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     ),
-                transformation = Transformation.ORIGINAL_VARIANT,
+                specification = VariantSpecification.Original,
                 lqips = LQIPs.NONE,
                 createdAt = LocalDateTime.now(UTC),
                 uploadedAt = null,
@@ -45,7 +44,6 @@ class VariantAggregateTest {
                 assetId = AssetId(),
                 objectStoreBucket = "bucket",
                 objectStoreKey = "key",
-                isOriginalVariant = true,
                 attributes =
                     Attributes(
                         width = 10.toDimension(),
@@ -53,7 +51,7 @@ class VariantAggregateTest {
                         format = ImageFormat.PNG,
                         colorSpace = ColorSpace.SRGB,
                     ),
-                transformation = Transformation.ORIGINAL_VARIANT,
+                specification = VariantSpecification.Original,
                 lqips = LQIPs.NONE,
                 createdAt = LocalDateTime.now(UTC),
                 uploadedAt = LocalDateTime.now(UTC),

@@ -28,14 +28,12 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
-import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.transformation.RequestedTransformation
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.TransformationValidator
 import io.konifer.domain.transformation.pixel.toPixelChannels
@@ -43,6 +41,7 @@ import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
+import io.konifer.domain.variant.VariantSpecification
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -90,7 +89,6 @@ class RequestContextFactory(
             )
         val requestedTransformation =
             extractRequestedImageTransformation(
-                querySelectors = querySelectors,
                 headers = headers,
                 parameters = queryParameters,
             )
@@ -106,13 +104,13 @@ class RequestContextFactory(
             path = segments.first(),
             pathConfiguration = pathConfiguration,
             selectors = querySelectors,
-            transformation =
-                normalizeRequestedTransformation(
+            specification =
+                normalizeVariantSpecification(
                     requestedTransformation = requestedTransformation,
                     pathConfiguration = pathConfiguration,
                     treePath = segments.first(),
                     entryId = querySelectors.entryId,
-                ),
+                ).takeUnless { querySelectors.returnFormat in setOf(ReturnFormat.INFO, ReturnFormat.ENTRIES) },
             labels = extractLabels(queryParameters),
             request =
                 HttpRequest(
@@ -182,7 +180,6 @@ class RequestContextFactory(
     }
 
     private fun extractRequestedImageTransformation(
-        querySelectors: QuerySelectors,
         headers: Headers,
         parameters: Parameters,
     ): RequestedTransformation? {
@@ -202,10 +199,8 @@ class RequestContextFactory(
                     parameters.contains(it)
                 } &&
                 variantProfile == null
-        return if (querySelectors.returnFormat in setOf(ReturnFormat.INFO, ReturnFormat.ENTRIES) && requestedOriginalVariant) {
+        return if (requestedOriginalVariant) {
             null
-        } else if (requestedOriginalVariant) {
-            RequestedTransformation.ORIGINAL_VARIANT
         } else {
             RequestedTransformation(
                 width = parameters[WIDTH]?.toInt()?.toDimension() ?: variantProfile?.width,
@@ -278,13 +273,13 @@ class RequestContextFactory(
         }
     }
 
-    private suspend fun normalizeRequestedTransformation(
+    private suspend fun normalizeVariantSpecification(
         requestedTransformation: RequestedTransformation?,
         pathConfiguration: PathConfiguration,
         treePath: String,
         entryId: Long?,
-    ): Transformation? {
-        if (requestedTransformation == null) return null
+    ): VariantSpecification {
+        if (requestedTransformation == null) return VariantSpecification.Original
 
         return transformationNormalizer
             .normalize(
@@ -296,6 +291,6 @@ class RequestContextFactory(
                     transformProperties = pathConfiguration.transform,
                     transformation = normalized,
                 )
-            }
+            }.let(VariantSpecification::Transformed)
     }
 }
