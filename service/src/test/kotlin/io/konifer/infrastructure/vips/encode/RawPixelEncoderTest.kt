@@ -39,7 +39,6 @@ class RawPixelEncoderTest {
                 arguments(4, "BGRA", listOf(30, 20, 10, 0, 255, 200, 128, 127)),
                 arguments(4, "ARGB", listOf(0, 10, 20, 30, 127, 128, 200, 255)),
                 arguments(4, "ABGR", listOf(0, 30, 20, 10, 127, 255, 200, 128)),
-                arguments(3, "RRR", listOf(10, 10, 10, 128, 128, 128)),
             )
 
         @JvmStatic

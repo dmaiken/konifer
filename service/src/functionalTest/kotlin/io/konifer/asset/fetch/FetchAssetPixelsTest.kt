@@ -16,15 +16,77 @@ import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.konifer.util.pixelsToEncoded
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayOutputStream
 
 class FetchAssetPixelsTest : BaseFunctionalTest() {
+    companion object {
+        @JvmStatic
+        fun pixelLayouts() =
+            listOf(
+                arguments("RGB", listOf(10, 20, 30, 128, 200, 255, 40, 50, 60, 70, 80, 90)),
+                arguments("BGR", listOf(30, 20, 10, 255, 200, 128, 60, 50, 40, 90, 80, 70)),
+                arguments("RGBA", listOf(10, 20, 30, 64, 128, 200, 255, 127, 40, 50, 60, 192, 70, 80, 90, 255)),
+                arguments("BGRA", listOf(30, 20, 10, 64, 255, 200, 128, 127, 60, 50, 40, 192, 90, 80, 70, 255)),
+                arguments("ARGB", listOf(64, 10, 20, 30, 127, 128, 200, 255, 192, 40, 50, 60, 255, 70, 80, 90)),
+                arguments("ABGR", listOf(64, 30, 20, 10, 127, 255, 200, 128, 192, 60, 50, 40, 255, 90, 80, 70)),
+            )
+    }
+
+    @ParameterizedTest
+    @MethodSource("pixelLayouts")
+    fun `pixel content preserves exact channel values and row order`(
+        channels: String,
+        expected: List<Int>,
+    ) = testInMemory {
+        val sourcePixels =
+            listOf(10, 20, 30, 64, 128, 200, 255, 127, 40, 50, 60, 192, 70, 80, 90, 255)
+                .map(Int::toByte)
+                .toByteArray()
+        val image = pixelsToEncoded(sourcePixels, width = 2, height = 2, channels = "RGBA", format = ImageFormat.PNG)
+        val asset = konifer().assets("/known-pixels")
+        asset
+            .newAsset()
+            .fromBytes(image, ImageFormat.PNG)
+            .store()
+            .shouldBeSuccessful()
+        val variant =
+            asset.variant(
+                requestedTransformation {
+                    format = ImageFormat.PIXELS
+                    pixelChannels = channels
+                },
+            )
+
+        repeat(2) {
+            val attributes =
+                variant
+                    .fetchLink()
+                    .shouldBeSuccessful()
+                    .body.attributes
+            attributes.width shouldBe 2
+            attributes.height shouldBe 2
+            attributes.format shouldBe "pixels"
+            attributes.pixels?.channels shouldBe channels.lowercase()
+
+            val content = variant.fetchContentBytes().shouldBeSuccessful().body
+            content.size shouldBe 2 * 2 * channels.length
+            content.map { byte -> byte.toInt() and 0xff } shouldBe expected
+        }
+
+        asset
+            .fetchInfo()
+            .shouldBeSuccessful()
+            .body.variants shouldHaveSize 2
+    }
+
     @ParameterizedTest
     @ValueSource(strings = ["RGB", "BGR"])
     fun `can fetch image as array of pixels`(channels: String) =
@@ -43,6 +105,7 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     .variant(
                         requestedTransformation {
                             format = ImageFormat.PIXELS
+                            pixelChannels = channels
                         },
                     )
             val rawPixelVariant =
@@ -57,6 +120,7 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     .shouldBeSuccessful()
                     .body
                     .attributes
+            rawPixelAttributes.pixels?.channels shouldBe channels.lowercase()
 
             val reconstructed =
                 pixelsToEncoded(

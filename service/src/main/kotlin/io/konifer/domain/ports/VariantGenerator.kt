@@ -11,6 +11,7 @@ import java.nio.file.Path
 interface VariantGenerator {
     suspend fun generateVariantsFromSource(
         source: Path,
+        sourceAttributes: Attributes,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,

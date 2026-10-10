@@ -17,13 +17,18 @@ value class PixelChannels private constructor(
         require(value.length in (3..4)) {
             "Pixel channels must be between 3 and 4 characters"
         }
-        require(value.all { char -> char in ALLOWED_CHANNELS }) {
-            "Pixel channels can only contain ${ALLOWED_CHANNELS.joinToString()} (any case)"
+        val channels = value.toSet()
+        require(
+            (value.length == 3 && channels == RGB_CHANNELS) ||
+                (value.length == 4 && channels == RGBA_CHANNELS),
+        ) {
+            "Pixel channels must contain R, G, B exactly once and optionally A once (any case)"
         }
     }
 
     companion object {
-        private val ALLOWED_CHANNELS = setOf('R', 'G', 'B', 'A')
+        private val RGB_CHANNELS = setOf('R', 'G', 'B')
+        private val RGBA_CHANNELS = setOf('R', 'G', 'B', 'A')
 
         val default = "RGB".toPixelChannels()
 

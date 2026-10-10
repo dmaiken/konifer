@@ -2,6 +2,7 @@ package io.konifer.domain.transformation.pixel
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.image.toColorSpace
 import io.konifer.domain.transformation.RequestedTransformation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -40,14 +41,19 @@ class PixelTransformationNormalizerTest {
         ) shouldBe PixelTransformation(channels = layout.toPixelChannels())
     }
 
-    @Test
-    fun `rejects normalized grayscale color space for pixels`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["cymk", "unknown", "grayscale", "adobe_rgb", "custom"])
+    fun `rejects normalized unsupported color space for pixels`(unsupportedColorSpace: String) {
         shouldThrow<IllegalArgumentException> {
             PixelTransformationNormalizer.normalizePixelTransformation(
-                requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = "RGBA".toPixelChannels()),
-                normalizedColorSpace = ColorSpace.Grayscale,
+                requested =
+                    RequestedTransformation(
+                        format = ImageFormat.PIXELS,
+                        pixelChannels = "RGBA".toPixelChannels(),
+                    ),
+                normalizedColorSpace = unsupportedColorSpace.toColorSpace(),
                 normalizedFormat = ImageFormat.PIXELS,
             )
-        }.message shouldBe "Cannot convert image with colorspace: grayscale to pixels format"
+        }.message shouldBe "Cannot convert image with colorspace: $unsupportedColorSpace to pixels format"
     }
 }

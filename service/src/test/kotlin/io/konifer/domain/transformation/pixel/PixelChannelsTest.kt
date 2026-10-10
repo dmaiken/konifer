@@ -57,12 +57,6 @@ class PixelChannelsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["RRR", "AAAA"])
-    fun `allows repeated channels`(channels: String) {
-        PixelChannels(channels).value shouldBe channels
-    }
-
-    @ParameterizedTest
     @ValueSource(strings = ["", "R", "RG", "RGBAB", "RGBARG"])
     fun `rejects channel counts outside three or four`(channels: String) {
         shouldThrow<IllegalArgumentException> {
@@ -73,6 +67,14 @@ class PixelChannelsTest {
     @ParameterizedTest
     @ValueSource(strings = ["RGX", "R1B", "RGB ", " RGB", "R-B"])
     fun `rejects unsupported channels`(channels: String) {
+        shouldThrow<IllegalArgumentException> {
+            channels.toPixelChannels()
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["RRR", "GGG", "BBB", "RGBG", "AAA", "AAAA"])
+    fun `rejects duplicative or incomplete channels`(channels: String) {
         shouldThrow<IllegalArgumentException> {
             channels.toPixelChannels()
         }

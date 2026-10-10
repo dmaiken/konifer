@@ -4,6 +4,7 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
 import kotlinx.coroutines.CompletableDeferred
@@ -16,6 +17,7 @@ class PrioritizedChannelVariantGenerator(
 ) : VariantGenerator {
     override suspend fun generateVariantsFromSource(
         source: Path,
+        sourceAttributes: Attributes,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
         variantType: VariantType,
@@ -27,6 +29,7 @@ class PrioritizedChannelVariantGenerator(
         val job =
             GenerateVariantsWorkItem(
                 source = source,
+                sourceAttributes = sourceAttributes,
                 transformationDataContainers = transformationDataContainers,
                 lqipImplementations = lqipImplementations,
                 deferredResult = deferred,

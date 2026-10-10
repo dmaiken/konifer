@@ -7,7 +7,6 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
@@ -28,7 +27,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.lang.foreign.Arena
 import java.nio.file.Path
-import kotlin.io.path.extension
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -121,11 +119,12 @@ class VipsImageProcessor {
 
     suspend fun generateVariants(
         sourceFile: Path,
+        sourceAttributes: Attributes,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->
-            val sourceFormat = ImageFormat.fromExtension(".${sourceFile.extension}")
+            val sourceFormat = sourceAttributes.format
             for ((transformation, output, lqips, attributes) in transformationDataContainers) {
                 runCatching {
                     val source =
@@ -134,6 +133,7 @@ class VipsImageProcessor {
                             transformation = transformation,
                             sourceFormat = sourceFormat,
                             sourceFile = sourceFile,
+                            sourceAttributes = sourceAttributes,
                         )
 
                     val variantResult = variantGenerationPipeline.run(arena, source, transformation)

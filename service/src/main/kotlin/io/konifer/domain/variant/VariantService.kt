@@ -53,6 +53,7 @@ class VariantService(
         }
         generateVariants(
             originalVariantFile = originalVariantFile,
+            originalVariantAttributes = originalVariantAttributes,
             transformations = transformations,
             assetId = assetId,
             originalVariantLQIPs = originalVariantLQIPs,
@@ -63,6 +64,7 @@ class VariantService(
 
     suspend fun generateOnDemandVariant(
         originalVariantFile: Path,
+        originalVariantAttributes: Attributes,
         transformation: Transformation,
         assetId: AssetId,
         originalVariantLQIPs: LQIPs,
@@ -70,6 +72,7 @@ class VariantService(
     ) {
         generateVariants(
             originalVariantFile = originalVariantFile,
+            originalVariantAttributes = originalVariantAttributes,
             transformations = listOf(transformation),
             assetId = assetId,
             originalVariantLQIPs = originalVariantLQIPs,
@@ -80,6 +83,7 @@ class VariantService(
 
     private suspend fun generateVariants(
         originalVariantFile: Path,
+        originalVariantAttributes: Attributes,
         transformations: List<Transformation>,
         assetId: AssetId,
         originalVariantLQIPs: LQIPs,
@@ -95,6 +99,7 @@ class VariantService(
                 variantGenerator
                     .generateVariantsFromSource(
                         source = originalVariantFile,
+                        sourceAttributes = originalVariantAttributes,
                         transformationDataContainers = transformationDataContainers,
                         lqipImplementations = pathConfiguration.lqip,
                         variantType = variantType,

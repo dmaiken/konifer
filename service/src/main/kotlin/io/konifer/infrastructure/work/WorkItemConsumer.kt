@@ -54,6 +54,7 @@ class WorkItemConsumer(
         try {
             imageProcessor.generateVariants(
                 sourceFile = workItem.source,
+                sourceAttributes = workItem.sourceAttributes,
                 lqipImplementations = workItem.lqipImplementations,
                 transformationDataContainers = workItem.transformationDataContainers,
             )

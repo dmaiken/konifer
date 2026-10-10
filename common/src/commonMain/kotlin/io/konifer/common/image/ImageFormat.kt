@@ -75,7 +75,7 @@ enum class ImageFormat(
     PIXELS(
         format = ImageFormatParameterValues.PIXELS,
         mimeType = "application/octet-stream",
-        extension = "",
+        extension = ".bin",
         allowedFor = setOf(FormatAction.OUTPUT),
     ),
     ;

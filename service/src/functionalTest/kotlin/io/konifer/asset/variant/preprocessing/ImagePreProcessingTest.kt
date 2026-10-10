@@ -1,27 +1,19 @@
-package io.konifer.asset.variant
+package io.konifer.asset.variant.preprocessing
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.BaseFunctionalTest
-import io.konifer.ImageFactory
-import io.konifer.PHash
 import io.konifer.byteArrayToImage
-import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
-import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.matchers.shouldBeApproximately
-import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldBeWithinOneOf
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
-import io.konifer.util.pixelsToEncoded
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
-import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotStartWith
 import org.apache.tika.Tika
@@ -30,7 +22,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.util.stream.Stream
 
 class ImagePreProcessingTest : BaseFunctionalTest() {
@@ -475,90 +466,4 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 image.width shouldBeWithinOneOf 3000
             }
         }
-
-    @CartesianTest
-    fun `can preprocess image to Pixel format`(
-        @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PIXELS"]) format: ImageFormat,
-        @CartesianTest.Values(strings = ["rgb", "bgra"]) pixelChannels: String,
-    ) = testInMemory(
-        """
-        paths {
-          "/**" {
-            transform {
-              preprocessing {
-                enabled = true
-                format = pixels
-                pixel-channels = $pixelChannels
-              }
-            }
-          }
-        }
-        """.trimIndent(),
-    ) {
-        val (image, attributes) = ImageFactory.testImage(format = format)
-
-        val variants =
-            konifer()
-                .assets("/")
-                .newAsset()
-                .fromBytes(image, attributes.format)
-                .store()
-                .shouldBeSuccessful()
-                .body.variants shouldHaveSize 1
-        val originalVariantAttributes = variants.single().attributes
-
-        originalVariantAttributes.format shouldBe ImageFormat.PIXELS.name.lowercase()
-        originalVariantAttributes.pixels?.channels shouldBe pixelChannels.lowercase()
-
-        val content =
-            konifer()
-                .assets("/")
-                .originalVariant()
-                .fetchContentBytes()
-                .shouldBeSuccessful()
-                .body
-
-        val emptyRequestContent =
-            konifer()
-                .assets("/")
-                .variant(requestedTransformation { })
-                .fetchContentBytes()
-                .shouldBeSuccessful()
-                .body
-        emptyRequestContent.contentEquals(content) shouldBe true
-
-        val matchingContent =
-            konifer()
-                .assets("/")
-                .variant(
-                    requestedTransformation {
-                        this.format = ImageFormat.PIXELS
-                        this.pixelChannels = pixelChannels
-                    },
-                ).fetchContentBytes()
-                .shouldBeSuccessful()
-                .body
-        matchingContent.contentEquals(content) shouldBe true
-
-        val fetchedVariants =
-            konifer()
-                .assets("/")
-                .fetchInfo()
-                .shouldBeSuccessful()
-                .body.variants
-        fetchedVariants shouldHaveSize 1
-        fetchedVariants.single().isOriginalVariant shouldBe true
-        fetchedVariants.single().transformation shouldBe null
-
-        val reconstructed =
-            pixelsToEncoded(
-                pixels = content,
-                height = originalVariantAttributes.height,
-                width = originalVariantAttributes.width,
-                channels = pixelChannels.uppercase(),
-                format = format,
-            )
-        PHash.hammingDistance(reconstructed, image) shouldBeLessThanOrEqual
-            HAMMING_DISTANCE_IDENTICAL
-    }
 }

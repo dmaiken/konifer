@@ -183,6 +183,7 @@ class FetchAssetHandler(
                 fetchJob.join()
                 variantService.generateOnDemandVariant(
                     originalVariantFile = originalVariantFile,
+                    originalVariantAttributes = originalVariant.attributes,
                     transformation = transformation,
                     assetId = assetId,
                     originalVariantLQIPs = originalVariant.lqips,

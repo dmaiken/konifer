@@ -8,6 +8,7 @@ import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
@@ -26,6 +27,13 @@ import org.junit.jupiter.params.provider.EnumSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrioritizedChannelVariantGeneratorTest {
+    private val sourceAttributes =
+        Attributes(
+            width = 200.toDimension(),
+            height = 300.toDimension(),
+            format = ImageFormat.JPEG,
+            colorSpace = ColorSpace.SRGB,
+        )
     val highPriorityChannel = Channel<WorkItem<*>>(UNLIMITED)
     val backgroundChannel = Channel<WorkItem<*>>(UNLIMITED)
 
@@ -54,6 +62,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             scheduler.generateVariantsFromSource(
                 source = source,
+                sourceAttributes = sourceAttributes,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
                 variantType = VariantType.EAGER,
@@ -63,6 +72,7 @@ class PrioritizedChannelVariantGeneratorTest {
             sent shouldNotBe null
             with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
+                this.sourceAttributes shouldBe sourceAttributes
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
             }
@@ -87,6 +97,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             scheduler.generateVariantsFromSource(
                 source = source,
+                sourceAttributes = sourceAttributes,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
                 variantType = VariantType.ON_DEMAND,
@@ -96,6 +107,7 @@ class PrioritizedChannelVariantGeneratorTest {
             sent shouldNotBe null
             with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
+                this.sourceAttributes shouldBe sourceAttributes
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
             }
@@ -111,6 +123,7 @@ class PrioritizedChannelVariantGeneratorTest {
             val deferred =
                 scheduler.generateVariantsFromSource(
                     source = source,
+                    sourceAttributes = sourceAttributes,
                     transformationDataContainers = listOf(),
                     lqipImplementations = lqipImplementations,
                     variantType = variantType,
