@@ -254,15 +254,26 @@ class ColorFilterTest {
                     )
                 transformed.processed.writeToTestStream(arena, actualStream, format)
 
-                VImage
-                    .newFromBytes(
+                val expectedSource =
+                    VImage.newFromBytes(
                         arena,
                         image,
                         VipsOption.Int("n", -1),
                         VipsOption.Enum("access", VipsAccess.ACCESS_SEQUENTIAL),
-                    ).relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, listOf(128.0))
-                    .colourspace(VipsInterpretation.INTERPRETATION_B_W)
-                    .writeToTestStream(arena, expectedStream, format)
+                    )
+                val blackWhite =
+                    expectedSource
+                        .colourspace(VipsInterpretation.INTERPRETATION_B_W)
+                        .extractBand(0)
+                        .relationalConst(VipsOperationRelational.OPERATION_RELATIONAL_MORE, blackWhiteThreshold)
+                val expected =
+                    if (expectedSource.hasAlpha()) {
+                        val alpha = expectedSource.extractBand(expectedSource.getInt("bands") - 1)
+                        VImage.bandjoin(arena, listOf(blackWhite, alpha))
+                    } else {
+                        blackWhite
+                    }
+                expected.writeToTestStream(arena, expectedStream, format)
                 val processed =
                     VImage.newFromBytes(
                         arena,
