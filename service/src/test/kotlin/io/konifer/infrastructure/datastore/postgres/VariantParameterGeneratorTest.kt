@@ -41,6 +41,8 @@ class VariantParameterGeneratorTest {
                     pixels =
                         ImageVariantPixelAttributes(
                             channels = "RGBA".toPixelChannels(),
+                            layout = PixelLayout.INTERLEAVED,
+                            dataType = PixelDataType.UINT8,
                         ),
                 ),
             )
