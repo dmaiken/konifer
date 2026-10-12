@@ -6,6 +6,7 @@ import io.konifer.infrastructure.vips.transformer.CropFirstPage
 import io.konifer.infrastructure.vips.transformer.ForceRgbBands
 import io.konifer.infrastructure.vips.transformer.GaussianBlur
 import io.konifer.infrastructure.vips.transformer.Pad
+import io.konifer.infrastructure.vips.transformer.PixelDataType
 import io.konifer.infrastructure.vips.transformer.Resize
 import io.konifer.infrastructure.vips.transformer.RotateFlip
 import io.konifer.infrastructure.vips.transformer.StripMetadata
@@ -36,6 +37,7 @@ object VipsPipelines {
             add(TransformColorSpace)
             add(StripMetadata)
             add(StripThumbnailExif)
+            add(PixelDataType)
         }.build()
 
     val tensorProcessingPipeline =

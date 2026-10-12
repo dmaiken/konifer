@@ -5,6 +5,7 @@ import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERPRETATION
@@ -25,16 +26,17 @@ object RawPixelDecoder : VipsDecoder {
         source: Path,
         sourceAttributes: Attributes?,
     ): VImage {
-        require(sourceFormat == ImageFormat.PIXELS) { "Raw pixel decoder requires PIXELS format" }
-        val attributes = requireNotNull(sourceAttributes) { "Raw pixels require stored source attributes" }
-        require(attributes.format == ImageFormat.PIXELS) { "Raw pixel attributes must describe PIXELS format" }
-        val layout = requireNotNull(attributes.pixels) { "Raw pixels require stored channel layout" }.channels.value
+        validateSource(source, sourceFormat, sourceAttributes)
+        val attributes = checkNotNull(sourceAttributes)
+        val layout = checkNotNull(attributes.pixels).channels.value
         val width = attributes.width.value
         val height = attributes.height.value
-        val expectedBytes = Math.multiplyExact(width.toLong() * height, layout.length.toLong())
-        val actualBytes = Files.size(source)
-        require(actualBytes == expectedBytes) {
-            "Raw pixel size mismatch: expected $expectedBytes bytes for ${width}x$height $layout, found $actualBytes"
+
+        if (layout == PixelChannels.grayscale.value) {
+            return VImage
+                .rawload(arena, source.absolutePathString(), width, height, 1)
+                .copy(VipsOption.Enum(OPTION_INTERPRETATION, VipsInterpretation.INTERPRETATION_B_W))
+                .apply { set(OPTION_ORIENTATION, attributes.orientation) }
         }
 
         val raw = VImage.rawload(arena, source.absolutePathString(), width, height, layout.length)
@@ -72,5 +74,30 @@ object RawPixelDecoder : VipsDecoder {
             }
         }
         return image
+    }
+
+    private fun validateSource(
+        source: Path,
+        sourceFormat: ImageFormat,
+        sourceAttributes: Attributes?,
+    ) {
+        require(sourceFormat == ImageFormat.PIXELS) { "Raw pixel decoder requires PIXELS format" }
+        val attributes = requireNotNull(sourceAttributes) { "Raw pixels require stored source attributes" }
+        require(attributes.format == ImageFormat.PIXELS) { "Raw pixel attributes must describe PIXELS format" }
+
+        val layout = requireNotNull(sourceAttributes.pixels) { "Raw pixels require stored channel layout" }.channels.value
+        val isGrayscale = layout == PixelChannels.grayscale.value
+        require(!isGrayscale || attributes.colorSpace == ColorSpace.Grayscale) {
+            "Raw pixel channels $layout require grayscale color space, found ${attributes.colorSpace.name}"
+        }
+        val width = sourceAttributes.width.value
+        val height = sourceAttributes.height.value
+        val bands = if (isGrayscale) 1 else layout.length
+        val expectedBytes = Math.multiplyExact(width.toLong() * height, bands.toLong())
+        val actualBytes = Files.size(source)
+
+        require(actualBytes == expectedBytes) {
+            "Raw pixel size mismatch: expected $expectedBytes bytes for ${width}x$height $layout, found $actualBytes"
+        }
     }
 }

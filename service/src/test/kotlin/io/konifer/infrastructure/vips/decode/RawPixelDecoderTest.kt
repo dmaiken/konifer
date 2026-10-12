@@ -1,19 +1,31 @@
 package io.konifer.infrastructure.vips.decode
 
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.enums.VipsBandFormat
+import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.pixel.PixelDataType
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
+import io.konifer.domain.image.toColorSpace
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.PixelChannels
+import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.attribute.PixelAttributes
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
+import io.konifer.infrastructure.vips.encode.RawPixelEncoder
+import io.konifer.infrastructure.vips.format
+import io.konifer.infrastructure.vips.interpretation
 import io.konifer.infrastructure.vips.transformer.PixelAccess
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.readByteArray
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -102,6 +114,82 @@ class RawPixelDecoderTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["GRAY", "gray", "gRaY"])
+    fun `decodes grayscale as one unsigned byte per pixel and preserves rows`(layout: String) {
+        val pixels = listOf(0, 64, 128, 255).map(Int::toByte).toByteArray()
+        val source = directory.resolve("grayscale").apply { writeBytes(pixels) }
+        Vips.run { arena ->
+            val decoded =
+                VipsThumbnailDecoder.decode(
+                    arena = arena,
+                    transformation =
+                        Transformation(
+                            width = 1.toDimension(),
+                            height = 1.toDimension(),
+                            format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.Grayscale,
+                        ),
+                    sourceFormat = ImageFormat.PIXELS,
+                    sourceFile = source,
+                    sourceAttributes = attributes(layout).copy(height = 2.toDimension()),
+                )
+            val image = decoded.image
+            decoded.pixelAccess shouldBe PixelAccess.RANDOM
+            decoded.appliedTransformations shouldBe emptyList()
+            image.width shouldBe 2
+            image.height shouldBe 2
+            image.getInt("bands") shouldBe 1
+            image.format() shouldBe VipsBandFormat.FORMAT_UCHAR
+            image.interpretation() shouldBe VipsInterpretation.INTERPRETATION_B_W.rawValue
+            image.hasAlpha() shouldBe false
+            ImageColorSpaceExtractor.extract(image) shouldBe ColorSpace.Grayscale
+            image.getBlob("icc-profile-data") shouldBe null
+            repeat(2) {
+                val buffer = image.writeToMemory().asByteBuffer()
+                val bytes = ByteArray(buffer.remaining())
+                buffer.get(bytes)
+                bytes.toList() shouldBe pixels.toList()
+            }
+        }
+    }
+
+    @Test
+    fun `grayscale pixels round trip through the raw encoder`() =
+        runTest {
+            val pixels = listOf(0, 64, 128, 255).map(Int::toByte).toByteArray()
+            val source = directory.resolve("grayscale.bin").apply { writeBytes(pixels) }
+            val output = ByteChannel(autoFlush = true)
+            try {
+                Vips.run { arena ->
+                    val image =
+                        RawPixelDecoder.decodeSource(
+                            arena,
+                            ImageFormat.PIXELS,
+                            ImageFormat.PIXELS,
+                            source,
+                            attributes("GRAY").copy(height = 2.toDimension()),
+                        )
+                    RawPixelEncoder.writeToStream(
+                        arena,
+                        image,
+                        Transformation(
+                            width = 2.toDimension(),
+                            height = 2.toDimension(),
+                            format = ImageFormat.PIXELS,
+                            colorSpace = ColorSpace.Grayscale,
+                            pixels = PixelTransformation(PixelChannels.grayscale),
+                        ),
+                        output,
+                    )
+                    output.close()
+                }
+                output.readRemaining().readByteArray().toList() shouldBe pixels.toList()
+            } finally {
+                output.cancel(null)
+            }
+        }
+
     @Test
     fun `preserves P3 samples and attaches the stored color profile`() {
         val pixels = listOf(10, 20, 30, 128, 200, 255).map(Int::toByte).toByteArray()
@@ -123,11 +211,13 @@ class RawPixelDecoderTest {
         }
     }
 
-    @Test
-    fun `restores orientation metadata for subsequent auto rotation`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["RGB", "GRAY"])
+    fun `restores orientation metadata for subsequent auto rotation`(layout: String) {
         val source =
             directory.resolve("source.bin").apply {
-                writeBytes(listOf(10, 20, 30, 128, 200, 255).map(Int::toByte).toByteArray())
+                val pixels = if (layout == "GRAY") listOf(10, 128) else listOf(10, 20, 30, 128, 200, 255)
+                writeBytes(pixels.map(Int::toByte).toByteArray())
             }
         Vips.run { arena ->
             val image =
@@ -136,7 +226,7 @@ class RawPixelDecoderTest {
                     ImageFormat.PNG,
                     ImageFormat.PIXELS,
                     source,
-                    attributes("RGB").copy(orientation = 6),
+                    attributes(layout).copy(orientation = 6),
                 )
             image.getInt("orientation") shouldBe 6
             val rotated = image.autorot()
@@ -153,6 +243,34 @@ class RawPixelDecoderTest {
             shouldThrow<IllegalArgumentException> {
                 RawPixelDecoder.decodeSource(arena, ImageFormat.PNG, ImageFormat.PIXELS, source, attributes("RGB"))
             }.message shouldBe "Raw pixel size mismatch: expected 6 bytes for 2x1 RGB, found $size"
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, 1, 3, 8])
+    fun `validates grayscale payload size using one channel`(size: Int) {
+        val source = directory.resolve("grayscale.bin").apply { writeBytes(ByteArray(size)) }
+        Vips.run { arena ->
+            shouldThrow<IllegalArgumentException> {
+                RawPixelDecoder.decodeSource(arena, ImageFormat.PNG, ImageFormat.PIXELS, source, attributes("GRAY"))
+            }.message shouldBe "Raw pixel size mismatch: expected 2 bytes for 2x1 GRAY, found $size"
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["srgb", "p3", "unknown"])
+    fun `rejects grayscale channels with conflicting color metadata`(colorSpace: String) {
+        val source = directory.resolve("grayscale.bin").apply { writeBytes(ByteArray(2)) }
+        Vips.run { arena ->
+            shouldThrow<IllegalArgumentException> {
+                RawPixelDecoder.decodeSource(
+                    arena,
+                    ImageFormat.PNG,
+                    ImageFormat.PIXELS,
+                    source,
+                    attributes("GRAY").copy(colorSpace = colorSpace.toColorSpace()),
+                )
+            }.message shouldBe "Raw pixel channels GRAY require grayscale color space, found $colorSpace"
         }
     }
 
@@ -205,7 +323,7 @@ class RawPixelDecoderTest {
             width = 2.toDimension(),
             height = 1.toDimension(),
             format = ImageFormat.PIXELS,
-            colorSpace = ColorSpace.SRGB,
+            colorSpace = if (layout.toPixelChannels() == PixelChannels.grayscale) ColorSpace.Grayscale else ColorSpace.SRGB,
             pixels =
                 PixelAttributes(
                     channels = layout.toPixelChannels(),

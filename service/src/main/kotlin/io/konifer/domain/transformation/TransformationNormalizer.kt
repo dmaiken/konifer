@@ -4,7 +4,6 @@ import io.konifer.common.image.Filter
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.TransformableColorSpace
-import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
@@ -94,34 +93,41 @@ class TransformationNormalizer(
     ): Transformation {
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
-        val format = normalizeFormat(requested, originalAttributesDeferred)
-        val colorspace = normalizeColorSpace(requested, originalAttributesDeferred)
+        val normalizedFormat = normalizeFormat(requested, originalAttributesDeferred)
+        val colorspace =
+            ColorspaceNormalizer.normalizeColorSpace(
+                requested = requested,
+                normalizedFormat = normalizedFormat,
+                originalAttributesDeferred = originalAttributesDeferred,
+            )
+        val isColorspaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN
         return Transformation(
             width = width,
             height = height,
             canUpscale = requested.canUpscale,
             fit = requested.fit,
             gravity = requested.gravity,
-            format = format,
+            format = normalizedFormat,
             rotate = rotate,
             horizontalFlip = horizontalFlip,
             filter = normalizeFilter(requested),
             blur = requested.blur ?: 0.toBlur(),
-            quality = normalizeQuality(requested, format),
+            quality = normalizeQuality(requested, normalizedFormat),
             padding =
                 PaddingTransformation(
                     amount = requested.pad ?: 0.toPaddingAmount(),
-                    color = normalizeBackground(requested, format),
+                    color = normalizeBackground(requested, normalizedFormat),
                 ),
             metadata = normalizeMetadata(requested),
             colorSpace = colorspace,
-            isColorSpaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN,
+            isColorSpaceLocked = isColorspaceLocked,
             isAutoRotate = isAutoRotate,
             pixels =
                 normalizePixelTransformation(
                     requested = requested,
                     normalizedColorSpace = colorspace,
-                    normalizedFormat = format,
+                    normalizedFormat = normalizedFormat,
+                    isColorspaceLocked = isColorspaceLocked,
                 ),
         ).also {
             // Cancel coroutine if we never used it and it's not in progress
@@ -193,15 +199,4 @@ class TransformationNormalizer(
             strip = parsed,
         )
     }
-
-    private suspend fun normalizeColorSpace(
-        requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
-    ): ColorSpace =
-        when (requested.colorSpace) {
-            TransformableColorSpace.ORIGIN -> originalAttributesDeferred.await().colorSpace
-            TransformableColorSpace.P3 -> ColorSpace.P3
-            TransformableColorSpace.SRGB -> ColorSpace.SRGB
-            TransformableColorSpace.GRAYSCALE -> ColorSpace.Grayscale
-        }
 }

@@ -1,7 +1,7 @@
 package io.konifer.client.asset.link
 
 import io.konifer.common.http.AssetLinkResponse
-import io.konifer.common.http.AttributeResponse
+import io.konifer.common.http.AttributesResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.image.ImageFormat
 
@@ -16,7 +16,7 @@ fun createLinkResponse() =
                 thumbhash = "thumbhash",
             ),
         attributes =
-            AttributeResponse(
+            AttributesResponse(
                 height = 100,
                 width = 200,
                 format = ImageFormat.PNG.format,

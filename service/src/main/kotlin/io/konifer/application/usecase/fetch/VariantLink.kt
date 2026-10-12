@@ -1,7 +1,7 @@
 package io.konifer.application.usecase.fetch
 
 import io.konifer.common.http.AssetLinkResponse
-import io.konifer.common.http.AttributeResponse
+import io.konifer.common.http.AttributesResponse
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.http.fromAttributes
@@ -22,6 +22,6 @@ data class VariantLink(
             expiresAt = deliveryUrl.expiresAt,
             alt = alt,
             lqip = lqip.toResponse(),
-            attributes = AttributeResponse.fromAttributes(attributes),
+            attributes = AttributesResponse.fromAttributes(attributes),
         )
 }

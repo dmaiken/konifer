@@ -3,7 +3,7 @@ package io.konifer.client.asset.info
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetResponse
-import io.konifer.common.http.AttributeResponse
+import io.konifer.common.http.AttributesResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
@@ -40,7 +40,7 @@ fun createInfoResponse() =
                     storeBucket = "assets",
                     storeKey = "key",
                     attributes =
-                        AttributeResponse(
+                        AttributesResponse(
                             height = 200,
                             width = 100,
                             format = "jpeg",
