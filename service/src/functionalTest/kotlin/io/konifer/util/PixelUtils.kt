@@ -1,12 +1,12 @@
 package io.konifer.util
 
 import app.photofox.vipsffm.VImage
+import app.photofox.vipsffm.VTarget
 import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.common.image.ImageFormat
-import java.io.ByteArrayOutputStream
 import java.lang.foreign.ValueLayout
 
 fun pixelsToEncoded(
@@ -20,7 +20,7 @@ fun pixelsToEncoded(
     require(uppercaseChannels in setOf("RGB", "BGR", "RGBA", "BGRA", "ARGB", "ABGR"))
     require(pixels.size.toLong() == width.toLong() * height * uppercaseChannels.length)
 
-    val output = ByteArrayOutputStream()
+    var encoded: ByteArray? = null
     Vips.run { arena ->
         val raw =
             VImage.newFromMemory(
@@ -43,17 +43,16 @@ fun pixelsToEncoded(
                 raw
             }
 
+        // Newer libjxl encoders seek in the encoded output, so the target must be seekable.
+        val target = VTarget.newToMemory(arena)
         rgb
             .copy(
                 VipsOption.Enum(
                     "interpretation",
                     VipsInterpretation.INTERPRETATION_sRGB,
                 ),
-            )
-            // copyMemory() to force a meterialization of the image before encoding since JXL requires
-            // random access to encode
-            .copyMemory()
-            .writeToStream(output, format.extension)
+            ).writeToTarget(target, format.extension)
+        encoded = target.blob.bytes
     }
-    return output.toByteArray()
+    return checkNotNull(encoded)
 }
