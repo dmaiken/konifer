@@ -17,6 +17,8 @@ class FormatIntegrationTest : BaseIntegrationTest() {
     fun `can request asset in supported formats`(): List<DynamicTest> {
         val tests = mutableListOf<DynamicTest>()
         for (sourceFormat in ImageFormat.entries) {
+            // PIXEL source input is not supported
+            if (sourceFormat == ImageFormat.PIXELS) continue
             for (destinationFormat in ImageFormat.entries) {
                 if (sourceFormat == destinationFormat) continue
 
@@ -49,8 +51,19 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                             val content = (fetchResponse as KoniferResult.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
+                            val encodedContent =
+                                if (destinationFormat == ImageFormat.PIXELS) {
+                                    pixelsToEncoded(
+                                        pixels = content,
+                                        height = attributes.height,
+                                        width = attributes.width,
+                                        channels = "rgb",
+                                    )
+                                } else {
+                                    content
+                                }
                             Vips.run { arena ->
-                                val vImage = VImage.newFromBytes(arena, content)
+                                val vImage = VImage.newFromBytes(arena, encodedContent)
                                 vImage.height shouldBe attributes.height
                                 vImage.width shouldBe attributes.width
                             }

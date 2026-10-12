@@ -11,12 +11,21 @@ import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
 import io.konifer.infrastructure.vips.format
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.tensorProcessingPipeline
 import java.lang.foreign.Arena
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import java.nio.file.Path
 
 class VipsTensorProcessor {
     init {
         // Not necessary since this will be a long-running service
         Vips.disableOperationCache()
+    }
+
+    private companion object {
+        const val RGB_BANDS = 3
+        const val BYTE_MASK = 0xff
+        const val SIGLIP2_SCALE = 127.5f
     }
 
     fun process(
@@ -43,7 +52,7 @@ class VipsTensorProcessor {
         )
     }
 
-    private fun normalizePixels(output: VImage): FloatArray {
+    private fun normalizePixels(output: VImage): FloatBuffer {
         val width = output.width
         val height = output.height
         val bands =
@@ -63,7 +72,11 @@ class VipsTensorProcessor {
 
         val pixels = image.writeToMemory().asByteBuffer()
         val planeSize = width * height
-        val tensor = FloatArray(RGB_BANDS * planeSize)
+        val tensorBuffer =
+            ByteBuffer
+                .allocateDirect(RGB_BANDS * planeSize * Float.SIZE_BYTES)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -74,13 +87,13 @@ class VipsTensorProcessor {
                 val green = pixels.get(memoryOffset + 1).toInt() and BYTE_MASK
                 val blue = pixels.get(memoryOffset + 2).toInt() and BYTE_MASK
 
-                tensor[pixelOffset] = normalizeChannel(red)
-                tensor[planeSize + pixelOffset] = normalizeChannel(green)
-                tensor[(2 * planeSize) + pixelOffset] = normalizeChannel(blue)
+                tensorBuffer.put(pixelOffset, normalizeChannel(red))
+                tensorBuffer.put(planeSize + pixelOffset, normalizeChannel(green))
+                tensorBuffer.put((2 * planeSize) + pixelOffset, normalizeChannel(blue))
             }
         }
 
-        return tensor
+        return tensorBuffer
     }
 
     private fun normalizeChannel(value: Int): Float = (value / SIGLIP2_SCALE) - 1.0f
@@ -94,10 +107,4 @@ class VipsTensorProcessor {
             colorSpace = colorSpace,
             format = ImageFormat.PNG, // Ignored for tensor processing
         )
-
-    private companion object {
-        const val RGB_BANDS = 3
-        const val BYTE_MASK = 0xff
-        const val SIGLIP2_SCALE = 127.5f
-    }
 }

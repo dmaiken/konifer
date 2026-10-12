@@ -47,6 +47,7 @@ fun createInfoResponse() =
                             pageCount = 1,
                             loop = 2,
                             colorSpace = "srgb",
+                            pixels = null,
                         ),
                     transformation =
                         TransformationResponse(

@@ -17,7 +17,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
@@ -54,7 +53,7 @@ class GaussianBlurTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `gaussian blur works on all formats`(format: ImageFormat) {
             val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readAllBytes()
 

@@ -15,11 +15,11 @@ import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.rules.UploadRuleDecision
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ObjectStoreKeyFactory
 import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.asset.ExternalSourceResolver
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.CompletableDeferred
@@ -70,7 +70,7 @@ class StoreNewAssetUseCase(
         coroutineScope {
             val context = requestContextFactory.fromStoreRequest(uriPath)
             val suppliedContentAttributes =
-                assetContentValidator.validateAssetContent(
+                assetContentValidator.validateSourceContent(
                     pathConfiguration = context.pathConfiguration,
                     container = container,
                 )

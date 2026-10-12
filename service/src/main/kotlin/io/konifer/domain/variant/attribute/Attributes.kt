@@ -1,4 +1,4 @@
-package io.konifer.domain.variant
+package io.konifer.domain.variant.attribute
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
@@ -6,6 +6,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.Dimension
+import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
@@ -21,12 +22,14 @@ data class Attributes(
     val colorSpace: ColorSpace,
     val pageCount: Int = 1,
     val loop: Int? = null,
+    val pixels: PixelAttributes? = null,
 ) {
     companion object Factory {
         fun createAttributes(
             image: VImage,
             sourceFormat: ImageFormat,
             destinationFormat: ImageFormat,
+            pixelTransformation: PixelTransformation?,
         ): Attributes {
             val height =
                 if (sourceFormat.vipsProperties.supportsPaging) {
@@ -45,6 +48,16 @@ data class Attributes(
                 orientation = image.getInt(VipsOptionNames.OPTION_ORIENTATION) ?: 1,
                 pageCount = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_N_PAGES) ?: 1 else 1,
                 loop = if (supportsPaging) image.getInt(VipsOptionNames.OPTION_LOOP) ?: 0 else null,
+                pixels =
+                    if (destinationFormat == ImageFormat.PIXELS) {
+                        pixelTransformation?.let {
+                            PixelAttributes(
+                                channels = it.channels,
+                            )
+                        }
+                    } else {
+                        null
+                    },
             )
         }
 
@@ -52,7 +65,7 @@ data class Attributes(
          * Uses Vips to derive image attributes. This is safe to do since vips will not load the entire image into memory
          * and only reads image headers/metadata. It is demand-driven so it will only load what it needs.
          */
-        fun createAttributes(
+        fun createSourceAttributes(
             path: Path,
             format: ImageFormat,
         ): Attributes {
@@ -70,6 +83,8 @@ data class Attributes(
                         image = sourceImage,
                         sourceFormat = format,
                         destinationFormat = format,
+                        // Pixel source format is not allowed, so there are no pixel attributes
+                        pixelTransformation = null,
                     )
             }
 

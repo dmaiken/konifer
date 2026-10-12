@@ -14,14 +14,20 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.attribute.PixelAttributes
 import io.konifer.domain.variant.retention.CacheProperties
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -76,10 +82,7 @@ abstract class AssetRepositoryTest {
                     attributes.height shouldBe originalVariant.attributes.height
                     attributes.width shouldBe originalVariant.attributes.width
                     this.attributes.format shouldBe originalVariant.attributes.format
-                    this.transformation.height shouldBe originalVariant.attributes.height
-                    this.transformation.width shouldBe originalVariant.attributes.width
-                    this.transformation.format shouldBe originalVariant.attributes.format
-                    this.transformation.fit shouldBe Fit.FIT
+                    this.specification shouldBe VariantSpecification.Original
                     this.isOriginalVariant shouldBe true
                     this.lqips shouldBe LQIPs.NONE
                 }
@@ -208,7 +211,7 @@ abstract class AssetRepositoryTest {
                     this.attributes.colorSpace shouldBe attributes.colorSpace
                     this.attributes.pageCount shouldBe attributes.pageCount
                     this.attributes.loop shouldBe attributes.loop
-                    this.transformation shouldBe variantTransformation
+                    this.specification shouldBe VariantSpecification.Transformed(variantTransformation)
                     this.objectStoreBucket shouldBe bucket
                     this.objectStoreKey shouldBe key
                     this.expiresAt shouldBe null
@@ -334,7 +337,7 @@ abstract class AssetRepositoryTest {
 
                 persistedVariant.assetId shouldBe persisted.id
                 persistedVariant.apply {
-                    this.transformation shouldBe transformation
+                    this.specification shouldBe VariantSpecification.Transformed(transformation)
                     this.attributes shouldBe attributes
                     objectStoreBucket shouldBe pendingVariant.objectStoreBucket
                     objectStoreKey shouldBe pendingVariant.objectStoreKey
@@ -378,7 +381,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = requested.path,
                         entryId = requested.entryId,
-                        transformation = null,
+                        specification = null,
                         includeOnlyReady = false,
                     )
 
@@ -408,7 +411,7 @@ abstract class AssetRepositoryTest {
                 val persisted2 = repository.storeNew(pending2)
                 repository.markReady(persisted2.markReady(LocalDateTime.now(UTC)))
 
-                repository.fetchByPath(pending1.path, entryId = null, transformation = null, Order.NEW)?.id shouldBe persisted2.id
+                repository.fetchByPath(pending1.path, entryId = null, specification = null, Order.NEW)?.id shouldBe persisted2.id
             }
 
         @Test
@@ -421,9 +424,9 @@ abstract class AssetRepositoryTest {
                 val persisted2 = repository.storeNew(pending2)
                 repository.markReady(persisted2.markReady(LocalDateTime.now(UTC)))
 
-                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, transformation = null, Order.NEW)?.id shouldBe
+                repository.fetchByPath(persisted1.path, entryId = persisted1.entryId!!, specification = null, Order.NEW)?.id shouldBe
                     persisted1.id
-                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, transformation = null, Order.NEW)?.id shouldBe
+                repository.fetchByPath(persisted2.path, entryId = persisted2.entryId!!, specification = null, Order.NEW)?.id shouldBe
                     persisted2.id
             }
 
@@ -432,7 +435,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val pending = createPendingAsset()
                 repository.storeNew(pending)
-                repository.fetchByPath(pending.path, entryId = 1, transformation = null, Order.NEW) shouldBe null
+                repository.fetchByPath(pending.path, entryId = 1, specification = null, Order.NEW) shouldBe null
             }
 
         @Test
@@ -463,7 +466,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = originalVariantTransformation,
+                        specification = VariantSpecification.Transformed(originalVariantTransformation),
                         order = Order.NEW,
                     )
                 assetData shouldNotBe null
@@ -473,6 +476,71 @@ abstract class AssetRepositoryTest {
                     isOriginalVariant shouldBe true
                 }
             }
+
+        @ParameterizedTest
+        @CsvSource("rgba,bgra", "rgb,bgr", "argb,rgba")
+        fun `pixel originals are selectable by identity and matching transformation`(
+            storedChannels: String,
+            differentChannels: String,
+        ) = runTest {
+            val attributes =
+                Attributes(
+                    width = 100.toDimension(),
+                    height = 80.toDimension(),
+                    format = ImageFormat.PIXELS,
+                    colorSpace = ColorSpace.SRGB,
+                    pixels = PixelAttributes(storedChannels.toPixelChannels()),
+                )
+            val persisted = repository.storeNew(createPendingAsset(attributes = attributes))
+            repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
+            val originalId = persisted.variants.single().id
+            val transformation =
+                TransformationNormalizer(repository).normalize(
+                    requested =
+                        RequestedTransformation(
+                            format = ImageFormat.PIXELS,
+                            pixelChannels = storedChannels.toPixelChannels(),
+                        ),
+                    originalVariantAttributes = attributes,
+                )
+            val matching = VariantSpecification.Transformed(transformation)
+            val different =
+                VariantSpecification.Transformed(
+                    transformation.copy(pixels = PixelTransformation(differentChannels.toPixelChannels())),
+                )
+
+            val original =
+                repository
+                    .fetchByPath(
+                        path = persisted.path,
+                        entryId = persisted.entryId,
+                        specification = VariantSpecification.Original,
+                    )!!
+                    .variants
+                    .single()
+            original.id shouldBe originalId
+            original.specification shouldBe VariantSpecification.Original
+            original.attributes shouldBe attributes
+            original.isOriginalVariant shouldBe true
+            repository
+                .fetchByPath(persisted.path, persisted.entryId, matching)!!
+                .variants
+                .single()
+                .id shouldBe originalId
+            repository
+                .fetchByPath(persisted.path, persisted.entryId, different)!!
+                .variants shouldBe emptyList()
+            repository
+                .fetchAllByPath(persisted.path, matching, limit = -1)
+                .single()
+                .variants
+                .single()
+                .id shouldBe originalId
+            repository
+                .fetchAllByPath(persisted.path, different, limit = -1)
+                .single()
+                .variants shouldBe emptyList()
+        }
 
         @Test
         fun `returns no asset at path if none have requested labels`() =
@@ -491,7 +559,7 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = ready.path,
                     entryId = null,
-                    transformation = null,
+                    specification = null,
                     labels = mapOf("phone" to "android"),
                 ) shouldBe null
             }
@@ -526,7 +594,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = matching.path,
                             entryId = null,
-                            transformation = null,
+                            specification = null,
                             labels = requestedLabels,
                         ),
                     )
@@ -560,14 +628,14 @@ abstract class AssetRepositoryTest {
                     .fetchByPath(
                         path = updated1.path,
                         entryId = null,
-                        transformation = null,
+                        specification = null,
                         order = Order.MODIFIED,
                     )?.id shouldBe updated1.id
                 repository
                     .fetchByPath(
                         path = persisted1.path,
                         entryId = null,
-                        transformation = null,
+                        specification = null,
                         order = Order.NEW,
                     )?.id shouldBe persisted2.id
             }
@@ -596,7 +664,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = transformation,
+                        specification = VariantSpecification.Transformed(transformation),
                     )
                 fetchedAsset?.id shouldBe persisted.id
                 fetchedAsset!!.variants shouldHaveSize 0
@@ -647,7 +715,7 @@ abstract class AssetRepositoryTest {
 
                 repository.fetchAllByPath(
                     path = assets.first().path,
-                    transformation = null,
+                    specification = null,
                     labels =
                         mapOf(
                             "phone" to "iphone",
@@ -678,7 +746,7 @@ abstract class AssetRepositoryTest {
                 val fetched =
                     repository.fetchAllByPath(
                         path = "/users/123",
-                        transformation = null,
+                        specification = null,
                         labels = requestedLabels,
                         limit = 10,
                     )
@@ -712,7 +780,7 @@ abstract class AssetRepositoryTest {
                         colorSpace = ColorSpace.SRGB,
                     )
 
-                val fetched = repository.fetchAllByPath("/users/123", transformation, limit = 10)
+                val fetched = repository.fetchAllByPath("/users/123", VariantSpecification.Transformed(transformation), limit = 10)
                 fetched shouldHaveSize assets.size
                 fetched.forAll {
                     it.variants shouldHaveSize 0
@@ -736,15 +804,21 @@ abstract class AssetRepositoryTest {
                 }
 
                 val requestedTransformation = if (requestSpecificVariant) transformation else null
-                val fetched = repository.fetchAllByPath("/users/123", requestedTransformation, limit = 10)
+                val fetched =
+                    repository.fetchAllByPath(
+                        "/users/123",
+                        requestedTransformation?.let(VariantSpecification::Transformed),
+                        limit = 10,
+                    )
                 fetched shouldHaveSize assets.size
                 fetched.forAll {
                     if (requestSpecificVariant) {
-                        it.variants.single().transformation shouldBe transformation
+                        it.variants.single().specification shouldBe VariantSpecification.Transformed(transformation)
                     } else {
                         it.variants shouldHaveSize 2
                         it.variants.any { variant -> variant.isOriginalVariant } shouldBe true
-                        it.variants.any { variant -> variant.transformation == transformation } shouldBe true
+                        it.variants.any { variant -> variant.specification == VariantSpecification.Transformed(transformation) } shouldBe
+                            true
                     }
                 }
             }
@@ -764,7 +838,7 @@ abstract class AssetRepositoryTest {
             storeReadyAssets(count = 10)
             repository.fetchAllByPath(
                 path = "/users/123",
-                transformation = null,
+                specification = null,
                 limit = limit,
             ) shouldHaveSize expectedCount
         }
@@ -777,7 +851,7 @@ abstract class AssetRepositoryTest {
                 }
                 repository.fetchAllByPath(
                     path = "/users/123",
-                    transformation = null,
+                    specification = null,
                     limit = 10,
                 ) shouldHaveSize 0
             }
@@ -798,7 +872,7 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     "/users/123",
                     entryId = null,
-                    transformation = null,
+                    specification = null,
                     Order.NEW,
                 ) shouldBe null
             }
@@ -844,18 +918,18 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = ready1.path,
                     entryId = ready1.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchByPath(
                     path = ready2.path,
                     entryId = ready2.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldBe null
                 repository.fetchAllByPath(
                     path = "/users/123",
-                    transformation = null,
+                    specification = null,
                     limit = 10,
                 ) shouldHaveSize 1
             }
@@ -905,7 +979,7 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldNotBe null
             }
@@ -927,18 +1001,18 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = deleted.path,
                     entryId = deleted.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = retained.path,
                     entryId = retained.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchAllByPath(
                     path = "/users/123",
-                    transformation = null,
+                    specification = null,
                     limit = 10,
                 ) shouldHaveSize 1
             }
@@ -998,25 +1072,25 @@ abstract class AssetRepositoryTest {
                 repository.fetchByPath(
                     path = ready1.path,
                     entryId = ready1.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = ready2.path,
                     entryId = ready2.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchByPath(
                     path = ready3.path,
                     entryId = ready3.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldBe null
                 repository.fetchByPath(
                     path = ready4.path,
                     entryId = ready4.entryId,
-                    transformation = null,
+                    specification = null,
                     order = Order.NEW,
                 ) shouldNotBe null
             }
@@ -1050,7 +1124,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = asset.path,
                             entryId = asset.entryId,
-                            transformation = case.stored,
+                            specification = VariantSpecification.Transformed(case.stored),
                         ),
                     )
                 matching.variants.map { it.id } shouldContainExactly listOf(variant.id)
@@ -1060,7 +1134,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = asset.path,
                             entryId = asset.entryId,
-                            transformation = case.nonMatching,
+                            specification = VariantSpecification.Transformed(case.nonMatching),
                         ),
                     )
                 nonMatching.variants shouldHaveSize 0
@@ -1099,7 +1173,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = asset.path,
                             entryId = asset.entryId,
-                            transformation = transformation,
+                            specification = VariantSpecification.Transformed(transformation),
                         ),
                     )
                 fetched.variants.map { it.id } shouldContainExactly listOf(variant.id)
@@ -1156,7 +1230,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = it.path,
                             entryId = it.entryId!!,
-                            transformation = null,
+                            specification = null,
                         )
                     }
 
@@ -1186,7 +1260,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = it.path,
                             entryId = it.entryId!!,
-                            transformation = null,
+                            specification = null,
                         )
                     }
                 val transformation =
@@ -1215,12 +1289,12 @@ abstract class AssetRepositoryTest {
                             repository.fetchByPath(
                                 path = ready!!.path,
                                 entryId = ready.entryId,
-                                transformation = transformation,
+                                specification = VariantSpecification.Transformed(transformation),
                             )
                         }
                 readyVariant shouldNotBe null
                 readyVariant!!.variants shouldHaveSize 1
-                readyVariant.variants.first().transformation shouldBe transformation
+                readyVariant.variants.first().specification shouldBe VariantSpecification.Transformed(transformation)
                 readyVariant.variants
                     .first()
                     .uploadedAt
@@ -1275,7 +1349,7 @@ abstract class AssetRepositoryTest {
                     repository.fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = null,
+                        specification = null,
                     )
                 fetched shouldNotBe null
                 fetched!!.variants shouldHaveSize 2
@@ -1293,7 +1367,7 @@ abstract class AssetRepositoryTest {
                     .fetchByPath(
                         path = persisted.path,
                         entryId = persisted.entryId,
-                        transformation = secondTransformation,
+                        specification = VariantSpecification.Transformed(secondTransformation),
                     )!!
                     .variants shouldHaveSize 0
             }
@@ -1328,7 +1402,7 @@ abstract class AssetRepositoryTest {
                         .fetchByPath(
                             path = persisted.path,
                             entryId = persisted.entryId!!,
-                            transformation = null,
+                            specification = null,
                         )?.variants shouldNotBe null
                 variantsBeforeEviction!! shouldHaveSize maxVariants + 1 // including original variant
 
@@ -1349,7 +1423,7 @@ abstract class AssetRepositoryTest {
                         .fetchByPath(
                             path = persisted.path,
                             entryId = persisted.entryId,
-                            transformation = null,
+                            specification = null,
                         )?.variants shouldNotBe null
                 variantsAfterEviction!! shouldHaveSize maxVariants + 1 // including original variant
             }
@@ -1393,7 +1467,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = persisted.path,
                             entryId = persisted.entryId,
-                            transformation = null,
+                            specification = null,
                         ),
                     )
                 val retainedVariantIds = retainedAssetData.variants.map { it.id }
@@ -1455,7 +1529,7 @@ abstract class AssetRepositoryTest {
                         repository.fetchByPath(
                             path = persisted.path,
                             entryId = persisted.entryId,
-                            transformation = null,
+                            specification = null,
                         ),
                     ).variants.map { it.id }
 

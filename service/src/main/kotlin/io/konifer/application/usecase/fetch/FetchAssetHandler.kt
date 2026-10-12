@@ -2,14 +2,14 @@ package io.konifer.application.usecase.fetch
 
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.context.ContentTypeNotPermittedException
+import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.QueryRequestContext
 import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.VariantService
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.ktor.util.cio.writeChannel
@@ -28,6 +28,7 @@ class FetchAssetHandler(
     private val variantService: VariantService,
     private val assetUrlGenerator: AssetUrlGenerator,
     private val eventPublisher: EventPublisher,
+    private val formatValidator: FormatValidator,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
@@ -73,7 +74,7 @@ class FetchAssetHandler(
         logger.info("Fetching asset info at path: ${context.path}")
         return assetRepository.fetchAllByPath(
             path = context.path,
-            transformation = null,
+            specification = null,
             labels = context.labels,
             order = context.selectors.order,
             limit = context.selectors.limit,
@@ -89,7 +90,7 @@ class FetchAssetHandler(
             assetRepository.fetchByPath(
                 path = context.path,
                 entryId = context.selectors.entryId,
-                transformation = context.transformation,
+                specification = context.specification,
                 order = context.selectors.order,
                 labels = context.labels,
             ) ?: return null
@@ -110,7 +111,7 @@ class FetchAssetHandler(
                     assetRepository.fetchByPath(
                         path = context.path,
                         entryId = context.selectors.entryId,
-                        transformation = context.transformation,
+                        specification = context.specification,
                         order = context.selectors.order,
                         labels = context.labels,
                     ) ?: return null,
@@ -139,17 +140,21 @@ class FetchAssetHandler(
         context: QueryRequestContext,
     ): Unit =
         coroutineScope {
-            context.pathConfiguration.allowedContentTypes?.let {
-                if (!it.contains(checkNotNull(context.transformation).format.mimeType)) {
-                    throw ContentTypeNotPermittedException("Content type: ${context.transformation.format} not permitted")
-                }
+            val specification = checkNotNull(context.specification)
+            check(specification is VariantSpecification.Transformed) {
+                "Cannot generate a missing original variant"
             }
+            val transformation = specification.transformation
+            formatValidator.validateOutputFormat(
+                allowedFormats = context.pathConfiguration.allowedContentTypes,
+                format = transformation.format,
+            )
             val originalVariant =
                 assetRepository
                     .fetchByPath(
                         path = context.path,
                         entryId = context.selectors.entryId,
-                        transformation = Transformation.ORIGINAL_VARIANT,
+                        specification = VariantSpecification.Original,
                         order = context.selectors.order,
                         labels = context.labels,
                     )?.variants
@@ -178,7 +183,8 @@ class FetchAssetHandler(
                 fetchJob.join()
                 variantService.generateOnDemandVariant(
                     originalVariantFile = originalVariantFile,
-                    transformation = checkNotNull(context.transformation),
+                    originalVariantAttributes = originalVariant.attributes,
+                    transformation = transformation,
                     assetId = assetId,
                     originalVariantLQIPs = originalVariant.lqips,
                     pathConfiguration = context.pathConfiguration,

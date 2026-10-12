@@ -5,17 +5,21 @@ import app.photofox.vipsffm.Vips
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsAccess
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 
 class AttributesTest {
     @ParameterizedTest
-    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
     fun `non-paged images have correct attributes`(format: ImageFormat) {
         val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree${format.extension}")!!.readBytes()
 
@@ -31,6 +35,7 @@ class AttributesTest {
                     image = vImage,
                     sourceFormat = format,
                     destinationFormat = destinationFormat,
+                    pixelTransformation = null,
                 )
             attributes.format shouldBe destinationFormat
             attributes.height shouldBe height.toDimension()
@@ -65,6 +70,7 @@ class AttributesTest {
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,
+                    pixelTransformation = null,
                 )
             attributes.format shouldBe destinationFormat
             attributes.height shouldBe height?.toDimension()
@@ -98,12 +104,64 @@ class AttributesTest {
                     image = vImage,
                     sourceFormat = ImageFormat.GIF,
                     destinationFormat = destinationFormat,
+                    pixelTransformation = null,
                 )
             attributes.format shouldBe destinationFormat
             attributes.height shouldBe height.toDimension()
             attributes.width shouldBe width.toDimension()
             attributes.pageCount shouldBe 1
             attributes.loop shouldBe null
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
+    fun `pixel transformation is only recorded when the destination format is pixels`(destinationFormat: ImageFormat) {
+        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+        Vips.run { arena ->
+            val vImage =
+                VImage.newFromBytes(
+                    arena,
+                    image,
+                )
+
+            val attributes =
+                Attributes.createAttributes(
+                    image = vImage,
+                    sourceFormat = ImageFormat.GIF,
+                    destinationFormat = destinationFormat,
+                    pixelTransformation =
+                        PixelTransformation(
+                            channels = "RGBA".toPixelChannels(),
+                        ),
+                )
+            attributes.pixels shouldBe null
+        }
+    }
+
+    @Test
+    fun `pixel attributes added when destination format is pixels`() {
+        val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+
+        Vips.run { arena ->
+            val vImage =
+                VImage.newFromBytes(
+                    arena,
+                    image,
+                )
+
+            val attributes =
+                Attributes.createAttributes(
+                    image = vImage,
+                    sourceFormat = ImageFormat.GIF,
+                    destinationFormat = ImageFormat.PIXELS,
+                    pixelTransformation =
+                        PixelTransformation(
+                            channels = "RGBA".toPixelChannels(),
+                        ),
+                )
+            attributes.pixels?.channels shouldBe "RGBA".toPixelChannels()
         }
     }
 }

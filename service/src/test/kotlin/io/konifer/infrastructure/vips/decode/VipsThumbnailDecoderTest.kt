@@ -16,7 +16,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -53,7 +53,7 @@ class VipsThumbnailDecoderTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ImageFormat::class)
+    @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
     fun `reports resize and lqip impact applied by fill thumbnail`(format: ImageFormat) {
         val image = ImageFactory.testImage(format = format)
         val sourceFile = temporaryDirectory.resolve("source${format.extension}")
@@ -76,7 +76,7 @@ class VipsThumbnailDecoderTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ImageFormat::class)
+    @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
     fun `stretch thumbnail clamps dimensions when upscaling is disabled`(format: ImageFormat) {
         val image = ImageFactory.testImage(format = format)
         val sourceFile = temporaryDirectory.resolve("source${format.extension}")

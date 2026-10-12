@@ -58,6 +58,8 @@ class RequestedTransformationDsl {
     /** Requested output color space. */
     var colorSpace: TransformableColorSpace? = null
 
+    var pixelChannels: String? = null
+
     private val strip: MutableSet<MetadataType> = mutableSetOf()
 
     /** Adds metadata categories to remove from the output image. */
@@ -83,6 +85,7 @@ class RequestedTransformationDsl {
             profile = profile,
             strip = strip.toSet(),
             colorSpace = colorSpace,
+            pixelChannels = pixelChannels,
         )
 }
 
@@ -124,6 +127,7 @@ class RequestedTransformation internal constructor(
     val profile: String?,
     val strip: Set<MetadataType>,
     val colorSpace: TransformableColorSpace?,
+    val pixelChannels: String?,
 ) {
     companion object {
         /** A request for the stored image without transformations. */
@@ -208,6 +212,11 @@ class RequestedTransformation internal constructor(
         /** Sets the requested output color space. */
         fun colorSpace(colorSpace: TransformableColorSpace): Builder = apply { this.colorSpace = colorSpace }
 
+        private var pixelChannels: String? = null
+
+        /** Sets the requested pixel-channels e.g. RGB, BGR. */
+        fun pixelChannels(pixelChannels: String): Builder = apply { this.pixelChannels = pixelChannels }
+
         /** Creates an immutable transformation from the current builder values. */
         fun build(): RequestedTransformation =
             RequestedTransformation(
@@ -226,6 +235,7 @@ class RequestedTransformation internal constructor(
                 profile = profile,
                 strip = strip.toSet(),
                 colorSpace = colorSpace,
+                pixelChannels = pixelChannels,
             )
     }
 }

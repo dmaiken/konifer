@@ -4,7 +4,7 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ExifOrientations
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.coroutines.Deferred
 
 object RotateFlipNormalizer {

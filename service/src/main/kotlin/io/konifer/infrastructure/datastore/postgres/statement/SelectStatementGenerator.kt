@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.common.selector.Order
-import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
 import io.konifer.infrastructure.datastore.postgres.VariantParameterGenerator
 import konifer.jooq.tables.records.AssetLabelRecord
@@ -24,7 +24,7 @@ object SelectStatementGenerator {
     fun fetch(
         path: String,
         entryId: Long?,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
@@ -45,7 +45,7 @@ object SelectStatementGenerator {
                     ),
                 onlyReady = includeOnlyReady,
             )
-        val variantsField = multisetVariantField(trx, transformation)
+        val variantsField = multisetVariantField(trx, specification)
         val labelsField = multisetLabels(trx)
         val tagsField = multisetTags(trx)
 
@@ -77,7 +77,7 @@ object SelectStatementGenerator {
 
     private fun multisetVariantField(
         context: DSLContext,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
     ) = DSL
         .multiset(
             context
@@ -86,7 +86,7 @@ object SelectStatementGenerator {
                 .where(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
                 .and(ASSET_VARIANT.UPLOADED_AT.isNotNull)
                 .and(
-                    transformation?.let {
+                    specification?.let {
                         calculateJoinVariantConditions(it)
                     } ?: DSL.noCondition(),
                 ).orderBy(ASSET_VARIANT.CREATED_AT.desc()),
@@ -116,19 +116,18 @@ object SelectStatementGenerator {
                 records.map { r -> r.into(AssetTagRecord::class.java) }
             }.`as`("tags")
 
-    private fun calculateJoinVariantConditions(transformation: Transformation): Condition {
+    private fun calculateJoinVariantConditions(specification: VariantSpecification): Condition {
         val condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
-        return if (transformation.originalVariant) {
-            condition.and(ASSET_VARIANT.ORIGINAL_VARIANT).eq(true)
-        } else {
-            val serializedTransformation =
-                VariantParameterGenerator.generateImageVariantTransformations(
-                    transformation,
-                )
-            condition
-                .and(
-                    ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation)),
-                )
+        return when (specification) {
+            VariantSpecification.Original -> {
+                condition.and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
+            }
+
+            is VariantSpecification.Transformed -> {
+                val serializedTransformation =
+                    VariantParameterGenerator.generateImageVariantTransformations(specification.transformation)
+                condition.and(ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation)))
+            }
         }
     }
 

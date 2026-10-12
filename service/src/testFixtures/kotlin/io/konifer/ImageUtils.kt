@@ -16,6 +16,7 @@ import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.transformation.PreProcessingProperties
 import io.konifer.domain.transformation.RequestedTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
@@ -125,6 +126,7 @@ object PHash {
                         VipsOption.Int("height", size),
                         VipsOption.Enum("size", VipsSize.SIZE_FORCE),
                     ).colourspace(VipsInterpretation.INTERPRETATION_B_W)
+                    .extractBand(0)
                     .cast(VipsBandFormat.FORMAT_FLOAT)
 
             // Extract pixels into double matrix
@@ -250,6 +252,7 @@ fun createPreProcessingProperties(
     padColor: String? = null,
     strip: Set<String> = emptySet(),
     colorSpace: TransformableColorSpace = TransformableColorSpace.default,
+    pixelChannels: String? = null,
 ): PreProcessingProperties =
     PreProcessingProperties(
         enabled = enabled,
@@ -269,6 +272,7 @@ fun createPreProcessingProperties(
         padColor = padColor,
         strip = strip,
         colorSpace = colorSpace,
+        pixelChannels = pixelChannels?.toPixelChannels(),
     )
 
 /**

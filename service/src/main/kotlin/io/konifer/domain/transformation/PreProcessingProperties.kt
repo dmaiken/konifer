@@ -8,6 +8,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys.ENABLED
 import kotlinx.serialization.SerialName
@@ -49,6 +50,8 @@ data class PreProcessingProperties(
     val strip: Set<String> = emptySet(),
     @SerialName(ManipulationParameters.COLOR_SPACE)
     val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
+    @SerialName(ManipulationParameters.PIXEL_CHANNELS)
+    val pixelChannels: PixelChannels? = null,
 ) {
     companion object Factory {
         val default =
@@ -76,5 +79,6 @@ data class PreProcessingProperties(
             padColor = padColor,
             stripMetadata = strip.joinToString(","),
             colorSpace = colorSpace,
+            pixelChannels = pixelChannels,
         )
 }

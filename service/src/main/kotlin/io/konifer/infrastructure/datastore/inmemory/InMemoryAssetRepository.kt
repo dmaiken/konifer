@@ -10,6 +10,7 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
@@ -66,8 +67,9 @@ class InMemoryAssetRepository(
     override suspend fun markReady(asset: Asset.Ready) {
         storeMutex.withLock {
             idReference[asset.id] = asset
-            store[asset.path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
-            store[asset.path]?.add(asset)
+            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            store[path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
+            store[path]?.add(asset)
         }
     }
 
@@ -115,7 +117,7 @@ class InMemoryAssetRepository(
             val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
             return store[path]?.let { assets ->
                 val asset = assets.first { it.entryId == asset.entryId }
-                if (asset.variants.any { it.transformation == variant.transformation }) {
+                if (asset.variants.any { it.matches(variant.specification) }) {
                     throw VariantAlreadyExistsException("Variant already exists for asset: ${asset.id.value}")
                 }
                 asset.variants.add(variant)
@@ -137,7 +139,7 @@ class InMemoryAssetRepository(
     override suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
@@ -145,19 +147,19 @@ class InMemoryAssetRepository(
         val now = LocalDateTime.now(UTC)
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
-            when {
-                transformation == null -> {
+            when (specification) {
+                null -> {
                     asset.variants
                 }
 
-                transformation.originalVariant -> {
+                VariantSpecification.Original -> {
                     asset.variants.filter { it.isOriginalVariant }
                 }
 
-                else -> {
+                is VariantSpecification.Transformed -> {
                     asset.variants
                         .firstOrNull { variant ->
-                            transformation == variant.transformation
+                            variant.matches(specification)
                         }?.let { matched ->
                             listOf(matched)
                         } ?: emptyList()
@@ -170,14 +172,14 @@ class InMemoryAssetRepository(
 
     override suspend fun fetchAllByPath(
         path: String,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         labels: Map<String, String>,
         order: Order,
         limit: Int,
     ): List<AssetData> =
         fetchAll(
             path = path,
-            transformation = transformation,
+            specification = specification,
             order = order,
             labels = labels,
             limit = limit,
@@ -295,6 +297,22 @@ class InMemoryAssetRepository(
         return asset
     }
 
+    private fun Variant.matches(requested: VariantSpecification): Boolean =
+        when (requested) {
+            VariantSpecification.Original -> {
+                isOriginalVariant
+            }
+
+            is VariantSpecification.Transformed -> {
+                val storedTransformation =
+                    when (val stored = specification) {
+                        VariantSpecification.Original -> Transformation.fromAttributes(attributes)
+                        is VariantSpecification.Transformed -> stored.transformation
+                    }
+                requested.transformation == storedTransformation
+            }
+        }
+
     private fun selectAssetsAtPath(
         path: String,
         labels: Map<String, String>,
@@ -358,7 +376,7 @@ class InMemoryAssetRepository(
 
     private fun fetchAll(
         path: String,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         order: Order,
         labels: Map<String, String>,
         limit: Int,
@@ -372,14 +390,14 @@ class InMemoryAssetRepository(
             }?.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             ?.map { asset ->
                 val variants =
-                    if (transformation == null) {
+                    if (specification == null) {
                         asset.variants
-                    } else if (transformation.originalVariant) {
+                    } else if (specification == VariantSpecification.Original) {
                         listOf(asset.variants.first { it.isOriginalVariant })
                     } else {
                         asset.variants
                             .firstOrNull { variant ->
-                                (variant.expiresAt == null || variant.expiresAt!! > now) && transformation == variant.transformation
+                                (variant.expiresAt == null || variant.expiresAt!! > now) && variant.matches(specification)
                             }?.let { matched ->
                                 listOf(matched)
                             } ?: emptyList()

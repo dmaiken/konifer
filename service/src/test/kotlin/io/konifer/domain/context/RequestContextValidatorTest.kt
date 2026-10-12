@@ -6,7 +6,6 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.VariantProfileRepository
-import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
@@ -62,7 +61,7 @@ class RequestContextValidatorTest {
             validator.validateFetchRequest(
                 pathConfiguration = pathConfiguration(mode = OnDemandVariantMode.DISABLED),
                 querySelectors = QuerySelectors(returnFormat = ReturnFormat.INFO),
-                requestedTransformation = RequestedTransformation.ORIGINAL_VARIANT,
+                requestedTransformation = null,
                 queryParameters = Parameters.Empty,
             )
         }
@@ -88,7 +87,7 @@ class RequestContextValidatorTest {
             validator.validateFetchRequest(
                 pathConfiguration = pathConfiguration(mode = OnDemandVariantMode.DISABLED),
                 querySelectors = QuerySelectors(returnFormat = returnFormat),
-                requestedTransformation = RequestedTransformation.ORIGINAL_VARIANT,
+                requestedTransformation = null,
                 queryParameters = Parameters.Empty,
             )
         }

@@ -17,6 +17,7 @@ import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.getResourceAsFile
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.TemporaryFileFactory.createProcessedVariantTempFile
@@ -74,6 +75,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
         )
 
     lateinit var source: Path
+    private lateinit var sourceAttributes: Attributes
     private lateinit var bufferedImage: BufferedImage
 
     @BeforeEach
@@ -86,6 +88,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                     deleteOnExit(this)
                     writeBytes(imageFile.readBytes())
                 }
+            sourceAttributes = Attributes.createSourceAttributes(source, ImageFormat.PNG)
         }
 
     @Nested
@@ -98,6 +101,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                 val variantGenerationWorkItem =
                     GenerateVariantsWorkItem(
                         source = source,
+                        sourceAttributes = sourceAttributes,
                         transformationDataContainers =
                             listOf(
                                 TransformationDataContainer(
@@ -132,6 +136,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                 val variantGenerationWorkItem =
                     GenerateVariantsWorkItem(
                         source = source,
+                        sourceAttributes = sourceAttributes,
                         transformationDataContainers =
                             listOf(
                                 TransformationDataContainer(
@@ -182,6 +187,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                 val variantGenerationWorkItem =
                     GenerateVariantsWorkItem(
                         source = source,
+                        sourceAttributes = sourceAttributes,
                         transformationDataContainers = listOf(),
                         deferredResult = result,
                         lqipImplementations = emptySet(),
@@ -199,6 +205,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                 val variantGenerationWorkItem =
                     GenerateVariantsWorkItem(
                         source = source,
+                        sourceAttributes = sourceAttributes,
                         transformationDataContainers =
                             listOf(
                                 TransformationDataContainer(
@@ -220,6 +227,7 @@ class WorkItemConsumerTest : BaseUnitTest() {
                 coEvery {
                     imageProcessor.generateVariants(
                         sourceFile = any(),
+                        sourceAttributes = any(),
                         transformationDataContainers = any(),
                         lqipImplementations = any(),
                     )

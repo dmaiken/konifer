@@ -4,8 +4,8 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 
 interface AssetRepository {
@@ -27,17 +27,17 @@ interface AssetRepository {
 
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.
-     * If the asset exists but has no variants that match the [transformation], then
+     * If the asset exists but has no variants that match the [specification], then
      * [AssetData] will contain an empty [AssetData.variants].
      *
      * @param path the url path
      * @param entryId the entryId, can be null
-     * @param transformation null means fetch all variants
+     * @param specification null means fetch all variants
      */
     suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         order: Order = Order.NEW,
         labels: Map<String, String> = emptyMap(),
         includeOnlyReady: Boolean = true,
@@ -46,8 +46,8 @@ interface AssetRepository {
     /**
      * Fetch assets at the specific [path].
      *
-     * @param transformation null means fetch all variants and any transformations that has [Transformation.originalVariant] == true
-     * will fetch the original variant regardless of the rest of the transformation parameters.
+     * @param specification null means fetch all variants; [VariantSpecification.Original] selects the original variant.
+     * [VariantSpecification.Transformed] matches the stored transformation, including the original variant's attributes.
      *
      * @param labels filters assets at the path before sorting and applying the [limit]
      * @param order sorts the assets at the [path] before applying the [limit]
@@ -55,7 +55,7 @@ interface AssetRepository {
      */
     suspend fun fetchAllByPath(
         path: String,
-        transformation: Transformation?,
+        specification: VariantSpecification?,
         labels: Map<String, String> = emptyMap(),
         order: Order = Order.NEW,
         limit: Int,

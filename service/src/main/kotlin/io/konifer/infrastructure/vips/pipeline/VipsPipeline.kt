@@ -1,7 +1,6 @@
 package io.konifer.infrastructure.vips.pipeline
 
 import app.photofox.vipsffm.VImage
-import app.photofox.vipsffm.VipsImageCopyMemory
 import io.konifer.domain.transformation.Transformation
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.premultiplyIfNecessary
@@ -66,7 +65,6 @@ class VipsPipeline(
             if (decision is TransformationDecision.Apply) {
                 val source =
                     prepareForNextTransformation(
-                        arena = arena,
                         processed = processed.processed,
                         isAlphaPremultiplied = isAlphaPremultiplied,
                         decision = decision,
@@ -114,7 +112,6 @@ class VipsPipeline(
     }
 
     private fun prepareForNextTransformation(
-        arena: Arena,
         processed: VImage,
         isAlphaPremultiplied: Boolean,
         pixelAccess: PixelAccess,
@@ -144,7 +141,7 @@ class VipsPipeline(
             pixelAccess == PixelAccess.SEQUENTIAL && decision.requiredPixelAccess == PixelAccess.RANDOM
         val preparedSource =
             if (requiresRandomAccess) {
-                VipsImageCopyMemory.copyMemory(arena, alphaPrepared)
+                alphaPrepared.copyMemory()
             } else {
                 alphaPrepared
             }

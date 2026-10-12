@@ -7,6 +7,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_CROP
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_NO_ROTATE
@@ -28,14 +29,20 @@ object VipsThumbnailDecoder {
         transformation: Transformation,
         sourceFormat: ImageFormat,
         sourceFile: Path,
+        sourceAttributes: Attributes? = null,
     ): DecodedVipsImage {
         val normalVImage =
-            VipsFileDecoder.decodeSource(
+            VipsDecoderSelector.getDecoder(sourceFormat).decodeSource(
                 arena = arena,
                 destinationFormat = transformation.format,
                 sourceFormat = sourceFormat,
                 source = sourceFile,
+                sourceAttributes = sourceAttributes,
             )
+        // Filename-based thumbnail loaders cannot infer the geometry or channel layout of raw pixels.
+        if (sourceFormat == ImageFormat.PIXELS) {
+            return DecodedVipsImage(image = normalVImage, pixelAccess = PixelAccess.RANDOM)
+        }
         val resizePlanningImage =
             if (transformation.isAutoRotate) normalVImage.autorot() else normalVImage
         val resizePlan = Resize.createPlan(resizePlanningImage, transformation)

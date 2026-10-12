@@ -142,7 +142,7 @@ jobs:
         run: bash scripts/download-siglip2-models.sh --revision "$SIGLIP2_MODEL_REVISION"
 
       - name: Run Functional Tests
-        run: ./gradlew :service:functionalTest --no-parallel -Dorg.gradle.workers.max=1 -x detekt -x ktlintCheck --info
+        run: ./gradlew :service:functionalTest --no-parallel -Dorg.gradle.workers.max=1 -x detekt -x ktlintCheck
         env:
           SVT_LOG: 1
 

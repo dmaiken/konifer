@@ -91,7 +91,7 @@ class ResizeTest {
     @Nested
     inner class FitResizeTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize down with fit mode`(format: ImageFormat) {
             val height = 50
             val width = 50
@@ -124,7 +124,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize up with fit mode`(format: ImageFormat) {
             val height = 2000
             val width = 2000
@@ -249,7 +249,7 @@ class ResizeTest {
     @Nested
     inner class FillResizeTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize down with fill mode`(format: ImageFormat) {
             val height = 50
             val width = 50
@@ -282,7 +282,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize up with fill mode`(format: ImageFormat) {
             val height = 2000
             val width = 2000
@@ -371,7 +371,7 @@ class ResizeTest {
     @Nested
     inner class StretchResizeTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize down with stretch mode`(format: ImageFormat) {
             val height = 50
             val width = 50
@@ -404,7 +404,7 @@ class ResizeTest {
         }
 
         @ParameterizedTest
-        @EnumSource(ImageFormat::class)
+        @MethodSource("io.konifer.ImageTestSources#supportedInputSources")
         fun `can resize up with stretch mode`(format: ImageFormat) {
             val height = 2000
             val width = 2000

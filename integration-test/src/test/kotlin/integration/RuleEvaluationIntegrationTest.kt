@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource
 
 class RuleEvaluationIntegrationTest : BaseIntegrationTest() {
     @ParameterizedTest
-    @EnumSource(value = ImageFormat::class)
+    @EnumSource(value = ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
     fun `can evaluate rules against content that matches`(format: ImageFormat) {
         runBlocking {
             val (image, _) = ImageFactory.testImage(type = TestImageType.JOSHUA_TREE, format = format)

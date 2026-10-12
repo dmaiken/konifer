@@ -10,11 +10,14 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
-import io.konifer.domain.variant.Attributes
+import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.attribute.PixelAttributes
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -31,7 +34,12 @@ class VariantParameterGeneratorTest {
                     height = 100,
                     format = ImageFormat.JPEG,
                     colorSpace = ColorSpace.P3,
-                    pageCount = 1,
+                    pageCount = 10,
+                    loop = 2,
+                    pixels =
+                        ImageVariantPixelAttributes(
+                            channels = "RGBA".toPixelChannels(),
+                        ),
                 ),
             )
         val attributes =
@@ -42,6 +50,12 @@ class VariantParameterGeneratorTest {
                         height = 100.toDimension(),
                         format = ImageFormat.JPEG,
                         colorSpace = ColorSpace.P3,
+                        pageCount = 10,
+                        loop = 2,
+                        pixels =
+                            PixelAttributes(
+                                channels = "RGBA".toPixelChannels(),
+                            ),
                     ),
             )
 
@@ -55,7 +69,7 @@ class VariantParameterGeneratorTest {
                 ImageVariantTransformation(
                     width = 100,
                     height = 100,
-                    format = ImageFormat.JPEG,
+                    format = ImageFormat.PIXELS,
                     fit = Fit.FILL,
                     gravity = Gravity.ENTROPY,
                     rotate = Rotate.ONE_HUNDRED_EIGHTY,
@@ -73,6 +87,10 @@ class VariantParameterGeneratorTest {
                             strip = listOf(MetadataType.IPTC, MetadataType.XMP),
                         ),
                     colorSpace = ColorSpace.P3,
+                    pixels =
+                        ImageVariantPixels(
+                            channels = "RGBA",
+                        ),
                 ),
             )
         val transformations1 =
@@ -81,7 +99,7 @@ class VariantParameterGeneratorTest {
                     Transformation(
                         height = 100.toDimension(),
                         width = 100.toDimension(),
-                        format = ImageFormat.JPEG,
+                        format = ImageFormat.PIXELS,
                         fit = Fit.FILL,
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
@@ -99,6 +117,10 @@ class VariantParameterGeneratorTest {
                                 strip = setOf(MetadataType.XMP, MetadataType.IPTC),
                             ),
                         colorSpace = ColorSpace.P3,
+                        pixels =
+                            PixelTransformation(
+                                channels = "RGBA".toPixelChannels(),
+                            ),
                     ),
             )
         val transformations2 =
@@ -107,7 +129,7 @@ class VariantParameterGeneratorTest {
                     Transformation(
                         height = 100.toDimension(),
                         width = 100.toDimension(),
-                        format = ImageFormat.JPEG,
+                        format = ImageFormat.PIXELS,
                         fit = Fit.FILL,
                         gravity = Gravity.ENTROPY,
                         rotate = Rotate.ONE_HUNDRED_EIGHTY,
@@ -125,6 +147,10 @@ class VariantParameterGeneratorTest {
                                 strip = setOf(MetadataType.IPTC, MetadataType.XMP),
                             ),
                         colorSpace = ColorSpace.P3,
+                        pixels =
+                            PixelTransformation(
+                                channels = "RGBA".toPixelChannels(),
+                            ),
                     ),
             )
 

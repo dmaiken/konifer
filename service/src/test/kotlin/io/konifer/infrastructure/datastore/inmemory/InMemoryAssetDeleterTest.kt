@@ -66,7 +66,7 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = asset.path,
                 entryId = asset.entryId,
-                transformation = null,
+                specification = null,
                 includeOnlyReady = false,
             ) shouldBe null
         }
@@ -97,7 +97,7 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = asset.path,
                 entryId = asset.entryId,
-                transformation = null,
+                specification = null,
                 includeOnlyReady = false,
             ) shouldBe null
         }
@@ -136,14 +136,14 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = deleted.path,
                 entryId = deleted.entryId,
-                transformation = null,
+                specification = null,
                 includeOnlyReady = false,
             ) shouldBe null
             assetRepository
                 .fetchByPath(
                     path = retained.path,
                     entryId = retained.entryId,
-                    transformation = null,
+                    specification = null,
                     includeOnlyReady = false,
                 )?.id shouldBe retained.id
         }

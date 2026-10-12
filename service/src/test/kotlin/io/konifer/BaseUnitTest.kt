@@ -7,9 +7,9 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.mockk.spyk

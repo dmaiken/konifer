@@ -79,6 +79,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                 coEvery {
                     generateVariants(
                         sourceFile = any(),
+                        sourceAttributes = any(),
                         transformationDataContainers = any(),
                         lqipImplementations = any(),
                     )

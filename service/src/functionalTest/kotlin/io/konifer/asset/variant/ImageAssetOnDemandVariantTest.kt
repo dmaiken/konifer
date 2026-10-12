@@ -531,7 +531,7 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
     @Nested
     inner class QualityTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PNG", "GIF"])
+        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PNG", "GIF", "PIXELS"])
         fun `variant can be fetched that is has quality applied`(variantFormat: ImageFormat) =
             testInMemory {
                 val quality = 40
@@ -592,7 +592,7 @@ class ImageAssetOnDemandVariantTest : BaseFunctionalTest() {
 
         @CartesianTest
         fun `variant can be fetched that is has highest or lowest quality applied`(
-            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PNG", "GIF"]) variantFormat:
+            @CartesianTest.Enum(ImageFormat::class, mode = CartesianTest.Enum.Mode.EXCLUDE, names = ["PNG", "GIF", "PIXELS"]) variantFormat:
                 ImageFormat,
             @CartesianTest.Values(ints = [1, 100]) quality: Int,
         ) = testInMemory {

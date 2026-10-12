@@ -2,22 +2,20 @@ package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
-import app.photofox.vipsffm.VipsImageCopyMemory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
-import io.konifer.domain.image.fromExtension
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.vips.ImagePreviewGenerator
-import io.konifer.infrastructure.vips.VipsEncoder
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.decode.VipsThumbnailDecoder
+import io.konifer.infrastructure.vips.encode.VipsEncoderSelector
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.lqipVariantPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.preProcessingPipeline
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines.variantGenerationPipeline
@@ -29,7 +27,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.lang.foreign.Arena
 import java.nio.file.Path
-import kotlin.io.path.extension
 
 class VipsImageProcessor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -77,7 +74,7 @@ class VipsImageProcessor {
             if (shouldEncode && shouldGeneratePreview) {
                 when (preProcessed.processedPixelAccess) {
                     PixelAccess.RANDOM -> preProcessed.processed.copy()
-                    PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, preProcessed.processed)
+                    PixelAccess.SEQUENTIAL -> preProcessed.processed.copyMemory()
                 }
             } else {
                 preProcessed.processed
@@ -88,6 +85,7 @@ class VipsImageProcessor {
                 image = outputSource,
                 sourceFormat = sourceFormat,
                 destinationFormat = transformation.format,
+                pixelTransformation = transformation.pixels,
             ),
         )
         // we always want to generate lqips if configured when preprocessing even if the pipeline
@@ -103,13 +101,14 @@ class VipsImageProcessor {
             transformationDataContainer.lqips.complete(null)
         }
         return if (shouldEncode) {
-            VipsEncoder.writeToStream(
-                arena = arena,
-                source = outputSource,
-                format = transformation.format,
-                quality = transformation.quality.value,
-                outputChannel = transformationDataContainer.output,
-            )
+            VipsEncoderSelector
+                .getEncoder(transformation.format)
+                .writeToStream(
+                    arena = arena,
+                    source = outputSource,
+                    transformation = transformation,
+                    outputChannel = transformationDataContainer.output,
+                )
             PreprocessOutput.SourceTransformed
         } else {
             // Encoding is where all the work is done - don't bother if the image was not transformed
@@ -120,11 +119,12 @@ class VipsImageProcessor {
 
     suspend fun generateVariants(
         sourceFile: Path,
+        sourceAttributes: Attributes,
         transformationDataContainers: List<TransformationDataContainer>,
         lqipImplementations: Set<LQIPImplementation>,
     ) = withContext(Dispatchers.IO) {
         Vips.run { arena ->
-            val sourceFormat = ImageFormat.fromExtension(".${sourceFile.extension}")
+            val sourceFormat = sourceAttributes.format
             for ((transformation, output, lqips, attributes) in transformationDataContainers) {
                 runCatching {
                     val source =
@@ -133,6 +133,7 @@ class VipsImageProcessor {
                             transformation = transformation,
                             sourceFormat = sourceFormat,
                             sourceFile = sourceFile,
+                            sourceAttributes = sourceAttributes,
                         )
 
                     val variantResult = variantGenerationPipeline.run(arena, source, transformation)
@@ -142,7 +143,7 @@ class VipsImageProcessor {
                         if (shouldGeneratePreview) {
                             when (variantResult.processedPixelAccess) {
                                 PixelAccess.RANDOM -> variantResult.processed.copy()
-                                PixelAccess.SEQUENTIAL -> VipsImageCopyMemory.copyMemory(arena, variantResult.processed)
+                                PixelAccess.SEQUENTIAL -> variantResult.processed.copyMemory()
                             }
                         } else {
                             variantResult.processed
@@ -163,16 +164,18 @@ class VipsImageProcessor {
                             image = outputSource,
                             sourceFormat = sourceFormat,
                             destinationFormat = transformation.format,
+                            pixelTransformation = transformation.pixels,
                         ),
                     )
 
-                    VipsEncoder.writeToStream(
-                        arena = arena,
-                        source = outputSource,
-                        format = transformation.format,
-                        quality = transformation.quality.value,
-                        outputChannel = output,
-                    )
+                    VipsEncoderSelector
+                        .getEncoder(transformation.format)
+                        .writeToStream(
+                            arena = arena,
+                            source = outputSource,
+                            transformation = transformation,
+                            outputChannel = output,
+                        )
                 }.onFailure {
                     output.cancel(it)
                 }.getOrThrow()

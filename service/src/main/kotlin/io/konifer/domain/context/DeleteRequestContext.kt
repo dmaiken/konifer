@@ -6,4 +6,4 @@ data class DeleteRequestContext(
     val path: String,
     val modifiers: DeleteModifiers,
     val labels: Map<String, String>,
-)
+) : RequestContext

@@ -28,6 +28,7 @@ val allTransformationsDsl =
         profile = "profile"
         strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
         colorSpace = TransformableColorSpace.P3
+        pixelChannels = "RGBA"
     }
 
 val allTransformationsBuilder =
@@ -48,4 +49,5 @@ val allTransformationsBuilder =
         .profile("profile")
         .strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
         .colorSpace(TransformableColorSpace.P3)
+        .pixelChannels("RGBA")
         .build()

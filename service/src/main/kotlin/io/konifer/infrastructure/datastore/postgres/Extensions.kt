@@ -12,6 +12,7 @@ import io.konifer.domain.asset.toAssetTags
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantId
+import io.konifer.domain.variant.VariantSpecification
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetTreeRecord
@@ -71,17 +72,12 @@ fun AssetVariantRecord.toVariantData(): VariantData =
         id = VariantId(checkNotNull(id)),
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
-        isOriginalVariant = originalVariant ?: false,
         attributes =
             postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        transformation =
-            postgresJson
-                .decodeFromString<ImageVariantTransformation>(
-                    checkNotNull(transformation).data(),
-                ).toTransformation(),
+        specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = uploadedAt,
@@ -143,17 +139,12 @@ fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
         assetId = AssetId(checkNotNull(assetId)),
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
-        isOriginalVariant = originalVariant ?: false,
         attributes =
             postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        transformation =
-            postgresJson
-                .decodeFromString<ImageVariantTransformation>(
-                    checkNotNull(transformation).data(),
-                ).toTransformation(),
+        specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = null,
@@ -166,19 +157,26 @@ fun AssetVariantRecord.toReadyVariant(uploadedAt: LocalDateTime): Variant.Ready 
         assetId = AssetId(checkNotNull(assetId)),
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
-        isOriginalVariant = originalVariant ?: false,
         attributes =
             postgresJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        transformation =
-            postgresJson
-                .decodeFromString<ImageVariantTransformation>(
-                    checkNotNull(transformation).data(),
-                ).toTransformation(),
+        specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt),
         uploadedAt = uploadedAt,
         expiresAt = expiresAt,
     )
+
+private fun AssetVariantRecord.toVariantSpecification(): VariantSpecification =
+    if (originalVariant == true) {
+        VariantSpecification.Original
+    } else {
+        VariantSpecification.Transformed(
+            postgresJson
+                .decodeFromString<ImageVariantTransformation>(
+                    checkNotNull(transformation).data(),
+                ).toTransformation(),
+        )
+    }

@@ -23,5 +23,6 @@ fun createLinkResponse() =
                 colorSpace = "srgb",
                 loop = null,
                 pageCount = 1,
+                pixels = null,
             ),
     )

@@ -19,6 +19,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.nio.FloatBuffer
 
 class InferenceRuleEvaluatorTest {
     private val rulePromptEmbeddingService = mockk<RulePromptEmbeddingService>()
@@ -280,7 +281,7 @@ class InferenceRuleEvaluatorTest {
     private companion object {
         val tensor =
             ImageTensor(
-                values = floatArrayOf(1.0f, 0.0f),
+                values = FloatBuffer.wrap(floatArrayOf(1.0f, 0.0f)).also { it.flip() },
                 shape = longArrayOf(1, 2),
             )
     }

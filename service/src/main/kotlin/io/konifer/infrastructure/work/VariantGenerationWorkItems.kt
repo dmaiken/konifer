@@ -5,11 +5,13 @@ import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.rules.upload.UploadRuleset
+import io.konifer.domain.variant.attribute.Attributes
 import kotlinx.coroutines.CompletableDeferred
 import java.nio.file.Path
 
 data class GenerateVariantsWorkItem(
     val source: Path,
+    val sourceAttributes: Attributes,
     val transformationDataContainers: List<TransformationDataContainer>,
     val lqipImplementations: Set<LQIPImplementation>,
     override val deferredResult: CompletableDeferred<Unit>,

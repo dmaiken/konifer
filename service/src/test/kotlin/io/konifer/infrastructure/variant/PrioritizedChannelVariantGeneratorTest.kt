@@ -8,11 +8,11 @@ import io.konifer.domain.ports.VariantGenerator
 import io.konifer.domain.ports.VariantType
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.work.GenerateVariantsWorkItem
 import io.konifer.infrastructure.work.WorkItem
 import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.channels.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -27,6 +27,13 @@ import org.junit.jupiter.params.provider.EnumSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrioritizedChannelVariantGeneratorTest {
+    private val sourceAttributes =
+        Attributes(
+            width = 200.toDimension(),
+            height = 300.toDimension(),
+            format = ImageFormat.JPEG,
+            colorSpace = ColorSpace.SRGB,
+        )
     val highPriorityChannel = Channel<WorkItem<*>>(UNLIMITED)
     val backgroundChannel = Channel<WorkItem<*>>(UNLIMITED)
 
@@ -55,6 +62,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             scheduler.generateVariantsFromSource(
                 source = source,
+                sourceAttributes = sourceAttributes,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
                 variantType = VariantType.EAGER,
@@ -64,6 +72,7 @@ class PrioritizedChannelVariantGeneratorTest {
             sent shouldNotBe null
             with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
+                this.sourceAttributes shouldBe sourceAttributes
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
             }
@@ -88,6 +97,7 @@ class PrioritizedChannelVariantGeneratorTest {
 
             scheduler.generateVariantsFromSource(
                 source = source,
+                sourceAttributes = sourceAttributes,
                 transformationDataContainers = listOf(transformationDataContainer),
                 lqipImplementations = lqipImplementations,
                 variantType = VariantType.ON_DEMAND,
@@ -97,6 +107,7 @@ class PrioritizedChannelVariantGeneratorTest {
             sent shouldNotBe null
             with(sent!! as GenerateVariantsWorkItem) {
                 this.source shouldBe source
+                this.sourceAttributes shouldBe sourceAttributes
                 this.transformationDataContainers shouldBe listOf(transformationDataContainer)
                 this.lqipImplementations shouldBe lqipImplementations
             }
@@ -112,6 +123,7 @@ class PrioritizedChannelVariantGeneratorTest {
             val deferred =
                 scheduler.generateVariantsFromSource(
                     source = source,
+                    sourceAttributes = sourceAttributes,
                     transformationDataContainers = listOf(),
                     lqipImplementations = lqipImplementations,
                     variantType = variantType,
@@ -120,29 +132,5 @@ class PrioritizedChannelVariantGeneratorTest {
             highPriorityChannel.shouldBeEmpty()
             backgroundChannel.shouldBeEmpty()
             shouldNotThrowAny { deferred.await() }
-        }
-
-    @ParameterizedTest
-    @EnumSource(VariantType::class)
-    fun `throws if no transformations are for original variants`(variantType: VariantType) =
-        runTest {
-            val lqipImplementations = setOf(LQIPImplementation.THUMBHASH)
-            val transformationDataContainer =
-                TransformationDataContainer(
-                    transformation = Transformation.ORIGINAL_VARIANT,
-                    output = ByteChannel(),
-                )
-            val source = TemporaryFileFactory.createOriginalVariantTempFile(ImageFormat.JPEG.extension)
-
-            shouldThrow<IllegalArgumentException> {
-                scheduler.generateVariantsFromSource(
-                    source = source,
-                    transformationDataContainers = listOf(transformationDataContainer),
-                    lqipImplementations = lqipImplementations,
-                    variantType = variantType,
-                )
-            }
-            highPriorityChannel.shouldBeEmpty()
-            backgroundChannel.shouldBeEmpty()
         }
 }

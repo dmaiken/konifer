@@ -18,6 +18,7 @@ import io.konifer.common.image.ManipulationParameters.GRAVITY
 import io.konifer.common.image.ManipulationParameters.HEIGHT
 import io.konifer.common.image.ManipulationParameters.PAD
 import io.konifer.common.image.ManipulationParameters.PAD_COLOR
+import io.konifer.common.image.ManipulationParameters.PIXEL_CHANNELS
 import io.konifer.common.image.ManipulationParameters.QUALITY
 import io.konifer.common.image.ManipulationParameters.ROTATE
 import io.konifer.common.image.ManipulationParameters.STRIP
@@ -86,6 +87,7 @@ internal fun URLBuilder.appendTransformationParameters(requestedTransformation: 
         .takeIf { it.isNotBlank() }
         ?.let { strip -> parameters.append(STRIP, strip) }
     requestedTransformation.colorSpace?.let { colorSpace -> parameters.append(COLOR_SPACE, colorSpace.queryParameterValue) }
+    requestedTransformation.pixelChannels?.let { pixelChannels -> parameters.append(PIXEL_CHANNELS, pixelChannels) }
 }
 
 internal fun URLBuilder.appendLabels(labels: Map<String, String>) {

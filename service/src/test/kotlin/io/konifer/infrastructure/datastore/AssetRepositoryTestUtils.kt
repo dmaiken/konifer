@@ -10,10 +10,10 @@ import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -129,7 +129,7 @@ fun assertFetchedVariantAgainstAggregate(
     fetched!!.id shouldBe variant.id
     fetched.createdAt shouldBe variant.createdAt
     fetched.attributes shouldBe variant.attributes
-    fetched.transformation shouldBe variant.transformation
+    fetched.specification shouldBe variant.specification
     fetched.isOriginalVariant shouldBe variant.isOriginalVariant
     fetched.uploadedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe variant.uploadedAt?.truncatedTo(ChronoUnit.MILLIS)
     fetched.objectStoreKey shouldBe variant.objectStoreKey

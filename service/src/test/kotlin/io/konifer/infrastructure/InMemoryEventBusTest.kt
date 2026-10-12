@@ -6,9 +6,9 @@ import io.konifer.domain.event.AssetReadyEvent
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.transformation.toDimension
-import io.konifer.domain.variant.Attributes
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.event.InMemoryEventBus
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi

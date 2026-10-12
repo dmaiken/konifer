@@ -28,5 +28,6 @@ class RequestedTransformationTest :
             createdByDsl.profile shouldNotBe null shouldBe createdByBuilder.profile
             createdByDsl.strip shouldNotBe null shouldBe createdByBuilder.strip
             createdByDsl.colorSpace shouldNotBe null shouldBe createdByBuilder.colorSpace
+            createdByDsl.pixelChannels shouldNotBe null shouldBe createdByBuilder.pixelChannels
         }
     })

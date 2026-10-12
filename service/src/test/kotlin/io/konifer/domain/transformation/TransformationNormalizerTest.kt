@@ -13,6 +13,7 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
+import io.konifer.domain.variant.VariantSpecification
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
@@ -126,24 +127,6 @@ class TransformationNormalizerTest : BaseUnitTest() {
             }
 
         @Test
-        fun `if requested transformation is original variant then original variant transformation is returned`() =
-            runTest {
-                val asset = storePersistedAsset()
-                val normalized =
-                    transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
-                        requested = RequestedTransformation.ORIGINAL_VARIANT,
-                    )
-
-                normalized shouldBe Transformation.ORIGINAL_VARIANT
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(any(), any(), any())
-                }
-            }
-
-        @Test
         fun `if original is needed and cannot be found then exception is thrown`() =
             runTest {
                 val requested =
@@ -164,7 +147,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         "/bad/path",
                         null,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -196,7 +179,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -228,7 +211,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -259,7 +242,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -289,7 +272,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                     )
                 }
             }
@@ -369,7 +352,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -544,7 +527,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }
@@ -707,7 +690,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     assetRepository.fetchByPath(
                         asset.path,
                         asset.entryId,
-                        Transformation.ORIGINAL_VARIANT,
+                        VariantSpecification.Original,
                         includeOnlyReady = false,
                     )
                 }

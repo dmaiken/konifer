@@ -4,6 +4,9 @@ import io.konifer.client.assets.fetch.EntryId
 import io.konifer.client.assets.fetch.None
 import io.konifer.client.assets.fetch.OrderBy
 import io.konifer.client.assets.fetch.Recursive
+import io.konifer.client.assets.fetch.RequestedTransformation
+import io.konifer.client.assets.fetch.requestedTransformation
+import io.konifer.client.harness.allTransformationsBuilder
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.assertRequestedTransformation
 import io.konifer.common.selector.Order
@@ -65,8 +68,27 @@ class HttpExtensionsTest :
         }
 
         test("all transformation options are encoded as query parameters") {
-            val url = URLBuilder().apply { appendTransformationParameters(allTransformationsDsl) }
+            listOf(allTransformationsDsl, allTransformationsBuilder).forEach { transformation ->
+                val url = URLBuilder().apply { appendTransformationParameters(transformation) }
 
-            assertRequestedTransformation(url.build().parameters, allTransformationsDsl)
+                assertRequestedTransformation(url.build().parameters, allTransformationsDsl)
+            }
+        }
+
+        test("pixel channels are encoded when they are the only transformation option") {
+            listOf(
+                requestedTransformation { pixelChannels = "bGrA" },
+                RequestedTransformation.Builder().pixelChannels("bGrA").build(),
+            ).forEach { transformation ->
+                val url = URLBuilder().apply { appendTransformationParameters(transformation) }
+
+                url.parameters.entries() shouldBe mapOf("pixel-channels" to listOf("bGrA")).entries
+            }
+        }
+
+        test("original variant leaves transformation query parameters empty") {
+            val url = URLBuilder().apply { appendTransformationParameters(RequestedTransformation.OriginalVariant) }
+
+            url.parameters.isEmpty() shouldBe true
         }
     })
