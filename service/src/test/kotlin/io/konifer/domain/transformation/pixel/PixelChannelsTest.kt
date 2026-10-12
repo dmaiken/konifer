@@ -20,7 +20,7 @@ class PixelChannelsTest {
     companion object {
         @JvmStatic
         fun channelCases() =
-            listOf("RGB", "BGR", "RGBA", "BGRA", "ARGB", "ABGR").flatMap { expected ->
+            listOf("RGB", "BGR", "RGBA", "BGRA", "ARGB", "ABGR", "GRAY").flatMap { expected ->
                 listOf(
                     expected,
                     expected.lowercase(),
@@ -48,6 +48,13 @@ class PixelChannelsTest {
     }
 
     @Test
+    fun `grayscale channels have a canonical value`() {
+        PixelChannels.grayscale.value shouldBe "GRAY"
+        PixelChannels("gRaY") shouldBe PixelChannels.grayscale
+        PixelChannels("gRaY").hashCode() shouldBe PixelChannels.grayscale.hashCode()
+    }
+
+    @Test
     fun `equivalent channel cases have equal values and hash codes`() {
         val uppercase = PixelChannels("BGRA")
         val mixedCase = PixelChannels("bGrA")
@@ -65,7 +72,7 @@ class PixelChannelsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["RGX", "R1B", "RGB ", " RGB", "R-B"])
+    @ValueSource(strings = ["RGX", "R1B", "RGB ", " RGB", "R-B", "GREY", "GARY", "YARG"])
     fun `rejects unsupported channels`(channels: String) {
         shouldThrow<IllegalArgumentException> {
             channels.toPixelChannels()
@@ -119,7 +126,7 @@ class PixelChannelsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["", "RG", "RGBAB", "RGX", "R1B", "RGB "])
+    @ValueSource(strings = ["", "RG", "RGBAB", "RGX", "R1B", "RGB ", "GREY", "GARY", "GRAY8"])
     fun `JSON deserialization validates channel values`(channels: String) {
         shouldThrow<IllegalArgumentException> {
             Json.decodeFromString<PixelChannels>(Json.encodeToString(channels))

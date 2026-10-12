@@ -2,7 +2,7 @@ package io.konifer.infrastructure.http
 
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.http.AssetResponse
-import io.konifer.common.http.AttributeResponse
+import io.konifer.common.http.AttributesResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
@@ -55,7 +55,7 @@ fun VariantResponse.Factory.fromVariantData(variantData: VariantData): VariantRe
         isOriginalVariant = variantData.isOriginalVariant,
         storeBucket = variantData.objectStoreBucket,
         storeKey = variantData.objectStoreKey,
-        attributes = AttributeResponse.fromAttributes(variantData.attributes),
+        attributes = AttributesResponse.fromAttributes(variantData.attributes),
         lqip = LQIPResponse.fromLqips(variantData.lqips),
         transformation =
             when (val specification = variantData.specification) {
@@ -69,7 +69,7 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
         isOriginalVariant = variant.isOriginalVariant,
         storeBucket = variant.objectStoreBucket,
         storeKey = variant.objectStoreKey,
-        attributes = AttributeResponse.fromAttributes(variant.attributes),
+        attributes = AttributesResponse.fromAttributes(variant.attributes),
         lqip = LQIPResponse.fromLqips(variant.lqips),
         transformation =
             when (val specification = variant.specification) {
@@ -78,8 +78,8 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
             },
     )
 
-fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeResponse =
-    AttributeResponse(
+fun AttributesResponse.Factory.fromAttributes(attributes: Attributes): AttributesResponse =
+    AttributesResponse(
         height = attributes.height.value,
         width = attributes.width.value,
         format = attributes.format.format,

@@ -13,6 +13,10 @@ import java.lang.foreign.Arena
 
 object ForceRgbBands : VipsTransformer {
     private const val EXPECTED_BANDS = 3
+
+    /**
+     * White background
+     */
     private val flattenBackground = listOf(255.0, 255.0, 255.0)
 //    private val flattenBackground = listOf(0.0, 0.0, 0.0)
 

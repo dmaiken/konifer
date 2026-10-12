@@ -2,13 +2,16 @@ package io.konifer.infrastructure.vips.encode
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
+import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERPRETATION
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
@@ -39,13 +42,6 @@ class RawPixelEncoderTest {
                 arguments(4, "BGRA", listOf(30, 20, 10, 0, 255, 200, 128, 127)),
                 arguments(4, "ARGB", listOf(0, 10, 20, 30, 127, 128, 200, 255)),
                 arguments(4, "ABGR", listOf(0, 30, 20, 10, 127, 255, 200, 128)),
-            )
-
-        @JvmStatic
-        fun floatPixelLayouts() =
-            listOf(
-                arguments("RGB", listOf(0, 2, 255, 255, 128, 0)),
-                arguments("BGRA", listOf(255, 2, 0, 255, 0, 128, 255, 255)),
             )
     }
 
@@ -78,23 +74,23 @@ class RawPixelEncoderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("floatPixelLayouts")
-    fun `casts samples to unsigned bytes before writing`(
-        layout: String,
-        expected: List<Int>,
-    ) = runTest {
+    @ValueSource(strings = ["RGB", "BGRA", "GRAY"])
+    fun `rejects samples that were not cast by the pipeline`(layout: String) {
         Arena.ofConfined().use { arena ->
+            val bands = if (layout == "GRAY") 1 else 3
             val source =
                 VImage.newFromMemory(
                     arena,
-                    arena.allocateFrom(ValueLayout.JAVA_FLOAT, -1f, 2.9f, 300f, 255.9f, 128.75f, 0f),
+                    arena.allocateFrom(ValueLayout.JAVA_FLOAT, *FloatArray(2 * bands) { 128.75f }),
                     2,
                     1,
-                    3,
+                    bands,
                     VipsBandFormat.FORMAT_FLOAT.rawValue,
                 )
 
-            encode(arena, source, transformation(layout)).toList() shouldBe expected.map(Int::toByte)
+            shouldThrow<IllegalArgumentException> {
+                RawPixelEncoder.writeToStream(arena, source, transformation(layout), ByteChannel())
+            }.message shouldBe "Source pixels not in correct datatype, were they casted? Source datatype: FORMAT_FLOAT"
         }
     }
 
@@ -117,14 +113,105 @@ class RawPixelEncoderTest {
             }
         }
 
+    @ParameterizedTest
+    @ValueSource(ints = [1, 3])
+    fun `writes one unsigned byte per grayscale pixel across multiple rows`(bands: Int) =
+        runTest {
+            Arena.ofConfined().use { arena ->
+                val intensities = listOf(0, 64, 128, 255)
+                val pixels = intensities.flatMap { intensity -> List(bands) { intensity.toByte() } }.toByteArray()
+                val source =
+                    VImage
+                        .newFromMemory(
+                            arena,
+                            arena.allocateFrom(ValueLayout.JAVA_BYTE, *pixels),
+                            2,
+                            2,
+                            bands,
+                            VipsBandFormat.FORMAT_UCHAR.rawValue,
+                        ).copy(
+                            VipsOption.Enum(
+                                OPTION_INTERPRETATION,
+                                if (bands == 1) VipsInterpretation.INTERPRETATION_B_W else VipsInterpretation.INTERPRETATION_sRGB,
+                            ),
+                        )
+
+                val output = encode(arena, source, transformation("GRAY").copy(height = 2.toDimension()))
+
+                output.size shouldBe 4
+                output.toList() shouldBe intensities.map(Int::toByte)
+            }
+        }
+
     @Test
-    fun `rejects transformation without pixel layout`() {
+    fun `converts RGB colors to grayscale intensity`() =
+        runTest {
+            Arena.ofConfined().use { arena ->
+                val pixels = listOf(255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0).map(Int::toByte).toByteArray()
+                val source =
+                    VImage
+                        .newFromMemory(
+                            arena,
+                            arena.allocateFrom(ValueLayout.JAVA_BYTE, *pixels),
+                            2,
+                            2,
+                            3,
+                            VipsBandFormat.FORMAT_UCHAR.rawValue,
+                        ).copy(VipsOption.Enum(OPTION_INTERPRETATION, VipsInterpretation.INTERPRETATION_sRGB))
+
+                val output =
+                    encode(arena, source, transformation("GRAY").copy(height = 2.toDimension()))
+                        .map { it.toInt() and 0xff }
+
+                output.size shouldBe 4
+                // Grayscale conversion combines all three colors instead of selecting a single band.
+                (output[0] in 120..130) shouldBe true
+                (output[1] in 215..225) shouldBe true
+                (output[2] in 70..80) shouldBe true
+                output[3] shouldBe 0
+            }
+        }
+
+    @ParameterizedTest
+    @ValueSource(ints = [2, 4])
+    fun `flattens grayscale alpha against white before writing one channel`(bands: Int) =
+        runTest {
+            Arena.ofConfined().use { arena ->
+                val pixels =
+                    listOf(0 to 0, 0 to 128, 0 to 255, 255 to 0)
+                        .flatMap { (intensity, alpha) -> List(bands - 1) { intensity.toByte() } + alpha.toByte() }
+                        .toByteArray()
+                val source =
+                    VImage
+                        .newFromMemory(
+                            arena,
+                            arena.allocateFrom(ValueLayout.JAVA_BYTE, *pixels),
+                            2,
+                            2,
+                            bands,
+                            VipsBandFormat.FORMAT_UCHAR.rawValue,
+                        ).copy(
+                            VipsOption.Enum(
+                                OPTION_INTERPRETATION,
+                                if (bands == 2) VipsInterpretation.INTERPRETATION_B_W else VipsInterpretation.INTERPRETATION_sRGB,
+                            ),
+                        )
+
+                val output = encode(arena, source, transformation("GRAY").copy(height = 2.toDimension()))
+
+                output.size shouldBe 4
+                output.toList() shouldBe listOf(255, 127, 0, 255).map(Int::toByte)
+            }
+        }
+
+    @Test
+    fun `rejects transformation without pixel channels`() {
         Vips.run { arena ->
             val source = VImage.black(arena, 2, 1).bandjoinConst(listOf(0.0, 0.0))
 
             shouldThrow<IllegalStateException> {
                 RawPixelEncoder.writeToStream(arena, source, transformation("RGB").copy(pixels = null), ByteChannel())
-            }.message shouldBe "Pixel layout missing despite format of pixels"
+            }.message shouldBe "Pixel channels missing despite format of pixels"
         }
     }
 

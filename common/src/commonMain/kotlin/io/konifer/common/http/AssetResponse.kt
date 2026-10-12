@@ -40,7 +40,7 @@ data class VariantResponse(
     val isOriginalVariant: Boolean,
     val storeBucket: String,
     val storeKey: String,
-    val attributes: AttributeResponse,
+    val attributes: AttributesResponse,
     val transformation: TransformationResponse?,
     val lqip: LQIPResponse,
 ) {
@@ -48,7 +48,7 @@ data class VariantResponse(
 }
 
 @Serializable
-data class AttributeResponse(
+data class AttributesResponse(
     val height: Int,
     val width: Int,
     val format: String,
@@ -101,7 +101,7 @@ data class AssetLinkResponse(
     val expiresAt: LocalDateTime?,
     val alt: String?,
     val lqip: LQIPResponse,
-    val attributes: AttributeResponse,
+    val attributes: AttributesResponse,
 )
 
 @Serializable
