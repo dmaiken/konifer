@@ -6,6 +6,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.MetadataTransformation
@@ -91,6 +92,7 @@ data class ImageVariantTransformation(
                 this.pixels?.let {
                     PixelTransformation(
                         channels = it.channels.toPixelChannels(),
+                        layout = it.layout,
                     )
                 },
         )
@@ -137,11 +139,13 @@ data class ImageVariantMetadata(
 @Serializable
 data class ImageVariantPixels(
     val channels: String,
+    val layout: PixelLayout = PixelLayout.default,
 ) {
     companion object Factory {
         fun fromPixelTransformation(pixelTransformation: PixelTransformation): ImageVariantPixels =
             ImageVariantPixels(
                 channels = pixelTransformation.channels.value,
+                layout = pixelTransformation.layout,
             )
     }
 }

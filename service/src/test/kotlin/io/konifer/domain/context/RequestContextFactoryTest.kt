@@ -4,6 +4,7 @@ import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
@@ -636,6 +637,103 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
     @Nested
     inner class FetchRequestContextTests {
+        @ParameterizedTest
+        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
+        fun `ignores pixel options for encoded output formats`(format: ImageFormat) =
+            runTest {
+                storePersistedAsset(path = "/encoded/")
+                val baseline =
+                    requestContextFactory.fromFetchRequest(
+                        path = "/assets/encoded/",
+                        headers = Headers.Empty,
+                        queryParameters = Parameters.build { append("format", format.queryParameterValue) },
+                    )
+
+                listOf("BGRA", "gray").forEach { channels ->
+                    PixelLayout.entries.forEach { layout ->
+                        val context =
+                            requestContextFactory.fromFetchRequest(
+                                path = "/assets/encoded/",
+                                headers = Headers.Empty,
+                                queryParameters =
+                                    Parameters.build {
+                                        append("format", format.queryParameterValue)
+                                        append("pixel-channels", channels)
+                                        append("pixel-layout", layout.queryParameterValue)
+                                    },
+                            )
+
+                        context.specification shouldBe baseline.specification
+                        val transformation = (context.specification as VariantSpecification.Transformed).transformation
+                        transformation.format shouldBe format
+                        transformation.pixels shouldBe null
+                        transformation.colorSpace shouldBe ColorSpace.SRGB
+                        context.labels shouldBe emptyMap()
+                    }
+                }
+            }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["planar", "PLANAR", "pLaNaR", "interleaved", "INTERLEAVED"])
+        fun `parses pixel layouts without treating them as labels`(layout: String) =
+            runTest {
+                storePersistedAsset(path = "/pixels/")
+                val context =
+                    requestContextFactory.fromFetchRequest(
+                        path = "/assets/pixels/",
+                        headers = Headers.Empty,
+                        queryParameters =
+                            Parameters.build {
+                                append("format", "pixels")
+                                append("pixel-layout", layout)
+                            },
+                    )
+
+                (context.specification as VariantSpecification.Transformed).transformation.pixels?.layout shouldBe
+                    PixelLayout.valueOf(layout.uppercase())
+                context.labels shouldBe emptyMap()
+            }
+
+        @Test
+        fun `uses profile pixel layout unless overridden by the request`() =
+            runTest {
+                storePersistedAsset(path = "/pixels/")
+                every { variantProfileRepository.fetch("pixels") } returns
+                    RequestedTransformation(format = ImageFormat.PIXELS, pixelLayout = PixelLayout.PLANAR)
+
+                listOf(null, "interleaved").forEach { override ->
+                    val context =
+                        requestContextFactory.fromFetchRequest(
+                            path = "/assets/pixels/",
+                            headers = Headers.Empty,
+                            queryParameters =
+                                Parameters.build {
+                                    append("profile", "pixels")
+                                    override?.let { append("pixel-layout", it) }
+                                },
+                        )
+
+                    (context.specification as VariantSpecification.Transformed).transformation.pixels?.layout shouldBe
+                        if (override == null) PixelLayout.PLANAR else PixelLayout.INTERLEAVED
+                }
+            }
+
+        @Test
+        fun `rejects unsupported pixel layouts`() =
+            runTest {
+                shouldThrow<IllegalArgumentException> {
+                    requestContextFactory.fromFetchRequest(
+                        path = "/assets/pixels/",
+                        headers = Headers.Empty,
+                        queryParameters =
+                            Parameters.build {
+                                append("format", "pixels")
+                                append("pixel-layout", "tiled")
+                            },
+                    )
+                }
+            }
+
         @ParameterizedTest
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#queryModifierSource")
         fun `can fetch GET request context with query modifiers`(

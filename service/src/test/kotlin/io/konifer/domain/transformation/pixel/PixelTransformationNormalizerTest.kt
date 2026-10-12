@@ -2,6 +2,7 @@ package io.konifer.domain.transformation.pixel
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.toColorSpace
 import io.konifer.domain.transformation.RequestedTransformation
@@ -14,10 +15,33 @@ import org.junit.jupiter.params.provider.ValueSource
 
 class PixelTransformationNormalizerTest {
     @ParameterizedTest
-    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
-    fun `does not normalize pixel layout for other output formats`(format: ImageFormat) {
+    @EnumSource(PixelLayout::class)
+    fun `preserves requested layout for color pixels and normalizes grayscale to interleaved`(layout: PixelLayout) {
         PixelTransformationNormalizer.normalizePixelTransformation(
-            requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = "BGRA".toPixelChannels()),
+            requested = RequestedTransformation(pixelLayout = layout),
+            normalizedColorSpace = ColorSpace.SRGB,
+            normalizedFormat = ImageFormat.PIXELS,
+            isColorspaceLocked = true,
+        ) shouldBe PixelTransformation(layout = layout)
+
+        PixelTransformationNormalizer.normalizePixelTransformation(
+            requested = RequestedTransformation(pixelChannels = PixelChannels.grayscale, pixelLayout = layout),
+            normalizedColorSpace = ColorSpace.Grayscale,
+            normalizedFormat = ImageFormat.PIXELS,
+            isColorspaceLocked = true,
+        ) shouldBe PixelTransformation(PixelChannels.grayscale, PixelLayout.INTERLEAVED)
+    }
+
+    @ParameterizedTest
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
+    fun `ignores requested pixel channels and layout for other output formats`(format: ImageFormat) {
+        PixelTransformationNormalizer.normalizePixelTransformation(
+            requested =
+                RequestedTransformation(
+                    format = format,
+                    pixelChannels = "BGRA".toPixelChannels(),
+                    pixelLayout = PixelLayout.PLANAR,
+                ),
             normalizedColorSpace = ColorSpace.Grayscale,
             normalizedFormat = format,
             isColorspaceLocked = true,
@@ -112,7 +136,7 @@ class PixelTransformationNormalizerTest {
     @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
     fun `ignores grayscale channel constraints for other output formats`(format: ImageFormat) {
         PixelTransformationNormalizer.normalizePixelTransformation(
-            requested = RequestedTransformation(pixelChannels = PixelChannels.grayscale),
+            requested = RequestedTransformation(format = format, pixelChannels = PixelChannels.grayscale, pixelLayout = PixelLayout.PLANAR),
             normalizedColorSpace = ColorSpace.SRGB,
             normalizedFormat = format,
             isColorspaceLocked = true,

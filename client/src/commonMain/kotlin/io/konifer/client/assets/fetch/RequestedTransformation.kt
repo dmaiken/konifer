@@ -8,6 +8,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import kotlin.jvm.JvmField
 
 /** Creates an immutable image transformation from the assignments in [block]. */
@@ -60,6 +61,8 @@ class RequestedTransformationDsl {
 
     var pixelChannels: String? = null
 
+    var pixelLayout: PixelLayout? = null
+
     private val strip: MutableSet<MetadataType> = mutableSetOf()
 
     /** Adds metadata categories to remove from the output image. */
@@ -86,6 +89,7 @@ class RequestedTransformationDsl {
             strip = strip.toSet(),
             colorSpace = colorSpace,
             pixelChannels = pixelChannels,
+            pixelLayout = pixelLayout,
         )
 }
 
@@ -128,6 +132,7 @@ class RequestedTransformation internal constructor(
     val strip: Set<MetadataType>,
     val colorSpace: TransformableColorSpace?,
     val pixelChannels: String?,
+    val pixelLayout: PixelLayout?,
 ) {
     companion object {
         /** A request for the stored image without transformations. */
@@ -217,6 +222,11 @@ class RequestedTransformation internal constructor(
         /** Sets the requested pixel-channels e.g. RGB, BGR. */
         fun pixelChannels(pixelChannels: String): Builder = apply { this.pixelChannels = pixelChannels }
 
+        private var pixelLayout: PixelLayout? = null
+
+        /** Sets the requested pixel layout */
+        fun pixelLayout(pixelLayout: PixelLayout?): Builder = apply { this.pixelLayout = pixelLayout }
+
         /** Creates an immutable transformation from the current builder values. */
         fun build(): RequestedTransformation =
             RequestedTransformation(
@@ -236,6 +246,7 @@ class RequestedTransformation internal constructor(
                 strip = strip.toSet(),
                 colorSpace = colorSpace,
                 pixelChannels = pixelChannels,
+                pixelLayout = pixelLayout,
             )
     }
 }

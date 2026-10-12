@@ -11,6 +11,7 @@ import io.konifer.common.image.Rotate.ONE_HUNDRED_EIGHTY
 import io.konifer.common.image.Rotate.TWO_HUNDRED_SEVENTY
 import io.konifer.common.image.Rotate.ZERO
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.ktor.http.Parameters
 
 fun Filter.Factory.fromQueryParameters(
@@ -62,3 +63,8 @@ fun TransformableColorSpace.Factory.fromQueryParameters(
     parameters: Parameters,
     parameterName: String,
 ): TransformableColorSpace? = parameters[parameterName]?.let { TransformableColorSpace.valueOf(it.uppercase()) }
+
+fun PixelLayout.Factory.fromQueryParameters(
+    parameters: Parameters,
+    parameterName: String,
+): PixelLayout? = parameters[parameterName]?.let { PixelLayout.valueOf(it.uppercase()) }

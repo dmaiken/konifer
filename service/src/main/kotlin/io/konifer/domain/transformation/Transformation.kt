@@ -64,7 +64,7 @@ data class Transformation(
                 height = attributes.height,
                 format = attributes.format,
                 colorSpace = attributes.colorSpace,
-                pixels = attributes.pixels?.let { PixelTransformation(channels = it.channels) },
+                pixels = attributes.pixels?.let { PixelTransformation(channels = it.channels, layout = it.layout) },
             )
     }
 

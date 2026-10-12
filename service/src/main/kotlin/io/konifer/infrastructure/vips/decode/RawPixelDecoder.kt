@@ -4,6 +4,7 @@ import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsInterpretation
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.variant.attribute.Attributes
@@ -28,24 +29,37 @@ object RawPixelDecoder : VipsDecoder {
     ): VImage {
         validateSource(source, sourceFormat, sourceAttributes)
         val attributes = checkNotNull(sourceAttributes)
-        val layout = checkNotNull(attributes.pixels).channels.value
+        val pixels = checkNotNull(attributes.pixels)
+        val channels = pixels.channels.value
         val width = attributes.width.value
         val height = attributes.height.value
 
-        if (layout == PixelChannels.grayscale.value) {
+        if (channels == PixelChannels.grayscale.value) {
             return VImage
                 .rawload(arena, source.absolutePathString(), width, height, 1)
                 .copy(VipsOption.Enum(OPTION_INTERPRETATION, VipsInterpretation.INTERPRETATION_B_W))
                 .apply { set(OPTION_ORIENTATION, attributes.orientation) }
         }
 
-        val raw = VImage.rawload(arena, source.absolutePathString(), width, height, layout.length)
-        val canonicalLayout = if (layout.length == 4) "RGBA" else "RGB"
+        val raw =
+            when (pixels.layout) {
+                PixelLayout.INTERLEAVED -> {
+                    VImage.rawload(arena, source.absolutePathString(), width, height, channels.length)
+                }
+
+                PixelLayout.PLANAR -> {
+                    // Map the stored planes as one tall single-band image, then join their views.
+                    // rawload provides random access without rendering or copying the full payload.
+                    val planes = VImage.rawload(arena, source.absolutePathString(), width, Math.multiplyExact(height, channels.length), 1)
+                    VImage.bandjoin(arena, channels.indices.map { band -> planes.extractArea(0, band * height, width, height) })
+                }
+            }
+        val canonicalLayout = if (channels.length == 4) "RGBA" else "RGB"
         val ordered =
-            if (layout == canonicalLayout) {
+            if (channels == canonicalLayout) {
                 raw
             } else {
-                VImage.bandjoin(arena, canonicalLayout.map { channel -> raw.extractBand(layout.indexOf(channel)) })
+                VImage.bandjoin(arena, canonicalLayout.map { channel -> raw.extractBand(channels.indexOf(channel)) })
             }
         val image =
             ordered.copy(

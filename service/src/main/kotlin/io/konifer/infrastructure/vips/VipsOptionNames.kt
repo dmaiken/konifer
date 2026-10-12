@@ -21,4 +21,8 @@ object VipsOptionNames {
     const val OPTION_ENCODER = "encoder"
     const val OPTION_NO_ROTATE = "no-rotate"
     const val OPTION_INTERPRETATION = "interpretation"
+    const val OPTION_ACROSS = "across"
+    const val TILE_WIDTH = "tile_width"
+    const val MAX_TILES = "max_tiles"
+    const val PERSISTENT = "persistent"
 }

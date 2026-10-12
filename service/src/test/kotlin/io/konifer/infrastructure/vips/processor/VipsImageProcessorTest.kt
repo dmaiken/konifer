@@ -2,17 +2,27 @@ package io.konifer.infrastructure.vips.processor
 
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
+import app.photofox.vipsffm.VipsOption
+import app.photofox.vipsffm.enums.VipsBandFormat
+import app.photofox.vipsffm.enums.VipsInterpretation
 import com.vanniktech.blurhash.BlurHash
 import io.konifer.ImageFactory
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.LQIPImplementation
 import io.konifer.domain.ports.TransformationDataContainer
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.attribute.PixelAttributes
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_HEIGHT
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERPRETATION
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.lqip.image.ThumbHash
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -28,17 +38,100 @@ import kotlinx.coroutines.test.runTest
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.junitpioneer.jupiter.cartesian.CartesianTest
 import java.io.ByteArrayInputStream
+import java.lang.foreign.ValueLayout
+import java.nio.file.Path
 import java.util.Base64
 import javax.imageio.ImageIO
+import kotlin.io.path.writeBytes
 
 class VipsImageProcessorTest {
     private val vipsImageProcessor = VipsImageProcessor()
+
+    @TempDir
+    lateinit var directory: Path
+
+    @ParameterizedTest
+    @ValueSource(strings = ["RGBA", "BGRA", "ARGB", "ABGR"])
+    fun `resizes stored planar RGBA pixels and encodes PNG`(channels: String) =
+        runTest {
+            val rgba =
+                (0 until 16).map { pixel ->
+                    listOf(pixel * 13, 255 - pixel * 7, pixel * 9, listOf(0, 64, 128, 255)[pixel % 4])
+                }
+            val planar = channels.flatMap { channel -> rgba.map { pixel -> pixel["RGBA".indexOf(channel)] } }
+            val source = directory.resolve("source.bin").apply { writeBytes(planar.map(Int::toByte).toByteArray()) }
+            val attributes =
+                Attributes(
+                    width = 4.toDimension(),
+                    height = 4.toDimension(),
+                    format = ImageFormat.PIXELS,
+                    colorSpace = ColorSpace.SRGB,
+                    pixels = PixelAttributes(channels.toPixelChannels(), PixelLayout.PLANAR, PixelDataType.UINT8),
+                )
+            val output =
+                TransformationDataContainer(
+                    transformation =
+                        Transformation(
+                            width = 2.toDimension(),
+                            height = 2.toDimension(),
+                            fit = Fit.STRETCH,
+                            format = ImageFormat.PNG,
+                            colorSpace = ColorSpace.SRGB,
+                        ),
+                )
+            lateinit var expected: ByteArray
+            Vips.run { arena ->
+                // Build the resize reference directly from canonical RGBA, bypassing raw decoding.
+                expected =
+                    VImage
+                        .newFromMemory(
+                            arena,
+                            arena.allocateFrom(ValueLayout.JAVA_BYTE, *rgba.flatten().map(Int::toByte).toByteArray()),
+                            4,
+                            4,
+                            4,
+                            VipsBandFormat.FORMAT_UCHAR.rawValue,
+                        ).copy(VipsOption.Enum(OPTION_INTERPRETATION, VipsInterpretation.INTERPRETATION_sRGB))
+                        .thumbnailImage(2, VipsOption.Int(OPTION_HEIGHT, 2))
+                        .writeToMemory()
+                        .toArray(ValueLayout.JAVA_BYTE)
+            }
+
+            try {
+                vipsImageProcessor.generateVariants(
+                    sourceFile = source,
+                    sourceAttributes = attributes,
+                    transformationDataContainers = listOf(output),
+                    lqipImplementations = emptySet(),
+                )
+                output.output.close()
+                val png = output.output.toByteArray()
+                Tika().detect(png) shouldBe ImageFormat.PNG.mimeType
+                val generatedAttributes = output.attributes.await()
+                generatedAttributes.width shouldBe 2.toDimension()
+                generatedAttributes.height shouldBe 2.toDimension()
+                generatedAttributes.format shouldBe ImageFormat.PNG
+                generatedAttributes.pixels shouldBe null
+                output.lqips.await() shouldBe null
+
+                Vips.run { arena ->
+                    val decoded = VImage.newFromBytes(arena, png)
+                    decoded.width shouldBe 2
+                    decoded.height shouldBe 2
+                    decoded.hasAlpha() shouldBe true
+                    decoded.writeToMemory().toArray(ValueLayout.JAVA_BYTE).toList() shouldBe expected.toList()
+                }
+            } finally {
+                output.output.cancel(null)
+            }
+        }
 
     @Nested
     inner class PreProcessTests {

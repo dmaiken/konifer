@@ -34,6 +34,7 @@ fun assertRequestedTransformation(
         }
         requested.colorSpace?.let { parameters["cs"] shouldBe it.queryParameterValue }
         parameters["pixel-channels"] shouldBe requested.pixelChannels
+        parameters["pixel-layout"] shouldBe requested.pixelLayout?.queryParameterValue
     }
 }
 

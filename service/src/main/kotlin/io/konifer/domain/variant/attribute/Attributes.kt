@@ -3,7 +3,6 @@ package io.konifer.domain.variant.attribute
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
-import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.Dimension
@@ -56,7 +55,7 @@ data class Attributes(
                         pixelTransformation?.let {
                             PixelAttributes(
                                 channels = it.channels,
-                                layout = PixelLayout.INTERLEAVED,
+                                layout = it.layout,
                                 dataType = image.format().toPixelDataType(),
                             )
                         }

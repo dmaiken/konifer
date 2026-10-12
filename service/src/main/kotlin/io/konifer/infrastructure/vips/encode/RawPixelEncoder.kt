@@ -5,10 +5,15 @@ import app.photofox.vipsffm.VTarget
 import app.photofox.vipsffm.VipsOption
 import app.photofox.vipsffm.enums.VipsBandFormat
 import app.photofox.vipsffm.enums.VipsInterpretation
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelChannels
+import io.konifer.infrastructure.vips.VipsOptionNames.MAX_TILES
+import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_ACROSS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BACKGROUND
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
+import io.konifer.infrastructure.vips.VipsOptionNames.PERSISTENT
+import io.konifer.infrastructure.vips.VipsOptionNames.TILE_WIDTH
 import io.konifer.infrastructure.vips.format
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toOutputStream
@@ -79,10 +84,11 @@ object RawPixelEncoder : VipsEncoder {
         val bands =
             source.getInt(OPTION_BANDS)
                 ?: throw IllegalStateException("Unable to determine image band count")
-        val pixelChannels =
+        val pixels =
             checkNotNull(transformation.pixels) {
                 "Pixel channels missing despite format of ${transformation.format.format}"
-            }.channels.value.toCharArray()
+            }
+        val pixelChannels = pixels.channels.value.toCharArray()
 
         require(bands in (3..4)) {
             "Expected 3 or 4 RGB bands when normalizing image tensor but found $bands bands"
@@ -95,36 +101,58 @@ object RawPixelEncoder : VipsEncoder {
             )
 
         // Check if the requested output is the same as the image bytes
-        if ((bands == 4 && pixelChannels.contentEquals(RGBA)) || (bands == 3 && pixelChannels.contentEquals(RGB))) {
+        if (
+            pixels.layout == PixelLayout.INTERLEAVED &&
+            ((bands == 4 && pixelChannels.contentEquals(RGBA)) || (bands == 3 && pixelChannels.contentEquals(RGB)))
+        ) {
             source.rawsaveTarget(target)
             return
         }
 
+        // Planes revisit the same scanlines. Cache them lazily in native memory so sequential
+        // decoders are read only once and output can begin before the entire image is evaluated.
+        // Retain all tiles, including when arrayjoin minimises planes it has finished writing.
+        val preparedSource =
+            when (pixels.layout) {
+                PixelLayout.INTERLEAVED -> {
+                    source
+                }
+
+                PixelLayout.PLANAR -> {
+                    source.tilecache(
+                        VipsOption.Int(TILE_WIDTH, source.width),
+                        VipsOption.Int(MAX_TILES, -1),
+                        VipsOption.Boolean(PERSISTENT, true),
+                    )
+                }
+            }
         val imageWithAlpha =
             if (bands == 3 && pixelChannels.contains('A')) {
-                source.bandjoinConst(OPAQUE_ALPHA_BAND)
+                preparedSource.bandjoinConst(OPAQUE_ALPHA_BAND)
             } else {
-                source
+                preparedSource
             }
         val red = imageWithAlpha.extractBand(0)
         val green = imageWithAlpha.extractBand(1)
         val blue = imageWithAlpha.extractBand(2)
 
+        val orderedChannels =
+            pixelChannels.map { channel ->
+                when (channel) {
+                    'R' -> red
+                    'G' -> green
+                    'B' -> blue
+                    'A' -> imageWithAlpha.extractBand(3)
+                    else -> error("Unsupported channel: $channel")
+                }
+            }
         val reordered =
-            VImage.bandjoin(
-                arena,
-                buildList {
-                    pixelChannels.forEach { channel ->
-                        when (channel) {
-                            'R' -> add(red)
-                            'G' -> add(green)
-                            'B' -> add(blue)
-                            'A' -> add(imageWithAlpha.extractBand(3))
-                            else -> error("Unsupported channel: $channel")
-                        }
-                    }
-                },
-            )
+            when (pixels.layout) {
+                PixelLayout.INTERLEAVED -> VImage.bandjoin(arena, orderedChannels)
+
+                // A vertical stack of single-band images writes each complete plane in row-major order.
+                PixelLayout.PLANAR -> VImage.arrayjoin(arena, orderedChannels, VipsOption.Int(OPTION_ACROSS, 1))
+            }
 
         reordered.rawsaveTarget(target)
     }

@@ -23,6 +23,8 @@ object ManipulationParameters {
 
     const val PIXEL_CHANNELS = "pixel-channels"
 
+    const val PIXEL_LAYOUT = "pixel-layout"
+
     /**
      * All parameters minus [VARIANT_PROFILE]. New manipulation parameters must go in here for proper variant
      * request identification.
@@ -44,6 +46,7 @@ object ManipulationParameters {
             STRIP,
             COLOR_SPACE,
             PIXEL_CHANNELS,
+            PIXEL_LAYOUT,
         )
 }
 
