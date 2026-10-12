@@ -51,8 +51,19 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                             val content = (fetchResponse as KoniferResult.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
+                            val encodedContent =
+                                if (destinationFormat == ImageFormat.PIXELS) {
+                                    pixelsToEncoded(
+                                        pixels = content,
+                                        height = attributes.height,
+                                        width = attributes.width,
+                                        channels = "rgb",
+                                    )
+                                } else {
+                                    content
+                                }
                             Vips.run { arena ->
-                                val vImage = VImage.newFromBytes(arena, content)
+                                val vImage = VImage.newFromBytes(arena, encodedContent)
                                 vImage.height shouldBe attributes.height
                                 vImage.width shouldBe attributes.width
                             }

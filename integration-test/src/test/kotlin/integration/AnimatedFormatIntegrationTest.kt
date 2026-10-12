@@ -105,8 +105,19 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
                             val content = (fetchResponse as KoniferResult.Success).value
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
+                            val encodedContent =
+                                if (destinationFormat == ImageFormat.PIXELS) {
+                                    pixelsToEncoded(
+                                        pixels = content,
+                                        height = attributes.height / attributes.pages,
+                                        width = attributes.width,
+                                        channels = "rgb",
+                                    )
+                                } else {
+                                    content
+                                }
                             Vips.run { arena ->
-                                val vImage = VImage.newFromBytes(arena, content, VipsOption.Int("n", -1))
+                                val vImage = VImage.newFromBytes(arena, encodedContent, VipsOption.Int("n", -1))
                                 vImage.height shouldBe attributes.height / attributes.pages
                                 vImage.width shouldBe attributes.width
                                 (vImage.getInt("n-pages") ?: 1) shouldBe 1

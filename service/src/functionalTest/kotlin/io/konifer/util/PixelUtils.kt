@@ -49,7 +49,11 @@ fun pixelsToEncoded(
                     "interpretation",
                     VipsInterpretation.INTERPRETATION_sRGB,
                 ),
-            ).writeToStream(output, format.extension)
+            )
+            // copyMemory() to force a meterialization of the image before encoding since JXL requires
+            // random access to encode
+            .copyMemory()
+            .writeToStream(output, format.extension)
     }
     return output.toByteArray()
 }
