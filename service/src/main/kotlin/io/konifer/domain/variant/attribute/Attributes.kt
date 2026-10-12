@@ -3,6 +3,7 @@ package io.konifer.domain.variant.attribute
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.Dimension
@@ -11,7 +12,9 @@ import io.konifer.domain.transformation.toDimension
 import io.konifer.infrastructure.vips.ImageColorSpaceExtractor
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.createDecoderOptions
+import io.konifer.infrastructure.vips.format
 import io.konifer.infrastructure.vips.pageSafeHeight
+import io.konifer.infrastructure.vips.toPixelDataType
 import java.nio.file.Path
 
 data class Attributes(
@@ -53,6 +56,8 @@ data class Attributes(
                         pixelTransformation?.let {
                             PixelAttributes(
                                 channels = it.channels,
+                                layout = PixelLayout.INTERLEAVED,
+                                dataType = image.format().toPixelDataType(),
                             )
                         }
                     } else {

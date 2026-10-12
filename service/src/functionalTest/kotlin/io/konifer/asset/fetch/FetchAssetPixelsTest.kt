@@ -10,6 +10,8 @@ import io.konifer.TestImageType
 import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.infrastructure.vips.VipsOptionNames
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.matchers.shouldBeSuccessful
@@ -75,6 +77,8 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
             attributes.height shouldBe 2
             attributes.format shouldBe "pixels"
             attributes.pixels?.channels shouldBe channels.lowercase()
+            attributes.pixels?.layout shouldBe PixelLayout.INTERLEAVED
+            attributes.pixels?.dataType shouldBe PixelDataType.UINT8
 
             val content = variant.fetchContentBytes().shouldBeSuccessful().body
             content.size shouldBe 2 * 2 * channels.length
@@ -121,6 +125,8 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     .body
                     .attributes
             rawPixelAttributes.pixels?.channels shouldBe channels.lowercase()
+            rawPixelAttributes.pixels?.layout shouldBe PixelLayout.INTERLEAVED
+            rawPixelAttributes.pixels?.dataType shouldBe PixelDataType.UINT8
 
             val reconstructed =
                 pixelsToEncoded(
@@ -229,6 +235,8 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     .attributes
 
             rawPixelAttributes.pixels?.channels shouldBe channel.lowercase()
+            rawPixelAttributes.pixels?.layout shouldBe PixelLayout.INTERLEAVED
+            rawPixelAttributes.pixels?.dataType shouldBe PixelDataType.UINT8
 
             val reconstructed =
                 pixelsToEncoded(

@@ -2,6 +2,8 @@ package io.konifer.infrastructure.vips.decode
 
 import app.photofox.vipsffm.Vips
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
@@ -204,6 +206,11 @@ class RawPixelDecoderTest {
             height = 1.toDimension(),
             format = ImageFormat.PIXELS,
             colorSpace = ColorSpace.SRGB,
-            pixels = PixelAttributes(layout.toPixelChannels()),
+            pixels =
+                PixelAttributes(
+                    channels = layout.toPixelChannels(),
+                    layout = PixelLayout.INTERLEAVED,
+                    dataType = PixelDataType.UINT8,
+                ),
         )
 }
