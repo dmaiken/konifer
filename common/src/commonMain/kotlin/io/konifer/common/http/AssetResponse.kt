@@ -9,6 +9,8 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.SortedMetadataTypeSerializer
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.serializer.LocalDateTimeSerializer
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -61,6 +63,8 @@ data class AttributeResponse(
 @Serializable
 data class PixelAttributesResponse(
     val channels: String,
+    val layout: PixelLayout,
+    val dataType: PixelDataType,
 )
 
 @Serializable

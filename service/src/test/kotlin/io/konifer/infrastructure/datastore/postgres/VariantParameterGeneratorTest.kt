@@ -6,6 +6,8 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
@@ -55,6 +57,8 @@ class VariantParameterGeneratorTest {
                         pixels =
                             PixelAttributes(
                                 channels = "RGBA".toPixelChannels(),
+                                layout = PixelLayout.INTERLEAVED,
+                                dataType = PixelDataType.UINT8,
                             ),
                     ),
             )

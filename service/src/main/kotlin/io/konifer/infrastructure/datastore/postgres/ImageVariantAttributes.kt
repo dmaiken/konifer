@@ -1,6 +1,8 @@
 package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.transformation.toDimension
@@ -35,6 +37,8 @@ data class ImageVariantAttributes(
                     attributes.pixels?.let {
                         ImageVariantPixelAttributes(
                             channels = it.channels,
+                            layout = it.layout,
+                            dataType = it.dataType,
                         )
                     },
             )
@@ -55,9 +59,13 @@ data class ImageVariantAttributes(
 @Serializable
 data class ImageVariantPixelAttributes(
     val channels: PixelChannels,
+    val layout: PixelLayout,
+    val dataType: PixelDataType,
 ) {
     fun toPixelAttributes(): PixelAttributes =
         PixelAttributes(
             channels = channels,
+            layout = layout,
+            dataType = dataType,
         )
 }

@@ -90,6 +90,8 @@ fun AttributeResponse.Factory.fromAttributes(attributes: Attributes): AttributeR
             attributes.pixels?.let {
                 PixelAttributesResponse(
                     channels = it.channels.value.lowercase(),
+                    layout = it.layout,
+                    dataType = it.dataType,
                 )
             },
     )

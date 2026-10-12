@@ -7,6 +7,8 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
@@ -489,7 +491,12 @@ abstract class AssetRepositoryTest {
                     height = 80.toDimension(),
                     format = ImageFormat.PIXELS,
                     colorSpace = ColorSpace.SRGB,
-                    pixels = PixelAttributes(storedChannels.toPixelChannels()),
+                    pixels =
+                        PixelAttributes(
+                            channels = storedChannels.toPixelChannels(),
+                            layout = PixelLayout.INTERLEAVED,
+                            dataType = PixelDataType.UINT8,
+                        ),
                 )
             val persisted = repository.storeNew(createPendingAsset(attributes = attributes))
             repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))

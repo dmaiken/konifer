@@ -1,6 +1,7 @@
 package io.konifer.common.image
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 private object RotationParameterValues {
     const val ZERO = "0"
@@ -10,6 +11,7 @@ private object RotationParameterValues {
     const val AUTO = "auto"
 }
 
+@Serializable
 enum class Rotate(
     override val queryParameterValue: String,
 ) : Manipulation {
