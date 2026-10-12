@@ -10,6 +10,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 
 val allTransformationsDsl =
     requestedTransformation {
@@ -29,6 +30,7 @@ val allTransformationsDsl =
         strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
         colorSpace = TransformableColorSpace.P3
         pixelChannels = "RGBA"
+        pixelLayout = PixelLayout.PLANAR
     }
 
 val allTransformationsBuilder =
@@ -50,4 +52,5 @@ val allTransformationsBuilder =
         .strip(MetadataType.EXIF, MetadataType.XMP, MetadataType.IPTC)
         .colorSpace(TransformableColorSpace.P3)
         .pixelChannels("RGBA")
+        .pixelLayout(PixelLayout.PLANAR)
         .build()

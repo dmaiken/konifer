@@ -30,8 +30,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.lang.foreign.Arena
+import java.lang.foreign.ValueLayout
 import java.nio.file.Path
 import kotlin.io.path.writeBytes
 
@@ -52,6 +55,87 @@ class RawPixelDecoderTest {
                 arguments("ABGR", listOf(0, 30, 20, 10, 127, 255, 200, 128), listOf(10, 20, 30, 0, 128, 200, 255, 127)),
                 arguments("GARB", listOf(20, 0, 10, 30, 200, 127, 128, 255), listOf(10, 20, 30, 0, 128, 200, 255, 127)),
             )
+
+        @JvmStatic
+        fun planarLayouts() =
+            listOf(
+                arguments("RGB", listOf(10, 128, 40, 70, 20, 200, 50, 80, 30, 255, 60, 90)),
+                arguments("BGR", listOf(30, 255, 60, 90, 20, 200, 50, 80, 10, 128, 40, 70)),
+                arguments("GRB", listOf(20, 200, 50, 80, 10, 128, 40, 70, 30, 255, 60, 90)),
+                arguments("RGBA", listOf(10, 128, 40, 70, 20, 200, 50, 80, 30, 255, 60, 90, 0, 127, 192, 255)),
+                arguments("BGRA", listOf(30, 255, 60, 90, 20, 200, 50, 80, 10, 128, 40, 70, 0, 127, 192, 255)),
+                arguments("ARGB", listOf(0, 127, 192, 255, 10, 128, 40, 70, 20, 200, 50, 80, 30, 255, 60, 90)),
+                arguments("ABGR", listOf(0, 127, 192, 255, 30, 255, 60, 90, 20, 200, 50, 80, 10, 128, 40, 70)),
+                arguments("GARB", listOf(20, 200, 50, 80, 0, 127, 192, 255, 10, 128, 40, 70, 30, 255, 60, 90)),
+            )
+    }
+
+    @ParameterizedTest
+    @MethodSource("planarLayouts")
+    fun `decodes planar channels across rows and round trips through either output layout`(
+        channels: String,
+        pixels: List<Int>,
+    ) = runTest {
+        val source = directory.resolve("planar.bin").apply { writeBytes(pixels.map(Int::toByte).toByteArray()) }
+        Arena.ofConfined().use { arena ->
+            val image =
+                RawPixelDecoder.decodeSource(
+                    arena,
+                    ImageFormat.PIXELS,
+                    ImageFormat.PIXELS,
+                    source,
+                    attributes(channels, PixelLayout.PLANAR).copy(height = 2.toDimension(), orientation = 6),
+                )
+            val canonicalChannels = if (channels.length == 4) "RGBA" else "RGB"
+            val expected =
+                if (channels.length == 4) {
+                    listOf(10, 20, 30, 0, 128, 200, 255, 127, 40, 50, 60, 192, 70, 80, 90, 255)
+                } else {
+                    listOf(10, 20, 30, 128, 200, 255, 40, 50, 60, 70, 80, 90)
+                }
+            image.width shouldBe 2
+            image.height shouldBe 2
+            image.getInt("bands") shouldBe channels.length
+            image.getInt("orientation") shouldBe 6
+            image.format() shouldBe VipsBandFormat.FORMAT_UCHAR
+            ImageColorSpaceExtractor.extract(image) shouldBe ColorSpace.SRGB
+            repeat(2) {
+                image.writeToMemory().toArray(ValueLayout.JAVA_BYTE).toList() shouldBe expected.map(Int::toByte)
+            }
+            PixelLayout.entries.forEach { layout ->
+                val output = ByteChannel(autoFlush = true)
+                try {
+                    RawPixelEncoder.writeToStream(
+                        arena,
+                        image,
+                        Transformation(
+                            width = 2.toDimension(),
+                            height = 2.toDimension(),
+                            format = ImageFormat.PIXELS,
+                            colorSpace = ColorSpace.SRGB,
+                            pixels = PixelTransformation(channels.toPixelChannels(), layout),
+                        ),
+                        output,
+                    )
+                    output.close()
+                    val expectedOutput =
+                        when (layout) {
+                            PixelLayout.PLANAR -> {
+                                pixels
+                            }
+
+                            PixelLayout.INTERLEAVED -> {
+                                expected.chunked(channels.length).flatMap { pixel ->
+                                    channels.map { channel -> pixel[canonicalChannels.indexOf(channel)] }
+                                }
+                            }
+                        }
+                    output.readRemaining().readByteArray().toList() shouldBe expectedOutput.map(Int::toByte)
+                } finally {
+                    output.cancel(null)
+                }
+            }
+        }
     }
 
     @ParameterizedTest
@@ -84,9 +168,14 @@ class RawPixelDecoderTest {
         }
     }
 
-    @Test
-    fun `uses stored dimensions and preserves rows without relying on the filename extension`() {
-        val pixels = listOf(30, 20, 10, 255, 200, 128, 60, 50, 40, 90, 80, 70)
+    @ParameterizedTest
+    @EnumSource(PixelLayout::class)
+    fun `uses stored dimensions and preserves rows without relying on the filename extension`(layout: PixelLayout) {
+        val pixels =
+            when (layout) {
+                PixelLayout.INTERLEAVED -> listOf(30, 20, 10, 255, 200, 128, 60, 50, 40, 90, 80, 70)
+                PixelLayout.PLANAR -> listOf(30, 255, 60, 90, 20, 200, 50, 80, 10, 128, 40, 70)
+            }
         val source = directory.resolve("source").apply { writeBytes(pixels.map(Int::toByte).toByteArray()) }
         Vips.run { arena ->
             val decoded =
@@ -101,7 +190,7 @@ class RawPixelDecoderTest {
                         ),
                     sourceFormat = ImageFormat.PIXELS,
                     sourceFile = source,
-                    sourceAttributes = attributes("BGR").copy(height = 2.toDimension()),
+                    sourceAttributes = attributes("BGR", layout).copy(height = 2.toDimension()),
                 )
             decoded.pixelAccess shouldBe PixelAccess.RANDOM
             decoded.appliedTransformations shouldBe emptyList()
@@ -190,9 +279,15 @@ class RawPixelDecoderTest {
             }
         }
 
-    @Test
-    fun `preserves P3 samples and attaches the stored color profile`() {
-        val pixels = listOf(10, 20, 30, 128, 200, 255).map(Int::toByte).toByteArray()
+    @ParameterizedTest
+    @EnumSource(PixelLayout::class)
+    fun `preserves P3 samples and attaches the stored color profile`(layout: PixelLayout) {
+        val expected = listOf(10, 20, 30, 128, 200, 255).map(Int::toByte)
+        val pixels =
+            when (layout) {
+                PixelLayout.INTERLEAVED -> expected.toByteArray()
+                PixelLayout.PLANAR -> listOf(10, 128, 20, 200, 30, 255).map(Int::toByte).toByteArray()
+            }
         val source = directory.resolve("source.bin").apply { writeBytes(pixels) }
         Vips.run { arena ->
             val image =
@@ -201,13 +296,13 @@ class RawPixelDecoderTest {
                     ImageFormat.PNG,
                     ImageFormat.PIXELS,
                     source,
-                    attributes("RGB").copy(colorSpace = ColorSpace.P3),
+                    attributes("RGB", layout).copy(colorSpace = ColorSpace.P3),
                 )
             ImageColorSpaceExtractor.extract(image) shouldBe ColorSpace.P3
             val buffer = image.writeToMemory().asByteBuffer()
             val bytes = ByteArray(buffer.remaining())
             buffer.get(bytes)
-            bytes.toList() shouldBe pixels.toList()
+            bytes.toList() shouldBe expected
         }
     }
 
@@ -318,17 +413,19 @@ class RawPixelDecoderTest {
         }
     }
 
-    private fun attributes(layout: String) =
-        Attributes(
-            width = 2.toDimension(),
-            height = 1.toDimension(),
-            format = ImageFormat.PIXELS,
-            colorSpace = if (layout.toPixelChannels() == PixelChannels.grayscale) ColorSpace.Grayscale else ColorSpace.SRGB,
-            pixels =
-                PixelAttributes(
-                    channels = layout.toPixelChannels(),
-                    layout = PixelLayout.INTERLEAVED,
-                    dataType = PixelDataType.UINT8,
-                ),
-        )
+    private fun attributes(
+        layout: String,
+        pixelLayout: PixelLayout = PixelLayout.INTERLEAVED,
+    ) = Attributes(
+        width = 2.toDimension(),
+        height = 1.toDimension(),
+        format = ImageFormat.PIXELS,
+        colorSpace = if (layout.toPixelChannels() == PixelChannels.grayscale) ColorSpace.Grayscale else ColorSpace.SRGB,
+        pixels =
+            PixelAttributes(
+                channels = layout.toPixelChannels(),
+                layout = pixelLayout,
+                dataType = PixelDataType.UINT8,
+            ),
+    )
 }

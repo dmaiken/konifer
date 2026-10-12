@@ -18,6 +18,7 @@ import io.konifer.common.image.ManipulationParameters.HEIGHT
 import io.konifer.common.image.ManipulationParameters.PAD
 import io.konifer.common.image.ManipulationParameters.PAD_COLOR
 import io.konifer.common.image.ManipulationParameters.PIXEL_CHANNELS
+import io.konifer.common.image.ManipulationParameters.PIXEL_LAYOUT
 import io.konifer.common.image.ManipulationParameters.QUALITY
 import io.konifer.common.image.ManipulationParameters.ROTATE
 import io.konifer.common.image.ManipulationParameters.STRIP
@@ -25,6 +26,7 @@ import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
@@ -223,6 +225,7 @@ class RequestContextFactory(
                         ?: variantProfile?.colorSpace
                         ?: TransformableColorSpace.default,
                 pixelChannels = parameters[PIXEL_CHANNELS]?.toPixelChannels() ?: variantProfile?.pixelChannels,
+                pixelLayout = PixelLayout.fromQueryParameters(parameters, PIXEL_LAYOUT) ?: variantProfile?.pixelLayout,
             )
         }
     }

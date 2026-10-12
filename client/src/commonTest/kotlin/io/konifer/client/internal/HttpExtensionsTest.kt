@@ -9,6 +9,7 @@ import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.client.harness.allTransformationsBuilder
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.assertRequestedTransformation
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.kotest.core.spec.style.FunSpec
@@ -90,5 +91,18 @@ class HttpExtensionsTest :
             val url = URLBuilder().apply { appendTransformationParameters(RequestedTransformation.OriginalVariant) }
 
             url.parameters.isEmpty() shouldBe true
+        }
+
+        test("pixel layouts are encoded when they are the only transformation option") {
+            PixelLayout.entries.forEach { layout ->
+                listOf(
+                    requestedTransformation { pixelLayout = layout },
+                    RequestedTransformation.Builder().pixelLayout(layout).build(),
+                ).forEach { transformation ->
+                    val url = URLBuilder().apply { appendTransformationParameters(transformation) }
+
+                    url.parameters.entries() shouldBe mapOf("pixel-layout" to listOf(layout.queryParameterValue)).entries
+                }
+            }
         }
     })

@@ -21,9 +21,12 @@ import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.attribute.PixelAttributes
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.util.TreeSet
 
 class VariantParameterGeneratorTest {
@@ -224,4 +227,49 @@ class VariantParameterGeneratorTest {
         @Serializable(with = ColorSpaceSerializer::class)
         val colorSpace: ColorSpace = ColorSpace.SRGB,
     )
+
+    @ParameterizedTest
+    @EnumSource(PixelLayout::class)
+    fun `pixel layout survives persistence and original attribute conversion`(layout: PixelLayout) {
+        val attributes =
+            Attributes(
+                width = 2.toDimension(),
+                height = 2.toDimension(),
+                format = ImageFormat.PIXELS,
+                colorSpace = ColorSpace.SRGB,
+                pixels = PixelAttributes("BGRA".toPixelChannels(), layout, PixelDataType.UINT8),
+            )
+        val transformation = Transformation.fromAttributes(attributes)
+
+        transformation.pixels shouldBe PixelTransformation("BGRA".toPixelChannels(), layout)
+        val serialized = VariantParameterGenerator.generateImageVariantTransformations(transformation)
+        VariantParameterGenerator.generateImageVariantTransformations(attributes) shouldBe serialized
+        postgresJson.decodeFromString<ImageVariantTransformation>(serialized).toTransformation() shouldBe transformation
+    }
+
+    @Test
+    fun `planar and interleaved layouts have distinct cache identities`() {
+        val interleaved =
+            Transformation(
+                width = 2.toDimension(),
+                height = 2.toDimension(),
+                format = ImageFormat.PIXELS,
+                colorSpace = ColorSpace.SRGB,
+                pixels = PixelTransformation("RGB".toPixelChannels(), PixelLayout.INTERLEAVED),
+            )
+        val planar = interleaved.copy(pixels = interleaved.pixels!!.copy(layout = PixelLayout.PLANAR))
+
+        VariantParameterGenerator.generateImageVariantTransformations(planar) shouldNotBe
+            VariantParameterGenerator.generateImageVariantTransformations(interleaved)
+    }
+
+    @Test
+    fun `legacy raw pixel cache keys still decode and match interleaved requests`() {
+        val legacy = """{"width":2,"height":2,"format":"pixels","pixels":{"channels":"RGB"}}"""
+        val restored = postgresJson.decodeFromString<ImageVariantTransformation>(legacy).toTransformation()
+
+        restored.pixels shouldBe PixelTransformation("RGB".toPixelChannels(), PixelLayout.INTERLEAVED)
+        postgresJson.parseToJsonElement(VariantParameterGenerator.generateImageVariantTransformations(restored)) shouldBe
+            postgresJson.parseToJsonElement(legacy)
+    }
 }

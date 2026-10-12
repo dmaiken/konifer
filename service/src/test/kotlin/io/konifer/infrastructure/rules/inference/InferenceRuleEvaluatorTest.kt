@@ -32,6 +32,14 @@ class InferenceRuleEvaluatorTest {
             similarityScorer = similarityScorer,
         )
 
+    private companion object {
+        val tensor =
+            ImageTensor(
+                values = FloatBuffer.wrap(floatArrayOf(1.0f, 0.0f)).also { it.flip() },
+                shape = longArrayOf(1, 2),
+            )
+    }
+
     @Test
     fun `empty rule definitions return empty result without generating embeddings`() =
         runTest {
@@ -277,12 +285,4 @@ class InferenceRuleEvaluatorTest {
             prompts = prompts.map { RulePrompt(it) },
             threshold = RuleDefinitionThreshold(threshold),
         )
-
-    private companion object {
-        val tensor =
-            ImageTensor(
-                values = FloatBuffer.wrap(floatArrayOf(1.0f, 0.0f)).also { it.flip() },
-                shape = longArrayOf(1, 2),
-            )
-    }
 }

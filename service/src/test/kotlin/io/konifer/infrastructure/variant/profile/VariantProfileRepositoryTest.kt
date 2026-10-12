@@ -6,8 +6,10 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.transformation.RequestedTransformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -404,6 +407,29 @@ class VariantProfileRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         }.message shouldBe "Profile name: 'bad(name)' is not valid"
+    }
+
+    @ParameterizedTest
+    @EnumSource(PixelLayout::class)
+    fun `loads pixel channels and layout from profile configuration`(layout: PixelLayout) {
+        val config =
+            """
+            variant-profiles {
+                pixels {
+                    format = pixels
+                    pixel-channels = BGRA
+                    pixel-layout = ${layout.queryParameterValue}
+                }
+            }
+            """.trimIndent()
+        val repository = ConfigurationVariantProfileRepository(ConfigFactory.parseString(config))
+
+        repository.fetch("pixels") shouldBe
+            RequestedTransformation(
+                format = ImageFormat.PIXELS,
+                pixelChannels = "BGRA".toPixelChannels(),
+                pixelLayout = layout,
+            )
     }
 
     @Test

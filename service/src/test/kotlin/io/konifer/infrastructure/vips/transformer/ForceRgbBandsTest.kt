@@ -17,6 +17,31 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 class ForceRgbBandsTest {
+    private companion object {
+        val transformation =
+            Transformation(
+                width = 2.toDimension(),
+                height = 2.toDimension(),
+                format = ImageFormat.PNG,
+                colorSpace = ColorSpace.SRGB,
+            )
+
+        fun alphaPng(): ByteArray {
+            val image = BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)
+            val color = Color(0, 100, 50, 128).rgb
+            for (x in 0 until image.width) {
+                for (y in 0 until image.height) {
+                    image.setRGB(x, y, color)
+                }
+            }
+
+            return ByteArrayOutputStream().use { output ->
+                ImageIO.write(image, "png", output)
+                output.toByteArray()
+            }
+        }
+    }
+
     @Nested
     inner class TransformTests {
         @Test
@@ -104,31 +129,6 @@ class ForceRgbBandsTest {
                 ForceRgbBands.decide(
                     TransformationContext(arena, transformed.processed, transformation, emptyList()),
                 ) shouldBe TransformationDecision.Skip
-            }
-        }
-    }
-
-    private companion object {
-        val transformation =
-            Transformation(
-                width = 2.toDimension(),
-                height = 2.toDimension(),
-                format = ImageFormat.PNG,
-                colorSpace = ColorSpace.SRGB,
-            )
-
-        fun alphaPng(): ByteArray {
-            val image = BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)
-            val color = Color(0, 100, 50, 128).rgb
-            for (x in 0 until image.width) {
-                for (y in 0 until image.height) {
-                    image.setRGB(x, y, color)
-                }
-            }
-
-            return ByteArrayOutputStream().use { output ->
-                ImageIO.write(image, "png", output)
-                output.toByteArray()
             }
         }
     }

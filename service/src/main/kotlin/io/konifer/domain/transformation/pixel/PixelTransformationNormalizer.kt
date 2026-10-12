@@ -3,6 +3,7 @@ package io.konifer.domain.transformation.pixel
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters.PIXEL_CHANNELS
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.RequestedTransformation
 
@@ -33,6 +34,16 @@ object PixelTransformationNormalizer {
 
         return PixelTransformation(
             channels = requested.pixelChannels ?: PixelChannels.default,
+            layout = normalizeLayout(requested),
         )
     }
+
+    private fun normalizeLayout(requested: RequestedTransformation): PixelLayout =
+        if (requested.pixelChannels == PixelChannels.grayscale) {
+            // Always set to interleaved since, with a single channel, it really doesn't matter.
+            // One must be consistently chosen, though.
+            PixelLayout.INTERLEAVED
+        } else {
+            requested.pixelLayout ?: PixelLayout.default
+        }
 }

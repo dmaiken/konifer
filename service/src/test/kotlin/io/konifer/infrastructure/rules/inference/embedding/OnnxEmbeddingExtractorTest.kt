@@ -13,6 +13,11 @@ import org.junit.jupiter.api.Test
 import java.util.Optional
 
 class OnnxEmbeddingExtractorTest {
+    private companion object {
+        const val PRIMARY_OUTPUT = "image_embeds"
+        const val MODEL_DESCRIPTION = "Test model"
+    }
+
     @Test
     fun `extracts batched embeddings from primary output`() {
         val first = floatArrayOf(1f, 2f)
@@ -179,10 +184,5 @@ class OnnxEmbeddingExtractorTest {
                 .iterator()
         }
         return result
-    }
-
-    private companion object {
-        const val PRIMARY_OUTPUT = "image_embeds"
-        const val MODEL_DESCRIPTION = "Test model"
     }
 }

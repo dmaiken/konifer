@@ -58,6 +58,54 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
             )
     }
 
+    @Test
+    fun `planar and interleaved requests return exact bytes and reuse separate cached variants`() =
+        testInMemory {
+            val interleaved = listOf(10, 20, 30, 128, 200, 255, 40, 50, 60, 70, 80, 90)
+            val planar = listOf(10, 128, 40, 70, 20, 200, 50, 80, 30, 255, 60, 90)
+            val image =
+                pixelsToEncoded(
+                    interleaved.map(Int::toByte).toByteArray(),
+                    width = 2,
+                    height = 2,
+                    channels = "RGB",
+                    format = ImageFormat.PNG,
+                )
+            val asset = konifer().assets("/pixel-layouts")
+            asset
+                .newAsset()
+                .fromBytes(image, ImageFormat.PNG)
+                .store()
+                .shouldBeSuccessful()
+
+            repeat(2) {
+                PixelLayout.entries.forEach { layout ->
+                    val variant =
+                        asset.variant(
+                            requestedTransformation {
+                                format = ImageFormat.PIXELS
+                                pixelLayout = layout
+                            },
+                        )
+                    val attributes =
+                        variant
+                            .fetchLink()
+                            .shouldBeSuccessful()
+                            .body.attributes
+                    attributes.pixels?.layout shouldBe layout
+                    val bytes = variant.fetchContentBytes().shouldBeSuccessful().body
+
+                    bytes.map { byte -> byte.toInt() and 0xff } shouldBe
+                        if (layout == PixelLayout.PLANAR) planar else interleaved
+                }
+            }
+
+            asset
+                .fetchInfo()
+                .shouldBeSuccessful()
+                .body.variants shouldHaveSize 3
+        }
+
     @ParameterizedTest
     @MethodSource("pixelLayouts")
     fun `pixel content preserves exact channel values and row order`(
