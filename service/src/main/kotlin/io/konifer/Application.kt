@@ -3,6 +3,7 @@ package io.konifer
 import io.konifer.entrypoint.configureAssetRouting
 import io.konifer.entrypoint.configureHealthRouting
 import io.konifer.entrypoint.configureInMemoryObjectStoreRouting
+import io.konifer.entrypoint.configureOpenApiRoutes
 import io.konifer.entrypoint.configureRuleEvaluationRouting
 import io.konifer.infrastructure.configureKoin
 import io.konifer.infrastructure.getObjectStoreProvider
@@ -73,6 +74,7 @@ fun Application.configureRouting(
     shouldEnableRuleEvaluationsRoutes: Boolean,
 ) {
     configureHealthRouting()
+    configureOpenApiRoutes()
 
     configureAssetRouting()
     if (shouldEnableRuleEvaluationsRoutes) {

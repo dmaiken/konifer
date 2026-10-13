@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.ktor.server.body.limit)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.server.routing.openapi)
+    implementation(libs.ktor.server.swagger)
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.hocon)
@@ -191,6 +193,14 @@ tasks.withType<Test>().configureEach {
             )
         showStackTraces = true
         showCauses = true
+    }
+}
+
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = true
+        onlyCommented = true
     }
 }
 
