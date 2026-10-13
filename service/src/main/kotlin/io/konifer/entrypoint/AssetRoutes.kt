@@ -32,11 +32,13 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.routing.openapi.describe
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 
@@ -44,6 +46,7 @@ private val logger = KtorSimpleLogger("io.konifer.entrypoint.AssetRouting")
 
 const val ASSET_PATH_PREFIX = "/assets"
 
+@OptIn(ExperimentalKtorApi::class)
 fun Application.configureAssetRouting() {
     logger.info("Initializing asset routes")
     val fetchAssetHandler by inject<FetchAssetHandler>()
@@ -126,15 +129,15 @@ fun Application.configureAssetRouting() {
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
                 }
-            }
+            }.describe { fetchAssetDocumentation() }
 
             post {
                 call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase)
-            }
+            }.describe { storeAssetDocumentation(atRoot = true) }
 
             post("/{...}") {
                 call.storeNewAsset(assetUrlGenerator, storeNewAssetUseCase)
-            }
+            }.describe { storeAssetDocumentation(atRoot = false) }
 
             put("/{...}") {
                 val requestContext = call.attributes[updateRequestContextKey]
@@ -145,13 +148,13 @@ fun Application.configureAssetRouting() {
                         request = call.receive(StoreAssetRequest::class),
                     )
                 call.respond(HttpStatusCode.OK, AssetResponse.fromAsset(asset.asset))
-            }
+            }.describe { updateAssetDocumentation() }
 
             delete("/{...}") {
                 deleteAssetUseCase.deleteAssets(call.attributes[deleteRequestContextKey])
 
                 call.respond(HttpStatusCode.NoContent)
-            }
+            }.describe { deleteAssetDocumentation() }
         }
     }
 }

@@ -22,11 +22,15 @@ const val RULE_EVALUATIONS_PATH = "/rule-evaluations"
 private val logger = KtorSimpleLogger("io.konifer.entrypoint.RuleEvaluationRoutes")
 
 fun Application.configureRuleEvaluationRouting() {
-    logger.info("Evaluating rule evaluation routes")
+    logger.info("Configuring rule evaluation routes")
     val evaluateRuleDefinitionUseCase by inject<EvaluateRuleDefinitionUseCase>()
 
     routing {
         route(RULE_EVALUATIONS_PATH) {
+            /*
+             * Description: Evaluate content against supplied rule definitions. Just like the Assets API,
+             * the content must be supplied as a multipart upload, `source.s3` or `source.http` external references.
+             */
             post {
                 call.evaluateRuleDefinitions(
                     evaluateRuleDefinitionUseCase = evaluateRuleDefinitionUseCase,
