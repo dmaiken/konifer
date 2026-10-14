@@ -124,7 +124,13 @@ class KoniferTestScope(
     ): KoniferResult<ByteArray> =
         assetSelection(path, querySelectors, labels)
             .variant(requestedTransformation)
-            .fetchContentBytes(delivery)
+            .fetchContent(delivery)
+            .let { result ->
+                when (result) {
+                    is KoniferResult.Success -> KoniferResult.Success(result.value.bytes)
+                    is KoniferResult.Failure -> result
+                }
+            }
 
     suspend fun KoniferClient.fetchAssetLink(
         path: String,

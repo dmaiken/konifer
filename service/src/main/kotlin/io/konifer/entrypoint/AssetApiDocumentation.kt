@@ -1,5 +1,6 @@
 package io.konifer.entrypoint
 
+import io.konifer.common.http.AssetContentHeaders
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AssetResponse
@@ -57,8 +58,12 @@ internal fun Operation.Builder.fetchAssetDocumentation() {
 
         `format=pixels` returns unsigned 8-bit raw pixel bytes as application/octet-stream, without an image header.
         Pixels are ordered by rows; channel order and memory layout are controlled by `pixel-channels` and
-        `pixel-layout`. Only the first frame of an animated image is returned. Fetch `link` for dimensions and
-        `attributes.pixels` (channels, layout, and dataType). Raw pixels are output-only and cannot be uploaded.
+        `pixel-layout`. Only the first frame of an animated image is returned. Content/download responses include
+        selected variant attributes in K-Attr-* headers, including dimensions and pixel channels, layout, and data type.
+        The same attributes are available through `link`. Rotate is the clockwise angle still needed for display,
+        followed by horizontal flip; already normalized pixels report 0 and false. Optional headers are omitted.
+        Redirect delivery does not include these attributes on the object storage response.
+        Raw pixels are output-only and cannot be uploaded.
         """.trimIndent()
     parameters {
         assetPath("users/123/profile-picture/-/content")
@@ -370,6 +375,29 @@ private fun Response.Builder.assetContentHeaders() {
             header(name) {
                 description = "Optional asset metadata on content/download responses, when configured or supplied."
                 schema = JsonSchema(type = JsonType.STRING)
+            }
+        }
+        AssetContentHeaders.attributeNames.forEach { name ->
+            header(name) {
+                description = "Selected variant attribute on content/download responses; omitted when inapplicable."
+                schema =
+                    when (name) {
+                        AssetContentHeaders.WIDTH, AssetContentHeaders.HEIGHT, AssetContentHeaders.PAGE_COUNT, AssetContentHeaders.LOOP -> {
+                            JsonSchema(type = JsonType.INTEGER)
+                        }
+
+                        AssetContentHeaders.HORIZONTAL_FLIP -> {
+                            JsonSchema(type = JsonType.BOOLEAN)
+                        }
+
+                        AssetContentHeaders.ROTATE -> {
+                            JsonSchema(type = JsonType.STRING, enum = listOf("0", "90", "180", "270").map { GenericElement(it) })
+                        }
+
+                        else -> {
+                            JsonSchema(type = JsonType.STRING)
+                        }
+                    }
             }
         }
         listOf(HttpHeaders.ETag, HttpHeaders.LastModified, HttpHeaders.CacheControl).forEach { name ->

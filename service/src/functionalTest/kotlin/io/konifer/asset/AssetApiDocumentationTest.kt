@@ -1,6 +1,7 @@
 package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
+import io.konifer.common.http.AssetContentHeaders
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.testInMemory
@@ -118,6 +119,22 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
         layouts.map { it.jsonPrimitive.content }.toSet() shouldBe setOf("interleaved", "planar")
         val responses = operation.getValue("responses").jsonObject
         responses.keys shouldContainAll setOf("200", "307", "304", "400", "403", "404")
+        val headers =
+            responses
+                .getValue("200")
+                .jsonObject
+                .getValue("headers")
+                .jsonObject
+        headers.keys shouldContainAll AssetContentHeaders.attributeNames
+        headers
+            .getValue(AssetContentHeaders.ROTATE)
+            .jsonObject
+            .getValue("schema")
+            .jsonObject
+            .getValue("enum")
+            .jsonArray
+            .map { it.jsonPrimitive.content }
+            .toSet() shouldBe setOf("0", "90", "180", "270")
         val content =
             responses
                 .getValue("200")

@@ -12,6 +12,7 @@ import io.konifer.common.http.VariantResponse
 import io.konifer.common.image.Flip
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
+import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
@@ -78,14 +79,18 @@ fun VariantResponse.Factory.fromVariant(variant: Variant): VariantResponse =
             },
     )
 
-fun AttributesResponse.Factory.fromAttributes(attributes: Attributes): AttributesResponse =
-    AttributesResponse(
+fun AttributesResponse.Factory.fromAttributes(attributes: Attributes): AttributesResponse {
+    val (rotate, horizontalFlip) = ExifOrientations.fromExifOrientation(attributes.orientation)
+
+    return AttributesResponse(
         height = attributes.height.value,
         width = attributes.width.value,
         format = attributes.format.format,
         colorSpace = attributes.colorSpace.name,
         pageCount = attributes.pageCount,
         loop = attributes.loop,
+        rotate = rotate,
+        horizontalFlip = horizontalFlip,
         pixels =
             attributes.pixels?.let {
                 PixelAttributesResponse(
@@ -95,6 +100,7 @@ fun AttributesResponse.Factory.fromAttributes(attributes: Attributes): Attribute
                 )
             },
     )
+}
 
 fun TransformationResponse.Factory.fromTransformation(transformation: Transformation): TransformationResponse =
     TransformationResponse(

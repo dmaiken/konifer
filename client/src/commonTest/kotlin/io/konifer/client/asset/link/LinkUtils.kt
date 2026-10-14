@@ -4,6 +4,7 @@ import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AttributesResponse
 import io.konifer.common.http.LQIPResponse
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.Rotate
 
 fun createLinkResponse() =
     AssetLinkResponse(
@@ -24,5 +25,7 @@ fun createLinkResponse() =
                 loop = null,
                 pageCount = 1,
                 pixels = null,
+                rotate = Rotate.ZERO,
+                horizontalFlip = false,
             ),
     )

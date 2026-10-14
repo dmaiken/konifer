@@ -24,6 +24,7 @@ import io.ktor.http.takeFrom
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import kotlinx.io.IOException
+import kotlinx.serialization.SerializationException
 import kotlin.coroutines.cancellation.CancellationException
 
 internal suspend inline fun <reified T> fetchAssetInfo(
@@ -84,7 +85,7 @@ internal suspend fun fetchAssetContentTo(
     transformation: RequestedTransformation,
     destination: ByteWriteChannel,
     delivery: ContentDelivery,
-): KoniferResult<Unit> =
+): KoniferResult<AssetContentMetadata> =
     try {
         val result =
             safelyFetch {
@@ -94,10 +95,11 @@ internal suspend fun fetchAssetContentTo(
                         url.takeFrom(variantRequestUrl(infra, asset, delivery.returnFormat(), transformation))
                     }.execute { response ->
                         if (response.status.isSuccess()) {
+                            val metadata = response.headers.decodeContentMetadata(delivery)
                             response.bodyAsChannel().copyAndClose(destination)
-                            KoniferResult.Success(Unit)
+                            KoniferResult.Success(metadata)
                         } else {
-                            response.toKoniferResult<Unit>()
+                            response.toKoniferResult<AssetContentMetadata>()
                         }
                     }
             }
@@ -117,12 +119,12 @@ private fun KoniferResult.Failure.transferFailureCause(): Throwable =
         is KoniferResult.Failure.InvalidResponse -> cause
     }
 
-internal suspend fun fetchAssetContentBytes(
+internal suspend fun fetchAssetContent(
     infra: RequestInfrastructure,
     asset: AssetSelection,
     transformation: RequestedTransformation,
     delivery: ContentDelivery,
-): KoniferResult<ByteArray> =
+): KoniferResult<AssetContent> =
     safelyFetch {
         infra
             .httpClientFor(delivery)
@@ -130,9 +132,17 @@ internal suspend fun fetchAssetContentBytes(
                 url.takeFrom(variantRequestUrl(infra, asset, delivery.returnFormat(), transformation))
             }.execute { response ->
                 if (response.status.isSuccess()) {
-                    KoniferResult.Success(response.bodyAsBytes())
+                    val metadata = response.headers.decodeContentMetadata(delivery)
+                    KoniferResult.Success(
+                        AssetContent(
+                            bytes = response.bodyAsBytes(),
+                            attributes = metadata.attributes,
+                            alt = metadata.alt,
+                            lqip = metadata.lqip,
+                        ),
+                    )
                 } else {
-                    response.toKoniferResult<ByteArray>()
+                    response.toKoniferResult<AssetContent>()
                 }
             }
     }
@@ -170,4 +180,6 @@ private inline fun <T> safelyFetch(block: () -> KoniferResult<T>): KoniferResult
         throw e
     } catch (e: IOException) {
         KoniferResult.Failure.Transport(e)
+    } catch (e: SerializationException) {
+        KoniferResult.Failure.InvalidResponse(e)
     }

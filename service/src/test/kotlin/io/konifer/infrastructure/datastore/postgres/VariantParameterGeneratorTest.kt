@@ -38,6 +38,7 @@ class VariantParameterGeneratorTest {
                     width = 100,
                     height = 100,
                     format = ImageFormat.JPEG,
+                    orientation = 6,
                     colorSpace = ColorSpace.P3,
                     pageCount = 10,
                     loop = 2,
@@ -56,6 +57,7 @@ class VariantParameterGeneratorTest {
                         width = 100.toDimension(),
                         height = 100.toDimension(),
                         format = ImageFormat.JPEG,
+                        orientation = 6,
                         colorSpace = ColorSpace.P3,
                         pageCount = 10,
                         loop = 2,
@@ -69,6 +71,7 @@ class VariantParameterGeneratorTest {
             )
 
         attributes shouldBe expectedAttributes
+        postgresJson.decodeFromString<ImageVariantAttributes>(attributes).toAttributes().orientation shouldBe 6
     }
 
     @Test

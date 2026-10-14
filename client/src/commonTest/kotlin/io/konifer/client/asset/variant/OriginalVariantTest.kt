@@ -3,6 +3,7 @@ package io.konifer.client.asset.variant
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResult
 import io.konifer.client.asset.link.createLinkResponse
+import io.konifer.client.assets.fetch.AssetContent
 import io.konifer.client.harness.httpClient
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -28,7 +29,7 @@ class OriginalVariantTest :
             KoniferClient(httpClient)
                 .assets("users/123")
                 .originalVariant()
-                .fetchContentBytes() shouldBe KoniferResult.Success(bytes)
+                .fetchContent() shouldBe KoniferResult.Success(AssetContent(bytes))
         }
 
         test("entry selection fetches an original variant link without transformation parameters") {

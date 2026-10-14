@@ -46,7 +46,11 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
                 .store()
                 .shouldBeSuccessful()
             val variant = asset.variant(requestedTransformation { format = ImageFormat.PNG })
-            val encoded = variant.fetchContentBytes().shouldBeSuccessful().body
+            val encoded =
+                variant
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body.bytes
             Vips.run { arena ->
                 val image = VImage.newFromBytes(arena, encoded)
                 image.width shouldBe 2
@@ -86,8 +90,22 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
             attributes.format shouldBe "png"
             attributes.pixels shouldBe null
 
-            assertEncodedPixels(variant.fetchContentBytes().shouldBeSuccessful().body, width = 2, height = 2)
-            assertEncodedPixels(variant.fetchContentBytes().shouldBeSuccessful().body, width = 2, height = 2)
+            assertEncodedPixels(
+                variant
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body.bytes,
+                width = 2,
+                height = 2,
+            )
+            assertEncodedPixels(
+                variant
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body.bytes,
+                width = 2,
+                height = 2,
+            )
             asset
                 .fetchInfo()
                 .shouldBeSuccessful()
@@ -125,9 +143,9 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
             attributes.pixels?.channels shouldBe channels
             val expected = if (channels == "rgb") listOf(10, 20, 30) else listOf(30, 20, 10, 255)
             variant
-                .fetchContentBytes()
+                .fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
                 .map { it.toInt() and 0xff } shouldBe expected
         }
 
@@ -157,9 +175,9 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
             attributes.height shouldBe 2
             attributes.pixels?.channels shouldBe "argb"
             variant
-                .fetchContentBytes()
+                .fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
                 .map { it.toInt() and 0xff } shouldBe
                 List(4) { listOf(255, 10, 20, 30) }.flatten()
         }
@@ -196,7 +214,14 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
             attributes.pixels shouldBe null
 
             val variant = asset.variant(requestedTransformation { profile = "converted" })
-            assertEncodedPixels(variant.fetchContentBytes().shouldBeSuccessful().body, width = 1, height = 1)
+            assertEncodedPixels(
+                variant
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body.bytes,
+                width = 1,
+                height = 1,
+            )
         }
 
     @CartesianTest
@@ -237,17 +262,17 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
             konifer()
                 .assets("/")
                 .originalVariant()
-                .fetchContentBytes()
+                .fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
 
         val emptyRequestContent =
             konifer()
                 .assets("/")
                 .variant(requestedTransformation { })
-                .fetchContentBytes()
+                .fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
         emptyRequestContent.contentEquals(content) shouldBe true
 
         val matchingContent =
@@ -258,9 +283,9 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
                         this.format = ImageFormat.PIXELS
                         this.pixelChannels = pixelChannels
                     },
-                ).fetchContentBytes()
+                ).fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
         matchingContent.contentEquals(content) shouldBe true
 
         val fetchedVariants =

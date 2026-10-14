@@ -33,9 +33,9 @@ class UploadRulesIntegrationTest : BaseIntegrationTest() {
                 client
                     .assets("/accept/$path")
                     .originalVariant()
-                    .fetchContentBytes()
+                    .fetchContent()
             fetchResponse::class shouldBe KoniferResult.Success::class
-            val content = (fetchResponse as KoniferResult.Success).value
+            val content = (fetchResponse as KoniferResult.Success).value.bytes
             tika.detect(content) shouldBe format.mimeType
 
             Vips.run { arena ->

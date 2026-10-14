@@ -5,6 +5,6 @@ enum class ContentDelivery {
     /** Stream content through Konifer. */
     THROUGH_KONIFER,
 
-    /** Ask Konifer for a delivery URL, then follow its HTTP redirect. */
+    /** Ask Konifer for a delivery URL, then follow its HTTP redirect. Asset metadata is unavailable in this mode. */
     FOLLOW_REDIRECT,
 }

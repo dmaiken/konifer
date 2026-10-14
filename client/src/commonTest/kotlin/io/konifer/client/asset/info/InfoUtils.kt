@@ -48,6 +48,8 @@ fun createInfoResponse() =
                             loop = 2,
                             colorSpace = "srgb",
                             pixels = null,
+                            rotate = Rotate.ZERO,
+                            horizontalFlip = false,
                         ),
                     transformation =
                         TransformationResponse(
