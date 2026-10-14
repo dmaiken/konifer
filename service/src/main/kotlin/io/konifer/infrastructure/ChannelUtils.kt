@@ -2,6 +2,7 @@ package io.konifer.infrastructure
 
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.coroutineScope
@@ -17,6 +18,11 @@ suspend fun teeStream(
     firstChannel: ByteWriteChannel,
     secondChannel: ByteWriteChannel?,
 ) {
+    if (secondChannel == null) {
+        source.copyAndClose(firstChannel)
+        return
+    }
+
     val buffer = ByteBuffer.allocate(8192)
 
     try {
@@ -27,22 +33,18 @@ suspend fun teeStream(
 
             buffer.flip()
 
-            if (secondChannel != null) {
-                // We must duplicate the buffer's read pointers so both channels can read it
-                val firstChannelBuffer = buffer.duplicate()
-                val secondChannelBuffer = buffer.duplicate()
+            // We must duplicate the buffer's read pointers so both channels can read it
+            val firstChannelBuffer = buffer.duplicate()
+            val secondChannelBuffer = buffer.duplicate()
 
-                coroutineScope {
-                    launch { firstChannel.writeFully(firstChannelBuffer) }
-                    launch { secondChannel.writeFully(secondChannelBuffer) }
-                }
-            } else {
-                firstChannel.writeFully(buffer)
+            coroutineScope {
+                launch { firstChannel.writeFully(firstChannelBuffer) }
+                launch { secondChannel.writeFully(secondChannelBuffer) }
             }
         }
     } finally {
         // Ensure downstream channels know the stream is done
         firstChannel.flushAndClose()
-        secondChannel?.flushAndClose()
+        secondChannel.flushAndClose()
     }
 }
