@@ -1,6 +1,7 @@
 package io.konifer.client
 
 import io.konifer.client.asset.info.createInfoResponse
+import io.konifer.client.assets.fetch.AssetContent
 import io.konifer.client.assets.fetch.ContentDelivery
 import io.konifer.client.harness.assertSignatureParameter
 import io.kotest.assertions.throwables.shouldThrow
@@ -94,8 +95,8 @@ class KoniferClientConfigurationTest :
                     engine = engine,
                 )
             try {
-                client.assets("profile").originalVariant().fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe
-                    KoniferResult.Success(bytes)
+                client.assets("profile").originalVariant().fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe
+                    KoniferResult.Success(AssetContent(bytes))
                 engine.requestHistory.size shouldBe 2
             } finally {
                 client.close()
@@ -112,7 +113,7 @@ class KoniferClientConfigurationTest :
                     engine = engine,
                 )
             try {
-                val result = withTimeout(5.seconds) { client.assets("profile").originalVariant().fetchContentBytes() }
+                val result = withTimeout(5.seconds) { client.assets("profile").originalVariant().fetchContent() }
                 result
                     .shouldBeInstanceOf<KoniferResult.Failure.Transport>()
                     .cause
@@ -126,7 +127,7 @@ class KoniferClientConfigurationTest :
             val cancellationClient = KoniferClient.build("https://konifer.example", engine = cancellationEngine)
             try {
                 shouldThrow<TimeoutCancellationException> {
-                    withTimeout(100.milliseconds) { cancellationClient.assets("profile").originalVariant().fetchContentBytes() }
+                    withTimeout(100.milliseconds) { cancellationClient.assets("profile").originalVariant().fetchContent() }
                 }
             } finally {
                 cancellationClient.close()
@@ -150,7 +151,7 @@ class KoniferClientConfigurationTest :
                     engine = engine,
                 )
             try {
-                client.assets("profile").originalVariant().fetchContentBytes() shouldBe KoniferResult.Success(byteArrayOf(1))
+                client.assets("profile").originalVariant().fetchContent() shouldBe KoniferResult.Success(AssetContent(byteArrayOf(1)))
             } finally {
                 client.close()
                 engine.close()
@@ -163,12 +164,12 @@ class KoniferClientConfigurationTest :
             val first = KoniferClient.build("https://konifer.example", engine = engine)
             val second = KoniferClient.build("https://konifer.example", engine = engine)
             try {
-                first.assets("profile").originalVariant().fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe
-                    KoniferResult.Success(bytes)
+                first.assets("profile").originalVariant().fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe
+                    KoniferResult.Success(AssetContent(bytes))
                 first.close()
                 first.close()
                 engine.coroutineContext[Job]!!.isActive shouldBe true
-                second.assets("profile").originalVariant().fetchContentBytes() shouldBe KoniferResult.Success(bytes)
+                second.assets("profile").originalVariant().fetchContent() shouldBe KoniferResult.Success(AssetContent(bytes))
                 second.close()
                 engine.coroutineContext[Job]!!.isActive shouldBe true
             } finally {
@@ -182,8 +183,8 @@ class KoniferClientConfigurationTest :
             val httpClient = HttpClient(MockEngine) { engine { addHandler { respond(byteArrayOf(1)) } } }
             val client = KoniferClient(httpClient)
             try {
-                client.assets("profile").originalVariant().fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe
-                    KoniferResult.Success(byteArrayOf(1))
+                client.assets("profile").originalVariant().fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe
+                    KoniferResult.Success(AssetContent(byteArrayOf(1)))
             } finally {
                 client.close()
             }

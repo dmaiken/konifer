@@ -2,6 +2,8 @@ package io.konifer.client
 
 import io.konifer.client.asset.info.createInfoResponse
 import io.konifer.client.asset.link.createLinkResponse
+import io.konifer.client.assets.fetch.AssetContent
+import io.konifer.client.assets.fetch.AssetContentMetadata
 import io.konifer.client.assets.fetch.ContentDelivery
 import io.konifer.client.harness.httpClient
 import io.konifer.client.rules.createEvaluateRulesResponse
@@ -159,11 +161,11 @@ class KoniferBlockingClientTest :
             val client = KoniferBlockingClient(KoniferClient(httpClient))
             val variant = client.assets("users/123").originalVariant()
 
-            variant.fetchContentBytes() shouldBe KoniferResult.Success(bytes)
-            variant.fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(bytes)
+            variant.fetchContent() shouldBe KoniferResult.Success(AssetContent(bytes))
+            variant.fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(AssetContent(bytes))
             variant.fetchLink() shouldBe KoniferResult.Success(link)
             val output = ByteArrayOutputStream()
-            variant.fetchAndWriteContentTo(output) shouldBe KoniferResult.Success(Unit)
+            variant.fetchAndWriteContentTo(output) shouldBe KoniferResult.Success(AssetContentMetadata())
             output.toByteArray() shouldBe bytes
             client.close()
         }

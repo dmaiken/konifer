@@ -1,5 +1,7 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.common.http.AssetContentHeaders
+import io.konifer.common.http.AttributesResponse
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetData
@@ -8,9 +10,26 @@ import io.ktor.http.HttpHeaders
 import java.net.URLEncoder
 
 const val APP_CACHE_STATUS = "K-Cache-Status"
-const val APP_LQIP_BLURHASH = "K-LQIP-Blurhash"
-const val APP_LQIP_THUMBHASH = "K-LQIP-Thumbhash"
-const val APP_ALT = "K-Alt"
+const val APP_LQIP_BLURHASH = AssetContentHeaders.BLURHASH
+const val APP_LQIP_THUMBHASH = AssetContentHeaders.THUMBHASH
+const val APP_ALT = AssetContentHeaders.ALT
+
+fun getAttributeHeaders(attributes: AttributesResponse): List<Pair<String, String>> =
+    buildList {
+        add(AssetContentHeaders.WIDTH to attributes.width.toString())
+        add(AssetContentHeaders.HEIGHT to attributes.height.toString())
+        add(AssetContentHeaders.FORMAT to attributes.format)
+        add(AssetContentHeaders.ROTATE to attributes.rotate.queryParameterValue)
+        add(AssetContentHeaders.HORIZONTAL_FLIP to attributes.horizontalFlip.toString())
+        add(AssetContentHeaders.COLOR_SPACE to attributes.colorSpace)
+        attributes.pageCount?.let { add(AssetContentHeaders.PAGE_COUNT to it.toString()) }
+        attributes.loop?.let { add(AssetContentHeaders.LOOP to it.toString()) }
+        attributes.pixels?.let {
+            add(AssetContentHeaders.PIXELS_CHANNELS to it.channels)
+            add(AssetContentHeaders.PIXELS_LAYOUT to it.layout.queryParameterValue)
+            add(AssetContentHeaders.PIXELS_DATA_TYPE to it.dataType.queryParameterValue)
+        }
+    }
 
 fun getAppStatusCacheHeader(cacheHit: Boolean): Pair<String, String> {
     val value =

@@ -1,6 +1,7 @@
 package io.konifer.client
 
 import io.konifer.client.asset.info.createInfoResponse
+import io.konifer.client.assets.fetch.AssetContent
 import io.konifer.client.assets.fetch.ContentDelivery
 import io.konifer.client.harness.assertSignatureParameter
 import io.kotest.core.spec.style.FunSpec
@@ -43,8 +44,8 @@ class KoniferBlockingClientConfigurationTest :
                         engine = engine,
                     ).use { client ->
                         client.assets("profile").fetchInfo() shouldBe KoniferResult.Success(asset)
-                        client.assets("profile").originalVariant().fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe
-                            KoniferResult.Success(bytes)
+                        client.assets("profile").originalVariant().fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe
+                            KoniferResult.Success(AssetContent(bytes))
                     }
                 engine.coroutineContext[Job]!!.isActive shouldBe true
             }

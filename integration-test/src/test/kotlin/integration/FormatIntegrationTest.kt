@@ -47,8 +47,8 @@ class FormatIntegrationTest : BaseIntegrationTest() {
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).fetchContentBytes()
-                            val content = (fetchResponse as KoniferResult.Success).value
+                                    ).fetchContent()
+                            val content = (fetchResponse as KoniferResult.Success).value.bytes
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
                             val encodedContent =

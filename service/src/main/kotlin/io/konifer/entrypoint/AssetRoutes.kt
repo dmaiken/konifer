@@ -123,7 +123,7 @@ fun Application.configureAssetRouting() {
                                 lqips = variant.lqips,
                                 entryId = response.asset.entryId,
                                 modifiedAt = response.asset.modifiedAt,
-                                mimeType = variant.attributes.format.mimeType,
+                                variantAttributes = variant.attributes,
                                 fetchAssetHandler = fetchAssetHandler,
                             )
                         } ?: call.respond(HttpStatusCode.NotFound)

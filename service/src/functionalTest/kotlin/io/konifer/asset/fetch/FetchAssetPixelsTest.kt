@@ -93,7 +93,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                             .shouldBeSuccessful()
                             .body.attributes
                     attributes.pixels?.layout shouldBe layout
-                    val bytes = variant.fetchContentBytes().shouldBeSuccessful().body
+                    val content = variant.fetchContent().shouldBeSuccessful().body
+                    content.attributes shouldBe attributes
+                    val bytes = content.bytes
 
                     bytes.map { byte -> byte.toInt() and 0xff } shouldBe
                         if (layout == PixelLayout.PLANAR) planar else interleaved
@@ -144,7 +146,11 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
             attributes.pixels?.layout shouldBe PixelLayout.INTERLEAVED
             attributes.pixels?.dataType shouldBe PixelDataType.UINT8
 
-            val content = variant.fetchContentBytes().shouldBeSuccessful().body
+            val content =
+                variant
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body.bytes
             content.size shouldBe 2 * 2 * channels.length
             content.map { byte -> byte.toInt() and 0xff } shouldBe expected
         }
@@ -177,7 +183,11 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     colorSpace = requestedColorSpace
                 },
             )
-        val content = variant.fetchContentBytes().shouldBeSuccessful().body
+        val content =
+            variant
+                .fetchContent()
+                .shouldBeSuccessful()
+                .body.bytes
         content.size shouldBe 4
         val intensities = content.map { it.toInt() and 0xff }
         intensities[0].toDouble() shouldBe (127.0 plusOrMinus 2.0)
@@ -195,9 +205,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                 height = 2,
             )
             variant
-                .fetchContentBytes()
+                .fetchContent()
                 .shouldBeSuccessful()
-                .body
+                .body.bytes
                 .toList() shouldBe content.toList()
         }
         asset
@@ -235,9 +245,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     height = 2,
                 )
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
                     .map { it.toInt() and 0xff } shouldBe listOf(255, 127, 0, 255)
             }
         }
@@ -270,9 +280,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     height = 2,
                 )
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
                     .map { it.toInt() and 0xff } shouldBe listOf(0, 64, 128, 255)
             }
         }
@@ -305,9 +315,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     height = 2,
                 )
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
                     .map { it.toInt() and 0xff } shouldBe listOf(0, 64, 128, 255)
             }
             asset
@@ -350,9 +360,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     height = 1,
                 )
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
                     .map { it.toInt() and 0xff } shouldBe listOf(64)
             }
             asset
@@ -381,7 +391,7 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                 )
 
             variant.fetchLink() shouldHaveHttpError 400
-            variant.fetchContentBytes() shouldHaveHttpError 400
+            variant.fetchContent() shouldHaveHttpError 400
             asset
                 .fetchInfo()
                 .shouldBeSuccessful()
@@ -411,9 +421,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     )
             val rawPixelVariant =
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
 
             val rawPixelAttributes =
                 variant
@@ -470,9 +480,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     )
             val rawPixelVariant =
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
 
             val rawPixelAttributes =
                 variant
@@ -520,9 +530,9 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     )
             val rawPixelVariant =
                 variant
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
 
             val rawPixelAttributes =
                 variant
@@ -619,14 +629,14 @@ class FetchAssetPixelsTest : BaseFunctionalTest() {
                     )
             val noQualityVariant =
                 variantWithoutQualitySpecified
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
             val withQualityVariant =
                 variantWithQualitySpecified
-                    .fetchContentBytes()
+                    .fetchContent()
                     .shouldBeSuccessful()
-                    .body
+                    .body.bytes
             withQualityVariant.contentEquals(noQualityVariant) shouldBe true
 
             // Ensure only one non-original variant exists

@@ -48,9 +48,9 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).fetchContentBytes()
+                                    ).fetchContent()
                             fetchResponse::class shouldBe KoniferResult.Success::class
-                            val content = (fetchResponse as KoniferResult.Success).value
+                            val content = (fetchResponse as KoniferResult.Success).value.bytes
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
                             Vips.run { arena ->
@@ -100,9 +100,9 @@ class AnimatedFormatIntegrationTest : BaseIntegrationTest() {
                                         requestedTransformation {
                                             format = destinationFormat
                                         },
-                                    ).fetchContentBytes()
+                                    ).fetchContent()
                             fetchResponse::class shouldBe KoniferResult.Success::class
-                            val content = (fetchResponse as KoniferResult.Success).value
+                            val content = (fetchResponse as KoniferResult.Success).value.bytes
                             tika.detect(content) shouldBe destinationFormat.mimeType
 
                             val encodedContent =

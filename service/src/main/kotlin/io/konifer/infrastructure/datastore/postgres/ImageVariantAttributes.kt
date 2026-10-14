@@ -15,6 +15,7 @@ data class ImageVariantAttributes(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
+    val orientation: Int,
     /**
      * Unknown is the default because existing images may not have this persisted
      */
@@ -30,6 +31,7 @@ data class ImageVariantAttributes(
                 width = attributes.width.value,
                 height = attributes.height.value,
                 format = attributes.format,
+                orientation = attributes.orientation,
                 colorSpace = attributes.colorSpace,
                 pageCount = attributes.pageCount,
                 loop = attributes.loop,
@@ -49,6 +51,7 @@ data class ImageVariantAttributes(
             width = this.width.toDimension(),
             height = this.height.toDimension(),
             format = this.format,
+            orientation = this.orientation,
             pageCount = this.pageCount ?: 1,
             loop = this.loop,
             colorSpace = this.colorSpace,

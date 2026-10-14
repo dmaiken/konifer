@@ -56,6 +56,9 @@ data class AttributesResponse(
     val pageCount: Int?,
     val loop: Int?,
     val pixels: PixelAttributesResponse?,
+    /** Clockwise rotation still needed for display, followed by [horizontalFlip]. Never auto. */
+    val rotate: Rotate,
+    val horizontalFlip: Boolean,
 ) {
     companion object Factory
 }

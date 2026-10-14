@@ -1,12 +1,16 @@
 package io.konifer.entrypoint
 
 import io.konifer.application.usecase.fetch.FetchAssetHandler
+import io.konifer.common.http.AttributesResponse
 import io.konifer.domain.asset.AssetDataContainer
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.http.CustomAttributes.entryIdKey
 import io.konifer.infrastructure.http.CustomAttributes.lastModifiedKey
+import io.konifer.infrastructure.http.fromAttributes
 import io.konifer.infrastructure.http.getAltHeader
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
+import io.konifer.infrastructure.http.getAttributeHeaders
 import io.konifer.infrastructure.http.getLqipHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -23,7 +27,7 @@ suspend fun ApplicationCall.respondContent(
     lqips: LQIPs,
     entryId: Long,
     modifiedAt: LocalDateTime,
-    mimeType: String,
+    variantAttributes: Attributes,
     fetchAssetHandler: FetchAssetHandler,
 ) {
     getAppStatusCacheHeader(cacheHit).let {
@@ -35,13 +39,16 @@ suspend fun ApplicationCall.respondContent(
     getLqipHeaders(lqips).forEach {
         this.response.headers.append(it.first, it.second)
     }
+    getAttributeHeaders(AttributesResponse.fromAttributes(variantAttributes)).forEach {
+        this.response.headers.append(it.first, it.second)
+    }
     // Populate attributes used for etag creation
     this.attributes[entryIdKey] = entryId
     this.attributes[lastModifiedKey] = modifiedAt
 
     this.respondBytesWriter(
         contentType =
-            ContentType.parse(mimeType),
+            ContentType.parse(variantAttributes.format.mimeType),
         status = HttpStatusCode.OK,
     ) {
         fetchAssetHandler.fetchContent(

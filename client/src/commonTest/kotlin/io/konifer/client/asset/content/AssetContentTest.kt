@@ -2,6 +2,8 @@ package io.konifer.client.asset.content
 
 import io.konifer.client.KoniferClient
 import io.konifer.client.KoniferResult
+import io.konifer.client.assets.fetch.AssetContent
+import io.konifer.client.assets.fetch.AssetContentMetadata
 import io.konifer.client.assets.fetch.ContentDelivery
 import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.client.harness.assertLabels
@@ -32,7 +34,7 @@ import kotlinx.serialization.json.Json
 
 class AssetContentTest :
     FunSpec({
-        test("contentBytes fetches the newest variant by default") {
+        test("content fetches the newest variant by default") {
             val bytes = byteArrayOf(1, 2, 3, 4)
             val httpClient =
                 httpClient {
@@ -46,10 +48,10 @@ class AssetContentTest :
             KoniferClient(httpClient)
                 .assets("/users/123")
                 .variant(requestedTransformation {})
-                .fetchContentBytes() shouldBe KoniferResult.Success(bytes)
+                .fetchContent() shouldBe KoniferResult.Success(AssetContent(bytes))
         }
 
-        test("contentBytes uses labels, order, and transformation") {
+        test("content uses labels, order, and transformation") {
             val bytes = byteArrayOf(5, 6)
             val transformation = requestedTransformation { width = 80 }
             val labels = mapOf("Camera" to "phone", "format" to "display")
@@ -68,10 +70,10 @@ class AssetContentTest :
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
                 .variant(transformation)
-                .fetchContentBytes() shouldBe KoniferResult.Success(bytes)
+                .fetchContent() shouldBe KoniferResult.Success(AssetContent(bytes))
         }
 
-        test("contentBytes follows the delivery redirect with selectors, transformation, and signing") {
+        test("content follows the delivery redirect with selectors, transformation, and signing") {
             val bytes = byteArrayOf(10, 11, 12)
             val labels = mapOf("Camera" to "phone")
             val transformation = requestedTransformation { width = 80 }
@@ -106,7 +108,7 @@ class AssetContentTest :
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
                 .variant(transformation)
-                .fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(bytes)
+                .fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(AssetContent(bytes))
         }
 
         test("writeContentTo streams an entry variant and closes the destination") {
@@ -128,7 +130,7 @@ class AssetContentTest :
                     .variant(requestedTransformation {})
                     .fetchAndWriteContentTo(destination)
 
-            result shouldBe KoniferResult.Success(Unit)
+            result shouldBe KoniferResult.Success(AssetContentMetadata())
             received.await() shouldBe bytes
             destination.isClosedForWrite shouldBe true
             destination.closedCause shouldBe null
@@ -155,7 +157,7 @@ class AssetContentTest :
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
                 .variant(transformation)
-                .fetchAndWriteContentTo(destination) shouldBe KoniferResult.Success(Unit)
+                .fetchAndWriteContentTo(destination) shouldBe KoniferResult.Success(AssetContentMetadata())
             received.await() shouldBe bytes
         }
 
@@ -193,7 +195,7 @@ class AssetContentTest :
                     .variant(requestedTransformation {})
                     .fetchAndWriteContentTo(destination, ContentDelivery.FOLLOW_REDIRECT)
 
-            result shouldBe KoniferResult.Success(Unit)
+            result shouldBe KoniferResult.Success(AssetContentMetadata())
             received.await() shouldBe bytes
             destination.isClosedForWrite shouldBe true
         }
@@ -226,7 +228,7 @@ class AssetContentTest :
             KoniferClient(httpClient)
                 .assets("users/123")
                 .variant(requestedTransformation {})
-                .fetchContentBytes(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(bytes)
+                .fetchContent(ContentDelivery.FOLLOW_REDIRECT) shouldBe KoniferResult.Success(AssetContent(bytes))
         }
 
         test("a delivery host error is returned and closes the streaming destination") {
@@ -280,7 +282,7 @@ class AssetContentTest :
             KoniferClient(httpClient)
                 .assets("users/123")
                 .variant(requestedTransformation {})
-                .fetchContentBytes() shouldBe KoniferResult.Failure.Http(404, "not found")
+                .fetchContent() shouldBe KoniferResult.Failure.Http(404, "not found")
         }
 
         test("writeContentTo closes the destination on an HTTP error") {
@@ -314,7 +316,7 @@ class AssetContentTest :
                 "Variant transfer failed with HTTP status 404"
         }
 
-        test("contentBytes signs a request for a specified entry") {
+        test("content signs a request for a specified entry") {
             val bytes = byteArrayOf(1, 2, 3)
             val httpClient =
                 httpClient {
@@ -330,14 +332,14 @@ class AssetContentTest :
                 .assets("users/123")
                 .entry(42)
                 .variant(requestedTransformation {})
-                .fetchContentBytes() shouldBe
-                KoniferResult.Success(bytes)
+                .fetchContent() shouldBe
+                KoniferResult.Success(AssetContent(bytes))
         }
 
-        test("contentBytes returns a transport failure when the request fails") {
+        test("content returns a transport failure when the request fails") {
             val httpClient = httpClient { MockEngine { throw IOException("offline") } }
 
-            val result = KoniferClient(httpClient).assets("users/123").variant(requestedTransformation {}).fetchContentBytes()
+            val result = KoniferClient(httpClient).assets("users/123").variant(requestedTransformation {}).fetchContent()
 
             (result is KoniferResult.Failure.Transport) shouldBe true
         }

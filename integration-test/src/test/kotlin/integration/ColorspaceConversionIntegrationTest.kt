@@ -36,9 +36,9 @@ class ColorspaceConversionIntegrationTest : BaseIntegrationTest() {
                         requestedTransformation {
                             this.colorSpace = colorSpace
                         },
-                    ).fetchContentBytes()
+                    ).fetchContent()
             fetchResponse::class shouldBe KoniferResult.Success::class
-            val content = (fetchResponse as KoniferResult.Success).value
+            val content = (fetchResponse as KoniferResult.Success).value.bytes
             tika.detect(content) shouldBe attributes.format.mimeType
         }
     }
