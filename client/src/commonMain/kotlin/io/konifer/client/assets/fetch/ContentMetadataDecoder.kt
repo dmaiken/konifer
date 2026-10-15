@@ -10,7 +10,7 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.ktor.http.Headers
 import kotlinx.serialization.SerializationException
 
-fun Headers.decodeContentMetadata(delivery: ContentDelivery): AssetContentMetadata {
+internal fun Headers.decodeContentMetadata(delivery: ContentDelivery): AssetContentMetadata {
     if (delivery == ContentDelivery.FOLLOW_REDIRECT) return AssetContentMetadata()
 
     return AssetContentMetadata(
