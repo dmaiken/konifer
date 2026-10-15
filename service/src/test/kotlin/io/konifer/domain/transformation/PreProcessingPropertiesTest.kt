@@ -3,6 +3,7 @@ package io.konifer.domain.transformation
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.Rotate
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.createPreProcessingProperties
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -173,5 +174,16 @@ class PreProcessingPropertiesTest {
                 )
             }
         properties.requestedImageTransformation.pixelChannels shouldBe "rgba".toPixelChannels()
+    }
+
+    @Test
+    fun `toRequestedImageTransformation contains pixel layout if supplied`() {
+        val properties =
+            shouldNotThrowAny {
+                createPreProcessingProperties(
+                    pixelLayout = PixelLayout.PLANAR,
+                )
+            }
+        properties.requestedImageTransformation.pixelLayout shouldBe PixelLayout.PLANAR
     }
 }
