@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 private object FlipParameterValues {
-    const val NONE = ""
+    const val NONE = "none"
     const val HORIZONTAL = "h"
     const val VERTICAL = "v"
 }
