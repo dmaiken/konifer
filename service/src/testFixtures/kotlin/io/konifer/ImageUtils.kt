@@ -14,6 +14,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.transformation.PreProcessingProperties
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
@@ -253,6 +254,7 @@ fun createPreProcessingProperties(
     strip: Set<String> = emptySet(),
     colorSpace: TransformableColorSpace = TransformableColorSpace.default,
     pixelChannels: String? = null,
+    pixelLayout: PixelLayout? = null,
 ): PreProcessingProperties =
     PreProcessingProperties(
         enabled = enabled,
@@ -273,6 +275,7 @@ fun createPreProcessingProperties(
         strip = strip,
         colorSpace = colorSpace,
         pixelChannels = pixelChannels?.toPixelChannels(),
+        pixelLayout = pixelLayout,
     )
 
 /**

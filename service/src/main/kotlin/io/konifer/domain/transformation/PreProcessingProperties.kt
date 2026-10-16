@@ -8,6 +8,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.PathPropertyKeys.TransformPropertyKeys.PreProcessingPropertyKeys.ENABLED
@@ -52,6 +53,8 @@ data class PreProcessingProperties(
     val colorSpace: TransformableColorSpace = TransformableColorSpace.default,
     @SerialName(ManipulationParameters.PIXEL_CHANNELS)
     val pixelChannels: PixelChannels? = null,
+    @SerialName(ManipulationParameters.PIXEL_LAYOUT)
+    val pixelLayout: PixelLayout? = null,
 ) {
     companion object Factory {
         val default =
@@ -80,5 +83,6 @@ data class PreProcessingProperties(
             stripMetadata = strip.joinToString(","),
             colorSpace = colorSpace,
             pixelChannels = pixelChannels,
+            pixelLayout = pixelLayout,
         )
 }
