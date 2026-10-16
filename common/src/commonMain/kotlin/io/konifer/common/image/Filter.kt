@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 private object FilterParameterValues {
-    const val NONE = ""
+    const val NONE = "none"
     const val BLACK_WHITE = "black_white"
     const val GRAYSCALE = "grayscale"
     const val SEPIA = "sepia"
