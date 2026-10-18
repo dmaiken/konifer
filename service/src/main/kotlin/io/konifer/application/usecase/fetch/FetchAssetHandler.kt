@@ -146,7 +146,7 @@ class FetchAssetHandler(
             }
             val transformation = specification.transformation
             formatValidator.validateOutputFormat(
-                allowedFormats = context.pathConfiguration.allowedContentTypes,
+                allowedFormats = context.pathConfiguration.allowedFormats,
                 format = transformation.format,
             )
             val originalVariant =

@@ -1,6 +1,8 @@
 package io.konifer.infrastructure.path
 
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.path.DeliveryStrategy
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.rules.RuleName
@@ -13,11 +15,56 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.time.Duration.Companion.minutes
 
 class TriePathConfigurationRepositoryTest {
     private val transformConfigurationValidator = mockk<TransformConfigurationValidator>(relaxed = true)
+
+    @ParameterizedTest
+    @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
+    fun `allowed formats use the public format identifiers`(format: ImageFormat) {
+        val config = ConfigFactory.parseString("""paths { "/**" { allowed-formats = ["${format.format}"] } }""")
+        val repository = TriePathConfigurationRepository(config, transformConfigurationValidator)
+
+        repository.fetch("/images").allowedFormats shouldBe listOf(format)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["[unsupported]", "[\"image/png\"]"])
+    fun `invalid allowed formats fail during configuration loading`(allowedFormats: String) {
+        val config = ConfigFactory.parseString("""paths { "/**" { allowed-formats = $allowedFormats } }""")
+
+        shouldThrow<IllegalArgumentException> {
+            TriePathConfigurationRepository(config, transformConfigurationValidator)
+        }
+    }
+
+    @Test
+    fun `allowed formats cannot be null`() {
+        val config = ConfigFactory.parseString("""paths { "/**" { allowed-formats = null } }""")
+
+        shouldThrow<ConfigException.Null> {
+            TriePathConfigurationRepository(config, transformConfigurationValidator)
+        }
+    }
+
+    @Test
+    fun `omitted allowed formats inherit the parent allowlist`() {
+        val config =
+            ConfigFactory.parseString(
+                """
+                paths {
+                  "/**" { allowed-formats = [png] }
+                  "/images/**" { lqip = [thumbhash] }
+                }
+                """.trimIndent(),
+            )
+        val repository = TriePathConfigurationRepository(config, transformConfigurationValidator)
+
+        repository.fetch("/images/profile").allowedFormats shouldBe listOf(ImageFormat.PNG)
+    }
 
     @Test
     fun `delivery configuration is decoded from a path`() {
@@ -53,14 +100,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/123/profile" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
               "/users/456/profile" {
-                allowed-content-types = [
-                  "image/jpeg"
+                allowed-formats = [
+                  "jpg"
                 ]
               }
             }
@@ -71,7 +118,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @Test
@@ -80,14 +127,14 @@ class TriePathConfigurationRepositoryTest {
             """
             paths = {
               "/Users/123/Profile" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
               "/users/456/profile" {
-                allowed-content-types = [
-                  "image/jpeg"
+                allowed-formats = [
+                  "jpg"
                 ]
               }
             }
@@ -102,7 +149,7 @@ class TriePathConfigurationRepositoryTest {
             "/USERS/123/profile",
         ).forEach { path ->
             val pathConfiguration = pathConfigurationRepository.fetch(path)
-            pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+            pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
         }
     }
 
@@ -112,9 +159,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/*/profile" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }
@@ -125,7 +172,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @Test
@@ -134,9 +181,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/**" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }
@@ -147,7 +194,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @ParameterizedTest
@@ -163,9 +210,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "$path" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }
@@ -176,7 +223,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         pathConfigurationRepository.fetch("/notAUser/123/profile").apply {
-            allowedContentTypes shouldBe null
+            allowedFormats shouldBe PathConfiguration.default.allowedFormats
         }
     }
 
@@ -193,9 +240,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "$path" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }
@@ -207,7 +254,7 @@ class TriePathConfigurationRepositoryTest {
             )
         val pathConfiguration =
             pathConfigurationRepository.fetch("/users/lastName/firstName/profile/last")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @Test
@@ -216,9 +263,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/users/*" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
                 transform {
                   preprocessing = {
@@ -227,7 +274,7 @@ class TriePathConfigurationRepositoryTest {
                 }
               }
               "/users/*/profile" {
-                allowed-content-types = [ ]
+                allowed-formats = [ ]
                 transform {
                   preprocessing = {
                     clamp-width = 10
@@ -242,7 +289,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
-        pathConfiguration.allowedContentTypes shouldBe listOf()
+        pathConfiguration.allowedFormats shouldBe listOf()
         pathConfiguration.transform.preProcessing.clampWidth shouldBe 10
         pathConfiguration.transform.preProcessing.clampHeight shouldBe 10
     }
@@ -284,13 +331,13 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/**" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
               "/users/**" {
-                allowed-content-types = [ ]
+                allowed-formats = [ ]
               }
             }
             """.trimIndent()
@@ -300,7 +347,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/recipe/123")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @Test
@@ -309,9 +356,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/**" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
                 transform {
                   preprocessing = {
@@ -320,7 +367,7 @@ class TriePathConfigurationRepositoryTest {
                 }
               }
               "/users/*/profile" {
-                allowed-content-types = [ ]
+                allowed-formats = [ ]
                 transform {
                   preprocessing = {
                     clamp-width = 10
@@ -335,7 +382,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("/users/123/profile")
-        pathConfiguration.allowedContentTypes shouldBe listOf()
+        pathConfiguration.allowedFormats shouldBe listOf()
         pathConfiguration.transform.preProcessing.clampWidth shouldBe 10
         pathConfiguration.transform.preProcessing.clampHeight shouldBe 10
     }
@@ -346,9 +393,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "/**" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }
@@ -359,7 +406,7 @@ class TriePathConfigurationRepositoryTest {
                 transformConfigurationValidator,
             )
         val pathConfiguration = pathConfigurationRepository.fetch("// //123")
-        pathConfiguration.allowedContentTypes shouldBe listOf("image/png", "image/jpeg")
+        pathConfiguration.allowedFormats shouldBe listOf(ImageFormat.PNG, ImageFormat.JPEG)
     }
 
     @Test
@@ -368,9 +415,9 @@ class TriePathConfigurationRepositoryTest {
             """
             paths {
               "" {
-                allowed-content-types = [
-                  "image/png",
-                  "image/jpeg"
+                allowed-formats = [
+                  "png",
+                  "jpg"
                 ]
               }
             }

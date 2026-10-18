@@ -181,13 +181,13 @@ class StoreAssetTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `cannot store asset that is a disallowed content type`() =
+    fun `cannot store asset that is a disallowed format`() =
         testInMemory(
             """
             paths {
               "/users/*/profile" {
-                allowed-content-types = [
-                  "image/jpeg"
+                allowed-formats = [
+                  "jpg"
                 ]
               }
             }
@@ -208,12 +208,12 @@ class StoreAssetTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `cannot store asset if no content type is allowed`() =
+    fun `cannot store asset if no format is allowed`() =
         testInMemory(
             """
             paths {
               "/users/*/profile" {
-                allowed-content-types = [ ]
+                allowed-formats = [ ]
               }
             }
             """.trimIndent(),
@@ -233,7 +233,7 @@ class StoreAssetTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `can store asset if allowed-content-types is not defined for path`() =
+    fun `can store asset if allowed-formats is not defined for path`() =
         testInMemory(
             """
             paths {

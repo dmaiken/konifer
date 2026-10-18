@@ -6,7 +6,6 @@ import io.konifer.domain.asset.AssetRejectedException
 import io.konifer.domain.context.ContentTypeNotPermittedException
 import io.konifer.domain.context.IllegalRequestedTransformationException
 import io.konifer.domain.context.InvalidPathException
-import io.konifer.domain.image.InvalidImageException
 import io.konifer.domain.ports.AssetSourceForbiddenException
 import io.konifer.domain.ports.AssetSourceTimeoutException
 import io.konifer.domain.ports.AssetSourceUnavailableException
@@ -26,9 +25,6 @@ private val logger = KtorSimpleLogger("io.konifer.infrastructure.http.exception.
 
 fun Application.configureStatusPages() =
     install(StatusPages) {
-        exception<InvalidImageException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
-        }
         exception<IllegalArgumentException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
