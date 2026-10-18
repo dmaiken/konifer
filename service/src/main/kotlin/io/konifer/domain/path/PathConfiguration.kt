@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PathConfiguration(
-    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.ALLOWED_CONTENT_TYPES)
-    val allowedContentTypes: List<String>? = null,
+    @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.ALLOWED_FORMATS)
+    val allowedFormats: List<ImageFormat> = ImageFormat.entries,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.TRANSFORM)
     val transform: TransformProperties = TransformProperties.default,
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.LQIP)
@@ -28,22 +28,7 @@ data class PathConfiguration(
     @SerialName(ConfigurationPropertyKeys.PathPropertyKeys.UPLOAD_RULESET)
     val uploadRuleset: UploadRuleset = UploadRuleset.default,
 ) {
-    init {
-        validate()
-    }
-
     companion object {
         val default = PathConfiguration()
-    }
-
-    private fun validate() {
-        allowedContentTypes?.let { allowedContentTypes ->
-            val supportedContentTypes = ImageFormat.entries.map { it.mimeType }
-            allowedContentTypes.forEach { allowedContentType ->
-                require(supportedContentTypes.contains(allowedContentType)) {
-                    "$allowedContentType is not a supported content type"
-                }
-            }
-        }
     }
 }

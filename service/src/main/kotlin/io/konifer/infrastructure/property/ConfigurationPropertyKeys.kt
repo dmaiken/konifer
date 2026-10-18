@@ -90,7 +90,7 @@ object ConfigurationPropertyKeys {
     object PathPropertyKeys {
         const val LQIP = "lqip"
         const val LIMITS = "limits"
-        const val ALLOWED_CONTENT_TYPES = "allowed-content-types"
+        const val ALLOWED_FORMATS = "allowed-formats"
         const val OBJECT_STORE = "object-store"
         const val DELIVERY = "delivery"
         const val TRANSFORM = "transform"

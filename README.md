@@ -101,7 +101,7 @@ paths {
     object-store {
       bucket = articles
     }
-    allowed-content-types = ["image/png", "image/jpeg"]
+    allowed-formats = ["png", "jpg"]
     transform {
       on-demand-variant {
         mode = disabled

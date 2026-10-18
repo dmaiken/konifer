@@ -98,6 +98,27 @@ class FetchAssetContentTest : BaseFunctionalTest() {
             }
         }
 
+    @Test
+    fun `encoded output must be in the allowed formats`() =
+        testInMemory(
+            """
+            paths {
+              "/**" { allowed-formats = [png] }
+            }
+            """.trimIndent(),
+        ) {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            konifer()
+                .assets("restricted")
+                .newAsset()
+                .fromBytes(image, ImageFormat.PNG)
+                .store()
+                .shouldBeSuccessful()
+
+            client.get("/assets/restricted/-/content?w=40&format=jpg").status shouldBe HttpStatusCode.Forbidden
+            client.get("/assets/restricted/-/content?w=40&format=png").status shouldBe HttpStatusCode.OK
+        }
+
     @ParameterizedTest
     @ValueSource(ints = [2, 6])
     fun `original content exposes remaining orientation and auto rotated pixels expose normalized orientation`(orientation: Int) =
