@@ -41,12 +41,12 @@ class HmacSigningTest :
             val urlBuilder =
                 URLBuilder().apply {
                     appendPathSegments("assets", "profile", "-", "link")
-                    parameters.append("w", "200")
-                    parameters.append("h", "100")
+                    parameters.append("width", "200")
+                    parameters.append("height", "100")
                     parameters.append("blur", "50")
                 }
 
-            val expectedPayload = "/assets/profile/-/link?blur=50&h=100&w=200".encodeToByteArray()
+            val expectedPayload = "/assets/profile/-/link?blur=50&height=100&width=200".encodeToByteArray()
 
             val expectedSignature =
                 signatureGenerator
@@ -69,9 +69,9 @@ class HmacSigningTest :
                     MockEngine { request ->
                         request.method shouldBe HttpMethod.Get
                         request.url.encodedPath shouldBe "/assets/profile/-/new/link"
-                        request.url.parameters["h"] shouldBe "100"
-                        request.url.parameters["w"] shouldBe "200"
-                        request.url.parameters["s"] shouldBe "48asiNUcDadDFRLpSrcWZJg6qOgdXfqH-RdqXl8lIac"
+                        request.url.parameters["height"] shouldBe "100"
+                        request.url.parameters["width"] shouldBe "200"
+                        request.url.parameters["s"] shouldBe "34NlGprecr3jCvyGWGr7Vquy6GRixqBJFjkDVPQ38Os"
 
                         respond(
                             content = Json.encodeToString(serverResponse),

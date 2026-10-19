@@ -37,8 +37,8 @@ class VariantAttributesTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    w = 200
-                    h = 200
+                    width = 200
+                    height = 200
                     fit = stretch
                   }
                 }

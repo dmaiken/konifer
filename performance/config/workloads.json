@@ -76,7 +76,7 @@
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
       "case": "jpg-to-webp-400",
-      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80, "r": "auto"}
+      "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80, "rotate": "auto"}
     },
     "variant.deliver.cached": {
       "description": "Retrieves an on-demand variant generated during setup, measuring delivery without repeating the image transformation.",
@@ -84,7 +84,7 @@
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
       "case": "jpg-to-webp-400",
-      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80, "r": "auto"}
+      "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80, "rotate": "auto"}
     },
     "upload.preprocess": {
       "description": "Uploads an image through a path that preprocesses the original into a padded WebP image before the upload response completes.",
@@ -135,7 +135,7 @@
       "description": "Generates the same WebP variant from each supported source format, exercising its decoder with a common resize and output encoding.",
       "profile": "heavy",
       "fixture": "photo-medium",
-      "query": {"w": 400, "fit": "fit", "format": "webp", "q": 80},
+      "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80},
       "cases": [
         {"id": "avif-to-webp", "sourceFormat": "avif"},
         {"id": "gif-to-webp", "sourceFormat": "gif"},
@@ -151,7 +151,7 @@
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
-      "query": {"w": 400, "fit": "fit", "q": 80},
+      "query": {"width": 400, "fit": "fit", "quality": 80},
       "cases": [
         {"id": "jpg-to-avif", "destinationFormat": "avif"},
         {"id": "jpg-to-gif", "destinationFormat": "gif"},

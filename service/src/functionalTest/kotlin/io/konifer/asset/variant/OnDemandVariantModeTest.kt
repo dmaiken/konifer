@@ -25,7 +25,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
             """
             variant-profiles {
               thumbnail {
-                w = 10
+                width = 10
               }
             }
             paths {
@@ -78,7 +78,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
             """
             variant-profiles {
               thumbnail {
-                w = 10
+                width = 10
               }
             }
             paths {
@@ -197,7 +197,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
             """
             variant-profiles {
               thumbnail {
-                w = 10
+                width = 10
               }
             }
             paths {
@@ -264,7 +264,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
             """
             variant-profiles {
               thumbnail {
-                w = 10
+                width = 10
               }
             }
             paths {

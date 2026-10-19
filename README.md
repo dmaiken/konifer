@@ -10,11 +10,12 @@
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
 ![Scanned with Trivy](https://img.shields.io/badge/scanned%20with-Trivy-1904DA?logo=trivy&logoColor=white)
 
-Konifer is a self-hosted backend for images your application owns. It handles uploads, validation, storage,
-transformations, and deletion. Name assets the way your application already thinks about them, then give each path its
-own rules.
+Konifer is a self-hosted image backend for applications and vision pipelines. Upload an image once, then request a
+WebP preview for your application or a resized raw pixel buffer for your inference worker. Define reusable
+transformation profiles and manage storage, validation, and deletion through paths that match your application.
 
 [10-minute quickstart](https://konifer.io/docs/start-here/getting-started) ·
+[Pixels for inference](https://konifer.io/docs/guides/guides-pixels-for-inference) ·
 [Documentation](https://konifer.io/) ·
 [Performance report](https://dmaiken.github.io/konifer/performance/report/)
 
@@ -33,14 +34,66 @@ It supports:
 - Multipart uploads, S3 object ARN imports, and URL uploads with a domain allow-list enforced after redirects
 - Image storage in S3-compatible buckets or a filesystem, coordinated with asset metadata
 - Image transformations through libvips, including format conversion and animated GIF and WebP support
+- Raw pixel output with configurable channel order and interleaved HWC or planar CHW layout
+- Named transformation profiles with cached variants and optional eager generation
 - JPEG, PNG, WebP, HEIC, AVIF, JPEG XL, and GIF
 - Limits on image dimensions and pixel count, plus upload size limits
 - In-process image classification with SigLIP2 to accept, reject, or label uploads
 - Redirect-based image delivery when you want a CDN in front
 
-Konifer is worth a look if you're adding images to an application, maintaining several image-handling services, or
-spending more engineering time on image plumbing than the feature that needed the images in the first place. You can
-run it yourself as a Docker image; there is no SaaS dependency.
+Konifer is worth a look if you're adding images to an application, sharing preprocessing with vision workers, or
+maintaining several image-handling services. You can run it yourself as a Docker image; there is no SaaS dependency.
+
+## Serve display images and inference inputs
+
+A product photo can serve a storefront and a classification worker. Define a profile for each consumer in
+`konifer.conf`:
+
+```hocon
+variant-profiles {
+  display {
+    width = 256
+    height = 256
+    fit = fill
+    rotate = auto
+    format = webp
+  }
+
+  vision {
+    width = 224
+    height = 224
+    fit = fill
+    rotate = auto
+    color-space = srgb
+    format = pixels
+    pixel-channels = RGB
+    pixel-layout = planar
+  }
+}
+```
+
+Upload the source image, then request each representation:
+
+```http
+# Upload the source image
+POST /assets/products/123/photo
+
+# Fetch a display image
+GET /assets/products/123/photo/-/entry/0/content?profile=display
+
+# Fetch pixels for an inference worker
+GET /assets/products/123/photo/-/entry/0/content?profile=vision
+```
+
+Choose dimensions, orientation, color space, channel order, and pixel layout in a named profile. Reuse the cached
+variants across requests, or configure eager generation after upload.
+
+This `vision` profile produces a `3 × 224 × 224` RGB buffer with one plane per channel. Your worker constructs the
+tensor and applies the scaling and normalization required by your model.
+
+See the [raw pixel contract](https://konifer.io/docs/concepts/concepts-pixels) for output details and the
+[PyTorch inference guide](https://konifer.io/docs/guides/guides-pixels-for-inference) for a complete worker example,
+including model-specific preprocessing considerations.
 
 ## Paths are part of the model
 
@@ -56,7 +109,7 @@ An opaque ID works too:
 
 ```http
 POST /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6
-GET  /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6/-/redirect?w=256&format=webp
+GET  /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6/-/redirect?width=256&format=webp
 ```
 
 Paths give you a way to work with related assets. If user 123 closes their account, you can delete the assets below
@@ -75,7 +128,7 @@ thumbnail for profile pictures, and leaves article resizing to the CDN:
 ```hocon
 variant-profiles {
   thumbnail {
-    w = 256
+    width = 256
     fit = fill
   }
 }
@@ -114,7 +167,7 @@ paths {
 Path rules inherit from broader matches, so both specific paths get the `/users/**` pixel limit. The
 [path configuration docs](https://konifer.io/docs/concepts/concepts-path-configuration) cover matching and inheritance.
 
-## Upload rules
+## Classify and validate uploads
 
 Some uploads need a content check as well as a file type check. Konifer can compare an image with a collection of
 prompts using SigLIP2 in the server process. For example:
@@ -133,34 +186,14 @@ rule-definitions {
 }
 ```
 
-You can attach a definition to a path's upload ruleset to reject or label matching images. The image stays on your
-server during inference. See [upload rules](https://konifer.io/docs/concepts/concepts-upload-rules) for the full setup.
-
-## Try a rule against real images
+You can attach a definition to a path's upload ruleset to accept, reject, or label matching images. The image stays on
+your server during inference. Install the SigLIP2 model pack to use these rules; see
+[upload rules](https://konifer.io/docs/concepts/concepts-upload-rules) for the full setup.
 
 The [Rule Evaluation API](https://konifer.io/docs/concepts/concepts-rule-evaluation) lets you test prompts and
-thresholds before enforcing a rule. Send a URL or image bytes to `POST /rule-evaluations` without storing an asset. The
-response shows which prompts drove the score:
-
-```json
-{
-  "results": [
-    {
-      "name": "outdoor-landscape",
-      "threshold": 0.7,
-      "score": 0.83,
-      "matched": true,
-      "promptScores": [
-        { "prompt": "a mountain", "score": 0.83 },
-        { "prompt": "a forest", "score": 0.41 }
-      ]
-    }
-  ]
-}
-```
-
-Those numbers illustrate the response shape. The scores depend on the image and model; they are not confidence
-percentages. The docs cover enabling the API and installing the model pack.
+thresholds before enforcing a rule. Enable the API and send a URL or image bytes to `POST /rule-evaluations` without
+storing an asset. The response includes rule matches and per-prompt scores. The scores depend on the image and model;
+they are not confidence percentages. The API requires the same model pack.
 
 ## Documentation and performance
 

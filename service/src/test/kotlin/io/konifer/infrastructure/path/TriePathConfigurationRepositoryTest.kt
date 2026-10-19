@@ -308,8 +308,8 @@ class TriePathConfigurationRepositoryTest {
                   }
                   preprocessing {
                     enabled = true
-                    w = 101
-                    h = 100
+                    width = 101
+                    height = 100
                   }
                 }
               }
@@ -457,8 +457,8 @@ class TriePathConfigurationRepositoryTest {
             """
             variant-profiles {
               too-wide {
-                w = 101
-                h = 100
+                width = 101
+                height = 100
               }
             }
             paths {
@@ -737,7 +737,7 @@ class TriePathConfigurationRepositoryTest {
                 transform {
                   preprocessing {
                     enabled = true
-                    w = 200
+                    width = 200
                   }
                 }
               }

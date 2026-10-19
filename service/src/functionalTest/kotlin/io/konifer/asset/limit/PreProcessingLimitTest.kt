@@ -18,7 +18,7 @@ class PreProcessingLimitTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    h = 100
+                    height = 100
                   }
                   limits {
                     max-width = 14

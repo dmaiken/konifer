@@ -14,6 +14,7 @@ docker_tag=latest
 start_runtime=true
 keep_assets=false
 with_load=false
+use_legacy_query_params=false
 cleanup_pending=false
 cleanup_delay_seconds=0
 run_id=""
@@ -45,6 +46,9 @@ Options:
                         The default is `git describe --tags --always --dirty`;
                         published history requires vMAJOR.MINOR.PATCH.
   --docker-tag TAG      Run ghcr.io/dmaiken/konifer:TAG. Defaults to latest.
+  --use-legacy-query-params
+                        Use abbreviated transformation names for older images,
+                        in requests and the generated runtime configuration.
   --no-start            Reuse an already-running Compose stack. Container
                         limits and Konifer health are still verified.
   --keep-assets         Skip per-repetition recursive deletion of assets.
@@ -62,6 +66,7 @@ Examples:
   ./performance/run.sh release --subject v0.9.0 --repetitions 3
   ./performance/run.sh load --subject v0.9.0
   ./performance/run.sh release --subject v0.9.0 --with-load
+  ./performance/run.sh release --subject v0.9.0 --docker-tag v0.9.0 --use-legacy-query-params
 
 Output:
   Results are written to performance/results/<run-id>/. Complete release runs
@@ -99,6 +104,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-start)
       start_runtime=false
+      shift
+      ;;
+    --use-legacy-query-params)
+      use_legacy_query_params=true
       shift
       ;;
     --keep-assets)
@@ -218,6 +227,7 @@ wait_for_konifer() {
 run_k6() {
   local html_report_path=$1
   shift
+  set -- -e "USE_LEGACY_QUERY_PARAMS=$use_legacy_query_params" "$@"
 
   if [[ $suite == "smoke" ]]; then
     k6 run "$@"
@@ -235,6 +245,11 @@ validate_fixtures
 validate_models
 
 if [[ $start_runtime == true ]]; then
+  export KONIFER_CONFIG="$performance_dir/runtime/konifer.conf"
+  if [[ $use_legacy_query_params == true ]]; then
+    node runtime/legacy-config.ts
+    export KONIFER_CONFIG="$performance_dir/runtime/konifer.legacy.conf"
+  fi
   echo "Starting performance runtime with $KONIFER_IMAGE"
   # Garage creates the benchmark access key and bucket during single-node startup.
   docker compose -f "$compose_file" up -d --wait perf-postgres perf-garage
@@ -457,6 +472,9 @@ echo "Performance results: $result_dir"
 
 if [[ $with_load == true ]]; then
   load_arguments=(load --subject "$subject" --docker-tag "$docker_tag" --no-start)
+  if [[ $use_legacy_query_params == true ]]; then
+    load_arguments+=(--use-legacy-query-params)
+  fi
   if [[ $keep_assets == true ]]; then
     load_arguments+=(--keep-assets)
   fi

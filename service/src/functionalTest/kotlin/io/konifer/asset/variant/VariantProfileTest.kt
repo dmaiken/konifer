@@ -21,7 +21,7 @@ class VariantProfileTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 10
+                width = 10
               }
             }
             """.trimIndent(),
@@ -50,7 +50,7 @@ class VariantProfileTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 10
+                width = 10
                 format = jpg
               }
             }
@@ -89,7 +89,7 @@ class VariantProfileTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 10
+                width = 10
                 format = jpg
               }
             }
@@ -150,8 +150,8 @@ class VariantProfileTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 100
-                h = 200
+                width = 100
+                height = 200
                 format = jpg
                 fit = stretch
                 gravity = attention
@@ -161,9 +161,9 @@ class VariantProfileTest : BaseFunctionalTest() {
                 blur = 20
                 quality = 70
                 pad = 10
-                pad-c = "#111111"
+                pad-color = "#111111"
                 strip = "iptc,exif"
-                cs = srgb
+                color-space = srgb
               }
             } 
             """.trimIndent(),

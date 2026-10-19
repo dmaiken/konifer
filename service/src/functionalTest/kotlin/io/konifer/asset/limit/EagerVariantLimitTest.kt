@@ -21,7 +21,7 @@ class EagerVariantLimitTest : BaseFunctionalTest() {
             """
             variant-profiles {
               oversized {
-                h = 300
+                height = 300
               }
             }
             paths {

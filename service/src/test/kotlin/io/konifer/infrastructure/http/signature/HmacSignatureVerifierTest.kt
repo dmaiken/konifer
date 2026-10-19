@@ -16,8 +16,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val signature =
             UrlSigner.sign(
@@ -64,8 +64,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val parameters =
             ParametersBuilder()
@@ -94,8 +94,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val signature =
             UrlSigner.sign(
@@ -130,8 +130,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val signature =
             UrlSigner.sign(
@@ -167,8 +167,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val signature =
             UrlSigner.sign(
@@ -204,8 +204,8 @@ class HmacSignatureVerifierTest {
         val path = "/assets/user/123/profile/-/link/created"
         val paramMap =
             mapOf(
-                "h" to "100",
-                "w" to "200",
+                "height" to "100",
+                "width" to "200",
             )
         val signature =
             UrlSigner.sign(

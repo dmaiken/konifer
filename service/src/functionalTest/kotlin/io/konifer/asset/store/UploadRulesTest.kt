@@ -78,8 +78,8 @@ class UploadRulesTest : BaseFunctionalTest() {
                     transform {
                       preprocessing {
                         enabled = true
-                        r = 180
-                        w = 200
+                        rotate = 180
+                        width = 200
                       }
                     }
                   }
@@ -137,8 +137,8 @@ class UploadRulesTest : BaseFunctionalTest() {
                     transform {
                       preprocessing {
                         enabled = true
-                        r = 180
-                        w = 200
+                        rotate = 180
+                        width = 200
                       }
                     }
                   }

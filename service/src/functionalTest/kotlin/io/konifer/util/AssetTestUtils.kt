@@ -561,10 +561,10 @@ private fun attachVariantModifiers(
         urlBuilder.parameters.append("profile", profile)
     }
     if (height != null) {
-        urlBuilder.parameters.append("h", height.toString())
+        urlBuilder.parameters.append("height", height.toString())
     }
     if (width != null) {
-        urlBuilder.parameters.append("w", width.toString())
+        urlBuilder.parameters.append("width", width.toString())
     }
     if (format != null) {
         urlBuilder.parameters.append("format", format)
@@ -573,13 +573,13 @@ private fun attachVariantModifiers(
         urlBuilder.parameters.append("fit", fit)
     }
     if (gravity != null) {
-        urlBuilder.parameters.append("g", gravity)
+        urlBuilder.parameters.append("gravity", gravity)
     }
     if (rotate != null) {
-        urlBuilder.parameters.append("r", rotate)
+        urlBuilder.parameters.append("rotate", rotate)
     }
     if (flip != null) {
-        urlBuilder.parameters.append("f", flip)
+        urlBuilder.parameters.append("flip", flip)
     }
     if (filter != null) {
         urlBuilder.parameters.append("filter", filter)
@@ -588,18 +588,18 @@ private fun attachVariantModifiers(
         urlBuilder.parameters.append("blur", blur.toString())
     }
     if (quality != null) {
-        urlBuilder.parameters.append("q", quality.toString())
+        urlBuilder.parameters.append("quality", quality.toString())
     }
     if (pad != null) {
         urlBuilder.parameters.append("pad", pad.toString())
     }
     if (padColor != null) {
-        urlBuilder.parameters.append("pad-c", padColor)
+        urlBuilder.parameters.append("pad-color", padColor)
     }
     if (strip != null) {
         urlBuilder.parameters.append("strip", strip)
     }
     if (colorSpace != null) {
-        urlBuilder.parameters.append("cs", colorSpace)
+        urlBuilder.parameters.append("color-space", colorSpace)
     }
 }

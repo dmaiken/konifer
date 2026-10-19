@@ -98,7 +98,7 @@ class AssetDeleteTest :
         }
 
         test("recursive delete filters by labels without a limit or ordering") {
-            val labels = mapOf("Camera" to "phone", "w" to "wide")
+            val labels = mapOf("Camera" to "phone", "width" to "wide")
             val httpClient =
                 httpClient {
                     MockEngine { request ->

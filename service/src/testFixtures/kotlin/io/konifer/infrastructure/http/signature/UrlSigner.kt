@@ -10,7 +10,7 @@ object UrlSigner {
      * Generates a fully qualified, HMAC-signed URL.
      *
      * @param path The resource path (e.g., "/images/logo.png")
-     * @param params Map of query parameters (e.g., "w" to "500")
+     * @param params Map of query parameters (e.g., "width" to "500")
      * @param secretKey The shared secret key
      * @return The final signed URL string
      */
@@ -23,7 +23,7 @@ object UrlSigner {
     ): String {
         val sortedParams =
             if (sortParameters) {
-                // Sort params by key to ensure "w=100&h=200" equals "h=200&w=100"
+                // Sort params by key to ensure "width=100&height=200" equals "height=200&width=100"
                 params.toSortedMap()
             } else {
                 params.toSortedMap().reversed()

@@ -275,7 +275,7 @@ private fun Parameters.Builder.transformationParameters() {
         schema = jsonSchema<Flip>()
     }
     query(ManipulationParameters.FILTER) {
-        description = "Visual filter (default none). grayscale retains RGB channels; cs=grayscale changes color space."
+        description = "Visual filter (default none). grayscale retains RGB channels; color-space=grayscale changes color space."
         schema = jsonSchema<Filter>()
     }
     effectParameters()
@@ -314,7 +314,7 @@ private fun Parameters.Builder.pixelParameters() {
         description =
             "For format=pixels: any permutation of rgb, or rgba, or gray (all case-insensitive). " +
             "Each color channel must occur exactly once. Default RGB. Examples: RGB, BGR, RGBA, BGRA, ARGB. " +
-            "gray produces one grayscale channel and requires cs=origin or cs=grayscale when cs is supplied. " +
+            "gray produces one grayscale channel and requires color-space=origin or color-space=grayscale when color-space is supplied. " +
             "For gray, transparency is composited against white. RGBA channels add opaque alpha when the source lacks it."
         schema = JsonSchema(type = JsonType.STRING, minLength = 3, maxLength = 4)
     }

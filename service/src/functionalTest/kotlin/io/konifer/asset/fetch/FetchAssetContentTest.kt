@@ -86,7 +86,7 @@ class FetchAssetContentTest : BaseFunctionalTest() {
                 .store()
                 .shouldBeSuccessful()
             repeat(2) {
-                val response = client.get("/assets/headers/-/$returnFormat?w=40&format=pixels&pixel-channels=BGR&pixel-layout=planar")
+                val response = client.get("/assets/headers/-/$returnFormat?width=40&format=pixels&pixel-channels=BGR&pixel-layout=planar")
                 response.status shouldBe HttpStatusCode.OK
                 response.headers[AssetContentHeaders.WIDTH] shouldBe "40"
                 response.headers[AssetContentHeaders.FORMAT] shouldBe "pixels"
@@ -115,8 +115,8 @@ class FetchAssetContentTest : BaseFunctionalTest() {
                 .store()
                 .shouldBeSuccessful()
 
-            client.get("/assets/restricted/-/content?w=40&format=jpg").status shouldBe HttpStatusCode.Forbidden
-            client.get("/assets/restricted/-/content?w=40&format=png").status shouldBe HttpStatusCode.OK
+            client.get("/assets/restricted/-/content?width=40&format=jpg").status shouldBe HttpStatusCode.Forbidden
+            client.get("/assets/restricted/-/content?width=40&format=png").status shouldBe HttpStatusCode.OK
         }
 
     @ParameterizedTest

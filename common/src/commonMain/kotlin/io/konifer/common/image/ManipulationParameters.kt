@@ -4,20 +4,20 @@ import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMET
 import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 
 object ManipulationParameters {
-    const val HEIGHT = "h"
-    const val WIDTH = "w"
+    const val HEIGHT = "height"
+    const val WIDTH = "width"
     const val FIT = "fit"
-    const val GRAVITY = "g"
+    const val GRAVITY = "gravity"
     const val FORMAT = "format"
-    const val ROTATE = "r"
-    const val FLIP = "f"
+    const val ROTATE = "rotate"
+    const val FLIP = "flip"
     const val FILTER = "filter"
     const val BLUR = "blur"
-    const val QUALITY = "q"
+    const val QUALITY = "quality"
     const val PAD = "pad"
-    const val PAD_COLOR = "pad-c"
+    const val PAD_COLOR = "pad-color"
     const val STRIP = "strip"
-    const val COLOR_SPACE = "cs"
+    const val COLOR_SPACE = "color-space"
 
     const val VARIANT_PROFILE = "profile"
 

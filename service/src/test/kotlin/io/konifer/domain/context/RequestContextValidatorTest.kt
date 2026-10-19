@@ -124,7 +124,7 @@ class RequestContextValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["phone-model", "label:w", "s"])
+    @ValueSource(strings = ["phone-model", "label:width", "s"])
     fun `profile-only on-demand mode allows label and other query parameters`(labelKey: String) {
         shouldNotThrowAny {
             validator.validateFetchRequest(

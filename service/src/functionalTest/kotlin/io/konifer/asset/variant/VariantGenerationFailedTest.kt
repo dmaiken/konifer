@@ -43,7 +43,7 @@ class VariantGenerationFailedTest : BaseFunctionalTest() {
                     transform {
                       preprocessing {
                         enabled = true
-                        w = 100
+                        width = 100
                       }
                     }
                   }
