@@ -12,7 +12,7 @@ class EnumSerializationTest :
     FunSpec({
         serializationTests(
             mapOf(
-                Filter.NONE to "",
+                Filter.NONE to "none",
                 Filter.BLACK_WHITE to "black_white",
                 Filter.GRAYSCALE to "grayscale",
                 Filter.SEPIA to "sepia",
@@ -22,7 +22,7 @@ class EnumSerializationTest :
             mapOf(
                 Flip.H to "h",
                 Flip.V to "v",
-                Flip.NONE to "",
+                Flip.NONE to "none",
             ),
         )
         serializationTests(
