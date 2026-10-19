@@ -59,7 +59,7 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
     @Test
     fun `entries rejects transformations and entry ID selection`() =
         testInMemory {
-            client.get("/assets/profile/-/new/entries?w=100").status shouldBe HttpStatusCode.BadRequest
+            client.get("/assets/profile/-/new/entries?width=100").status shouldBe HttpStatusCode.BadRequest
             client.get("/assets/profile/-/new/entries?format=png").status shouldBe HttpStatusCode.BadRequest
             client.get("/assets/profile/-/entry/42/entries").status shouldBe HttpStatusCode.BadRequest
         }

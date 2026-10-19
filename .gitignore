@@ -54,3 +54,4 @@ out/
 /performance/results/
 /performance/dist/
 /performance/node_modules/
+/performance/runtime/konifer.legacy.conf

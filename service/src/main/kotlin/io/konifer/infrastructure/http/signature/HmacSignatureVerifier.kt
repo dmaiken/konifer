@@ -36,7 +36,7 @@ class HmacSignatureVerifier(
         }
 
         // We strip the signature param from the parameters to get the original payload.
-        // IMPORTANT: We sort parameters to ensure canonicalization (w=100&h=200 == h=200&w=100)
+        // IMPORTANT: We sort parameters to ensure canonicalization (width=100&height=200 == height=200&width=100)
         val canonicalQuery =
             parameters
                 .entries()

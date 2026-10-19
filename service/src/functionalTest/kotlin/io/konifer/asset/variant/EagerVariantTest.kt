@@ -31,10 +31,10 @@ class EagerVariantTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 15
+                width = 15
               }
               medium {
-                h = 15
+                height = 15
               }
             }
             paths {
@@ -96,10 +96,10 @@ class EagerVariantTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 15
+                width = 15
               }
               medium {
-                h = 15
+                height = 15
               }
             }
             paths {
@@ -152,7 +152,7 @@ class EagerVariantTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                w = 50
+                width = 50
               }
             }
             paths {
@@ -161,7 +161,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                   eager-variants = [small]
                   preprocessing {
                     enabled = true
-                    r = 180
+                    rotate = 180
                   }
                 }
               }

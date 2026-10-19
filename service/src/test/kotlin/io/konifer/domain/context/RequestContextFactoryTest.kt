@@ -476,8 +476,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(3)
                         .apply {
-                            append("w", "10")
-                            append("h", "20")
+                            append("width", "10")
+                            append("height", "20")
                             append("format", "png")
                         }.build(),
                     Transformation(
@@ -491,8 +491,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(2)
                         .apply {
-                            append("w", "10")
-                            append("h", "20")
+                            append("width", "10")
+                            append("height", "20")
                         }.build(),
                     Transformation(
                         width = 10.toDimension(),
@@ -505,7 +505,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("w", "10")
+                            append("width", "10")
                         }.build(),
                     Transformation(
                         width = 10.toDimension(),
@@ -536,13 +536,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("h", "100")
+                            append("height", "100")
                         }.build(),
                 ),
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("w", "100")
+                            append("width", "100")
                         }.build(),
                 ),
                 arguments(
@@ -554,19 +554,19 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("g", "center")
+                            append("gravity", "center")
                         }.build(),
                 ),
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("r", "90")
+                            append("rotate", "90")
                         }.build(),
                 ),
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("f", "v")
+                            append("flip", "v")
                         }.build(),
                 ),
                 arguments(
@@ -584,7 +584,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("q", "100")
+                            append("quality", "100")
                         }.build(),
                 ),
                 arguments(
@@ -602,7 +602,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 arguments(
                     ParametersBuilder(1)
                         .apply {
-                            append("cs", "srgb")
+                            append("color-space", "srgb")
                         }.build(),
                 ),
             )
@@ -836,8 +836,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             ParametersBuilder(4)
                                 .apply {
                                     append("profile", profileName)
-                                    append("h", "100")
-                                    append("w", "500")
+                                    append("height", "100")
+                                    append("width", "500")
                                     append("format", "jpg")
                                 }.build(),
                     )
@@ -981,7 +981,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             queryParameters =
                                 ParametersBuilder()
                                     .apply {
-                                        append("w", "100")
+                                        append("width", "100")
                                     }.build(),
                         )
                     }
@@ -995,8 +995,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                 val parameters =
                     ParametersBuilder(3)
                         .apply {
-                            append("w", "10")
-                            append("h", "20")
+                            append("width", "10")
+                            append("height", "20")
                             append("format", "png")
                         }.build()
 
@@ -1068,12 +1068,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters =
                             ParametersBuilder(6)
                                 .apply {
-                                    append("h", "100")
-                                    append("w", "500")
+                                    append("height", "100")
+                                    append("width", "500")
                                     append("format", "jpg")
                                     append("phone", "iphone")
                                     append("case", "soft")
-                                    append("label:h", "hello")
+                                    append("label:height", "hello")
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
@@ -1084,7 +1084,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     mapOf(
                         "phone" to "iphone",
                         "case" to "soft",
-                        "h" to "hello",
+                        "height" to "hello",
                     )
             }
 
@@ -1105,8 +1105,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters =
                             ParametersBuilder(6)
                                 .apply {
-                                    append("h", "100")
-                                    append("w", "500")
+                                    append("height", "100")
+                                    append("width", "500")
                                     append("format", "jpg")
                                     append("phone", "iphone")
                                     append("case", "soft")
@@ -1139,8 +1139,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters =
                             ParametersBuilder(6)
                                 .apply {
-                                    append("h", "100")
-                                    append("w", "500")
+                                    append("height", "100")
+                                    append("width", "500")
                                     append("format", "jpg")
                                     append("phone", "iphone")
                                     append("case", "soft")
@@ -1338,7 +1338,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters =
                             ParametersBuilder()
                                 .apply {
-                                    append("w", "100")
+                                    append("width", "100")
                                 }.build(),
                     )
                 }
@@ -1523,14 +1523,14 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         .apply {
                             append("phone", "iphone")
                             append("case", "soft")
-                            append("label:h", "hello")
+                            append("label:height", "hello")
                         }.build(),
                 )
             context.labels shouldContainExactly
                 mapOf(
                     "phone" to "iphone",
                     "case" to "soft",
-                    "h" to "hello",
+                    "height" to "hello",
                 )
         }
     }

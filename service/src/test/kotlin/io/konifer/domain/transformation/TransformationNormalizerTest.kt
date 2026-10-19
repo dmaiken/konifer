@@ -716,7 +716,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
                         entryId = asset.entryId,
                         requested = requested,
                     )
-                }.message shouldBe "Cannot specify flip (${ManipulationParameters.FLIP}) when r=${Rotate.AUTO.name.lowercase()}"
+                }.message shouldBe "Cannot specify flip (${ManipulationParameters.FLIP}) when rotate=${Rotate.AUTO.name.lowercase()}"
 
                 coVerify(exactly = 0) {
                     assetRepository.fetchByPath(any(), any(), any())

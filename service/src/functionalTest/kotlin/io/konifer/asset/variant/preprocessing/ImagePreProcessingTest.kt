@@ -425,7 +425,7 @@ class ImagePreProcessingTest : BaseFunctionalTest() {
                 transform {
                   preprocessing {
                     enabled = true
-                    cs = srgb
+                    color-space = srgb
                   }
                 }
               }

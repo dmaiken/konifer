@@ -221,7 +221,7 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
             val labels =
                 mapOf(
                     "bg" to "iphone",
-                    "w" to "vegetable",
+                    "width" to "vegetable",
                 )
             val tags = setOf("smart", "cool")
             val request =

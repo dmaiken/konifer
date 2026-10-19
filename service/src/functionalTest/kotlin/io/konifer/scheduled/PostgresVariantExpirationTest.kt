@@ -90,7 +90,7 @@ class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
             postgres.scheduled-jobs.jobPollingInterval = 100ms
             variant-profiles {
               small {
-                h = 100
+                height = 100
               }
             }
             paths {
@@ -150,7 +150,7 @@ class PostgresVariantExpirationTest : BasePostgresTestContainersTest() {
             postgres.scheduled-jobs.jobPollingInterval = 100ms
             variant-profiles {
               small {
-                h = 100
+                height = 100
               }
             }
             paths {

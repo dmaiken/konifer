@@ -15,6 +15,6 @@
     "target": "ES2022",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "report/**/*.ts", "report/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "report/**/*.ts", "report/**/*.tsx", "lib/**/*.ts", "runtime/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

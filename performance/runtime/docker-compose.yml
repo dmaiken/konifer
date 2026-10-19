@@ -5,7 +5,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./konifer.conf:/app/config/konifer.conf
+      - ${KONIFER_CONFIG:-./konifer.conf}:/app/config/konifer.conf
       - ../../models/siglip2-base-patch16-224:/app/models/siglip2-base-patch16-224:ro
       - konifer-tmp:/app/tmp
     environment:

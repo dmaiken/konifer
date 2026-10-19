@@ -34,7 +34,7 @@ class AssetUrlGeneratorTest {
         runTest {
             val generator = AssetUrlGenerator(HttpProperties(Url("https://images.example.com/root")), objectStore)
             val asset = assetData(path = "/profiles/avatar", entryId = 42)
-            val request = request(parameters = Parameters.build { append("w", "320") })
+            val request = request(parameters = Parameters.build { append("width", "320") })
 
             val result = generator.generateDeliveryUrl(asset, request, PathConfiguration.default)
 
@@ -43,7 +43,7 @@ class AssetUrlGeneratorTest {
             url.protocol shouldBe URLProtocol.HTTPS
             url.host shouldBe "images.example.com"
             url.encodedPath shouldBe "/root/assets/profiles/avatar/-/entry/42/content"
-            url.parameters["w"] shouldBe "320"
+            url.parameters["width"] shouldBe "320"
             coVerify(exactly = 0) { objectStore.generatePresignedUrl(any(), any(), any()) }
         }
 

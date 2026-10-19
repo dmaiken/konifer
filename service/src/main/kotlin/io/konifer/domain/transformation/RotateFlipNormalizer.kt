@@ -15,7 +15,7 @@ object RotateFlipNormalizer {
         if (requested.rotate == Rotate.AUTO) {
             if (requested.flip != Flip.NONE) {
                 throw IllegalArgumentException(
-                    "Cannot specify flip (${ManipulationParameters.FLIP}) when r=${Rotate.AUTO.name.lowercase()}",
+                    "Cannot specify flip (${ManipulationParameters.FLIP}) when rotate=${Rotate.AUTO.name.lowercase()}",
                 )
             }
             ExifOrientations.fromExifOrientation(originalAttributesDeferred.await().orientation)

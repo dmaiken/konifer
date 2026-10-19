@@ -342,8 +342,8 @@ class ImagePixelPreprocessingTest : BaseFunctionalTest() {
         """
         variant-profiles {
           converted {
-            w = 1
-            h = 1
+            width = 1
+            height = 1
             fit = fill
             format = png
           }

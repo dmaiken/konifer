@@ -1,5 +1,6 @@
 import http, { type Params, type Response } from 'k6/http';
 import type { QueryParameters, Tags, UploadContext } from '../types.ts';
+import { queryUrl } from '../../lib/query-parameters.ts';
 
 export const benchmarkMetadata = JSON.stringify({
     alt: 'Performance benchmark fixture',
@@ -44,8 +45,7 @@ export function entryUrl(
 }
 
 export function withQuery(url: string, parameters: QueryParameters): string {
-    const values = Object.entries(parameters).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
-    return values.length === 0 ? url : `${url}?${values.join('&')}`;
+    return queryUrl(url, parameters, __ENV.USE_LEGACY_QUERY_PARAMS === 'true');
 }
 
 export function parseJson<T>(response: Response): T | null {

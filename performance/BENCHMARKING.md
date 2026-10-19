@@ -58,6 +58,21 @@ limitation of local results.
 
 ## Run lifecycle
 
+The harness uses descriptive transformation parameter names by default. To
+backfill a version that expects abbreviated names, pass
+`--use-legacy-query-params` to `run.sh`:
+
+```sh
+./performance/run.sh release --subject v0.9.0 --docker-tag v0.9.0 --use-legacy-query-params --with-load
+```
+
+This translates request parameter names and generates
+`runtime/konifer.legacy.conf` for Compose, including eager-variant profiles and
+upload preprocessing. The option applies to smoke, release, and load suites,
+and is forwarded by `--with-load`. With `--no-start`, the running server must
+already have configuration appropriate for its version. This option handles
+the parameter rename; it does not add features absent from older releases.
+
 `run.sh` performs the following work:
 
 1. Parses the configuration, fixture manifest, and result schema.

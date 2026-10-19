@@ -77,7 +77,7 @@ class ExpiringVariantTest : BaseFunctionalTest() {
             """
             variant-profiles {
               small {
-                h = 100
+                height = 100
               }
             }
             paths {

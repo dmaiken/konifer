@@ -30,8 +30,8 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            h = 10
-                            w = 15
+                            height = 10
+                            width = 15
                             format = png
                         }
                     }
@@ -50,8 +50,8 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            h = 10
-                            w = 15
+                            height = 10
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -67,7 +67,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            h = 10
+                            height = 10
                         }
                     }
                     """.trimIndent(),
@@ -82,7 +82,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -97,10 +97,10 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            w = 15
+                            width = 15
                         }
                         medium {
-                            h = 15
+                            height = 15
                         }
                     }
                     """.trimIndent(),
@@ -119,18 +119,18 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         small {
-                            w = 15
-                            h = 10
+                            width = 15
+                            height = 10
                             fit = stretch
-                            r = auto
+                            rotate = auto
                             filter = sepia
                         }
                         medium {
-                            w = 15
-                            h = 10
+                            width = 15
+                            height = 10
                             fit = fill
-                            r = 180
-                            f = v
+                            rotate = 180
+                            flip = v
                             filter = black_white
                         }
                     }
@@ -165,7 +165,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma%ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -175,7 +175,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma/ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -185,7 +185,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma+ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -195,7 +195,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma=ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -205,7 +205,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma^ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -215,7 +215,7 @@ class VariantProfileRepositoryTest {
                     """
                     variant-profiles {
                         "sma&ll" {
-                            w = 15
+                            width = 15
                         }
                     }
                     """.trimIndent(),
@@ -231,7 +231,7 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                w = 0
+                                width = 0
                             }
                         }
                         """.trimIndent(),
@@ -243,7 +243,7 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                h = 0
+                                height = 0
                             }
                         }
                         """.trimIndent(),
@@ -279,7 +279,7 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                r = bad
+                                rotate = bad
                             }
                         }
                         """.trimIndent(),
@@ -291,7 +291,7 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                f = "bad"
+                                flip = "bad"
                             }
                         }
                         """.trimIndent(),
@@ -315,10 +315,10 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                h = 10
-                                w = 10
+                                height = 10
+                                width = 10
                                 fit = crop
-                                g = bad
+                                gravity = bad
                             }
                         }
                         """.trimIndent(),
@@ -342,7 +342,7 @@ class VariantProfileRepositoryTest {
                         """
                         variant-profiles {
                             small {
-                                pad-c = bad
+                                pad-color = bad
                             }
                         }
                         """.trimIndent(),
@@ -362,11 +362,11 @@ class VariantProfileRepositoryTest {
                 ),
                 Arguments.arguments(
                     Named.named(
-                        "bad cs",
+                        "bad color-space",
                         """
                         variant-profiles {
                             small {
-                                cs = bad
+                                color-space = bad
                             }
                         }
                         """.trimIndent(),
@@ -397,7 +397,7 @@ class VariantProfileRepositoryTest {
             """
             variant-profiles {
                 bad(name) {
-                    w = 15
+                    width = 15
                 }
             }
             """.trimIndent()
@@ -438,7 +438,7 @@ class VariantProfileRepositoryTest {
             """
             variant-profiles {
                 small {
-                    w = 15
+                    width = 15
                 }
             }
             """.trimIndent()
