@@ -164,8 +164,16 @@ test('environment references and service identities are valid', async () => {
         const containers = environment.services?.map((service) => service.container) ?? [];
         assert.equal(new Set(containers).size, containers.length, `${environmentId} contains duplicate container names`);
 
-        const composeFile = resolveWithin(performanceDirectory, environment.composeFile!);
-        assert.ok((await stat(composeFile)).isFile(), `${environmentId} Compose file does not exist: ${composeFile}`);
+        if (environment.runtime === 'aws') {
+            assert.ok(environment.aws, `${environmentId} AWS configuration is missing`);
+            for (const instance of [environment.aws.konifer, environment.aws.k6]) {
+                assert.ok(instance.container.cpus <= instance.vcpus, `${environmentId} CPU limit exceeds instance capacity`);
+                assert.ok(instance.container.memoryBytes < instance.memoryGiB * 1024 ** 3, `${environmentId} must leave memory for the host`);
+            }
+        } else {
+            const composeFile = resolveWithin(performanceDirectory, environment.composeFile!);
+            assert.ok((await stat(composeFile)).isFile(), `${environmentId} Compose file does not exist: ${composeFile}`);
+        }
     }
 });
 

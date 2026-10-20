@@ -172,6 +172,11 @@ if [[ $suite == "load" ]]; then
   environment=$(jq -r '.loadDefault // .default' config/environments.json)
 fi
 compose_file=$(jq -r --arg environment "$environment" '.profiles[$environment].composeFile' config/environments.json)
+runtime=$(jq -r --arg environment "$environment" '.profiles[$environment].runtime // "compose"' config/environments.json)
+if [[ $runtime != "compose" ]]; then
+  echo "run.sh currently executes Compose benchmarks only; use runtime/aws-config.ts to prepare AWS deployment configuration." >&2
+  exit 2
+fi
 base_url=$(jq -r '.baseUrl' config/workloads.json)
 if [[ $suite != "load" ]]; then
   methodology=$(jq -r '.methodology' config/workloads.json)

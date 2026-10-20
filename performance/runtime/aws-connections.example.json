@@ -1,0 +1,9 @@
+{
+  "environment": "aws-c9gd-v1",
+  "region": "us-east-1",
+  "availabilityZone": "us-east-1a",
+  "koniferPrivateIp": "10.0.1.10",
+  "k6PrivateIp": "10.0.1.11",
+  "rdsEndpoint": "replace-me.abcdefghijkl.us-east-1.rds.amazonaws.com",
+  "bucketName": "replace-me-konifer-performance"
+}

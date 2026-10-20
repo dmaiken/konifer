@@ -8,6 +8,7 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePro
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PASSWORD
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.PORT
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.SSL_MODE
+import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.SSL_ROOT_CERT
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PostgresPropertyKeys.USER
 import io.konifer.infrastructure.tryGetConfig
 import io.konifer.infrastructure.tryGetStringWithEnvironmentVariableOverride
@@ -21,6 +22,7 @@ data class PostgresProperties(
     val port: Int,
     val password: String,
     val sslMode: String,
+    val sslRootCert: String? = null,
 )
 
 fun Application.createPostgresProperties(): PostgresProperties {
@@ -65,5 +67,6 @@ fun Application.createPostgresProperties(): PostgresProperties {
         port = port,
         password = password,
         sslMode = sslMode,
+        sslRootCert = postgresProperties?.tryGetString(SSL_ROOT_CERT),
     )
 }

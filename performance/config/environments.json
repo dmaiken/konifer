@@ -2,6 +2,50 @@
   "default": "local-compose-v4",
   "loadDefault": "local-compose-v3",
   "profiles": {
+    "aws-c9gd-v1": {
+      "runtime": "aws",
+      "displayName": "AWS Graviton with NVMe scratch",
+      "description": "Single-operation benchmarks with dedicated Konifer and k6 hosts, RDS PostgreSQL, and S3 Standard.",
+      "benchmarkMethodology": "single-vu-v1",
+      "hardware": {
+        "system": "EC2 c9gd.xlarge (Konifer)",
+        "architecture": "arm64",
+        "processor": "AWS Graviton",
+        "physicalCores": 4,
+        "logicalCpus": 4,
+        "memoryGiB": 8
+      },
+      "interpretation": [
+        "Konifer and k6 use separate EC2 instances; both instances and the single-AZ RDS primary must share an availability zone.",
+        "Konifer is limited to 4 CPUs and 6 GiB RAM. k6 is limited to 1 CPU and 1536 MiB RAM on c9g.medium.",
+        "Scratch is local NVMe instance storage mounted at /app/tmp, not tmpfs or EBS. It is disposable; images and metadata live in S3 and RDS.",
+        "k6 uses Konifer's private address. RDS uses its TLS-verified DNS endpoint; S3 uses HTTPS through a gateway endpoint. S3 Standard is regional, not AZ-local.",
+        "This profile is a deployment target, not a completed benchmark. Verify regional instance availability and record the exact AMI, image digest, AZ, and RDS engine version before publishing results.",
+        "Compare releases only within this environment. Change the environment ID when instance sizes, limits, scratch storage, or database configuration materially change."
+      ],
+      "aws": {
+        "network": {"traffic": "private", "sameAvailabilityZone": true, "s3Endpoint": "gateway"},
+        "konifer": {
+          "instanceType": "c9gd.xlarge", "architecture": "arm64", "vcpus": 4, "memoryGiB": 8,
+          "container": {"cpus": 4, "memoryBytes": 6442450944},
+          "metadata": {"httpTokens": "required", "httpPutResponseHopLimit": 2}
+        },
+        "k6": {
+          "instanceType": "c9g.medium", "architecture": "arm64", "vcpus": 1, "memoryGiB": 2,
+          "container": {"cpus": 1, "memoryBytes": 1610612736},
+          "metadata": {"httpTokens": "required", "httpPutResponseHopLimit": 2}
+        },
+        "scratch": {"type": "instance-store", "hostPath": "/mnt/konifer-scratch", "containerPath": "/app/tmp", "filesystem": "ext4"},
+        "rds": {
+          "engine": "postgres", "engineMajorVersion": "17", "instanceClass": "db.m7g.large",
+          "multiAz": false, "publiclyAccessible": false,
+          "storage": {"type": "gp3", "allocatedGiB": 20, "encrypted": true},
+          "database": "konifer", "user": "konifer_user",
+          "sslMode": "verify-full", "sslRootCert": "/app/config/rds-ca-bundle.pem", "forceSsl": true
+        },
+        "s3": {"storageClass": "STANDARD", "encryption": "AES256", "blockPublicAccess": true, "credentials": "instance-role"}
+      }
+    },
     "local-compose-v4": {
       "displayName": "Daniel's laptop (single-operation benchmarks)",
       "description": "Compare releases with one operation in flight, fixed sample counts, and Garage object storage.",

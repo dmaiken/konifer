@@ -104,6 +104,8 @@ export interface EnvironmentHardware {
 }
 
 export interface EnvironmentProfile {
+    runtime?: 'compose' | 'aws';
+    aws?: AwsEnvironment;
     benchmarkMethodology?: string;
     displayName?: string;
     description?: string;
@@ -115,6 +117,36 @@ export interface EnvironmentProfile {
         cpus: number;
         memoryBytes: number;
     }>;
+}
+
+export interface AwsInstance {
+    instanceType: string;
+    architecture: 'arm64';
+    vcpus: number;
+    memoryGiB: number;
+    container: { cpus: number; memoryBytes: number };
+    metadata: { httpTokens: 'required'; httpPutResponseHopLimit: 2 };
+}
+
+export interface AwsEnvironment {
+    network: { traffic: 'private'; sameAvailabilityZone: true; s3Endpoint: 'gateway' };
+    konifer: AwsInstance;
+    k6: AwsInstance;
+    scratch: { type: 'instance-store'; hostPath: string; containerPath: '/app/tmp'; filesystem: 'ext4' };
+    rds: {
+        engine: 'postgres';
+        engineMajorVersion: string;
+        instanceClass: string;
+        multiAz: false;
+        publiclyAccessible: false;
+        storage: { type: 'gp3'; allocatedGiB: number; encrypted: true };
+        database: string;
+        user: string;
+        sslMode: 'verify-full';
+        sslRootCert: string;
+        forceSsl: true;
+    };
+    s3: { storageClass: 'STANDARD'; encryption: 'AES256'; blockPublicAccess: true; credentials: 'instance-role' };
 }
 
 export interface EnvironmentCatalog {

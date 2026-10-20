@@ -32,7 +32,11 @@ fun connectToPostgres(properties: PostgresProperties): ConnectionFactory {
             .option(R2DBC_HOST, properties.host)
             .option(R2DBC_PORT, properties.port)
             .option(R2DBC_PASSWORD, properties.password)
-            .option(Option.valueOf("sslMode"), properties.sslMode)
+            .option(Option.valueOf("sslMode"), properties.sslMode.replace('-', '_'))
+
+    properties.sslRootCert?.let {
+        options.option(Option.valueOf("sslRootCert"), it)
+    }
 
     return ConnectionFactories.get(options.build())
 }

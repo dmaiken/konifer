@@ -55,3 +55,5 @@ out/
 /performance/dist/
 /performance/node_modules/
 /performance/runtime/konifer.legacy.conf
+/performance/runtime/aws-generated/
+/performance/runtime/aws-connections.local.json
