@@ -1,8 +1,9 @@
 import execution from 'k6/execution';
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check as k6Check, sleep } from 'k6';
 import { Counter, Rate, Trend } from 'k6/metrics';
-import type { Options, Scenario } from 'k6/options';
+import type { Options } from 'k6/options';
+import { durationMilliseconds, runBenchmarkPhase, validatePhase } from '../lib/benchmark-profile.ts';
 import {
     contentType,
     entryUrl,
@@ -15,10 +16,8 @@ import {
     withQuery,
 } from './lib/konifer.ts';
 import type {
-    ArrivalPhase,
     AssetPools,
     AssetReference,
-    ExecutionProfile,
     FixtureManifest,
     KoniferResponseBody,
     OperationResult,
@@ -41,6 +40,12 @@ const workload = catalog.workloads[workloadId];
 
 if (!workload) {
     throw new Error(`Unknown workload: ${workloadId}`);
+}
+const profile = catalog.profiles[workload.profile];
+if (!profile) throw new Error(`Unknown execution profile: ${workload.profile}`);
+const measurementSamples = suite === 'smoke' ? Number(__ENV.SMOKE_ITERATIONS || 1) : profile.measurement.samples;
+if (!Number.isInteger(measurementSamples) || measurementSamples < 1) {
+    throw new Error('Measurement samples must be a positive integer');
 }
 
 const selectedCase = selectCase(workload, __ENV.CASE);
@@ -71,34 +76,56 @@ const query: QueryParameters = {
 const operationDuration = new Trend('operation_duration', true);
 const operationErrors = new Rate('operation_errors');
 const operations = new Counter('operations');
+const phaseCompleted = new Counter('phase_completed');
+const phaseDuration = new Trend('phase_duration', true);
+let activePhase = 'setup';
+let operationIndex = 0;
+let phaseDeadline: number | null = null;
+const check: typeof k6Check = (value, checks, tags) => k6Check(value, checks, { ...tags, phase: activePhase });
 
 export const options: Options = buildOptions();
 
 export function setup(): AssetPools {
     if (suite === 'smoke') {
-        return seedForPhases(0, 1);
+        return seedForPhases(0, measurementSamples);
     }
 
-    const profile = catalog.profiles[workload.profile];
     return seedForPhases(
-        expectedIterations(profile.warmup),
-        expectedIterations(profile.measurement),
+        profile.warmup.samples,
+        profile.measurement.samples,
     );
 }
 
-export function warmup(data: AssetPools): void {
-    executeWorkload(data, 'warmup');
-}
-
 export default function measurement(data: AssetPools): void {
-    executeWorkload(data, 'measurement');
+    if (suite === 'smoke') {
+        activePhase = 'measurement';
+        operationIndex = execution.scenario.iterationInTest;
+        executeWorkload(data, 'measurement');
+        return;
+    }
+    for (const phase of ['warmup', 'measurement'] as const) {
+        activePhase = phase;
+        phaseDeadline = Date.now() + durationMilliseconds(profile[phase].maxDuration);
+        const result = runBenchmarkPhase(profile[phase], {
+            now: Date.now,
+            sleep: (milliseconds) => sleep(milliseconds / 1000),
+            run: (index) => {
+                operationIndex = index;
+                return executeWorkload(data, phase);
+            },
+        });
+        phaseDuration.add(result.durationMs, { phase });
+        phaseCompleted.add(result.completed ? 1 : 0, { phase });
+        console.log(`${phase}: ${result.operations}/${profile[phase].samples} operations in ${result.durationMs} ms; completed=${result.completed}`);
+        if (!result.completed) return;
+    }
 }
 
 function buildOptions(): Options {
-    const thresholds = {
+    const thresholds: Record<string, string[]> = {
         'operation_duration{phase:measurement}': ['p(95)>=0'],
         'operation_errors{phase:measurement}': ['rate==0'],
-        'operations{phase:measurement}': ['count>0'],
+        'operations{phase:measurement}': [`count==${measurementSamples}`],
         'checks{phase:measurement}': ['rate==1'],
         'http_reqs{phase:measurement}': ['count>0'],
         'dropped_iterations{phase:measurement}': ['count==0'],
@@ -112,7 +139,7 @@ function buildOptions(): Options {
                     executor: 'shared-iterations',
                     exec: 'default',
                     vus: 1,
-                    iterations: Number(__ENV.SMOKE_ITERATIONS || 1),
+                    iterations: measurementSamples,
                     maxDuration: '2m',
                     tags: { phase: 'measurement' },
                 },
@@ -122,43 +149,33 @@ function buildOptions(): Options {
         };
     }
 
-    const profile = catalog.profiles[workload.profile];
-    if (!profile) {
-        throw new Error(`Unknown execution profile: ${workload.profile}`);
+    validatePhase(profile.warmup);
+    validatePhase(profile.measurement);
+    thresholds['phase_completed{phase:warmup}'] = ['count==1'];
+    thresholds['phase_completed{phase:measurement}'] = ['count==1'];
+    for (const phase of ['warmup', 'measurement'] as const) {
+        thresholds[`phase_duration{phase:${phase}}`] = [
+            `min>=${durationMilliseconds(profile[phase].minDuration)}`,
+            `max<${durationMilliseconds(profile[phase].maxDuration)}`,
+        ];
     }
+    thresholds['operations{phase:warmup}'] = [`count==${profile.warmup.samples}`];
+    thresholds['checks{phase:warmup}'] = ['rate==1'];
+    thresholds['operation_errors{phase:warmup}'] = ['rate==0'];
 
     return {
         setupTimeout: '30m',
         scenarios: {
-            warmup: arrivalScenario(profile, profile.warmup, '0s', 'warmup'),
-            measurement: arrivalScenario(
-                profile,
-                profile.measurement,
-                profile.warmup.duration,
-                'default',
-            ),
+            measurement: {
+                executor: 'per-vu-iterations',
+                vus: 1,
+                iterations: 1,
+                maxDuration: `${durationMilliseconds(profile.warmup.maxDuration) + durationMilliseconds(profile.measurement.maxDuration)}ms`,
+                gracefulStop: '0s',
+            },
         },
         thresholds,
         summaryTrendStats: ['min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
-    };
-}
-
-function arrivalScenario(
-    profile: ExecutionProfile,
-    phase: ArrivalPhase,
-    startTime: string,
-    execFunction: string,
-): Scenario {
-    return {
-        executor: 'constant-arrival-rate',
-        exec: execFunction,
-        startTime,
-        duration: phase.duration,
-        rate: phase.rate,
-        timeUnit: phase.timeUnit,
-        preAllocatedVUs: profile.preAllocatedVUs,
-        maxVUs: profile.maxVUs,
-        tags: { phase: execFunction === 'default' ? 'measurement' : 'warmup' },
     };
 }
 
@@ -212,7 +229,7 @@ function seedAssets(phase: keyof AssetPools, count: number, generateVariant: boo
     return assets;
 }
 
-function executeWorkload(data: AssetPools, phase: keyof AssetPools): void {
+function executeWorkload(data: AssetPools, phase: keyof AssetPools): boolean {
     const started = Date.now();
     let result;
     try {
@@ -224,9 +241,10 @@ function executeWorkload(data: AssetPools, phase: keyof AssetPools): void {
     }
 
     const durationMs = result.durationMs === undefined ? Date.now() - started : result.durationMs;
-    operationDuration.add(durationMs);
-    operationErrors.add(!result.ok);
-    operations.add(1);
+    operationDuration.add(durationMs, { phase });
+    operationErrors.add(!result.ok, { phase });
+    operations.add(1, { phase });
+    return result.ok;
 }
 
 function runHandler(data: AssetPools, phase: keyof AssetPools): OperationResult {
@@ -284,6 +302,7 @@ function runOriginalDelivery(asset: AssetReference): OperationResult {
 
 function runColdVariant(asset: AssetReference): OperationResult {
     const response = http.get(withQuery(asset.contentUrl, query), requestParameters());
+    logUnexpectedResponse(response, 200);
     const expectedFormat = destinationFormat || String(query.format);
     const expectedType = fixture.files[expectedFormat].mediaType;
     const ok = check(response, {
@@ -339,14 +358,28 @@ function runUploadRules(expectPreprocessing: boolean): OperationResult {
 }
 
 function runEagerAcceptance(): OperationResult {
-    const response = uploadAsset(ruleAssetPath());
+    const assetPath = ruleAssetPath();
+    const response = uploadAsset(assetPath);
     const body = parseJson<KoniferResponseBody>(response);
     logUnexpectedResponse(response, 201);
-    const ok = check(response, {
+    let ok = check(response, {
         'eager upload returned 201': (value) => value.status === 201,
         'eager upload response contains only original': () => body?.variants?.length === 1 && body.variants[0]?.isOriginalVariant === true,
         'eager location targets returned entry': (value) => body?.entryId !== undefined && header(value, 'Location').includes(`/-/entry/${body.entryId}`),
     });
+    if (ok && body?.entryId !== undefined) {
+        const previousPhase = activePhase;
+        activePhase = 'pacing';
+        try {
+            const ready = waitForEagerVariants(
+                entryUrl(baseUrl, assetPath, body.entryId, 'info'),
+                (workload.profiles?.length ?? 0) + 1,
+            );
+            ok = check(ready, { 'eager variants finished before the next upload': (value) => value }) && ok;
+        } finally {
+            activePhase = previousPhase;
+        }
+    }
     return { ok, durationMs: response.timings.duration };
 }
 
@@ -368,16 +401,7 @@ function runEagerReadiness(): OperationResult {
     if (entryId === undefined) return { ok: false };
     const expectedVariantCount = eagerProfiles.length + 1;
     const infoUrl = entryUrl(baseUrl, assetPath, entryId, 'info');
-    let ready = false;
-    while ((Date.now() - readinessStarted) / 1000 < (workload.timeoutSeconds ?? 0)) {
-        const info = http.get(infoUrl, requestParameters('eager-info'));
-        const infoBody = parseJson<KoniferResponseBody>(info);
-        ready = info.status === 200 && infoBody?.variants?.length === expectedVariantCount;
-        if (ready) {
-            break;
-        }
-        sleep(0.1);
-    }
+    const ready = waitForEagerVariants(infoUrl, expectedVariantCount);
     const readinessDuration = Date.now() - readinessStarted;
     ok = check(ready, { 'all eager variants became ready': (value) => value });
 
@@ -392,6 +416,20 @@ function runEagerReadiness(): OperationResult {
     return { ok, durationMs: readinessDuration };
 }
 
+function waitForEagerVariants(infoUrl: string, expectedVariantCount: number): boolean {
+    const deadline = Math.min(Date.now() + (workload.timeoutSeconds ?? 0) * 1000, phaseDeadline ?? Infinity);
+    while (Date.now() < deadline) {
+        const info = http.get(infoUrl, {
+            ...requestParameters('eager-info'),
+            timeout: `${Math.max(1, deadline - Date.now())}ms`,
+        });
+        const body = parseJson<KoniferResponseBody>(info);
+        if (info.status === 200 && body?.variants?.length === expectedVariantCount) return true;
+        sleep(0.1);
+    }
+    return false;
+}
+
 function uploadAsset(assetPath: string, tags?: Tags) {
     return postAsset({
         baseUrl,
@@ -400,11 +438,19 @@ function uploadAsset(assetPath: string, tags?: Tags) {
         sourceFile,
         workloadId,
         caseId,
-    }, assetPath, tags);
+    }, assetPath, { phase: activePhase, ...tags }, requestTimeout());
 }
 
 function requestParameters(operation = workloadId, extraTags?: Tags) {
-    return buildRequestParameters(workloadId, caseId, operation, extraTags);
+    const timeoutMs = requestTimeout();
+    return {
+        ...buildRequestParameters(workloadId, caseId, operation, { phase: activePhase, ...extraTags }),
+        ...(timeoutMs === undefined ? {} : { timeout: `${timeoutMs}ms` }),
+    };
+}
+
+function requestTimeout(): number | undefined {
+    return phaseDeadline === null ? undefined : Math.max(1, phaseDeadline - Date.now());
 }
 
 function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boolean): AssetReference {
@@ -415,7 +461,7 @@ function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boo
     if (reuse) {
         return assets[0];
     }
-    const index = execution.scenario.iterationInTest;
+    const index = operationIndex;
     if (index >= assets.length) {
         throw new Error(`Seed pool exhausted at iteration ${index}; available=${assets.length}`);
     }
@@ -423,7 +469,7 @@ function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boo
 }
 
 function uniqueAssetPath(): string {
-    return `/performance/${safe(runId)}/${safe(workloadId)}/${safe(caseId)}/${execution.scenario.name}/${execution.vu.idInTest}-${execution.scenario.iterationInTest}`;
+    return `/performance/${safe(runId)}/${safe(workloadId)}/${safe(caseId)}/${execution.scenario.name}/${activePhase}/${execution.vu.idInTest}-${operationIndex}`;
 }
 
 function ruleAssetPath(): string {
@@ -453,26 +499,6 @@ function selectCase(selectedWorkload: WorkloadDefinition, requestedCase?: string
 
 function requiresColdPool(): boolean {
     return workloadId === 'variant.generate.cold' || workloadId === 'format.decode' || workloadId === 'format.encode';
-}
-
-function expectedIterations(phase: ArrivalPhase): number {
-    const iterations = (durationSeconds(phase.duration) / durationSeconds(phase.timeUnit)) * phase.rate;
-    return Math.ceil(iterations * 1.05) + 1;
-}
-
-function durationSeconds(value: string): number {
-    const match = /^(\d+)(ms|s|m|h)$/.exec(value);
-    if (!match) {
-        throw new Error(`Unsupported duration: ${value}`);
-    }
-    const amount = Number(match[1]);
-    switch (match[2]) {
-        case 'ms': return amount * 0.001;
-        case 's': return amount;
-        case 'm': return amount * 60;
-        case 'h': return amount * 3600;
-        default: throw new Error(`Unsupported duration: ${value}`);
-    }
 }
 
 function requiredEnvironment(name: string): string {
@@ -510,6 +536,9 @@ export function handleSummary(data: SummaryData): SummaryOutput {
         subject: __ENV.SUBJECT || 'working-tree',
         startedAt: __ENV.STARTED_AT || new Date().toISOString(),
         completedAt: new Date().toISOString(),
+        ...(suite === 'smoke' ? {} : {
+            benchmark: { methodology: catalog.methodology, ...profile },
+        }),
         metrics: {
             operations: integer(operationValues.count),
             requests: integer(requestValues.count),
@@ -528,7 +557,9 @@ export function handleSummary(data: SummaryData): SummaryOutput {
                 max: Number(duration.max || 0),
             },
         },
-        passed: integer(operationValues.count) > 0
+        passed: integer(operationValues.count) === measurementSamples
+            && (suite === 'smoke' || (integer(metricValues(data, 'phase_completed{phase:warmup}').count) === 1
+                && integer(metricValues(data, 'phase_completed{phase:measurement}').count) === 1))
             && integer(requestValues.count) > 0
             && integer(errorValues.passes) === 0
             && integer(checkValues.fails) === 0

@@ -168,8 +168,19 @@ if [[ $suite != "load" ]]; then
 fi
 
 environment=$(jq -r '.default' config/environments.json)
+if [[ $suite == "load" ]]; then
+  environment=$(jq -r '.loadDefault // .default' config/environments.json)
+fi
 compose_file=$(jq -r --arg environment "$environment" '.profiles[$environment].composeFile' config/environments.json)
 base_url=$(jq -r '.baseUrl' config/workloads.json)
+if [[ $suite != "load" ]]; then
+  methodology=$(jq -r '.methodology' config/workloads.json)
+  environment_methodology=$(jq -r --arg environment "$environment" '.profiles[$environment].benchmarkMethodology // "arrival-rate-v1"' config/environments.json)
+  if [[ $methodology != "$environment_methodology" ]]; then
+    echo "Benchmark methodology $methodology does not match environment $environment ($environment_methodology)" >&2
+    exit 1
+  fi
+fi
 
 validate_runtime() {
   while IFS=$'\t' read -r container expected_cpus expected_memory; do

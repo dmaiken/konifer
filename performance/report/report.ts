@@ -358,7 +358,7 @@ function benchmarkContent(
     content.append(
         sectionIntro(
             'Operation latency',
-            'Compare releases at a fixed request rate for each operation.',
+            'Compare releases using the same measurement protocol for each operation. See the environment notes for test conditions.',
         ),
         resultTable('Common operations', common, workloads),
         resultTable('Format encoding', encode, workloads),

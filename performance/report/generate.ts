@@ -27,6 +27,11 @@ const [environments, catalog] = await Promise.all([
     readJsonFile<WorkloadCatalog>(path.join(performanceDirectory, 'config/workloads.json')),
 ]);
 const environment = environments.profiles[aggregate.environment];
+const methodology = environment?.benchmarkMethodology ?? 'arrival-rate-v1';
+if (aggregate.suite === 'release'
+    && aggregate.results.some((result) => (result.benchmark?.methodology ?? 'arrival-rate-v1') !== methodology)) {
+    throw new Error(`Benchmark methodology does not match environment ${aggregate.environment}`);
+}
 
 await writeJson(path.join(runDirectory, 'aggregate.json'), aggregate);
 await writeFile(path.join(runDirectory, 'report.md'), renderRunMarkdown(aggregate, environment, catalog));

@@ -1,6 +1,32 @@
 {
-  "default": "local-compose-v3",
+  "default": "local-compose-v4",
+  "loadDefault": "local-compose-v3",
   "profiles": {
+    "local-compose-v4": {
+      "displayName": "Daniel's laptop (single-operation benchmarks)",
+      "description": "Compare releases with one operation in flight, fixed sample counts, and Garage object storage.",
+      "benchmarkMethodology": "single-vu-v1",
+      "hardware": {
+        "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
+        "architecture": "x86_64",
+        "processor": "Intel Core i7-8550U @ 1.80 GHz",
+        "physicalCores": 4,
+        "logicalCpus": 8,
+        "memoryGiB": 16
+      },
+      "interpretation": [
+        "Resource limits: Konifer, 2 CPUs and 8 GiB RAM; PostgreSQL and Garage, 1 CPU and 1 GiB RAM each.",
+        "Konifer, PostgreSQL, Garage, and k6 share this laptop's CPU, memory, and storage.",
+        "Operation benchmarks use single-vu-v1: warmup and measurement run in sequence, with one operation in flight. Eager uploads wait for background variants outside the acceptance timer.",
+        "Compare releases within this environment. The earlier arrival-rate environments use a different measurement protocol. These runs do not measure production capacity."
+      ],
+      "composeFile": "runtime/docker-compose.yml",
+      "services": [
+        {"container": "perf_konifer", "cpus": 2, "memoryBytes": 8589934592},
+        {"container": "perf_konifer_postgres", "cpus": 1, "memoryBytes": 1073741824},
+        {"container": "perf_konifer_garage", "cpus": 1, "memoryBytes": 1073741824}
+      ]
+    },
     "local-compose-v3": {
       "displayName": "Daniel's laptop (Garage)",
       "description": "Compare releases on this laptop with Garage object storage.",

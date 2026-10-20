@@ -24,14 +24,17 @@ export function requestParameters(
     };
 }
 
-export function uploadAsset(context: UploadContext, assetPath: string, extraTags?: Tags): Response {
+export function uploadAsset(context: UploadContext, assetPath: string, extraTags?: Tags, timeoutMs?: number): Response {
     return http.post(
         `${context.baseUrl}/assets${assetPath}`,
         {
             metadata: benchmarkMetadata,
             asset: http.file(context.sourceBytes, `fixture.${context.sourceFormat}`, context.sourceFile.mediaType),
         },
-        requestParameters(context.workloadId, context.caseId, 'upload', extraTags),
+        {
+            ...requestParameters(context.workloadId, context.caseId, 'upload', extraTags),
+            ...(timeoutMs === undefined ? {} : { timeout: `${timeoutMs}ms` }),
+        },
     );
 }
 

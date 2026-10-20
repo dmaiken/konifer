@@ -1,3 +1,18 @@
+export interface BenchmarkPhase {
+    samples: number;
+    minDuration: string;
+    maxDuration: string;
+}
+
+export interface BenchmarkProfile {
+    warmup: BenchmarkPhase;
+    measurement: BenchmarkPhase;
+}
+
+export interface BenchmarkProtocol extends BenchmarkProfile {
+    methodology: 'single-vu-v1';
+}
+
 export interface DurationMetrics {
     min: number;
     p50: number;
@@ -22,6 +37,7 @@ export interface NormalizedMetrics {
 }
 
 export interface NormalizedResult {
+    benchmark?: BenchmarkProtocol;
     version: 1;
     runId: string;
     suite: 'smoke' | 'release';
@@ -46,6 +62,7 @@ export interface AggregatedDurationMetrics {
 }
 
 export interface AggregatedResult {
+    benchmark?: BenchmarkProtocol;
     workload: string;
     case: string;
     repetitions: number;
@@ -87,6 +104,7 @@ export interface EnvironmentHardware {
 }
 
 export interface EnvironmentProfile {
+    benchmarkMethodology?: string;
     displayName?: string;
     description?: string;
     hardware?: EnvironmentHardware;
@@ -100,6 +118,7 @@ export interface EnvironmentProfile {
 }
 
 export interface EnvironmentCatalog {
+    loadDefault?: string;
     default: string;
     profiles: Record<string, EnvironmentProfile>;
 }

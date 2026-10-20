@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import type {
     AggregatedResult,
     NormalizedResult,
@@ -51,6 +52,13 @@ export function aggregateResults(documents: NormalizedResult[]): PerformanceRele
 function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
     documents.sort((left, right) => left.repetition - right.repetition);
     documents.forEach((document, index) => {
+        if (!isDeepStrictEqual(document.benchmark, documents[0].benchmark)) {
+            throw new Error(`Benchmark protocol mismatch for ${document.workload}/${document.case}`);
+        }
+        if (document.benchmark && document.passed
+            && document.metrics.operations !== document.benchmark.measurement.samples) {
+            throw new Error(`Incomplete benchmark samples for ${document.workload}/${document.case}`);
+        }
         if (document.repetition !== index + 1) {
             throw new Error(`Missing repetition ${index + 1} for ${document.workload}/${document.case}`);
         }
@@ -62,6 +70,7 @@ function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
     const p95Values = documents.map((value) => value.metrics.durationMs.p95);
 
     return {
+        ...(documents[0].benchmark ? { benchmark: documents[0].benchmark } : {}),
         workload: documents[0].workload,
         case: documents[0].case,
         repetitions: documents.length,

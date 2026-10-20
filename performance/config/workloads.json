@@ -1,29 +1,22 @@
 {
+  "methodology": "single-vu-v1",
   "baseUrl": "http://localhost:8080",
   "profiles": {
     "read": {
-      "warmup": {"duration": "30s", "rate": 10, "timeUnit": "1s"},
-      "measurement": {"duration": "2m", "rate": 10, "timeUnit": "1s"},
-      "preAllocatedVUs": 10,
-      "maxVUs": 40
+      "warmup": {"samples": 100, "minDuration": "10s", "maxDuration": "1m"},
+      "measurement": {"samples": 1000, "minDuration": "30s", "maxDuration": "2m"}
     },
     "light": {
-      "warmup": {"duration": "30s", "rate": 2, "timeUnit": "1s"},
-      "measurement": {"duration": "2m", "rate": 2, "timeUnit": "1s"},
-      "preAllocatedVUs": 4,
-      "maxVUs": 16
+      "warmup": {"samples": 30, "minDuration": "10s", "maxDuration": "2m"},
+      "measurement": {"samples": 200, "minDuration": "30s", "maxDuration": "5m"}
     },
     "heavy": {
-      "warmup": {"duration": "30s", "rate": 1, "timeUnit": "2s"},
-      "measurement": {"duration": "3m", "rate": 1, "timeUnit": "2s"},
-      "preAllocatedVUs": 2,
-      "maxVUs": 8
+      "warmup": {"samples": 20, "minDuration": "10s", "maxDuration": "2m"},
+      "measurement": {"samples": 200, "minDuration": "30s", "maxDuration": "5m"}
     },
     "inference": {
-      "warmup": {"duration": "30s", "rate": 1, "timeUnit": "5s"},
-      "measurement": {"duration": "2m", "rate": 1, "timeUnit": "5s"},
-      "preAllocatedVUs": 2,
-      "maxVUs": 4
+      "warmup": {"samples": 20, "minDuration": "10s", "maxDuration": "2m"},
+      "measurement": {"samples": 200, "minDuration": "30s", "maxDuration": "5m"}
     }
   },
   "suites": {
@@ -118,7 +111,9 @@
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
       "case": "jpg-medium-four-webp-profiles",
-      "path": "/test-upload-eager-variants"
+      "path": "/test-upload-eager-variants",
+      "profiles": ["thumbnail-200", "thumbnail-400", "thumbnail-600", "sepia-original"],
+      "timeoutSeconds": 30
     },
     "variant.eager.ready": {
       "description": "Measure the wait from upload acceptance until four WebP variants are ready. Check that each download hits the cache.",

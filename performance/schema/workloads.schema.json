@@ -4,8 +4,9 @@
   "title": "Konifer performance workload catalog",
   "type": "object",
   "additionalProperties": false,
-  "required": ["baseUrl", "profiles", "suites", "workloads"],
+  "required": ["methodology", "baseUrl", "profiles", "suites", "workloads"],
   "properties": {
+    "methodology": {"const": "single-vu-v1"},
     "baseUrl": {"type": "string", "format": "uri"},
     "profiles": {
       "type": "object",
@@ -27,22 +28,20 @@
     "phase": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["duration", "rate", "timeUnit"],
+      "required": ["samples", "minDuration", "maxDuration"],
       "properties": {
-        "duration": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"},
-        "rate": {"type": "number", "exclusiveMinimum": 0},
-        "timeUnit": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"}
+        "samples": {"type": "integer", "minimum": 1},
+        "minDuration": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"},
+        "maxDuration": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"}
       }
     },
     "profile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["warmup", "measurement", "preAllocatedVUs", "maxVUs"],
+      "required": ["warmup", "measurement"],
       "properties": {
         "warmup": {"$ref": "#/$defs/phase"},
-        "measurement": {"$ref": "#/$defs/phase"},
-        "preAllocatedVUs": {"type": "integer", "minimum": 1},
-        "maxVUs": {"type": "integer", "minimum": 1}
+        "measurement": {"$ref": "#/$defs/phase"}
       }
     },
     "suite": {

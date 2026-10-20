@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import type { LoadCatalog } from '../k6/types.ts';
+import { validatePhase, type BenchmarkProfile } from '../lib/benchmark-profile.ts';
 import type { EnvironmentCatalog, WorkloadCatalog, WorkloadDefinition } from './types.ts';
 
 interface FixtureFile {
@@ -39,10 +40,7 @@ interface ExecutableWorkload extends WorkloadDefinition {
 }
 
 interface ExecutableWorkloadCatalog extends Omit<WorkloadCatalog, 'workloads'> {
-    profiles: Record<string, {
-        preAllocatedVUs: number;
-        maxVUs: number;
-    }>;
+    profiles: Record<string, BenchmarkProfile>;
     workloads: Record<string, ExecutableWorkload>;
 }
 
@@ -109,11 +107,9 @@ test('workload and suite references resolve', () => {
         }
     }
 
-    for (const [profileId, profile] of Object.entries(workloads.profiles)) {
-        assert.ok(
-            profile.maxVUs >= profile.preAllocatedVUs,
-            `${profileId} maxVUs must be greater than or equal to preAllocatedVUs`,
-        );
+    for (const profile of Object.values(workloads.profiles)) {
+        validatePhase(profile.warmup);
+        validatePhase(profile.measurement);
     }
 
     for (const [workloadId, workload] of Object.entries(workloads.workloads)) {
@@ -160,6 +156,9 @@ test('general transformations use WebP while JPEG XL stays format-specific', () 
 
 test('environment references and service identities are valid', async () => {
     assert.ok(environments.profiles[environments.default], `Unknown default environment ${environments.default}`);
+    if (environments.loadDefault) {
+        assert.ok(environments.profiles[environments.loadDefault], `Unknown default load environment ${environments.loadDefault}`);
+    }
 
     for (const [environmentId, environment] of Object.entries(environments.profiles)) {
         const containers = environment.services?.map((service) => service.container) ?? [];

@@ -7,6 +7,7 @@
   "required": ["default", "profiles"],
   "properties": {
     "default": {"type": "string", "minLength": 1},
+    "loadDefault": {"type": "string", "minLength": 1},
     "profiles": {
       "type": "object",
       "minProperties": 1,
@@ -43,6 +44,7 @@
       "required": ["displayName", "description", "hardware", "interpretation", "composeFile", "services"],
       "properties": {
         "displayName": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "benchmarkMethodology": {"type": "string", "minLength": 1},
         "description": {"type": "string", "minLength": 1, "pattern": "\\S"},
         "hardware": {"$ref": "#/$defs/hardware"},
         "interpretation": {

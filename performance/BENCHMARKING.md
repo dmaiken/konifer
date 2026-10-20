@@ -24,9 +24,8 @@ The suite covers common customer workflows:
 - Upload Rules inference, with and without preprocessing;
 - decoding and encoding each supported image format.
 
-The isolated profiles measure nominal, controlled request arrival rather than
-maximum capacity. Their workloads, cases, and repetitions run sequentially so
-that a slow case does not contaminate another case's measurements. The separate
+The isolated profiles measure operation latency with one operation in flight.
+Their workloads, cases, and repetitions run sequentially. The separate
 `mixed-v1` load profile exercises representative operations concurrently at a
 fixed target. Maximum-capacity discovery and soak testing remain outside the
 current scope.
@@ -103,8 +102,10 @@ Setup and asset seeding are not included in reported operation latency.
 
 - A smoke run uses a small shared-iterations profile to catch broken workflows
   quickly. It is a functional confidence check, not publishable performance data.
-- A release run uses explicit warmup and measurement phases. Its default profile
-  sends requests at a controlled arrival rate so slow responses may overlap.
+- A release run uses one virtual user and runs warmup to completion before
+  measurement. Each phase has a fixed operation count, minimum duration, and
+  maximum duration. Fast operations are paced across the minimum duration;
+  slow operations extend the phase without adding concurrent requests.
 - Cold variant cases create a distinct variant during each measured operation.
 - Cached cases request a variant that setup has already generated.
 - General transformation, preprocessing, and eager-variant cases use WebP as
@@ -112,6 +113,38 @@ Setup and asset seeding are not included in reported operation latency.
 - Preprocessing and Upload Rules cases measure the complete upload request.
 - Eager generation measures upload acceptance; readiness is verified separately
   after the upload and is not folded into upload latency.
+
+### Single-operation protocol
+
+`single-vu-v1` uses 1,000 measured operations for cached reads and 200 for other
+cases, per repetition. Measurement spans at least 30 seconds. Read warmup runs
+100 operations; light warmup runs 30; heavy and inference warmup run 20. Warmup
+spans at least 10 seconds. The catalog sets the maximum duration for each phase.
+The k6 scenario also caps total execution time, and requests use the remaining
+phase budget as their timeout.
+
+Warmup and measurement execute in one sequence. A repetition must complete both
+phases within their budgets and collect the full measurement count to pass.
+The harness stops a phase after a failed operation and retains its failed result,
+including a failure with no measured operations. Setup and seed uploads remain
+outside the measurement window; cold cases use a distinct seed for each operation.
+One k6 scenario iteration contains both phases; use the tagged `operations`
+counter for sample counts, not k6's scenario iteration count. Raw summaries retain
+each phase's duration and completion checks.
+
+After each eager upload, the harness waits for the four variants to finish before
+starting another operation. Pacing requests have their own metric tag and do not
+contribute to acceptance latency. Failure to finish the variants fails the
+operation. This applies during warmup as well as measurement.
+
+The release suite retains three repetitions. Each normalized result and aggregate
+records its sampling protocol. Aggregation rejects repetitions with different
+protocols or a passing result with too few samples.
+
+These defaults are an initial calibration target. Compare shortened runs against
+longer runs on the same hardware before treating their p95 variability as
+established. A one-hour suite is a target, not a fixed runtime guarantee; slow
+versions, inference, setup, and cleanup add time.
 
 ## Mixed-load semantics
 
@@ -140,10 +173,8 @@ requests, so it remains a wall-clock interval. The dashboard retains every raw
 measurement but displays a change indicator only when the p95 difference is
 both at least 5% and at least 2 ms.
 
-The configured release repetition count is currently one to keep development
-runs short. Increase it before relying on cross-release variability: aggregation
-reports medians across repetitions, and the report shows the observed p95 range
-only when a series has more than one repetition.
+Aggregation reports medians across repetitions. The report shows the observed
+p95 range when a series has more than one repetition.
 
 ## Correctness and validity
 
@@ -157,8 +188,10 @@ pass. Depending on the case, these checks include:
 - eager variant readiness.
 
 Each normalized result must satisfy the JSON schema. Its latency qualifies as a
-valid measurement only when it reports passing checks, zero request errors, at
-least one measured operation, and no dropped iterations. The current suite does
+valid measurement only when it reports passing checks, zero request errors,
+the full configured measurement count, completed warmup and measurement windows,
+and no dropped iterations. Smoke runs require their configured iteration count.
+The current suite does
 not impose a fixed latency ceiling: regressions remain visible in history
 instead of being hidden by a failed publication.
 
@@ -204,12 +237,17 @@ keeps its release position even though its measurement timestamp is newer.
 
 ## Local environment interpretation
 
-The `local-compose-v2` environment represents my laptop described in
+The `local-compose-v4` environment represents my laptop described in
 `config/environments.json`. Its hardware description and interpretation notes
 are rendered at the top of the report. Docker resource limits are part of that
 profile, and Konifer uses a Docker-managed, disk-backed temporary volume rather
 than tmpfs so large transformations do not consume the container's memory
-allocation.
+allocation. It uses `single-vu-v1` and starts a new latency history, separate from
+the arrival-rate results in `local-compose-v2` and `local-compose-v3`.
+
+The environment catalog's `default` selects operation benchmarks. `loadDefault`
+keeps mixed-load runs on `local-compose-v3`, since their traffic profile has not
+changed. Historical results and environment IDs remain unchanged.
 
 Local results are useful for establishing trends, exercising the harness, and
 catching large regressions. They are affected by laptop power state, thermal

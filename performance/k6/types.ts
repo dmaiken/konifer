@@ -1,3 +1,5 @@
+import type { BenchmarkProfile } from '../lib/benchmark-profile.ts';
+
 export type QueryValue = string | number | boolean;
 export type QueryParameters = Record<string, QueryValue>;
 export type Tags = Record<string, string>;
@@ -44,22 +46,10 @@ export interface WorkloadDefinition {
     timeoutSeconds?: number;
 }
 
-export interface ArrivalPhase {
-    duration: string;
-    rate: number;
-    timeUnit: string;
-}
-
-export interface ExecutionProfile {
-    warmup: ArrivalPhase;
-    measurement: ArrivalPhase;
-    preAllocatedVUs: number;
-    maxVUs: number;
-}
-
 export interface WorkloadCatalog {
+    methodology: 'single-vu-v1';
     baseUrl: string;
-    profiles: Record<string, ExecutionProfile>;
+    profiles: Record<string, BenchmarkProfile>;
     workloads: Record<string, WorkloadDefinition>;
 }
 
