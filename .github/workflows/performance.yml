@@ -44,21 +44,15 @@ jobs:
       - name: Validate performance project
         run: npm run check
 
-      - name: Stage GitHub Pages site
+      - name: Build GitHub Pages site without load testing
         if: github.event_name != 'pull_request'
-        run: |
-          mkdir -p _site/performance/report _site/performance/dist _site/performance/history _site/performance/config
-          cp report/index.html report/report.css _site/performance/report/
-          cp -R dist/report dist/fonts _site/performance/dist/
-          cp history/releases.json history/loads.json _site/performance/history/
-          cp config/workloads.json config/load.json config/environments.json _site/performance/config/
-          cp BENCHMARKING.md _site/performance/
+        run: npm run build -- --without-load
 
       - name: Upload GitHub Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
-          path: performance/_site
+          path: performance/dist/site
 
   deploy:
     if: github.event_name != 'pull_request'

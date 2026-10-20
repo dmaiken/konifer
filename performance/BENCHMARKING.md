@@ -216,6 +216,19 @@ catching large regressions. They are affected by laptop power state, thermal
 throttling, and other host activity, so they should not be presented as server
 capacity or compared directly with a future AWS environment.
 
+## Dashboard builds
+
+`npm --prefix performance run build` builds the local dashboard with both the
+Benchmark latency and Mixed load tabs and stages a standalone site in
+`performance/dist/site/`.
+
+Use `npm --prefix performance run build -- --without-load` to stage a site with
+only operation benchmarks. This omits load history and configuration from the
+site, disables load navigation and data requests, and makes existing `#load`
+links show operation benchmarks. The local preview at `performance/report/`
+still includes load testing. GitHub Pages publishes the build without load
+testing; neither build changes the source histories.
+
 ## Planned extensions
 
 Future environment profiles can reuse the same workload and report contracts.

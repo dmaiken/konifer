@@ -1,4 +1,5 @@
 import { layoutHistoryChart, linePath } from './chart.ts';
+import { includeLoadTesting } from './build-options.ts';
 import {
     formatCompletion,
     formatRate,
@@ -93,18 +94,22 @@ const loadCatalogUrl = new URL('../config/load.json', document.baseURI);
 try {
     const [history, loadHistory, environments, workloads, loadCatalog] = await Promise.all([
         fetchJson<PerformanceHistory>(historyUrl),
-        fetchJson<LoadHistory>(loadHistoryUrl).catch((): LoadHistory => ({ version: 1, runs: [] })),
+        includeLoadTesting
+            ? fetchJson<LoadHistory>(loadHistoryUrl).catch((): LoadHistory => ({ version: 1, runs: [] }))
+            : Promise.resolve<LoadHistory>({ version: 1, runs: [] }),
         fetchJson<EnvironmentCatalog>(environmentsUrl).catch((): EnvironmentCatalog => ({ default: '', profiles: {} })),
         fetchJson<WorkloadCatalog>(workloadsUrl).catch((): WorkloadCatalog => ({
             suites: { release: { repetitions: 0, workloads: [] } },
             workloads: {},
         })),
-        fetchJson<LoadCatalog>(loadCatalogUrl).catch((): LoadCatalog => ({ version: 1, defaultProfile: '', profiles: {} })),
+        includeLoadTesting
+            ? fetchJson<LoadCatalog>(loadCatalogUrl).catch((): LoadCatalog => ({ version: 1, defaultProfile: '', profiles: {} }))
+            : Promise.resolve<LoadCatalog>({ version: 1, defaultProfile: '', profiles: {} }),
     ]);
     const sources = { history, loadHistory, environments, workloads, loadCatalog };
     const renderFromLocation = () => {
         const requested = requestedStateFromUrl(new URL(window.location.href));
-        const state = resolveReportState(history, loadHistory, environments, loadCatalog, requested);
+        const state = resolveReportState(history, loadHistory, environments, loadCatalog, requested, includeLoadTesting);
         render(sources, state, (next: RequestedReportState) => navigate(sources, next));
     };
     window.addEventListener('popstate', renderFromLocation);
@@ -124,6 +129,7 @@ function navigate(sources: ReportSources, requested: RequestedReportState): void
         sources.environments,
         sources.loadCatalog,
         requested,
+        includeLoadTesting,
     );
     const url = urlForState(new URL(window.location.href), state);
     window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
@@ -141,7 +147,9 @@ function render(sources: ReportSources, state: ReportState, onNavigate: Navigate
         element(
             'p',
             'lead',
-            'Measured release performance for common image workflows, from isolated latency to representative customer traffic.',
+            includeLoadTesting
+                ? 'Measured release performance for common image workflows, from isolated latency to representative customer traffic.'
+                : 'Measured release performance for common image workflows under controlled load.',
         ),
     );
 
@@ -161,15 +169,19 @@ function render(sources: ReportSources, state: ReportState, onNavigate: Navigate
         environmentDisclosure(state.environment, environments),
     );
 
-    report.append(tabNavigation(state, onNavigate));
+    if (includeLoadTesting) report.append(tabNavigation(state, onNavigate));
 
-    const benchmarks = tabPanel('benchmarks', state.tab === 'benchmarks');
+    const benchmarks = includeLoadTesting
+        ? tabPanel('benchmarks', state.tab === 'benchmarks')
+        : element('section', '');
     benchmarks.append(benchmarkContent(history, release, workloads));
     report.append(benchmarks);
 
-    const load = tabPanel('load', state.tab === 'load');
-    load.append(loadContent(loadHistory, run, state, environments, workloads, loadCatalog, onNavigate));
-    report.append(load);
+    if (includeLoadTesting) {
+        const load = tabPanel('load', state.tab === 'load');
+        load.append(loadContent(loadHistory, run, state, environments, workloads, loadCatalog, onNavigate));
+        report.append(load);
+    }
     report.append(methodology());
 }
 
@@ -718,8 +730,12 @@ function emptyState(message: string): HTMLElement {
 function methodology(): HTMLElement {
     const footer = document.createElement('footer');
     footer.append(
-        document.createTextNode('Compare results only within the same environment and versioned workload or load profile. '),
-        document.createTextNode('Isolated benchmarks report repetition medians; mixed load uses a fixed concurrent arrival-rate profile and gates operational health rather than latency. '),
+        document.createTextNode(includeLoadTesting
+            ? 'Compare results only within the same environment and versioned workload or load profile. '
+            : 'Compare results only within the same environment and versioned workload. '),
+        document.createTextNode(includeLoadTesting
+            ? 'Isolated benchmarks report repetition medians; mixed load uses a fixed concurrent arrival-rate profile and gates operational health rather than latency. '
+            : 'Isolated benchmarks report repetition medians. '),
         document.createTextNode('Changes appear only when the p95 difference is at least 5% and 2 ms. '),
         link('../BENCHMARKING.md', 'Read the benchmark methodology.'),
     );

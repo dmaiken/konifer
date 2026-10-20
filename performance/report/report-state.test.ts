@@ -122,6 +122,51 @@ test('load tab remains addressable when no load history exists', () => {
     assert.equal(state.subject, 'v1.2.0');
 });
 
+test('benchmark-only reports fall back from load-only deep links to benchmark releases', () => {
+    const histories = fixtureHistories();
+    const requested = requestedStateFromUrl(new URL(
+        'https://example.github.io/imagek/performance/report/?release=v1.1.0&environment=aws&profile=mixed-v1#load',
+    ));
+    const state = resolveReportState(
+        histories.releases,
+        histories.loads,
+        environments(),
+        loadCatalog(),
+        requested,
+        false,
+    );
+
+    assert.deepEqual(state, {
+        subject: 'v1.2.0',
+        environment: 'local',
+        profile: null,
+        tab: 'benchmarks',
+    });
+    const url = urlForState(new URL('https://example.github.io/imagek/performance/report/'), state);
+    assert.equal(url.hash, '#benchmarks');
+    assert.equal(url.searchParams.has('profile'), false);
+});
+
+test('benchmark-only reports ignore environments available only in load history', () => {
+    const histories = fixtureHistories();
+    histories.loads.runs.push(loadRun('v1.0.0', 'load-only', 'mixed-v1', '2026-04-01T00:00:00Z'));
+    const state = resolveReportState(
+        histories.releases,
+        histories.loads,
+        environments(),
+        loadCatalog(),
+        { subject: 'v1.0.0', environment: 'load-only', profile: 'mixed-v1', tab: 'load' },
+        false,
+    );
+
+    assert.deepEqual(state, {
+        subject: 'v1.0.0',
+        environment: 'local',
+        profile: null,
+        tab: 'benchmarks',
+    });
+});
+
 test('available environments and profiles are scoped to the selected release', () => {
     const histories = fixtureHistories();
     assert.deepEqual(reportEnvironments(histories.releases, histories.loads, 'v1.0.0'), ['aws', 'local']);

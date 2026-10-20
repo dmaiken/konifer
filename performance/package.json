@@ -5,7 +5,7 @@
   "description": "Konifer performance test harness and report tooling",
   "type": "module",
   "scripts": {
-    "build": "tsc --project tsconfig.browser.json && node report/copy-fonts.ts",
+    "build": "tsc --project tsconfig.browser.json && node report/copy-fonts.ts && node report/build-site.ts",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix --max-warnings 0",
     "lint:history": "./lint-history.sh",

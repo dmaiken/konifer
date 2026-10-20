@@ -61,25 +61,27 @@ export function resolveReportState(
     environments: EnvironmentCatalog,
     loadCatalog: LoadCatalog,
     requested: RequestedReportState,
+    includeLoadTesting = true,
 ): ReportState {
-    const subjects = reportSubjects(history, loads);
-    const preferredSubjects = requested.tab === 'load' && loads.runs.length > 0
-        ? reportSubjects({ version: 1, releases: [] }, loads)
+    const availableLoads: LoadHistory = includeLoadTesting ? loads : { version: 1, runs: [] };
+    const tab = includeLoadTesting ? requested.tab : 'benchmarks';
+    const subjects = reportSubjects(history, availableLoads);
+    const preferredSubjects = tab === 'load' && availableLoads.runs.length > 0
+        ? reportSubjects({ version: 1, releases: [] }, availableLoads)
         : history.releases.length > 0
             ? reportSubjects(history, { version: 1, runs: [] })
             : subjects;
     const subject = subjects.some((value) => value.subject === requested.subject)
         ? requested.subject
         : preferredSubjects[0]?.subject ?? null;
-    const availableEnvironments = reportEnvironments(history, loads, subject);
+    const availableEnvironments = reportEnvironments(history, availableLoads, subject);
     const environment = choose(
         availableEnvironments,
         requested.environment,
         environments.default,
     );
-    const availableProfiles = reportProfiles(loads, subject, environment);
+    const availableProfiles = reportProfiles(availableLoads, subject, environment);
     const profile = choose(availableProfiles, requested.profile, loadCatalog.defaultProfile);
-    const tab = requested.tab;
     return { subject, environment, profile, tab };
 }
 
