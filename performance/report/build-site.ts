@@ -29,8 +29,8 @@ export async function stageReportSite(performanceDirectory: string, includeLoadT
 
     const html = await readFile(path.join(performanceDirectory, 'report/index.html'), 'utf8');
     await writeFile(path.join(destination, 'report/index.html'), includeLoadTesting ? html : html.replace(
-        'Konifer release performance across isolated image workflows and representative concurrent load.',
-        'Konifer release performance across isolated image workflows.',
+        'Compare operation latency and mixed-load results across Konifer releases.',
+        'Compare operation latency across Konifer releases.',
     ));
     await writeFile(
         path.join(destination, 'dist/report/build-options.js'),

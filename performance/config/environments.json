@@ -3,7 +3,7 @@
   "profiles": {
     "local-compose-v3": {
       "displayName": "Daniel's laptop (Garage)",
-      "description": "Reference environment for release-over-release benchmarks using Garage object storage. It is not representative of production server capacity.",
+      "description": "Compare releases on this laptop with Garage object storage.",
       "hardware": {
         "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
         "architecture": "x86_64",
@@ -13,9 +13,9 @@
         "memoryGiB": 16
       },
       "interpretation": [
-        "Konifer is limited to 2 CPUs and 8 GiB of memory; PostgreSQL and Garage are each limited to 1 CPU and 1 GiB.",
-        "Konifer, PostgreSQL, Garage, and the host-based k6 load generator compete for the same physical CPU, memory, and storage.",
-        "Use these results to compare releases measured under this same profile, not to estimate production capacity or compare against other hardware or the MinIO-based local-compose-v2 profile."
+        "Resource limits: Konifer, 2 CPUs and 8 GiB RAM; PostgreSQL and Garage, 1 CPU and 1 GiB RAM each.",
+        "Konifer, PostgreSQL, Garage, and k6 share this laptop's CPU, memory, and storage.",
+        "Compare releases within this environment. These runs do not measure production capacity or support comparisons with other hardware or the MinIO profile."
       ],
       "composeFile": "runtime/docker-compose.yml",
       "services": [
@@ -26,7 +26,7 @@
     },
     "local-compose-v2": {
       "displayName": "Daniel's laptop",
-      "description": "Reference environment for release-over-release benchmarks. It is not representative of production server capacity.",
+      "description": "Compare releases on this laptop with MinIO object storage.",
       "hardware": {
         "system": "Lenovo ThinkPad X1 Carbon 6th Gen",
         "architecture": "x86_64",
@@ -36,9 +36,9 @@
         "memoryGiB": 16
       },
       "interpretation": [
-        "Konifer is limited to 2 CPUs and 8 GiB of memory; PostgreSQL and MinIO are each limited to 1 CPU and 1 GiB.",
-        "Konifer, PostgreSQL, MinIO, and the host-based k6 load generator compete for the same physical CPU, memory, and storage.",
-        "Use these results to compare releases measured under this same profile, not to estimate production capacity or compare against other hardware."
+        "Resource limits: Konifer, 2 CPUs and 8 GiB RAM; PostgreSQL and MinIO, 1 CPU and 1 GiB RAM each.",
+        "Konifer, PostgreSQL, MinIO, and k6 share this laptop's CPU, memory, and storage.",
+        "Compare releases within this environment. These runs do not measure production capacity or support comparisons with other hardware."
       ],
       "composeFile": "runtime/docker-compose.yml",
       "services": [

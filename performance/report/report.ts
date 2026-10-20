@@ -148,14 +148,14 @@ function render(sources: ReportSources, state: ReportState, onNavigate: Navigate
             'p',
             'lead',
             includeLoadTesting
-                ? 'Measured release performance for common image workflows, from isolated latency to representative customer traffic.'
-                : 'Measured release performance for common image workflows under controlled load.',
+                ? 'Compare operation latency and mixed-load results across releases.'
+                : 'Compare operation latency across releases.',
         ),
     );
 
     const subjects = reportSubjects(history, loadHistory);
     if (subjects.length === 0) {
-        report.append(element('section', 'panel', 'No release benchmark has been published yet.'));
+        report.append(element('section', 'panel', 'No release results.'));
         return;
     }
 
@@ -244,18 +244,18 @@ function environmentDisclosure(
     const profile = environmentId ? catalog.profiles[environmentId] : null;
     const section = element('section', 'environment-summary panel');
     section.append(
-        element('div', 'eyebrow', 'Measured environment'),
+        element('div', 'eyebrow', 'Test environment'),
         element('h2', '', profile?.displayName || environmentId || 'Unknown environment'),
         element('code', 'environment-id', environmentId || 'unknown'),
         element(
             'p',
             'environment-description',
-            profile?.description || 'No descriptive metadata is available for this historical environment.',
+            profile?.description || 'No environment description for this run.',
         ),
     );
 
     const details = document.createElement('details');
-    details.append(element('summary', '', 'Hardware and interpretation'));
+    details.append(element('summary', '', 'Hardware and test conditions'));
     if (profile?.hardware) {
         const facts: Array<[string, string | undefined]> = [
             ['System', profile.hardware.system],
@@ -340,7 +340,7 @@ function benchmarkContent(
     workloads: WorkloadCatalog,
 ): DocumentFragment | HTMLElement {
     if (!release) {
-        return emptyState('No benchmark latency results were published for this release and environment.');
+        return emptyState('No benchmark results for this release and environment.');
     }
     const content = document.createDocumentFragment();
     if (release.notes?.length) content.append(notesPanel('Release notes', release.notes));
@@ -357,10 +357,10 @@ function benchmarkContent(
 
     content.append(
         sectionIntro(
-            'Isolated benchmark latency',
-            'Controlled workloads isolate common customer operations so release-over-release latency changes remain easy to attribute.',
+            'Operation latency',
+            'Compare releases at a fixed request rate for each operation.',
         ),
-        resultTable('Common workflows', common, workloads),
+        resultTable('Common operations', common, workloads),
         resultTable('Format encoding', encode, workloads),
         resultTable('Format decoding', decode, workloads),
         ...(latest.length > 0 ? [seriesExplorer(scopedHistory, latest, workloads)] : []),
@@ -418,7 +418,7 @@ function loadContent(
 ): DocumentFragment | HTMLElement {
     if (!selected) {
         const latest = newestLoadRun(loadHistory, state.environment) || newestLoadRun(loadHistory, null);
-        const empty = emptyState(`No mixed-load result was published for ${state.subject} in this environment.`);
+        const empty = emptyState(`No mixed-load results for ${state.subject} in this environment.`);
         if (latest) {
             const button = element('button', 'button-link', `View ${latest.subject} mixed-load results`);
             button.type = 'button';
@@ -439,10 +439,10 @@ function loadContent(
     const content = document.createDocumentFragment();
     const profiles = reportProfiles(loadHistory, run.subject, run.environment);
     const intro = sectionIntro(
-        'Mixed workload under load',
+        'Mixed-load results',
         run.passed
-            ? `On ${environmentName}, Konifer completed ${run.operations.toLocaleString()} operations during a ${formatMinutes(run.trafficDurationSeconds)} run, peaking at a configured ${formatRate(run.peakRatePerMinute)} with ${run.errors} errors.`
-            : `The ${run.profile} run on ${environmentName} completed with failed operational checks; failed stream latency is not presented as a valid measurement.`,
+            ? `Konifer completed ${run.operations.toLocaleString()} operations in ${formatMinutes(run.trafficDurationSeconds)} on ${environmentName} with ${run.errors} errors. Peak target: ${formatRate(run.peakRatePerMinute)}.`
+            : `The ${run.profile} run on ${environmentName} failed its checks. Review the traffic streams and recovery result.`,
     );
     content.append(intro);
 
@@ -473,10 +473,10 @@ function loadSummary(run: LatestLoadRun): HTMLElement {
     );
     const facts = element('div', 'load-facts');
     const values = [
-        ['Result', run.passed ? 'Completed' : 'Failed to complete'],
+        ['Result', run.passed ? 'Passed' : 'Failed'],
         ['Peak target', formatRate(run.peakRatePerMinute)],
-        ['Scheduled operations', `${run.operations}/${run.targetOperations} (${formatCompletion(run.operations, run.targetOperations)})`],
-        ['Traffic duration', formatMinutes(run.trafficDurationSeconds)],
+        ['Executed / scheduled', `${run.operations}/${run.targetOperations} (${formatCompletion(run.operations, run.targetOperations)})`],
+        ['Duration', formatMinutes(run.trafficDurationSeconds)],
         ['Errors / dropped', `${run.errors} / ${run.droppedIterations}`],
         ['Recovery', run.recovery.passed ? `Passed · ${formatMs(run.recovery.durationMs)}` : 'Failed'],
     ];
@@ -493,7 +493,7 @@ function trafficMix(streams: LatestLoadStream[]): HTMLElement {
     const panel = element('section', 'panel');
     panel.append(
         element('h2', '', 'Traffic mix at peak'),
-        element('p', 'workload-description', 'The configured arrival rate combines delivery, writes, transformations, background work, and inference.'),
+        element('p', 'workload-description', 'Target rates for each operation at peak load.'),
     );
     const total = streams.reduce((sum, stream) => sum + stream.targetRatePerMinute, 0);
     const bar = element('div', 'traffic-bar');
@@ -525,7 +525,7 @@ function loadHistoryExplorer(
     const panel = element('section', 'panel');
     panel.append(
         element('h2', '', 'Mixed-load history'),
-        element('p', 'workload-description', 'Latency trends compare only passing runs from the same environment and versioned load profile.'),
+        element('p', 'workload-description', 'Compare passing results within the same environment and load profile.'),
     );
     const options: LoadHistoryOption[] = [
         ...run.streams.map((stream) => ({
@@ -535,8 +535,8 @@ function loadHistoryExplorer(
             recovery: false,
         })),
         {
-            label: 'Post-load eager recovery',
-            description: 'Time after traffic stops until health and eager-variant readiness checks complete.',
+            label: 'Eager readiness after load',
+            description: 'After traffic stops, measure the wait from upload acceptance until four eager variants are ready.',
             points: () => recoveryPointsForRun(history, run),
             recovery: true,
         },
@@ -650,7 +650,7 @@ function resultTable(
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'Change', 'Operations', 'Errors / dropped'];
+    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'p95 change', 'Operations', 'Errors / dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -665,7 +665,7 @@ function resultTable(
             ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
             : ['—', '—', '—'];
         const cells: Array<{ value: string | number; className?: string }> = [
-            { value: value.passed ? 'Completed' : 'Failed to complete', className: value.passed ? '' : 'regression' },
+            { value: value.passed ? 'Passed' : 'Failed', className: value.passed ? '' : 'regression' },
             ...measurements.map((measurement) => ({ value: measurement })),
             { value: value.repetitions },
             { value: value.passed ? formatDisplayedChange(value) : '—', className: value.passed ? changeClass(value.changePercent) : 'muted' },
@@ -683,7 +683,7 @@ function resultTable(
 function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     const table = document.createElement('table');
     const header = document.createElement('tr');
-    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'Change', 'Errors / dropped']
+    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'p95 change', 'Errors / dropped']
         .forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
     head.append(header);
@@ -693,7 +693,7 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
         if (!stream.passed) row.classList.add('failed-result');
         row.append(operationCell(stream));
         const cells = [
-            { value: stream.passed ? 'Completed' : 'Failed to complete', className: stream.passed ? '' : 'regression' },
+            { value: stream.passed ? 'Passed' : 'Failed', className: stream.passed ? '' : 'regression' },
             { value: `${stream.targetRatePerMinute}/min` },
             { value: `${stream.operations}/${stream.plannedOperations}` },
             { value: stream.passed ? formatMs(stream.durationMs.p95) : '—' },
@@ -731,13 +731,14 @@ function methodology(): HTMLElement {
     const footer = document.createElement('footer');
     footer.append(
         document.createTextNode(includeLoadTesting
-            ? 'Compare results only within the same environment and versioned workload or load profile. '
-            : 'Compare results only within the same environment and versioned workload. '),
+            ? 'Compare results within the same environment and versioned workload or load profile. '
+            : 'Compare results within the same environment and versioned workload. '),
+        document.createTextNode('For benchmarks, read p50 and p95 as medians across repetitions. '),
         document.createTextNode(includeLoadTesting
-            ? 'Isolated benchmarks report repetition medians; mixed load uses a fixed concurrent arrival-rate profile and gates operational health rather than latency. '
-            : 'Isolated benchmarks report repetition medians. '),
-        document.createTextNode('Changes appear only when the p95 difference is at least 5% and 2 ms. '),
-        link('../BENCHMARKING.md', 'Read the benchmark methodology.'),
+            ? 'A load test passes with successful requests and checks, no dropped iterations, and a passing recovery check. It has no latency limit. '
+            : ''),
+        document.createTextNode('Compare p95 with the last passing result. Change labels require differences of at least 5% and 2 ms. '),
+        link('../BENCHMARKING.md', 'Benchmark methodology.'),
     );
     return footer;
 }

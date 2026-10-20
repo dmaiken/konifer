@@ -47,8 +47,8 @@ test('change indicators require both a practical percentage and millisecond diff
 });
 
 test('displayed changes distinguish missing history from insignificant movement', () => {
-    assert.equal(formatDisplayedChange({ hasPrevious: false, changePercent: null }), 'No previous release');
-    assert.equal(formatDisplayedChange({ hasPrevious: true, changePercent: null }), 'No significant change');
+    assert.equal(formatDisplayedChange({ hasPrevious: false, changePercent: null }), 'No prior result');
+    assert.equal(formatDisplayedChange({ hasPrevious: true, changePercent: null }), 'Below threshold');
     assert.equal(formatDisplayedChange({ hasPrevious: true, changePercent: 6.25 }), '+6.3% vs previous');
 });
 

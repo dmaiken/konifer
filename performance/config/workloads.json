@@ -57,21 +57,21 @@
   },
   "workloads": {
     "upload.original": {
-      "description": "Measures the complete multipart upload of an original image, including metadata and object-storage persistence, without transformation or inference.",
+      "description": "Upload an original image without transformation or inference, including metadata and object storage writes.",
       "profile": "light",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
       "case": "jpg-medium"
     },
     "delivery.original.cached": {
-      "description": "Retrieves an existing original image after setup, measuring delivery without image decoding, transformation, or encoding.",
+      "description": "Download an existing original without image processing.",
       "profile": "read",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
       "case": "jpg-medium"
     },
     "variant.generate.cold": {
-      "description": "Requests a new on-demand variant for the first time, including source retrieval, decoding, transformation, encoding, persistence, and delivery.",
+      "description": "Fetch the original, decode, transform, encode, store, and return a new variant.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -79,7 +79,7 @@
       "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80, "rotate": "auto"}
     },
     "variant.deliver.cached": {
-      "description": "Retrieves an on-demand variant generated during setup, measuring delivery without repeating the image transformation.",
+      "description": "Download a variant from setup, without repeating the transformation.",
       "profile": "read",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -87,7 +87,7 @@
       "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80, "rotate": "auto"}
     },
     "upload.preprocess": {
-      "description": "Uploads an image through a path that preprocesses the original into a padded WebP image before the upload response completes.",
+      "description": "Upload an image and convert it to WebP with padding before Konifer responds.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -96,7 +96,7 @@
       "expected": {"format": "webp", "width": 994, "height": 1314}
     },
     "upload.rules": {
-      "description": "Uploads an image and evaluates an inference-backed Upload Rules rule, verifying the matching rule adds the expected metadata label.",
+      "description": "Run Upload Rules inference during upload and check the resulting metadata label.",
       "profile": "inference",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -104,7 +104,7 @@
       "path": "/test-upload-rules"
     },
     "upload.rules.preprocess": {
-      "description": "Evaluates an inference-backed Upload Rules rule during upload, then preprocesses the accepted original into a padded WebP image.",
+      "description": "Run Upload Rules inference during upload and convert the original to padded WebP.",
       "profile": "inference",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -113,7 +113,7 @@
       "expected": {"format": "webp", "width": 994, "height": 1314}
     },
     "upload.eager.accept": {
-      "description": "Measures upload acceptance while four WebP eager variants are scheduled for background generation; it does not wait for them to finish.",
+      "description": "Upload an image and schedule four WebP variants. Measure upload acceptance without waiting for the variants to finish.",
       "profile": "light",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -121,7 +121,7 @@
       "path": "/test-upload-eager-variants"
     },
     "variant.eager.ready": {
-      "description": "Measures the time after upload acceptance until all four background WebP eager variants are ready, then verifies each variant can be delivered as a cache hit.",
+      "description": "Measure the wait from upload acceptance until four WebP variants are ready. Check that each download hits the cache.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
@@ -132,7 +132,7 @@
       "timeoutSeconds": 30
     },
     "format.decode": {
-      "description": "Generates the same WebP variant from each supported source format, exercising its decoder with a common resize and output encoding.",
+      "description": "Generate a resized WebP variant from each source format, using the same transformation.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80},
@@ -147,7 +147,7 @@
       ]
     },
     "format.encode": {
-      "description": "Generates the same resized variant from a JPEG source in each supported destination format, exercising each output encoder.",
+      "description": "Resize a JPEG and encode the variant in each destination format.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",

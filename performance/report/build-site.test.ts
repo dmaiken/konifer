@@ -11,7 +11,7 @@ test('standalone builds omit load data on request without changing local preview
     await Promise.all(['report', 'history', 'config', 'dist/report', 'dist/fonts'].map((value) =>
         mkdir(path.join(directory, value), { recursive: true })));
     const sourceFiles = {
-        'report/index.html': '<meta content="Konifer release performance across isolated image workflows and representative concurrent load." name="description">',
+        'report/index.html': '<meta content="Compare operation latency and mixed-load results across Konifer releases." name="description">',
         'report/report.css': 'body {}',
         'history/releases.json': '{"version":1,"releases":[]}',
         'history/loads.json': '{"version":1,"runs":[]}',
@@ -37,7 +37,7 @@ test('standalone builds omit load data on request without changing local preview
     }
     assert.equal(await readFile(path.join(site, 'dist/report/build-options.js'), 'utf8'),
         'export const includeLoadTesting = false;\n');
-    assert.doesNotMatch(await readFile(path.join(site, 'report/index.html'), 'utf8'), /concurrent load/);
+    assert.doesNotMatch(await readFile(path.join(site, 'report/index.html'), 'utf8'), /mixed-load/);
     for (const file of ['history/releases.json', 'config/workloads.json', 'config/environments.json',
         'dist/report/report.js', 'dist/fonts/example.woff2', 'report/report.css', 'BENCHMARKING.md']) {
         assert.equal(await readFile(path.join(site, file), 'utf8'), sourceFiles[file as keyof typeof sourceFiles]);

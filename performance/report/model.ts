@@ -152,8 +152,8 @@ export function significantChange(
 export function formatDisplayedChange(
     value: Pick<LatestSeriesResult, 'changePercent' | 'hasPrevious'>,
 ): string {
-    if (!value.hasPrevious) return 'No previous release';
-    if (value.changePercent === null) return 'No significant change';
+    if (!value.hasPrevious) return 'No prior result';
+    if (value.changePercent === null) return 'Below threshold';
     return `${formatChange(value.changePercent)} vs previous`;
 }
 

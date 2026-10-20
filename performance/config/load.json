@@ -3,7 +3,7 @@
   "defaultProfile": "mixed-v1",
   "profiles": {
     "mixed-v1": {
-      "description": "Representative concurrent reads, uploads, image generation, eager background work, and Upload Rules inference.",
+      "description": "Run reads and uploads alongside on-demand variants, eager variants, and Upload Rules inference.",
       "timeUnit": "1m",
       "rampUpDuration": "2m",
       "steadyDuration": "10m",
