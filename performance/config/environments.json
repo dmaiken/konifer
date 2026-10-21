@@ -19,7 +19,7 @@
         "Konifer and k6 use separate EC2 instances; both instances and the single-AZ RDS primary must share an availability zone.",
         "Konifer is limited to 4 CPUs and 6 GiB RAM. k6 is limited to 1 CPU and 1536 MiB RAM on c9g.medium.",
         "Scratch is local NVMe instance storage mounted at /app/tmp, not tmpfs or EBS. It is disposable; images and metadata live in S3 and RDS.",
-        "k6 uses Konifer's private address. RDS uses its TLS-verified DNS endpoint; S3 uses HTTPS through a gateway endpoint. S3 Standard is regional, not AZ-local.",
+        "k6 uses Konifer's private address. The harness always requests plaintext database connections with ssl-mode disable and RDS force_ssl off, regardless of Konifer version. Older JDBC schedulers may ignore the setting and negotiate TLS using driver defaults. Administrative connections verify TLS. S3 uses HTTPS through a gateway endpoint and S3 Standard is regional, not AZ-local.",
         "This profile is a deployment target, not a completed benchmark. Verify regional instance availability and record the exact AMI, image digest, AZ, and RDS engine version before publishing results.",
         "Compare releases only within this environment. Change the environment ID when instance sizes, limits, scratch storage, or database configuration materially change."
       ],
@@ -41,7 +41,7 @@
           "multiAz": false, "publiclyAccessible": false,
           "storage": {"type": "gp3", "allocatedGiB": 20, "encrypted": true},
           "database": "konifer", "user": "konifer_user",
-          "sslMode": "verify-full", "sslRootCert": "/app/config/rds-ca-bundle.pem", "forceSsl": true
+          "sslMode": "disable", "forceSsl": false
         },
         "s3": {"storageClass": "STANDARD", "encryption": "AES256", "blockPublicAccess": true, "credentials": "instance-role"}
       }

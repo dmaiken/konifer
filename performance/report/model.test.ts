@@ -179,6 +179,7 @@ test('environment summaries use configured metadata and preserve unknown histori
     ]);
 });
 
+/** Build one passing series with controllable release ordering, environment identity, and latency. */
 function release(completedAt: string, subject: string, environment: string, p95: number): PerformanceRelease {
     return {
         version: 1,

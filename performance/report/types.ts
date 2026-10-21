@@ -142,9 +142,8 @@ export interface AwsEnvironment {
         storage: { type: 'gp3'; allocatedGiB: number; encrypted: true };
         database: string;
         user: string;
-        sslMode: 'verify-full';
-        sslRootCert: string;
-        forceSsl: true;
+        sslMode: 'disable';
+        forceSsl: false;
     };
     s3: { storageClass: 'STANDARD'; encryption: 'AES256'; blockPublicAccess: true; credentials: 'instance-role' };
 }

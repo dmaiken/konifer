@@ -196,16 +196,19 @@ test('fixture files stay inside the asset directory and match manifest metadata'
     }
 });
 
+/** Create a strict schema validator with the formats used by harness catalogs. */
 function createValidator(): Ajv2020 {
     const validator = new Ajv2020({ allErrors: true, strict: true });
     addFormats(validator);
     return validator;
 }
 
+/** Read a checked-in catalog/schema relative to the harness rather than the test invocation directory. */
 async function readJson<T>(relativePath: string): Promise<T> {
     return JSON.parse(await readFile(path.join(performanceDirectory, relativePath), 'utf8')) as T;
 }
 
+/** Require a referenced source/output format to exist in its fixture when the workload declares one. */
 function assertFixtureFormat(
     workloadId: string,
     field: string,
@@ -216,6 +219,7 @@ function assertFixtureFormat(
     assert.ok(fixture.files[format], `${workloadId} ${field} references format ${format} missing from its fixture`);
 }
 
+/** Require load profile workload/case references to resolve to executable catalog entries. */
 function assertLoadReference(workloadId: string, caseId: string): void {
     const workload = workloads.workloads[workloadId];
     assert.ok(workload, `Load profile references unknown workload ${workloadId}`);
@@ -223,6 +227,7 @@ function assertLoadReference(workloadId: string, caseId: string): void {
     assert.ok(cases.includes(caseId), `Load profile references unknown case ${workloadId}/${caseId}`);
 }
 
+/** Resolve a catalog path and reject references to the parent itself or outside its directory. */
 function resolveWithin(parent: string, relativePath: string): string {
     const resolvedParent = path.resolve(parent);
     const resolved = path.resolve(resolvedParent, relativePath);
@@ -231,6 +236,7 @@ function resolveWithin(parent: string, relativePath: string): string {
     return resolved;
 }
 
+/** Include full schema diagnostics in catalog assertion failures. */
 function formatValidationErrors(errors: unknown): string {
     return `JSON Schema validation failed:\n${JSON.stringify(errors, null, 2)}`;
 }

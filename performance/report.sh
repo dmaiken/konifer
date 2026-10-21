@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Generate a report for one results directory and publish eligible release history.
+# Usage: report.sh RESULTS_DIRECTORY. Requires Node and installed harness packages;
+# resolves caller-relative paths before invoking the report generator.
 
 set -euo pipefail
 

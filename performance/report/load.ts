@@ -10,6 +10,7 @@ import type {
     WorkloadCatalog,
 } from './types.ts';
 
+/** Replace a subject/environment/profile run, preserving notes and release ordering. */
 export function updateLoadHistory(history: LoadHistory, run: LoadRun): LoadHistory {
     const existing = history.runs.find((value) => sameLoadIdentity(value, run));
     const annotatedRun = preserveLoadNotes(existing, run);
@@ -19,6 +20,7 @@ export function updateLoadHistory(history: LoadHistory, run: LoadRun): LoadHisto
     return { version: 1, runs };
 }
 
+/** Select the newest run per environment/profile and attach prior passing stream comparisons. */
 export function latestLoadRuns(history: LoadHistory): LatestLoadRun[] {
     const latest = new Map<string, LoadRun>();
     const runs = [...history.runs].sort(compareReleaseRecords);
@@ -30,6 +32,7 @@ export function latestLoadRuns(history: LoadHistory): LatestLoadRun[] {
     ));
 }
 
+/** Compare selected passing streams to earlier passing results in the same environment/profile. */
 export function loadRunWithComparisons(history: LoadHistory, selected: LoadRun): LatestLoadRun {
     const previousStreams = new Map<string, LoadStreamResult>();
     const runs = [...history.runs].sort(compareReleaseRecords);
@@ -58,6 +61,7 @@ export function loadRunWithComparisons(history: LoadHistory, selected: LoadRun):
     };
 }
 
+/** Return passing latency points for a matching stream among comparable runs through the selected release. */
 export function loadPointsForStream(
     history: LoadHistory,
     selected: LoadRun,
@@ -78,6 +82,7 @@ export function loadPointsForStream(
     });
 }
 
+/** Return passing recovery durations among comparable runs through the selected release. */
 export function recoveryPointsForRun(history: LoadHistory, selected: LoadRun): SeriesPoint[] {
     return comparableRuns(history, selected).flatMap((run) => !run.recovery.passed ? [] : [{
         completedAt: run.completedAt,
@@ -89,6 +94,7 @@ export function recoveryPointsForRun(history: LoadHistory, selected: LoadRun): S
     }]);
 }
 
+/** Render load completion, stream results, recovery, and workload definitions; hide latency for failed streams. */
 export function renderLoadMarkdown(
     run: LoadRun,
     workloads: WorkloadCatalog,
@@ -130,20 +136,24 @@ same environment, not as a production capacity claim.
 `;
 }
 
+/** Format scheduled-operation completion, using a placeholder when no target exists. */
 export function formatCompletion(operations: number, target: number): string {
     return target === 0 ? '—' : `${((operations / target) * 100).toFixed(1)}%`;
 }
 
+/** Convert operations per minute to the dashboard's operations-per-second display. */
 export function formatRate(ratePerMinute: number): string {
     return `${Number((ratePerMinute / 60).toFixed(1))} ops/s`;
 }
 
+/** Match the subject/environment/profile identity used when replacing a published load run. */
 function sameLoadIdentity(left: LoadRun, right: LoadRun): boolean {
     return left.subject === right.subject
         && left.environment === right.environment
         && left.profile === right.profile;
 }
 
+/** Select release-ordered runs in the same environment/profile through the selected version. */
 function comparableRuns(history: LoadHistory, selected: LoadRun): LoadRun[] {
     return history.runs
         .filter((run) => run.environment === selected.environment
@@ -152,6 +162,7 @@ function comparableRuns(history: LoadHistory, selected: LoadRun): LoadRun[] {
         .sort(compareReleaseRecords);
 }
 
+/** Keep existing run and stream annotations unless regenerated data supplies replacements. */
 function preserveLoadNotes(existing: LoadRun | undefined, run: LoadRun): LoadRun {
     if (!existing) return run;
     const streams = new Map(existing.streams.map((stream) => [
@@ -170,10 +181,12 @@ function preserveLoadNotes(existing: LoadRun | undefined, run: LoadRun): LoadRun
     };
 }
 
+/** Build an environment/profile identity for independent load histories. */
 function loadProfileKey(run: Pick<LoadRun, 'environment' | 'profile'>): string {
     return `${run.environment}\u0000${run.profile}`;
 }
 
+/** Build an environment/profile/workload/case identity for comparable load streams. */
 function loadStreamKey(
     run: Pick<LoadRun, 'environment' | 'profile'>,
     stream: Pick<LoadStreamResult, 'workload' | 'case'>,

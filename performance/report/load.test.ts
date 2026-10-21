@@ -138,6 +138,7 @@ function emptyHistory(): LoadHistory {
     return { version: 1, runs: [] };
 }
 
+/** Build one load stream and recovery result, varying completion/error counters with the requested pass state. */
 function loadRun(
     subject: string,
     environment: string,

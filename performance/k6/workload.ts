@@ -81,10 +81,12 @@ const phaseDuration = new Trend('phase_duration', true);
 let activePhase = 'setup';
 let operationIndex = 0;
 let phaseDeadline: number | null = null;
+/** Attach the active phase to correctness checks so setup/pacing checks cannot contaminate measurement metrics. */
 const check: typeof k6Check = (value, checks, tags) => k6Check(value, checks, { ...tags, phase: activePhase });
 
 export const options: Options = buildOptions();
 
+/** Seed phase-isolated assets before measurement; cold operations receive one unused asset per sample. */
 export function setup(): AssetPools {
     if (suite === 'smoke') {
         return seedForPhases(0, measurementSamples);
@@ -96,6 +98,7 @@ export function setup(): AssetPools {
     );
 }
 
+/** Run a smoke operation or sequential warmup/measurement phases on one VU, with explicit phase deadlines. */
 export default function measurement(data: AssetPools): void {
     if (suite === 'smoke') {
         activePhase = 'measurement';
@@ -121,6 +124,7 @@ export default function measurement(data: AssetPools): void {
     }
 }
 
+/** Configure single-VU execution and correctness/completion thresholds, isolating measurement metrics from setup. */
 function buildOptions(): Options {
     const thresholds: Record<string, string[]> = {
         'operation_duration{phase:measurement}': ['p(95)>=0'],
@@ -179,6 +183,7 @@ function buildOptions(): Options {
     };
 }
 
+/** Choose fresh pools for cold operations, one reusable asset for cache hits, or no seeds for upload workloads. */
 function seedForPhases(warmupCount: number, measurementCount: number): AssetPools {
     if (requiresColdPool()) {
         return {
@@ -204,6 +209,7 @@ function seedForPhases(warmupCount: number, measurementCount: number): AssetPool
     return { warmup: [], measurement: [] };
 }
 
+/** Upload phase-scoped fixtures outside measurement; pre-generate variants only for cached-delivery cases. */
 function seedAssets(phase: keyof AssetPools, count: number, generateVariant: boolean): AssetReference[] {
     const assets: AssetReference[] = [];
     for (let index = 0; index < count; index += 1) {
@@ -229,6 +235,7 @@ function seedAssets(phase: keyof AssetPools, count: number, generateVariant: boo
     return assets;
 }
 
+/** Run one operation and record phase-tagged latency, errors, and count; convert handler exceptions into failed checks. */
 function executeWorkload(data: AssetPools, phase: keyof AssetPools): boolean {
     const started = Date.now();
     let result;
@@ -247,6 +254,7 @@ function executeWorkload(data: AssetPools, phase: keyof AssetPools): boolean {
     return result.ok;
 }
 
+/** Dispatch the selected workload against the appropriate phase pool; fail for unimplemented catalog entries. */
 function runHandler(data: AssetPools, phase: keyof AssetPools): OperationResult {
     switch (workloadId) {
         case 'upload.original':
@@ -274,6 +282,7 @@ function runHandler(data: AssetPools, phase: keyof AssetPools): OperationResult 
     }
 }
 
+/** Measure upload HTTP latency and verify the returned original's metadata and entry location. */
 function runOriginalUpload(): OperationResult {
     const assetPath = uniqueAssetPath();
     const response = uploadAsset(assetPath);
@@ -290,6 +299,7 @@ function runOriginalUpload(): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure original delivery from a seeded asset and require a cache hit with the fixture's media type. */
 function runOriginalDelivery(asset: AssetReference): OperationResult {
     const response = http.get(asset.contentUrl, requestParameters());
     const ok = check(response, {
@@ -300,6 +310,7 @@ function runOriginalDelivery(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure transformation of an unused original and require a cache miss and the requested output format. */
 function runColdVariant(asset: AssetReference): OperationResult {
     const response = http.get(withQuery(asset.contentUrl, query), requestParameters());
     logUnexpectedResponse(response, 200);
@@ -313,6 +324,7 @@ function runColdVariant(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure delivery of a pre-generated variant and require a cache hit and expected media type. */
 function runCachedVariant(asset: AssetReference): OperationResult {
     const response = http.get(withQuery(asset.contentUrl, query), requestParameters());
     const ok = check(response, {
@@ -323,6 +335,7 @@ function runCachedVariant(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure upload latency while verifying the configured preprocessing output. */
 function runPreprocessedUpload(): OperationResult {
     const response = uploadAsset(ruleAssetPath());
     const body = parseJson<KoniferResponseBody>(response);
@@ -338,6 +351,7 @@ function runPreprocessedUpload(): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure a rule-matching upload and validate its label and original, with optional preprocessing expectations. */
 function runUploadRules(expectPreprocessing: boolean): OperationResult {
     const response = uploadAsset(ruleAssetPath());
     const body = parseJson<KoniferResponseBody>(response);
@@ -357,6 +371,7 @@ function runUploadRules(expectPreprocessing: boolean): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure acceptance HTTP latency; wait under pacing tags for background variants before the next upload. */
 function runEagerAcceptance(): OperationResult {
     const assetPath = ruleAssetPath();
     const response = uploadAsset(assetPath);
@@ -383,6 +398,7 @@ function runEagerAcceptance(): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure post-upload eager readiness time, then verify the generated profiles through cache-hit downloads. */
 function runEagerReadiness(): OperationResult {
     const assetPath = ruleAssetPath();
     const upload = uploadAsset(assetPath);
@@ -416,6 +432,7 @@ function runEagerReadiness(): OperationResult {
     return { ok, durationMs: readinessDuration };
 }
 
+/** Poll entry metadata until all variants exist or the workload/phase deadline expires. */
 function waitForEagerVariants(infoUrl: string, expectedVariantCount: number): boolean {
     const deadline = Math.min(Date.now() + (workload.timeoutSeconds ?? 0) * 1000, phaseDeadline ?? Infinity);
     while (Date.now() < deadline) {
@@ -430,6 +447,7 @@ function waitForEagerVariants(infoUrl: string, expectedVariantCount: number): bo
     return false;
 }
 
+/** Upload the selected fixture with the active phase tag and remaining phase timeout. */
 function uploadAsset(assetPath: string, tags?: Tags) {
     return postAsset({
         baseUrl,
@@ -441,6 +459,7 @@ function uploadAsset(assetPath: string, tags?: Tags) {
     }, assetPath, { phase: activePhase, ...tags }, requestTimeout());
 }
 
+/** Build phase-tagged request options and cap HTTP timeout at the remaining phase duration. */
 function requestParameters(operation = workloadId, extraTags?: Tags) {
     const timeoutMs = requestTimeout();
     return {
@@ -449,10 +468,12 @@ function requestParameters(operation = workloadId, extraTags?: Tags) {
     };
 }
 
+/** Return remaining phase milliseconds, clamped to one; leave smoke requests on the k6 default timeout. */
 function requestTimeout(): number | undefined {
     return phaseDeadline === null ? undefined : Math.max(1, phaseDeadline - Date.now());
 }
 
+/** Reuse a cached seed or consume the indexed cold seed; reject empty or exhausted phase pools. */
 function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boolean): AssetReference {
     const assets = data[phase];
     if (!assets || assets.length === 0) {
@@ -468,15 +489,18 @@ function assetForIteration(data: AssetPools, phase: keyof AssetPools, reuse: boo
     return assets[index];
 }
 
+/** Namespace uploads by run, workload, case, scenario, phase, VU, and operation to prevent collisions. */
 function uniqueAssetPath(): string {
     return `/performance/${safe(runId)}/${safe(workloadId)}/${safe(caseId)}/${execution.scenario.name}/${activePhase}/${execution.vu.idInTest}-${operationIndex}`;
 }
 
+/** Prefix a unique upload path with the configured rule-matching path; reject workloads without one. */
 function ruleAssetPath(): string {
     if (!workload.path) throw new Error(`Workload ${workloadId} does not define a path`);
     return `${workload.path}${uniqueAssetPath()}`;
 }
 
+/** Resolve the requested or default case for single- and multi-case workloads, rejecting unknown IDs. */
 function selectCase(selectedWorkload: WorkloadDefinition, requestedCase?: string): WorkloadCase {
     if (!selectedWorkload.cases) {
         if (requestedCase && requestedCase !== selectedWorkload.case) {
@@ -497,10 +521,12 @@ function selectCase(selectedWorkload: WorkloadDefinition, requestedCase?: string
     return value;
 }
 
+/** Identify transformation workloads that must consume a fresh original for each operation. */
 function requiresColdPool(): boolean {
     return workloadId === 'variant.generate.cold' || workloadId === 'format.decode' || workloadId === 'format.encode';
 }
 
+/** Read a required k6 environment value or fail before running an incomplete benchmark. */
 function requiredEnvironment(name: string): string {
     const value = __ENV[name];
     if (!value) {
@@ -509,14 +535,17 @@ function requiredEnvironment(name: string): string {
     return value;
 }
 
+/** Read one k6 summary metric's values, using an empty object when k6 omitted the metric. */
 function metricValues(data: SummaryData, name: string): Record<string, number | undefined> {
     return (data.metrics[name] && data.metrics[name].values) || {};
 }
 
+/** Normalize optional summary counters to whole numbers, treating missing values as zero. */
 function integer(value: number | undefined): number {
     return Math.round(Number(value || 0));
 }
 
+/** Emit raw and normalized artifacts using measurement-only metrics; require phase completion for non-smoke runs. */
 export function handleSummary(data: SummaryData): SummaryOutput {
     const duration = metricValues(data, 'operation_duration{phase:measurement}');
     const operationValues = metricValues(data, 'operations{phase:measurement}');
@@ -573,15 +602,18 @@ export function handleSummary(data: SummaryData): SummaryOutput {
     };
 }
 
+/** Require expected image metadata for preprocessing correctness checks. */
 function requiredExpectedImage() {
     if (!workload.expected) throw new Error(`Workload ${workloadId} does not define expected image metadata`);
     return workload.expected;
 }
 
+/** Convert thrown values into a printable benchmark diagnostic. */
 function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+/** Require a nonempty catalog field, reporting the caller's context on failure. */
 function requiredString(value: string | undefined, message: string): string {
     if (!value) throw new Error(message);
     return value;

@@ -1,5 +1,6 @@
 import type { PerformanceRelease, WorkloadCatalog } from './types.ts';
 
+/** List configured release cases absent from the aggregate; reject invalid suite references. */
 export function missingReleaseCases(
     aggregate: PerformanceRelease,
     catalog: WorkloadCatalog,
@@ -29,6 +30,7 @@ export function missingReleaseCases(
     return missing;
 }
 
+/** Build an unambiguous workload/case identity for release completeness checks. */
 function seriesKey(workload: string, caseId: string): string {
     return `${workload}\u0000${caseId}`;
 }

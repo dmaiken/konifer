@@ -1,23 +1,15 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { loadAwsConfiguration } from './aws-config.ts';
+import { loadAwsConfiguration, waitForAwsReadiness } from './aws-config.ts';
 
 // Run from the provisioned k6 host. No load test or history publication occurs.
 const connectionsFile = process.argv[2];
 if (!connectionsFile || process.argv.length !== 3) throw new Error('Usage: node runtime/aws-checkpoint.ts CONNECTIONS.json');
 const { connections } = await loadAwsConfiguration(JSON.parse(await readFile(connectionsFile, 'utf8')));
 const baseUrl = `http://${connections.koniferPrivateIp}:8080`;
-let ready = false;
-for (let attempt = 0; attempt < 60; attempt++) {
-    try {
-        const response = await fetch(`${baseUrl}/health/ready`, { signal: AbortSignal.timeout(3000) });
-        await response.arrayBuffer();
-        if (response.ok) { ready = true; break; }
-    } catch { /* Startup may not have bound the port yet. */ }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-}
-assert.ok(ready, 'Konifer did not become ready (RDS and S3 health must both pass)');
+const readinessEndpoint = await waitForAwsReadiness(baseUrl);
+console.log(`Readiness probe: ${readinessEndpoint}`);
 const fixture = await readFile(new URL('../assets/medium/medium.jpg', import.meta.url));
 const assetPath = `/performance/aws-checkpoint/${randomUUID()}`;
 try {

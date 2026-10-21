@@ -152,6 +152,7 @@ test('load history schema rejects blank annotations', () => {
     );
 });
 
+/** Build schema-valid benchmark history with a selectable subject so tests isolate release-label policy. */
 function release(runId: string, subject: string): PerformanceRelease {
     return {
         version: 1,
@@ -166,6 +167,7 @@ function release(runId: string, subject: string): PerformanceRelease {
     };
 }
 
+/** Build a passing aggregate with consistent counters and percentile range for schema mutations. */
 function result(workload: string, caseId: string): AggregatedResult {
     return {
         workload,
@@ -188,6 +190,7 @@ function result(workload: string, caseId: string): AggregatedResult {
     };
 }
 
+/** Build schema-valid mixed-load history with one passing stream and recovery probe. */
 function loadRun(subject: string): LoadRun {
     return {
         version: 1,

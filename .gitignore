@@ -57,3 +57,9 @@ out/
 /performance/runtime/konifer.legacy.conf
 /performance/runtime/aws-generated/
 /performance/runtime/aws-connections.local.json
+/performance/infrastructure/aws/.terraform/
+/performance/infrastructure/aws/*.tfstate*
+/performance/infrastructure/aws/*.tfplan
+/performance/infrastructure/aws/*.local.*
+/performance/infrastructure/aws/crash.log
+/performance/runtime/aws-local/

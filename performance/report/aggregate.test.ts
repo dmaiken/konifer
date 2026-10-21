@@ -92,6 +92,7 @@ test('aggregation preserves the sampling protocol and rejects mixed or incomplet
     assert.throws(() => aggregateResults([{ ...first, metrics: { ...first.metrics, operations: 9 } }]), /Incomplete benchmark samples/);
 });
 
+/** Build a passing repetition with deterministic counters and percentile ratios for aggregation assertions. */
 function result(repetition: number, p95: number, operations: number): NormalizedResult {
     return {
         version: 1,

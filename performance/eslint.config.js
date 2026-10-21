@@ -61,7 +61,7 @@ export default [
         },
     },
     {
-        files: ['runtime/**/*.ts', 'report/aws-config.test.ts'],
+        files: ['runtime/**/*.ts', 'report/aws-*.test.ts'],
         languageOptions: { globals: globals.node },
     },
     {

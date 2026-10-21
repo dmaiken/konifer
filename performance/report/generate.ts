@@ -36,6 +36,8 @@ if (aggregate.suite === 'release'
 await writeJson(path.join(runDirectory, 'aggregate.json'), aggregate);
 await writeFile(path.join(runDirectory, 'report.md'), renderRunMarkdown(aggregate, environment, catalog));
 
+// Partial/filtered runs still get local reports. Publish history only after the
+// configured case/repetition matrix is complete, including failed benchmark cases.
 if (aggregate.suite === 'release') {
     const requiredRepetitions = catalog.suites.release.repetitions;
     const incomplete = aggregate.results.filter((value) => value.repetitions < requiredRepetitions);
@@ -57,6 +59,7 @@ if (aggregate.suite === 'release') {
 console.log(`Aggregate result: ${path.join(runDirectory, 'aggregate.json')}`);
 console.log(`Run report: ${path.join(runDirectory, 'report.md')}`);
 
+/** Read JSON history or use the supplied fallback only when the file is absent; propagate malformed data. */
 async function readJson<T>(filename: string, fallback: T): Promise<T> {
     try {
         return JSON.parse(await readFile(filename, 'utf8')) as T;
@@ -66,15 +69,18 @@ async function readJson<T>(filename: string, fallback: T): Promise<T> {
     }
 }
 
+/** Read required catalog JSON and propagate missing-file or parse errors. */
 async function readJsonFile<T>(filename: string): Promise<T> {
     return JSON.parse(await readFile(filename, 'utf8')) as T;
 }
 
+/** Create parent directories and write readable, newline-terminated JSON output. */
 async function writeJson(filename: string, value: unknown): Promise<void> {
     await mkdir(path.dirname(filename), { recursive: true });
     await writeFile(filename, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+/** Narrow Error objects so file-read handling can inspect an optional Node error code. */
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
     return error instanceof Error;
 }

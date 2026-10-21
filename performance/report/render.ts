@@ -1,6 +1,7 @@
 import { formatMs, formatRange, label, workloadDescription, workloadLabel } from './model.ts';
 import type { AggregatedResult, EnvironmentProfile, PerformanceRelease, WorkloadCatalog } from './types.ts';
 
+/** Render one benchmark run with environment/workload context and repetition-based latency summaries. */
 export function renderRunMarkdown(
     aggregate: PerformanceRelease,
     environment?: EnvironmentProfile,
@@ -25,6 +26,7 @@ outside the measurement window.
 `;
 }
 
+/** Describe the distinct workloads in a run, omitting entries without catalog descriptions. */
 function markdownWorkloads(results: AggregatedResult[], catalog?: WorkloadCatalog): string {
     if (!catalog) return '';
     const workloadIds = [...new Set(results.map((result) => result.workload))];
@@ -40,6 +42,7 @@ function markdownWorkloads(results: AggregatedResult[], catalog?: WorkloadCatalo
         : `## Workload definitions\n\n${definitions.join('\n')}`;
 }
 
+/** Render environment identity, optional hardware facts, and interpretation guidance. */
 function markdownEnvironment(id: string, environment?: EnvironmentProfile): string {
     const title = environment?.displayName || id;
     const description = environment?.description || 'No descriptive metadata is available for this environment.';
@@ -63,10 +66,12 @@ function markdownEnvironment(id: string, environment?: EnvironmentProfile): stri
     return `## Benchmark environment\n\n**${title}** (\`${id}\`)\n\n${description}${factTable}${interpretation}`;
 }
 
+/** Escape pipe characters so catalog hardware values cannot create extra Markdown columns. */
 function escapeTable(value: string): string {
     return value.replaceAll('|', '\\|');
 }
 
+/** Render result rows, hiding latency for failed cases and handling an empty aggregate. */
 function markdownTable(results: AggregatedResult[]): string {
     if (results.length === 0) {
         return '_No measurements published._';

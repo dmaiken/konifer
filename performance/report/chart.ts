@@ -28,6 +28,7 @@ export interface HistoryChartLayout {
     points: HistoryChartPoint[];
 }
 
+/** Map ordered p50/p95 points into chart coordinates with five grid lines and shared headroom. */
 export function layoutHistoryChart(
     points: SeriesPoint[],
     width: number,
@@ -55,6 +56,7 @@ export function layoutHistoryChart(
     };
 }
 
+/** Map ordered p95 points into compact chart coordinates, centering a single point. */
 export function layoutSparkline(
     points: SeriesPoint[],
     width: number,
@@ -71,6 +73,7 @@ export function layoutSparkline(
     }));
 }
 
+/** Serialize ordered coordinates as an SVG move/line path using the requested vertical metric. */
 export function linePath<T extends { x: number }>(
     points: T[],
     y: (point: T) => number,

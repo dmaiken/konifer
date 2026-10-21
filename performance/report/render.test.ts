@@ -80,6 +80,7 @@ test('run report explains measured workloads from the workload catalog', () => {
     assert.match(markdown, /Stores an original without transformation or inference/);
 });
 
+/** Build a passing run with a configurable repetition count and fixed p95 range for report assertions. */
 function release(repetitions: number): PerformanceRelease {
     return {
         version: 1,

@@ -119,7 +119,7 @@
         },
         "rds": {
           "type": "object", "additionalProperties": false,
-          "required": ["engine", "engineMajorVersion", "instanceClass", "multiAz", "publiclyAccessible", "storage", "database", "user", "sslMode", "sslRootCert", "forceSsl"],
+          "required": ["engine", "engineMajorVersion", "instanceClass", "multiAz", "publiclyAccessible", "storage", "database", "user", "sslMode", "forceSsl"],
           "properties": {
             "engine": {"const": "postgres"},
             "engineMajorVersion": {"type": "string", "pattern": "^[0-9]+$"},
@@ -127,9 +127,8 @@
             "multiAz": {"const": false}, "publiclyAccessible": {"const": false},
             "database": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
             "user": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-            "sslMode": {"const": "verify-full"},
-            "sslRootCert": {"const": "/app/config/rds-ca-bundle.pem"},
-            "forceSsl": {"const": true},
+            "sslMode": {"const": "disable"},
+            "forceSsl": {"const": false},
             "storage": {
               "type": "object", "additionalProperties": false,
               "required": ["type", "allocatedGiB", "encrypted"],
