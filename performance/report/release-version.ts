@@ -1,5 +1,6 @@
 const releasePattern = /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
+/** Accept only canonical vMAJOR.MINOR.PATCH subjects without prerelease suffixes or leading zeros. */
 export function isStableRelease(subject: string): boolean {
     return releasePattern.test(subject);
 }
@@ -19,6 +20,7 @@ export function compareReleaseVersions(left: string, right: string): number {
     return 0;
 }
 
+/** Order records by release version, breaking same-version ties by completion time. */
 export function compareReleaseRecords(
     left: { subject: string; completedAt: string },
     right: { subject: string; completedAt: string },

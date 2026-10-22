@@ -1,30 +1,32 @@
 # Performance Benchmarks
 
-This directory contains Konifer's executable performance harness, curated
-release history, and customer-facing report.
+Run Konifer benchmarks on local Docker Compose or dedicated AWS hosts, collect
+results, and publish release history with this harness. It uses Node.js 24 and
+TypeScript 7. See [BENCHMARKING.md](BENCHMARKING.md) for measurement rules and
+[runtime/AWS.md](runtime/AWS.md) for AWS resource and recovery details.
 
-The harness is a private npm project using Node.js 24 and TypeScript 7, matching
-the Konifer documentation project. Docker Compose provides Konifer, PostgreSQL,
-and Garage; k6 runs on the host.
+Run the commands below from the repository root.
 
 ## Prerequisites
 
-Install Docker, k6, Node.js 24, npm, jq, sha256sum, and the Python `jsonschema`
-CLI. Install the report-tooling dependencies from the repository root with:
+Install Node.js 24+, npm, Docker, jq, and sha256sum. Local runs also need k6 and
+curl. AWS runs need a Linux checkout, AWS CLI v2, OpenTofu 1.13+, Docker Buildx,
+and GNU tar; the harness installs k6 on the remote host.
+
+Install the harness dependencies:
 
 ```bash
 npm --prefix performance ci
 ```
 
-Upload Rules benchmarks require the SigLIP2 model pack. Download it before
-starting the harness:
+Download the SigLIP2 models before running tests, including AWS tests:
 
 ```bash
 ./scripts/download-siglip2-models.sh
 ```
 
-The Compose profile uses `ghcr.io/dmaiken/konifer:latest`. To benchmark local
-application changes, build that image from the repository root first:
+Local Compose defaults to `ghcr.io/dmaiken/konifer:latest`. To measure local
+application changes, build that image first:
 
 ```bash
 ./gradlew :service:shadowJar && docker build -t ghcr.io/dmaiken/konifer:latest .
@@ -38,17 +40,14 @@ Run the complete harness quality gate with:
 npm --prefix performance run check
 ```
 
-It performs TypeScript checking, ESLint, release-history schema and label
-validation, unit tests, and the standalone dashboard build. `npm run lint`,
-`npm run lint:fix`, and `npm run lint:history` are also available from the
-`performance` directory.
+This checks TypeScript, ESLint, Bash syntax, history schemas and release labels,
+then runs unit tests and builds the dashboard. From `performance/`, use
+`npm run lint:fix` for ESLint fixes or `npm run lint:history` to check history.
 
-CI runs the same check for changes beneath `performance/`. Performance-only
-changes do not trigger the application build, while tagged releases must pass
-the performance quality gate before image builds begin. CI does not execute the
-benchmarks themselves.
+CI runs this check for performance changes and before tagged image builds.
+Performance-only changes skip the application build. CI does not run benchmarks.
 
-## Run benchmarks
+## Run local benchmarks
 
 Display the complete command reference with:
 
@@ -62,13 +61,11 @@ Run the short development suite with:
 ./performance/run.sh smoke
 ```
 
-The runner starts the Compose stack, verifies configured resource limits and
-fixture hashes, waits for Konifer health, executes k6, validates every result,
-and after each repetition deletes run-scoped assets through Konifer's recursive
-Asset Delete API. A benchmark whose k6 checks or thresholds fail is recorded and
-the remaining suite continues. PostgreSQL records are deleted synchronously,
-and Konifer reaps the associated object-store content asynchronously. The exit
-trap applies the same cleanup if a repetition cannot produce a valid result.
+The runner starts Konifer, PostgreSQL, and Garage in Compose and runs k6 on your
+host. It verifies fixture hashes, container limits, and readiness before testing.
+After each repetition, it validates results and deletes run-scoped assets through
+Konifer's API. Failed benchmark checks remain in the report; operational failures
+stop execution. An exit trap attempts cleanup after an interrupted repetition.
 
 Reuse an already-running stack while iterating:
 
@@ -79,8 +76,8 @@ Reuse an already-running stack while iterating:
 ./performance/run.sh smoke --workload upload.rules --no-start
 ```
 
-`--no-start` skips Compose startup but still verifies container limits and
-Konifer health. To retain run assets for debugging, disable cleanup explicitly:
+`--no-start` skips Compose startup while retaining limit and health checks. To
+keep assets for debugging:
 
 ```bash
 ./performance/run.sh smoke \
@@ -88,54 +85,167 @@ Konifer health. To retain run assets for debugging, disable cleanup explicitly:
   --keep-assets
 ```
 
-Run the complete release suite and assign its future release label with:
+Run a complete release suite with a stable release label:
 
 ```bash
-./performance/run.sh release --subject v0.9.0
+./performance/run.sh release --subject v0.14.0 --docker-tag 0.14.0 --use-legacy-query-params
 ```
 
-Run the shorter mixed-traffic load profile independently, or append it to a
-release run:
+Run the shorter mixed-traffic load profile on its own, or append it to a release:
 
 ```bash
-./performance/run.sh load --subject v0.9.0
-./performance/run.sh release --subject v0.9.0 --with-load
+./performance/run.sh load --subject v0.14.0 --docker-tag 0.14.0 --use-legacy-query-params
+./performance/run.sh release --subject v0.14.0 --docker-tag 0.14.0 --use-legacy-query-params --with-load
 ```
 
-The `mixed-v1` profile concurrently exercises cached original and variant
-delivery, original uploads, cold WebP generation, eager background variants,
-and Upload Rules inference. Its duration and rates come from `config/load.json`.
-Its gate is operational: every stream must execute without request errors,
-failed checks, or dropped iterations, and a post-load health/eager-readiness
-canary must pass. Latency is trended but does not have a fixed ceiling.
+The `mixed-v1` profile runs concurrent traffic defined in `config/load.json`.
+Passing requires no request errors, failed checks, or dropped iterations, plus
+a passing post-load health/eager-readiness check. Latency has no fixed ceiling.
+Load testing and `--with-load` remain local-only.
 
 Without `--subject`, the runner uses `git describe --tags --always --dirty`.
-Only stable `vMAJOR.MINOR.PATCH` subjects belong in published history. The
-release repetition count comes from `config/workloads.json` and can be
-overridden for a run:
+Published history requires stable `vMAJOR.MINOR.PATCH` labels. Override the
+repetition count from `config/workloads.json` for a diagnostic run with:
 
 ```bash
-./performance/run.sh release --subject v0.9.0 --repetitions 3
+./performance/run.sh release --subject v0.14.0 --docker-tag 0.14.0 --use-legacy-query-params --repetitions 2
 ```
 
-The configured release repetition count can be changed as the harness evolves.
-A filtered release run using `--workload` or `--case` is diagnostic: it
-generates local artifacts but is not published unless every configured release
-case and repetition is present.
+A filtered or shortened release run produces local artifacts. Publication
+requires the full configured case and repetition matrix.
 
-Prevent the host from sleeping during a long local release run. On systems
-using systemd, one option is:
+`--subject` labels results; `--docker-tag` selects the image. Keep them matched
+before publishing.
+
+Use `--config FILE` to select a standalone Konifer configuration; omit it to use
+`runtime/konifer.conf`. The harness resolves relative paths from your working
+directory and leaves explicit files unchanged. Add `--use-legacy-query-params`
+for images that expect abbreviated transformation names. With an explicit
+config, that flag changes requests only; write the config in the image's syntax.
+
+Keep the host awake during a long local run. On systemd:
 
 ```bash
 systemd-inhibit \
   --what=sleep \
   --why="Konifer release benchmark" \
-  ./performance/run.sh release --subject v0.9.0
+  ./performance/run.sh release --subject v0.14.0 --docker-tag 0.14.0 --use-legacy-query-params
 ```
+
+## Run AWS benchmarks
+
+AWS uses separate Konifer and k6 EC2 hosts, private RDS PostgreSQL, and S3.
+Authenticate with the AWS profile you intend to use. The wrapper defaults to
+`konifer-perf`; select another authenticated profile through `AWS_PROFILE`.
+The defaults are region `us-east-2` and stack `konifer-perf`. Set region/AZ/stack
+overrides before preparation; see [AWS settings](runtime/AWS.md#workflow).
+
+### Provision the disposable stack
+
+```bash
+export AWS_PROFILE=konifer-perf
+# If this profile needs authentication:
+aws login --profile "$AWS_PROFILE"
+
+bash performance/runtime/aws.sh prepare --docker-tag 0.14.0
+bash performance/runtime/aws.sh plan
+```
+
+`prepare` checks AWS access, offerings, quotas, fixtures, and models, then pins
+the ARM64 image digest and deployment inputs. Neither command creates resources.
+Review the plan before applying:
+
+```bash
+bash performance/runtime/aws.sh apply
+```
+
+**`apply` creates billable resources without another prompt.** It generates a
+fresh plan before applying. Back up the ignored local OpenTofu state under
+`performance/infrastructure/aws/`; losing that state does not delete resources.
+
+### Run smoke, then release
+
+```bash
+bash performance/run.sh smoke \
+  --environment aws-c9gd-v1 \
+  --docker-tag 0.14.0 --subject v0.14.0 \
+  --use-legacy-query-params
+
+bash performance/run.sh release \
+  --environment aws-c9gd-v1 \
+  --docker-tag 0.14.0 --subject v0.14.0 \
+  --use-legacy-query-params
+```
+
+Registry tags omit the `v` prefix; release subjects include it. The example
+uses legacy request names because 0.14.0 expects them. Match that flag to the
+image you select.
+
+`run.sh` requires an applied stack. It stages the current harness and selected
+config, starts Konifer, checks the deployment, and runs k6 on its dedicated host.
+You do not need separate `bootstrap` or `checkpoint` commands for this path.
+Add `--workload`/`--case` for a diagnostic subset. Use `--no-start` to reuse a
+deployment only if its image, compatibility mode, config, and harness match.
+
+Add `--config /path/to/konifer.conf` for an older release's configuration. AWS
+keeps the whole file and overrides environment-owned database/S3 connections.
+See [configuration selection](runtime/AWS.md#selecting-a-konifer-configuration)
+for precedence, credential handling, and standalone-file requirements.
+
+### Collect results
+
+The local controller collects results at the end of the run. The k6 host uploads
+checksummed snapshots to the staging bucket after repetitions and on exit. Your
+controller downloads and validates them, then writes:
+
+```text
+performance/results/<run-id>/
+```
+
+The directory contains raw and normalized JSON, `aggregate.json`, and `report.md`;
+release runs also include k6 HTML reports. AWS artifacts include deployment
+metadata, checkpoint evidence, logs, and exit status. Complete release runs update
+`performance/history/releases.json` under the same publication rules as local runs.
+
+If your local process disconnects, collect using the run ID printed at startup:
+
+```bash
+bash performance/runtime/aws.sh collect --run-id RUN_ID
+```
+
+Collection retrieves artifacts; it does not resume execution. Keep
+`performance/runtime/aws-local/runs/` until collection completes. Incomplete or
+operationally failed runs retain partial artifacts without publishing history.
+After interruption, inspect SSM commands and locks before retrying; follow the
+[recovery instructions](runtime/AWS.md#running-and-collecting-results).
+
+### Backfill another image and tear down
+
+Reset before changing image digests. This clears benchmark data while preserving
+the hosts and model cache:
+
+```bash
+bash performance/runtime/aws.sh reset \
+  --docker-tag 0.9.0 --config /path/to/konifer-0.9.conf \
+  --use-legacy-query-params
+```
+
+Then run smoke/release with the matching tag, subject, config, and compatibility
+flag. You can add `--no-start` after a successful reset if the harness is unchanged.
+
+Collect results before teardown:
+
+```bash
+bash performance/runtime/aws.sh destroy
+```
+
+**There is no automatic shutdown.** Resources accrue charges until you destroy
+them. `destroy` runs without another prompt and deletes stack-owned buckets,
+remote artifacts, disks, and RDS without a final snapshot. Local results remain.
 
 ## Results and publication
 
-Each run writes ignored, reproducible artifacts beneath its run directory:
+Local and collected AWS runs use this ignored artifact directory:
 
 ```text
 performance/results/<run-id>/
@@ -146,40 +256,32 @@ performance/results/<run-id>/
 └── report.md      # readable report for this run
 ```
 
-Load runs use the same directory shape, with one `normalized/load.json`
-document and one `html/load.html` report. Release suites write one HTML report
-per workload, case, and repetition. Smoke runs skip HTML export because their
-short duration does not provide a useful time series. Open the self-contained
-reports directly in a browser to inspect request volume, latency, failures, and
-other k6 metrics over time. The runner records dashboard samples every second
-and disables the live dashboard listener so unattended runs exit normally.
+Load runs write `normalized/load.json` and `html/load.html`. Release runs write
+one HTML report per case and repetition; smoke runs skip HTML export. Open these
+self-contained HTML reports in a browser to inspect one-second time-series
+samples. The runner disables the live dashboard listener so unattended runs exit.
 
 Regenerate an existing run's aggregate and Markdown report with:
 
 ```bash
-./performance/report.sh performance/results/<run-id>
+./performance/report.sh performance/results/RUN_ID
 ```
 
 For a load run, use its load-specific generator:
 
 ```bash
-./performance/load-report.sh performance/results/<load-run-id>
+./performance/load-report.sh performance/results/LOAD_RUN_ID
 ```
 
-A complete release run is added to
-[`history/releases.json`](history/releases.json). Smoke runs, filtered release
-diagnostics, and incomplete repetitions do not update published history. Failed
-benchmark cases remain in a complete release as unavailable results, while the
-valid cases are still published. The results directory remains ignored because
-raw runs are noisy and can be reproduced; only curated release history is
-committed.
+Complete release runs update [`history/releases.json`](history/releases.json).
+Smoke, filtered releases, and incomplete repetition sets do not update history.
+Complete runs retain failed cases as unavailable results. Commit curated history;
+keep raw artifacts out of Git.
 
-Valid standalone and chained load runs, including failed operational results,
-are added to [`history/loads.json`](history/loads.json). The browser dashboard
-renders them in a dedicated Mixed load tab so concurrent-load measurements are
-not confused with isolated workload latency. Optional `notes` arrays can be
-maintained on a load run or traffic stream and are preserved when that release
-is regenerated.
+Schema-valid load results, including failed checks, update
+[`history/loads.json`](history/loads.json). The dashboard puts these in the Mixed
+load tab. Add optional `notes` arrays to runs or individual results/streams;
+regeneration preserves existing notes.
 
 Published history must match its JSON Schema and contain only stable release
 subjects:
@@ -188,7 +290,7 @@ subjects:
 ./performance/lint-history.sh
 ```
 
-Remove commit, prerelease, or `-dirty` entries explicitly with:
+Remove commit, prerelease, or `-dirty` entries with:
 
 ```bash
 ./performance/lint-history.sh --fix
@@ -205,13 +307,11 @@ npm --prefix performance run build
 python3 -m http.server 8000
 ```
 
-Open <http://localhost:8000/performance/report/>. The stable HTML loads
-the release and load histories at runtime, so publishing a release does not
-regenerate HTML or change the report URL. The bare URL selects the newest
-published release and opens Benchmark latency. Release, environment, and load
-profile selectors provide shareable deep links; `#load` opens the Mixed load
-tab. The named environment and its interpretation remain visible while full
-hardware details are expandable.
+Open <http://localhost:8000/performance/report/>. The dashboard reads history at
+runtime; publishing a release leaves its HTML and URL unchanged. The bare URL
+opens the newest release's Benchmark latency tab. Select a release/environment
+to share a deep link; `#load` opens Mixed load. Expand the environment panel for
+hardware and interpretation details.
 
 ## Add or update fixtures
 
@@ -240,11 +340,9 @@ stat --format='%s' "$fixture_file"
 sha256sum "$fixture_file"
 ```
 
-The output supplies `width`, `height`, `mediaType`, `bytes`, and `sha256`,
-respectively. The checksum is the first field printed by `sha256sum`. Review the
-detected MIME type before copying it into the manifest; format IDs and media
-types are not always spelled alike—for example, the `jpg` format uses
-`image/jpeg`.
+These commands return `width`, `height`, `mediaType`, `bytes`, and `sha256` in
+order. Use the first field from `sha256sum`. Check MIME types before copying
+them: the format ID `jpg` uses `image/jpeg`.
 
 To inventory every encoding in a fixture directory as tab-separated values:
 
@@ -259,32 +357,28 @@ for fixture_file in performance/assets/medium/medium.*; do
 done
 ```
 
-Each row is `path`, `width`, `height`, `mediaType`, `bytes`, then `sha256`. All
-files grouped under one fixture must report the same dimensions. If they do not,
-fix the encodings or model them as separate fixtures because the k6 correctness
-checks use the fixture-level dimensions.
+Each row contains `path`, `width`, `height`, `mediaType`, `bytes`, and `sha256`.
+Files in one fixture must share dimensions because k6 checks fixture-level
+values. Fix mismatched encodings or give them separate fixture IDs.
 
 After editing the manifest, check its JSON syntax and run a smoke workload that
 uses the fixture:
 
 ```bash
 jq empty performance/assets/manifest.json
-./performance/run.sh smoke --workload <workload-id>
+./performance/run.sh smoke --workload WORKLOAD_ID
 ```
 
-`run.sh` recalculates the byte size and SHA-256 checksum of every manifest file
-before starting a benchmark, so stale or incorrectly copied values fail early.
-Changing fixture bytes can invalidate historical comparisons; follow the
-versioning guidance in [`BENCHMARKING.md`](BENCHMARKING.md) when the change is
-material.
+`run.sh` verifies fixture sizes and checksums before testing. Follow
+[comparison versioning](BENCHMARKING.md#comparison-contract) when changed bytes
+would invalidate historical comparisons.
 
 ## Machine-readable contracts
 
 - [`config/workloads.json`](config/workloads.json) defines executable traffic
   profiles, suites, fixtures, cases, request parameters, and expected values.
-- [`config/environments.json`](config/environments.json) defines the Compose
-  file, verified resource limits, stable hardware metadata, and interpretation
-  guidance for each environment.
+- [`config/environments.json`](config/environments.json) defines Compose/AWS
+  profiles, resource limits, hardware metadata, and interpretation notes.
 - [`assets/manifest.json`](assets/manifest.json) fixes fixture paths, sizes,
   dimensions, media types, and hashes.
 - [`schema/result.schema.json`](schema/result.schema.json) validates one
@@ -301,28 +395,22 @@ material.
   [`schema/manifest.schema.json`](schema/manifest.schema.json) validate the
   executable catalogs during `npm test`.
 
-Keep each workload's short customer-facing description beside its executable
-definition so the report can load it directly. Extended methodology belongs
-here or in [`BENCHMARKING.md`](BENCHMARKING.md). A workload should enter the
-catalog only with a description, k6 handler, runtime configuration, fixture
-definition, and result checks.
+Keep workload descriptions beside their executable definitions. Add a workload
+with its description, k6 handler, runtime config, fixture, and result checks.
+Put measurement rationale in [BENCHMARKING.md](BENCHMARKING.md).
 
 ## Local reference environment
 
-`local-compose-v3` runs on my (Daniel) laptop described in
-`config/environments.json`. Konifer is limited to 2 CPUs and 8 GiB; PostgreSQL
-and Garage are each limited to 1 CPU and 1 GiB. Konifer uses a Docker-managed,
-disk-backed `/app/tmp` volume, and the SigLIP2 model is mounted read-only. The
-MinIO-based `local-compose-v2` profile remains in the catalog so its historical
-results retain their original environment identity.
+`local-compose-v4` runs single-operation benchmarks on Daniel's laptop, described
+in `config/environments.json`. Konifer gets 2 CPUs and 8 GiB; PostgreSQL and Garage
+each get 1 CPU and 1 GiB. Konifer uses disk-backed Docker storage for `/app/tmp`
+and a read-only SigLIP2 model mount. Mixed-load runs retain `local-compose-v3`;
+the catalog keeps `local-compose-v2` for historical MinIO results.
 
-The services and host-based k6 process compete for the same laptop CPU, memory,
-storage, and network stack. Local results are useful for repeatable development
-comparisons on this machine, but they are not production-capacity claims and
-must not be compared directly with a future AWS profile.
+The services and k6 share laptop resources. Compare releases within the same
+environment; local results do not measure production capacity or support
+cross-environment comparisons with AWS.
 
-The `upload.rules` workload verifies inference through a deterministic rule-added
-label. `upload.rules.preprocess` verifies the same inference plus the
-preprocessed WebP format and dimensions. Workloads whose paths do not reference
-an Upload Rules ruleset do not perform inference, although the configured model
-remains resident in the Konifer process.
+`upload.rules` verifies inference through a rule-added label.
+`upload.rules.preprocess` also checks WebP preprocessing and dimensions. Paths
+without an Upload Rules ruleset skip inference; the model remains resident.

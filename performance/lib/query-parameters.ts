@@ -11,6 +11,7 @@ const legacyNames = new Map([
     ['pad-color', 'pad-c'],
 ]);
 
+/** Encode transformation query values, translating known keys when legacy request names are selected. */
 export function queryUrl(url: string, parameters: QueryParameters, useLegacyNames = false): string {
     const values = Object.entries(parameters).map(([key, value]) => {
         const name = useLegacyNames ? (legacyNames.get(key) ?? key) : key;

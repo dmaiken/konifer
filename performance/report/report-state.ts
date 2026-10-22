@@ -24,6 +24,7 @@ export interface ReportSubject {
     completedAt: string;
 }
 
+/** Read report selections from URL parameters and the active-tab fragment. */
 export function requestedStateFromUrl(url: URL): RequestedReportState {
     return {
         subject: url.searchParams.get('release'),
@@ -33,6 +34,7 @@ export function requestedStateFromUrl(url: URL): RequestedReportState {
     };
 }
 
+/** Copy the URL and encode resolved selections while retaining unrelated parameters. */
 export function urlForState(url: URL, state: ReportState): URL {
     const result = new URL(url.href);
     setParameter(result, 'release', state.subject);
@@ -42,6 +44,7 @@ export function urlForState(url: URL, state: ReportState): URL {
     return result;
 }
 
+/** Combine benchmark/load subjects, keep their latest completion times, and order newest releases first. */
 export function reportSubjects(history: PerformanceHistory, loads: LoadHistory): ReportSubject[] {
     const subjects = new Map<string, string>();
     for (const value of [...history.releases, ...loads.runs]) {
@@ -55,6 +58,7 @@ export function reportSubjects(history: PerformanceHistory, loads: LoadHistory):
         .sort((left, right) => compareReleaseVersions(right.subject, left.subject));
 }
 
+/** Resolve unavailable URL selections against history/catalog defaults, honoring builds without load testing. */
 export function resolveReportState(
     history: PerformanceHistory,
     loads: LoadHistory,
@@ -85,6 +89,7 @@ export function resolveReportState(
     return { subject, environment, profile, tab };
 }
 
+/** List environments with benchmark or load results for the selected subject. */
 export function reportEnvironments(
     history: PerformanceHistory,
     loads: LoadHistory,
@@ -97,6 +102,7 @@ export function reportEnvironments(
     ])].sort();
 }
 
+/** List load profiles available for the selected subject and environment. */
 export function reportProfiles(
     loads: LoadHistory,
     subject: string | null,
@@ -109,6 +115,7 @@ export function reportProfiles(
         .sort();
 }
 
+/** Choose the most recent benchmark run for the resolved subject/environment. */
 export function selectedRelease(
     history: PerformanceHistory,
     state: ReportState,
@@ -119,6 +126,7 @@ export function selectedRelease(
         .at(-1) ?? null;
 }
 
+/** Choose the most recent load run for the resolved subject/environment/profile. */
 export function selectedLoadRun(loads: LoadHistory, state: ReportState): LoadRun | null {
     return [...loads.runs]
         .filter((value) => value.subject === state.subject
@@ -128,6 +136,7 @@ export function selectedLoadRun(loads: LoadHistory, state: ReportState): LoadRun
         .at(-1) ?? null;
 }
 
+/** Choose the newest release-ordered load run, optionally scoped to an environment. */
 export function newestLoadRun(loads: LoadHistory, environment: string | null): LoadRun | null {
     return [...loads.runs]
         .filter((value) => !environment || value.environment === environment)
@@ -135,12 +144,14 @@ export function newestLoadRun(loads: LoadHistory, environment: string | null): L
         .at(-1) ?? null;
 }
 
+/** Prefer an available requested value, then the catalog default, then the first available value. */
 function choose(values: string[], requested: string | null, fallback: string): string | null {
     if (requested && values.includes(requested)) return requested;
     if (values.includes(fallback)) return fallback;
     return values[0] ?? null;
 }
 
+/** Set a nonempty selection in the URL or remove its parameter when selection is absent. */
 function setParameter(url: URL, name: string, value: string | null): void {
     if (value) url.searchParams.set(name, value);
     else url.searchParams.delete(name);

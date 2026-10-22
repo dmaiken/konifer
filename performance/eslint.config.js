@@ -17,10 +17,12 @@ const qualityRules = {
 export default [
     {
         ignores: [
-            'dist/**',
+            '**/dist/**',
             'node_modules/**',
             'results/**',
         ],
+    },
+    {
         linterOptions: {
             reportUnusedDisableDirectives: 'error',
         },
@@ -47,7 +49,7 @@ export default [
         },
     },
     {
-        files: ['eslint.config.js', 'report/{aggregate,aggregate.test,build-site,build-site.test,catalog-validation.test,chart,chart.test,generate,history-lint,history-lint.test,lint-history,load,load-generate,load.test,model,model.test,publication,publication.test,render,render.test,types}.ts'],
+        files: ['eslint.config.js', 'report/{aggregate,aggregate.test,benchmark-profile.test,build-site,build-site.test,catalog-validation.test,chart,chart.test,generate,history-lint,history-lint.test,lint-history,load,load-generate,load.test,model,model.test,publication,publication.test,render,render.test,types}.ts'],
         languageOptions: {
             globals: globals.node,
         },
@@ -57,6 +59,10 @@ export default [
         languageOptions: {
             globals: globals.browser,
         },
+    },
+    {
+        files: ['runtime/**/*.ts', 'report/aws-*.test.ts'],
+        languageOptions: { globals: globals.node },
     },
     {
         files: ['k6/**/*.{js,ts}'],

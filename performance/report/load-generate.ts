@@ -18,6 +18,8 @@ const workloads = await readJsonFile<WorkloadCatalog>(path.join(performanceDirec
 await writeJson(path.join(runDirectory, 'aggregate.json'), run);
 await writeFile(path.join(runDirectory, 'report.md'), renderLoadMarkdown(run, workloads));
 
+// Preserve failed checks in history too: they describe an executed load run, and
+// the presentation layer hides their latency instead of implying a valid sample.
 const historyPath = path.join(performanceDirectory, 'history/loads.json');
 const history = await readJson<LoadHistory>(historyPath, { version: 1, runs: [] });
 await writeJson(historyPath, updateLoadHistory(history, run));
@@ -26,6 +28,7 @@ console.log(`Published mixed-load history${run.passed ? '' : ' with failed check
 console.log(`Load result: ${path.join(runDirectory, 'aggregate.json')}`);
 console.log(`Load report: ${path.join(runDirectory, 'report.md')}`);
 
+/** Read load history or use the fallback only for a missing file; propagate other failures. */
 async function readJson<T>(filename: string, fallback: T): Promise<T> {
     try {
         return JSON.parse(await readFile(filename, 'utf8')) as T;
@@ -35,10 +38,12 @@ async function readJson<T>(filename: string, fallback: T): Promise<T> {
     }
 }
 
+/** Read required load/catalog JSON without suppressing parse or filesystem failures. */
 async function readJsonFile<T>(filename: string): Promise<T> {
     return JSON.parse(await readFile(filename, 'utf8')) as T;
 }
 
+/** Create parent directories and write readable, newline-terminated JSON artifacts. */
 async function writeJson(filename: string, value: unknown): Promise<void> {
     await mkdir(path.dirname(filename), { recursive: true });
     await writeFile(filename, `${JSON.stringify(value, null, 2)}\n`);

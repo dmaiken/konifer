@@ -1,3 +1,18 @@
+export interface BenchmarkPhase {
+    samples: number;
+    minDuration: string;
+    maxDuration: string;
+}
+
+export interface BenchmarkProfile {
+    warmup: BenchmarkPhase;
+    measurement: BenchmarkPhase;
+}
+
+export interface BenchmarkProtocol extends BenchmarkProfile {
+    methodology: 'single-vu-v1';
+}
+
 export interface DurationMetrics {
     min: number;
     p50: number;
@@ -22,6 +37,7 @@ export interface NormalizedMetrics {
 }
 
 export interface NormalizedResult {
+    benchmark?: BenchmarkProtocol;
     version: 1;
     runId: string;
     suite: 'smoke' | 'release';
@@ -46,6 +62,7 @@ export interface AggregatedDurationMetrics {
 }
 
 export interface AggregatedResult {
+    benchmark?: BenchmarkProtocol;
     workload: string;
     case: string;
     repetitions: number;
@@ -87,6 +104,9 @@ export interface EnvironmentHardware {
 }
 
 export interface EnvironmentProfile {
+    runtime?: 'compose' | 'aws';
+    aws?: AwsEnvironment;
+    benchmarkMethodology?: string;
     displayName?: string;
     description?: string;
     hardware?: EnvironmentHardware;
@@ -99,7 +119,37 @@ export interface EnvironmentProfile {
     }>;
 }
 
+export interface AwsInstance {
+    instanceType: string;
+    architecture: 'arm64';
+    vcpus: number;
+    memoryGiB: number;
+    container: { cpus: number; memoryBytes: number };
+    metadata: { httpTokens: 'required'; httpPutResponseHopLimit: 2 };
+}
+
+export interface AwsEnvironment {
+    network: { traffic: 'private'; sameAvailabilityZone: true; s3Endpoint: 'gateway' };
+    konifer: AwsInstance;
+    k6: AwsInstance;
+    scratch: { type: 'instance-store'; hostPath: string; containerPath: '/app/tmp'; filesystem: 'ext4' };
+    rds: {
+        engine: 'postgres';
+        engineMajorVersion: string;
+        instanceClass: string;
+        multiAz: false;
+        publiclyAccessible: false;
+        storage: { type: 'gp3'; allocatedGiB: number; encrypted: true };
+        database: string;
+        user: string;
+        sslMode: 'disable';
+        forceSsl: false;
+    };
+    s3: { storageClass: 'STANDARD'; encryption: 'AES256'; blockPublicAccess: true; credentials: 'instance-role' };
+}
+
 export interface EnvironmentCatalog {
+    loadDefault?: string;
     default: string;
     profiles: Record<string, EnvironmentProfile>;
 }

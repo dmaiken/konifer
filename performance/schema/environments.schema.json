@@ -7,6 +7,7 @@
   "required": ["default", "profiles"],
   "properties": {
     "default": {"type": "string", "minLength": 1},
+    "loadDefault": {"type": "string", "minLength": 1},
     "profiles": {
       "type": "object",
       "minProperties": 1,
@@ -40,9 +41,22 @@
     "profile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["displayName", "description", "hardware", "interpretation", "composeFile", "services"],
+      "required": ["displayName", "description", "hardware", "interpretation"],
+      "oneOf": [
+        {
+          "required": ["composeFile", "services"],
+          "properties": {"runtime": {"const": "compose"}, "composeFile": {}, "services": {}, "aws": false}
+        },
+        {
+          "required": ["runtime", "aws"],
+          "properties": {"runtime": {"const": "aws"}, "aws": {}, "composeFile": false, "services": false}
+        }
+      ],
       "properties": {
+        "runtime": {"enum": ["compose", "aws"]},
+        "aws": {"$ref": "#/$defs/aws"},
         "displayName": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "benchmarkMethodology": {"type": "string", "minLength": 1},
         "description": {"type": "string", "minLength": 1, "pattern": "\\S"},
         "hardware": {"$ref": "#/$defs/hardware"},
         "interpretation": {
@@ -55,6 +69,77 @@
           "type": "array",
           "minItems": 1,
           "items": {"$ref": "#/$defs/service"}
+        }
+      }
+    },
+    "instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instanceType", "architecture", "vcpus", "memoryGiB", "container", "metadata"],
+      "properties": {
+        "instanceType": {"type": "string", "pattern": "^[a-z0-9]+\\.[a-z0-9]+$"},
+        "architecture": {"const": "arm64"},
+        "vcpus": {"type": "integer", "minimum": 1},
+        "memoryGiB": {"type": "number", "exclusiveMinimum": 0},
+        "container": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cpus", "memoryBytes"],
+          "properties": {
+            "cpus": {"type": "number", "exclusiveMinimum": 0},
+            "memoryBytes": {"type": "integer", "minimum": 1}
+          }
+        },
+        "metadata": {
+          "type": "object", "additionalProperties": false,
+          "required": ["httpTokens", "httpPutResponseHopLimit"],
+          "properties": {"httpTokens": {"const": "required"}, "httpPutResponseHopLimit": {"const": 2}}
+        }
+      }
+    },
+    "aws": {
+      "type": "object", "additionalProperties": false,
+      "required": ["network", "konifer", "k6", "scratch", "rds", "s3"],
+      "properties": {
+        "network": {
+          "type": "object", "additionalProperties": false,
+          "required": ["traffic", "sameAvailabilityZone", "s3Endpoint"],
+          "properties": {"traffic": {"const": "private"}, "sameAvailabilityZone": {"const": true}, "s3Endpoint": {"const": "gateway"}}
+        },
+        "konifer": {"$ref": "#/$defs/instance"},
+        "k6": {"$ref": "#/$defs/instance"},
+        "scratch": {
+          "type": "object", "additionalProperties": false,
+          "required": ["type", "hostPath", "containerPath", "filesystem"],
+          "properties": {
+            "type": {"const": "instance-store"},
+            "hostPath": {"type": "string", "pattern": "^/mnt/[a-zA-Z0-9/_-]+$"},
+            "containerPath": {"const": "/app/tmp"},
+            "filesystem": {"const": "ext4"}
+          }
+        },
+        "rds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["engine", "engineMajorVersion", "instanceClass", "multiAz", "publiclyAccessible", "storage", "database", "user", "sslMode", "forceSsl"],
+          "properties": {
+            "engine": {"const": "postgres"},
+            "engineMajorVersion": {"type": "string", "pattern": "^[0-9]+$"},
+            "instanceClass": {"type": "string", "pattern": "^db\\.[a-z0-9]+\\.[a-z0-9]+$"},
+            "multiAz": {"const": false}, "publiclyAccessible": {"const": false},
+            "database": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "user": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "sslMode": {"const": "disable"},
+            "forceSsl": {"const": false},
+            "storage": {
+              "type": "object", "additionalProperties": false,
+              "required": ["type", "allocatedGiB", "encrypted"],
+              "properties": {"type": {"const": "gp3"}, "allocatedGiB": {"type": "integer", "minimum": 20}, "encrypted": {"const": true}}
+            }
+          }
+        },
+        "s3": {
+          "type": "object", "additionalProperties": false,
+          "required": ["storageClass", "encryption", "blockPublicAccess", "credentials"],
+          "properties": {"storageClass": {"const": "STANDARD"}, "encryption": {"const": "AES256"}, "blockPublicAccess": {"const": true}, "credentials": {"const": "instance-role"}}
         }
       }
     }

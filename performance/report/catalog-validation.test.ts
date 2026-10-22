@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import type { LoadCatalog } from '../k6/types.ts';
+import { validatePhase, type BenchmarkProfile } from '../lib/benchmark-profile.ts';
 import type { EnvironmentCatalog, WorkloadCatalog, WorkloadDefinition } from './types.ts';
 
 interface FixtureFile {
@@ -39,10 +40,7 @@ interface ExecutableWorkload extends WorkloadDefinition {
 }
 
 interface ExecutableWorkloadCatalog extends Omit<WorkloadCatalog, 'workloads'> {
-    profiles: Record<string, {
-        preAllocatedVUs: number;
-        maxVUs: number;
-    }>;
+    profiles: Record<string, BenchmarkProfile>;
     workloads: Record<string, ExecutableWorkload>;
 }
 
@@ -109,11 +107,9 @@ test('workload and suite references resolve', () => {
         }
     }
 
-    for (const [profileId, profile] of Object.entries(workloads.profiles)) {
-        assert.ok(
-            profile.maxVUs >= profile.preAllocatedVUs,
-            `${profileId} maxVUs must be greater than or equal to preAllocatedVUs`,
-        );
+    for (const profile of Object.values(workloads.profiles)) {
+        validatePhase(profile.warmup);
+        validatePhase(profile.measurement);
     }
 
     for (const [workloadId, workload] of Object.entries(workloads.workloads)) {
@@ -160,13 +156,24 @@ test('general transformations use WebP while JPEG XL stays format-specific', () 
 
 test('environment references and service identities are valid', async () => {
     assert.ok(environments.profiles[environments.default], `Unknown default environment ${environments.default}`);
+    if (environments.loadDefault) {
+        assert.ok(environments.profiles[environments.loadDefault], `Unknown default load environment ${environments.loadDefault}`);
+    }
 
     for (const [environmentId, environment] of Object.entries(environments.profiles)) {
         const containers = environment.services?.map((service) => service.container) ?? [];
         assert.equal(new Set(containers).size, containers.length, `${environmentId} contains duplicate container names`);
 
-        const composeFile = resolveWithin(performanceDirectory, environment.composeFile!);
-        assert.ok((await stat(composeFile)).isFile(), `${environmentId} Compose file does not exist: ${composeFile}`);
+        if (environment.runtime === 'aws') {
+            assert.ok(environment.aws, `${environmentId} AWS configuration is missing`);
+            for (const instance of [environment.aws.konifer, environment.aws.k6]) {
+                assert.ok(instance.container.cpus <= instance.vcpus, `${environmentId} CPU limit exceeds instance capacity`);
+                assert.ok(instance.container.memoryBytes < instance.memoryGiB * 1024 ** 3, `${environmentId} must leave memory for the host`);
+            }
+        } else {
+            const composeFile = resolveWithin(performanceDirectory, environment.composeFile!);
+            assert.ok((await stat(composeFile)).isFile(), `${environmentId} Compose file does not exist: ${composeFile}`);
+        }
     }
 });
 
@@ -189,16 +196,19 @@ test('fixture files stay inside the asset directory and match manifest metadata'
     }
 });
 
+/** Create a strict schema validator with the formats used by harness catalogs. */
 function createValidator(): Ajv2020 {
     const validator = new Ajv2020({ allErrors: true, strict: true });
     addFormats(validator);
     return validator;
 }
 
+/** Read a checked-in catalog/schema relative to the harness rather than the test invocation directory. */
 async function readJson<T>(relativePath: string): Promise<T> {
     return JSON.parse(await readFile(path.join(performanceDirectory, relativePath), 'utf8')) as T;
 }
 
+/** Require a referenced source/output format to exist in its fixture when the workload declares one. */
 function assertFixtureFormat(
     workloadId: string,
     field: string,
@@ -209,6 +219,7 @@ function assertFixtureFormat(
     assert.ok(fixture.files[format], `${workloadId} ${field} references format ${format} missing from its fixture`);
 }
 
+/** Require load profile workload/case references to resolve to executable catalog entries. */
 function assertLoadReference(workloadId: string, caseId: string): void {
     const workload = workloads.workloads[workloadId];
     assert.ok(workload, `Load profile references unknown workload ${workloadId}`);
@@ -216,6 +227,7 @@ function assertLoadReference(workloadId: string, caseId: string): void {
     assert.ok(cases.includes(caseId), `Load profile references unknown case ${workloadId}/${caseId}`);
 }
 
+/** Resolve a catalog path and reject references to the parent itself or outside its directory. */
 function resolveWithin(parent: string, relativePath: string): string {
     const resolvedParent = path.resolve(parent);
     const resolved = path.resolve(resolvedParent, relativePath);
@@ -224,6 +236,7 @@ function resolveWithin(parent: string, relativePath: string): string {
     return resolved;
 }
 
+/** Include full schema diagnostics in catalog assertion failures. */
 function formatValidationErrors(errors: unknown): string {
     return `JSON Schema validation failed:\n${JSON.stringify(errors, null, 2)}`;
 }

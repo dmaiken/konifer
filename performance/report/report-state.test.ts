@@ -29,6 +29,18 @@ test('report subjects combine both histories and sort by release version', () =>
     ]);
 });
 
+test('an empty benchmark baseline retains useful load history without a benchmark comparison', () => {
+    const histories = fixtureHistories();
+    histories.releases = { version: 1, releases: [] };
+    const snapshot = JSON.stringify(histories.loads);
+    const state = resolveReportState(histories.releases, histories.loads, environments(), loadCatalog(),
+        { subject: null, environment: null, profile: null, tab: 'load' });
+    assert.equal(selectedRelease(histories.releases, state), null);
+    assert.ok(selectedLoadRun(histories.loads, state));
+    assert.ok(reportSubjects(histories.releases, histories.loads).length > 0);
+    assert.equal(JSON.stringify(histories.loads), snapshot);
+});
+
 test('report state defaults to the newest release and configured environment', () => {
     const histories = fixtureHistories();
     const state = resolveReportState(
@@ -192,6 +204,7 @@ test('report state round-trips through a shareable GitHub Pages URL', () => {
     );
 });
 
+/** Build overlapping histories with a load-only release and backfilled timestamps to exercise selection boundaries. */
 function fixtureHistories(): { releases: PerformanceHistory; loads: LoadHistory } {
     return {
         releases: {
@@ -213,6 +226,7 @@ function fixtureHistories(): { releases: PerformanceHistory; loads: LoadHistory 
     };
 }
 
+/** Build a result-free benchmark record so state tests isolate identity and completion ordering. */
 function release(subject: string, environment: string, completedAt: string): PerformanceRelease {
     return {
         version: 1,
@@ -227,6 +241,7 @@ function release(subject: string, environment: string, completedAt: string): Per
     };
 }
 
+/** Build a stream-free load record so state tests isolate subject/environment/profile selection. */
 function loadRun(subject: string, environment: string, profile: string, completedAt: string): LoadRun {
     return {
         version: 1,

@@ -12,12 +12,12 @@ test('run report displays the actual repetition count without a fixed assumption
     assert.doesNotMatch(markdown, /\| Change \|/);
 });
 
-test('run report identifies completed measurements', () => {
+test('run report presents measurements without a pass/fail result column or summary', () => {
     const markdown = renderRunMarkdown(release(3));
 
-    assert.match(markdown, /- Result: Completed/);
-    assert.match(markdown, /\| Operation \| Result \|/);
-    assert.match(markdown, /\| Completed \| 50 ms \| 95 ms \|/);
+    assert.doesNotMatch(markdown, /- Result:|\| Result \||\| Passed \||\| Failed \|/);
+    assert.match(markdown, /\| Operation \| p50 \|/);
+    assert.match(markdown, /\| 50 ms \| 95 ms \|/);
 });
 
 test('run report marks a failed benchmark unavailable instead of presenting its latency', () => {
@@ -26,9 +26,8 @@ test('run report marks a failed benchmark unavailable instead of presenting its 
     failed.passed = false;
     const markdown = renderRunMarkdown(failed);
 
-    assert.match(markdown, /- Result: Completed with failed benchmarks/);
-    assert.match(markdown, /\| Failed to complete \| — \| — \| — \|/);
-    assert.doesNotMatch(markdown, /\| Failed to complete \| 50 ms/);
+    assert.match(markdown, /\(measurements unavailable\) \| — \| — \| — \|/);
+    assert.doesNotMatch(markdown, /50 ms|95 ms/);
 });
 
 test('run report hides a meaningless single-repetition p95 range', () => {
@@ -80,6 +79,7 @@ test('run report explains measured workloads from the workload catalog', () => {
     assert.match(markdown, /Stores an original without transformation or inference/);
 });
 
+/** Build a passing run with a configurable repetition count and fixed p95 range for report assertions. */
 function release(repetitions: number): PerformanceRelease {
     return {
         version: 1,

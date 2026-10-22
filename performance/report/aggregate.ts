@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import type {
     AggregatedResult,
     NormalizedResult,
@@ -11,6 +12,7 @@ const metricNames = ['p50', 'p90', 'p95', 'p99'] as const;
 type AggregateMetricName = typeof metricNames[number];
 type RunIdentity = Pick<PerformanceRelease, 'runId' | 'suite' | 'environment' | 'subject'>;
 
+/** Aggregate one run's normalized repetitions; reject mixed identities, duplicates, gaps, or incompatible protocols. */
 export function aggregateResults(documents: NormalizedResult[]): PerformanceRelease {
     if (documents.length === 0) {
         throw new Error('No normalized result documents were found');
@@ -48,9 +50,17 @@ export function aggregateResults(documents: NormalizedResult[]): PerformanceRele
     };
 }
 
+/** Sort repetitions in place, validate protocol/sample completeness, and take medians of run-level percentiles. */
 function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
     documents.sort((left, right) => left.repetition - right.repetition);
     documents.forEach((document, index) => {
+        if (!isDeepStrictEqual(document.benchmark, documents[0].benchmark)) {
+            throw new Error(`Benchmark protocol mismatch for ${document.workload}/${document.case}`);
+        }
+        if (document.benchmark && document.passed
+            && document.metrics.operations !== document.benchmark.measurement.samples) {
+            throw new Error(`Incomplete benchmark samples for ${document.workload}/${document.case}`);
+        }
         if (document.repetition !== index + 1) {
             throw new Error(`Missing repetition ${index + 1} for ${document.workload}/${document.case}`);
         }
@@ -62,6 +72,7 @@ function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
     const p95Values = documents.map((value) => value.metrics.durationMs.p95);
 
     return {
+        ...(documents[0].benchmark ? { benchmark: documents[0].benchmark } : {}),
         workload: documents[0].workload,
         case: documents[0].case,
         repetitions: documents.length,
@@ -82,6 +93,7 @@ function aggregateGroup(documents: NormalizedResult[]): AggregatedResult {
     };
 }
 
+/** Replace the same run ID in history, preserve operator notes, and sort in release order. */
 export function updateHistory(history: PerformanceHistory, aggregate: PerformanceRelease): PerformanceHistory {
     const existing = (history.releases || []).find((value) => value.runId === aggregate.runId);
     const annotatedAggregate = preserveNotes(existing, aggregate);
@@ -91,6 +103,7 @@ export function updateHistory(history: PerformanceHistory, aggregate: Performanc
     return { version: 1, releases };
 }
 
+/** Keep existing run/case annotations when regenerated results do not supply replacements. */
 function preserveNotes(
     existing: PerformanceRelease | undefined,
     aggregate: PerformanceRelease,
@@ -112,6 +125,7 @@ function preserveNotes(
     };
 }
 
+/** Compute a median without mutating the input and round it to three decimal places; expects nonempty data. */
 export function median(values: number[]): number {
     const sorted = [...values].sort((left, right) => left - right);
     const middle = Math.floor(sorted.length / 2);
@@ -121,6 +135,7 @@ export function median(values: number[]): number {
     return Math.round(value * 1000) / 1000;
 }
 
+/** Select the run fields that all normalized repetitions must share. */
 function pickIdentity(document: NormalizedResult): RunIdentity {
     return {
         runId: document.runId,
@@ -130,10 +145,12 @@ function pickIdentity(document: NormalizedResult): RunIdentity {
     };
 }
 
+/** Sum one selected counter across normalized repetitions. */
 function sum(values: NormalizedResult[], selector: (value: NormalizedResult) => number): number {
     return values.reduce((total, value) => total + selector(value), 0);
 }
 
+/** Order report rows by workload and case for stable output. */
 function compareResults(left: AggregatedResult, right: AggregatedResult): number {
     return left.workload.localeCompare(right.workload) || left.case.localeCompare(right.case);
 }

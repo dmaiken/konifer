@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Resolved AWS benchmark connections (no credentials)",
+  "type": "object", "additionalProperties": false,
+  "required": ["environment", "region", "availabilityZone", "koniferPrivateIp", "k6PrivateIp", "rdsEndpoint", "bucketName"],
+  "properties": {
+    "environment": {"type": "string", "minLength": 1},
+    "region": {"type": "string", "pattern": "^[a-z]{2}(-[a-z]+)+-[0-9]+$"},
+    "availabilityZone": {"type": "string", "pattern": "^[a-z]{2}(-[a-z]+)+-[0-9]+[a-z]$"},
+    "koniferPrivateIp": {"type": "string", "format": "ipv4"},
+    "k6PrivateIp": {"type": "string", "format": "ipv4"},
+    "rdsEndpoint": {"type": "string", "format": "hostname", "pattern": "\\.rds\\.amazonaws\\.com(\\.cn)?$"},
+    "bucketName": {"type": "string", "minLength": 3, "maxLength": 63, "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"}
+  }
+}

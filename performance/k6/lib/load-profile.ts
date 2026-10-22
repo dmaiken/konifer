@@ -25,26 +25,31 @@ export function plannedOperations(schedule: LoadSchedule, stream: LoadStreamRate
     );
 }
 
+/** Sum target stream rates and normalize the configured time unit to operations per minute. */
 export function peakRatePerMinute(schedule: LoadSchedule, streams: LoadStreamRates[]): number {
     const timeUnitMinutes = durationMilliseconds(schedule.timeUnit) / millisecondsPerMinute;
     return streams.reduce((total, stream) => total + stream.targetRate, 0) / timeUnitMinutes;
 }
 
+/** Reserve one asset per planned cold operation plus headroom for arrival-rate scheduling rounding. */
 export function seedPoolSize(schedule: LoadSchedule, stream: LoadStreamRates): number {
     return Math.ceil(plannedOperations(schedule, stream) * 1.05) + 1;
 }
 
+/** Sum the ramp-up, steady, and ramp-down windows, excluding post-load recovery. */
 export function trafficDurationMilliseconds(schedule: LoadSchedule): number {
     return durationMilliseconds(schedule.rampUpDuration)
         + durationMilliseconds(schedule.steadyDuration)
         + durationMilliseconds(schedule.rampDownDuration);
 }
 
+/** Normalize one stream's target rate to operations per minute for result metadata. */
 export function targetRatePerMinute(schedule: LoadSchedule, stream: LoadStreamRates): number {
     const timeUnitMinutes = durationMilliseconds(schedule.timeUnit) / millisecondsPerMinute;
     return stream.targetRate / timeUnitMinutes;
 }
 
+/** Parse the load catalog's nonnegative duration notation; reject unsupported units or syntax. */
 function durationMilliseconds(value: string): number {
     const match = /^(\d+)(ms|s|m|h)$/.exec(value);
     if (!match) throw new Error(`Invalid duration: ${value}`);

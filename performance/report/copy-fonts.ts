@@ -2,6 +2,7 @@ import { copyFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Stage fonts from pinned packages so the standalone report needs no external CDN.
 const performanceDirectory = fileURLToPath(new URL('../', import.meta.url));
 const destination = path.join(performanceDirectory, 'dist/fonts');
 const fonts = [

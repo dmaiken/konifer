@@ -36,6 +36,7 @@ const workloadLabels: Record<string, string> = {
     'format.encode': 'Destination format encode',
 };
 
+/** Select the newest result per environment/workload/case and compare passing p95 values to the prior passing result. */
 export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[] {
     const values = new Map<string, LatestSeriesResult>();
     const latestPassing = new Map<string, AggregatedResult>();
@@ -64,6 +65,7 @@ export function latestBySeries(history: PerformanceHistory): LatestSeriesResult[
     return [...values.values()].sort(compareSeries);
 }
 
+/** Describe environments present in benchmark history, tolerating missing catalog metadata. */
 export function environmentsForHistory(
     history: PerformanceHistory,
     catalog: EnvironmentCatalog,
@@ -81,6 +83,7 @@ export function environmentsForHistory(
     });
 }
 
+/** Return release-ordered passing points for one environment/workload/case; omit failed measurements. */
 export function pointsForSeries(history: PerformanceHistory, selected: Pick<LatestSeriesResult, 'environment' | 'workload' | 'case'>): SeriesPoint[] {
     return [...(history.releases || [])]
         .sort(compareReleaseRecords)
@@ -99,26 +102,32 @@ export function pointsForSeries(history: PerformanceHistory, selected: Pick<Late
         });
 }
 
+/** Identify the curated workload/case pairs shown in the dashboard headline section. */
 export function isHeadline(value: Pick<AggregatedResult, 'workload' | 'case'>): boolean {
     return headlineSeries.some(([workload, caseId]) => value.workload === workload && value.case === caseId);
 }
 
+/** Build an environment-scoped series identity so measurements from different hardware never merge. */
 export function seriesId(value: Pick<LatestSeriesResult, 'environment' | 'workload' | 'case'>): string {
     return `${value.environment}\u0000${seriesKey(value)}`;
 }
 
+/** Build a workload/case identity shared by benchmark history and chart selection. */
 export function seriesKey(value: Pick<AggregatedResult, 'workload' | 'case'>): string {
     return `${value.workload}\u0000${value.case}`;
 }
 
+/** Format a report row label from the workload display name and case ID. */
 export function label(value: Pick<AggregatedResult, 'workload' | 'case'>): string {
     return `${workloadLabel(value)} · ${value.case}`;
 }
 
+/** Resolve a known workload display name, falling back to its catalog ID. */
 export function workloadLabel(value: Pick<AggregatedResult, 'workload'>): string {
     return workloadLabels[value.workload] || value.workload;
 }
 
+/** Read the optional workload explanation from the catalog. */
 export function workloadDescription(
     value: Pick<AggregatedResult, 'workload'>,
     catalog: WorkloadCatalog,
@@ -126,15 +135,18 @@ export function workloadDescription(
     return catalog.workloads[value.workload]?.description || null;
 }
 
+/** Format the min/max repetition p95 range, or a placeholder for a single repetition. */
 export function formatRange(value: Pick<AggregatedResult, 'durationMs' | 'repetitions'>): string {
     if (value.repetitions === 1) return '—';
     return `${formatMs(value.durationMs.p95Min)}–${formatMs(value.durationMs.p95Max)}`;
 }
 
+/** Calculate relative latency change; return null when the previous value is zero. */
 export function percentChange(previous: number, current: number): number | null {
     return previous === 0 ? null : ((current - previous) / previous) * 100;
 }
 
+/** Return latency changes only when both the absolute and percentage thresholds are met. */
 export function significantChange(
     previous: number,
     current: number,
@@ -149,6 +161,7 @@ export function significantChange(
     return { milliseconds, percent };
 }
 
+/** Distinguish missing prior data, below-threshold changes, and significant comparisons. */
 export function formatDisplayedChange(
     value: Pick<LatestSeriesResult, 'changePercent' | 'hasPrevious'>,
 ): string {
@@ -157,15 +170,18 @@ export function formatDisplayedChange(
     return `${formatChange(value.changePercent)} vs previous`;
 }
 
+/** Choose the visual status for latency change, where higher values indicate regression. */
 export function changeClass(changePercent: number | null): string {
     if (changePercent === null || changePercent === 0) return 'muted';
     return changePercent > 0 ? 'regression' : 'improvement';
 }
 
+/** Format an optional signed percentage with a placeholder for missing comparisons. */
 export function formatChange(value: number | null | undefined): string {
     return value === null || value === undefined ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
 }
 
+/** Format milliseconds with magnitude-sensitive precision, switching to seconds above one second. */
 export function formatMs(value: number): string {
     if (value >= 1000) return `${(value / 1000).toFixed(2)} s`;
     if (value >= 100) return `${Math.round(value)} ms`;
@@ -173,6 +189,7 @@ export function formatMs(value: number): string {
     return `${value.toFixed(2)} ms`;
 }
 
+/** Order series by environment, workload, and case for stable presentation. */
 function compareSeries(left: LatestSeriesResult, right: LatestSeriesResult): number {
     return left.environment.localeCompare(right.environment)
         || left.workload.localeCompare(right.workload)

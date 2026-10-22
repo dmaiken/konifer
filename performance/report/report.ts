@@ -107,6 +107,7 @@ try {
             : Promise.resolve<LoadCatalog>({ version: 1, defaultProfile: '', profiles: {} }),
     ]);
     const sources = { history, loadHistory, environments, workloads, loadCatalog };
+    /** Resolve the browser URL against available results and rebuild the view after history/hash navigation. */
     const renderFromLocation = () => {
         const requested = requestedStateFromUrl(new URL(window.location.href));
         const state = resolveReportState(history, loadHistory, environments, loadCatalog, requested, includeLoadTesting);
@@ -122,6 +123,7 @@ try {
     );
 }
 
+/** Resolve a requested selection, push its URL into browser history, and render the selected report. */
 function navigate(sources: ReportSources, requested: RequestedReportState): void {
     const state = resolveReportState(
         sources.history,
@@ -136,6 +138,7 @@ function navigate(sources: ReportSources, requested: RequestedReportState): void
     render(sources, state, (next: RequestedReportState) => navigate(sources, next));
 }
 
+/** Replace the dashboard contents for resolved state, handling empty history and builds without load testing. */
 function render(sources: ReportSources, state: ReportState, onNavigate: Navigate): void {
     const { history, loadHistory, environments, workloads, loadCatalog } = sources;
     const release = selectedRelease(history, state);
@@ -185,12 +188,14 @@ function render(sources: ReportSources, state: ReportState, onNavigate: Navigate
     report.append(methodology());
 }
 
+/** Fetch fresh report data and reject HTTP failures before decoding JSON. */
 async function fetchJson<T>(url: URL): Promise<T> {
     const response = await fetch(url, { cache: 'no-cache' });
     if (!response.ok) throw new Error(`${url.pathname} returned HTTP ${response.status}`);
     return response.json() as Promise<T>;
 }
 
+/** Build release/environment selectors and reset dependent selections when their parent changes. */
 function reportControls(sources: ReportSources, state: ReportState, onNavigate: Navigate): HTMLElement {
     const controls = element('section', 'report-controls panel');
     controls.setAttribute('aria-label', 'Report selection');
@@ -215,6 +220,7 @@ function reportControls(sources: ReportSources, state: ReportState, onNavigate: 
     return controls;
 }
 
+/** Build a labeled select with its initial value and change callback. */
 function selectControl(
     name: string,
     options: SelectOption[],
@@ -237,6 +243,7 @@ function selectControl(
     return control;
 }
 
+/** Present the selected environment's identity and expandable hardware/interpretation notes. */
 function environmentDisclosure(
     environmentId: string | null,
     catalog: EnvironmentCatalog,
@@ -276,11 +283,13 @@ function environmentDisclosure(
     return section;
 }
 
+/** Format optional core/thread counts without inventing missing hardware values. */
 function cpuTopology(hardware: EnvironmentHardware): string | undefined {
     if (hardware.physicalCores === undefined && hardware.logicalCpus === undefined) return undefined;
     return `${hardware.physicalCores ?? '—'} physical cores / ${hardware.logicalCpus ?? '—'} logical CPUs`;
 }
 
+/** Build a semantic definition list for environment hardware facts. */
 function descriptionList(facts: Array<[string, string | number]>): HTMLDListElement {
     const list = element('dl', 'environment-facts');
     for (const [name, value] of facts) {
@@ -289,6 +298,7 @@ function descriptionList(facts: Array<[string, string | number]>): HTMLDListElem
     return list;
 }
 
+/** Build accessible benchmark/load tabs with click and arrow/Home/End keyboard navigation. */
 function tabNavigation(state: ReportState, onNavigate: Navigate): HTMLElement {
     const tabs = element('div', 'tabs');
     tabs.setAttribute('role', 'tablist');
@@ -325,6 +335,7 @@ function tabNavigation(state: ReportState, onNavigate: Navigate): HTMLElement {
     return tabs;
 }
 
+/** Create a tab panel with linked ARIA IDs and selected-state visibility. */
 function tabPanel(id: string, selected: boolean): HTMLElement {
     const panel = element('section', 'tab-panel');
     panel.id = `panel-${id}`;
@@ -334,6 +345,7 @@ function tabPanel(id: string, selected: boolean): HTMLElement {
     return panel;
 }
 
+/** Render selected-release tables and history restricted to the same environment through that release. */
 function benchmarkContent(
     history: PerformanceHistory,
     release: PerformanceRelease | null,
@@ -358,7 +370,7 @@ function benchmarkContent(
     content.append(
         sectionIntro(
             'Operation latency',
-            'Compare releases at a fixed request rate for each operation.',
+            'Compare releases using the same measurement protocol for each operation. See the environment notes for test conditions.',
         ),
         resultTable('Common operations', common, workloads),
         resultTable('Format encoding', encode, workloads),
@@ -368,12 +380,14 @@ function benchmarkContent(
     return content;
 }
 
+/** Build a section heading and its explanatory paragraph. */
 function sectionIntro(title: string, description: string): HTMLElement {
     const header = element('header', 'section-intro');
     header.append(element('h2', '', title), element('p', '', description));
     return header;
 }
 
+/** Build a workload/case picker and redraw its passing-result chart when selection changes. */
 function seriesExplorer(
     history: PerformanceHistory,
     values: LatestSeriesResult[],
@@ -394,6 +408,7 @@ function seriesExplorer(
     const description = element('p', 'workload-description');
     const legend = chartLegend([['p50', 'var(--p50)'], ['p95', 'var(--p95)']]);
     const chartHost = element('div');
+    /** Redraw the selected benchmark series without changing the release/environment selection. */
     const update = () => {
         const selected = values[Number(select.value)];
         const selectedDescription = workloadDescription(selected, workloads);
@@ -407,6 +422,7 @@ function seriesExplorer(
     return panel;
 }
 
+/** Render the selected load run, or offer navigation to available results when that selection is empty. */
 function loadContent(
     loadHistory: LoadHistory,
     selected: LoadRun | null,
@@ -465,6 +481,7 @@ function loadContent(
     return content;
 }
 
+/** Show the run's traffic completion, errors, and post-load recovery alongside its identity. */
 function loadSummary(run: LatestLoadRun): HTMLElement {
     const panel = element('section', 'panel load-summary');
     panel.append(
@@ -473,12 +490,11 @@ function loadSummary(run: LatestLoadRun): HTMLElement {
     );
     const facts = element('div', 'load-facts');
     const values = [
-        ['Result', run.passed ? 'Passed' : 'Failed'],
         ['Peak target', formatRate(run.peakRatePerMinute)],
         ['Executed / scheduled', `${run.operations}/${run.targetOperations} (${formatCompletion(run.operations, run.targetOperations)})`],
         ['Duration', formatMinutes(run.trafficDurationSeconds)],
         ['Errors / dropped', `${run.errors} / ${run.droppedIterations}`],
-        ['Recovery', run.recovery.passed ? `Passed · ${formatMs(run.recovery.durationMs)}` : 'Failed'],
+        ['Recovery', run.recovery.passed ? formatMs(run.recovery.durationMs) : 'Measurement unavailable'],
     ];
     for (const [name, value] of values) {
         const fact = element('div', 'load-fact');
@@ -489,6 +505,7 @@ function loadSummary(run: LatestLoadRun): HTMLElement {
     return panel;
 }
 
+/** Show proportional peak target rates with an accessible text description and legend. */
 function trafficMix(streams: LatestLoadStream[]): HTMLElement {
     const panel = element('section', 'panel');
     panel.append(
@@ -517,6 +534,7 @@ function trafficMix(streams: LatestLoadStream[]): HTMLElement {
     return panel;
 }
 
+/** Build a stream/recovery metric picker and charts scoped to comparable load history. */
 function loadHistoryExplorer(
     history: LoadHistory,
     run: LatestLoadRun,
@@ -554,6 +572,7 @@ function loadHistoryExplorer(
     const description = element('p', 'workload-description');
     const legendHost = element('div');
     const chartHost = element('div');
+    /** Switch the metric legend and chart together, including the single-series recovery view. */
     const update = () => {
         const option = options[Number(select.value)];
         description.textContent = option.description || '';
@@ -573,6 +592,7 @@ function loadHistoryExplorer(
     return panel;
 }
 
+/** Build color-keyed labels for chart metrics. */
 function chartLegend(values: Array<[string, string]>): HTMLElement {
     const legend = element('div', 'legend');
     for (const [name, color] of values) {
@@ -583,6 +603,7 @@ function chartLegend(values: Array<[string, string]>): HTMLElement {
     return legend;
 }
 
+/** Render p50/p95 history or a single recovery series with shared axes, points, and release labels. */
 function historyChart(points: SeriesPoint[], options: HistoryChartOptions = {}): SVGSVGElement {
     const width = 920;
     const height = 310;
@@ -619,6 +640,7 @@ function historyChart(points: SeriesPoint[], options: HistoryChartOptions = {}):
     return svg;
 }
 
+/** Build an SVG point with a tooltip identifying its release, latency, and repetition count. */
 function metricPoint(
     point: DrawableMetricPoint,
     metric: 'p50' | 'p95',
@@ -636,6 +658,7 @@ function metricPoint(
     return circle;
 }
 
+/** Render benchmark results, suppressing latency/comparisons for failed cases and omitting empty sections. */
 function resultTable(
     title: string,
     results: LatestSeriesResult[],
@@ -650,7 +673,7 @@ function resultTable(
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'p95 change', 'Operations', 'Errors / dropped'];
+    const headings = ['Operation', 'p50', 'p95', 'p95 range', 'Repetitions', 'p95 change', 'Operations', 'Errors / dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -660,12 +683,13 @@ function resultTable(
         const row = document.createElement('tr');
         if (!value.passed) row.classList.add('failed-result');
         const description = workloadIds.size > 1 ? workloadDescription(value, workloads) : null;
-        row.append(operationCell(value, description));
+        const operation = operationCell(value, description);
+        if (!value.passed) operation.append(element('p', 'muted', 'Measurements unavailable: benchmark checks were not satisfied.'));
+        row.append(operation);
         const measurements = value.passed
             ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
             : ['—', '—', '—'];
         const cells: Array<{ value: string | number; className?: string }> = [
-            { value: value.passed ? 'Passed' : 'Failed', className: value.passed ? '' : 'regression' },
             ...measurements.map((measurement) => ({ value: measurement })),
             { value: value.repetitions },
             { value: value.passed ? formatDisplayedChange(value) : '—', className: value.passed ? changeClass(value.changePercent) : 'muted' },
@@ -680,10 +704,11 @@ function resultTable(
     return section;
 }
 
+/** Render load stream completion and latency comparisons, hiding latency for failed streams. */
 function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     const table = document.createElement('table');
     const header = document.createElement('tr');
-    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'p95 change', 'Errors / dropped']
+    ['Operation', 'Peak target', 'Operations', 'p95', 'p95 change', 'Errors / dropped']
         .forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
     head.append(header);
@@ -691,9 +716,10 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     for (const stream of streams) {
         const row = document.createElement('tr');
         if (!stream.passed) row.classList.add('failed-result');
-        row.append(operationCell(stream));
+        const operation = operationCell(stream);
+        if (!stream.passed) operation.append(element('p', 'muted', 'Measurements unavailable: stream checks were not satisfied.'));
+        row.append(operation);
         const cells = [
-            { value: stream.passed ? 'Passed' : 'Failed', className: stream.passed ? '' : 'regression' },
             { value: `${stream.targetRatePerMinute}/min` },
             { value: `${stream.operations}/${stream.plannedOperations}` },
             { value: stream.passed ? formatMs(stream.durationMs.p95) : '—' },
@@ -707,6 +733,7 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     return table;
 }
 
+/** Render workload/case identity, optional description, and operator annotations as text. */
 function operationCell(
     value: Pick<AggregatedResult, 'workload' | 'case' | 'notes'>,
     description: string | null = null,
@@ -721,12 +748,14 @@ function operationCell(
     return cell;
 }
 
+/** Build a consistent no-results panel for an unavailable report selection. */
 function emptyState(message: string): HTMLElement {
     const section = element('section', 'panel empty-state');
     section.append(element('h2', '', 'Results not available'), element('p', '', message));
     return section;
 }
 
+/** Render comparison/measurement guidance and a link to the benchmark protocol. */
 function methodology(): HTMLElement {
     const footer = document.createElement('footer');
     footer.append(
@@ -743,23 +772,27 @@ function methodology(): HTMLElement {
     return footer;
 }
 
+/** Wrap operator notes in a titled panel. */
 function notesPanel(title: string, notes: string[]): HTMLElement {
     const panel = element('section', 'panel notes-panel');
     panel.append(element('h2', '', title), notesList(notes));
     return panel;
 }
 
+/** Render operator notes as text nodes rather than interpreting their contents as HTML. */
 function notesList(notes: string[]): HTMLUListElement {
     const list = element('ul', 'result-notes');
     notes.forEach((note) => list.append(element('li', '', note)));
     return list;
 }
 
+/** Format traffic duration in minutes with at most one decimal place. */
 function formatMinutes(seconds: number): string {
     const minutes = seconds / 60;
     return `${Number(minutes.toFixed(1))} min`;
 }
 
+/** Build an SVG axis label at the supplied coordinates and text anchor. */
 function svgText(
     x: number,
     y: number,
@@ -771,6 +804,7 @@ function svgText(
     return value;
 }
 
+/** Create a typed SVG element in the SVG namespace and apply stringified attributes. */
 function svgElement<K extends keyof SVGElementTagNameMap>(
     name: K,
     attributes: Record<string, string | number> = {},
@@ -780,6 +814,7 @@ function svgElement<K extends keyof SVGElementTagNameMap>(
     return value;
 }
 
+/** Create a typed HTML element with optional CSS classes and text content. */
 function element<K extends keyof HTMLElementTagNameMap>(
     name: K,
     className = '',
@@ -791,20 +826,24 @@ function element<K extends keyof HTMLElementTagNameMap>(
     return value;
 }
 
+/** Create a text-only anchor with the supplied destination. */
 function link(href: string, text: string): HTMLAnchorElement {
     const value = element('a', '', text);
     value.href = href;
     return value;
 }
 
+/** Format an ISO completion timestamp using the browser's locale and time zone. */
 function dateTime(value: string): string {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
+/** Convert a fetch/render failure into a printable dashboard error. */
 function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+/** Require the report host element before attaching dashboard content. */
 function requiredReportElement(): HTMLElement {
     const value = document.querySelector<HTMLElement>('#report');
     if (!value) throw new Error('Performance report container was not found');

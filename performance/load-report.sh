@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Generate a mixed-load report and publish eligible load history for one run.
+# Usage: load-report.sh RESULTS_DIRECTORY. Requires Node and harness packages;
+# preserve the caller's working directory when forwarding the results path.
 
 set -euo pipefail
 

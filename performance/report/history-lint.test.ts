@@ -69,6 +69,18 @@ test('history schema permits complete releases with failed benchmark results', (
     ));
 });
 
+test('zero-sample failures remain reportable but cannot claim a passing result', () => {
+    const failed = release('release-1', 'v0.9.0');
+    failed.passed = false;
+    failed.results[0].passed = false;
+    failed.results[0].operations = 0;
+    failed.results[0].requests = 0;
+    const history: PerformanceHistory = { version: 1, releases: [failed] };
+    assert.doesNotThrow(() => assertHistoryMatchesSchema(history, historySchema));
+    failed.results[0].passed = true;
+    assert.throws(() => assertHistoryMatchesSchema(history, historySchema), /must be >= 1/);
+});
+
 test('history schema rejects empty annotations', () => {
     const invalid = release('release-1', 'v0.9.0');
     invalid.notes = [];
@@ -140,6 +152,7 @@ test('load history schema rejects blank annotations', () => {
     );
 });
 
+/** Build schema-valid benchmark history with a selectable subject so tests isolate release-label policy. */
 function release(runId: string, subject: string): PerformanceRelease {
     return {
         version: 1,
@@ -154,6 +167,7 @@ function release(runId: string, subject: string): PerformanceRelease {
     };
 }
 
+/** Build a passing aggregate with consistent counters and percentile range for schema mutations. */
 function result(workload: string, caseId: string): AggregatedResult {
     return {
         workload,
@@ -176,6 +190,7 @@ function result(workload: string, caseId: string): AggregatedResult {
     };
 }
 
+/** Build schema-valid mixed-load history with one passing stream and recovery probe. */
 function loadRun(subject: string): LoadRun {
     return {
         version: 1,

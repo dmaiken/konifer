@@ -3,7 +3,34 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "runId", "suite", "workload", "case", "repetition", "environment", "subject", "startedAt", "completedAt", "metrics", "passed"],
+  "$defs": {
+    "benchmarkPhase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["samples", "minDuration", "maxDuration"],
+      "properties": {
+        "samples": {"type": "integer", "minimum": 1},
+        "minDuration": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"},
+        "maxDuration": {"type": "string", "pattern": "^[1-9][0-9]*(?:ms|s|m|h)$"}
+      }
+    },
+    "benchmark": {
+      "type": "object", "additionalProperties": false,
+      "required": ["methodology", "warmup", "measurement"],
+      "properties": {
+        "methodology": {"const": "single-vu-v1"},
+        "warmup": {"$ref": "#/$defs/benchmarkPhase"},
+        "measurement": {"$ref": "#/$defs/benchmarkPhase"}
+      }
+    }
+  },
+  "allOf": [{
+    "if": {"properties": {"passed": {"const": true}}, "required": ["passed"]},
+    "then": {"properties": {"metrics": {"type": "object", "properties": {
+      "operations": {"type": "integer", "minimum": 1}, "requests": {"type": "integer", "minimum": 1}
+    }}}}
+  }],
   "properties": {
+    "benchmark": {"$ref": "#/$defs/benchmark"},
     "version": {"const": 1},
     "runId": {"type": "string", "minLength": 1},
     "suite": {"enum": ["smoke", "release"]},
@@ -19,8 +46,8 @@
       "additionalProperties": false,
       "required": ["operations", "requests", "errors", "checks", "droppedIterations", "durationMs"],
       "properties": {
-        "operations": {"type": "integer", "minimum": 1},
-        "requests": {"type": "integer", "minimum": 1},
+        "operations": {"type": "integer", "minimum": 0},
+        "requests": {"type": "integer", "minimum": 0},
         "errors": {"type": "integer", "minimum": 0},
         "checks": {
           "type": "object",

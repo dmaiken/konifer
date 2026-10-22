@@ -27,7 +27,8 @@ class KtorPostgresTest {
                 host = "host",
                 port = 1234,
                 password = "password",
-                sslMode = "disable",
+                sslMode = "verify-full",
+                sslRootCert = "/app/config/rds-ca-bundle.pem",
             )
         val expectedConnectionFactory = mockk<ConnectionFactory>()
         val capturedOptions = slot<ConnectionFactoryOptions>()
@@ -43,7 +44,8 @@ class KtorPostgresTest {
             capturedOptions.captured.getValue(R2DBC_HOST) shouldBe properties.host
             capturedOptions.captured.getValue(R2DBC_PORT) shouldBe properties.port
             capturedOptions.captured.getValue(R2DBC_PASSWORD) shouldBe properties.password
-            capturedOptions.captured.getValue(Option.valueOf<String>("sslMode")) shouldBe properties.sslMode
+            capturedOptions.captured.getValue(Option.valueOf<String>("sslMode")) shouldBe "verify_full"
+            capturedOptions.captured.getValue(Option.valueOf<String>("sslRootCert")) shouldBe properties.sslRootCert
         } finally {
             unmockkStatic(ConnectionFactories::class)
         }

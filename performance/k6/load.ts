@@ -73,6 +73,7 @@ const recoveryContext = operationContext({
 
 export const options: Options = buildOptions();
 
+/** Seed reusable cache-hit assets and a fresh-original pool sized for the scheduled cold traffic. */
 export function setup(): LoadSetupData {
     const cachedOriginal = seedAsset('cached-original', 0, false);
     const cachedVariant = seedAsset('cached-variant', 0, true);
@@ -83,30 +84,37 @@ export function setup(): LoadSetupData {
     return { cachedOriginal, cachedVariant, cold };
 }
 
+/** Execute one cached-original arrival using the reusable setup asset. */
 export function cachedOriginal(data: LoadSetupData): void {
     execute('cached-original', () => runOriginalDelivery(data.cachedOriginal));
 }
 
+/** Execute one cached-variant arrival using the pre-generated setup variant. */
 export function cachedVariant(data: LoadSetupData): void {
     execute('cached-variant', () => runCachedVariant(data.cachedVariant));
 }
 
+/** Execute one original-upload arrival with a unique asset path. */
 export function originalUpload(): void {
     execute('original-upload', () => runOriginalUpload(contexts['original-upload']));
 }
 
+/** Execute one cold transformation arrival with an unused setup asset. */
 export function coldVariant(data: LoadSetupData): void {
     execute('cold-variant', () => runColdVariant(coldAsset(data)));
 }
 
+/** Execute one eager-acceptance arrival; allow background work to overlap subsequent load traffic. */
 export function eagerUpload(): void {
     execute('eager-upload', () => runEagerAcceptance(contexts['eager-upload']));
 }
 
+/** Execute one rule-matching upload arrival and validate its label and original metadata. */
 export function uploadRules(): void {
     execute('upload-rules', () => runUploadRules(contexts['upload-rules']));
 }
 
+/** Check post-load health and eager readiness, recording separate recovery metrics. */
 export function recovery(): void {
     const health = http.get(`${baseUrl}/health/ready`, requestParameters('health', 'health', 'health'));
     const healthPassed = check(health, { 'post-load health returned 200': (value) => value.status === 200 });
@@ -116,6 +124,7 @@ export function recovery(): void {
     recordOperation('recovery', { ok: healthPassed && eager.ok, durationMs: eager.durationMs });
 }
 
+/** Configure concurrent arrival-rate streams and a recovery scenario starting after the traffic window. */
 function buildOptions(): Options {
     const scenarios: Record<string, Scenario> = {};
     const thresholds: Record<string, Threshold[]> = {};
@@ -157,6 +166,7 @@ function buildOptions(): Options {
     };
 }
 
+/** Register per-stream correctness, activity, and zero-dropped-iteration requirements. */
 function addThresholds(thresholds: Record<string, Threshold[]>, stream: string): void {
     thresholds[`operation_duration{stream:${stream}}`] = ['p(95)>=0'];
     thresholds[`operation_errors{stream:${stream}}`] = ['rate==0'];
@@ -166,6 +176,7 @@ function addThresholds(thresholds: Record<string, Threshold[]>, stream: string):
     thresholds[`dropped_iterations{stream:${stream}}`] = ['count==0'];
 }
 
+/** Run a stream handler, convert exceptions to failed checks, and record its supplied or elapsed latency. */
 function execute(stream: string, handler: () => OperationResult): void {
     const started = Date.now();
     let result;
@@ -182,6 +193,7 @@ function execute(stream: string, handler: () => OperationResult): void {
     });
 }
 
+/** Add stream-tagged duration, error, and operation samples to the k6 metrics. */
 function recordOperation(stream: string, result: Required<OperationResult>): void {
     const tags = { stream };
     operationDuration.add(result.durationMs, tags);
@@ -189,6 +201,7 @@ function recordOperation(stream: string, result: Required<OperationResult>): voi
     operations.add(1, tags);
 }
 
+/** Upload one setup fixture and optionally generate its variant before load traffic begins. */
 function seedAsset(stream: string, index: number, generateVariant: boolean): AssetReference {
     const context = contexts[stream];
     if (!context) throw new Error(`Unknown load stream: ${stream}`);
@@ -213,6 +226,7 @@ function seedAsset(stream: string, index: number, generateVariant: boolean): Ass
     return { assetPath, entryId: body.entryId, contentUrl };
 }
 
+/** Measure a reusable original's HTTP latency and verify a cache hit with the fixture media type. */
 function runOriginalDelivery(asset: AssetReference): OperationResult {
     const context = contexts['cached-original'];
     if (!context) throw new Error('Missing cached-original context');
@@ -225,6 +239,7 @@ function runOriginalDelivery(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure pre-generated variant delivery and require a cache hit in the expected format. */
 function runCachedVariant(asset: AssetReference): OperationResult {
     const context = contexts['cached-variant'];
     if (!context) throw new Error('Missing cached-variant context');
@@ -237,6 +252,7 @@ function runCachedVariant(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure an original upload and validate its variant count, format, and dimensions. */
 function runOriginalUpload(context: OperationContext): OperationResult {
     const response = uploadAsset(context, uniqueAssetPath(context));
     const body = parseJson<KoniferResponseBody>(response);
@@ -251,6 +267,7 @@ function runOriginalUpload(context: OperationContext): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure a fresh transformation and require a cache miss and expected output media type. */
 function runColdVariant(asset: AssetReference): OperationResult {
     const context = contexts['cold-variant'];
     if (!context) throw new Error('Missing cold-variant context');
@@ -264,6 +281,7 @@ function runColdVariant(asset: AssetReference): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure acceptance latency while eager processing continues under concurrent load. */
 function runEagerAcceptance(context: OperationContext): OperationResult {
     const response = uploadAsset(context, configuredAssetPath(context));
     const body = parseJson<KoniferResponseBody>(response);
@@ -275,6 +293,7 @@ function runEagerAcceptance(context: OperationContext): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure a rule-matching upload and check the applied benchmark label and original dimensions. */
 function runUploadRules(context: OperationContext): OperationResult {
     const response = uploadAsset(context, configuredAssetPath(context));
     const body = parseJson<KoniferResponseBody>(response);
@@ -289,6 +308,7 @@ function runUploadRules(context: OperationContext): OperationResult {
     return { ok, durationMs: response.timings.duration };
 }
 
+/** Measure post-upload recovery readiness, then verify eager profiles return cache hits. */
 function runEagerReadiness(context: OperationContext): Required<OperationResult> {
     const assetPath = configuredAssetPath(context);
     const upload = uploadAsset(context, assetPath);
@@ -328,6 +348,7 @@ function runEagerReadiness(context: OperationContext): Required<OperationResult>
     return { ok, durationMs };
 }
 
+/** Resolve and validate a load stream's workload/case and attach its fixture, connection, and query settings. */
 function operationContext(stream: WorkloadReference): OperationContext {
     const definition = workloadCatalog.workloads[stream.workload];
     if (!definition) throw new Error(`Unknown workload in load profile: ${stream.workload}`);
@@ -356,10 +377,12 @@ function operationContext(stream: WorkloadReference): OperationContext {
     };
 }
 
+/** Build request metric tags from a resolved load-stream context. */
 function parameters(context: OperationContext, operation = context.workloadId) {
     return requestParameters(context.workloadId, context.caseId, operation);
 }
 
+/** Consume the scenario-wide iteration's original so concurrent VUs do not reuse a cold asset. */
 function coldAsset(data: LoadSetupData): AssetReference {
     const index = execution.scenario.iterationInTest;
     if (index >= data.cold.length) {
@@ -368,27 +391,33 @@ function coldAsset(data: LoadSetupData): AssetReference {
     return data.cold[index];
 }
 
+/** Namespace load uploads by run, workload, scenario, VU, and iteration to avoid collisions. */
 function uniqueAssetPath(context: OperationContext): string {
     return `/performance/${safe(runId)}/load/${safe(context.workloadId)}/${execution.scenario.name}/${execution.vu.idInTest}-${execution.scenario.iterationInTest}`;
 }
 
+/** Prefix the unique upload path with the workload's required rule-matching namespace. */
 function configuredAssetPath(context: OperationContext): string {
     if (!context.workload.path) throw new Error(`Workload ${context.workloadId} does not define a path`);
     return `${context.workload.path}${uniqueAssetPath(context)}`;
 }
 
+/** Translate catalog stream IDs into k6 scenario identifiers. */
 function scenarioName(stream: string): string {
     return stream.replaceAll('-', '_');
 }
 
+/** Read a k6 summary metric's values, returning an empty object for absent metrics. */
 function metricValues(data: SummaryData, name: string): Record<string, number | undefined> {
     return (data.metrics[name] && data.metrics[name].values) || {};
 }
 
+/** Normalize optional k6 counters to integers, defaulting missing metrics to zero. */
 function integer(value: number | undefined): number {
     return Math.round(Number(value || 0));
 }
 
+/** Normalize one stream's metrics and scheduled traffic metadata; require activity and zero errors/drops. */
 function streamResult(data: SummaryData, stream: LoadStreamDefinition) {
     const duration = metricValues(data, `operation_duration{stream:${stream.id}}`);
     const operationValues = metricValues(data, `operations{stream:${stream.id}}`);
@@ -423,6 +452,7 @@ function streamResult(data: SummaryData, stream: LoadStreamDefinition) {
     return result;
 }
 
+/** Emit raw and normalized mixed-load artifacts, requiring all streams and recovery checks to pass. */
 export function handleSummary(data: SummaryData): SummaryOutput {
     const streams = profile.streams.map((stream) => streamResult(data, stream));
     const targetOperations = streams.reduce((total, stream) => total + stream.plannedOperations, 0);
@@ -473,18 +503,21 @@ export function handleSummary(data: SummaryData): SummaryOutput {
     };
 }
 
+/** Read a required k6 environment variable or fail before load execution. */
 function requiredEnvironment(name: string): string {
     const value = __ENV[name];
     if (!value) throw new Error(`Missing required environment variable: ${name}`);
     return value;
 }
 
+/** Resolve a required stream in the selected load profile or report its missing ID. */
 function requiredStream(id: string): LoadStreamDefinition {
     const stream = profile.streams.find((value) => value.id === id);
     if (!stream) throw new Error(`Load profile ${profileId} does not define stream ${id}`);
     return stream;
 }
 
+/** Convert thrown handler values into printable load-test diagnostics. */
 function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }

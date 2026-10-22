@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Validate release/load history with Node; forward CLI options and exit status.
+# Read-only by default. --fix removes non-release entries from history files.
 
 set -euo pipefail
 

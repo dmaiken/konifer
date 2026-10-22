@@ -19,6 +19,7 @@ class KtorSchedulingTest : PostgresContainerizedTest() {
                 port = postgres.getMappedPort(5432),
                 password = postgres.password,
                 sslMode = "disable",
+                sslRootCert = "/app/config/rds-ca-bundle.pem",
             )
 
         jdbcPostgresDatasource(properties).use { hikariDataSource ->
@@ -30,6 +31,7 @@ class KtorSchedulingTest : PostgresContainerizedTest() {
             postgresDataSource.portNumbers.toList() shouldBe listOf(properties.port)
             postgresDataSource.password shouldBe properties.password
             postgresDataSource.sslMode shouldBe properties.sslMode
+            postgresDataSource.sslRootCert shouldBe properties.sslRootCert
         }
     }
 }

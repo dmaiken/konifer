@@ -106,6 +106,7 @@ fun jdbcPostgresDatasource(properties: PostgresProperties): HikariDataSource {
     dataSource.user = properties.user
     dataSource.password = properties.password
     dataSource.sslMode = properties.sslMode
+    properties.sslRootCert?.let { dataSource.sslRootCert = it }
 
     return HikariDataSource(
         HikariConfig().apply {

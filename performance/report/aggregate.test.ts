@@ -72,6 +72,27 @@ test('aggregation rejects a gap in repetition numbers', () => {
     );
 });
 
+test('aggregation preserves the sampling protocol and rejects mixed or incomplete protocols', () => {
+    const first = result(1, 100, 10);
+    first.benchmark = {
+        methodology: 'single-vu-v1',
+        warmup: { samples: 2, minDuration: '1s', maxDuration: '2s' },
+        measurement: { samples: 10, minDuration: '1s', maxDuration: '2s' },
+    };
+    const second = { ...result(2, 120, 10), benchmark: structuredClone(first.benchmark) };
+    second.benchmark = {
+        measurement: second.benchmark.measurement,
+        warmup: second.benchmark.warmup,
+        methodology: second.benchmark.methodology,
+    };
+    assert.deepEqual(aggregateResults([first, second]).results[0].benchmark, first.benchmark);
+    assert.throws(() => aggregateResults([first, result(2, 120, 10)]), /protocol mismatch/);
+    second.benchmark.measurement.samples = 20;
+    assert.throws(() => aggregateResults([first, second]), /protocol mismatch/);
+    assert.throws(() => aggregateResults([{ ...first, metrics: { ...first.metrics, operations: 9 } }]), /Incomplete benchmark samples/);
+});
+
+/** Build a passing repetition with deterministic counters and percentile ratios for aggregation assertions. */
 function result(repetition: number, p95: number, operations: number): NormalizedResult {
     return {
         version: 1,

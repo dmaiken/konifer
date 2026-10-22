@@ -3,2073 +3,815 @@
   "releases": [
     {
       "version": 1,
-      "runId": "20260823T001321Z-release",
+      "runId": "20261021T010510360Z-f51a5ca2",
       "suite": "release",
-      "environment": "local-compose-v2",
-      "subject": "v0.9.0",
-      "startedAt": "2026-08-23T00:13:21Z",
-      "completedAt": "2026-08-23T03:59:33.886Z",
+      "environment": "aws-c9gd-v1",
+      "subject": "v0.14.0",
+      "startedAt": "2026-10-21T01:06:11Z",
+      "completedAt": "2026-10-21T02:16:24.215Z",
       "results": [
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 100,
+              "minDuration": "10s",
+              "maxDuration": "1m"
+            },
+            "measurement": {
+              "samples": 1000,
+              "minDuration": "30s",
+              "maxDuration": "2m"
+            }
+          },
           "workload": "delivery.original.cached",
           "case": "jpg-medium",
           "repetitions": 3,
-          "operations": 3601,
-          "requests": 3601,
+          "operations": 3000,
+          "requests": 3000,
           "errors": 0,
           "checks": {
-            "passed": 10803,
+            "passed": 9000,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 6.086,
-            "p90": 6.439,
-            "p95": 6.582,
-            "p99": 9.352,
-            "p95Min": 6.50935475,
-            "p95Max": 9.63214535
+            "p50": 34.516,
+            "p90": 57.197,
+            "p95": 64.208,
+            "p99": 90.343,
+            "p95Min": 48.96828655,
+            "p95Max": 77.40974809999999
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "avif-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 119.279,
-            "p90": 130.127,
-            "p95": 135.478,
-            "p99": 159.851,
-            "p95Min": 131.972821,
-            "p95Max": 135.88055935
+            "p50": 152.866,
+            "p90": 194.717,
+            "p95": 208.739,
+            "p99": 231.984,
+            "p95Min": 191.74002394999997,
+            "p95Max": 220.9055616
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "gif-to-webp",
           "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 813,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 76.798,
-            "p90": 82.628,
-            "p95": 85.208,
-            "p99": 117.808,
-            "p95Min": 84.0544005,
-            "p95Max": 86.62104049999999
+            "p50": 202.14,
+            "p90": 249.568,
+            "p95": 263.9,
+            "p99": 304.554,
+            "p95Min": 243.96600444999996,
+            "p95Max": 284.6238953999999
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "heic-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 186.383,
-            "p90": 194.71,
-            "p95": 198.117,
-            "p99": 252.133,
-            "p95Min": 197.3054391,
-            "p95Max": 200.9171505
+            "p50": 203.195,
+            "p90": 260.418,
+            "p95": 274.791,
+            "p99": 294.09,
+            "p95Min": 252.1641311,
+            "p95Max": 277.65561825
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "jpg-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 69.548,
-            "p90": 74.622,
-            "p95": 77.329,
-            "p99": 79.75,
-            "p95Min": 76.08844615,
-            "p95Max": 77.7234045
+            "p50": 156.754,
+            "p90": 200.063,
+            "p95": 230.596,
+            "p99": 270.188,
+            "p95Min": 212.42505934999994,
+            "p95Max": 246.38910219999997
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "jxl-to-webp",
           "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 819,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 122.511,
-            "p90": 128.507,
-            "p95": 130.553,
-            "p99": 136.259,
-            "p95Min": 129.05811749999998,
-            "p95Max": 132.754846
+            "p50": 161.16,
+            "p90": 191.414,
+            "p95": 205.059,
+            "p99": 241.879,
+            "p95Min": 204.8054526,
+            "p95Max": 247.78547559999998
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "png-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 90.212,
-            "p90": 96.356,
-            "p95": 98.735,
-            "p99": 115.214,
-            "p95Min": 97.63260705,
-            "p95Max": 101.7162675
+            "p50": 220.421,
+            "p90": 256.525,
+            "p95": 275.307,
+            "p99": 295.298,
+            "p95Min": 271.17049124999994,
+            "p95Max": 275.7109650499999
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.decode",
           "case": "webp-to-webp",
           "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 819,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 99.746,
-            "p90": 107.239,
-            "p95": 108.778,
-            "p99": 114.049,
-            "p95Min": 107.798246,
-            "p95Max": 111.12462049999999
+            "p50": 143.836,
+            "p90": 182.471,
+            "p95": 213.764,
+            "p99": 251.937,
+            "p95Min": 185.8773926,
+            "p95Max": 223.19057314999998
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-avif",
           "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 810,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 1455.455,
-            "p90": 1611.745,
-            "p95": 1643.543,
-            "p99": 3713.419,
-            "p95Min": 1633.5182828499999,
-            "p95Max": 2312.544292399999
+            "p50": 167.215,
+            "p90": 204.682,
+            "p95": 220.159,
+            "p99": 234.518,
+            "p95Min": 208.30604985,
+            "p95Max": 224.14502705
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-gif",
           "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 819,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 1215.619,
-            "p90": 1298.843,
-            "p95": 1302.783,
-            "p99": 1381.107,
-            "p95Min": 1294.55922,
-            "p95Max": 1336.8698869999998
+            "p50": 248.968,
+            "p90": 309.807,
+            "p95": 336.882,
+            "p99": 405.508,
+            "p95Min": 286.2314867,
+            "p95Max": 355.75551749999994
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-heic",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 564.524,
-            "p90": 596.644,
-            "p95": 610.903,
-            "p99": 632.87,
-            "p95Min": 605.1982725,
-            "p95Max": 620.070442
+            "p50": 193.863,
+            "p90": 234.99,
+            "p95": 251.473,
+            "p99": 330.53,
+            "p95Min": 248.7151161,
+            "p95Max": 293.9706989
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-jpg",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 39.697,
-            "p90": 43.194,
-            "p95": 44.68,
-            "p99": 60.347,
-            "p95Min": 44.221177499999996,
-            "p95Max": 44.76830615
+            "p50": 143.274,
+            "p90": 185.325,
+            "p95": 197.176,
+            "p99": 253.202,
+            "p95Min": 193.57058779999997,
+            "p95Max": 221.67626324999995
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-jxl",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 100.362,
-            "p90": 136.805,
-            "p95": 137.657,
-            "p99": 150.666,
-            "p95Min": 102.9169345,
-            "p95Max": 141.765284
+            "p50": 183.348,
+            "p90": 224.548,
+            "p95": 236.415,
+            "p99": 255.748,
+            "p95Min": 230.82215489999996,
+            "p95Max": 240.038388
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-png",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 816,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 64.77,
-            "p90": 68.734,
-            "p95": 69.892,
-            "p99": 112.035,
-            "p95Min": 69.57100405,
-            "p95Max": 72.47713350000001
+            "p50": 155.328,
+            "p90": 198.786,
+            "p95": 218.656,
+            "p99": 274.473,
+            "p95Min": 215.83395179999997,
+            "p95Max": 239.59637905
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "format.encode",
           "case": "jpg-to-webp",
           "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 813,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 69.083,
-            "p90": 75.952,
-            "p95": 77.484,
-            "p99": 84.99,
-            "p95Min": 77.43259599999999,
-            "p95Max": 78.03177289999999
+            "p50": 171.369,
+            "p90": 217.143,
+            "p95": 234.944,
+            "p99": 286.95,
+            "p95Min": 229.16669729999998,
+            "p95Max": 292.78084465
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 30,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "upload.eager.accept",
           "case": "jpg-medium-four-webp-profiles",
           "repetitions": 3,
-          "operations": 721,
-          "requests": 721,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 2163,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 17.115,
-            "p90": 101.521,
-            "p95": 123.359,
-            "p99": 179.96,
-            "p95Min": 20.431882,
-            "p95Max": 392.87852039999996
+            "p50": 39.551,
+            "p90": 56.308,
+            "p95": 68.037,
+            "p99": 106.841,
+            "p95Min": 61.82864994999998,
+            "p95Max": 77.41691694999999
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 30,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "upload.original",
           "case": "jpg-medium",
           "repetitions": 3,
-          "operations": 721,
-          "requests": 721,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 3605,
+            "passed": 3000,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 20.431,
-            "p90": 23.329,
-            "p95": 25.254,
-            "p99": 29.486,
-            "p95Min": 22.763353,
-            "p95Max": 29.299369449999993
+            "p50": 42.496,
+            "p90": 60.206,
+            "p95": 64.33,
+            "p99": 94.943,
+            "p95Min": 58.903756149999985,
+            "p95Max": 83.88424599999989
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "upload.preprocess",
           "case": "jpg-medium-to-webp",
           "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 1088,
+            "passed": 2400,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 226.052,
-            "p90": 234.592,
-            "p95": 243.254,
-            "p99": 270.807,
-            "p95Min": 233.094002,
-            "p95Max": 256.0385575
+            "p50": 198.708,
+            "p90": 220.107,
+            "p95": 247.237,
+            "p99": 284.497,
+            "p95Min": 219.8353001,
+            "p95Max": 252.15218735
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "upload.rules",
           "case": "jpg-medium-landscape-rule",
           "repetitions": 3,
-          "operations": 74,
-          "requests": 74,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 444,
+            "passed": 3600,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 472.512,
-            "p90": 511.242,
-            "p95": 519.36,
-            "p99": 841.848,
-            "p95Min": 485.89224145,
-            "p95Max": 534.6256276
+            "p50": 191.443,
+            "p90": 210.529,
+            "p95": 233.396,
+            "p99": 256.365,
+            "p95Min": 225.49469664999998,
+            "p95Max": 270.9567374
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "upload.rules.preprocess",
           "case": "jpg-medium-landscape-rule-to-webp",
           "repetitions": 3,
-          "operations": 73,
-          "requests": 73,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 438,
+            "passed": 3600,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 676.363,
-            "p90": 827.319,
-            "p95": 835.165,
-            "p99": 1243.25,
-            "p95Min": 805.36526725,
-            "p95Max": 906.0125341999999
+            "p50": 346.971,
+            "p90": 359.431,
+            "p95": 370.479,
+            "p99": 403.655,
+            "p95Min": 368.07431049999997,
+            "p95Max": 374.971949
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 100,
+              "minDuration": "10s",
+              "maxDuration": "1m"
+            },
+            "measurement": {
+              "samples": 1000,
+              "minDuration": "30s",
+              "maxDuration": "2m"
+            }
+          },
           "workload": "variant.deliver.cached",
           "case": "jpg-to-webp-400",
           "repetitions": 3,
-          "operations": 3603,
-          "requests": 3603,
+          "operations": 3000,
+          "requests": 3000,
           "errors": 0,
           "checks": {
-            "passed": 10809,
+            "passed": 9000,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 5.577,
-            "p90": 5.863,
-            "p95": 5.967,
-            "p99": 7.755,
-            "p95Min": 5.878209,
-            "p95Max": 6.172011
+            "p50": 27.366,
+            "p90": 43.473,
+            "p95": 48.765,
+            "p99": 62.697,
+            "p95Min": 45.74713944999999,
+            "p95Max": 67.31807369999999
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "variant.eager.ready",
           "case": "jpg-medium-four-webp-profiles",
           "repetitions": 3,
-          "operations": 269,
-          "requests": 2764,
+          "operations": 600,
+          "requests": 5516,
           "errors": 0,
           "checks": {
-            "passed": 4035,
+            "passed": 9000,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 419,
-            "p90": 434,
-            "p95": 481,
-            "p99": 1016.69,
-            "p95Min": 425.55,
-            "p95Max": 526.1999999999999
+            "p50": 306,
+            "p90": 408,
+            "p95": 408,
+            "p99": 409,
+            "p95Min": 408,
+            "p95Max": 409
           },
           "passed": true
         },
         {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
           "workload": "variant.generate.cold",
           "case": "jpg-to-webp-400",
           "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
+          "operations": 600,
+          "requests": 600,
           "errors": 0,
           "checks": {
-            "passed": 813,
+            "passed": 1800,
             "failed": 0
           },
           "droppedIterations": 0,
           "durationMs": {
-            "p50": 71.57,
-            "p90": 78.446,
-            "p95": 80.783,
-            "p99": 91.96,
-            "p95Min": 78.85434175,
-            "p95Max": 85.1469845
-          },
-          "passed": true
-        }
-      ],
-      "passed": true
-    },
-    {
-      "version": 1,
-      "runId": "20260811T025520Z-release",
-      "suite": "release",
-      "environment": "local-compose-v2",
-      "subject": "v0.10.0",
-      "startedAt": "2026-08-11T02:55:20Z",
-      "completedAt": "2026-08-11T06:41:23.482Z",
-      "results": [
-        {
-          "workload": "delivery.original.cached",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 3602,
-          "requests": 3602,
-          "errors": 0,
-          "checks": {
-            "passed": 10806,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 6.039,
-            "p90": 6.471,
-            "p95": 6.825,
-            "p99": 10.004,
-            "p95Min": 6.655147499999998,
-            "p95Max": 9.305943
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "avif-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 107.003,
-            "p90": 116.504,
-            "p95": 121.165,
-            "p99": 134.108,
-            "p95Min": 117.609228,
-            "p95Max": 122.64232634999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "gif-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 75.996,
-            "p90": 82.882,
-            "p95": 84.923,
-            "p99": 114.512,
-            "p95Min": 83.718831,
-            "p95Max": 87.1799615
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "heic-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 167.776,
-            "p90": 176.059,
-            "p95": 178.63,
-            "p99": 186.102,
-            "p95Min": 177.71441349999998,
-            "p95Max": 181.25002849999998
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 66.277,
-            "p90": 73.089,
-            "p95": 75.213,
-            "p99": 84.629,
-            "p95Min": 75.1878215,
-            "p95Max": 75.48697899999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jxl-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 109.778,
-            "p90": 117.265,
-            "p95": 120.914,
-            "p99": 150.195,
-            "p95Min": 116.932632,
-            "p95Max": 127.06202619999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "png-to-webp",
-          "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
-          "errors": 0,
-          "checks": {
-            "passed": 810,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 81.649,
-            "p90": 87.427,
-            "p95": 89.188,
-            "p99": 121.122,
-            "p95Min": 88.05227225,
-            "p95Max": 92.1308853
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "webp-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 95.483,
-            "p90": 102.696,
-            "p95": 104.545,
-            "p99": 112.429,
-            "p95Min": 103.15336500000001,
-            "p95Max": 105.321402
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-avif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 196.967,
-            "p90": 212.641,
-            "p95": 223.094,
-            "p99": 251.243,
-            "p95Min": 209.80762049999998,
-            "p95Max": 233.7294115
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-gif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 1240.815,
-            "p90": 1288.064,
-            "p95": 1310.32,
-            "p99": 1367.707,
-            "p95Min": 1291.5320975,
-            "p95Max": 1334.627019
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-heic",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 126.922,
-            "p90": 132.165,
-            "p95": 132.808,
-            "p99": 172.493,
-            "p95Min": 131.9204648,
-            "p95Max": 161.5098705
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jpg",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 38.433,
-            "p90": 40.529,
-            "p95": 42.446,
-            "p99": 45.492,
-            "p95Min": 41.255202,
-            "p95Max": 42.912966049999994
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jxl",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 174.194,
-            "p90": 179.342,
-            "p95": 180.705,
-            "p99": 197.518,
-            "p95Min": 132.3826703,
-            "p95Max": 181.50607779999999
-          },
-          "passed": true,
-          "notes": [
-            "libvips does not support streamable output option in libjxl 0.12.0, so more output buffering is required."
-          ]
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-png",
-          "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
-          "errors": 0,
-          "checks": {
-            "passed": 810,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 60.214,
-            "p90": 63.189,
-            "p95": 65.21,
-            "p99": 106.031,
-            "p95Min": 64.1256088,
-            "p95Max": 67.07836
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 65.948,
-            "p90": 71.259,
-            "p95": 73.816,
-            "p99": 81.483,
-            "p95Min": 72.3296245,
-            "p95Max": 74.89805664999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.eager.accept",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 722,
-          "requests": 722,
-          "errors": 0,
-          "checks": {
-            "passed": 2166,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 17.729,
-            "p90": 20.114,
-            "p95": 82.194,
-            "p99": 159.941,
-            "p95Min": 21.341095,
-            "p95Max": 199.28522415
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.original",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 721,
-          "requests": 721,
-          "errors": 0,
-          "checks": {
-            "passed": 3605,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 20.125,
-            "p90": 23.338,
-            "p95": 24.969,
-            "p99": 29.819,
-            "p95Min": 24.055407199999994,
-            "p95Max": 33.29187
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.preprocess",
-          "case": "jpg-medium-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 1092,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 213.593,
-            "p90": 246.1,
-            "p95": 256.184,
-            "p99": 271.423,
-            "p95Min": 247.43244199999998,
-            "p95Max": 259.250132
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules",
-          "case": "jpg-medium-landscape-rule",
-          "repetitions": 3,
-          "operations": 73,
-          "requests": 73,
-          "errors": 0,
-          "checks": {
-            "passed": 438,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 357.898,
-            "p90": 481.823,
-            "p95": 482.718,
-            "p99": 556.251,
-            "p95Min": 468.059903,
-            "p95Max": 545.7361482499999
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules.preprocess",
-          "case": "jpg-medium-landscape-rule-to-webp",
-          "repetitions": 3,
-          "operations": 75,
-          "requests": 75,
-          "errors": 0,
-          "checks": {
-            "passed": 450,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 794.921,
-            "p90": 860.788,
-            "p95": 890.741,
-            "p99": 1360.38,
-            "p95Min": 812.3864524,
-            "p95Max": 1090.2476153999992
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.deliver.cached",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 3603,
-          "requests": 3603,
-          "errors": 0,
-          "checks": {
-            "passed": 10809,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 5.583,
-            "p90": 5.877,
-            "p95": 6.023,
-            "p99": 8.399,
-            "p95Min": 5.914954,
-            "p95Max": 6.197987
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.eager.ready",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 2737,
-          "errors": 0,
-          "checks": {
-            "passed": 4080,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 415,
-            "p90": 418,
-            "p95": 473.9,
-            "p99": 533,
-            "p95Min": 423.5,
-            "p95Max": 518.5
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.generate.cold",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 67.939,
-            "p90": 75.838,
-            "p95": 77.501,
-            "p99": 83.276,
-            "p95Min": 76.42721399999999,
-            "p95Max": 79.82358550000001
-          },
-          "passed": true
-        }
-      ],
-      "passed": true
-    },
-    {
-      "version": 1,
-      "runId": "20260828T034748Z-release",
-      "suite": "release",
-      "environment": "local-compose-v2",
-      "subject": "v0.11.0",
-      "startedAt": "2026-08-28T03:47:48Z",
-      "completedAt": "2026-08-28T07:33:29.092Z",
-      "results": [
-        {
-          "workload": "delivery.original.cached",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 3601,
-          "requests": 3601,
-          "errors": 0,
-          "checks": {
-            "passed": 10803,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 5.384,
-            "p90": 5.691,
-            "p95": 5.87,
-            "p99": 9.115,
-            "p95Min": 5.692557399999999,
-            "p95Max": 7.670079199999997
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "avif-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 94.284,
-            "p90": 97.083,
-            "p95": 98.636,
-            "p99": 105.684,
-            "p95Min": 98.58431675,
-            "p95Max": 99.021543
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "gif-to-webp",
-          "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
-          "errors": 0,
-          "checks": {
-            "passed": 810,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 66.439,
-            "p90": 68.338,
-            "p95": 69.528,
-            "p99": 84.756,
-            "p95Min": 69.15134875,
-            "p95Max": 71.38363389999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "heic-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 151.363,
-            "p90": 154.872,
-            "p95": 156.392,
-            "p99": 160.257,
-            "p95Min": 155.489251,
-            "p95Max": 156.68119489999998
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 59.364,
-            "p90": 62.368,
-            "p95": 63.234,
-            "p99": 71.653,
-            "p95Min": 62.2930522,
-            "p95Max": 65.34561755
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jxl-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 91.532,
-            "p90": 95.179,
-            "p95": 97.243,
-            "p99": 110.472,
-            "p95Min": 96.69092,
-            "p95Max": 112.033231
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "png-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 69.616,
-            "p90": 72.122,
-            "p95": 75.013,
-            "p99": 81.6,
-            "p95Min": 74.47722949999999,
-            "p95Max": 78.65520934999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "webp-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 71.241,
-            "p90": 75.194,
-            "p95": 77.846,
-            "p99": 83.813,
-            "p95Min": 75.868252,
-            "p95Max": 78.3262245
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-avif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 146.933,
-            "p90": 154.319,
-            "p95": 158.902,
-            "p99": 177.824,
-            "p95Min": 156.7534845,
-            "p95Max": 162.19352450000002
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-gif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 157.757,
-            "p90": 161.394,
-            "p95": 165.351,
-            "p99": 245.399,
-            "p95Min": 161.916586,
-            "p95Max": 170.77727785
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-heic",
-          "repetitions": 3,
-          "operations": 270,
-          "requests": 270,
-          "errors": 0,
-          "checks": {
-            "passed": 810,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 104.489,
-            "p90": 110.745,
-            "p95": 113.822,
-            "p99": 157.889,
-            "p95Min": 112.0669068,
-            "p95Max": 119.85212544999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jpg",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 34.524,
-            "p90": 36.573,
-            "p95": 37.267,
-            "p99": 44.029,
-            "p95Min": 36.411655499999995,
-            "p95Max": 37.7005925
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jxl",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 88.052,
-            "p90": 93.673,
-            "p95": 94.945,
-            "p99": 135.569,
-            "p95Min": 94.7388515,
-            "p95Max": 122.44956175
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-png",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 47.382,
-            "p90": 50.123,
-            "p95": 51.53,
-            "p99": 53.787,
-            "p95Min": 50.193839999999994,
-            "p95Max": 51.820987
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 58.199,
-            "p90": 60.875,
-            "p95": 61.005,
-            "p99": 70.59,
-            "p95Min": 60.5677835,
-            "p95Max": 62.830725
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.eager.accept",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 723,
-          "requests": 723,
-          "errors": 0,
-          "checks": {
-            "passed": 2169,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 13.265,
-            "p90": 14.378,
-            "p95": 14.996,
-            "p99": 19.155,
-            "p95Min": 14.810432,
-            "p95Max": 15.128665
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.original",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 721,
-          "requests": 721,
-          "errors": 0,
-          "checks": {
-            "passed": 3605,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 15.584,
-            "p90": 18.449,
-            "p95": 20.429,
-            "p99": 23.629,
-            "p95Min": 17.480207749999998,
-            "p95Max": 28.666025
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.preprocess",
-          "case": "jpg-medium-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 1088,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 196.4,
-            "p90": 200.697,
-            "p95": 205.824,
-            "p99": 209.373,
-            "p95Min": 201.997333,
-            "p95Max": 220.30951464999995
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules",
-          "case": "jpg-medium-landscape-rule",
-          "repetitions": 3,
-          "operations": 74,
-          "requests": 74,
-          "errors": 0,
-          "checks": {
-            "passed": 444,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 363.148,
-            "p90": 476.305,
-            "p95": 537.839,
-            "p99": 770.567,
-            "p95Min": 480.04760039999996,
-            "p95Max": 554.2912872999999
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules.preprocess",
-          "case": "jpg-medium-landscape-rule-to-webp",
-          "repetitions": 3,
-          "operations": 73,
-          "requests": 73,
-          "errors": 0,
-          "checks": {
-            "passed": 438,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 622.453,
-            "p90": 748.075,
-            "p95": 750.912,
-            "p99": 1071.459,
-            "p95Min": 718.6321963500001,
-            "p95Max": 776.7326218
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.deliver.cached",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 3603,
-          "requests": 3603,
-          "errors": 0,
-          "checks": {
-            "passed": 10809,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 4.494,
-            "p90": 5.036,
-            "p95": 6.401,
-            "p99": 7.713,
-            "p95Min": 6.302141,
-            "p95Max": 6.67726
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.eager.ready",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 2721,
-          "errors": 0,
-          "checks": {
-            "passed": 4080,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 416,
-            "p90": 417,
-            "p95": 418,
-            "p99": 429.9,
-            "p95Min": 417.55,
-            "p95Max": 419
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.generate.cold",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 61.043,
-            "p90": 64.703,
-            "p95": 69.507,
-            "p99": 77.769,
-            "p95Min": 63.76646095,
-            "p95Max": 70.5017015
-          },
-          "passed": true
-        }
-      ],
-      "passed": true
-    },
-    {
-      "version": 1,
-      "runId": "20260917T010402Z-release",
-      "suite": "release",
-      "environment": "local-compose-v2",
-      "subject": "v0.13.0",
-      "startedAt": "2026-09-17T01:04:02Z",
-      "completedAt": "2026-09-17T04:49:43.876Z",
-      "results": [
-        {
-          "workload": "delivery.original.cached",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 3601,
-          "requests": 3601,
-          "errors": 0,
-          "checks": {
-            "passed": 10803,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 5.278,
-            "p90": 5.625,
-            "p95": 5.83,
-            "p99": 8.937,
-            "p95Min": 5.661018299999999,
-            "p95Max": 7.513681
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "avif-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 96.17,
-            "p90": 99.955,
-            "p95": 102.938,
-            "p99": 108.462,
-            "p95Min": 99.96542099999999,
-            "p95Max": 105.390036
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "gif-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 66.853,
-            "p90": 70.527,
-            "p95": 72.447,
-            "p99": 90.802,
-            "p95Min": 69.72647845,
-            "p95Max": 76.9266481
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "heic-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 153.444,
-            "p90": 158.352,
-            "p95": 163.394,
-            "p99": 171.503,
-            "p95Min": 161.300488,
-            "p95Max": 165.0064845
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 58.855,
-            "p90": 61.738,
-            "p95": 64.088,
-            "p99": 69.482,
-            "p95Min": 63.4198405,
-            "p95Max": 64.84529229999998
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "jxl-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 90.71,
-            "p90": 94.137,
-            "p95": 97.815,
-            "p99": 105.471,
-            "p95Min": 94.37628855,
-            "p95Max": 98.9432225
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "png-to-webp",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 69.595,
-            "p90": 72.436,
-            "p95": 74.777,
-            "p99": 81.237,
-            "p95Min": 74.17048249999999,
-            "p95Max": 75.6805525
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.decode",
-          "case": "webp-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 67.737,
-            "p90": 71.613,
-            "p95": 72.903,
-            "p99": 79.79,
-            "p95Min": 72.621266,
-            "p95Max": 74.527963
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-avif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 105.907,
-            "p90": 110.627,
-            "p95": 112.619,
-            "p99": 142.707,
-            "p95Min": 110.802499,
-            "p95Max": 125.15458569999997
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-gif",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 198.249,
-            "p90": 200.362,
-            "p95": 200.842,
-            "p99": 214.901,
-            "p95Min": 160.8976347,
-            "p95Max": 202.681621
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-heic",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 106.138,
-            "p90": 112.84,
-            "p95": 116.085,
-            "p99": 138.205,
-            "p95Min": 114.9199875,
-            "p95Max": 1107.6830235
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jpg",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 34.763,
-            "p90": 37.518,
-            "p95": 39.138,
-            "p99": 54.402,
-            "p95Min": 38.78607545,
-            "p95Max": 529.3894315
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-jxl",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 93.504,
-            "p90": 97.203,
-            "p95": 98.444,
-            "p99": 115.486,
-            "p95Min": 92.39151050000001,
-            "p95Max": 113.96980425
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-png",
-          "repetitions": 3,
-          "operations": 273,
-          "requests": 273,
-          "errors": 0,
-          "checks": {
-            "passed": 819,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 47.177,
-            "p90": 49.444,
-            "p95": 50.905,
-            "p99": 64.44,
-            "p95Min": 50.744328499999995,
-            "p95Max": 51.577267
-          },
-          "passed": true
-        },
-        {
-          "workload": "format.encode",
-          "case": "jpg-to-webp",
-          "repetitions": 3,
-          "operations": 272,
-          "requests": 272,
-          "errors": 0,
-          "checks": {
-            "passed": 816,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 58.886,
-            "p90": 61.774,
-            "p95": 63.439,
-            "p99": 99.101,
-            "p95Min": 61.64671485,
-            "p95Max": 543.199238
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.eager.accept",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 722,
-          "requests": 722,
-          "errors": 0,
-          "checks": {
-            "passed": 2166,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 13.241,
-            "p90": 14.178,
-            "p95": 14.769,
-            "p99": 15.921,
-            "p95Min": 14.496437,
-            "p95Max": 15.49152235
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.original",
-          "case": "jpg-medium",
-          "repetitions": 3,
-          "operations": 722,
-          "requests": 722,
-          "errors": 0,
-          "checks": {
-            "passed": 3610,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 15.469,
-            "p90": 17.542,
-            "p95": 18.915,
-            "p99": 27.175,
-            "p95Min": 18.157254849999998,
-            "p95Max": 25.820105
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.preprocess",
-          "case": "jpg-medium-to-webp",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 1084,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 196.328,
-            "p90": 201.163,
-            "p95": 205.486,
-            "p99": 215.058,
-            "p95Min": 202.20240865,
-            "p95Max": 208.76642435
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules",
-          "case": "jpg-medium-landscape-rule",
-          "repetitions": 3,
-          "operations": 74,
-          "requests": 74,
-          "errors": 0,
-          "checks": {
-            "passed": 444,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 397.482,
-            "p90": 514.02,
-            "p95": 530.664,
-            "p99": 916.958,
-            "p95Min": 483.6467522,
-            "p95Max": 580.7356959999997
-          },
-          "passed": true
-        },
-        {
-          "workload": "upload.rules.preprocess",
-          "case": "jpg-medium-landscape-rule-to-webp",
-          "repetitions": 3,
-          "operations": 73,
-          "requests": 73,
-          "errors": 0,
-          "checks": {
-            "passed": 438,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 631.591,
-            "p90": 754.393,
-            "p95": 761.924,
-            "p99": 1173.885,
-            "p95Min": 738.9272867,
-            "p95Max": 821.8209423999998
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.deliver.cached",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 3603,
-          "requests": 3603,
-          "errors": 0,
-          "checks": {
-            "passed": 10809,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 4.91,
-            "p90": 5.185,
-            "p95": 5.293,
-            "p99": 7.849,
-            "p95Min": 5.189835,
-            "p95Max": 5.56384
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.eager.ready",
-          "case": "jpg-medium-four-webp-profiles",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 2713,
-          "errors": 0,
-          "checks": {
-            "passed": 4065,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 416,
-            "p90": 417,
-            "p95": 417,
-            "p99": 430.8,
-            "p95Min": 417,
-            "p95Max": 418
-          },
-          "passed": true
-        },
-        {
-          "workload": "variant.generate.cold",
-          "case": "jpg-to-webp-400",
-          "repetitions": 3,
-          "operations": 271,
-          "requests": 271,
-          "errors": 0,
-          "checks": {
-            "passed": 813,
-            "failed": 0
-          },
-          "droppedIterations": 0,
-          "durationMs": {
-            "p50": 60.634,
-            "p90": 66.365,
-            "p95": 70.631,
-            "p99": 89.461,
-            "p95Min": 67.42082099999999,
-            "p95Max": 70.82672265
+            "p50": 174.079,
+            "p90": 232.13,
+            "p95": 252.089,
+            "p99": 295.082,
+            "p95Min": 227.3392074,
+            "p95Max": 333.6506238
           },
           "passed": true
         }

@@ -1,14 +1,13 @@
 # Konifer Performance
 
-The interactive performance dashboard renders isolated benchmark and mixed-load
-history from [`../history/releases.json`](../history/releases.json) and
-[`../history/loads.json`](../history/loads.json). It separates the two measurement
-styles into Benchmark latency and Mixed load tabs under one release-aware page.
+The dashboard reads isolated benchmark and mixed-load history from
+[`releases.json`](../history/releases.json) and [`loads.json`](../history/loads.json).
+Choose a release/environment, then use the Benchmark latency or Mixed load tab.
+For test commands and AWS collection, see the [harness README](../README.md).
 
-The dashboard must be served over HTTP because browsers do not allow its JSON
-request when [`index.html`](index.html) is opened directly with `file://`.
-Compile the TypeScript-backed browser modules and, from the repository root,
-preview the dashboard with:
+Serve the dashboard over HTTP so the browser can fetch history JSON. Opening
+[`index.html`](index.html) through `file://` blocks those requests. From the
+repository root:
 
 ```bash
 npm --prefix performance run build
@@ -17,30 +16,32 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000/performance/report/>.
 
-The HTML, CSS, and TypeScript are stable source files. Publishing a release
-updates only the underlying history documents; it does not regenerate HTML or
-change the GitHub Pages URL. The bare URL automatically selects the newest
-release and opens Benchmark latency. Selections are shareable, for example:
+Publishing results updates history documents without changing dashboard source
+or the GitHub Pages URL. The bare URL opens the newest release's Benchmark
+latency tab. Share selections through the URL, for example:
 
 ```text
 ?release=v0.10.0&environment=local-compose-v2&profile=mixed-v1#load
 ```
 
-The selected environment description is always visible, while hardware and
-interpretation details are expandable. The generated browser modules and
-locally served Geist font assets live under `performance/dist/` and are ignored
-by Git.
+The environment description stays visible; expand its panel for hardware and
+interpretation notes. Git ignores generated browser modules and Geist fonts
+under `performance/dist/`.
 
-The dashboard retains all measurements in history, but labels a p95 change only
-when it is both at least 5% and at least 2 ms. Smaller movements are displayed
-as `No significant change` instead of an attention-grabbing percentage.
+The dashboard compares p95 against the prior passing result in the same series.
+It labels a change only at differences of at least 5% and 2 ms. Smaller changes
+show `Below threshold`; missing baselines show `No prior result`. Failed results
+remain visible with unavailable latency and do not enter chart/comparison baselines.
+
+`npm --prefix performance run build -- --without-load` stages a benchmark-only
+site for GitHub Pages. The local preview retains both tabs; see
+[dashboard builds](../BENCHMARKING.md#dashboard-builds).
 
 ## Annotating a release
 
-Add an optional `notes` array to a release or to one of its results in
-[`../history/releases.json`](../history/releases.json). Release notes appear at
-the top of the dashboard when that release is latest. Result notes appear with
-the corresponding headline card and table row. For example:
+Add an optional `notes` array to a release or result in
+[`releases.json`](../history/releases.json). Release notes appear above the
+selected release's results; result notes appear in the matching table row:
 
 ```json
 {
@@ -56,10 +57,8 @@ the corresponding headline card and table row. For example:
 }
 ```
 
-The other required release and result fields are omitted from the example.
-Notes are preserved if the same run is regenerated.
+The example omits other required fields. Regenerating the same run preserves
+existing notes.
 
-Mixed-load runs and individual traffic streams accept the same optional
-`notes` array in [`../history/loads.json`](../history/loads.json). These notes
-are also preserved when the same subject, environment, and profile are
-regenerated.
+Load runs and streams accept `notes` in [`loads.json`](../history/loads.json).
+Regenerating the same subject/environment/profile preserves those notes too.

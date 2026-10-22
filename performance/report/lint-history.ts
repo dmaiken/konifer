@@ -75,6 +75,8 @@ if (!fix) {
     process.exit(1);
 }
 
+// Replace each validated history through a sibling file; an interrupted write
+// must not leave a truncated JSON document at the published path.
 const temporaryPath = `${historyPath}.${process.pid}.tmp`;
 const loadTemporaryPath = `${loadHistoryPath}.${process.pid}.tmp`;
 await writeFile(temporaryPath, `${JSON.stringify(withoutNonReleaseEntries(history), null, 2)}\n`);
