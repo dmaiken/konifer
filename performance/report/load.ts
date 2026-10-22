@@ -102,7 +102,7 @@ export function renderLoadMarkdown(
     const completion = formatCompletion(run.operations, run.targetOperations);
     const rows = run.streams.map((stream) => {
         const latency = stream.passed ? formatMs(stream.durationMs.p95) : '—';
-        return `| ${workloadLabel(stream)} · ${stream.case} | ${stream.passed ? 'Completed' : 'Failed to complete'} | ${stream.targetRatePerMinute}/min | ${stream.operations}/${stream.plannedOperations} | ${latency} | ${stream.errors} | ${stream.droppedIterations} |`;
+        return `| ${workloadLabel(stream)} · ${stream.case}${stream.passed ? '' : ' (measurements unavailable)'} | ${stream.targetRatePerMinute}/min | ${stream.operations}/${stream.plannedOperations} | ${latency} | ${stream.errors} | ${stream.droppedIterations} |`;
     });
     const definitions = [...new Set(run.streams.map((stream) => stream.workload))]
         .map((workload) => `- **${workloadLabel({ workload })}**: ${workloads.workloads[workload]?.description || workload}`)
@@ -113,17 +113,16 @@ export function renderLoadMarkdown(
 - Profile: \`${run.profile}\`
 - Environment: \`${run.environment}\`
 - Completed: ${run.completedAt}
-- Result: ${run.passed ? 'Completed' : 'Completed with failed load checks'}
 - Peak target: ${formatRate(run.peakRatePerMinute)}
 - Scheduled operations completed: ${run.operations}/${run.targetOperations} (${completion})
 - Errors: ${run.errors}
 - Dropped iterations: ${run.droppedIterations}
-- Recovery: ${run.recovery.passed ? `Passed (${formatMs(run.recovery.durationMs)} eager readiness)` : 'Failed'}
+- Recovery: ${run.recovery.passed ? `${formatMs(run.recovery.durationMs)} eager readiness` : 'Measurement unavailable'}
 
 ## Traffic streams
 
-| Operation | Result | Peak target | Operations | p95 | Errors | Dropped |
-|---|---|---:|---:|---:|---:|---:|
+| Operation | Peak target | Operations | p95 | Errors | Dropped |
+|---|---:|---:|---:|---:|---:|
 ${rows.join('\n')}
 
 ## Workload definitions

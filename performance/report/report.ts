@@ -490,12 +490,11 @@ function loadSummary(run: LatestLoadRun): HTMLElement {
     );
     const facts = element('div', 'load-facts');
     const values = [
-        ['Result', run.passed ? 'Passed' : 'Failed'],
         ['Peak target', formatRate(run.peakRatePerMinute)],
         ['Executed / scheduled', `${run.operations}/${run.targetOperations} (${formatCompletion(run.operations, run.targetOperations)})`],
         ['Duration', formatMinutes(run.trafficDurationSeconds)],
         ['Errors / dropped', `${run.errors} / ${run.droppedIterations}`],
-        ['Recovery', run.recovery.passed ? `Passed · ${formatMs(run.recovery.durationMs)}` : 'Failed'],
+        ['Recovery', run.recovery.passed ? formatMs(run.recovery.durationMs) : 'Measurement unavailable'],
     ];
     for (const [name, value] of values) {
         const fact = element('div', 'load-fact');
@@ -674,7 +673,7 @@ function resultTable(
         if (description) section.append(element('p', 'workload-description', description));
     }
     const table = document.createElement('table');
-    const headings = ['Operation', 'Result', 'p50', 'p95', 'p95 range', 'Repetitions', 'p95 change', 'Operations', 'Errors / dropped'];
+    const headings = ['Operation', 'p50', 'p95', 'p95 range', 'Repetitions', 'p95 change', 'Operations', 'Errors / dropped'];
     const header = document.createElement('tr');
     headings.forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
@@ -684,12 +683,13 @@ function resultTable(
         const row = document.createElement('tr');
         if (!value.passed) row.classList.add('failed-result');
         const description = workloadIds.size > 1 ? workloadDescription(value, workloads) : null;
-        row.append(operationCell(value, description));
+        const operation = operationCell(value, description);
+        if (!value.passed) operation.append(element('p', 'muted', 'Measurements unavailable: benchmark checks were not satisfied.'));
+        row.append(operation);
         const measurements = value.passed
             ? [formatMs(value.durationMs.p50), formatMs(value.durationMs.p95), formatRange(value)]
             : ['—', '—', '—'];
         const cells: Array<{ value: string | number; className?: string }> = [
-            { value: value.passed ? 'Passed' : 'Failed', className: value.passed ? '' : 'regression' },
             ...measurements.map((measurement) => ({ value: measurement })),
             { value: value.repetitions },
             { value: value.passed ? formatDisplayedChange(value) : '—', className: value.passed ? changeClass(value.changePercent) : 'muted' },
@@ -708,7 +708,7 @@ function resultTable(
 function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     const table = document.createElement('table');
     const header = document.createElement('tr');
-    ['Operation', 'Result', 'Peak target', 'Operations', 'p95', 'p95 change', 'Errors / dropped']
+    ['Operation', 'Peak target', 'Operations', 'p95', 'p95 change', 'Errors / dropped']
         .forEach((value) => header.append(element('th', '', value)));
     const head = document.createElement('thead');
     head.append(header);
@@ -716,9 +716,10 @@ function loadStreamTable(streams: LatestLoadStream[]): HTMLTableElement {
     for (const stream of streams) {
         const row = document.createElement('tr');
         if (!stream.passed) row.classList.add('failed-result');
-        row.append(operationCell(stream));
+        const operation = operationCell(stream);
+        if (!stream.passed) operation.append(element('p', 'muted', 'Measurements unavailable: stream checks were not satisfied.'));
+        row.append(operation);
         const cells = [
-            { value: stream.passed ? 'Passed' : 'Failed', className: stream.passed ? '' : 'regression' },
             { value: `${stream.targetRatePerMinute}/min` },
             { value: `${stream.operations}/${stream.plannedOperations}` },
             { value: stream.passed ? formatMs(stream.durationMs.p95) : '—' },

@@ -129,9 +129,9 @@ test('load Markdown suppresses failed stream latency', () => {
     };
     const markdown = renderLoadMarkdown(failed, catalog);
 
-    assert.match(markdown, /Completed with failed load checks/);
-    assert.match(markdown, /Failed to complete \| 360\/min \| 90\/100 \| —/);
-    assert.doesNotMatch(markdown, /Failed to complete[^\n]*900 ms/);
+    assert.doesNotMatch(markdown, /- Result:|\| Result \||\| Passed \||\| Failed \|/);
+    assert.match(markdown, /\(measurements unavailable\) \| 360\/min \| 90\/100 \| —/);
+    assert.doesNotMatch(markdown, /900 ms/);
 });
 
 function emptyHistory(): LoadHistory {
