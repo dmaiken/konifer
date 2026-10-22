@@ -5,57 +5,28 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.domain.image.vipsProperties
-import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.pixel.PixelTransformationNormalizer.normalizePixelTransformation
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlin.math.min
 
-class TransformationNormalizer(
-    private val assetRepository: AssetRepository,
-) {
+class TransformationNormalizer {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     /**
      * Transform the supplied [RequestedTransformation] into a normalized [Transformation] where every transformation
      * attribute is specified, if needed, by deriving missing values using the original variant.
+     * Every returned transformation satisfies the supplied [limits]; otherwise [InvalidTransformationException] is thrown.
      */
-    suspend fun normalize(
-        treePath: String,
-        entryId: Long?,
-        requested: RequestedTransformation,
-    ): Transformation =
-        coroutineScope {
-            val originalVariantDeferred =
-                async(start = CoroutineStart.LAZY) {
-                    assetRepository
-                        .fetchByPath(
-                            path = treePath,
-                            entryId = entryId,
-                            specification = VariantSpecification.Original,
-                            includeOnlyReady = false,
-                        )?.variants
-                        ?.firstOrNull { it.isOriginalVariant }
-                        ?.attributes ?: throw IllegalArgumentException(
-                        "Original variant not found with path: $treePath, entryId: ${entryId ?: "Not Specified"}",
-                    )
-                }
-
-            doNormalize(
-                requested = requested,
-                originalAttributesDeferred = originalVariantDeferred,
-            )
-        }
-
     suspend fun normalize(
         requested: List<RequestedTransformation>,
         originalVariantAttributes: Attributes,
+        limits: TransformationLimitProperties,
     ): List<Transformation> =
         coroutineScope {
             if (requested.isEmpty()) {
@@ -65,6 +36,7 @@ class TransformationNormalizer(
             requested.map { request ->
                 doNormalize(
                     requested = request,
+                    limits = limits,
                     originalAttributesDeferred =
                         async {
                             originalVariantAttributes
@@ -73,13 +45,16 @@ class TransformationNormalizer(
             }
         }
 
+    /** Resolves source-dependent values and validates the result against [limits]. */
     suspend fun normalize(
         requested: RequestedTransformation,
         originalVariantAttributes: Attributes,
+        limits: TransformationLimitProperties,
     ): Transformation =
         coroutineScope {
             doNormalize(
                 requested = requested,
+                limits = limits,
                 originalAttributesDeferred =
                     async {
                         originalVariantAttributes
@@ -90,6 +65,7 @@ class TransformationNormalizer(
     private suspend fun doNormalize(
         requested: RequestedTransformation,
         originalAttributesDeferred: Deferred<Attributes>,
+        limits: TransformationLimitProperties,
     ): Transformation {
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
@@ -130,6 +106,7 @@ class TransformationNormalizer(
                     isColorspaceLocked = isColorspaceLocked,
                 ),
         ).also {
+            TransformationValidator.validateNormalizedTransformation(limits = limits, transformation = it)
             // Cancel coroutine if we never used it and it's not in progress
             if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
                 originalAttributesDeferred.cancel()

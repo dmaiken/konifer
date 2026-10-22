@@ -1,6 +1,5 @@
 package io.konifer.domain.context
 
-import io.konifer.BaseUnitTest
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.TransformableColorSpace
@@ -11,18 +10,12 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.context.selector.DeleteModifiers
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
-import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.path.PathConfiguration
-import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
-import io.konifer.domain.transformation.Transformation
-import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
-import io.konifer.domain.variant.TransformationLimitProperties
-import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -53,7 +46,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.junitpioneer.jupiter.cartesian.CartesianTest
 
-class RequestContextFactoryTest : BaseUnitTest() {
+class RequestContextFactoryTest {
     companion object {
         @JvmStatic
         fun queryModifierSource(): List<Arguments> =
@@ -480,12 +473,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("height", "20")
                             append("format", "png")
                         }.build(),
-                    Transformation(
+                    RequestedTransformation(
                         width = 10.toDimension(),
                         height = 20.toDimension(),
                         format = ImageFormat.PNG,
                         fit = Fit.FIT,
-                        colorSpace = ColorSpace.SRGB,
+                        colorSpace = TransformableColorSpace.ORIGIN,
                     ),
                 ),
                 arguments(
@@ -494,12 +487,11 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             append("width", "10")
                             append("height", "20")
                         }.build(),
-                    Transformation(
+                    RequestedTransformation(
                         width = 10.toDimension(),
                         height = 20.toDimension(),
-                        format = ImageFormat.PNG,
                         fit = Fit.FIT,
-                        colorSpace = ColorSpace.SRGB,
+                        colorSpace = TransformableColorSpace.ORIGIN,
                     ),
                 ),
                 arguments(
@@ -507,12 +499,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         .apply {
                             append("width", "10")
                         }.build(),
-                    Transformation(
+                    RequestedTransformation(
                         width = 10.toDimension(),
-                        height = 10.toDimension(),
-                        format = ImageFormat.PNG,
                         fit = Fit.FIT,
-                        colorSpace = ColorSpace.SRGB,
+                        colorSpace = TransformableColorSpace.ORIGIN,
                     ),
                 ),
                 arguments(
@@ -520,12 +510,10 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         .apply {
                             append("format", "jpg")
                         }.build(),
-                    Transformation(
-                        width = 100.toDimension(),
-                        height = 100.toDimension(),
+                    RequestedTransformation(
                         format = ImageFormat.JPEG,
                         fit = Fit.FIT,
-                        colorSpace = ColorSpace.SRGB,
+                        colorSpace = TransformableColorSpace.ORIGIN,
                     ),
                 ),
             )
@@ -610,13 +598,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
 
     private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
     private val variantProfileRepository = mockk<ConfigurationVariantProfileRepository>()
-    private val transformationNormalizer = TransformationNormalizer(assetRepository)
     private val requestContextValidator = RequestContextValidator(variantProfileRepository)
     private val requestContextFactory =
-        RequestContextFactory(pathConfigurationRepository, variantProfileRepository, transformationNormalizer, requestContextValidator)
+        RequestContextFactory(pathConfigurationRepository, variantProfileRepository, requestContextValidator)
     private val origin = mockk<RequestConnectionPoint>(relaxed = true)
 
-    private suspend fun RequestContextFactory.fromFetchRequest(
+    private fun RequestContextFactory.fromFetchRequest(
         path: String,
         headers: Headers,
         queryParameters: Parameters,
@@ -638,46 +625,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
     @Nested
     inner class FetchRequestContextTests {
         @ParameterizedTest
-        @EnumSource(ImageFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["PIXELS"])
-        fun `ignores pixel options for encoded output formats`(format: ImageFormat) =
-            runTest {
-                storePersistedAsset(path = "/encoded/")
-                val baseline =
-                    requestContextFactory.fromFetchRequest(
-                        path = "/assets/encoded/",
-                        headers = Headers.Empty,
-                        queryParameters = Parameters.build { append("format", format.queryParameterValue) },
-                    )
-
-                listOf("BGRA", "gray").forEach { channels ->
-                    PixelLayout.entries.forEach { layout ->
-                        val context =
-                            requestContextFactory.fromFetchRequest(
-                                path = "/assets/encoded/",
-                                headers = Headers.Empty,
-                                queryParameters =
-                                    Parameters.build {
-                                        append("format", format.queryParameterValue)
-                                        append("pixel-channels", channels)
-                                        append("pixel-layout", layout.queryParameterValue)
-                                    },
-                            )
-
-                        context.specification shouldBe baseline.specification
-                        val transformation = (context.specification as VariantSpecification.Transformed).transformation
-                        transformation.format shouldBe format
-                        transformation.pixels shouldBe null
-                        transformation.colorSpace shouldBe ColorSpace.SRGB
-                        context.labels shouldBe emptyMap()
-                    }
-                }
-            }
-
-        @ParameterizedTest
         @ValueSource(strings = ["planar", "PLANAR", "pLaNaR", "interleaved", "INTERLEAVED"])
         fun `parses pixel layouts without treating them as labels`(layout: String) =
             runTest {
-                storePersistedAsset(path = "/pixels/")
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/pixels/",
@@ -689,7 +639,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                             },
                     )
 
-                (context.specification as VariantSpecification.Transformed).transformation.pixels?.layout shouldBe
+                context.requestedTransformation!!.pixelLayout shouldBe
                     PixelLayout.valueOf(layout.uppercase())
                 context.labels shouldBe emptyMap()
             }
@@ -697,7 +647,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `uses profile pixel layout unless overridden by the request`() =
             runTest {
-                storePersistedAsset(path = "/pixels/")
                 every { variantProfileRepository.fetch("pixels") } returns
                     RequestedTransformation(format = ImageFormat.PIXELS, pixelLayout = PixelLayout.PLANAR)
 
@@ -713,7 +662,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 },
                         )
 
-                    (context.specification as VariantSpecification.Transformed).transformation.pixels?.layout shouldBe
+                    context.requestedTransformation!!.pixelLayout shouldBe
                         if (override == null) PixelLayout.PLANAR else PixelLayout.INTERLEAVED
                 }
             }
@@ -799,26 +748,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.default
-                (context.specification as VariantSpecification.Transformed).transformation shouldBe
-                    Transformation(
-                        height = variantConfig.height!!,
-                        width = variantConfig.width!!,
-                        format = variantConfig.format!!,
-                        fit = variantConfig.fit,
-                        colorSpace = ColorSpace.P3,
-                    )
+                context.requestedTransformation shouldBe variantConfig
                 context.labels shouldBe emptyMap()
             }
 
         @Test
         fun `specified image attributes override variant profile if supplied`() =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/user/",
-                )
                 val profileName = "small"
                 every {
                     variantProfileRepository.fetch(profileName)
@@ -843,9 +779,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                     )
 
                 context.pathConfiguration shouldBe PathConfiguration.default
-                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                context.specification.transformation.width shouldBe 500.toDimension()
-                context.specification.transformation.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation!!.height shouldBe 100.toDimension()
+                context.requestedTransformation!!.width shouldBe 500.toDimension()
+                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
                 context.labels shouldBe emptyMap()
             }
 
@@ -935,59 +871,18 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#transformationSource")
         fun `can parse requested image attributes in GET request context`(
             parameters: Parameters,
-            transformation: Transformation,
+            transformation: RequestedTransformation,
         ) = runTest {
             val path = "/assets/profile/-/new/link"
-            storePersistedAsset(
-                height = 100,
-                width = 100,
-                format = ImageFormat.PNG,
-                path = "/profile/",
-            )
             val context =
                 requestContextFactory.fromFetchRequest(
                     path = path,
                     headers = HeadersBuilder().build(),
                     queryParameters = parameters,
                 )
-            context.specification shouldBe VariantSpecification.Transformed(transformation)
+            context.requestedTransformation shouldBe transformation
             context.labels shouldBe emptyMap()
         }
-
-        @Test
-        fun `normalized dimensions must satisfy path transformation limits`() =
-            runTest {
-                storePersistedAsset(
-                    width = 100,
-                    height = 200,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
-                every {
-                    pathConfigurationRepository.fetch(path = "/profile/")
-                } returns
-                    PathConfiguration(
-                        transform =
-                            TransformProperties(
-                                limits = TransformationLimitProperties(maxHeight = 199.toDimension()),
-                            ),
-                    )
-
-                val exception =
-                    shouldThrow<InvalidTransformationException> {
-                        requestContextFactory.fromFetchRequest(
-                            path = "/assets/profile/-/content/",
-                            headers = HeadersBuilder().build(),
-                            queryParameters =
-                                ParametersBuilder()
-                                    .apply {
-                                        append("width", "100")
-                                    }.build(),
-                        )
-                    }
-
-                exception.message shouldBe "Height 200 must not exceed 199"
-            }
 
         @Test
         fun `cannot create GET context if requesting metadata with image attributes`() =
@@ -1055,12 +950,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `can parse labels in request`() =
             runTest {
                 val path = "/assets/profile/-/new/link/"
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = path,
@@ -1077,9 +966,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                context.specification.transformation.width shouldBe 500.toDimension()
-                context.specification.transformation.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation!!.height shouldBe 100.toDimension()
+                context.requestedTransformation!!.width shouldBe 500.toDimension()
+                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainExactly
                     mapOf(
                         "phone" to "iphone",
@@ -1092,12 +981,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `some label is used when duplicates exist in request`() =
             runTest {
                 val path = "/assets/profile/-/new/link/"
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = path,
@@ -1114,9 +997,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                context.specification.transformation.width shouldBe 500.toDimension()
-                context.specification.transformation.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation!!.height shouldBe 100.toDimension()
+                context.requestedTransformation!!.width shouldBe 500.toDimension()
+                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1126,12 +1009,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         fun `some label is used when duplicates exist and one is namespaced in request`() =
             runTest {
                 val path = "/assets/profile/-/new/link/"
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = path,
@@ -1148,9 +1025,9 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
-                (context.specification as VariantSpecification.Transformed).transformation.height shouldBe 100.toDimension()
-                context.specification.transformation.width shouldBe 500.toDimension()
-                context.specification.transformation.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation!!.height shouldBe 100.toDimension()
+                context.requestedTransformation!!.width shouldBe 500.toDimension()
+                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1159,12 +1036,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @Test
         fun `format is derived from accept header if not supplied in profile or query param`() =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
@@ -1176,18 +1047,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.AVIF
+                context.requestedTransformation!!.format shouldBe ImageFormat.AVIF
             }
 
         @Test
         fun `format is derived from accept header if not supplied in profile or query param and priority is respected`() =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
@@ -1199,7 +1064,7 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldBe ImageFormat.GIF
+                context.requestedTransformation!!.format shouldBe ImageFormat.GIF
             }
 
         @ParameterizedTest
@@ -1221,18 +1086,12 @@ class RequestContextFactoryTest : BaseUnitTest() {
                         queryParameters = ParametersBuilder().build(),
                     )
 
-                context.specification shouldBe VariantSpecification.Original
+                context.requestedTransformation shouldBe null
             }
 
         @Test
         fun `variant profile format overwrites accept header`() =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val profileName = "small"
                 val variantConfig =
                     createRequestedImageTransformation(
@@ -1258,19 +1117,13 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
-                context.specification.transformation.format shouldBe variantConfig.format
+                context.requestedTransformation!!.format shouldNotBe null
+                context.requestedTransformation!!.format shouldBe variantConfig.format
             }
 
         @Test
         fun `format specified in query parameter overwrites accept header`() =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 val context =
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
@@ -1286,8 +1139,8 @@ class RequestContextFactoryTest : BaseUnitTest() {
                                 }.build(),
                     )
 
-                (context.specification as VariantSpecification.Transformed).transformation.format shouldNotBe null
-                context.specification.transformation.format shouldBe ImageFormat.HEIC
+                context.requestedTransformation!!.format shouldNotBe null
+                context.requestedTransformation!!.format shouldBe ImageFormat.HEIC
             }
 
         @ParameterizedTest
@@ -1348,12 +1201,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
         @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
         fun `can specify profile with profile_only mode`(returnFormat: ReturnFormat) =
             runTest {
-                storePersistedAsset(
-                    height = 100,
-                    width = 100,
-                    format = ImageFormat.PNG,
-                    path = "/profile/",
-                )
                 every {
                     pathConfigurationRepository.fetch(path = any())
                 } returns
@@ -1392,12 +1239,6 @@ class RequestContextFactoryTest : BaseUnitTest() {
             @CartesianTest.Enum(ReturnFormat::class) returnFormat: ReturnFormat,
             @CartesianTest.Enum(OnDemandVariantMode::class) mode: OnDemandVariantMode,
         ) = runTest {
-            storePersistedAsset(
-                height = 100,
-                width = 100,
-                format = ImageFormat.PNG,
-                path = "/profile/",
-            )
             every {
                 pathConfigurationRepository.fetch(path = any())
             } returns

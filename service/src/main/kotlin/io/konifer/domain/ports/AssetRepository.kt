@@ -5,10 +5,17 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.Variant
+import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 
 interface AssetRepository {
+    /** Fetch only a matching uploaded variant of an already resolved asset. */
+    suspend fun fetchVariant(
+        assetId: AssetId,
+        specification: VariantSpecification,
+    ): VariantData?
+
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
 
     suspend fun markReady(asset: Asset.Ready)
@@ -16,7 +23,7 @@ interface AssetRepository {
     suspend fun markUploaded(
         variant: Variant.Ready,
         cacheProperties: CacheProperties,
-    )
+    ): VariantData
 
     suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending
 

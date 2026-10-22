@@ -7,5 +7,5 @@ data class VariantRedirect(
     val deliveryUrl: DeliveryUrl,
     val asset: AssetData,
     val variant: VariantData,
-    val cacheHit: Boolean,
+    val cacheResult: CacheResult,
 )

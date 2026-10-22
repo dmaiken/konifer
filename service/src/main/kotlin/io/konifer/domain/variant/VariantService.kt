@@ -12,15 +12,13 @@ import io.konifer.domain.ports.VariantType
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
-import io.konifer.domain.transformation.TransformationValidator
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.retention.RetentionProperties
 import io.konifer.domain.variant.retention.VariantExpirationStrategy
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import java.nio.file.Path
 import java.time.LocalDateTime
 
@@ -44,13 +42,8 @@ class VariantService(
             transformationNormalizer.normalize(
                 requested = requestedTransformations,
                 originalVariantAttributes = originalVariantAttributes,
+                limits = pathConfiguration.transform.limits,
             )
-        transformations.forEach { transformation ->
-            TransformationValidator.validateNormalizedTransformation(
-                transformProperties = pathConfiguration.transform,
-                transformation = transformation,
-            )
-        }
         generateVariants(
             originalVariantFile = originalVariantFile,
             originalVariantAttributes = originalVariantAttributes,
@@ -69,7 +62,7 @@ class VariantService(
         assetId: AssetId,
         originalVariantLQIPs: LQIPs,
         pathConfiguration: PathConfiguration,
-    ) {
+    ): VariantGenerationResult =
         generateVariants(
             originalVariantFile = originalVariantFile,
             originalVariantAttributes = originalVariantAttributes,
@@ -78,8 +71,7 @@ class VariantService(
             originalVariantLQIPs = originalVariantLQIPs,
             variantType = VariantType.ON_DEMAND,
             pathConfiguration = pathConfiguration,
-        )
-    }
+        ).single()
 
     private suspend fun generateVariants(
         originalVariantFile: Path,
@@ -89,7 +81,7 @@ class VariantService(
         originalVariantLQIPs: LQIPs,
         variantType: VariantType,
         pathConfiguration: PathConfiguration,
-    ): Unit =
+    ): List<VariantGenerationResult> =
         coroutineScope {
             val transformationDataContainers =
                 createTransformationDataContainers(
@@ -113,7 +105,7 @@ class VariantService(
             val variantGenerationJobs =
                 transformationDataContainers
                     .map { container ->
-                        launch {
+                        async {
                             val attributes = container.attributes.await()
                             val newVariant =
                                 Variant.Pending.newVariant(
@@ -145,19 +137,22 @@ class VariantService(
                                 } catch (_: VariantAlreadyExistsException) {
                                     logger.info("Variant already exists for assetId: ${assetId.value}")
                                     uploadJob.cancel()
-                                    return@launch
+                                    return@async VariantGenerationResult.AlreadyExists
                                 }
 
                             val uploadedAt = uploadJob.await()
-                            assetRepository.markUploaded(
-                                variant = pendingVariant.markReady(uploadJob.await()),
-                                cacheProperties = pathConfiguration.transform.retention.cache,
-                            )
+                            val readyVariant = pendingVariant.markReady(uploadedAt)
+                            val persistedVariant =
+                                assetRepository.markUploaded(
+                                    variant = readyVariant,
+                                    cacheProperties = pathConfiguration.transform.retention.cache,
+                                )
                             logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
+                            VariantGenerationResult.Generated(persistedVariant)
                         }
                     }
             generationJob.await()
-            variantGenerationJobs.joinAll()
+            variantGenerationJobs.awaitAll()
         }
 
     private fun createTransformationDataContainers(transformations: List<Transformation>): List<TransformationDataContainer> =

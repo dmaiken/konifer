@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.application.usecase.fetch.CacheResult
 import io.konifer.common.http.AssetContentHeaders
 import io.konifer.common.http.AttributesResponse
 import io.konifer.common.image.ImageFormat
@@ -31,12 +32,11 @@ fun getAttributeHeaders(attributes: AttributesResponse): List<Pair<String, Strin
         }
     }
 
-fun getAppStatusCacheHeader(cacheHit: Boolean): Pair<String, String> {
+fun getAppStatusCacheHeader(cacheResult: CacheResult): Pair<String, String> {
     val value =
-        if (cacheHit) {
-            "hit"
-        } else {
-            "miss"
+        when (cacheResult) {
+            CacheResult.HIT -> "hit"
+            CacheResult.MISS -> "miss"
         }
 
     return Pair(APP_CACHE_STATUS, value)

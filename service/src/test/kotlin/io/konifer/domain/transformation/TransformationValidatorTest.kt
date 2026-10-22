@@ -4,7 +4,6 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.toPixelCount
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -19,7 +18,7 @@ class TransformationValidatorTest {
     fun `dimensions and pixels can equal their limits`() {
         shouldNotThrowAny {
             TransformationValidator.validateNormalizedTransformation(
-                transformProperties = transformProperties(maxWidth = 100, maxHeight = 200, maxPixels = 20_000),
+                limits = limits(maxWidth = 100, maxHeight = 200, maxPixels = 20_000),
                 transformation = transformation(width = 100, height = 200),
             )
         }
@@ -30,7 +29,7 @@ class TransformationValidatorTest {
         val exception =
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateNormalizedTransformation(
-                    transformProperties = transformProperties(maxWidth = 99, maxHeight = 200, maxPixels = 20_000),
+                    limits = limits(maxWidth = 99, maxHeight = 200, maxPixels = 20_000),
                     transformation = transformation(width = 100, height = 200),
                 )
             }
@@ -43,7 +42,7 @@ class TransformationValidatorTest {
         val exception =
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateNormalizedTransformation(
-                    transformProperties = transformProperties(maxWidth = 100, maxHeight = 199, maxPixels = 20_000),
+                    limits = limits(maxWidth = 100, maxHeight = 199, maxPixels = 20_000),
                     transformation = transformation(width = 100, height = 200),
                 )
             }
@@ -56,7 +55,7 @@ class TransformationValidatorTest {
         val exception =
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateNormalizedTransformation(
-                    transformProperties = transformProperties(maxWidth = 100, maxHeight = 100, maxPixels = 9_999),
+                    limits = limits(maxWidth = 100, maxHeight = 100, maxPixels = 9_999),
                     transformation = transformation(width = 100, height = 100),
                 )
             }
@@ -69,7 +68,7 @@ class TransformationValidatorTest {
         val exception =
             shouldThrow<InvalidTransformationException> {
                 TransformationValidator.validateNormalizedTransformation(
-                    transformProperties = transformProperties(maxWidth = 100, maxHeight = 100, maxPixels = 10_000),
+                    limits = limits(maxWidth = 100, maxHeight = 100, maxPixels = 10_000),
                     transformation = transformation(width = 95, height = 90, padding = 3),
                 )
             }
@@ -82,7 +81,7 @@ class TransformationValidatorTest {
     fun `quarter turns swap dimensions before applying padding`(rotate: Rotate) {
         shouldNotThrowAny {
             TransformationValidator.validateNormalizedTransformation(
-                transformProperties = transformProperties(maxWidth = 60, maxHeight = 110, maxPixels = 6_600),
+                limits = limits(maxWidth = 60, maxHeight = 110, maxPixels = 6_600),
                 transformation = transformation(width = 100, height = 50, padding = 5, rotate = rotate),
             )
         }
@@ -206,18 +205,15 @@ class TransformationValidatorTest {
         }
     }
 
-    private fun transformProperties(
+    private fun limits(
         maxWidth: Int,
         maxHeight: Int,
         maxPixels: Long,
-    ): TransformProperties =
-        TransformProperties(
-            limits =
-                TransformationLimitProperties(
-                    maxWidth = maxWidth.toDimension(),
-                    maxHeight = maxHeight.toDimension(),
-                    maxPixels = maxPixels.toPixelCount(),
-                ),
+    ): TransformationLimitProperties =
+        TransformationLimitProperties(
+            maxWidth = maxWidth.toDimension(),
+            maxHeight = maxHeight.toDimension(),
+            maxPixels = maxPixels.toPixelCount(),
         )
 
     private fun transformation(

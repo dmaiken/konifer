@@ -1,6 +1,5 @@
 package io.konifer.domain.transformation
 
-import io.konifer.BaseUnitTest
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
@@ -13,14 +12,14 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.TransformationLimitProperties
+import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.mockk.coVerify
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -30,7 +29,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
-class TransformationNormalizerTest : BaseUnitTest() {
+class TransformationNormalizerTest {
     companion object {
         @JvmStatic
         fun rotateFlipSource() =
@@ -89,17 +88,27 @@ class TransformationNormalizerTest : BaseUnitTest() {
             )
     }
 
-    private val transformationNormalizer =
-        TransformationNormalizer(
-            assetRepository = assetRepository,
-        )
+    private val transformationNormalizer = TransformationNormalizer()
+
+    private fun originalAttributes(
+        height: Int = 100,
+        width: Int = 100,
+        format: ImageFormat = ImageFormat.PNG,
+        orientation: Int = 1,
+    ) = Attributes(
+        height = height.toDimension(),
+        width = width.toDimension(),
+        format = format,
+        orientation = orientation,
+        colorSpace = ColorSpace.SRGB,
+    )
 
     @Nested
     inner class NormalizeSingleRequestedTransformationTests {
         @Test
         fun `can normalize requested transformation`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -110,8 +119,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -120,43 +129,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe requested.format
                 normalized.canUpscale shouldBe false
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(any(), any(), any())
-                }
             }
 
         @Test
-        fun `if original is needed and cannot be found then exception is thrown`() =
+        fun `uses original attributes if needed to normalize height`() =
             runTest {
-                val requested =
-                    createRequestedImageTransformation(
-                        width = 200,
-                        format = ImageFormat.PNG,
-                        fit = Fit.FIT,
-                    )
-                shouldThrow<IllegalArgumentException> {
-                    transformationNormalizer.normalize(
-                        treePath = "/bad/path",
-                        entryId = null,
-                        requested = requested,
-                    )
-                }
-
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        "/bad/path",
-                        null,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
-            }
-
-        @Test
-        fun `fetches original variant if needed to normalize height`() =
-            runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -165,8 +143,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -174,21 +152,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.width shouldBe requested.width
                 normalized.height shouldBe 200.toDimension()
                 normalized.format shouldBe requested.format
-
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
 
         @Test
-        fun `fetches original variant if needed to normalize width`() =
+        fun `uses original attributes if needed to normalize width`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -197,8 +166,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -206,21 +175,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.width shouldBe 200.toDimension()
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe requested.format
-
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
 
         @Test
-        fun `fetches original variant only once if needed to normalize multiple attributes`() =
+        fun `uses original attributes to normalize multiple attributes`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -228,8 +188,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -237,21 +197,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.width shouldBe 200.toDimension()
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe ImageFormat.PNG
-
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
 
         @Test
-        fun `can normalize filter and not fetch original variant`() =
+        fun `can normalize filter`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 100,
@@ -261,20 +212,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
                 normalized.filter shouldBe Filter.SEPIA
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                    )
-                }
             }
     }
 
@@ -284,7 +227,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(Filter::class)
         fun `can normalize filter`(filter: Filter) =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 100,
@@ -294,8 +237,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -306,7 +249,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(Filter::class, names = ["GRAYSCALE", "SEPIA"])
         fun `grayscale filter is ignored if requested color space is grayscale`(filter: Filter) =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 100,
@@ -317,8 +260,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -329,9 +272,9 @@ class TransformationNormalizerTest : BaseUnitTest() {
     @Nested
     inner class NormalizeFormatAttributeTests {
         @Test
-        fun `fetches original variant if needed to normalize format`() =
+        fun `uses original attributes if needed to normalize format`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -340,22 +283,14 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
                 normalized.fit shouldBe requested.fit
                 normalized.width shouldBe requested.width
                 normalized.height shouldBe requested.height
                 normalized.format shouldBe ImageFormat.PNG
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
     }
 
@@ -365,7 +300,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(Rotate::class, names = ["NINETY", "TWO_HUNDRED_SEVENTY"])
         fun `width derives height from dimensions after a quarter turn rotation`(rotate: Rotate) =
             runTest {
-                val asset = storePersistedAsset(width = 1200, height = 800)
+                val attributes = originalAttributes(width = 1200, height = 800)
                 val requested =
                     createRequestedImageTransformation(
                         width = 300,
@@ -376,8 +311,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -388,7 +323,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `height derives width from dimensions after a quarter turn rotation`() =
             runTest {
-                val asset = storePersistedAsset(width = 1200, height = 800)
+                val attributes = originalAttributes(width = 1200, height = 800)
                 val requested =
                     createRequestedImageTransformation(
                         height = 300,
@@ -399,8 +334,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -411,7 +346,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `rotation-only request uses oriented dimensions`() =
             runTest {
-                val asset = storePersistedAsset(width = 1200, height = 800)
+                val attributes = originalAttributes(width = 1200, height = 800)
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.PNG,
@@ -421,8 +356,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -433,7 +368,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `auto rotation derives dimensions from the resolved orientation`() =
             runTest {
-                val asset = storePersistedAsset(width = 1200, height = 800, orientation = 6)
+                val attributes = originalAttributes(width = 1200, height = 800, orientation = 6)
                 val requested =
                     createRequestedImageTransformation(
                         width = 300,
@@ -444,8 +379,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
 
                 val normalized =
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
 
@@ -456,7 +391,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `only height is required when using scale fit`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         height = 200,
@@ -466,8 +401,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -480,7 +415,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `only width is required when using scale fit`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         width = 200,
@@ -490,8 +425,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -504,7 +439,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if height and width are null then original attributes are used for scale fit`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.PNG,
@@ -513,8 +448,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -522,15 +457,6 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 normalized.width shouldBe 100.toDimension()
                 normalized.height shouldBe 100.toDimension()
                 normalized.format shouldBe ImageFormat.PNG
-
-                coVerify {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
     }
 
@@ -539,7 +465,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `can normalize multiple requested transformations`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested1 =
                     createRequestedImageTransformation(
                         width = 200,
@@ -556,7 +482,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        originalVariantAttributes = asset.variants.first { it.isOriginalVariant }.attributes,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = listOf(requested1, requested2),
                     )
 
@@ -573,16 +500,12 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     it.height shouldBe requested2.height
                     it.format shouldBe requested2.format
                 }
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(any(), any(), any())
-                }
             }
 
         @Test
         fun `can normalize multiple transformations for one asset that require the supplied original variant`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested1 =
                     createRequestedImageTransformation(
                         width = 200,
@@ -597,7 +520,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 val normalized =
                     transformationNormalizer.normalize(
-                        originalVariantAttributes = asset.variants.first { it.isOriginalVariant }.attributes,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = listOf(requested1, requested2),
                     )
 
@@ -614,10 +538,6 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     it.height shouldBe requested2.height
                     it.format shouldBe requested2.format
                 }
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(any(), any(), any())
-                }
             }
     }
 
@@ -631,7 +551,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
             expectedRotate: Rotate,
             expectedHorizontalFlip: Boolean,
         ) = runTest {
-            val asset = storePersistedAsset()
+            val attributes = originalAttributes()
             val requested =
                 createRequestedImageTransformation(
                     width = 20,
@@ -644,25 +564,21 @@ class TransformationNormalizerTest : BaseUnitTest() {
             val normalized =
                 shouldNotThrowAny {
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
                 }
 
             normalized.rotate shouldBe expectedRotate
             normalized.horizontalFlip shouldBe expectedHorizontalFlip
-
-            coVerify(exactly = 0) {
-                assetRepository.fetchByPath(any(), any(), any())
-            }
         }
 
         @Test
         fun `can normalize auto rotation`() =
             runTest {
-                val asset =
-                    storePersistedAsset(
+                val attributes =
+                    originalAttributes(
                         orientation = 4,
                     )
                 val requested =
@@ -677,30 +593,21 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
 
                 normalized.rotate shouldBe ExifOrientations.FOUR.first
                 normalized.horizontalFlip shouldBe ExifOrientations.FOUR.second
-
-                coVerify(exactly = 1) {
-                    assetRepository.fetchByPath(
-                        asset.path,
-                        asset.entryId,
-                        VariantSpecification.Original,
-                        includeOnlyReady = false,
-                    )
-                }
             }
 
         @ParameterizedTest
         @EnumSource(Flip::class, mode = EnumSource.Mode.EXCLUDE, names = ["NONE"])
         fun `cannot specify flip with auto rotate`(flip: Flip) =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         width = 20,
@@ -712,15 +619,11 @@ class TransformationNormalizerTest : BaseUnitTest() {
                     )
                 shouldThrow<IllegalArgumentException> {
                     transformationNormalizer.normalize(
-                        treePath = asset.path,
-                        entryId = asset.entryId,
+                        limits = TransformationLimitProperties(),
+                        originalVariantAttributes = attributes,
                         requested = requested,
                     )
                 }.message shouldBe "Cannot specify flip (${ManipulationParameters.FLIP}) when rotate=${Rotate.AUTO.name.lowercase()}"
-
-                coVerify(exactly = 0) {
-                    assetRepository.fetchByPath(any(), any(), any())
-                }
             }
     }
 
@@ -729,7 +632,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if blur is not supplied then default is used`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.JPEG,
@@ -737,8 +640,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -748,7 +651,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if blur is supplied blur is used`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         blur = 50,
@@ -756,8 +659,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -770,7 +673,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if format does not support quality then supplied quality is ignored`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.PNG,
@@ -779,8 +682,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -793,7 +696,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if format does support quality then supplied quality is not ignored`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.JPEG,
@@ -802,8 +705,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -814,7 +717,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `avif quality is capped at 99`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = ImageFormat.AVIF,
@@ -823,8 +726,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -836,7 +739,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @EnumSource(ImageFormat::class)
         fun `if quality is not supplied then format-specific default is used`(format: ImageFormat) =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         format = format,
@@ -844,8 +747,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -859,7 +762,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if background is null and format supports alpha then transparent background is used`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -869,8 +772,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -881,7 +784,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if background is null and format does not support alpha then white background is used`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -891,8 +794,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -903,7 +806,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `alpha background is normalized`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -913,8 +816,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -925,7 +828,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `non-alpha background is normalized`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 1,
@@ -935,8 +838,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -947,7 +850,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         @Test
         fun `if padding is 0 then background is empty`() =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 0,
@@ -957,8 +860,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val normalized =
                     shouldNotThrowAny {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -974,7 +877,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
         )
         fun `throws when normalizing invalidBackground`(badBackground: String) =
             runTest {
-                val asset = storePersistedAsset()
+                val attributes = originalAttributes()
                 val requested =
                     createRequestedImageTransformation(
                         pad = 10,
@@ -984,8 +887,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 val exception =
                     shouldThrow<IllegalArgumentException> {
                         transformationNormalizer.normalize(
-                            treePath = asset.path,
-                            entryId = asset.entryId,
+                            limits = TransformationLimitProperties(),
+                            originalVariantAttributes = attributes,
                             requested = requested,
                         )
                     }
@@ -1001,7 +904,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
             requested: String?,
             expected: Set<MetadataType>,
         ) = runTest {
-            val asset = storePersistedAsset()
+            val attributes = originalAttributes()
             val requested =
                 createRequestedImageTransformation(
                     strip = requested,
@@ -1009,8 +912,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 )
             val normalized =
                 transformationNormalizer.normalize(
-                    treePath = asset.path,
-                    entryId = asset.entryId,
+                    limits = TransformationLimitProperties(),
+                    originalVariantAttributes = attributes,
                     requested = requested,
                 )
             normalized.metadata.strip shouldContainExactly expected
@@ -1025,7 +928,7 @@ class TransformationNormalizerTest : BaseUnitTest() {
             requested: TransformableColorSpace,
             expected: ColorSpace,
         ) = runTest {
-            val asset = storePersistedAsset()
+            val attributes = originalAttributes()
             val requested =
                 createRequestedImageTransformation(
                     colorSpace = requested,
@@ -1033,8 +936,8 @@ class TransformationNormalizerTest : BaseUnitTest() {
                 )
             val normalized =
                 transformationNormalizer.normalize(
-                    treePath = asset.path,
-                    entryId = asset.entryId,
+                    limits = TransformationLimitProperties(),
+                    originalVariantAttributes = attributes,
                     requested = requested,
                 )
             normalized.colorSpace shouldBe expected

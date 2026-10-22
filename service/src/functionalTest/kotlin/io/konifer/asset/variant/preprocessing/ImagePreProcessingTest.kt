@@ -3,8 +3,10 @@ package io.konifer.asset.variant.preprocessing
 import app.photofox.vipsffm.VImage
 import app.photofox.vipsffm.Vips
 import io.konifer.BaseFunctionalTest
+import io.konifer.ImageFactory.testImage
 import io.konifer.byteArrayToImage
 import io.konifer.common.asset.AssetClass
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.matchers.shouldBeApproximately
@@ -13,9 +15,13 @@ import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotStartWith
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import org.apache.tika.Tika
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
@@ -25,6 +31,31 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 class ImagePreProcessingTest : BaseFunctionalTest() {
+    @Test
+    fun `source-derived preprocessing dimensions must satisfy configured limits`() =
+        testInMemory(
+            """
+            paths {
+              "/**" {
+                transform {
+                  preprocessing {
+                    enabled = true
+                    clamp-width = 100
+                  }
+                  limits { max-height = 60 }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest(), expectedStatus = HttpStatusCode.BadRequest)
+            client
+                .get("/assets/profile/-/entries")
+                .body<AssetEntriesResponse>()
+                .entries
+                .shouldBeEmpty()
+        }
+
     companion object {
         @JvmStatic
         fun scalingNotNeededSource(): Stream<Arguments> =

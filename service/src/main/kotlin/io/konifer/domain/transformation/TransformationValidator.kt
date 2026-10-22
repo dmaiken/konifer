@@ -1,15 +1,13 @@
 package io.konifer.domain.transformation
 
 import io.konifer.common.image.Rotate
-import io.konifer.domain.variant.TransformProperties
 import io.konifer.domain.variant.TransformationLimitProperties
 
 object TransformationValidator {
     fun validateNormalizedTransformation(
-        transformProperties: TransformProperties,
+        limits: TransformationLimitProperties,
         transformation: Transformation,
     ) {
-        val limits = transformProperties.limits
         val (outputWidth, outputHeight) = calculateOutputDimensions(transformation)
 
         try {

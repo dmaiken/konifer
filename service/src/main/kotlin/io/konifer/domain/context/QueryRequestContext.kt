@@ -2,7 +2,7 @@ package io.konifer.domain.context
 
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.transformation.RequestedTransformation
 import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
 
@@ -10,7 +10,7 @@ data class QueryRequestContext(
     val path: String,
     val pathConfiguration: PathConfiguration,
     val selectors: QuerySelectors,
-    val specification: VariantSpecification?,
+    val requestedTransformation: RequestedTransformation?,
     val labels: Map<String, String>,
     val request: HttpRequest,
 ) : RequestContext

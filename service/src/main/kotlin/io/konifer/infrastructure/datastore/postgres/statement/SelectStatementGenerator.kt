@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.common.selector.Order
+import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
 import io.konifer.infrastructure.datastore.postgres.VariantParameterGenerator
@@ -20,6 +21,18 @@ import org.jooq.SelectFinalStep
 import org.jooq.impl.DSL
 
 object SelectStatementGenerator {
+    context(trx: DSLContext)
+    fun fetchVariant(
+        assetId: AssetId,
+        specification: VariantSpecification,
+    ) = trx
+        .selectFrom(ASSET_VARIANT)
+        .where(ASSET_VARIANT.ASSET_ID.eq(assetId.value))
+        .and(ASSET_VARIANT.UPLOADED_AT.isNotNull)
+        .and(calculateJoinVariantConditions(specification))
+        .orderBy(ASSET_VARIANT.CREATED_AT.desc())
+        .limit(1)
+
     context(trx: DSLContext)
     fun fetch(
         path: String,
@@ -116,20 +129,18 @@ object SelectStatementGenerator {
                 records.map { r -> r.into(AssetTagRecord::class.java) }
             }.`as`("tags")
 
-    private fun calculateJoinVariantConditions(specification: VariantSpecification): Condition {
-        val condition = ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID)
-        return when (specification) {
+    private fun calculateJoinVariantConditions(specification: VariantSpecification): Condition =
+        when (specification) {
             VariantSpecification.Original -> {
-                condition.and(ASSET_VARIANT.ORIGINAL_VARIANT.eq(true))
+                ASSET_VARIANT.ORIGINAL_VARIANT.eq(true)
             }
 
             is VariantSpecification.Transformed -> {
                 val serializedTransformation =
                     VariantParameterGenerator.generateImageVariantTransformations(specification.transformation)
-                condition.and(ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation)))
+                ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation))
             }
         }
-    }
 
     private fun includeReadyConditions(
         whereCondition: Condition,
