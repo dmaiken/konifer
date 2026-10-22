@@ -12,9 +12,8 @@ import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.toColorSpace
 import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.transformation.pixel.PixelTransformation
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.attribute.Attributes
-import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
-import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_BANDS
 import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERPRETATION
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
@@ -110,9 +109,10 @@ class ColorspaceNormalizerTest {
     @Test
     fun `normalizes inherited pixel output to grayscale`() =
         runTest {
-            val normalizer = TransformationNormalizer(InMemoryAssetRepository(InMemoryObjectStore()))
+            val normalizer = TransformationNormalizer()
             val normalized =
                 normalizer.normalize(
+                    limits = TransformationLimitProperties(),
                     requested = RequestedTransformation(pixelChannels = PixelChannels.grayscale),
                     originalVariantAttributes = attributes(ColorSpace.SRGB).copy(format = ImageFormat.PIXELS),
                 )

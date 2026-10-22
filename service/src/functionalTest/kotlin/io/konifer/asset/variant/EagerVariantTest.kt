@@ -6,10 +6,12 @@ import io.konifer.PHash
 import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.Rotate
+import io.konifer.infrastructure.TemporaryFileFactory
 import io.konifer.infrastructure.vips.transformer.HAMMING_DISTANCE_IDENTICAL
 import io.konifer.testInMemory
 import io.konifer.util.fetchAssetContent
 import io.konifer.util.fetchAssetInfo
+import io.konifer.util.storeAssetMultipartSource
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAtLeast
 import io.kotest.inspectors.forExactly
@@ -22,9 +24,41 @@ import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
 import kotlin.test.junit.JUnitAsserter.fail
 
 class EagerVariantTest : BaseFunctionalTest() {
+    @Test
+    fun `invalid source-derived transformation prevents the entire eager batch from being generated`() =
+        testInMemory(
+            """
+            variant-profiles {
+              valid { width = 20 }
+              invalid { width = 100 }
+            }
+            paths {
+              "/**" {
+                transform {
+                  eager-variants = [valid, invalid]
+                  limits { max-height = 60 }
+                }
+              }
+            }
+            """.trimIndent(),
+        ) {
+            storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
+            // The listener removes its source file in finally, including when normalization rejects the batch.
+            await().untilAsserted {
+                Files.list(TemporaryFileFactory.tempDir).use { files ->
+                    files.filter { Files.isRegularFile(it) }.count() shouldBe 0L
+                }
+            }
+            fetchAssetInfo(client)!!.variants.apply {
+                shouldHaveSize(1)
+                single().isOriginalVariant shouldBe true
+            }
+        }
+
     @Test
     fun `can store asset and eager variants are generated`() =
         testInMemory(

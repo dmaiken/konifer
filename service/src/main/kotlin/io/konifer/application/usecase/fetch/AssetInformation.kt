@@ -4,5 +4,5 @@ import io.konifer.domain.asset.AssetData
 
 data class AssetInformation(
     val asset: AssetData,
-    val cacheHit: Boolean,
+    val cacheResult: CacheResult,
 )

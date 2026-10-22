@@ -1,5 +1,6 @@
 package io.konifer.entrypoint
 
+import io.konifer.application.usecase.fetch.CacheResult
 import io.konifer.application.usecase.fetch.FetchAssetHandler
 import io.konifer.common.http.AttributesResponse
 import io.konifer.domain.asset.AssetDataContainer
@@ -22,7 +23,7 @@ import java.time.LocalDateTime
 suspend fun ApplicationCall.respondContent(
     objectStoreBucket: String,
     objectStoreKey: String,
-    cacheHit: Boolean,
+    cacheResult: CacheResult,
     alt: String?,
     lqips: LQIPs,
     entryId: Long,
@@ -30,7 +31,7 @@ suspend fun ApplicationCall.respondContent(
     variantAttributes: Attributes,
     fetchAssetHandler: FetchAssetHandler,
 ) {
-    getAppStatusCacheHeader(cacheHit).let {
+    getAppStatusCacheHeader(cacheResult).let {
         this.response.headers.append(it.first, it.second)
     }
     getAltHeader(alt)?.let {

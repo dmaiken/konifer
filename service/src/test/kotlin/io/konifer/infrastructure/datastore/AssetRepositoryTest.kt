@@ -25,6 +25,7 @@ import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.LQIPs
+import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.VariantSpecification
@@ -57,6 +58,32 @@ abstract class AssetRepositoryTest {
     abstract fun createRepository(): AssetRepository
 
     val repository = createRepository()
+
+    @Test
+    fun `variant lookup uses resolved asset identity and only returns uploaded variants`() =
+        runTest {
+            val asset = repository.storeNew(createPendingAsset())
+            val other = repository.storeNew(createPendingAsset())
+            repository.markReady(asset.markReady(LocalDateTime.now(UTC)))
+            repository.markReady(other.markReady(LocalDateTime.now(UTC)))
+            val original = asset.variants.single()
+            repository.fetchVariant(asset.id, VariantSpecification.Original)?.id shouldBe original.id
+            repository
+                .fetchVariant(
+                    asset.id,
+                    VariantSpecification.Transformed(Transformation.fromAttributes(original.attributes)),
+                )?.id shouldBe original.id
+            repository.fetchVariant(AssetId(), VariantSpecification.Original) shouldBe null
+
+            val transformation = Transformation.fromAttributes(original.attributes).copy(width = 50.toDimension())
+            val variant = repository.storeNewVariant(createPendingVariant(assetId = asset.id, transformation = transformation))
+            repository.fetchVariant(asset.id, variant.specification) shouldBe null
+            val uploaded = repository.markUploaded(variant.markReady(LocalDateTime.now(UTC)), CacheProperties())
+            val fetched = repository.fetchVariant(asset.id, variant.specification)!!
+            fetched shouldBe uploaded
+            assertFetchedVariantAgainstAggregate(fetched, variant.markReady(fetched.uploadedAt!!))
+            repository.fetchVariant(other.id, variant.specification) shouldBe null
+        }
 
     @Nested
     inner class StoreAssetTests {
@@ -502,7 +529,8 @@ abstract class AssetRepositoryTest {
             repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
             val originalId = persisted.variants.single().id
             val transformation =
-                TransformationNormalizer(repository).normalize(
+                TransformationNormalizer().normalize(
+                    limits = TransformationLimitProperties(),
                     requested =
                         RequestedTransformation(
                             format = ImageFormat.PIXELS,

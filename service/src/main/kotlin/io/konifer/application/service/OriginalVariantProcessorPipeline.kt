@@ -9,7 +9,6 @@ import io.konifer.domain.rules.RuleDefinitionsEvaluationResult
 import io.konifer.domain.rules.UploadRuleDecision
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
-import io.konifer.domain.transformation.TransformationValidator
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.ProcessingPipeline
 import io.konifer.domain.variant.attribute.Attributes
@@ -174,11 +173,7 @@ class OriginalVariantProcessorPipeline(
             .normalize(
                 requested = requestedTransformation,
                 originalVariantAttributes = attributes,
-            ).also { normalized ->
-                TransformationValidator.validateNormalizedTransformation(
-                    transformProperties = context.pathConfiguration.transform,
-                    transformation = normalized,
-                )
-            }
+                limits = context.pathConfiguration.transform.limits,
+            )
     }
 }

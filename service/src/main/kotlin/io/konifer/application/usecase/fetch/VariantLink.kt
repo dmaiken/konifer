@@ -12,7 +12,7 @@ data class VariantLink(
     val entryId: Long,
     val lqip: LQIPs,
     val alt: String?,
-    val cacheHit: Boolean,
+    val cacheResult: CacheResult,
     val attributes: Attributes,
     val redirectEnabled: Boolean = false,
 ) {

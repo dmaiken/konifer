@@ -9,6 +9,7 @@ import io.konifer.domain.asset.toAssetTags
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets
@@ -37,6 +38,14 @@ class PostgresAssetRepository(
     private val dslContext: DSLContext,
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
+
+    override suspend fun fetchVariant(
+        assetId: AssetId,
+        specification: VariantSpecification,
+    ): VariantData? =
+        with(dslContext) {
+            SelectStatementGenerator.fetchVariant(assetId, specification).awaitFirstOrNull()?.toVariantData()
+        }
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         val now = LocalDateTime.now(UTC)
@@ -86,20 +95,23 @@ class PostgresAssetRepository(
     override suspend fun markUploaded(
         variant: Variant.Ready,
         cacheProperties: CacheProperties,
-    ) {
+    ): VariantData =
         dslContext.contextualizedTransactionCoroutine(
             advisoryLockKey = AdvisoryLockKeyProvider.assetLockKey(variant.assetId),
         ) {
-            UpdateStatementGenerator
-                .updateVariantUploaded(variant)
-                .awaitFirst()
+            val persisted =
+                UpdateStatementGenerator
+                    .updateVariantUploaded(variant)
+                    .returning()
+                    .awaitFirst()
+                    .toVariantData()
             VariantEvictionHelper.evictIfNecessary(
                 assetId = variant.assetId,
                 uploadedVariantId = variant.id,
                 cacheProperties = cacheProperties,
             )
+            persisted
         }
-    }
 
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending =
         dslContext.contextualizedTransactionCoroutine {

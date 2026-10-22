@@ -8,6 +8,10 @@ import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.VariantGenerationResult
 import io.konifer.domain.variant.VariantService
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.infrastructure.TemporaryFileFactory
@@ -29,11 +33,12 @@ class FetchAssetHandler(
     private val assetUrlGenerator: AssetUrlGenerator,
     private val eventPublisher: EventPublisher,
     private val formatValidator: FormatValidator,
+    private val transformationNormalizer: TransformationNormalizer,
 ) {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     suspend fun fetchRedirectByPath(context: QueryRequestContext): VariantRedirect? {
-        val (asset, cacheHit) = fetchMetadataByPath(context, true) ?: return null
+        val (asset, cacheResult) = fetchMetadataByPath(context, true) ?: return null
         val variant = asset.variants.first()
 
         val url =
@@ -45,13 +50,13 @@ class FetchAssetHandler(
         return VariantRedirect(
             deliveryUrl = url,
             asset = asset,
-            cacheHit = cacheHit,
+            cacheResult = cacheResult,
             variant = variant,
         )
     }
 
     suspend fun fetchLinkByPath(context: QueryRequestContext): VariantLink? {
-        val (asset, cacheHit) = fetchMetadataByPath(context, true) ?: return null
+        val (asset, cacheResult) = fetchMetadataByPath(context, true) ?: return null
         val variant = asset.variants.first()
 
         return VariantLink(
@@ -59,7 +64,7 @@ class FetchAssetHandler(
             entryId = asset.entryId,
             alt = asset.alt,
             lqip = variant.lqips,
-            cacheHit = cacheHit,
+            cacheResult = cacheResult,
             attributes = variant.attributes,
             deliveryUrl =
                 assetUrlGenerator.generateDeliveryUrl(
@@ -90,38 +95,46 @@ class FetchAssetHandler(
             assetRepository.fetchByPath(
                 path = context.path,
                 entryId = context.selectors.entryId,
-                specification = context.specification,
+                specification = if (generateVariant && context.requestedTransformation == null) VariantSpecification.Original else null,
                 order = context.selectors.order,
                 labels = context.labels,
             ) ?: return null
         if (!generateVariant) {
-            return AssetInformation(assetData, true)
+            return AssetInformation(assetData, CacheResult.HIT)
         }
 
-        return if (assetData.variants.isEmpty()) {
-            logger.info("Generating variant of asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
-
-            createOnDemandVariant(
-                assetId = assetData.id,
-                context = context,
-            )
-
-            AssetInformation(
-                asset =
-                    assetRepository.fetchByPath(
-                        path = context.path,
-                        entryId = context.selectors.entryId,
-                        specification = context.specification,
-                        order = context.selectors.order,
-                        labels = context.labels,
-                    ) ?: return null,
-                cacheHit = false,
-            ).also { publishVariantAccessedEvent(it.asset) }
-        } else {
-            logger.info("Variant found for asset with path: ${context.path}, entryId: ${context.selectors.entryId}")
-            AssetInformation(assetData, true)
-                .also { publishVariantAccessedEvent(it.asset) }
-        }
+        val originalVariant =
+            checkNotNull(assetData.variants.firstOrNull { it.isOriginalVariant }) {
+                "Original variant missing for ready asset: ${assetData.id.value}"
+            }
+        val specification =
+            context.requestedTransformation?.let { requested ->
+                val transformation =
+                    transformationNormalizer.normalize(
+                        requested = requested,
+                        originalVariantAttributes = originalVariant.attributes,
+                        limits = context.pathConfiguration.transform.limits,
+                    )
+                VariantSpecification.Transformed(transformation)
+            } ?: VariantSpecification.Original
+        val matched =
+            assetData.variants.firstOrNull {
+                specification.matches(
+                    stored = it.specification,
+                    attributes = it.attributes,
+                )
+            }
+        val variant =
+            matched ?: run {
+                check(specification is VariantSpecification.Transformed) { "Cannot generate a missing original variant" }
+                when (val generated = createOnDemandVariant(assetData.id, originalVariant, specification.transformation, context)) {
+                    is VariantGenerationResult.Generated -> generated.variant
+                    VariantGenerationResult.AlreadyExists -> assetRepository.fetchVariant(assetData.id, specification) ?: return null
+                }
+            }
+        val cacheResult = matched?.let { CacheResult.HIT } ?: CacheResult.MISS
+        return AssetInformation(assetData.copy(variants = listOf(variant)), cacheResult)
+            .also { publishVariantAccessedEvent(it.asset) }
     }
 
     suspend fun fetchContent(
@@ -137,29 +150,15 @@ class FetchAssetHandler(
 
     private suspend fun createOnDemandVariant(
         assetId: AssetId,
+        originalVariant: VariantData,
+        transformation: Transformation,
         context: QueryRequestContext,
-    ): Unit =
+    ): VariantGenerationResult =
         coroutineScope {
-            val specification = checkNotNull(context.specification)
-            check(specification is VariantSpecification.Transformed) {
-                "Cannot generate a missing original variant"
-            }
-            val transformation = specification.transformation
             formatValidator.validateOutputFormat(
                 allowedFormats = context.pathConfiguration.allowedFormats,
                 format = transformation.format,
             )
-            val originalVariant =
-                assetRepository
-                    .fetchByPath(
-                        path = context.path,
-                        entryId = context.selectors.entryId,
-                        specification = VariantSpecification.Original,
-                        order = context.selectors.order,
-                        labels = context.labels,
-                    )?.variants
-                    ?.first { it.isOriginalVariant }
-                    ?: return@coroutineScope
             val originalVariantFile =
                 TemporaryFileFactory.createOriginalVariantTempFile(
                     extension = originalVariant.attributes.format.extension,

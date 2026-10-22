@@ -9,12 +9,9 @@ import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.context.RequestContextFactory
 import io.konifer.infrastructure.http.AssetUrlGenerator
-import io.konifer.infrastructure.http.CustomAttributes.deleteRequestContextKey
-import io.konifer.infrastructure.http.CustomAttributes.queryRequestContextKey
-import io.konifer.infrastructure.http.CustomAttributes.updateRequestContextKey
-import io.konifer.infrastructure.http.RequestContextPlugin
-import io.konifer.infrastructure.http.cache.AssetCacheControlPlugin
+import io.konifer.infrastructure.http.cache.appendAssetCacheControlHeaders
 import io.konifer.infrastructure.http.fromAsset
 import io.konifer.infrastructure.http.fromAssetData
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
@@ -54,14 +51,19 @@ fun Application.configureAssetRouting() {
     val updateAssetUseCase by inject<UpdateAssetUseCase>()
     val storeNewAssetUseCase by inject<StoreNewAssetUseCase>()
     val assetUrlGenerator by inject<AssetUrlGenerator>()
+    val requestContextFactory by inject<RequestContextFactory>()
 
     routing {
         route(ASSET_PATH_PREFIX) {
-            install(RequestContextPlugin)
-            install(AssetCacheControlPlugin)
-
             get("/{...}") {
-                val requestContext = call.attributes[queryRequestContextKey]
+                val requestContext =
+                    requestContextFactory.fromFetchRequest(
+                        path = call.request.path(),
+                        headers = call.request.headers,
+                        queryParameters = call.parameters,
+                        origin = call.request.origin,
+                    )
+                call.appendAssetCacheControlHeaders(requestContext.pathConfiguration.cacheControl)
 
                 logger.info(
                     "Fetching asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
@@ -69,7 +71,7 @@ fun Application.configureAssetRouting() {
                 when (requestContext.selectors.returnFormat) {
                     ReturnFormat.INFO -> {
                         fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
-                            getAppStatusCacheHeader(response.cacheHit).let {
+                            getAppStatusCacheHeader(response.cacheResult).let {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
@@ -86,7 +88,7 @@ fun Application.configureAssetRouting() {
                     ReturnFormat.REDIRECT -> {
                         fetchAssetHandler.fetchRedirectByPath(requestContext)?.let { response ->
                             call.response.headers.append(HttpHeaders.Location, response.deliveryUrl.url.toString())
-                            getAppStatusCacheHeader(response.cacheHit).let {
+                            getAppStatusCacheHeader(response.cacheResult).let {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.TemporaryRedirect)
@@ -95,7 +97,7 @@ fun Application.configureAssetRouting() {
 
                     ReturnFormat.LINK -> {
                         fetchAssetHandler.fetchLinkByPath(requestContext)?.let { response ->
-                            getAppStatusCacheHeader(response.cacheHit).let {
+                            getAppStatusCacheHeader(response.cacheResult).let {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.OK, response.toResponse())
@@ -118,7 +120,7 @@ fun Application.configureAssetRouting() {
                             call.respondContent(
                                 objectStoreBucket = variant.objectStoreBucket,
                                 objectStoreKey = variant.objectStoreKey,
-                                cacheHit = response.cacheHit,
+                                cacheResult = response.cacheResult,
                                 alt = response.asset.alt,
                                 lqips = variant.lqips,
                                 entryId = response.asset.entryId,
@@ -140,7 +142,7 @@ fun Application.configureAssetRouting() {
             }.describe { storeAssetDocumentation(atRoot = false) }
 
             put("/{...}") {
-                val requestContext = call.attributes[updateRequestContextKey]
+                val requestContext = requestContextFactory.fromUpdateRequest(call.request.path())
                 logger.info("Received request to update asset ${requestContext.path}:${requestContext.entryId}")
                 val asset =
                     updateAssetUseCase.updateAsset(
@@ -151,7 +153,9 @@ fun Application.configureAssetRouting() {
             }.describe { updateAssetDocumentation() }
 
             delete("/{...}") {
-                deleteAssetUseCase.deleteAssets(call.attributes[deleteRequestContextKey])
+                deleteAssetUseCase.deleteAssets(
+                    requestContextFactory.fromDeleteRequest(call.request.path(), call.parameters),
+                )
 
                 call.respond(HttpStatusCode.NoContent)
             }.describe { deleteAssetDocumentation() }

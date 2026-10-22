@@ -7,9 +7,9 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.ObjectStore
-import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
+import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.retention.CacheProperties
 import io.ktor.util.logging.KtorSimpleLogger
@@ -33,6 +33,19 @@ class InMemoryAssetRepository(
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
+
+    override suspend fun fetchVariant(
+        assetId: AssetId,
+        specification: VariantSpecification,
+    ): VariantData? {
+        val now = LocalDateTime.now(UTC)
+        return idReference[assetId]
+            ?.variants
+            ?.filter { it.uploadedAt != null && (it.expiresAt == null || it.expiresAt!! > now) }
+            ?.sortedByDescending { it.createdAt }
+            ?.firstOrNull { specification.matches(it.specification, it.attributes) }
+            ?.toVariantData()
+    }
 
     init {
         logger.warn("The in-memory data store provider is enabled. This should NOT be used in production!")
@@ -76,9 +89,9 @@ class InMemoryAssetRepository(
     override suspend fun markUploaded(
         variant: Variant.Ready,
         cacheProperties: CacheProperties,
-    ) {
+    ): VariantData =
         storeMutex.withLock {
-            val asset = idReference[variant.assetId] ?: return
+            val asset = checkNotNull(idReference[variant.assetId]) { "Asset not found: ${variant.assetId.value}" }
             val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
             store[path]
                 ?.firstOrNull { it.entryId == asset.entryId }
@@ -108,8 +121,8 @@ class InMemoryAssetRepository(
                             }
                         }
                 }
+            variant.toVariantData()
         }
-    }
 
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {
         storeMutex.withLock {
@@ -297,21 +310,7 @@ class InMemoryAssetRepository(
         return asset
     }
 
-    private fun Variant.matches(requested: VariantSpecification): Boolean =
-        when (requested) {
-            VariantSpecification.Original -> {
-                isOriginalVariant
-            }
-
-            is VariantSpecification.Transformed -> {
-                val storedTransformation =
-                    when (val stored = specification) {
-                        VariantSpecification.Original -> Transformation.fromAttributes(attributes)
-                        is VariantSpecification.Transformed -> stored.transformation
-                    }
-                requested.transformation == storedTransformation
-            }
-        }
+    private fun Variant.matches(requested: VariantSpecification): Boolean = requested.matches(specification, attributes)
 
     private fun selectAssetsAtPath(
         path: String,
