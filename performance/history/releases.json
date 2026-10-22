@@ -3,6 +3,823 @@
   "releases": [
     {
       "version": 1,
+      "runId": "20261022T011829655Z-6df6f0e4",
+      "suite": "release",
+      "environment": "aws-c9gd-v1",
+      "subject": "v0.13.0",
+      "startedAt": "2026-10-22T01:27:05Z",
+      "completedAt": "2026-10-22T02:44:22.565Z",
+      "results": [
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 100,
+              "minDuration": "10s",
+              "maxDuration": "1m"
+            },
+            "measurement": {
+              "samples": 1000,
+              "minDuration": "30s",
+              "maxDuration": "2m"
+            }
+          },
+          "workload": "delivery.original.cached",
+          "case": "jpg-medium",
+          "repetitions": 3,
+          "operations": 3000,
+          "requests": 3000,
+          "errors": 0,
+          "checks": {
+            "passed": 9000,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 30.949,
+            "p90": 51.999,
+            "p95": 57.943,
+            "p99": 72.054,
+            "p95Min": 53.07062155,
+            "p95Max": 63.30867859999998
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "avif-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 157.777,
+            "p90": 196.994,
+            "p95": 213.944,
+            "p99": 260.935,
+            "p95Min": 202.80840404999998,
+            "p95Max": 222.09241179999998
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "gif-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 244.567,
+            "p90": 318.551,
+            "p95": 358.15,
+            "p99": 434.942,
+            "p95Min": 312.74389859999997,
+            "p95Max": 451.22444795
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "heic-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 280.449,
+            "p90": 375.414,
+            "p95": 418.916,
+            "p99": 496.433,
+            "p95Min": 360.34466834999995,
+            "p95Max": 427.45669324999983
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "jpg-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 239.472,
+            "p90": 328.395,
+            "p95": 359.274,
+            "p99": 450.775,
+            "p95Min": 345.31774644999996,
+            "p95Max": 382.5086003
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "jxl-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 219.13,
+            "p90": 307.101,
+            "p95": 364.522,
+            "p99": 441.583,
+            "p95Min": 288.5134663,
+            "p95Max": 401.5319077499998
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "png-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 259.75,
+            "p90": 327.089,
+            "p95": 368.972,
+            "p99": 416.216,
+            "p95Min": 333.44072424999996,
+            "p95Max": 427.0503226999999
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.decode",
+          "case": "webp-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 189.583,
+            "p90": 283.286,
+            "p95": 323.905,
+            "p99": 474.418,
+            "p95Min": 309.70325765,
+            "p95Max": 431.96934844999987
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-avif",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 234.18,
+            "p90": 319.426,
+            "p95": 350.593,
+            "p99": 423.935,
+            "p95Min": 348.28700815,
+            "p95Max": 368.47756489999995
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-gif",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 264.592,
+            "p90": 341.721,
+            "p95": 381.788,
+            "p99": 464.535,
+            "p95Min": 302.17365555000003,
+            "p95Max": 486.06062529999997
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-heic",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 196.49,
+            "p90": 246.286,
+            "p95": 268.655,
+            "p99": 299.197,
+            "p95Min": 259.86000125,
+            "p95Max": 270.6414996
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-jpg",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 149.453,
+            "p90": 198.489,
+            "p95": 225.019,
+            "p99": 269.472,
+            "p95Min": 220.44806959999997,
+            "p95Max": 230.10830439999995
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-jxl",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 196.006,
+            "p90": 245.935,
+            "p95": 269.154,
+            "p99": 327.565,
+            "p95Min": 267.4356518999999,
+            "p95Max": 279.79991494999996
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-png",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 177.281,
+            "p90": 245.99,
+            "p95": 273.576,
+            "p99": 321.208,
+            "p95Min": 259.9135454999999,
+            "p95Max": 294.94694185
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "format.encode",
+          "case": "jpg-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 175.023,
+            "p90": 231.416,
+            "p95": 260.695,
+            "p99": 314.479,
+            "p95Min": 260.54897885,
+            "p95Max": 271.25591505
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 30,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "upload.eager.accept",
+          "case": "jpg-medium-four-webp-profiles",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 41.517,
+            "p90": 58.499,
+            "p95": 68.282,
+            "p99": 103.452,
+            "p95Min": 55.94746149999999,
+            "p95Max": 83.92460839999997
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 30,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "upload.original",
+          "case": "jpg-medium",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 3000,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 48.968,
+            "p90": 84.376,
+            "p95": 108.135,
+            "p99": 150.546,
+            "p95Min": 82.37498584999999,
+            "p95Max": 121.9658013
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "upload.preprocess",
+          "case": "jpg-medium-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 2400,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 193.908,
+            "p90": 216.21,
+            "p95": 228.734,
+            "p99": 267.016,
+            "p95Min": 225.83484484999994,
+            "p95Max": 255.97601115
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "upload.rules",
+          "case": "jpg-medium-landscape-rule",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 3600,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 189.76,
+            "p90": 209.828,
+            "p95": 219.366,
+            "p99": 252.96,
+            "p95Min": 211.88566664999996,
+            "p95Max": 234.72743969999993
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "upload.rules.preprocess",
+          "case": "jpg-medium-landscape-rule-to-webp",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 3600,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 348.185,
+            "p90": 366.398,
+            "p95": 388.006,
+            "p99": 412.868,
+            "p95Min": 368.2010074,
+            "p95Max": 393.2251265
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 100,
+              "minDuration": "10s",
+              "maxDuration": "1m"
+            },
+            "measurement": {
+              "samples": 1000,
+              "minDuration": "30s",
+              "maxDuration": "2m"
+            }
+          },
+          "workload": "variant.deliver.cached",
+          "case": "jpg-to-webp-400",
+          "repetitions": 3,
+          "operations": 3000,
+          "requests": 3000,
+          "errors": 0,
+          "checks": {
+            "passed": 9000,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 26.526,
+            "p90": 39.073,
+            "p95": 42.146,
+            "p99": 50.411,
+            "p95Min": 42.03413665,
+            "p95Max": 62.68870474999999
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "variant.eager.ready",
+          "case": "jpg-medium-four-webp-profiles",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 5482,
+          "errors": 0,
+          "checks": {
+            "passed": 9000,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 306,
+            "p90": 407,
+            "p95": 407,
+            "p99": 408.01,
+            "p95Min": 407,
+            "p95Max": 407
+          },
+          "passed": true
+        },
+        {
+          "benchmark": {
+            "methodology": "single-vu-v1",
+            "warmup": {
+              "samples": 20,
+              "minDuration": "10s",
+              "maxDuration": "2m"
+            },
+            "measurement": {
+              "samples": 200,
+              "minDuration": "30s",
+              "maxDuration": "5m"
+            }
+          },
+          "workload": "variant.generate.cold",
+          "case": "jpg-to-webp-400",
+          "repetitions": 3,
+          "operations": 600,
+          "requests": 600,
+          "errors": 0,
+          "checks": {
+            "passed": 1800,
+            "failed": 0
+          },
+          "droppedIterations": 0,
+          "durationMs": {
+            "p50": 197.333,
+            "p90": 260.539,
+            "p95": 273.241,
+            "p99": 314.029,
+            "p95Min": 261.56433575,
+            "p95Max": 318.7194315
+          },
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "version": 1,
       "runId": "20261021T010510360Z-f51a5ca2",
       "suite": "release",
       "environment": "aws-c9gd-v1",
