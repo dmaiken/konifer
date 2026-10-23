@@ -29,7 +29,6 @@ import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
-import org.jooq.tools.LoggerListener
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
@@ -92,7 +91,6 @@ fun configureR2dbcJOOQ(connectionFactory: ConnectionFactory): DSLContext {
         DefaultConfiguration().apply {
             setSQLDialect(SQLDialect.POSTGRES)
             setConnectionFactory(connectionFactory)
-            setExecuteListener(LoggerListener())
             settings()
                 .withExecuteLogging(true)
                 .withRenderFormatted(true)

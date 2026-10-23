@@ -37,10 +37,12 @@ suspend fun <T> DSLContext.contextualizedTransactionCoroutine(
     transactionCoroutine(coroutineContext) { trx ->
         advisoryLockKey?.let { key ->
             // Acquire transaction-scoped advisory lock
-            resultQuery(
-                "select pg_advisory_xact_lock(?)",
-                key,
-            ).awaitSingle()
+            trx
+                .dsl()
+                .resultQuery(
+                    "select pg_advisory_xact_lock(?)",
+                    key,
+                ).awaitSingle()
         }
         context(trx.dsl()) {
             transactional(trx)
