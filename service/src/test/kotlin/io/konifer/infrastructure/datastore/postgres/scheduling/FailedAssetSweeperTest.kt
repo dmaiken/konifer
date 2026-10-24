@@ -21,8 +21,7 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -60,7 +59,7 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(pending)
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
 
             FailedAssetSweeper.invoke(

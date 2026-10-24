@@ -22,14 +22,14 @@ import org.jooq.DSLContext
 import org.jooq.InsertOnDuplicateStep
 import org.jooq.InsertResultStep
 import org.jooq.JSONB
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneOffset.UTC
 
 object InsertStatementGenerator {
     context(trx: DSLContext)
     fun insertAsset(
         asset: Asset.Pending,
-        createdAt: LocalDateTime,
+        createdAt: Instant,
     ): InsertResultStep<AssetTreeRecord> {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(asset.path)
         val insert =
@@ -39,8 +39,8 @@ object InsertStatementGenerator {
                 .set(ASSET_TREE.PATH, treePath)
                 .set(ASSET_TREE.ALT, asset.alt?.value)
                 .set(ASSET_TREE.SOURCE, asset.source.toString())
-                .set(ASSET_TREE.CREATED_AT, createdAt)
-                .set(ASSET_TREE.MODIFIED_AT, createdAt)
+                .set(ASSET_TREE.CREATED_AT, createdAt.atOffset(UTC))
+                .set(ASSET_TREE.MODIFIED_AT, createdAt.atOffset(UTC))
         asset.externalSourceAddress?.let {
             insert.set(ASSET_TREE.SOURCE_URL, it)
         }
@@ -52,7 +52,7 @@ object InsertStatementGenerator {
     fun insertLabels(
         assetId: AssetId,
         labels: AssetLabels,
-        dateTime: LocalDateTime = LocalDateTime.now(UTC),
+        dateTime: Instant = Instant.now(),
     ): InsertOnDuplicateStep<AssetLabelRecord>? {
         if (labels.isEmpty()) return null
 
@@ -66,7 +66,7 @@ object InsertStatementGenerator {
                 ASSET_LABEL.CREATED_AT,
             )
         labels.asMap().forEach { (key, value) ->
-            step.values(UuidCreator.getTimeOrderedEpoch(), assetId.value, key, value, dateTime)
+            step.values(UuidCreator.getTimeOrderedEpoch(), assetId.value, key, value, dateTime.atOffset(UTC))
         }
 
         return step
@@ -76,7 +76,7 @@ object InsertStatementGenerator {
     fun insertTags(
         assetId: AssetId,
         tags: AssetTags,
-        dateTime: LocalDateTime = LocalDateTime.now(UTC),
+        dateTime: Instant = Instant.now(),
     ): InsertOnDuplicateStep<AssetTagRecord>? {
         if (tags.isEmpty()) return null
 
@@ -89,7 +89,7 @@ object InsertStatementGenerator {
                 ASSET_TAG.CREATED_AT,
             )
         tags.asSet().forEach { value ->
-            step.values(UuidCreator.getTimeOrderedEpoch(), assetId.value, value, dateTime)
+            step.values(UuidCreator.getTimeOrderedEpoch(), assetId.value, value, dateTime.atOffset(UTC))
         }
 
         return step
@@ -121,10 +121,10 @@ object InsertStatementGenerator {
             .set(ASSET_VARIANT.TRANSFORMATION, JSONB.valueOf(transformations))
             .set(ASSET_VARIANT.LQIP, JSONB.valueOf(lqip))
             .set(ASSET_VARIANT.ORIGINAL_VARIANT, variant.isOriginalVariant)
-            .set(ASSET_VARIANT.CREATED_AT, variant.createdAt)
-            .set(ASSET_VARIANT.EXPIRES_AT, variant.expiresAt)
+            .set(ASSET_VARIANT.CREATED_AT, variant.createdAt.atOffset(UTC))
+            .set(ASSET_VARIANT.EXPIRES_AT, variant.expiresAt?.atOffset(UTC))
             .set(ASSET_VARIANT.ACCESS_SCORE, 1.0)
-            .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, variant.createdAt)
+            .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, variant.createdAt.atOffset(UTC))
             .returning()
     }
 }

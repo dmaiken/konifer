@@ -4,7 +4,7 @@
 package konifer.jooq.tables
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.Public
@@ -98,7 +98,7 @@ open class PromptEmbedding(
     /**
      * The column <code>public.prompt_embedding.created_at</code>.
      */
-    val CREATED_AT: TableField<PromptEmbeddingRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<PromptEmbeddingRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<PromptEmbeddingRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<PromptEmbeddingRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -112,7 +112,7 @@ open class PromptEmbedding(
     /**
      * Create an aliased <code>public.prompt_embedding</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name): this(alias, PROMPT_EMBEDDING)
 
     /**
      * Create a <code>public.prompt_embedding</code> table reference

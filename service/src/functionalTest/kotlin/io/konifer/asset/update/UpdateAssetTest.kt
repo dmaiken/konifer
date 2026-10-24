@@ -13,8 +13,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import kotlinx.datetime.toJavaLocalDateTime
 import org.junit.jupiter.api.Test
+import kotlin.time.toJavaInstant
 
 class UpdateAssetTest : BaseFunctionalTest() {
     @Test
@@ -51,7 +51,7 @@ class UpdateAssetTest : BaseFunctionalTest() {
             updateResponse.tags shouldContainExactly updateRequest.tags
             updateResponse.alt shouldBe updateRequest.alt
             updateResponse.createdAt shouldBe storeAssetResponse.createdAt
-            updateResponse.modifiedAt.toJavaLocalDateTime() shouldBeAfter storeAssetResponse.modifiedAt.toJavaLocalDateTime()
+            updateResponse.modifiedAt.toJavaInstant() shouldBeAfter storeAssetResponse.modifiedAt.toJavaInstant()
 
             fetchAssetInfo(client, path = "profile") shouldBe updateResponse
         }

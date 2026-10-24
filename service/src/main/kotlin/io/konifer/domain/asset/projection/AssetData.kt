@@ -3,7 +3,7 @@ package io.konifer.domain.asset.projection
 import io.konifer.common.asset.AssetSource
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.VariantData
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class AssetData(
     val id: AssetId,
@@ -15,7 +15,7 @@ data class AssetData(
     val source: AssetSource,
     val externalSourceAddress: String?,
     val isReady: Boolean,
-    val createdAt: LocalDateTime,
-    val modifiedAt: LocalDateTime,
+    val createdAt: Instant,
+    val modifiedAt: Instant,
     val variants: List<VariantData>,
 )

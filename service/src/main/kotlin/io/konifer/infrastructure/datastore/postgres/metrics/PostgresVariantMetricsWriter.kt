@@ -2,7 +2,6 @@ package io.konifer.infrastructure.datastore.postgres.metrics
 
 import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.retention.VariantExpirationStrategy
-import io.konifer.infrastructure.datastore.postgres.statement.FieldStatementGenerator.currentUtcLocalDateTime
 import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.metrics.InMemoryVariantMetricsRepository
 import io.konifer.infrastructure.variant.metrics.VariantAccessedInformation
@@ -18,7 +17,8 @@ import org.jooq.Field
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.ZoneOffset.UTC
 import java.util.UUID
 import kotlin.time.toJavaDuration
@@ -70,7 +70,7 @@ class PostgresVariantMetricsWriter(
 
         chunk.forEach { (variantId, accessed) ->
             val pathConfig = pathConfigurationRepository.fetch(accessed.path)
-            val accessedAtLocal = LocalDateTime.ofInstant(accessed.accessedAt, UTC)
+            val accessedAt = accessed.accessedAt
             val accessScoreHalfLifeSeconds =
                 pathConfig.transform.retention.cache.accessScoreHalfLife.inWholeMilliseconds / 1_000.0
 
@@ -78,9 +78,9 @@ class PostgresVariantMetricsWriter(
                 idleUpdates +=
                     IdleMetricUpdate(
                         variantId = variantId.value,
-                        accessedAt = accessedAtLocal,
+                        accessedAt = accessedAt,
                         expiresAt =
-                            accessedAtLocal.plus(
+                            accessedAt.plus(
                                 checkNotNull(pathConfig.transform.retention.expire.ttl).toJavaDuration(),
                             ),
                         accessCount = accessed.accessCount,
@@ -90,7 +90,7 @@ class PostgresVariantMetricsWriter(
                 nonIdleUpdates +=
                     MetricUpdate(
                         variantId = variantId.value,
-                        accessedAt = accessedAtLocal,
+                        accessedAt = accessedAt,
                         accessCount = accessed.accessCount,
                         accessScoreHalfLifeSeconds = accessScoreHalfLifeSeconds,
                     )
@@ -122,7 +122,7 @@ class PostgresVariantMetricsWriter(
                         .map { update ->
                             DSL.row(
                                 update.variantId,
-                                update.accessedAt,
+                                update.accessedAt.atOffset(UTC),
                                 update.accessCount,
                                 update.accessScoreHalfLifeSeconds,
                             )
@@ -141,7 +141,7 @@ class PostgresVariantMetricsWriter(
         val incomingAccessCount = checkNotNull(incoming.field(ACCESS_COUNT, SQLDataType.BIGINT.nullable(false)))
         val incomingAccessScoreHalfLifeSeconds =
             checkNotNull(incoming.field(ACCESS_SCORE_HALF_LIFE_SECONDS, SQLDataType.DOUBLE.nullable(false)))
-        val accessScoreAsOf = currentUtcLocalDateTime()
+        val accessScoreAsOf = DSL.currentOffsetDateTime()
 
         dslContext
             .update(ASSET_VARIANT)
@@ -178,8 +178,8 @@ class PostgresVariantMetricsWriter(
                         .map { update ->
                             DSL.row(
                                 update.variantId,
-                                update.accessedAt,
-                                update.expiresAt,
+                                update.accessedAt.atOffset(UTC),
+                                update.expiresAt.atOffset(UTC),
                                 update.accessCount,
                                 update.accessScoreHalfLifeSeconds,
                             )
@@ -202,7 +202,7 @@ class PostgresVariantMetricsWriter(
             checkNotNull(incoming.field(ACCESS_SCORE_HALF_LIFE_SECONDS, SQLDataType.DOUBLE.nullable(false)))
         val shouldAdvanceAccessTime =
             ASSET_VARIANT.LAST_ACCESSED_AT.isNull.or(ASSET_VARIANT.LAST_ACCESSED_AT.lessThan(incomingAccessedAt))
-        val accessScoreAsOf = currentUtcLocalDateTime()
+        val accessScoreAsOf = DSL.currentOffsetDateTime()
 
         dslContext
             .update(ASSET_VARIANT)
@@ -232,7 +232,7 @@ class PostgresVariantMetricsWriter(
     }
 
     private fun updatedAccessScore(
-        accessScoreAsOf: Field<LocalDateTime>,
+        accessScoreAsOf: Field<OffsetDateTime>,
         incomingAccessCount: Field<Long>,
         incomingAccessScoreHalfLifeSeconds: Field<Double>,
     ): Field<Double?> {
@@ -257,15 +257,15 @@ class PostgresVariantMetricsWriter(
 
     private data class MetricUpdate(
         val variantId: UUID,
-        val accessedAt: LocalDateTime,
+        val accessedAt: Instant,
         val accessCount: Long,
         val accessScoreHalfLifeSeconds: Double,
     )
 
     private data class IdleMetricUpdate(
         val variantId: UUID,
-        val accessedAt: LocalDateTime,
-        val expiresAt: LocalDateTime,
+        val accessedAt: Instant,
+        val expiresAt: Instant,
         val accessCount: Long,
         val accessScoreHalfLifeSeconds: Double,
     )

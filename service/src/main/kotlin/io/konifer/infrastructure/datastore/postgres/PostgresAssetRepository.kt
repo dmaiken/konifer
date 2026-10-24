@@ -37,8 +37,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.DSLContext
 import org.jooq.exception.IntegrityConstraintViolationException
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 class PostgresAssetRepository(
     private val dslContext: DSLContext,
@@ -58,7 +57,7 @@ class PostgresAssetRepository(
         }
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
-        val now = LocalDateTime.now(UTC)
+        val now = Instant.now()
         return dslContext.contextualizedTransactionCoroutine {
             val insert =
                 InsertStatementGenerator.insertAsset(

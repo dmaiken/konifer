@@ -37,9 +37,9 @@ import io.ktor.http.contentType
 import io.ktor.http.fullPath
 import io.ktor.http.path
 import io.ktor.utils.io.readRemaining
-import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
+import kotlin.time.toJavaInstant
 
 const val BOUNDARY = "boundary"
 
@@ -93,7 +93,7 @@ suspend inline fun <reified T> storeAssetMultipartSource(
                     response.body<AssetResponse>().apply {
                         entryId shouldBeGreaterThan -1
                         variants shouldHaveSize 1 // original variant
-                        modifiedAt.toJavaLocalDateTime() shouldBeAfter createdAt.toJavaLocalDateTime()
+                        modifiedAt.toJavaInstant() shouldBeAfter createdAt.toJavaInstant()
                     }
                 } else {
                     null
@@ -125,7 +125,7 @@ suspend fun storeAssetUrlSource(
                 responseBody.apply {
                     entryId shouldBeGreaterThan -1
                     variants shouldHaveSize 1 // original variant
-                    modifiedAt.toJavaLocalDateTime() shouldBeAfter createdAt.toJavaLocalDateTime()
+                    modifiedAt.toJavaInstant() shouldBeAfter createdAt.toJavaInstant()
                 }
             } else {
                 null

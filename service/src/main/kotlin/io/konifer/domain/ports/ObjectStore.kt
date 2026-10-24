@@ -5,19 +5,19 @@ import io.ktor.http.Url
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteWriteChannel
 import java.nio.file.Path
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.time.Duration
 
 interface ObjectStore {
     suspend fun persist(
         request: PersistObjectStoreRequest,
         channel: ByteChannel,
-    ): LocalDateTime
+    ): Instant
 
     suspend fun persist(
         request: PersistObjectStoreRequest,
         file: Path,
-    ): LocalDateTime
+    ): Instant
 
     suspend fun fetch(
         bucket: String,
@@ -56,7 +56,7 @@ interface ObjectStore {
 sealed interface PresignedUrl {
     data class Supported(
         val url: Url,
-        val expiresAt: LocalDateTime?,
+        val expiresAt: Instant?,
     ) : PresignedUrl
 
     object NotSupported : PresignedUrl

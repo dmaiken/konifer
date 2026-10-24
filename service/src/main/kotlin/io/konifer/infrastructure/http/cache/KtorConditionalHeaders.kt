@@ -9,20 +9,19 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
 import io.ktor.util.date.GMTDate
 import org.apache.commons.codec.digest.MurmurHash3
-import java.time.ZoneOffset
 
 fun Application.configureConditionalHeaders() {
     install(ConditionalHeaders) {
         version { call, _ ->
             listOfNotNull(
                 call.attributes.getOrNull(entryIdKey)?.let { entryId ->
-                    val lastModifiedEpoch = call.attributes[lastModifiedKey].toEpochSecond(ZoneOffset.UTC)
+                    val lastModifiedEpoch = call.attributes[lastModifiedKey].epochSecond
                     val rawContent = "$entryId|$lastModifiedEpoch".toByteArray()
                     EntityTagVersion(MurmurHash3.hash32x86(rawContent).toString(16))
                 },
                 call.attributes.getOrNull(lastModifiedKey)?.let {
                     LastModifiedVersion(
-                        GMTDate(it.toEpochSecond(ZoneOffset.UTC) * 1000),
+                        GMTDate(it.epochSecond * 1000),
                     )
                 },
             )

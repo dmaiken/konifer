@@ -5,7 +5,7 @@ package konifer.jooq.tables.pojos
 
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import org.jooq.JSONB
@@ -19,7 +19,7 @@ data class Outbox(
     var id: UUID,
     var eventType: String,
     var payload: JSONB? = null,
-    var createdAt: LocalDateTime
+    var createdAt: OffsetDateTime
 ): Serializable {
 
 

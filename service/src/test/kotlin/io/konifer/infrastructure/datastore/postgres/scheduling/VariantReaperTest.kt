@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneOffset.UTC
 
 @Testcontainers
@@ -81,7 +81,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
 
             VariantReaper.invoke(
@@ -128,7 +128,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
             coEvery {
                 objectStore.delete(any(), any())
@@ -189,7 +189,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
             val eventId2 = UuidCreator.getRandomBasedFast()
             dslContext
@@ -206,7 +206,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
             coEvery {
                 objectStore.delete(any(), key = "key1")
@@ -276,7 +276,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
             val eventId2 = UuidCreator.getRandomBasedFast()
             dslContext
@@ -293,7 +293,7 @@ class VariantReaperTest {
                             ),
                         ),
                     ),
-                ).set(OUTBOX.CREATED_AT, LocalDateTime.now(UTC))
+                ).set(OUTBOX.CREATED_AT, Instant.now().atOffset(UTC))
                 .awaitFirstOrNull()
 
             VariantReaper.invoke(

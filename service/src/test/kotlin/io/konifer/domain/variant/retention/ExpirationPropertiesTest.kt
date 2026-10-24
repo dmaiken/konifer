@@ -7,10 +7,10 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.ZoneId
 import kotlin.time.Duration.Companion.minutes
 
 class ExpirationPropertiesTest {
@@ -51,15 +51,16 @@ class ExpirationPropertiesTest {
             "For variant expiry strategy: '${Json.encodeToString(strategy)}', '${ExpirePropertyKeys.TTL}' property must be set"
     }
 
-    @Test
-    fun `expiresAt calculates expiry date`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["UTC", "America/Denver", "Asia/Kolkata"])
+    fun `expiresAt calculates the same instant regardless of clock zone`(zone: String) {
         val fixedInstant = Instant.parse("2026-01-01T12:00:00Z")
-        val fixedClock = Clock.fixed(fixedInstant, UTC)
+        val fixedClock = Clock.fixed(fixedInstant, ZoneId.of(zone))
 
         ExpirationProperties(
             strategy = VariantExpirationStrategy.TTL,
             ttl = 10.minutes,
-        ).expiresAt(fixedClock) shouldBe LocalDateTime.now(fixedClock).plusMinutes(10)
+        ).expiresAt(fixedClock) shouldBe fixedInstant.plusSeconds(600)
     }
 
     @Test

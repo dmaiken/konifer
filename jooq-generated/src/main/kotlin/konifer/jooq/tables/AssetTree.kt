@@ -4,7 +4,7 @@
 package konifer.jooq.tables
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.Public
@@ -126,12 +126,12 @@ open class AssetTree(
     /**
      * The column <code>public.asset_tree.created_at</code>.
      */
-    val CREATED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AssetTreeRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     /**
      * The column <code>public.asset_tree.modified_at</code>.
      */
-    val MODIFIED_AT: TableField<AssetTreeRecord, LocalDateTime?> = createField(DSL.name("modified_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val MODIFIED_AT: TableField<AssetTreeRecord, OffsetDateTime?> = createField(DSL.name("modified_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<AssetTreeRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetTreeRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -145,7 +145,7 @@ open class AssetTree(
     /**
      * Create an aliased <code>public.asset_tree</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name): this(alias, ASSET_TREE)
 
     /**
      * Create a <code>public.asset_tree</code> table reference

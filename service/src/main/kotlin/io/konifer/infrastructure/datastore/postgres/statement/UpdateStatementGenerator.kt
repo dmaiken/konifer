@@ -8,6 +8,7 @@ import konifer.jooq.tables.references.ASSET_TREE
 import konifer.jooq.tables.references.ASSET_VARIANT
 import org.jooq.DSLContext
 import org.jooq.UpdateConditionStep
+import java.time.ZoneOffset.UTC
 
 object UpdateStatementGenerator {
     context(trx: DSLContext)
@@ -21,7 +22,7 @@ object UpdateStatementGenerator {
     fun updateModifiedAt(asset: Asset.Ready): UpdateConditionStep<AssetTreeRecord> =
         trx
             .update(ASSET_TREE)
-            .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt)
+            .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt.atOffset(UTC))
             .where(ASSET_TREE.ID.eq(asset.id.value))
 
     context(trx: DSLContext)
@@ -29,14 +30,14 @@ object UpdateStatementGenerator {
         trx
             .update(ASSET_TREE)
             .set(ASSET_TREE.IS_READY, true)
-            .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt)
+            .set(ASSET_TREE.MODIFIED_AT, asset.modifiedAt.atOffset(UTC))
             .where(ASSET_TREE.ID.eq(asset.id.value))
 
     context(trx: DSLContext)
     fun updateVariantUploaded(variant: Variant): UpdateConditionStep<AssetVariantRecord> =
         trx
             .update(ASSET_VARIANT)
-            .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt)
-            .set(ASSET_VARIANT.LAST_ACCESSED_AT, variant.uploadedAt)
+            .set(ASSET_VARIANT.UPLOADED_AT, variant.uploadedAt?.atOffset(UTC))
+            .set(ASSET_VARIANT.LAST_ACCESSED_AT, variant.uploadedAt?.atOffset(UTC))
             .where(ASSET_VARIANT.ID.eq(variant.id.value))
 }

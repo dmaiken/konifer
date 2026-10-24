@@ -6,8 +6,6 @@ import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Url
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.time.Clock
@@ -44,7 +42,7 @@ class LinkIntegrationTest : BaseIntegrationTest() {
             with(linkResponse as KoniferResult.Success) {
                 shouldNotThrowAny { Url(value.url) }
 
-                val expiresAt = requireNotNull(value.expiresAt).toInstant(TimeZone.UTC)
+                val expiresAt = requireNotNull(value.expiresAt)
                 expiresAt shouldBeIn (requestedAt + 30.minutes)..(receivedAt + 30.minutes)
             }
         }

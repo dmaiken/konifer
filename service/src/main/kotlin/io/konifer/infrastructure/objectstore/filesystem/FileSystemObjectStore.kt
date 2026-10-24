@@ -16,8 +16,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import kotlin.time.Duration
 
 class FileSystemObjectStore(
@@ -28,7 +27,7 @@ class FileSystemObjectStore(
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         channel: ByteChannel,
-    ): LocalDateTime =
+    ): Instant =
         withContext(Dispatchers.IO) {
             val target =
                 resolvePath(
@@ -41,13 +40,13 @@ class FileSystemObjectStore(
             }
             channel.copyAndClose(target.toFile().writeChannel())
 
-            LocalDateTime.now(UTC)
+            Instant.now()
         }
 
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         file: Path,
-    ): LocalDateTime =
+    ): Instant =
         withContext(Dispatchers.IO) {
             val target =
                 resolvePath(
@@ -60,7 +59,7 @@ class FileSystemObjectStore(
             }
             Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING)
 
-            LocalDateTime.now(UTC)
+            Instant.now()
         }
 
     override suspend fun fetch(

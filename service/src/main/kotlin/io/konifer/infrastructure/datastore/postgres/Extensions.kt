@@ -23,7 +23,7 @@ import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -64,8 +64,8 @@ fun AssetTreeRecord.toAssetData(
         source = AssetSource.valueOf(checkNotNull(source)),
         externalSourceAddress = sourceUrl,
         isReady = isReady ?: false,
-        createdAt = checkNotNull(createdAt),
-        modifiedAt = checkNotNull(modifiedAt),
+        createdAt = checkNotNull(createdAt).toInstant(),
+        modifiedAt = checkNotNull(modifiedAt).toInstant(),
         variants = variants.map { it.toVariantData() },
     )
 
@@ -81,10 +81,10 @@ fun AssetVariantRecord.toVariantData(): VariantData =
                 ).toAttributes(),
         specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
-        createdAt = checkNotNull(createdAt),
-        uploadedAt = uploadedAt,
-        expiresAt = expiresAt,
-        lastAccessedAt = lastAccessedAt,
+        createdAt = checkNotNull(createdAt).toInstant(),
+        uploadedAt = uploadedAt?.toInstant(),
+        expiresAt = expiresAt?.toInstant(),
+        lastAccessedAt = lastAccessedAt?.toInstant(),
     )
 
 fun AssetTreeRecord.toPendingPersisted(
@@ -101,8 +101,8 @@ fun AssetTreeRecord.toPendingPersisted(
         tags = tags,
         source = AssetSource.valueOf(checkNotNull(source)),
         externalSourceAddress = sourceUrl,
-        createdAt = checkNotNull(createdAt),
-        modifiedAt = checkNotNull(modifiedAt),
+        createdAt = checkNotNull(createdAt).toInstant(),
+        modifiedAt = checkNotNull(modifiedAt).toInstant(),
         isReady = false,
         variants = mutableListOf(variant.toPendingVariant()),
     )
@@ -121,13 +121,13 @@ fun AssetTreeRecord.toReadyAsset(
         tags = tags.mapNotNull { it.tagValue }.toSet().toAssetTags(),
         source = AssetSource.valueOf(checkNotNull(source)),
         externalSourceAddress = sourceUrl,
-        createdAt = checkNotNull(createdAt),
-        modifiedAt = checkNotNull(modifiedAt),
+        createdAt = checkNotNull(createdAt).toInstant(),
+        modifiedAt = checkNotNull(modifiedAt).toInstant(),
         variants =
             variants
                 .map {
                     if (it.modified()) {
-                        it.toReadyVariant(checkNotNull(it.uploadedAt))
+                        it.toReadyVariant(checkNotNull(it.uploadedAt).toInstant())
                     } else {
                         it.toPendingVariant()
                     }
@@ -148,12 +148,12 @@ fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
                 ).toAttributes(),
         specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
-        createdAt = checkNotNull(createdAt),
+        createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = null,
-        expiresAt = expiresAt,
+        expiresAt = expiresAt?.toInstant(),
     )
 
-fun AssetVariantRecord.toReadyVariant(uploadedAt: LocalDateTime): Variant.Ready =
+fun AssetVariantRecord.toReadyVariant(uploadedAt: Instant): Variant.Ready =
     Variant.Ready(
         id = VariantId(checkNotNull(id)),
         assetId = AssetId(checkNotNull(assetId)),
@@ -166,9 +166,9 @@ fun AssetVariantRecord.toReadyVariant(uploadedAt: LocalDateTime): Variant.Ready 
                 ).toAttributes(),
         specification = toVariantSpecification(),
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
-        createdAt = checkNotNull(createdAt),
+        createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = uploadedAt,
-        expiresAt = expiresAt,
+        expiresAt = expiresAt?.toInstant(),
     )
 
 fun AssetVariantRecord.toVariantSpecification(): VariantSpecification =

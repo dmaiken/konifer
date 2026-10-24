@@ -18,8 +18,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.transfer.s3.S3TransferManager
 import java.net.URI
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import kotlin.time.Duration.Companion.days
 
 @Testcontainers
@@ -66,7 +65,7 @@ class S3ObjectStoreTest : ObjectStoreTest() {
         @Test
         fun `presigned url has expiresAt`() =
             runTest {
-                val now = LocalDateTime.now(UTC)
+                val now = Instant.now()
                 val s3Clients = createS3Client()
                 val store =
                     S3ObjectStore(

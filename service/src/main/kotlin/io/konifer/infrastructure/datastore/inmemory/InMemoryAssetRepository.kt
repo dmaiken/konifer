@@ -21,8 +21,7 @@ import io.konifer.infrastructure.datastore.inmemory.projection.InMemoryVariantDe
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
@@ -45,7 +44,7 @@ class InMemoryAssetRepository(
         assetId: AssetId,
         selection: VariantSelection,
     ): List<VariantDeliveryProjection> {
-        val now = LocalDateTime.now(UTC)
+        val now = Instant.now()
         return idReference[assetId]
             ?.variants
             ?.select(selection)
@@ -165,7 +164,7 @@ class InMemoryAssetRepository(
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): AssetData? {
-        val now = LocalDateTime.now(UTC)
+        val now = Instant.now()
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
             asset.variants.select(selection).filter {

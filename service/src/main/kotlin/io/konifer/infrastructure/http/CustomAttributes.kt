@@ -1,9 +1,9 @@
 package io.konifer.infrastructure.http
 
 import io.ktor.util.AttributeKey
-import java.time.LocalDateTime
+import java.time.Instant
 
 object CustomAttributes {
     val entryIdKey = AttributeKey<Long>("entryIdKey")
-    val lastModifiedKey = AttributeKey<LocalDateTime>("lastModifiedKey")
+    val lastModifiedKey = AttributeKey<Instant>("lastModifiedKey")
 }

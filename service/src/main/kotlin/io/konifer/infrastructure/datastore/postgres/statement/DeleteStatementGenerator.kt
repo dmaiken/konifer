@@ -53,7 +53,7 @@ object DeleteStatementGenerator {
                                 DSL.function("gen_random_uuid", UUID::class.java),
                                 DSL.inline(VariantDeletedEvent.TYPE),
                                 VariantDeletedEvent.jsonJooqFunction(deletedVariants),
-                                DSL.currentLocalDateTime(),
+                                DSL.currentOffsetDateTime(),
                             ).from(deletedVariants),
                     ).returning(OUTBOX.ID),
             )
@@ -94,7 +94,7 @@ object DeleteStatementGenerator {
                                 DSL.function("gen_random_uuid", UUID::class.java),
                                 DSL.inline(VariantDeletedEvent.TYPE),
                                 VariantDeletedEvent.jsonJooqFunction(deletedVariants),
-                                DSL.currentLocalDateTime(),
+                                DSL.currentOffsetDateTime(),
                             ).from(deletedVariants),
                     ).returning(OUTBOX.ID),
             )

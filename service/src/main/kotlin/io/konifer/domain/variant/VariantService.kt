@@ -21,7 +21,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.nio.file.Path
-import java.time.LocalDateTime
+import java.time.Instant
 
 class VariantService(
     private val assetRepository: AssetRepository,
@@ -167,7 +167,7 @@ class VariantService(
     private fun calculateVariantExpiration(
         retention: RetentionProperties,
         variantType: VariantType,
-    ): LocalDateTime? =
+    ): Instant? =
         when (variantType) {
             VariantType.EAGER -> {
                 if (retention.expire.strategy == VariantExpirationStrategy.TTL) {

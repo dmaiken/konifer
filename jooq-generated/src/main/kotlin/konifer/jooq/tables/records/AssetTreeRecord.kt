@@ -4,7 +4,7 @@
 package konifer.jooq.tables.records
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.tables.AssetTree
@@ -50,13 +50,13 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
         set(value): Unit = set(6, value)
         get(): Boolean? = get(6) as Boolean?
 
-    open var createdAt: LocalDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(7, value)
-        get(): LocalDateTime? = get(7) as LocalDateTime?
+        get(): OffsetDateTime? = get(7) as OffsetDateTime?
 
-    open var modifiedAt: LocalDateTime?
+    open var modifiedAt: OffsetDateTime?
         set(value): Unit = set(8, value)
-        get(): LocalDateTime? = get(8) as LocalDateTime?
+        get(): OffsetDateTime? = get(8) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -67,7 +67,7 @@ open class AssetTreeRecord() : UpdatableRecordImpl<AssetTreeRecord>(AssetTree.AS
     /**
      * Create a detached, initialised AssetTreeRecord
      */
-    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, source: String? = null, sourceUrl: String? = null, isReady: Boolean? = null, createdAt: LocalDateTime? = null, modifiedAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, entryId: Long? = null, path: Ltree? = null, alt: String? = null, source: String? = null, sourceUrl: String? = null, isReady: Boolean? = null, createdAt: OffsetDateTime? = null, modifiedAt: OffsetDateTime? = null): this() {
         this.id = id
         this.entryId = entryId
         this.path = path

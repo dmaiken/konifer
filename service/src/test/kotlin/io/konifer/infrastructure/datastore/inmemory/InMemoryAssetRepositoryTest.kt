@@ -20,8 +20,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 class InMemoryAssetRepositoryTest : AssetRepositoryTest() {
     companion object {
@@ -43,7 +42,7 @@ class InMemoryAssetRepositoryTest : AssetRepositoryTest() {
                 val pending = createPendingAsset()
                 persistObject(pending.variants.single())
                 val persisted = repository.storeNew(pending)
-                repository.markReady(persisted.markReady(uploadedAt = LocalDateTime.now(UTC)))
+                repository.markReady(persisted.markReady(uploadedAt = Instant.now()))
 
                 val previouslyReadyVariants =
                     (1..3).map { index ->
@@ -104,7 +103,7 @@ class InMemoryAssetRepositoryTest : AssetRepositoryTest() {
             )
         persistObject(variant)
         repository.markUploaded(
-            variant = variant.markReady(LocalDateTime.now(UTC)),
+            variant = variant.markReady(Instant.now()),
             cacheProperties = CacheProperties(maxVariants = maxVariants),
         )
         return variant

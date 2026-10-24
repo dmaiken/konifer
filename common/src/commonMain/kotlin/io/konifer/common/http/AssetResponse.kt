@@ -11,9 +11,8 @@ import io.konifer.common.image.Rotate
 import io.konifer.common.image.SortedMetadataTypeSerializer
 import io.konifer.common.image.pixel.PixelDataType
 import io.konifer.common.image.pixel.PixelLayout
-import io.konifer.common.serializer.LocalDateTimeSerializer
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class AssetResponse(
@@ -27,10 +26,8 @@ data class AssetResponse(
     @Deprecated("use externalSourceReference")
     val sourceUrl: String?,
     val variants: List<VariantResponse>,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val createdAt: LocalDateTime,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val modifiedAt: LocalDateTime,
+    val createdAt: Instant,
+    val modifiedAt: Instant,
 ) {
     companion object Factory
 }
@@ -100,8 +97,7 @@ data class LQIPResponse(
 @Serializable
 data class AssetLinkResponse(
     val url: String,
-    @Serializable(with = LocalDateTimeSerializer::class)
-    val expiresAt: LocalDateTime?,
+    val expiresAt: Instant?,
     val alt: String?,
     val lqip: LQIPResponse,
     val attributes: AttributesResponse,

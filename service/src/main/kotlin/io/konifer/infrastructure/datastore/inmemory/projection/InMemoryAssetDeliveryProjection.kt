@@ -4,7 +4,7 @@ import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
-import java.time.LocalDateTime
+import java.time.Instant
 
 class InMemoryAssetDeliveryProjection(
     assetData: AssetData,
@@ -13,6 +13,6 @@ class InMemoryAssetDeliveryProjection(
     override val alt: String? = assetData.alt
     override val entryId: Long = checkNotNull(assetData.entryId)
     override val path: String = assetData.path
-    override val modifiedAt: LocalDateTime = assetData.modifiedAt
+    override val modifiedAt: Instant = assetData.modifiedAt
     override val variants: List<VariantDeliveryProjection> = assetData.variants.map(::InMemoryVariantDeliveryProjection)
 }

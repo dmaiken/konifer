@@ -4,7 +4,7 @@
 package konifer.jooq.tables.records
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.tables.AssetTag
@@ -31,9 +31,9 @@ open class AssetTagRecord() : UpdatableRecordImpl<AssetTagRecord>(AssetTag.ASSET
         set(value): Unit = set(2, value)
         get(): String? = get(2) as String?
 
-    open var createdAt: LocalDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(3, value)
-        get(): LocalDateTime? = get(3) as LocalDateTime?
+        get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -44,7 +44,7 @@ open class AssetTagRecord() : UpdatableRecordImpl<AssetTagRecord>(AssetTag.ASSET
     /**
      * Create a detached, initialised AssetTagRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, tagValue: String? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, tagValue: String? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.tagValue = tagValue

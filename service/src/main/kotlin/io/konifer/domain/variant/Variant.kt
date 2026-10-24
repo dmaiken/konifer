@@ -4,8 +4,7 @@ import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.attribute.Attributes
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import java.util.UUID
 
 @JvmInline value class VariantId(
@@ -22,9 +21,9 @@ sealed interface Variant {
     val attributes: Attributes
     val specification: VariantSpecification
     val lqips: LQIPs
-    val createdAt: LocalDateTime
-    val uploadedAt: LocalDateTime?
-    val expiresAt: LocalDateTime?
+    val createdAt: Instant
+    val uploadedAt: Instant?
+    val expiresAt: Instant?
 
     class Pending(
         override val id: VariantId,
@@ -34,9 +33,9 @@ sealed interface Variant {
         override val attributes: Attributes,
         override val specification: VariantSpecification,
         override val lqips: LQIPs,
-        override val createdAt: LocalDateTime,
-        override val uploadedAt: LocalDateTime? = null,
-        override val expiresAt: LocalDateTime?,
+        override val createdAt: Instant,
+        override val uploadedAt: Instant? = null,
+        override val expiresAt: Instant?,
     ) : Variant {
         init {
             check(uploadedAt == null)
@@ -62,7 +61,7 @@ sealed interface Variant {
                     attributes = attributes,
                     specification = VariantSpecification.Original,
                     lqips = lqip,
-                    createdAt = LocalDateTime.now(UTC),
+                    createdAt = Instant.now(),
                     expiresAt = null,
                 )
 
@@ -73,7 +72,7 @@ sealed interface Variant {
                 objectStoreBucket: String,
                 objectStoreKey: String,
                 lqip: LQIPs,
-                expiresAt: LocalDateTime?,
+                expiresAt: Instant?,
             ): Pending =
                 Pending(
                     id = VariantId(),
@@ -83,7 +82,7 @@ sealed interface Variant {
                     attributes = attributes,
                     specification = VariantSpecification.Transformed(transformation),
                     lqips = lqip,
-                    createdAt = LocalDateTime.now(UTC),
+                    createdAt = Instant.now(),
                     expiresAt = expiresAt,
                 )
 
@@ -105,7 +104,7 @@ sealed interface Variant {
                 )
         }
 
-        fun markReady(uploadedAt: LocalDateTime): Ready =
+        fun markReady(uploadedAt: Instant): Ready =
             Ready.fromPending(
                 pending = this,
                 uploadedAt = uploadedAt,
@@ -120,9 +119,9 @@ sealed interface Variant {
         override val attributes: Attributes,
         override val specification: VariantSpecification,
         override val lqips: LQIPs,
-        override val createdAt: LocalDateTime,
-        override val uploadedAt: LocalDateTime?,
-        override val expiresAt: LocalDateTime?,
+        override val createdAt: Instant,
+        override val uploadedAt: Instant?,
+        override val expiresAt: Instant?,
     ) : Variant {
         init {
             checkNotNull(uploadedAt)
@@ -131,7 +130,7 @@ sealed interface Variant {
         companion object {
             fun fromPending(
                 pending: Pending,
-                uploadedAt: LocalDateTime,
+                uploadedAt: Instant,
             ): Ready =
                 Ready(
                     id = pending.id,

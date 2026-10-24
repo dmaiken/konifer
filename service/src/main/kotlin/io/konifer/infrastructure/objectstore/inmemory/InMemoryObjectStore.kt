@@ -11,8 +11,7 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.toByteArray
 import io.ktor.utils.io.writeFully
 import java.nio.file.Path
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import kotlin.time.Duration
 
 class InMemoryObjectStore : ObjectStore {
@@ -26,7 +25,7 @@ class InMemoryObjectStore : ObjectStore {
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         channel: ByteChannel,
-    ): LocalDateTime {
+    ): Instant {
         store.computeIfAbsent(request.bucket) { mutableMapOf() }
 
         store[request.bucket]?.put(
@@ -34,18 +33,18 @@ class InMemoryObjectStore : ObjectStore {
             channel.toByteArray(),
         )
 
-        return LocalDateTime.now(UTC)
+        return Instant.now()
     }
 
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         file: Path,
-    ): LocalDateTime {
+    ): Instant {
         store.computeIfAbsent(request.bucket) { mutableMapOf() }
 
         store[request.bucket]?.put(request.key, file.readChannel().toByteArray())
 
-        return LocalDateTime.now(UTC)
+        return Instant.now()
     }
 
     override suspend fun fetch(

@@ -8,8 +8,7 @@ import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.assertions.throwables.shouldThrow
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 class VariantAggregateTest {
     @Test
@@ -29,9 +28,9 @@ class VariantAggregateTest {
                     ),
                 specification = VariantSpecification.Original,
                 lqips = LQIPs.NONE,
-                createdAt = LocalDateTime.now(UTC),
+                createdAt = Instant.now(),
                 uploadedAt = null,
-                expiresAt = LocalDateTime.now(UTC).plusMinutes(10),
+                expiresAt = Instant.now().plus(10, java.time.temporal.ChronoUnit.MINUTES),
             )
         }
     }
@@ -53,8 +52,8 @@ class VariantAggregateTest {
                     ),
                 specification = VariantSpecification.Original,
                 lqips = LQIPs.NONE,
-                createdAt = LocalDateTime.now(UTC),
-                uploadedAt = LocalDateTime.now(UTC),
+                createdAt = Instant.now(),
+                uploadedAt = Instant.now(),
                 expiresAt = null,
             )
         }

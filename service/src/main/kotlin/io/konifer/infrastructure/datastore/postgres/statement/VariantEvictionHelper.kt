@@ -3,7 +3,6 @@ package io.konifer.infrastructure.datastore.postgres.statement
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.retention.CacheProperties
-import io.konifer.infrastructure.datastore.postgres.statement.FieldStatementGenerator.currentUtcLocalDateTime
 import konifer.jooq.tables.references.ASSET_VARIANT
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
@@ -39,7 +38,7 @@ object VariantEvictionHelper {
     }
 
     private fun effectiveAccessScore(cacheProperties: CacheProperties): Field<Double?> {
-        val scoreAsOf = currentUtcLocalDateTime()
+        val scoreAsOf = DSL.currentOffsetDateTime()
         val elapsedSeconds =
             DSL.field(
                 "extract(epoch from ({0} - {1}))",

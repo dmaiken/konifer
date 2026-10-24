@@ -16,8 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
     private val postgresVariantRepository = PostgresVariantRepository(dslContext)
@@ -28,7 +27,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val expiredVariant =
                 createPendingVariant(
@@ -40,11 +39,11 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
-                    expiresAt = LocalDateTime.now(UTC),
+                    expiresAt = Instant.now(),
                 ).let { pending ->
                     assetRepository
                         .storeNewVariant(pending)
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also {
                             assetRepository.markUploaded(
                                 variant = it,
@@ -62,11 +61,11 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
-                    expiresAt = LocalDateTime.now(UTC).plusDays(1),
+                    expiresAt = Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS),
                 ).let { pending ->
                     assetRepository
                         .storeNewVariant(pending)
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also {
                             assetRepository.markUploaded(
                                 variant = it,
@@ -99,7 +98,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val longExpiringVariant =
                 createPendingVariant(
@@ -111,11 +110,11 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                             format = ImageFormat.PNG,
                             colorSpace = ColorSpace.SRGB,
                         ),
-                    expiresAt = LocalDateTime.now(UTC).plusDays(1),
+                    expiresAt = Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS),
                 ).let { pending ->
                     assetRepository
                         .storeNewVariant(pending)
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also {
                             assetRepository.markUploaded(
                                 variant = it,

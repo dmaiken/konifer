@@ -4,7 +4,7 @@
 package konifer.jooq.tables.records
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.tables.PromptEmbedding
@@ -35,9 +35,9 @@ open class PromptEmbeddingRecord() : UpdatableRecordImpl<PromptEmbeddingRecord>(
         set(value): Unit = set(3, value)
         get(): Array<Float?>? = get(3) as Array<Float?>?
 
-    open var createdAt: LocalDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(4, value)
-        get(): LocalDateTime? = get(4) as LocalDateTime?
+        get(): OffsetDateTime? = get(4) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -48,7 +48,7 @@ open class PromptEmbeddingRecord() : UpdatableRecordImpl<PromptEmbeddingRecord>(
     /**
      * Create a detached, initialised PromptEmbeddingRecord
      */
-    constructor(id: UUID? = null, model: String? = null, promptText: String? = null, embedding: Array<Float?>? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, model: String? = null, promptText: String? = null, embedding: Array<Float?>? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.model = model
         this.promptText = promptText

@@ -4,7 +4,7 @@
 package konifer.jooq.tables
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.Public
@@ -94,7 +94,7 @@ open class Outbox(
     /**
      * The column <code>public.outbox.created_at</code>.
      */
-    val CREATED_AT: TableField<OutboxRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<OutboxRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<OutboxRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<OutboxRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -108,7 +108,7 @@ open class Outbox(
     /**
      * Create an aliased <code>public.outbox</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name): this(alias, OUTBOX)
 
     /**
      * Create a <code>public.outbox</code> table reference

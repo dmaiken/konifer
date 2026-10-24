@@ -4,7 +4,7 @@
 package konifer.jooq.tables
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.Public
@@ -97,7 +97,7 @@ open class AssetTag(
     /**
      * The column <code>public.asset_tag.created_at</code>.
      */
-    val CREATED_AT: TableField<AssetTagRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AssetTagRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     private constructor(alias: Name, aliased: Table<AssetTagRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetTagRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -111,7 +111,7 @@ open class AssetTag(
     /**
      * Create an aliased <code>public.asset_tag</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name): this(alias, ASSET_TAG)
 
     /**
      * Create a <code>public.asset_tag</code> table reference

@@ -5,7 +5,7 @@ package konifer.jooq.tables.pojos
 
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import org.jooq.postgres.extensions.types.Ltree
@@ -25,8 +25,8 @@ data class AssetTree(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @set:JvmName("setIsReady")
     var isReady: Boolean? = null,
-    var createdAt: LocalDateTime,
-    var modifiedAt: LocalDateTime
+    var createdAt: OffsetDateTime,
+    var modifiedAt: OffsetDateTime
 ): Serializable {
 
 

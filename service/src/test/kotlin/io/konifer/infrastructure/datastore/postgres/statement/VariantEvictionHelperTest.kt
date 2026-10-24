@@ -22,7 +22,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneOffset.UTC
 import kotlin.time.Duration.Companion.hours
 
@@ -33,12 +33,12 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
             val asset = createReadyAsset()
             val olderPopularVariant = createReadyVariant(asset.id, width = 200)
             val recentlyPopularVariant = createReadyVariant(asset.id, width = 300)
-            val scoreAsOf = LocalDateTime.now(UTC)
+            val scoreAsOf = Instant.now()
 
             setAccessScore(
                 variantId = olderPopularVariant.id,
                 score = 8.0,
-                scoreAsOf = scoreAsOf.minusHours(5),
+                scoreAsOf = scoreAsOf.minus(5, java.time.temporal.ChronoUnit.HOURS),
             )
             setAccessScore(
                 variantId = recentlyPopularVariant.id,
@@ -48,7 +48,7 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
 
             val newlyUploadedVariant =
                 persistPendingVariant(asset.id, width = 400)
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also {
                         assetRepository.markUploaded(
                             variant = it,
@@ -74,14 +74,14 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
                         setAccessScore(
                             variantId = it.id,
                             score = index.toDouble(),
-                            scoreAsOf = LocalDateTime.now(UTC),
+                            scoreAsOf = Instant.now(),
                         )
                     }
                 }
 
             val newlyUploadedVariant =
                 persistPendingVariant(asset.id, width = 500)
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also {
                         assetRepository.markUploaded(
                             variant = it,
@@ -103,7 +103,7 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
             val pendingVariant = persistPendingVariant(asset.id, width = 600)
             val newlyUploadedVariant =
                 persistPendingVariant(asset.id, width = 700)
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also {
                         assetRepository.markUploaded(
                             variant = it,
@@ -119,7 +119,7 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
     private suspend fun createReadyAsset(): Asset.Ready =
         assetRepository
             .storeNew(createPendingAsset())
-            .markReady(LocalDateTime.now(UTC))
+            .markReady(Instant.now())
             .also { assetRepository.markReady(it) }
 
     private suspend fun createReadyVariant(
@@ -127,7 +127,7 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
         width: Int,
     ): Variant.Ready =
         persistPendingVariant(assetId, width)
-            .markReady(LocalDateTime.now(UTC))
+            .markReady(Instant.now())
             .also {
                 assetRepository.markUploaded(
                     variant = it,
@@ -155,12 +155,12 @@ class VariantEvictionHelperTest : PostgresContainerizedTest() {
     private suspend fun setAccessScore(
         variantId: VariantId,
         score: Double,
-        scoreAsOf: LocalDateTime,
+        scoreAsOf: Instant,
     ) {
         dslContext
             .update(ASSET_VARIANT)
             .set(ASSET_VARIANT.ACCESS_SCORE, score)
-            .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, scoreAsOf)
+            .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, scoreAsOf.atOffset(UTC))
             .where(ASSET_VARIANT.ID.eq(variantId.value))
             .awaitFirstOrNull()
     }
