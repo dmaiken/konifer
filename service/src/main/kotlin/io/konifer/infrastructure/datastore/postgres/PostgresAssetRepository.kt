@@ -11,7 +11,7 @@ import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.VariantData
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets
@@ -44,15 +44,16 @@ class PostgresAssetRepository(
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override suspend fun fetchVariantForDelivery(
+    override suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
-        specification: VariantSpecification,
-    ): VariantDeliveryProjection? =
+        selection: VariantSelection,
+    ): List<VariantDeliveryProjection> =
         with(dslContext) {
             SelectStatementGenerator
-                .fetchVariant(assetId, specification)
-                .awaitFirstOrNull()
-                ?.let(::PostgresVariantDeliveryProjection)
+                .fetchVariants(assetId, selection)
+                .asFlow()
+                .map(::PostgresVariantDeliveryProjection)
+                .toList()
         }
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
@@ -150,7 +151,7 @@ class PostgresAssetRepository(
             context = dslContext,
             path = path,
             entryId = entryId,
-            specification = null,
+            selection = VariantSelection.ALL,
             order = Order.NEW,
             include =
                 AssetDataToInclude(
@@ -181,7 +182,7 @@ class PostgresAssetRepository(
     override suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
@@ -190,7 +191,7 @@ class PostgresAssetRepository(
             context = dslContext,
             path = path,
             entryId = entryId,
-            specification = specification,
+            selection = selection,
             order = order,
             labels = labels,
             include =
@@ -206,7 +207,7 @@ class PostgresAssetRepository(
     override suspend fun fetchForDelivery(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
     ): AssetDeliveryProjection? =
@@ -214,7 +215,7 @@ class PostgresAssetRepository(
             context = dslContext,
             path = path,
             entryId = entryId,
-            specification = specification,
+            selection = selection,
             order = order,
             labels = labels,
             include =
@@ -227,7 +228,7 @@ class PostgresAssetRepository(
 
     override suspend fun fetchAllByPath(
         path: String,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
         limit: Int,
@@ -237,7 +238,7 @@ class PostgresAssetRepository(
                 SelectStatementGenerator.fetch(
                     path = path,
                     entryId = null,
-                    specification = specification,
+                    selection = selection,
                     order = order,
                     labels = labels,
                     include = AssetDataToInclude.allFieldsOnlyReady,
@@ -301,7 +302,7 @@ class PostgresAssetRepository(
 
     override suspend fun update(asset: Asset.Ready): Asset {
         val fetched =
-            fetchByPath(asset.path, asset.entryId, VariantSpecification.Original, Order.NEW)
+            fetchByPath(asset.path, asset.entryId, VariantSelection.ORIGINAL_ONLY, Order.NEW)
                 ?: throw IllegalStateException("Asset not found with path: ${asset.path}, entryId: ${asset.entryId}")
 
         val assetId = fetched.id
@@ -343,7 +344,7 @@ class PostgresAssetRepository(
         }
 
         return if (modified) {
-            fetchByPath(asset.path, asset.entryId, VariantSpecification.Original, Order.NEW)
+            fetchByPath(asset.path, asset.entryId, VariantSelection.ORIGINAL_ONLY, Order.NEW)
                 ?.let { Asset.Ready.from(it) }
                 ?: throw IllegalStateException("Asset does not exist after updating")
         } else {
@@ -355,7 +356,7 @@ class PostgresAssetRepository(
         context: DSLContext,
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         include: AssetDataToInclude,
         labels: Map<String, String> = emptyMap(),
@@ -364,7 +365,7 @@ class PostgresAssetRepository(
             SelectStatementGenerator.fetch(
                 path = path,
                 entryId = entryId,
-                specification = specification,
+                selection = selection,
                 order = order,
                 labels = labels,
                 include = include,

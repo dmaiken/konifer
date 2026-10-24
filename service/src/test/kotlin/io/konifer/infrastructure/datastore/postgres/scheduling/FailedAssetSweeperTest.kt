@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres.scheduling
 
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.postgres.PostgresContainerizedTest
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -71,7 +72,7 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
             assetRepository.fetchByPath(
                 path = ready.path,
                 entryId = ready.entryId,
-                specification = null,
+                selection = VariantSelection.ALL,
             ) shouldNotBe null
             fetchVariantDeletedEvents(dslContext, 0)
         }
@@ -117,7 +118,7 @@ class FailedAssetSweeperTest : PostgresContainerizedTest() {
             assetRepository.fetchByPath(
                 path = pendingPersisted.path,
                 entryId = pendingPersisted.entryId,
-                specification = null,
+                selection = VariantSelection.ALL,
             ) shouldBe null
 
             fetchVariantDeletedEvents(dslContext, 0)

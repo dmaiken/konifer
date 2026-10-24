@@ -7,6 +7,7 @@ import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.PersistObjectStoreRequest
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
 import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
@@ -66,7 +67,7 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = asset.path,
                 entryId = asset.entryId,
-                specification = null,
+                selection = VariantSelection.ALL,
                 includeOnlyReady = false,
             ) shouldBe null
         }
@@ -97,7 +98,7 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = asset.path,
                 entryId = asset.entryId,
-                specification = null,
+                selection = VariantSelection.ALL,
                 includeOnlyReady = false,
             ) shouldBe null
         }
@@ -136,14 +137,14 @@ class InMemoryAssetDeleterTest {
             assetRepository.fetchByPath(
                 path = deleted.path,
                 entryId = deleted.entryId,
-                specification = null,
+                selection = VariantSelection.ALL,
                 includeOnlyReady = false,
             ) shouldBe null
             assetRepository
                 .fetchByPath(
                     path = retained.path,
                     entryId = retained.entryId,
-                    specification = null,
+                    selection = VariantSelection.ALL,
                     includeOnlyReady = false,
                 )?.id shouldBe retained.id
         }

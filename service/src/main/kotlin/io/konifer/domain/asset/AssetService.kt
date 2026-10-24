@@ -10,6 +10,7 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.VariantGenerationResult
 import io.konifer.domain.variant.VariantId
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.VariantService
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
@@ -35,7 +36,7 @@ class AssetService(
             assetRepository.fetchForDelivery(
                 path = context.path,
                 entryId = context.selectors.entryId,
-                specification = if (context.requestedTransformation == null) VariantSpecification.Original else null,
+                selection = if (context.requestedTransformation == null) VariantSelection.ORIGINAL_ONLY else VariantSelection.ALL,
                 order = context.selectors.order,
                 labels = context.labels,
             ) ?: return null
@@ -56,17 +57,19 @@ class AssetService(
                 VariantSpecification.Transformed(transformation)
             } ?: VariantSpecification.Original
 
-        val matched =
-            asset.variants.firstOrNull { variant ->
-                specification.matches(stored = variant.specification) { variant.attributes }
-            }
+        val matched = asset.variants.findMatching(specification)
 
         val variant =
             matched ?: run {
                 check(specification is VariantSpecification.Transformed) { "Cannot generate a missing original variant" }
                 when (val generated = createOnDemandVariant(asset.id, originalVariant, specification.transformation, context)) {
-                    is VariantGenerationResult.Generated -> generated.variant
-                    VariantGenerationResult.AlreadyExists -> assetRepository.fetchVariantForDelivery(asset.id, specification) ?: return null
+                    is VariantGenerationResult.Generated -> {
+                        generated.variant
+                    }
+
+                    VariantGenerationResult.AlreadyExists -> {
+                        assetRepository.fetchVariantsForDelivery(asset.id).findMatching(specification) ?: return null
+                    }
                 }
             }
 
@@ -81,6 +84,14 @@ class AssetService(
             )
         }
     }
+
+    private fun List<VariantDeliveryProjection>.findMatching(specification: VariantSpecification): VariantDeliveryProjection? =
+        firstOrNull { variant ->
+            when (specification) {
+                VariantSpecification.Original -> variant.isOriginalVariant
+                is VariantSpecification.Transformed -> specification.matches(stored = variant.specification) { variant.attributes }
+            }
+        }
 
     private suspend fun createOnDemandVariant(
         assetId: AssetId,

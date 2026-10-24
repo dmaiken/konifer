@@ -54,7 +54,7 @@ class PostgresFetchAssetResolutionTest : BaseFunctionalTest() {
             repository.collectionReads.get() shouldBe 0
             repository.variantReads.get() shouldBe 0
             val uploaded = repository.uploadedVariant!!
-            val persisted = persistedRepository.fetchVariantForDelivery(uploaded.assetId, uploaded.specification)!!
+            val persisted = persistedRepository.fetchVariantsForDelivery(uploaded.assetId).single { it.id == uploaded.id }
             persisted.id shouldBe uploaded.id
             persisted.attributes shouldBe uploaded.attributes
             persisted.objectStoreKey shouldBe uploaded.objectStoreKey

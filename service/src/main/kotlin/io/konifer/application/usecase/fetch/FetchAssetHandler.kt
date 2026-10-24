@@ -63,7 +63,6 @@ class FetchAssetHandler(
         logger.debug { "Fetching asset info at path: ${context.path}" }
         return assetRepository.fetchAllByPath(
             path = context.path,
-            specification = null,
             labels = context.labels,
             order = context.selectors.order,
             limit = context.selectors.limit,
@@ -76,7 +75,6 @@ class FetchAssetHandler(
             assetRepository.fetchByPath(
                 path = context.path,
                 entryId = context.selectors.entryId,
-                specification = null,
                 order = context.selectors.order,
                 labels = context.labels,
             ) ?: return null
