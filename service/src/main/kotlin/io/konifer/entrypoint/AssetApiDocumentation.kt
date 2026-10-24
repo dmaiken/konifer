@@ -53,7 +53,11 @@ internal fun Operation.Builder.fetchAssetDocumentation() {
         `info` returns one asset's metadata; `entries` returns a list (empty when nothing matches).
         `content` streams bytes; `download` also sets Content-Disposition. Transformations and profiles are not
         permitted for `info` or `entries`. Path configuration controls which transformations are allowed.
-        Query parameters override profile values. Output format is resolved from `format`, then the profile,
+        Service delivery URLs pin the selected entry and transformation, including negotiated format, and are signed
+        when URL signing is enabled. They can be fetched without the original Accept header or a signing client.
+        Query parameters override profile values when permitted. In profile_only mode, transformed content requires
+        a profile and explicit parameters must normalize to that profile; profiles without a format allow format negotiation.
+        Output format is resolved from `format`, then the profile,
         then a recognized image MIME type in Accept; otherwise the original format is retained.
 
         `format=pixels` returns unsigned 8-bit raw pixel bytes as application/octet-stream, without an image header.

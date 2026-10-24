@@ -6,6 +6,7 @@ import io.konifer.domain.ports.AssetSourceUnavailableException
 import io.konifer.infrastructure.HttpProperties
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.bodylimit.DEFAULT_UPLOAD_BODY_LIMIT
+import io.konifer.infrastructure.http.signature.UrlSigningProperties
 import io.konifer.infrastructure.objectstore.s3.AwsS3SourceReader
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.HTTP
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.HttpPropertyKeys.PUBLIC_URL
@@ -126,5 +127,6 @@ fun Application.httpModule(): Module =
             )
         }
 
+        single<UrlSigningProperties> { UrlSigningProperties.fromConfig(environment.config) }
         single<AssetUrlGenerator>()
     }

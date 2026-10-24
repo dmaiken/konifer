@@ -1,68 +1,68 @@
 package io.konifer.domain.context
 
-import io.konifer.common.image.ManipulationParameters
-import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
+import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.selector.QuerySelectors
-import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.transformation.RequestedTransformation
+import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.TransformationValidator
 import io.konifer.domain.variant.OnDemandVariantMode
-import io.ktor.http.Parameters
+import io.konifer.domain.variant.attribute.Attributes
 
 class RequestContextValidator(
     private val variantProfileRepository: VariantProfileRepository,
+    private val transformationNormalizer: TransformationNormalizer,
 ) {
     fun validateFetchRequest(
-        pathConfiguration: PathConfiguration,
         querySelectors: QuerySelectors,
         requestedTransformation: RequestedTransformation?,
-        queryParameters: Parameters,
     ) {
-        when (querySelectors.returnFormat) {
-            ReturnFormat.INFO, ReturnFormat.ENTRIES -> {
-                if (
-                    requestedTransformation != null
-                ) {
-                    throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
-                }
-            }
-
-            ReturnFormat.LINK, ReturnFormat.CONTENT, ReturnFormat.REDIRECT, ReturnFormat.DOWNLOAD -> {
-                if (requestedTransformation == null) return
-                validateOnDemandVariantMode(
-                    pathConfiguration = pathConfiguration,
-                    requestedTransformation = requestedTransformation,
-                    queryParameters = queryParameters,
-                )
-            }
+        if (querySelectors.returnFormat in setOf(ReturnFormat.INFO, ReturnFormat.ENTRIES) && requestedTransformation != null) {
+            throw InvalidPathException("Cannot specify image attributes when requesting asset metadata")
         }
     }
 
-    private fun validateOnDemandVariantMode(
-        pathConfiguration: PathConfiguration,
-        requestedTransformation: RequestedTransformation,
-        queryParameters: Parameters,
+    fun validateDelivery(
+        context: QueryRequestContext,
+        originalAttributes: Attributes,
+        transformation: Transformation,
     ) {
-        when (pathConfiguration.transform.onDemandVariant.mode) {
+        // Reading unchanged original bytes must not be subject to generation policies or limits.
+        if (transformation == Transformation.fromAttributes(originalAttributes)) return
+        TransformationValidator.validateNormalizedTransformation(context.pathConfiguration.transform.limits, transformation)
+        when (context.pathConfiguration.transform.onDemandVariant.mode) {
             OnDemandVariantMode.PROFILE_ONLY -> {
-                if (ALL_TRANSFORMATION_PARAMETERS.any { it.lowercase() in queryParameters }) {
-                    throw IllegalRequestedTransformationException("Only '${ManipulationParameters.VARIANT_PROFILE}' can be specified")
+                val profileName =
+                    context.request.parameters[VARIANT_PROFILE]
+                        ?: throw IllegalRequestedTransformationException("A variant profile is required")
+                val profile = variantProfileRepository.fetch(profileName)
+                val expected =
+                    transformationNormalizer.resolve(
+                        profile.copy(format = profile.format ?: transformation.format),
+                        originalAttributes,
+                    )
+                if (!transformation.hasSameRenderingSemantics(expected)) {
+                    throw IllegalRequestedTransformationException("Transformation must match the selected profile")
                 }
             }
 
             OnDemandVariantMode.DISABLED -> {
-                val allowedTransformations =
-                    pathConfiguration.transform.eagerVariants.map { profileName ->
-                        variantProfileRepository.fetch(profileName)
+                val allowed =
+                    context.pathConfiguration.transform.eagerVariants.any { name ->
+                        transformation.hasSameRenderingSemantics(
+                            transformationNormalizer.resolve(variantProfileRepository.fetch(name), originalAttributes),
+                        )
                     }
-                // Only eager variants allowed since on-demand variants are disabled
-                if (requestedTransformation !in allowedTransformations) {
-                    throw IllegalRequestedTransformationException("Transformation not allowed")
-                }
+                if (!allowed) throw IllegalRequestedTransformationException("Transformation not allowed")
             }
 
             OnDemandVariantMode.ENABLED -> {}
         }
     }
+
+    private fun Transformation.hasSameRenderingSemantics(other: Transformation): Boolean =
+        this == other && isAutoRotate == other.isAutoRotate &&
+            isColorSpaceLocked == other.isColorSpaceLocked && canUpscale == other.canUpscale
 }

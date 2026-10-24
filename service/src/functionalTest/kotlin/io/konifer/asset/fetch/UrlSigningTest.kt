@@ -8,6 +8,13 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsBytes
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -94,15 +101,25 @@ class UrlSigningTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer()
-                .fetchAssetLink(
-                    path = "profile",
-                    requestedTransformation =
-                        requestedTransformation {
-                            height = 100
-                            width = 200
-                        },
-                ).shouldBeSuccessful()
+            val link =
+                konifer()
+                    .fetchAssetLink(
+                        path = "profile",
+                        requestedTransformation =
+                            requestedTransformation {
+                                height = 100
+                                width = 200
+                            },
+                    ).shouldBeSuccessful()
+                    .body
+            val url = Url(link.url)
+            url.parameters["s"] shouldNotBe null
+            url.parameters.getAll("s")!!.size shouldBe 1
+            val response = client.get(link.url)
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsBytes().isNotEmpty() shouldBe true
+            val tampered = URLBuilder(link.url).apply { parameters["width"] = "201" }.build()
+            client.get(tampered).status shouldBe HttpStatusCode.Forbidden
         }
 
     @ParameterizedTest

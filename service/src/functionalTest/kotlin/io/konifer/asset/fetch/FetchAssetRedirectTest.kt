@@ -73,8 +73,9 @@ class FetchAssetRedirectTest : BaseFunctionalTest() {
 
             client.get("/assets/profile/-/redirect").apply {
                 status shouldBe HttpStatusCode.TemporaryRedirect
-                headers[HttpHeaders.Location] shouldBe
-                    "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                Url(headers[HttpHeaders.Location]!!).encodedPath shouldBe
+                    "/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                Url(headers[HttpHeaders.Location]!!).parameters["format"] shouldBe "png"
             }
         }
 }

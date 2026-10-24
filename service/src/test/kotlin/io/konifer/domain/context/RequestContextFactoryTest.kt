@@ -502,7 +502,12 @@ class RequestContextFactoryTest {
 
     private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
     private val variantProfileRepository = mockk<ConfigurationVariantProfileRepository>()
-    private val requestContextValidator = RequestContextValidator(variantProfileRepository)
+    private val requestContextValidator =
+        RequestContextValidator(
+            variantProfileRepository,
+            io.konifer.domain.transformation
+                .TransformationNormalizer(),
+        )
     private val requestContextFactory =
         RequestContextFactory(pathConfigurationRepository, variantProfileRepository, requestContextValidator)
     private val origin = mockk<RequestConnectionPoint>(relaxed = true)
@@ -1049,7 +1054,7 @@ class RequestContextFactoryTest {
 
         @ParameterizedTest
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#restrictedTransformationSource")
-        fun `when on-demand variant mode is profile_only then no transformations are allowed`(parameters: Parameters) =
+        fun `profile-only policy validation is deferred until original attributes are available`(parameters: Parameters) =
             runTest {
                 every {
                     pathConfigurationRepository.fetch(path = any())
@@ -1063,7 +1068,7 @@ class RequestContextFactoryTest {
                                     ),
                             ),
                     )
-                shouldThrow<IllegalRequestedTransformationException> {
+                shouldNotThrowAny {
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/content/",
                         headers = HeadersBuilder().build(),
@@ -1074,7 +1079,7 @@ class RequestContextFactoryTest {
 
         @ParameterizedTest
         @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
-        fun `profile_only mode applies to all return formats that support variants`(returnFormat: ReturnFormat) =
+        fun `profile-only parsing supports transformations for all variant return formats`(returnFormat: ReturnFormat) =
             runTest {
                 every {
                     pathConfigurationRepository.fetch(path = any())
@@ -1088,7 +1093,7 @@ class RequestContextFactoryTest {
                                     ),
                             ),
                     )
-                shouldThrow<IllegalRequestedTransformationException> {
+                shouldNotThrowAny {
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
                         headers = HeadersBuilder().build(),

@@ -58,7 +58,8 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                         pageCount shouldBe 1
                     }
 
-                    url shouldBe "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                    Url(url).encodedPath shouldBe "/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                    Url(url).parameters["format"] shouldBe attributes.format.format
                     val location =
                         shouldNotThrowAny {
                             Url(url).fullPath
@@ -96,7 +97,8 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                 lqip.thumbhash shouldNotBe null
                 alt shouldBe request.alt
 
-                url shouldBe "http://localhost/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                Url(url).encodedPath shouldBe "/assets/profile/-/entry/${storedAssetInfo!!.entryId}/content"
+                Url(url).parameters["format"] shouldBe attributes.format.format
                 val location =
                     shouldNotThrowAny {
                         Url(url).fullPath
@@ -141,6 +143,8 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
                     alt shouldBe request.alt
 
                     url shouldNotContain storedAssetInfo!!.variants.first().storeKey
+                    Url(url).parameters["phone"] shouldBe null
+                    Url(url).parameters["label:phone"] shouldBe null
                     val location =
                         shouldNotThrowAny {
                             Url(url).fullPath
@@ -157,7 +161,7 @@ class FetchAssetLinkTest : BaseFunctionalTest() {
         }
 
     @Test
-    fun `link preserves all query parameters from original request`() =
+    fun `link drops label selectors from the original request`() =
         testInMemory(
             """
             paths {

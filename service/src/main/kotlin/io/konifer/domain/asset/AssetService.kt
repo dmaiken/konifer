@@ -2,12 +2,15 @@ package io.konifer.domain.asset
 
 import io.konifer.application.usecase.fetch.CacheResult
 import io.konifer.domain.context.QueryRequestContext
+import io.konifer.domain.context.RequestContextValidator
 import io.konifer.domain.event.VariantAccessedEvent
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.ports.ObjectStore
+import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.TransformationNormalizer
+import io.konifer.domain.transformation.forDelivery
 import io.konifer.domain.variant.VariantGenerationResult
 import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.VariantSelection
@@ -30,6 +33,7 @@ class AssetService(
     private val variantService: VariantService,
     private val objectStore: ObjectStore,
     private val eventPublisher: EventPublisher,
+    private val requestContextValidator: RequestContextValidator,
 ) {
     suspend fun fetchForDelivery(context: QueryRequestContext): AssetDeliveryInformation? {
         val asset =
@@ -49,14 +53,19 @@ class AssetService(
         val specification =
             context.requestedTransformation?.let { requested ->
                 val transformation =
-                    transformationNormalizer.normalize(
+                    transformationNormalizer.resolve(
                         requested = requested,
                         originalVariantAttributes = originalVariant.attributes,
-                        limits = context.pathConfiguration.transform.limits,
                     )
                 VariantSpecification.Transformed(transformation)
             } ?: VariantSpecification.Original
 
+        val resolved =
+            when (specification) {
+                VariantSpecification.Original -> Transformation.fromAttributes(originalVariant.attributes)
+                is VariantSpecification.Transformed -> specification.transformation
+            }
+        requestContextValidator.validateDelivery(context, originalVariant.attributes, resolved)
         val matched = asset.variants.findMatching(specification)
 
         val variant =
@@ -77,6 +86,7 @@ class AssetService(
             asset = asset,
             selectedVariant = variant,
             cacheResult = matched?.let { CacheResult.HIT } ?: CacheResult.MISS,
+            deliveryTransformation = (context.requestedTransformation ?: RequestedTransformation()).forDelivery(resolved),
         ).also {
             publishVariantAccessedEvent(
                 variantId = variant.id,
