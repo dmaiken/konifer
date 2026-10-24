@@ -244,7 +244,7 @@ class RequestContextFactoryTest {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-/",
+                    "/assets/profile-/",
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
@@ -254,7 +254,7 @@ class RequestContextFactoryTest {
                     ),
                 ),
                 arguments(
-                    "/assets/profile/-",
+                    "/assets/profile-",
                     Parameters.Empty,
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
@@ -529,6 +529,67 @@ class RequestContextFactoryTest {
         every {
             pathConfigurationRepository.fetch(any())
         } returns PathConfiguration.default
+    }
+
+    @Nested
+    inner class PathBoundaryTests {
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "album-/photo", "album-", "-album/photo", "--/photo", "album--/photo-",
+                "entry/info/new", "Album-/Photo",
+            ],
+        )
+        fun `ordinary hyphens and selector names remain part of the asset path`(assetPath: String) {
+            val path = "/assets/$assetPath"
+            requestContextFactory.fromStoreRequest(path).path shouldBe "/$assetPath"
+            requestContextFactory.fromFetchRequest(path, Headers.Empty, Parameters.Empty).path shouldBe "/$assetPath"
+            val delete = requestContextFactory.fromDeleteRequest(path, Parameters.build { append("limit", "-1") })
+            delete.path shouldBe "/$assetPath"
+            delete.selection shouldBe DeleteSelection.AllAtPath
+
+            val entryPath = "$path/-/entry/42"
+            val fetch = requestContextFactory.fromFetchRequest(entryPath, Headers.Empty, Parameters.Empty)
+            fetch.path shouldBe "/$assetPath/"
+            fetch.selectors.entryId shouldBe 42L
+            val update = requestContextFactory.fromUpdateRequest(entryPath)
+            update.path shouldBe "/$assetPath/"
+            update.entryId shouldBe 42L
+            val entryDelete = requestContextFactory.fromDeleteRequest(entryPath, Parameters.Empty)
+            entryDelete.path shouldBe "/$assetPath/"
+            entryDelete.selection shouldBe DeleteSelection.Entry(42)
+            shouldThrow<InvalidPathException> { requestContextFactory.fromStoreRequest(entryPath) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "/assets/album/-", "/assets/album/-/", "/assets/-", "/assets/-/",
+                "/assets/album/-/info/-/entry/42", "/assets/album/-/info/-",
+                "/assets/album/-/info/-/", "/assets/-/-/info",
+                "/assets-other/album", "/assetsalbum/album", "/ASSETS/album",
+            ],
+        )
+        fun `all methods reject malformed boundaries and prefixes`(path: String) {
+            shouldThrow<InvalidPathException> { requestContextFactory.fromStoreRequest(path) }
+            shouldThrow<InvalidPathException> {
+                requestContextFactory.fromFetchRequest(path, Headers.Empty, Parameters.Empty)
+            }
+            shouldThrow<InvalidPathException> { requestContextFactory.fromUpdateRequest(path) }
+            shouldThrow<InvalidPathException> {
+                requestContextFactory.fromDeleteRequest(path, Parameters.build { append("limit", "-1") })
+            }
+        }
+
+        @Test
+        fun `root selectors and existing trailing slash handling remain supported`() {
+            requestContextFactory.fromStoreRequest("/assets").path shouldBe ""
+            requestContextFactory.fromStoreRequest("/assets/album-/").path shouldBe "/album-/"
+            requestContextFactory.fromFetchRequest("/assets/album-/", Headers.Empty, Parameters.Empty).path shouldBe "/album-"
+            val root = requestContextFactory.fromFetchRequest("/assets/-/info/", Headers.Empty, Parameters.Empty)
+            root.path shouldBe "/"
+            root.selectors.returnFormat shouldBe ReturnFormat.INFO
+        }
     }
 
     @Nested
