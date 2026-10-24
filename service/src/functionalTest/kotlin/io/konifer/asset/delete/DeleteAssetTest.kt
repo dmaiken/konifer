@@ -4,16 +4,17 @@ import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.client.assets.fetch.EntryId
-import io.konifer.client.assets.fetch.OrderBy
 import io.konifer.client.assets.fetch.Recursive
+import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.common.selector.Order
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
-import io.konifer.util.fetchAssetInfo
+import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
 import io.ktor.client.request.delete
+import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
@@ -23,7 +24,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
     fun `deleting asset that does not exist returns no content`() =
         testInMemory {
             client
-                .delete("/assets/${UuidCreator.getRandomBasedFast()}")
+                .delete("/assets/${UuidCreator.getRandomBasedFast()}?limit=-1")
                 .apply {
                     status shouldBe HttpStatusCode.NoContent
                     bodyAsText() shouldBe ""
@@ -31,85 +32,8 @@ class DeleteAssetTest : BaseFunctionalTest() {
             konifer()
                 .deleteAsset(
                     path = UuidCreator.getRandomBasedFast().toString(),
+                    limit = -1,
                 ).shouldBeSuccessful()
-        }
-
-    @Test
-    fun `can delete asset by path`() =
-        testInMemory {
-            val (image, attributes) = ImageFactory.testImage()
-            konifer().storeAsset(
-                path = "profile",
-                bytes = image,
-                format = attributes.format,
-                request =
-                    StoreAssetRequest(
-                        alt = "an image",
-                    ),
-            )
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                ).shouldBeSuccessful()
-            konifer()
-                .deleteAsset(
-                    path = "profile",
-                ).shouldBeSuccessful()
-            konifer().fetchAssetInfo(
-                path = "profile",
-            ) shouldHaveHttpError 404
-
-            konifer()
-                .deleteAsset(
-                    path = "profile",
-                ).shouldBeSuccessful()
-        }
-
-    @Test
-    fun `deleting asset by path causes next oldest asset to be returned when fetching by path`() =
-        testInMemory {
-            val (image, attributes) = ImageFactory.testImage()
-            val firstAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-            val secondAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-
-            fetchAssetInfo(client, path = "profile")!!.apply {
-                entryId shouldBe secondAsset.entryId
-            }
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                ).shouldBeSuccessful()
-            konifer()
-                .deleteAsset(
-                    path = "profile",
-                ).shouldBeSuccessful()
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                ).shouldBeSuccessful()
-                .body.entryId shouldBe firstAsset.entryId
         }
 
     @Test
@@ -155,115 +79,6 @@ class DeleteAssetTest : BaseFunctionalTest() {
             konifer().fetchAssetInfo(
                 path = "profile",
                 querySelectors = EntryId(firstAsset.entryId),
-            ) shouldHaveHttpError 404
-        }
-
-    @Test
-    fun `can delete assets by path and order`() =
-        testInMemory {
-            val (image, attributes) = ImageFactory.testImage()
-            val firstAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-            val secondAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-
-            konifer()
-                .deleteAsset(
-                    path = "profile",
-                    limit = 1,
-                    querySelectors = OrderBy(Order.NEW),
-                ).shouldBeSuccessful()
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                ).shouldBeSuccessful()
-                .body.entryId shouldBe firstAsset.entryId
-            konifer().fetchAssetInfo(
-                path = "profile",
-                querySelectors = EntryId(secondAsset.entryId),
-            ) shouldHaveHttpError 404
-        }
-
-    @Test
-    fun `can delete assets by path and order and limit`() =
-        testInMemory {
-            val (image, attributes) = ImageFactory.testImage()
-            val firstAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-            val secondAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-            val thirdAsset =
-                konifer()
-                    .storeAsset(
-                        path = "profile",
-                        bytes = image,
-                        format = attributes.format,
-                        request =
-                            StoreAssetRequest(
-                                alt = "an image",
-                            ),
-                    ).shouldBeSuccessful()
-                    .body
-
-            konifer()
-                .deleteAsset(
-                    path = "profile",
-                    querySelectors = OrderBy(Order.NEW),
-                    limit = 2,
-                ).shouldBeSuccessful()
-
-            konifer()
-                .fetchAssetInfo(
-                    path = "profile",
-                ).shouldBeSuccessful()
-                .body.entryId shouldBe firstAsset.entryId
-            konifer().fetchAssetInfo(
-                path = "profile",
-                querySelectors = EntryId(secondAsset.entryId),
-            ) shouldHaveHttpError 404
-            konifer().fetchAssetInfo(
-                path = "profile",
-                querySelectors = EntryId(thirdAsset.entryId),
             ) shouldHaveHttpError 404
         }
 
@@ -601,5 +416,83 @@ class DeleteAssetTest : BaseFunctionalTest() {
     fun `cannot set both entryId and mode when deleting assets`() =
         testInMemory {
             client.delete("/assets/user/123/-/entry/1/recursive").status shouldBe HttpStatusCode.BadRequest
+        }
+
+    @Test
+    fun `invalid deletion requests leave every asset intact`() =
+        testInMemory {
+            val (image, _) = ImageFactory.testImage()
+            val first = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile").second!!
+            val second = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile").second!!
+            val invalidRequests =
+                listOf(
+                    "/assets/profile",
+                    "/assets/profile?limit=1",
+                    "/assets/profile?limit=20",
+                    "/assets/profile?limit=0",
+                    "/assets/profile?limit=-2",
+                    "/assets/profile?limit=abc",
+                    "/assets/profile?limit=",
+                    "/assets/profile?limit=2147483648",
+                    "/assets/profile?limit=-2147483649",
+                    "/assets/profile?limit=-1&limit=1",
+                    "/assets/profile/-/new",
+                    "/assets/profile/-/modified",
+                    "/assets/profile/-/new?limit=-1",
+                    "/assets/profile/-/modified?limit=-1",
+                    "/assets/profile/-/entry/${second.entryId}?limit=1",
+                    "/assets/profile/-/entry/${second.entryId}?limit=-1",
+                    "/assets/profile/-/recursive?limit=1",
+                    "/assets/profile/-/recursive?limit=-1",
+                )
+            invalidRequests.forEach { url ->
+                client.delete(url).status shouldBe HttpStatusCode.BadRequest
+                client
+                    .get("/assets/profile/-/entries")
+                    .body<AssetEntriesResponse>()
+                    .entries
+                    .map { it.entryId } shouldBe
+                    listOf(second.entryId, first.entryId)
+            }
+        }
+
+    @Test
+    fun `entry deletion can be retried after another upload without deleting it`() =
+        testInMemory {
+            val (image, _) = ImageFactory.testImage()
+            val first = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile").second!!
+            val second = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile").second!!
+            val url = "/assets/profile/-/entry/${second.entryId}"
+            client.delete(url).status shouldBe HttpStatusCode.NoContent
+            client.delete(url).status shouldBe HttpStatusCode.NoContent
+
+            val replacement = storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile").second!!
+            client.delete(url).status shouldBe HttpStatusCode.NoContent
+            client
+                .get("/assets/profile/-/entries")
+                .body<AssetEntriesResponse>()
+                .entries
+                .map { it.entryId } shouldBe
+                listOf(replacement.entryId, first.entryId)
+        }
+
+    @Test
+    fun `bulk deletions can be repeated when nothing remains`() =
+        testInMemory {
+            val (image, _) = ImageFactory.testImage()
+            storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile")
+            storeAssetMultipartSource(client, image, StoreAssetRequest(), path = "profile/child")
+            repeat(2) {
+                client.delete("/assets/profile?limit=-1").status shouldBe HttpStatusCode.NoContent
+                client.get("/assets/profile/-/entries").body<AssetEntriesResponse>().entries shouldBe emptyList()
+            }
+            client
+                .get("/assets/profile/child/-/entries")
+                .body<AssetEntriesResponse>()
+                .entries.size shouldBe 1
+            repeat(2) {
+                client.delete("/assets/profile/-/recursive").status shouldBe HttpStatusCode.NoContent
+                client.get("/assets/profile/child/-/entries").body<AssetEntriesResponse>().entries shouldBe emptyList()
+            }
         }
 }

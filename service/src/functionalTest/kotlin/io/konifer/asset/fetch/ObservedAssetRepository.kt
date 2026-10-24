@@ -4,6 +4,7 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
+import io.konifer.domain.context.Limit
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
@@ -77,7 +78,7 @@ internal class ObservedAssetRepository(
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
-        limit: Int,
+        limit: Limit,
     ): List<AssetData> {
         collectionReads.incrementAndGet()
         return delegate.fetchAllByPath(path, selection, labels, order, limit)

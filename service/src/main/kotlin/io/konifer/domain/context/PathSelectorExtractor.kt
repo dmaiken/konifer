@@ -6,14 +6,12 @@ import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.RequestContextFactory.Companion.ENTRY_ID_MODIFIER
 import io.konifer.domain.context.RequestContextFactory.Companion.RECURSIVE_MODIFIER
-import io.konifer.domain.context.selector.DEFAULT_LIMIT
-import io.konifer.domain.context.selector.DeleteModifiers
+import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.ktor.http.Parameters
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
-import kotlin.text.toIntOrNull
 
 object PathSelectorExtractor {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
@@ -22,7 +20,7 @@ object PathSelectorExtractor {
         path: String?,
         parameters: Parameters,
     ): QuerySelectors {
-        val limit = parameters[LIMIT_PARAMETER]?.toIntOrNull() ?: DEFAULT_LIMIT
+        val limit = parameters.requestedLimit() ?: Limit.single
         val isLimitSpecified = parameters.contains(LIMIT_PARAMETER)
         if (path.isNullOrBlank()) {
             return QuerySelectors(
@@ -121,7 +119,7 @@ object PathSelectorExtractor {
             }
         val effectiveSelectors =
             if (!isLimitSpecified && querySelectors.returnFormat == ReturnFormat.ENTRIES) {
-                querySelectors.copy(limit = DEFAULT_ENTRIES_LIMIT)
+                querySelectors.copy(limit = DEFAULT_ENTRIES_LIMIT.toLimit())
             } else {
                 querySelectors
             }
@@ -133,12 +131,18 @@ object PathSelectorExtractor {
     fun extractDeleteSelectors(
         path: String?,
         parameters: Parameters,
-    ): DeleteModifiers {
-        val limit = parameters[LIMIT_PARAMETER]?.toIntOrNull() ?: DEFAULT_LIMIT
+    ): DeleteSelection {
+        val limit = parameters.requestedLimit()
         if (path.isNullOrBlank()) {
-            return DeleteModifiers(
-                limit = limit,
-            )
+            if (limit != Limit.unlimited) {
+                throw InvalidDeleteSelectorsException(
+                    "Specify an entry ID, recursive deletion, or limit=-1 to delete all entries at the exact path",
+                )
+            }
+            return DeleteSelection.AllAtPath
+        }
+        if (limit != null) {
+            throw InvalidDeleteSelectorsException("Limit cannot be supplied with an entry ID or recursive deletion")
         }
         val deleteModifierSegments = path.trim('/').uppercase().split('/')
         if (deleteModifierSegments.size > 2) {
@@ -150,10 +154,7 @@ object PathSelectorExtractor {
                 when (deleteModifierSegments.size) {
                     2 -> {
                         if (deleteModifierSegments[0] == ENTRY_ID_MODIFIER) {
-                            DeleteModifiers(
-                                entryId = deleteModifierSegments[1].toNonNegativeLong(),
-                                limit = limit,
-                            )
+                            DeleteSelection.Entry(checkNotNull(deleteModifierSegments[1].toNonNegativeLong()))
                         } else {
                             throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                         }
@@ -161,22 +162,14 @@ object PathSelectorExtractor {
 
                     1 -> {
                         if (deleteModifierSegments[0] == RECURSIVE_MODIFIER) {
-                            DeleteModifiers(
-                                recursive = true,
-                                limit = limit,
-                            )
-                        } else if (Order.valueOfOrNull(deleteModifierSegments[0]) != null) {
-                            DeleteModifiers(
-                                order = Order.valueOf(deleteModifierSegments[0]),
-                                limit = limit,
-                            )
+                            DeleteSelection.Recursive
                         } else {
                             throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                         }
                     }
 
                     else -> {
-                        DeleteModifiers()
+                        throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                     }
                 }
             } catch (e: Exception) {
@@ -185,5 +178,11 @@ object PathSelectorExtractor {
         logger.debug { "Parsed delete modifiers for path: $path - $deleteModifiers" }
 
         return deleteModifiers
+    }
+
+    private fun Parameters.requestedLimit(): Limit? {
+        val values = getAll(LIMIT_PARAMETER) ?: return null
+        require(values.size == 1) { "Limit must be supplied exactly once" }
+        return values.single().toLimit()
     }
 }

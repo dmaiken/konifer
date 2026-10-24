@@ -146,23 +146,25 @@ class KoniferTestScope(
         path: String,
         querySelectors: DeleteQuerySelector = None,
         labels: Map<String, String> = emptyMap(),
-        limit: Int = 1,
+        limit: Int? = null,
     ): KoniferResult<Unit> =
         when (querySelectors) {
             is EntryId -> {
-                require(labels.isEmpty()) { "Entry selection with labels is not supported by KoniferClientV2" }
-                assets(path).entry(querySelectors.entryId).deleteFirst()
+                require(labels.isEmpty() && limit == null) { "Entry deletion does not support labels or a limit" }
+                assets(path).entry(querySelectors.entryId).delete()
             }
 
             is OrderBy -> {
-                assets(path).orderBy(querySelectors.orderBy).matchingLabels(labels).deleteFirst(limit)
+                error("Deletion requires explicit entry IDs; ordering is not supported")
             }
 
             None -> {
-                assets(path).matchingLabels(labels).deleteFirst(limit)
+                require(limit == -1) { "Exact-path deletion requires limit=-1" }
+                assets(path).matchingLabels(labels).deleteAll()
             }
 
             Recursive -> {
+                require(limit == null) { "Recursive deletion does not support a limit" }
                 assets(path).matchingLabels(labels).deleteRecursively()
             }
         }

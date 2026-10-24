@@ -145,15 +145,14 @@ public final class io/konifer/client/KoniferResultKt {
 }
 
 public final class io/konifer/client/assets/AbsoluteAssetSelection : io/konifer/client/assets/AssetSelection {
-	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
 	public fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
 }
 
 public final class io/konifer/client/assets/AssetAtPath : io/konifer/client/assets/AssetSelection {
-	public final fun deleteFirst (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteRecursively (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun entry (J)Lio/konifer/client/assets/AbsoluteAssetSelection;
 	public final fun fetchEntries (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -168,7 +167,6 @@ public final class io/konifer/client/assets/AssetAtPath : io/konifer/client/asse
 }
 
 public abstract interface class io/konifer/client/assets/AssetSelection {
-	public abstract fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun fetchInfo (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun originalVariant ()Lio/konifer/client/assets/VariantSelection;
 	public abstract fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/VariantSelection;
@@ -179,10 +177,11 @@ public final class io/konifer/client/assets/AssetSelection$DefaultImpls {
 }
 
 public final class io/konifer/client/assets/BlockingAbsoluteAssetSelection : io/konifer/client/assets/BlockingAssetSelection {
+	public final fun delete ()Lio/konifer/client/KoniferResult;
 }
 
 public final class io/konifer/client/assets/BlockingAssetAtPath : io/konifer/client/assets/BlockingAssetSelection {
-	public final fun deleteFirst (I)Lio/konifer/client/KoniferResult;
+	public final fun deleteAll ()Lio/konifer/client/KoniferResult;
 	public final fun deleteRecursively ()Lio/konifer/client/KoniferResult;
 	public final fun entry (J)Lio/konifer/client/assets/BlockingAbsoluteAssetSelection;
 	public final fun fetchEntries ()Lio/konifer/client/KoniferResult;
@@ -194,14 +193,13 @@ public final class io/konifer/client/assets/BlockingAssetAtPath : io/konifer/cli
 }
 
 public class io/konifer/client/assets/BlockingAssetSelection {
-	public final fun deleteFirst ()Lio/konifer/client/KoniferResult;
 	public final fun fetchInfo ()Lio/konifer/client/KoniferResult;
 	public final fun originalVariant ()Lio/konifer/client/assets/BlockingVariantSelection;
 	public final fun variant (Lio/konifer/client/assets/fetch/RequestedTransformation;)Lio/konifer/client/assets/BlockingVariantSelection;
 }
 
 public final class io/konifer/client/assets/BlockingRelativeAssetSelection : io/konifer/client/assets/BlockingAssetSelection {
-	public final fun deleteFirst (I)Lio/konifer/client/KoniferResult;
+	public final fun deleteAll ()Lio/konifer/client/KoniferResult;
 	public final fun deleteRecursively ()Lio/konifer/client/KoniferResult;
 	public final fun fetchEntries ()Lio/konifer/client/KoniferResult;
 	public final fun fetchEntries (I)Lio/konifer/client/KoniferResult;
@@ -218,8 +216,7 @@ public final class io/konifer/client/assets/BlockingVariantSelection {
 }
 
 public final class io/konifer/client/assets/RelativeAssetSelection : io/konifer/client/assets/AssetSelection {
-	public final fun deleteFirst (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteRecursively (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun fetchEntries (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun fetchEntries (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

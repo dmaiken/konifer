@@ -24,8 +24,6 @@ class PostgresAssetDeleter(
                 assetRepository.deleteAllByPath(
                     path = command.path,
                     labels = command.labels,
-                    order = command.order,
-                    limit = command.limit,
                 )
             }
 

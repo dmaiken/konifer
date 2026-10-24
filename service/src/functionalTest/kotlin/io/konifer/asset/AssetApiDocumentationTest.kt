@@ -92,6 +92,18 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
                     .jsonObject
                     .getValue("responses")
                     .jsonObject
+            val deleteLimit =
+                assets
+                    .getValue("delete")
+                    .jsonObject
+                    .parameters()
+                    .single { it["name"]?.jsonPrimitive?.content == "limit" }
+            deleteLimit
+                .getValue("schema")
+                .jsonObject
+                .getValue("enum")
+                .jsonArray
+                .map { it.jsonPrimitive.content } shouldBe listOf("-1")
             deleteResponses shouldContainKey "204"
             deleteResponses.getValue("204").jsonObject.containsKey("content") shouldBe false
             assertReferencesResolve(document, document)
@@ -101,6 +113,28 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
         val parameters = operation.parameters().associateBy { it.getValue("name").jsonPrimitive.content }
         parameters.keys shouldContainAll ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
         parameters.keys shouldContainAll setOf("profile", "limit", "labels", "s", "Accept", "If-None-Match", "If-Modified-Since")
+        val limits =
+            parameters
+                .getValue("limit")
+                .getValue("schema")
+                .jsonObject
+                .getValue("oneOf")
+                .jsonArray
+        limits[0]
+            .jsonObject
+            .getValue("minimum")
+            .jsonPrimitive.content
+            .toDouble() shouldBe 1.0
+        limits[0]
+            .jsonObject
+            .getValue("maximum")
+            .jsonPrimitive.content
+            .toDouble() shouldBe Int.MAX_VALUE.toDouble()
+        limits[1]
+            .jsonObject
+            .getValue("enum")
+            .jsonArray
+            .map { it.jsonPrimitive.content } shouldBe listOf("-1")
         val formats =
             parameters
                 .getValue("format")

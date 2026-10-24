@@ -5,6 +5,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
+import io.konifer.domain.context.Limit
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSelection
@@ -74,7 +75,7 @@ interface AssetRepository {
         selection: VariantSelection = VariantSelection.ALL,
         labels: Map<String, String> = emptyMap(),
         order: Order = Order.NEW,
-        limit: Int,
+        limit: Limit,
     ): List<AssetData>
 
     suspend fun deleteByPath(
@@ -85,8 +86,6 @@ interface AssetRepository {
     suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String> = emptyMap(),
-        order: Order = Order.NEW,
-        limit: Int,
     )
 
     suspend fun deleteRecursivelyByPath(

@@ -68,8 +68,8 @@ internal fun Operation.Builder.fetchAssetDocumentation() {
     parameters {
         assetPath("users/123/profile-picture/-/content")
         query(LIMIT_PARAMETER) {
-            description = "Maximum entries returned by /-/entries: default 20, -1 for all. Other formats select one entry."
-            schema = JsonSchema(type = JsonType.INTEGER)
+            description = "Maximum entries returned by /-/entries: default 20, -1 for all. Other formats allow only 1. Supply once."
+            schema = limitSchema()
         }
         labelFilters()
         transformationParameters()
@@ -182,18 +182,21 @@ internal fun Operation.Builder.deleteAssetDocumentation() {
     summary = "Delete selected assets"
     description =
         """
-        Delete the newest entry at a path by default. Append `/-/new` or `/-/modified` to select ordering,
-        `/-/entry/{entryId}` to select a specific entry, or `/-/recursive` to delete all entries at the path
-        and its descendants. `limit=-1` deletes all entries at the exact path without deleting descendants.
-        Label filters apply to the selection. Recursive deletion cannot use a limit greater than 1.
+        Select a specific entry with `/-/entry/{entryId}`, or use `/-/recursive` to delete all entries at the path
+        and its descendants. `limit=-1` without selectors deletes all entries at the exact path without deleting descendants.
+        A selection is required. Ordering selectors and bounded deletion are not supported; list entries and delete
+        explicit entry IDs to delete a bounded selection. Entry and recursive selectors cannot be combined with limit.
+        Label filters apply to exact-path and recursive bulk deletion. Bulk operations evaluate matches when executed;
+        they do not preserve a snapshot across concurrent uploads. Repeated deletion succeeds when no entries remain.
         Asset metadata and variant references are deleted synchronously; object-store content is deleted
         asynchronously. Deletion is irreversible. Return 204 even when no entries match.
         """.trimIndent()
     parameters {
         assetPath("users/123/profile-picture/-/entry/42")
         query(LIMIT_PARAMETER) {
-            description = "Maximum number of entries to delete: default 1, -1 for all entries at the exact path."
-            schema = JsonSchema(type = JsonType.INTEGER)
+            description =
+                "Must be -1 to explicitly delete all entries at the exact path. Supply once; omit with entry or recursive selectors."
+            schema = JsonSchema(type = JsonType.INTEGER, enum = listOf(GenericElement(-1)))
         }
         labelFilters()
     }
@@ -445,3 +448,12 @@ private fun Responses.Builder.errorResponse(
 }
 
 private fun cacheStatusSchema() = JsonSchema(type = JsonType.STRING, enum = listOf(GenericElement("hit"), GenericElement("miss")))
+
+private fun limitSchema() =
+    JsonSchema(
+        oneOf =
+            listOf(
+                value(JsonSchema(type = JsonType.INTEGER, minimum = 1.0, maximum = Int.MAX_VALUE.toDouble())),
+                value(JsonSchema(type = JsonType.INTEGER, enum = listOf(GenericElement(-1)))),
+            ),
+    )

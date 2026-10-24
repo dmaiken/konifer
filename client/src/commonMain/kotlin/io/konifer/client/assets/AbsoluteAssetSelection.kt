@@ -29,7 +29,8 @@ class AbsoluteAssetSelection internal constructor(
             selector = EntryId(entryId),
         )
 
-    override suspend fun deleteFirst(): KoniferResult<Unit> =
+    /** Deletes this entry. Repeating the request succeeds even if the entry no longer exists. */
+    suspend fun delete(): KoniferResult<Unit> =
         deleteAsset(
             infra = infra,
             path = path,

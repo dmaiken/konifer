@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres
 
-import io.konifer.common.selector.Order
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.mockk.coVerify
@@ -27,8 +26,6 @@ class PostgresAssetDeleterTest {
                 DeleteAssetsCommand.AtPath(
                     path = "/users/123",
                     labels = mapOf("animal" to "cat"),
-                    order = Order.MODIFIED,
-                    limit = 5,
                 ),
             )
 
@@ -36,8 +33,6 @@ class PostgresAssetDeleterTest {
                 assetRepository.deleteAllByPath(
                     path = "/users/123",
                     labels = mapOf("animal" to "cat"),
-                    order = Order.MODIFIED,
-                    limit = 5,
                 )
             }
         }

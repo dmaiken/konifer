@@ -118,7 +118,7 @@ class RequestContextFactory(
 
         return DeleteRequestContext(
             path = segments.first(),
-            modifiers =
+            selection =
                 extractDeleteSelectors(
                     path = segments.getOrNull(1),
                     parameters = queryParameters,

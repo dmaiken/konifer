@@ -2,6 +2,7 @@ package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.context.Limit
 import io.konifer.domain.variant.VariantSelection
 import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
 import konifer.jooq.tables.records.AssetLabelRecord
@@ -37,7 +38,7 @@ object SelectStatementGenerator {
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
-        limit: Int,
+        limit: Limit,
         include: AssetDataToInclude,
     ): MultiSetSelectHandles {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
@@ -70,8 +71,8 @@ object SelectStatementGenerator {
             .and(entryIdCondition)
             .orderBy(*assetOrderConditions)
             .let {
-                if (limit > 0) {
-                    it.limit(limit)
+                if (!limit.isUnlimited) {
+                    it.limit(limit.value)
                 } else {
                     it
                 }

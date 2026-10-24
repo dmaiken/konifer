@@ -6,7 +6,6 @@ import io.konifer.client.internal.appendAssetPath
 import io.konifer.client.internal.appendEntrySelector
 import io.konifer.client.internal.appendLabels
 import io.konifer.client.internal.appendLimit
-import io.konifer.client.internal.appendOrderSelector
 import io.konifer.client.internal.appendPathSeparator
 import io.konifer.client.internal.appendRecursiveSelector
 import io.konifer.client.toKoniferResult
@@ -33,10 +32,8 @@ internal suspend fun deleteAsset(
                     }
 
                     is AssetDeleteTarget.AtPath -> {
-                        appendPathSeparator()
-                        appendOrderSelector(target.order)
                         appendLabels(target.labels)
-                        appendLimit(target.limit)
+                        appendLimit(-1)
                     }
 
                     is AssetDeleteTarget.Recursive -> {

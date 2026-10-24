@@ -180,7 +180,6 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .also { repository.markReady(it) }
                 repository.deleteAllByPath(
                     path = "/users/123",
-                    limit = -1,
                 )
                 val variant = ready.variants.first()
 
