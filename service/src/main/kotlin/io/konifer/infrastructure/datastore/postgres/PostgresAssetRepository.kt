@@ -2,8 +2,9 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.projection.AssetData
+import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.asset.toAssetTags
 import io.konifer.domain.ports.AssetRepository
@@ -11,8 +12,12 @@ import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.postgres.DeleteAssetHelper.deleteAssets
+import io.konifer.infrastructure.datastore.postgres.projection.PostgresAssetDeliveryProjection
+import io.konifer.infrastructure.datastore.postgres.projection.PostgresVariantDeliveryProjection
+import io.konifer.infrastructure.datastore.postgres.statement.AssetDataToInclude
 import io.konifer.infrastructure.datastore.postgres.statement.DeleteStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.InsertStatementGenerator
 import io.konifer.infrastructure.datastore.postgres.statement.SelectForUpdateStatementGenerator
@@ -39,12 +44,15 @@ class PostgresAssetRepository(
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
-    override suspend fun fetchVariant(
+    override suspend fun fetchVariantForDelivery(
         assetId: AssetId,
         specification: VariantSpecification,
-    ): VariantData? =
+    ): VariantDeliveryProjection? =
         with(dslContext) {
-            SelectStatementGenerator.fetchVariant(assetId, specification).awaitFirstOrNull()?.toVariantData()
+            SelectStatementGenerator
+                .fetchVariant(assetId, specification)
+                .awaitFirstOrNull()
+                ?.let(::PostgresVariantDeliveryProjection)
         }
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
@@ -144,7 +152,12 @@ class PostgresAssetRepository(
             entryId = entryId,
             specification = null,
             order = Order.NEW,
-            includeOnlyReady = false,
+            include =
+                AssetDataToInclude(
+                    onlyReady = false,
+                    includeLabels = true,
+                    includeTags = true,
+                ),
         )?.let { fetched ->
             if (fetched.asset.isReady == true) {
                 fetched.asset.toReadyAsset(
@@ -180,10 +193,37 @@ class PostgresAssetRepository(
             specification = specification,
             order = order,
             labels = labels,
-            includeOnlyReady = includeOnlyReady,
+            include =
+                AssetDataToInclude(
+                    onlyReady = includeOnlyReady,
+                    includeLabels = true,
+                    includeTags = true,
+                ),
         )?.let {
             it.asset.toAssetData(it.variants, it.labels, it.tags)
         }
+
+    override suspend fun fetchForDelivery(
+        path: String,
+        entryId: Long?,
+        specification: VariantSpecification?,
+        order: Order,
+        labels: Map<String, String>,
+    ): AssetDeliveryProjection? =
+        fetch(
+            context = dslContext,
+            path = path,
+            entryId = entryId,
+            specification = specification,
+            order = order,
+            labels = labels,
+            include =
+                AssetDataToInclude(
+                    onlyReady = true,
+                    includeLabels = false,
+                    includeTags = false,
+                ),
+        )?.let(::PostgresAssetDeliveryProjection)
 
     override suspend fun fetchAllByPath(
         path: String,
@@ -200,7 +240,7 @@ class PostgresAssetRepository(
                     specification = specification,
                     order = order,
                     labels = labels,
-                    includeOnlyReady = true,
+                    include = AssetDataToInclude.allFieldsOnlyReady,
                     limit = limit,
                 )
             }
@@ -317,8 +357,8 @@ class PostgresAssetRepository(
         entryId: Long?,
         specification: VariantSpecification?,
         order: Order,
+        include: AssetDataToInclude,
         labels: Map<String, String> = emptyMap(),
-        includeOnlyReady: Boolean = true,
     ): AssetRecordsDto? {
         return with(context) {
             SelectStatementGenerator.fetch(
@@ -327,15 +367,15 @@ class PostgresAssetRepository(
                 specification = specification,
                 order = order,
                 labels = labels,
-                includeOnlyReady = includeOnlyReady,
+                include = include,
                 limit = 1,
             )
         }.let { handles ->
             val record = handles.statement.awaitFirstOrNull() ?: return null
             val asset = record.into(ASSET_TREE)
             val variants = record.getValue(handles.variants)
-            val labels = record.getValue(handles.labels)
-            val tags = record.getValue(handles.tags)
+            val labels = handles.labels?.let { record.getValue(it) } ?: emptyList()
+            val tags = handles.tags?.let { record.getValue(it) } ?: emptyList()
 
             AssetRecordsDto(asset, variants, labels, tags)
         }

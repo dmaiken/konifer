@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.http
 
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.path.DeliveryProperties
 import io.konifer.domain.path.DeliveryStrategy
@@ -9,7 +8,7 @@ import io.konifer.domain.path.PreSignedProperties
 import io.konifer.domain.path.TemplateProperties
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PresignedUrl
-import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.infrastructure.HttpProperties
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
@@ -33,10 +32,16 @@ class AssetUrlGeneratorTest {
     fun `service delivery uses the configured public url and preserves request parameters`() =
         runTest {
             val generator = AssetUrlGenerator(HttpProperties(Url("https://images.example.com/root")), objectStore)
-            val asset = assetData(path = "/profiles/avatar", entryId = 42)
             val request = request(parameters = Parameters.build { append("width", "320") })
 
-            val result = generator.generateDeliveryUrl(asset, request, PathConfiguration.default)
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profiles/avatar",
+                    entryId = 42,
+                    variant = variant(),
+                    request = request,
+                    pathConfiguration = PathConfiguration.default,
+                )
 
             result.expiresAt shouldBe null
             val url = result.url
@@ -53,7 +58,14 @@ class AssetUrlGeneratorTest {
             val generator = AssetUrlGenerator(HttpProperties(), objectStore)
             val request = request(scheme = "https", host = "request.example.com", port = 8443)
 
-            val result = generator.generateDeliveryUrl(assetData(), request, PathConfiguration.default)
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profile",
+                    entryId = 7,
+                    variant = variant(),
+                    request = request,
+                    pathConfiguration = PathConfiguration.default,
+                )
 
             result.url.toString() shouldBe "https://request.example.com:8443/assets/profile/-/entry/7/content"
         }
@@ -76,7 +88,7 @@ class AssetUrlGeneratorTest {
     fun `presigned delivery returns the object store url`() =
         runTest {
             val generator = AssetUrlGenerator(HttpProperties(), objectStore)
-            val asset = assetData(bucket = "variant-bucket", key = "variants/image.webp")
+            val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery =
                 DeliveryProperties(
                     strategy = DeliveryStrategy.PRESIGNED,
@@ -88,7 +100,14 @@ class AssetUrlGeneratorTest {
                 objectStore.generatePresignedUrl("variant-bucket", "variants/image.webp", 15.minutes)
             } returns PresignedUrl.Supported(url = presignedUrl, expiresAt = expiresAt)
 
-            val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profile",
+                    entryId = 7,
+                    variant = variant,
+                    request = request(),
+                    pathConfiguration = PathConfiguration(deliveryProperties = delivery),
+                )
 
             result.url shouldBe presignedUrl
             result.expiresAt shouldBe expiresAt.toKotlinLocalDateTime()
@@ -101,11 +120,18 @@ class AssetUrlGeneratorTest {
     fun `presigned delivery falls back to the service url when unsupported`() =
         runTest {
             val generator = AssetUrlGenerator(HttpProperties(), objectStore)
-            val asset = assetData(bucket = "variant-bucket", key = "variants/image.webp")
+            val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery = DeliveryProperties(strategy = DeliveryStrategy.PRESIGNED)
             coEvery { objectStore.generatePresignedUrl(any(), any(), any()) } returns PresignedUrl.NotSupported
 
-            val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profile",
+                    entryId = 7,
+                    variant = variant,
+                    request = request(),
+                    pathConfiguration = PathConfiguration(deliveryProperties = delivery),
+                )
 
             result.url.toString() shouldBe "http://localhost:8080/assets/profile/-/entry/7/content"
             result.expiresAt shouldBe null
@@ -115,7 +141,7 @@ class AssetUrlGeneratorTest {
     fun `template delivery resolves repeated bucket and key variables from the selected variant`() =
         runTest {
             val generator = AssetUrlGenerator(HttpProperties(), objectStore)
-            val asset = assetData(bucket = "variant-bucket", key = "variants/image.webp")
+            val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery =
                 DeliveryProperties(
                     strategy = DeliveryStrategy.TEMPLATE,
@@ -125,7 +151,14 @@ class AssetUrlGeneratorTest {
                         ),
                 )
 
-            val result = generator.generateDeliveryUrl(asset, request(), PathConfiguration(deliveryProperties = delivery))
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profile",
+                    entryId = 7,
+                    variant = variant,
+                    request = request(),
+                    pathConfiguration = PathConfiguration(deliveryProperties = delivery),
+                )
 
             result.url.toString() shouldBe
                 "https://variant-bucket.example.com/variant-bucket/variants/image.webp?source=variants/image.webp"
@@ -133,21 +166,15 @@ class AssetUrlGeneratorTest {
             result.expiresAt shouldBe null
         }
 
-    private fun assetData(
-        path: String = "/profile",
-        entryId: Long = 7,
+    private fun variant(
         bucket: String = "assets",
         key: String = "image.png",
-    ): AssetData {
-        val variant = mockk<VariantData>()
+    ): VariantDeliveryProjection {
+        val variant = mockk<VariantDeliveryProjection>()
         every { variant.objectStoreBucket } returns bucket
         every { variant.objectStoreKey } returns key
 
-        val asset = mockk<AssetData>()
-        every { asset.path } returns path
-        every { asset.entryId } returns entryId
-        every { asset.variants } returns listOf(variant)
-        return asset
+        return variant
     }
 
     private fun request(

@@ -1,12 +1,14 @@
 package io.konifer.asset.fetch
 
 import io.konifer.common.selector.Order
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.projection.AssetData
+import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -15,9 +17,11 @@ internal class ObservedAssetRepository(
     private val delegate: AssetRepository,
 ) : AssetRepository by delegate {
     val assetReads = AtomicInteger()
+    val assetForDeliveryReads = AtomicInteger()
     val collectionReads = AtomicInteger()
     val variantReads = AtomicInteger()
     var lastAsset: AssetData? = null
+    var lastDeliveryAsset: AssetDeliveryProjection? = null
     var uploadedVariant: Variant.Ready? = null
     var uploadedMetadata: VariantData? = null
     var beforeVariantInsert: (suspend (Variant.Pending) -> Unit)? = null
@@ -29,7 +33,9 @@ internal class ObservedAssetRepository(
         assetReads.set(0)
         collectionReads.set(0)
         variantReads.set(0)
+        assetForDeliveryReads.set(0)
         lastAsset = null
+        lastDeliveryAsset = null
         uploadedVariant = null
         uploadedMetadata = null
     }
@@ -49,6 +55,20 @@ internal class ObservedAssetRepository(
         return asset
     }
 
+    override suspend fun fetchForDelivery(
+        path: String,
+        entryId: Long?,
+        specification: VariantSpecification?,
+        order: Order,
+        labels: Map<String, String>,
+    ): AssetDeliveryProjection? {
+        assetForDeliveryReads.incrementAndGet()
+        val asset = delegate.fetchForDelivery(path, entryId, specification, order, labels)
+        lastDeliveryAsset = asset
+        afterAssetRead?.invoke()
+        return asset
+    }
+
     override suspend fun fetchAllByPath(
         path: String,
         specification: VariantSpecification?,
@@ -60,12 +80,12 @@ internal class ObservedAssetRepository(
         return delegate.fetchAllByPath(path, specification, labels, order, limit)
     }
 
-    override suspend fun fetchVariant(
+    override suspend fun fetchVariantForDelivery(
         assetId: AssetId,
         specification: VariantSpecification,
-    ): VariantData? {
+    ): VariantDeliveryProjection? {
         variantReads.incrementAndGet()
-        return delegate.fetchVariant(assetId, specification)
+        return delegate.fetchVariantForDelivery(assetId, specification)
     }
 
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {

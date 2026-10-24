@@ -1,6 +1,7 @@
-package io.konifer.domain.asset
+package io.konifer.domain.asset.projection
 
 import io.konifer.common.asset.AssetSource
+import io.konifer.domain.asset.AssetId
 import io.konifer.domain.variant.VariantData
 import java.time.LocalDateTime
 

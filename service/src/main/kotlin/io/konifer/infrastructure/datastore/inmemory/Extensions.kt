@@ -1,7 +1,7 @@
 package io.konifer.infrastructure.datastore.inmemory
 
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
+import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 

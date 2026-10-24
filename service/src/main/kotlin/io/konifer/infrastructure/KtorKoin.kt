@@ -8,6 +8,7 @@ import io.konifer.application.usecase.fetch.FetchAssetHandler
 import io.konifer.application.usecase.store.StoreNewAssetUseCase
 import io.konifer.application.usecase.update.UpdateAssetUseCase
 import io.konifer.domain.asset.AssetContentValidator
+import io.konifer.domain.asset.AssetService
 import io.konifer.domain.asset.FormatValidator
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.context.RequestContextValidator
@@ -101,6 +102,7 @@ fun Application.configModule(): Module =
 fun domainModule(): Module =
     module {
         single<AssetContentValidator>()
+        single<AssetService>()
         single<RequestContextFactory>()
         single<RequestContextValidator>()
         single<TransformationNormalizer>()

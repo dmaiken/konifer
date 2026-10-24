@@ -10,11 +10,15 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.ports.AssetRepository
+import io.konifer.domain.ports.EventPublisher
+import io.konifer.domain.variant.VariantId
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
+import io.konifer.infrastructure.event.InMemoryEventBus
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
 import io.konifer.testInMemory
 import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
@@ -36,10 +40,14 @@ import kotlin.math.roundToInt
 
 class FetchAssetResolutionTest : BaseFunctionalTest() {
     private lateinit var repository: ObservedAssetRepository
+    private lateinit var eventPublisher: ObservedEventPublisher
     private val observedModule =
         module {
             single<AssetRepository> {
                 ObservedAssetRepository(get<InMemoryAssetRepository>()).also { repository = it }
+            }
+            single<EventPublisher> {
+                ObservedEventPublisher(get<InMemoryEventBus>()).also { eventPublisher = it }
             }
         }
 
@@ -48,7 +56,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
     fun `competing generation reads only the winning variant`(winnerUploaded: Boolean) =
         testInMemory(modules = listOf(observedModule)) {
             storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
-            repository.resetReads()
+            resetObservations()
             val reads = AtomicInteger()
             val inserts = AtomicInteger()
             val bothRead = CompletableDeferred<Unit>()
@@ -83,8 +91,9 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             responses.count { it.status == HttpStatusCode.OK } shouldBe if (winnerUploaded) 2 else 1
             responses.count { it.status == HttpStatusCode.NotFound } shouldBe if (winnerUploaded) 0 else 1
             responses.filter { it.status == HttpStatusCode.OK }.forEach { it.headers[APP_CACHE_STATUS] shouldBe "miss" }
-            repository.assetReads.get() shouldBe 2
+            assertDeliveryReads(expected = 2)
             repository.variantReads.get() shouldBe 1
+            eventPublisher.accesses shouldHaveSize responses.count { it.status == HttpStatusCode.OK }
         }
 
     @ParameterizedTest
@@ -97,36 +106,44 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             val path = "/assets/profile/-/${returnFormat.name.lowercase()}"
             val expectedStatus = if (returnFormat == ReturnFormat.REDIRECT) HttpStatusCode.TemporaryRedirect else HttpStatusCode.OK
 
-            repository.resetReads()
+            resetObservations()
             client.get(path).apply {
                 status shouldBe expectedStatus
                 headers[APP_CACHE_STATUS] shouldBe "hit"
                 bodyAsBytes()
             }
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.variantReads.get() shouldBe 0
-            repository.lastAsset!!.variants shouldHaveSize 1
+            repository.lastDeliveryAsset!!.variants shouldHaveSize 1
+            assertAccess(
+                repository.lastDeliveryAsset!!
+                    .variants
+                    .single()
+                    .id,
+            )
 
-            repository.resetReads()
+            resetObservations()
             client.get("$path?width=100").apply {
                 status shouldBe expectedStatus
                 headers[APP_CACHE_STATUS] shouldBe "miss"
                 bodyAsBytes()
             }
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.variantReads.get() shouldBe 0
-            repository.uploadedVariant!!
-                .attributes.width.value shouldBe 100
+            val generatedVariant = repository.uploadedVariant!!
+            generatedVariant.attributes.width.value shouldBe 100
+            assertAccess(generatedVariant.id)
 
-            repository.resetReads()
+            resetObservations()
             client.get("$path?width=100").apply {
                 status shouldBe expectedStatus
                 headers[APP_CACHE_STATUS] shouldBe "hit"
                 bodyAsBytes()
             }
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.variantReads.get() shouldBe 0
-            repository.lastAsset!!.variants shouldHaveSize 2
+            repository.lastDeliveryAsset!!.variants shouldHaveSize 2
+            assertAccess(generatedVariant.id)
         }
 
     @Test
@@ -135,12 +152,15 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
             client.get("/assets/profile/-/link?width=100").status shouldBe HttpStatusCode.OK
 
-            repository.resetReads()
+            resetObservations()
             client.get("/assets/profile/-/info").body<AssetResponse>().variants shouldHaveSize 2
             repository.assetReads.get() shouldBe 1
+            repository.assetForDeliveryReads.get() shouldBe 0
+            repository.collectionReads.get() shouldBe 0
             repository.variantReads.get() shouldBe 0
+            eventPublisher.accesses shouldHaveSize 0
 
-            repository.resetReads()
+            resetObservations()
             client
                 .get("/assets/profile/-/entries")
                 .body<AssetEntriesResponse>()
@@ -149,22 +169,30 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 .variants shouldHaveSize 2
             repository.collectionReads.get() shouldBe 1
             repository.assetReads.get() shouldBe 0
+            repository.assetForDeliveryReads.get() shouldBe 0
             repository.variantReads.get() shouldBe 0
+            eventPublisher.accesses shouldHaveSize 0
         }
 
     @Test
     fun `transformation equivalent to original is a cache hit`() =
         testInMemory(modules = listOf(observedModule)) {
             storeAssetMultipartSource(client, testImage(ImageFormat.PNG).bytes, StoreAssetRequest())
-            repository.resetReads()
+            resetObservations()
 
             client.get("/assets/profile/-/link?format=png").apply {
                 status shouldBe HttpStatusCode.OK
                 headers[APP_CACHE_STATUS] shouldBe "hit"
             }
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.variantReads.get() shouldBe 0
             repository.uploadedVariant shouldBe null
+            assertAccess(
+                repository.lastDeliveryAsset!!
+                    .variants
+                    .single()
+                    .id,
+            )
         }
 
     @ParameterizedTest
@@ -172,8 +200,9 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
     fun `missing transformed asset returns not found after one read`(returnFormat: ReturnFormat) =
         testInMemory(modules = listOf(observedModule)) {
             client.get("/assets/missing/-/${returnFormat.name.lowercase()}?width=100").status shouldBe HttpStatusCode.NotFound
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.variantReads.get() shouldBe 0
+            eventPublisher.accesses shouldHaveSize 0
         }
 
     @Test
@@ -194,13 +223,13 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             updateAsset(client, first.first[HttpHeaders.Location]!!, StoreAssetRequest(alt = "updated", labels = mapOf("kind" to "moon")))
 
             listOf("link?width=100&kind=moon", "modified/link?width=100").forEach { selection ->
-                repository.resetReads()
+                resetObservations()
                 val response = client.get("/assets/profile/-/$selection")
                 response.status shouldBe HttpStatusCode.OK
                 val link = response.body<AssetLinkResponse>()
                 link.attributes.height shouldBe (original.height * 100.0 / original.width).roundToInt()
-                repository.lastAsset!!.entryId shouldBe first.second!!.entryId
-                repository.assetReads.get() shouldBe 1
+                repository.lastDeliveryAsset!!.entryId shouldBe first.second!!.entryId
+                assertDeliveryReads()
                 repository.variantReads.get() shouldBe 0
             }
         }
@@ -212,9 +241,27 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             modules = listOf(observedModule),
         ) {
             storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
-            repository.resetReads()
+            resetObservations()
             client.get("/assets/profile/-/link?width=100").status shouldBe HttpStatusCode.BadRequest
-            repository.assetReads.get() shouldBe 1
+            assertDeliveryReads()
             repository.uploadedVariant shouldBe null
+            eventPublisher.accesses shouldHaveSize 0
         }
+
+    private fun resetObservations() {
+        repository.resetReads()
+        eventPublisher.reset()
+    }
+
+    private fun assertDeliveryReads(expected: Int = 1) {
+        repository.assetForDeliveryReads.get() shouldBe expected
+        repository.assetReads.get() shouldBe 0
+        repository.collectionReads.get() shouldBe 0
+    }
+
+    private fun assertAccess(variantId: VariantId) {
+        val accesses = eventPublisher.accesses
+        accesses.map { it.variantId } shouldContainExactly listOf(variantId)
+        accesses.single().path shouldBe "/profile"
+    }
 }

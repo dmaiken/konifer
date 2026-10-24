@@ -67,23 +67,130 @@ abstract class AssetRepositoryTest {
             repository.markReady(asset.markReady(LocalDateTime.now(UTC)))
             repository.markReady(other.markReady(LocalDateTime.now(UTC)))
             val original = asset.variants.single()
-            repository.fetchVariant(asset.id, VariantSpecification.Original)?.id shouldBe original.id
+            repository.fetchVariantForDelivery(asset.id, VariantSpecification.Original)?.id shouldBe original.id
             repository
-                .fetchVariant(
+                .fetchVariantForDelivery(
                     asset.id,
                     VariantSpecification.Transformed(Transformation.fromAttributes(original.attributes)),
                 )?.id shouldBe original.id
-            repository.fetchVariant(AssetId(), VariantSpecification.Original) shouldBe null
+            repository.fetchVariantForDelivery(AssetId(), VariantSpecification.Original) shouldBe null
 
             val transformation = Transformation.fromAttributes(original.attributes).copy(width = 50.toDimension())
             val variant = repository.storeNewVariant(createPendingVariant(assetId = asset.id, transformation = transformation))
-            repository.fetchVariant(asset.id, variant.specification) shouldBe null
-            val uploaded = repository.markUploaded(variant.markReady(LocalDateTime.now(UTC)), CacheProperties())
-            val fetched = repository.fetchVariant(asset.id, variant.specification)!!
-            fetched shouldBe uploaded
-            assertFetchedVariantAgainstAggregate(fetched, variant.markReady(fetched.uploadedAt!!))
-            repository.fetchVariant(other.id, variant.specification) shouldBe null
+            repository.fetchVariantForDelivery(asset.id, variant.specification) shouldBe null
+            val ready = variant.markReady(LocalDateTime.now(UTC))
+            val uploaded = repository.markUploaded(ready, CacheProperties())
+            val fetched = repository.fetchVariantForDelivery(asset.id, variant.specification)!!
+            assertFetchedVariantAgainstAggregate(uploaded, ready)
+            assertFetchedVariantAgainstAggregate(fetched, ready)
+            repository.fetchVariantForDelivery(other.id, variant.specification) shouldBe null
         }
+
+    @Nested
+    inner class FetchForDeliveryTests {
+        @Test
+        fun `missing paths and entry ids return null`() =
+            runTest {
+                val asset = storeReadyAsset()
+
+                repository.fetchForDelivery("/missing", null, null) shouldBe null
+                repository.fetchForDelivery(asset.path, asset.entryId!! + 1, null) shouldBe null
+            }
+
+        @Test
+        fun `pending assets are excluded before selecting an entry`() =
+            runTest {
+                val ready = storeReadyAsset()
+                val pending = repository.storeNew(createPendingAsset())
+
+                repository.fetchForDelivery(ready.path, null, null)?.id shouldBe ready.id
+                repository.fetchForDelivery(pending.path, pending.entryId, null) shouldBe null
+            }
+
+        @Test
+        fun `delivery fields match the persisted ready asset`() =
+            runTest {
+                val ready = storeReadyAsset(createPendingAsset(lqips = LQIPs("blurhash", "thumbhash")))
+                val fetched = checkNotNull(repository.fetchForDelivery(ready.path, ready.entryId, null))
+
+                fetched.id shouldBe ready.id
+                fetched.path shouldBe ready.path
+                fetched.entryId shouldBe ready.entryId
+                fetched.alt shouldBe ready.alt?.value
+                fetched.modifiedAt.truncatedTo(ChronoUnit.MILLIS) shouldBe ready.modifiedAt.truncatedTo(ChronoUnit.MILLIS)
+                fetched.variants shouldHaveSize 1
+                assertFetchedVariantAgainstAggregate(fetched.variants.single(), ready.variants.single())
+            }
+
+        @Test
+        fun `variant selection excludes pending variants and respects the specification`() =
+            runTest {
+                val asset = storeReadyAsset()
+                val original = asset.variants.single()
+                val transformation = Transformation.fromAttributes(original.attributes).copy(width = 50.toDimension())
+                val uploaded = storeReadyVariant(asset, transformation)
+                repository.storeNewVariant(
+                    createPendingVariant(assetId = asset.id, transformation = transformation.copy(width = 25.toDimension())),
+                )
+
+                val all = checkNotNull(repository.fetchForDelivery(asset.path, asset.entryId, null))
+                all.variants.map { it.id } shouldContainExactlyInAnyOrder listOf(original.id, uploaded.id)
+
+                val originalOnly = checkNotNull(repository.fetchForDelivery(asset.path, asset.entryId, VariantSpecification.Original))
+                originalOnly.variants.map { it.id } shouldContainExactly listOf(original.id)
+
+                val transformed = checkNotNull(repository.fetchForDelivery(asset.path, asset.entryId, uploaded.specification))
+                transformed.variants shouldHaveSize 1
+                assertFetchedVariantAgainstAggregate(transformed.variants.single(), uploaded)
+
+                val absent =
+                    checkNotNull(
+                        repository.fetchForDelivery(
+                            asset.path,
+                            asset.entryId,
+                            VariantSpecification.Transformed(transformation.copy(width = 10.toDimension())),
+                        ),
+                    )
+                absent.variants shouldHaveSize 0
+            }
+
+        @Test
+        fun `explicit entry selection overrides latest entry selection`() =
+            runTest {
+                val first = storeReadyAsset()
+                val second = storeReadyAsset()
+
+                repository.fetchForDelivery(first.path, first.entryId, null)?.id shouldBe first.id
+                repository.fetchForDelivery(first.path, null, null)?.id shouldBe second.id
+            }
+
+        @Test
+        fun `labels filter assets before selecting the latest entry`() =
+            runTest {
+                val first = storeReadyAsset(createPendingAsset(labels = mapOf("kind" to "selected", "group" to "one")))
+                val second = storeReadyAsset(createPendingAsset(labels = mapOf("kind" to "selected", "group" to "two")))
+                storeReadyAsset(createPendingAsset(labels = mapOf("kind" to "other")))
+
+                repository.fetchForDelivery(first.path, null, null, labels = mapOf("kind" to "selected"))?.id shouldBe second.id
+                repository.fetchForDelivery(first.path, null, null, labels = mapOf("kind" to "selected", "group" to "one"))?.id shouldBe
+                    first.id
+                repository.fetchForDelivery(first.path, null, null, labels = mapOf("kind" to "missing")) shouldBe null
+            }
+
+        @Test
+        fun `new and modified ordering select the appropriate ready asset`() =
+            runTest {
+                val first = storeReadyAsset()
+                val second = storeReadyAsset()
+                val firstData = checkNotNull(repository.fetchByPath(first.path, first.entryId, null))
+                repository.update(Asset.Ready.from(firstData.copy(alt = "updated", modifiedAt = second.modifiedAt.plusSeconds(1))))
+
+                repository.fetchForDelivery(first.path, null, null, order = Order.NEW)?.id shouldBe second.id
+                val modified = checkNotNull(repository.fetchForDelivery(first.path, null, null, order = Order.MODIFIED))
+                modified.id shouldBe first.id
+                modified.modifiedAt.truncatedTo(ChronoUnit.MILLIS) shouldBe second.modifiedAt.plusSeconds(1).truncatedTo(ChronoUnit.MILLIS)
+            }
+    }
 
     @Nested
     inner class StoreAssetTests {

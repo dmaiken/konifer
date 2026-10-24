@@ -10,9 +10,6 @@ import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.attribute.Attributes
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.debug
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlin.math.min
 
 class TransformationNormalizer {
@@ -23,58 +20,49 @@ class TransformationNormalizer {
      * attribute is specified, if needed, by deriving missing values using the original variant.
      * Every returned transformation satisfies the supplied [limits]; otherwise [InvalidTransformationException] is thrown.
      */
-    suspend fun normalize(
+    fun normalize(
         requested: List<RequestedTransformation>,
         originalVariantAttributes: Attributes,
         limits: TransformationLimitProperties,
-    ): List<Transformation> =
-        coroutineScope {
-            if (requested.isEmpty()) {
-                return@coroutineScope emptyList()
-            }
-
-            requested.map { request ->
-                doNormalize(
-                    requested = request,
-                    limits = limits,
-                    originalAttributesDeferred =
-                        async {
-                            originalVariantAttributes
-                        },
-                )
-            }
+    ): List<Transformation> {
+        if (requested.isEmpty()) {
+            return emptyList()
         }
 
+        return requested.map { request ->
+            doNormalize(
+                requested = request,
+                limits = limits,
+                originalVariantAttributes = originalVariantAttributes,
+            )
+        }
+    }
+
     /** Resolves source-dependent values and validates the result against [limits]. */
-    suspend fun normalize(
+    fun normalize(
         requested: RequestedTransformation,
         originalVariantAttributes: Attributes,
         limits: TransformationLimitProperties,
     ): Transformation =
-        coroutineScope {
-            doNormalize(
-                requested = requested,
-                limits = limits,
-                originalAttributesDeferred =
-                    async {
-                        originalVariantAttributes
-                    },
-            )
-        }
+        doNormalize(
+            requested = requested,
+            limits = limits,
+            originalVariantAttributes = originalVariantAttributes,
+        )
 
-    private suspend fun doNormalize(
+    private fun doNormalize(
         requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
+        originalVariantAttributes: Attributes,
         limits: TransformationLimitProperties,
     ): Transformation {
-        val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalAttributesDeferred)
-        val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalAttributesDeferred)
-        val normalizedFormat = normalizeFormat(requested, originalAttributesDeferred)
+        val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalVariantAttributes)
+        val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalVariantAttributes)
+        val normalizedFormat = normalizeFormat(requested, originalVariantAttributes)
         val colorspace =
             ColorspaceNormalizer.normalizeColorSpace(
                 requested = requested,
                 normalizedFormat = normalizedFormat,
-                originalAttributesDeferred = originalAttributesDeferred,
+                originalVariantAttributes = originalVariantAttributes,
             )
         val isColorspaceLocked = requested.colorSpace != TransformableColorSpace.ORIGIN
         return Transformation(
@@ -107,18 +95,14 @@ class TransformationNormalizer {
                 ),
         ).also {
             TransformationValidator.validateNormalizedTransformation(limits = limits, transformation = it)
-            // Cancel coroutine if we never used it and it's not in progress
-            if (!originalAttributesDeferred.isActive && !originalAttributesDeferred.isCompleted) {
-                originalAttributesDeferred.cancel()
-            }
             logger.debug { "Normalized requested transformation: $requested to: $it" }
         }
     }
 
-    private suspend fun normalizeFormat(
+    private fun normalizeFormat(
         requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
-    ): ImageFormat = requested.format ?: originalAttributesDeferred.await().format
+        originalVariantAttributes: Attributes,
+    ): ImageFormat = requested.format ?: originalVariantAttributes.format
 
     private fun normalizeQuality(
         requested: RequestedTransformation,

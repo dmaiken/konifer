@@ -1,62 +1,60 @@
 package io.konifer.entrypoint
 
-import io.konifer.application.usecase.fetch.CacheResult
-import io.konifer.application.usecase.fetch.FetchAssetHandler
+import io.konifer.application.usecase.fetch.AssetContent
 import io.konifer.common.http.AttributesResponse
+import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.domain.variant.LQIPs
-import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.http.CustomAttributes.entryIdKey
 import io.konifer.infrastructure.http.CustomAttributes.lastModifiedKey
 import io.konifer.infrastructure.http.fromAttributes
 import io.konifer.infrastructure.http.getAltHeader
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
 import io.konifer.infrastructure.http.getAttributeHeaders
+import io.konifer.infrastructure.http.getContentDispositionHeader
 import io.konifer.infrastructure.http.getLqipHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondBytesWriter
-import java.time.LocalDateTime
 
 suspend fun ApplicationCall.respondContent(
-    objectStoreBucket: String,
-    objectStoreKey: String,
-    cacheResult: CacheResult,
-    alt: String?,
-    lqips: LQIPs,
-    entryId: Long,
-    modifiedAt: LocalDateTime,
-    variantAttributes: Attributes,
-    fetchAssetHandler: FetchAssetHandler,
+    content: AssetContent,
+    returnFormat: ReturnFormat,
 ) {
+    val (asset, variant, cacheResult) = content.delivery
+    val variantAttributes = variant.attributes
+
+    getContentDispositionHeader(
+        alt = asset.alt,
+        path = asset.path,
+        returnFormat = returnFormat,
+        imageFormat = variantAttributes.format,
+    )?.let {
+        this.response.headers.append(it.first, it.second)
+    }
     getAppStatusCacheHeader(cacheResult).let {
         this.response.headers.append(it.first, it.second)
     }
-    getAltHeader(alt)?.let {
+    getAltHeader(asset.alt)?.let {
         this.response.headers.append(it.first, it.second)
     }
-    getLqipHeaders(lqips).forEach {
+    getLqipHeaders(variant.lqips).forEach {
         this.response.headers.append(it.first, it.second)
     }
     getAttributeHeaders(AttributesResponse.fromAttributes(variantAttributes)).forEach {
         this.response.headers.append(it.first, it.second)
     }
     // Populate attributes used for etag creation
-    this.attributes[entryIdKey] = entryId
-    this.attributes[lastModifiedKey] = modifiedAt
+    this.attributes[entryIdKey] = asset.entryId
+    this.attributes[lastModifiedKey] = asset.modifiedAt
 
     this.respondBytesWriter(
         contentType =
             ContentType.parse(variantAttributes.format.mimeType),
         status = HttpStatusCode.OK,
     ) {
-        fetchAssetHandler.fetchContent(
-            bucket = objectStoreBucket,
-            storeKey = objectStoreKey,
-            channel = this,
-        )
+        content.writeTo(this)
     }
 }
 

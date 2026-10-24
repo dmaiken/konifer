@@ -15,7 +15,6 @@ import io.konifer.infrastructure.http.cache.appendAssetCacheControlHeaders
 import io.konifer.infrastructure.http.fromAsset
 import io.konifer.infrastructure.http.fromAssetData
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
-import io.konifer.infrastructure.http.getContentDispositionHeader
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -35,6 +34,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.debug
 import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
@@ -65,12 +65,12 @@ fun Application.configureAssetRouting() {
                     )
                 call.appendAssetCacheControlHeaders(requestContext.pathConfiguration.cacheControl)
 
-                logger.info(
-                    "Fetching asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}",
-                )
+                logger.debug {
+                    "Fetching asset (limit: ${requestContext.selectors.limit}) with path (${requestContext.selectors.returnFormat}): ${requestContext.path}"
+                }
                 when (requestContext.selectors.returnFormat) {
                     ReturnFormat.INFO -> {
-                        fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = false)?.let { response ->
+                        fetchAssetHandler.fetchMetadataByPath(requestContext)?.let { response ->
                             getAppStatusCacheHeader(response.cacheResult).let {
                                 call.response.headers.append(it.first, it.second)
                             }
@@ -105,28 +105,10 @@ fun Application.configureAssetRouting() {
                     }
 
                     ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
-                        fetchAssetHandler.fetchMetadataByPath(requestContext, generateVariant = true)?.let { response ->
-                            getContentDispositionHeader(
-                                asset = response.asset,
-                                returnFormat = requestContext.selectors.returnFormat,
-                                imageFormat =
-                                    response.asset.variants
-                                        .first()
-                                        .attributes.format,
-                            )?.also {
-                                call.response.headers.append(it.first, it.second)
-                            }
-                            val variant = response.asset.variants.first()
+                        fetchAssetHandler.fetchContentByPath(requestContext)?.let { content ->
                             call.respondContent(
-                                objectStoreBucket = variant.objectStoreBucket,
-                                objectStoreKey = variant.objectStoreKey,
-                                cacheResult = response.cacheResult,
-                                alt = response.asset.alt,
-                                lqips = variant.lqips,
-                                entryId = response.asset.entryId,
-                                modifiedAt = response.asset.modifiedAt,
-                                variantAttributes = variant.attributes,
-                                fetchAssetHandler = fetchAssetHandler,
+                                content = content,
+                                returnFormat = requestContext.selectors.returnFormat,
                             )
                         } ?: call.respond(HttpStatusCode.NotFound)
                     }
@@ -143,7 +125,9 @@ fun Application.configureAssetRouting() {
 
             put("/{...}") {
                 val requestContext = requestContextFactory.fromUpdateRequest(call.request.path())
-                logger.info("Received request to update asset ${requestContext.path}:${requestContext.entryId}")
+                logger.debug {
+                    "Received request to update asset ${requestContext.path}:${requestContext.entryId}"
+                }
                 val asset =
                     updateAssetUseCase.updateAsset(
                         context = requestContext,
@@ -169,7 +153,7 @@ private suspend fun RoutingCall.storeNewAsset(
 ) {
     when (request.contentType().withoutParameters()) {
         ContentType.MultiPart.FormData -> {
-            logger.info("Received multipart request to store a new asset")
+            logger.debug { "Received multipart request to store a new asset" }
             storeMultipartAsset(
                 storeNewAssetUseCase = storeNewAssetUseCase,
             ).let { asset ->
@@ -178,7 +162,7 @@ private suspend fun RoutingCall.storeNewAsset(
         }
 
         ContentType.Application.Json -> {
-            logger.info("Received json request to store a new asset")
+            logger.debug { "Received json request to store a new asset" }
             val payload = receive(StoreAssetRequest::class)
             val asset =
                 storeNewAssetUseCase.handleFromExternalSource(

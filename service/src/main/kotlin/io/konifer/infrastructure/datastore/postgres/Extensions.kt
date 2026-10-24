@@ -2,10 +2,10 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.common.asset.AssetSource
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetTags
+import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.toAssetAlt
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.asset.toAssetTags
@@ -171,7 +171,7 @@ fun AssetVariantRecord.toReadyVariant(uploadedAt: LocalDateTime): Variant.Ready 
         expiresAt = expiresAt,
     )
 
-private fun AssetVariantRecord.toVariantSpecification(): VariantSpecification =
+fun AssetVariantRecord.toVariantSpecification(): VariantSpecification =
     if (originalVariant == true) {
         VariantSpecification.Original
     } else {

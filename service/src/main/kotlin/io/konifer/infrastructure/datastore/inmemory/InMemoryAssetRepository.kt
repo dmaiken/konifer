@@ -2,8 +2,9 @@ package io.konifer.infrastructure.datastore.inmemory
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.projection.AssetData
+import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.ObjectStore
@@ -11,7 +12,10 @@ import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
+import io.konifer.infrastructure.datastore.inmemory.projection.InMemoryAssetDeliveryProjection
+import io.konifer.infrastructure.datastore.inmemory.projection.InMemoryVariantDeliveryProjection
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,17 +38,18 @@ class InMemoryAssetRepository(
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
 
-    override suspend fun fetchVariant(
+    override suspend fun fetchVariantForDelivery(
         assetId: AssetId,
         specification: VariantSpecification,
-    ): VariantData? {
+    ): VariantDeliveryProjection? {
         val now = LocalDateTime.now(UTC)
         return idReference[assetId]
             ?.variants
             ?.filter { it.uploadedAt != null && (it.expiresAt == null || it.expiresAt!! > now) }
             ?.sortedByDescending { it.createdAt }
-            ?.firstOrNull { specification.matches(it.specification, it.attributes) }
+            ?.firstOrNull { variant -> specification.matches(variant.specification) { variant.attributes } }
             ?.toVariantData()
+            ?.let(::InMemoryVariantDeliveryProjection)
     }
 
     init {
@@ -183,6 +188,21 @@ class InMemoryAssetRepository(
         return asset.toAssetData(variants)
     }
 
+    override suspend fun fetchForDelivery(
+        path: String,
+        entryId: Long?,
+        specification: VariantSpecification?,
+        order: Order,
+        labels: Map<String, String>,
+    ): AssetDeliveryProjection? =
+        fetchByPath(
+            path = path,
+            entryId = entryId,
+            specification = specification,
+            order = order,
+            labels = labels,
+        )?.let(::InMemoryAssetDeliveryProjection)
+
     override suspend fun fetchAllByPath(
         path: String,
         specification: VariantSpecification?,
@@ -310,7 +330,7 @@ class InMemoryAssetRepository(
         return asset
     }
 
-    private fun Variant.matches(requested: VariantSpecification): Boolean = requested.matches(specification, attributes)
+    private fun Variant.matches(requested: VariantSpecification): Boolean = requested.matches(specification) { attributes }
 
     private fun selectAssetsAtPath(
         path: String,
