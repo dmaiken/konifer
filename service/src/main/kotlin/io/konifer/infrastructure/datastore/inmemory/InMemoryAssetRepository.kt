@@ -11,6 +11,7 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
 import io.konifer.domain.variant.VariantData
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
@@ -38,18 +39,18 @@ class InMemoryAssetRepository(
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
 
-    override suspend fun fetchVariantForDelivery(
+    override suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
-        specification: VariantSpecification,
-    ): VariantDeliveryProjection? {
+        selection: VariantSelection,
+    ): List<VariantDeliveryProjection> {
         val now = LocalDateTime.now(UTC)
         return idReference[assetId]
             ?.variants
+            ?.select(selection)
             ?.filter { it.uploadedAt != null && (it.expiresAt == null || it.expiresAt!! > now) }
             ?.sortedByDescending { it.createdAt }
-            ?.firstOrNull { variant -> specification.matches(variant.specification) { variant.attributes } }
-            ?.toVariantData()
-            ?.let(::InMemoryVariantDeliveryProjection)
+            ?.map { InMemoryVariantDeliveryProjection(it.toVariantData()) }
+            ?: emptyList()
     }
 
     init {
@@ -157,7 +158,7 @@ class InMemoryAssetRepository(
     override suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
@@ -165,24 +166,7 @@ class InMemoryAssetRepository(
         val now = LocalDateTime.now(UTC)
         val asset = fetch(path, entryId, order, labels, includeOnlyReady) ?: return null
         val variants =
-            when (specification) {
-                null -> {
-                    asset.variants
-                }
-
-                VariantSpecification.Original -> {
-                    asset.variants.filter { it.isOriginalVariant }
-                }
-
-                is VariantSpecification.Transformed -> {
-                    asset.variants
-                        .firstOrNull { variant ->
-                            variant.matches(specification)
-                        }?.let { matched ->
-                            listOf(matched)
-                        } ?: emptyList()
-                }
-            }.filter {
+            asset.variants.select(selection).filter {
                 (it.expiresAt == null || it.expiresAt!! > now) && it.uploadedAt != null
             }
         return asset.toAssetData(variants)
@@ -191,28 +175,28 @@ class InMemoryAssetRepository(
     override suspend fun fetchForDelivery(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
     ): AssetDeliveryProjection? =
         fetchByPath(
             path = path,
             entryId = entryId,
-            specification = specification,
+            selection = selection,
             order = order,
             labels = labels,
         )?.let(::InMemoryAssetDeliveryProjection)
 
     override suspend fun fetchAllByPath(
         path: String,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
         limit: Int,
     ): List<AssetData> =
         fetchAll(
             path = path,
-            specification = specification,
+            selection = selection,
             order = order,
             labels = labels,
             limit = limit,
@@ -332,6 +316,12 @@ class InMemoryAssetRepository(
 
     private fun Variant.matches(requested: VariantSpecification): Boolean = requested.matches(specification) { attributes }
 
+    private fun List<Variant>.select(selection: VariantSelection): List<Variant> =
+        when (selection) {
+            VariantSelection.ALL -> this
+            VariantSelection.ORIGINAL_ONLY -> filter { it.isOriginalVariant }
+        }
+
     private fun selectAssetsAtPath(
         path: String,
         labels: Map<String, String>,
@@ -395,33 +385,19 @@ class InMemoryAssetRepository(
 
     private fun fetchAll(
         path: String,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
         limit: Int,
         includeOnlyReady: Boolean,
-    ): List<AssetData> {
-        val now = LocalDateTime.now(UTC)
-        return store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
+    ): List<AssetData> =
+        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
             ?.asSequence()
             ?.filter {
                 !includeOnlyReady || it.isReady
             }?.filter { labels.all { entry -> it.labels.asMap()[entry.key] == entry.value } }
             ?.map { asset ->
-                val variants =
-                    if (specification == null) {
-                        asset.variants
-                    } else if (specification == VariantSpecification.Original) {
-                        listOf(asset.variants.first { it.isOriginalVariant })
-                    } else {
-                        asset.variants
-                            .firstOrNull { variant ->
-                                (variant.expiresAt == null || variant.expiresAt!! > now) && variant.matches(specification)
-                            }?.let { matched ->
-                                listOf(matched)
-                            } ?: emptyList()
-                    }
-                asset.toAssetData(variants)
+                asset.toAssetData(asset.variants.select(selection))
             }?.sortedWith(
                 when (order) {
                     Order.NEW -> compareByDescending<AssetData> { it.createdAt }
@@ -436,5 +412,4 @@ class InMemoryAssetRepository(
                     it
                 }
             }?.toList() ?: emptyList()
-    }
 }

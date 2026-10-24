@@ -10,6 +10,7 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.attribute.PixelAttributes
@@ -91,7 +92,10 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
 
             repeat(2) {
                 stored.forEach { (layout, variant) ->
-                    val fetched = repository.fetchByPath(persisted.path, persisted.entryId, variant.specification)!!.variants.single()
+                    val fetched =
+                        repository.fetchByPath(persisted.path, persisted.entryId)!!.variants.single {
+                            variant.specification.matches(it.specification) { it.attributes }
+                        }
 
                     fetched.id shouldBe variant.id
                     fetched.attributes.pixels?.layout shouldBe layout
@@ -99,7 +103,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 }
             }
             stored.values.map { it.id }.toSet() shouldHaveSize 2
-            repository.fetchByPath(persisted.path, persisted.entryId, null)!!.variants shouldHaveSize 3
+            repository.fetchByPath(persisted.path, persisted.entryId, VariantSelection.ALL)!!.variants shouldHaveSize 3
         }
 
     @Nested
@@ -117,7 +121,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                     entryId = 0,
                 )
 
-                repository.fetchByPath(ready.path, ready.entryId, null, Order.NEW) shouldBe null
+                repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
                 dslContext
                     .select()
                     .from(ASSET_TREE)

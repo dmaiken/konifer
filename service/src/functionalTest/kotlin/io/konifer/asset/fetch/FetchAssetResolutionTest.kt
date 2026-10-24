@@ -11,7 +11,12 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
+import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantId
+import io.konifer.domain.variant.VariantSelection
+import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.konifer.infrastructure.event.InMemoryEventBus
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
@@ -35,16 +40,20 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.koin.dsl.module
+import java.time.LocalDateTime
+import java.time.ZoneOffset.UTC
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToInt
 
 class FetchAssetResolutionTest : BaseFunctionalTest() {
     private lateinit var repository: ObservedAssetRepository
+    private lateinit var persistedRepository: InMemoryAssetRepository
     private lateinit var eventPublisher: ObservedEventPublisher
     private val observedModule =
         module {
             single<AssetRepository> {
-                ObservedAssetRepository(get<InMemoryAssetRepository>()).also { repository = it }
+                persistedRepository = get<InMemoryAssetRepository>()
+                ObservedAssetRepository(persistedRepository).also { repository = it }
             }
             single<EventPublisher> {
                 ObservedEventPublisher(get<InMemoryEventBus>()).also { eventPublisher = it }
@@ -53,7 +62,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `competing generation reads only the winning variant`(winnerUploaded: Boolean) =
+    fun `competing generation refreshes variants and selects the uploaded winner`(winnerUploaded: Boolean) =
         testInMemory(modules = listOf(observedModule)) {
             storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
             resetObservations()
@@ -76,7 +85,24 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 inserted.complete(Unit)
                 if (!winnerUploaded) loserFinished.await()
             }
-            repository.afterVariantUpload = { uploaded.complete(Unit) }
+            repository.afterVariantUpload = {
+                val winner = checkNotNull(repository.uploadedVariant)
+                val transformation = (winner.specification as VariantSpecification.Transformed).transformation
+                val unrelated =
+                    persistedRepository.storeNewVariant(
+                        Variant.Pending.newVariant(
+                            assetId = winner.assetId,
+                            attributes = winner.attributes,
+                            transformation = transformation.copy(width = 50.toDimension()),
+                            objectStoreBucket = winner.objectStoreBucket,
+                            objectStoreKey = "unrelated.png",
+                            lqip = winner.lqips,
+                            expiresAt = null,
+                        ),
+                    )
+                persistedRepository.markUploaded(unrelated.markReady(LocalDateTime.now(UTC)), CacheProperties())
+                uploaded.complete(Unit)
+            }
 
             val responses =
                 withTimeout(30_000) {
@@ -94,6 +120,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
             assertDeliveryReads(expected = 2)
             repository.variantReads.get() shouldBe 1
             eventPublisher.accesses shouldHaveSize responses.count { it.status == HttpStatusCode.OK }
+            eventPublisher.accesses.map { it.variantId }.toSet() shouldBe setOf(repository.uploadedVariant!!.id)
         }
 
     @ParameterizedTest
@@ -113,6 +140,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 bodyAsBytes()
             }
             assertDeliveryReads()
+            repository.lastDeliverySelection shouldBe VariantSelection.ORIGINAL_ONLY
             repository.variantReads.get() shouldBe 0
             repository.lastDeliveryAsset!!.variants shouldHaveSize 1
             assertAccess(
@@ -129,6 +157,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 bodyAsBytes()
             }
             assertDeliveryReads()
+            repository.lastDeliverySelection shouldBe VariantSelection.ALL
             repository.variantReads.get() shouldBe 0
             val generatedVariant = repository.uploadedVariant!!
             generatedVariant.attributes.width.value shouldBe 100
@@ -141,9 +170,23 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 bodyAsBytes()
             }
             assertDeliveryReads()
+            repository.lastDeliverySelection shouldBe VariantSelection.ALL
             repository.variantReads.get() shouldBe 0
             repository.lastDeliveryAsset!!.variants shouldHaveSize 2
             assertAccess(generatedVariant.id)
+
+            resetObservations()
+            client.get(path).apply {
+                status shouldBe expectedStatus
+                headers[APP_CACHE_STATUS] shouldBe "hit"
+                bodyAsBytes()
+            }
+            assertDeliveryReads()
+            repository.lastDeliverySelection shouldBe VariantSelection.ORIGINAL_ONLY
+            repository.variantReads.get() shouldBe 0
+            val original = repository.lastDeliveryAsset!!.variants.single()
+            original.isOriginalVariant shouldBe true
+            assertAccess(original.id)
         }
 
     @Test

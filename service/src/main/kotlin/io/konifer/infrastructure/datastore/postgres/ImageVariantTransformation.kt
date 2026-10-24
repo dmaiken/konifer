@@ -32,14 +32,21 @@ data class ImageVariantTransformation(
     val height: Int,
     val format: ImageFormat,
     val fit: Fit = Fit.default,
-    val gravity: Gravity = Gravity.default,
-    val rotate: Rotate = Rotate.default,
+    val gravity: Gravity = Gravity.CENTER,
+    val rotate: Rotate = Rotate.ZERO,
     val horizontalFlip: Boolean = false,
-    val filter: Filter = Filter.default,
+    val filter: Filter = Filter.NONE,
     val blur: Int = 0,
     val quality: Int = format.vipsProperties.defaultQuality,
-    val padding: ImageVariantPadding = ImageVariantPadding.default,
-    val metadata: ImageVariantMetadata = ImageVariantMetadata.default,
+    val padding: ImageVariantPadding =
+        ImageVariantPadding(
+            amount = 0,
+            color = emptyList(),
+        ),
+    val metadata: ImageVariantMetadata =
+        ImageVariantMetadata(
+            strip = emptyList(),
+        ),
     @Serializable(with = ColorSpaceSerializer::class)
     val colorSpace: ColorSpace = ColorSpace.SRGB,
     val pixels: ImageVariantPixels? = null,

@@ -2,9 +2,8 @@ package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
-import io.konifer.infrastructure.datastore.postgres.VariantParameterGenerator
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetVariantRecord
@@ -15,29 +14,27 @@ import konifer.jooq.tables.references.ASSET_VARIANT
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Field
-import org.jooq.JSONB
 import org.jooq.Record
 import org.jooq.SelectFinalStep
 import org.jooq.impl.DSL
 
 object SelectStatementGenerator {
     context(trx: DSLContext)
-    fun fetchVariant(
+    fun fetchVariants(
         assetId: AssetId,
-        specification: VariantSpecification,
+        selection: VariantSelection,
     ) = trx
         .selectFrom(ASSET_VARIANT)
         .where(ASSET_VARIANT.ASSET_ID.eq(assetId.value))
         .and(ASSET_VARIANT.UPLOADED_AT.isNotNull)
-        .and(calculateJoinVariantConditions(specification))
+        .and(variantSelectionCondition(selection))
         .orderBy(ASSET_VARIANT.CREATED_AT.desc())
-        .limit(1)
 
     context(trx: DSLContext)
     fun fetch(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
         limit: Int,
@@ -58,7 +55,7 @@ object SelectStatementGenerator {
                     ),
                 onlyReady = include.onlyReady,
             )
-        val variantsField = multisetVariantField(trx, specification)
+        val variantsField = multisetVariantField(trx, selection)
         val labelsField = if (include.includeLabels) multisetLabels(trx) else null
         val tagsField = if (include.includeTags) multisetTags(trx) else null
 
@@ -90,7 +87,7 @@ object SelectStatementGenerator {
 
     private fun multisetVariantField(
         context: DSLContext,
-        specification: VariantSpecification?,
+        selection: VariantSelection,
     ) = DSL
         .multiset(
             context
@@ -98,11 +95,8 @@ object SelectStatementGenerator {
                 .from(ASSET_VARIANT)
                 .where(ASSET_VARIANT.ASSET_ID.eq(ASSET_TREE.ID))
                 .and(ASSET_VARIANT.UPLOADED_AT.isNotNull)
-                .and(
-                    specification?.let {
-                        calculateJoinVariantConditions(it)
-                    } ?: DSL.noCondition(),
-                ).orderBy(ASSET_VARIANT.CREATED_AT.desc()),
+                .and(variantSelectionCondition(selection))
+                .orderBy(ASSET_VARIANT.CREATED_AT.desc()),
         ).convertFrom { records ->
             records.map { r -> r.into(AssetVariantRecord::class.java) }
         }.`as`("variants")
@@ -129,17 +123,10 @@ object SelectStatementGenerator {
                 records.map { r -> r.into(AssetTagRecord::class.java) }
             }.`as`("tags")
 
-    private fun calculateJoinVariantConditions(specification: VariantSpecification): Condition =
-        when (specification) {
-            VariantSpecification.Original -> {
-                ASSET_VARIANT.ORIGINAL_VARIANT.eq(true)
-            }
-
-            is VariantSpecification.Transformed -> {
-                val serializedTransformation =
-                    VariantParameterGenerator.generateImageVariantTransformations(specification.transformation)
-                ASSET_VARIANT.TRANSFORMATION.eq(JSONB.valueOf(serializedTransformation))
-            }
+    private fun variantSelectionCondition(selection: VariantSelection): Condition =
+        when (selection) {
+            VariantSelection.ALL -> DSL.noCondition()
+            VariantSelection.ORIGINAL_ONLY -> ASSET_VARIANT.ORIGINAL_VARIANT.eq(true)
         }
 
     private fun includeReadyConditions(

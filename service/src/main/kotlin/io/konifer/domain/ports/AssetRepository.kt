@@ -7,16 +7,16 @@ import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
-import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
 
 interface AssetRepository {
-    /** Fetch only a matching uploaded variant of an already resolved asset. */
-    suspend fun fetchVariantForDelivery(
+    /** Fetch uploaded variants of an already resolved asset, newest first. Returns an empty list if none exist. */
+    suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
-        specification: VariantSpecification,
-    ): VariantDeliveryProjection?
+        selection: VariantSelection = VariantSelection.ALL,
+    ): List<VariantDeliveryProjection>
 
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
 
@@ -37,24 +37,24 @@ interface AssetRepository {
     suspend fun fetchForDelivery(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection = VariantSelection.ALL,
         order: Order = Order.NEW,
         labels: Map<String, String> = emptyMap(),
     ): AssetDeliveryProjection?
 
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.
-     * If the asset exists but has no variants that match the [specification], then
+     * If the asset exists but has no eligible variants for the [selection], then
      * [AssetData] will contain an empty [AssetData.variants].
      *
      * @param path the url path
      * @param entryId the entryId, can be null
-     * @param specification null means fetch all variants
+     * @param selection which variants to include; defaults to all eligible variants
      */
     suspend fun fetchByPath(
         path: String,
         entryId: Long?,
-        specification: VariantSpecification?,
+        selection: VariantSelection = VariantSelection.ALL,
         order: Order = Order.NEW,
         labels: Map<String, String> = emptyMap(),
         includeOnlyReady: Boolean = true,
@@ -63,8 +63,7 @@ interface AssetRepository {
     /**
      * Fetch assets at the specific [path].
      *
-     * @param specification null means fetch all variants; [VariantSpecification.Original] selects the original variant.
-     * [VariantSpecification.Transformed] matches the stored transformation, including the original variant's attributes.
+     * @param selection which variants to include; defaults to all eligible variants
      *
      * @param labels filters assets at the path before sorting and applying the [limit]
      * @param order sorts the assets at the [path] before applying the [limit]
@@ -72,7 +71,7 @@ interface AssetRepository {
      */
     suspend fun fetchAllByPath(
         path: String,
-        specification: VariantSpecification?,
+        selection: VariantSelection = VariantSelection.ALL,
         labels: Map<String, String> = emptyMap(),
         order: Order = Order.NEW,
         limit: Int,

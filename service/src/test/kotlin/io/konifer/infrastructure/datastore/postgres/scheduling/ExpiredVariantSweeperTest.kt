@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.retention.CacheProperties
 import io.konifer.infrastructure.datastore.createPendingAsset
 import io.konifer.infrastructure.datastore.createPendingVariant
@@ -80,7 +81,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                 assetRepository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    specification = null,
+                    selection = VariantSelection.ALL,
                 ) shouldNotBe null
 
             val variants = asset!!.variants shouldHaveSize 2
@@ -129,7 +130,7 @@ class ExpiredVariantSweeperTest : PostgresContainerizedTest() {
                 assetRepository.fetchByPath(
                     path = ready.path,
                     entryId = ready.entryId,
-                    specification = null,
+                    selection = VariantSelection.ALL,
                 ) shouldNotBe null
 
             val variants = asset!!.variants shouldHaveSize 2
