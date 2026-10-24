@@ -59,14 +59,12 @@ class RelativeAssetSelection internal constructor(
             labels = labels,
         )
 
-    override suspend fun deleteFirst(): KoniferResult<Unit> = deleteFirst(limit = 1)
-
-    /** Deletes at most [limit] matching entries in the selected order. */
-    suspend fun deleteFirst(limit: Int): KoniferResult<Unit> =
+    /** Deletes all matching entries at this exact path. Ordering does not affect deletion. */
+    suspend fun deleteAll(): KoniferResult<Unit> =
         deleteAsset(
             infra = infra,
             path = path,
-            target = AssetDeleteTarget.AtPath(orderBy, labels, limit),
+            target = AssetDeleteTarget.AtPath(labels),
         )
 
     /** Deletes matching assets at this path and its descendant paths. */

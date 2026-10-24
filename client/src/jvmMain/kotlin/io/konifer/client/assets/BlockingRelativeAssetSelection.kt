@@ -22,8 +22,8 @@ class BlockingRelativeAssetSelection internal constructor(
     /** Fetches metadata for at most [limit] matching entries. */
     fun fetchEntries(limit: Int): KoniferResult<AssetEntriesResponse> = runBlocking { selection.fetchEntries(limit) }
 
-    /** Deletes at most [limit] matching entries in the selected order. */
-    fun deleteFirst(limit: Int): KoniferResult<Unit> = runBlocking { selection.deleteFirst(limit) }
+    /** Deletes all matching entries at this exact path, regardless of ordering. */
+    fun deleteAll(): KoniferResult<Unit> = runBlocking { selection.deleteAll() }
 
     /** Deletes matching assets at this path and its descendant paths. */
     fun deleteRecursively(): KoniferResult<Unit> = runBlocking { selection.deleteRecursively() }

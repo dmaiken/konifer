@@ -22,28 +22,28 @@ import kotlinx.serialization.json.Json
 
 class AssetDeleteTest :
     FunSpec({
-        test("delete at a path targets the newest entry and one result") {
+        test("delete all at a path explicitly sends the unlimited limit") {
             val httpClient =
                 httpClient {
                     MockEngine { request ->
                         request.method shouldBe HttpMethod.Delete
-                        request.url.encodedPath shouldBe "/assets/users/123/-/new"
-                        request.url.parameters["limit"] shouldBe "1"
+                        request.url.encodedPath shouldBe "/assets/users/123"
+                        request.url.parameters["limit"] shouldBe "-1"
                         respond("", status = HttpStatusCode.NoContent)
                     }
                 }
 
-            KoniferClient(httpClient).assets("/users/123").deleteFirst() shouldBe KoniferResult.Success(Unit)
+            KoniferClient(httpClient).assets("/users/123").deleteAll() shouldBe KoniferResult.Success(Unit)
         }
 
-        test("delete at a path supports labels, ordering, and a limit") {
+        test("delete all at a path supports labels and omits ordering") {
             val labels = mapOf("Camera" to "phone", "limit" to "important")
             val httpClient =
                 httpClient {
                     MockEngine { request ->
                         request.method shouldBe HttpMethod.Delete
-                        request.url.encodedPath shouldBe "/assets/users/123/-/modified"
-                        request.url.parameters["limit"] shouldBe "3"
+                        request.url.encodedPath shouldBe "/assets/users/123"
+                        request.url.parameters["limit"] shouldBe "-1"
                         assertLabels(request.url.parameters, labels)
                         respond("", status = HttpStatusCode.NoContent)
                     }
@@ -53,20 +53,20 @@ class AssetDeleteTest :
                 .assets("users/123")
                 .matchingLabels(labels)
                 .orderBy(Order.MODIFIED)
-                .deleteFirst(3) shouldBe KoniferResult.Success(Unit)
+                .deleteAll() shouldBe KoniferResult.Success(Unit)
         }
 
-        test("delete with a limit is available directly at a path") {
+        test("delete all is available directly at a path") {
             val httpClient =
                 httpClient {
                     MockEngine { request ->
-                        request.url.encodedPath shouldBe "/assets/users/123/-/new"
-                        request.url.parameters["limit"] shouldBe "2"
+                        request.url.encodedPath shouldBe "/assets/users/123"
+                        request.url.parameters["limit"] shouldBe "-1"
                         respond("", status = HttpStatusCode.NoContent)
                     }
                 }
 
-            KoniferClient(httpClient).assets("users/123").deleteFirst(2) shouldBe KoniferResult.Success(Unit)
+            KoniferClient(httpClient).assets("users/123").deleteAll() shouldBe KoniferResult.Success(Unit)
         }
 
         test("delete by entry ID does not send relative options") {
@@ -80,7 +80,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClient(httpClient).assets("users/123").entry(42).deleteFirst() shouldBe KoniferResult.Success(Unit)
+            KoniferClient(httpClient).assets("users/123").entry(42).delete() shouldBe KoniferResult.Success(Unit)
         }
 
         test("recursive delete is available directly at a path without a limit") {
@@ -119,15 +119,15 @@ class AssetDeleteTest :
             val httpClient =
                 httpClient {
                     MockEngine { request ->
-                        request.url.encodedPath shouldBe "/assets/users/123/-/new"
-                        request.url.parameters["limit"] shouldBe "2"
+                        request.url.encodedPath shouldBe "/assets/users/123"
+                        request.url.parameters["limit"] shouldBe "-1"
                         assertSignatureParameter(request.url.parameters, false)
                         respond("", status = HttpStatusCode.NoContent)
                     }
                 }
             val client = KoniferClient(httpClient, KoniferUrlSigner.create(HmacSigningConfig(secretKey = "secret")))
 
-            client.assets("users/123").deleteFirst(2) shouldBe KoniferResult.Success(Unit)
+            client.assets("users/123").deleteAll() shouldBe KoniferResult.Success(Unit)
         }
 
         test("delete maps an HTTP error and its message") {
@@ -142,7 +142,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClient(httpClient).assets("users/123").deleteFirst() shouldBe
+            KoniferClient(httpClient).assets("users/123").deleteAll() shouldBe
                 KoniferResult.Failure.Http(400, "cannot delete")
         }
 
@@ -154,7 +154,7 @@ class AssetDeleteTest :
                     }
                 }
 
-            KoniferClient(httpClient).assets("users/123").entry(42).deleteFirst() shouldBe
+            KoniferClient(httpClient).assets("users/123").entry(42).delete() shouldBe
                 KoniferResult.Failure.Http(404, null)
         }
 

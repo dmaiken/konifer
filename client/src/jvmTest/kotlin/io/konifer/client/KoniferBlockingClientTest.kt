@@ -84,7 +84,35 @@ class KoniferBlockingClientTest :
                 .updateAsset(asset)
                 .withAlt("updated")
                 .update() shouldBe KoniferResult.Success(asset)
-            absolute.deleteFirst() shouldBe KoniferResult.Success(Unit)
+            absolute.delete() shouldBe KoniferResult.Success(Unit)
+            client.close()
+        }
+
+        test("blocking bulk deletion uses explicit all or recursive selections") {
+            val requests = mutableListOf<String>()
+            val httpClient =
+                httpClient {
+                    MockEngine { request ->
+                        request.method shouldBe HttpMethod.Delete
+                        requests.add(request.url.encodedPath)
+                        if (request.url.encodedPath.endsWith("/recursive")) {
+                            request.url.parameters["limit"] shouldBe null
+                        } else {
+                            request.url.parameters["limit"] shouldBe "-1"
+                        }
+                        respond("", status = HttpStatusCode.NoContent)
+                    }
+                }
+            val client = KoniferBlockingClient(KoniferClient(httpClient))
+            client.assets("users/123").deleteAll() shouldBe KoniferResult.Success(Unit)
+            client
+                .assets("users/123")
+                .matchingLabels(mapOf("camera" to "phone"))
+                .orderBy(Order.MODIFIED)
+                .deleteAll() shouldBe
+                KoniferResult.Success(Unit)
+            client.assets("users/123").deleteRecursively() shouldBe KoniferResult.Success(Unit)
+            requests shouldBe listOf("/assets/users/123", "/assets/users/123", "/assets/users/123/-/recursive")
             client.close()
         }
 

@@ -3,6 +3,7 @@ package io.konifer.domain.context.selector
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.context.InvalidQuerySelectorsException
+import io.konifer.domain.context.toLimit
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -17,9 +18,9 @@ class QuerySelectorsTest {
         shouldThrow<InvalidQuerySelectorsException> {
             QuerySelectors(
                 returnFormat = format,
-                limit = 2,
+                limit = 2.toLimit(),
             )
-        }.message shouldBe "Cannot have limit > 1 with return format of: ${format.name.lowercase()}"
+        }.message shouldBe "Limit must be 1 with return format of: ${format.name.lowercase()}"
     }
 
     @Test
@@ -27,9 +28,9 @@ class QuerySelectorsTest {
         shouldNotThrowAny {
             QuerySelectors(
                 returnFormat = ReturnFormat.ENTRIES,
-                limit = 2,
+                limit = 2.toLimit(),
             ).apply {
-                limit shouldBe 2
+                limit.value shouldBe 2
                 returnFormat shouldBe ReturnFormat.ENTRIES
             }
         }
@@ -37,16 +38,16 @@ class QuerySelectorsTest {
 
     @Test
     fun `entries defaults to twenty while single-result formats default to one`() {
-        QuerySelectors(returnFormat = ReturnFormat.ENTRIES).limit shouldBe 20
-        QuerySelectors(returnFormat = ReturnFormat.INFO).limit shouldBe 1
-        QuerySelectors().limit shouldBe 1
+        QuerySelectors(returnFormat = ReturnFormat.ENTRIES).limit.value shouldBe 20
+        QuerySelectors(returnFormat = ReturnFormat.INFO).limit.value shouldBe 1
+        QuerySelectors().limit.value shouldBe 1
     }
 
     @Test
     fun `info cannot request all entries`() {
         shouldThrow<InvalidQuerySelectorsException> {
-            QuerySelectors(returnFormat = ReturnFormat.INFO, limit = -1)
-        }.message shouldBe "Info requests must select a single entry"
+            QuerySelectors(returnFormat = ReturnFormat.INFO, limit = (-1).toLimit())
+        }.message shouldBe "Limit must be 1 with return format of: info"
     }
 
     @Test
@@ -59,7 +60,7 @@ class QuerySelectorsTest {
     @Test
     fun `defaults are used`() {
         val selectors = QuerySelectors()
-        selectors.limit shouldBe 1
+        selectors.limit.value shouldBe 1
         selectors.returnFormat shouldBe ReturnFormat.LINK
         selectors.entryId shouldBe null
         selectors.order shouldBe Order.NEW

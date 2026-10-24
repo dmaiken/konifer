@@ -18,7 +18,4 @@ open class BlockingAssetSelection internal constructor(
 
     /** Fetches metadata for the selected asset entry. */
     fun fetchInfo(): KoniferResult<AssetResponse> = runBlocking { selection.fetchInfo() }
-
-    /** Deletes the selected asset entry. */
-    fun deleteFirst(): KoniferResult<Unit> = runBlocking { selection.deleteFirst() }
 }

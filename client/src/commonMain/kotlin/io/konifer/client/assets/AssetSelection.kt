@@ -14,7 +14,4 @@ sealed interface AssetSelection {
 
     /** Fetches metadata for the selected asset entry. */
     suspend fun fetchInfo(): KoniferResult<AssetResponse>
-
-    /** Deletes the selected asset entry. */
-    suspend fun deleteFirst(): KoniferResult<Unit>
 }

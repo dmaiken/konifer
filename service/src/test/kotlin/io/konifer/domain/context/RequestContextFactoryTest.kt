@@ -7,7 +7,7 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.context.selector.DeleteModifiers
+import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.konifer.domain.path.PathConfiguration
@@ -57,7 +57,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = 20,
+                        limit = (20).toLimit(),
                         specifiedModifiers = SpecifiedInRequest(returnFormat = true),
                     ),
                 ),
@@ -70,7 +70,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = 10,
+                        limit = (10).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -88,7 +88,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.MODIFIED,
-                        limit = 10,
+                        limit = (10).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -106,7 +106,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.REDIRECT,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -124,7 +124,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.CONTENT,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -142,7 +142,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = 10,
+                        limit = (10).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -160,7 +160,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = -1,
+                        limit = (-1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -175,7 +175,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -192,7 +192,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = 10,
+                        limit = (10).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -209,26 +209,10 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = -1,
+                        limit = (-1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
-                                limit = true,
-                            ),
-                    ),
-                ),
-                arguments(
-                    "/assets/profile",
-                    ParametersBuilder()
-                        .apply {
-                            append("limit", "-1")
-                        }.build(),
-                    QuerySelectors(
-                        returnFormat = ReturnFormat.LINK,
-                        order = Order.NEW,
-                        limit = -1,
-                        specifiedModifiers =
-                            SpecifiedInRequest(
                                 limit = true,
                             ),
                     ),
@@ -239,7 +223,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.INFO,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -252,7 +236,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 orderBy = true,
@@ -265,7 +249,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
@@ -275,7 +259,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
@@ -285,7 +269,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
@@ -295,7 +279,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
                         order = Order.NEW,
-                        limit = 1,
+                        limit = (1).toLimit(),
                         specifiedModifiers = SpecifiedInRequest(),
                     ),
                 ),
@@ -308,7 +292,7 @@ class RequestContextFactoryTest {
                     QuerySelectors(
                         returnFormat = ReturnFormat.ENTRIES,
                         order = Order.NEW,
-                        limit = 10,
+                        limit = (10).toLimit(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -322,90 +306,10 @@ class RequestContextFactoryTest {
         @JvmStatic
         fun deleteModifierSource(): List<Arguments> =
             listOf(
-                arguments(
-                    "/assets/profile/-/new",
-                    ParametersBuilder()
-                        .apply {
-                            append("limit", "10")
-                        }.build(),
-                    DeleteModifiers(
-                        order = Order.NEW,
-                        limit = 10,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/modified",
-                    ParametersBuilder()
-                        .apply {
-                            append("limit", "10")
-                        }.build(),
-                    DeleteModifiers(
-                        order = Order.MODIFIED,
-                        limit = 10,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/new",
-                    ParametersBuilder()
-                        .apply {
-                            append("limit", "-1")
-                        }.build(),
-                    DeleteModifiers(
-                        order = Order.NEW,
-                        limit = -1,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/new/",
-                    Parameters.Empty,
-                    DeleteModifiers(
-                        order = Order.NEW,
-                        limit = 1,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/modified/",
-                    Parameters.Empty,
-                    DeleteModifiers(
-                        order = Order.MODIFIED,
-                        limit = 1,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/",
-                    Parameters.Empty,
-                    DeleteModifiers(
-                        order = Order.NEW,
-                        limit = 1,
-                        recursive = false,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/",
-                    Parameters.Empty,
-                    DeleteModifiers(
-                        order = Order.NEW,
-                        limit = 1,
-                        recursive = false,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/recursive",
-                    Parameters.Empty,
-                    DeleteModifiers(
-                        recursive = true,
-                    ),
-                ),
-                arguments(
-                    "/assets/profile/-/",
-                    ParametersBuilder()
-                        .apply {
-                            append("limit", "-1")
-                        }.build(),
-                    DeleteModifiers(
-                        limit = -1,
-                    ),
-                ),
+                arguments("/assets/profile", Parameters.build { append("limit", "-1") }, DeleteSelection.AllAtPath),
+                arguments("/assets/profile/", Parameters.build { append("limit", "-1") }, DeleteSelection.AllAtPath),
+                arguments("/assets/profile/-/recursive", Parameters.Empty, DeleteSelection.Recursive),
+                arguments("/assets/profile/-/entry/10", Parameters.Empty, DeleteSelection.Entry(10)),
             )
 
         @JvmStatic
@@ -1268,7 +1172,7 @@ class RequestContextFactoryTest {
         fun `can fetch DELETE request context with query modifiers`(
             path: String,
             parameters: Parameters,
-            deleteModifiers: DeleteModifiers,
+            deleteSelection: DeleteSelection,
         ) {
             val context =
                 requestContextFactory.fromDeleteRequest(
@@ -1276,7 +1180,7 @@ class RequestContextFactoryTest {
                     queryParameters = parameters,
                 )
 
-            context.modifiers shouldBe deleteModifiers
+            context.selection shouldBe deleteSelection
         }
 
         @Test
@@ -1284,10 +1188,7 @@ class RequestContextFactoryTest {
             runTest {
                 val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10", Parameters.Empty)
 
-                context.modifiers shouldBe
-                    DeleteModifiers(
-                        entryId = 10,
-                    )
+                context.selection shouldBe DeleteSelection.Entry(10)
             }
 
         @ParameterizedTest
@@ -1352,7 +1253,7 @@ class RequestContextFactoryTest {
         @ParameterizedTest
         @ValueSource(
             strings = [
-                "/assets/profile/-/new/",
+                "/assets/profile/-/entry/10",
                 "/assets/profile/-/recursive",
             ],
         )

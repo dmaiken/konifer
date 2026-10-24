@@ -28,8 +28,8 @@ class BlockingAssetAtPath internal constructor(
     /** Fetches metadata for at most [limit] entries at this path. */
     fun fetchEntries(limit: Int): KoniferResult<AssetEntriesResponse> = runBlocking { selection.fetchEntries(limit) }
 
-    /** Deletes at most [limit] entries at this path, in the selected order. */
-    fun deleteFirst(limit: Int): KoniferResult<Unit> = runBlocking { selection.deleteFirst(limit) }
+    /** Deletes all entries at this exact path, excluding descendant paths. */
+    fun deleteAll(): KoniferResult<Unit> = runBlocking { selection.deleteAll() }
 
     /** Deletes assets at this path and its descendant paths. */
     fun deleteRecursively(): KoniferResult<Unit> = runBlocking { selection.deleteRecursively() }

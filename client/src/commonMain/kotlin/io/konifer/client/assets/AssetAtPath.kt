@@ -51,10 +51,8 @@ class AssetAtPath internal constructor(
      */
     suspend fun fetchEntries(limit: Int): KoniferResult<AssetEntriesResponse> = relativeSelection.fetchEntries(limit)
 
-    override suspend fun deleteFirst(): KoniferResult<Unit> = relativeSelection.deleteFirst()
-
-    /** Deletes at most [limit] entries at this path, in the selected order. */
-    suspend fun deleteFirst(limit: Int): KoniferResult<Unit> = relativeSelection.deleteFirst(limit)
+    /** Deletes all entries at this exact path, excluding descendant paths. */
+    suspend fun deleteAll(): KoniferResult<Unit> = relativeSelection.deleteAll()
 
     /** Deletes assets at this path and its descendant paths. */
     suspend fun deleteRecursively(): KoniferResult<Unit> = relativeSelection.deleteRecursively()

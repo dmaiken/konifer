@@ -73,4 +73,35 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
             client.get("/assets/profile/-/new/info").body<AssetResponse>().entryId shouldBe stored.entryId
             client.get("/assets/profile/-/new/info?limit=2").status shouldBe HttpStatusCode.BadRequest
         }
+
+    @Test
+    fun `entries defaults to twenty and supports explicit unlimited results`() =
+        testInMemory {
+            val image = javaClass.getResourceAsStream("/images/joshua-tree/joshua-tree.png")!!.readBytes()
+            repeat(21) { storeAssetMultipartSource(client, image, StoreAssetRequest()) }
+            client
+                .get("/assets/profile/-/entries")
+                .body<AssetEntriesResponse>()
+                .entries.size shouldBe 20
+            client
+                .get("/assets/profile/-/entries?limit=-1")
+                .body<AssetEntriesResponse>()
+                .entries.size shouldBe 21
+            client
+                .get("/assets/profile/-/entries?limit=2147483647")
+                .body<AssetEntriesResponse>()
+                .entries.size shouldBe 21
+        }
+
+    @Test
+    fun `invalid and repeated GET limits return bad request`() =
+        testInMemory {
+            listOf("", "abc", "0", "-2", "2147483648", "-2147483649").forEach { limit ->
+                client.get("/assets/profile/-/entries?limit=$limit").status shouldBe HttpStatusCode.BadRequest
+            }
+            client.get("/assets/profile/-/entries?limit=-1&limit=1").status shouldBe HttpStatusCode.BadRequest
+            listOf("link", "info", "content", "download", "redirect").forEach { representation ->
+                client.get("/assets/profile/-/$representation?limit=-1").status shouldBe HttpStatusCode.BadRequest
+            }
+        }
 }

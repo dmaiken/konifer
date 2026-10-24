@@ -1,6 +1,5 @@
 package io.konifer.infrastructure.datastore.postgres.statement
 
-import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
 import konifer.jooq.tables.references.ASSET_TREE
 import org.jooq.DSLContext
@@ -52,24 +51,15 @@ object SelectForUpdateStatementGenerator {
     fun assetsByPath(
         path: Ltree,
         labels: Map<String, String>,
-        order: Order,
-        limit: Int,
-    ): Select<Record1<UUID?>> {
-        val selection =
-            trx
-                .select(ASSET_TREE.ID)
-                .from(ASSET_TREE)
-                .where(
-                    QueryConditionGenerator.assetLabelConditions(
-                        condition = ASSET_TREE.PATH.eq(path),
-                        labels = labels,
-                    ),
-                ).orderBy(*QueryOrderGenerator.assetOrder(order))
-
-        return if (limit > 0) {
-            selection.limit(limit).forUpdate().of(ASSET_TREE)
-        } else {
-            selection.forUpdate().of(ASSET_TREE)
-        }
-    }
+    ): Select<Record1<UUID?>> =
+        trx
+            .select(ASSET_TREE.ID)
+            .from(ASSET_TREE)
+            .where(
+                QueryConditionGenerator.assetLabelConditions(
+                    condition = ASSET_TREE.PATH.eq(path),
+                    labels = labels,
+                ),
+            ).forUpdate()
+            .of(ASSET_TREE)
 }

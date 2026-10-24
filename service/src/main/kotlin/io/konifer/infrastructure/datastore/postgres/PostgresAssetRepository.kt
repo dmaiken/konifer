@@ -7,6 +7,7 @@ import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.asset.toAssetTags
+import io.konifer.domain.context.Limit
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantAlreadyExistsException
@@ -231,7 +232,7 @@ class PostgresAssetRepository(
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
-        limit: Int,
+        limit: Limit,
     ): List<AssetData> {
         val handles =
             with(dslContext) {
@@ -271,14 +272,12 @@ class PostgresAssetRepository(
     override suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String>,
-        order: Order,
-        limit: Int,
     ) {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
 
         val count =
             deleteAssets(dslContext) {
-                SelectForUpdateStatementGenerator.assetsByPath(treePath, labels, order, limit)
+                SelectForUpdateStatementGenerator.assetsByPath(treePath, labels)
             }
 
         logger.info("Deleted $count assets in path: $path")
@@ -369,7 +368,7 @@ class PostgresAssetRepository(
                 order = order,
                 labels = labels,
                 include = include,
-                limit = 1,
+                limit = Limit.single,
             )
         }.let { handles ->
             val record = handles.statement.awaitFirstOrNull() ?: return null

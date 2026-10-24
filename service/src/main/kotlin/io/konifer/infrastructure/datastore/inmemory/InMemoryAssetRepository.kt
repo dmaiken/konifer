@@ -5,6 +5,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
+import io.konifer.domain.context.Limit
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.ObjectStore
@@ -38,6 +39,7 @@ class InMemoryAssetRepository(
     private val store = ConcurrentHashMap<String, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
+    private val lastEntryIds = mutableMapOf<String, Long>()
 
     override suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
@@ -192,7 +194,7 @@ class InMemoryAssetRepository(
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
-        limit: Int,
+        limit: Limit,
     ): List<AssetData> =
         fetchAll(
             path = path,
@@ -218,15 +220,11 @@ class InMemoryAssetRepository(
     override suspend fun deleteAllByPath(
         path: String,
         labels: Map<String, String>,
-        order: Order,
-        limit: Int,
     ) {
         deleteAndReturnObjectReferences(
             DeleteAssetsCommand.AtPath(
                 path = path,
                 labels = labels,
-                order = order,
-                limit = limit,
             ),
         )
     }
@@ -269,14 +267,11 @@ class InMemoryAssetRepository(
                     is DeleteAssetsCommand.AtPath -> {
                         val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
                         logger.info(
-                            "Deleting assets at path: $path, labels: ${command.labels}, " +
-                                "orderBy: ${command.order}, limit: ${command.limit}",
+                            "Deleting all assets at path: $path, labels: ${command.labels}",
                         )
                         selectAssetsAtPath(
                             path = path,
                             labels = command.labels,
-                            order = command.order,
-                            limit = command.limit,
                         )
                     }
 
@@ -325,20 +320,11 @@ class InMemoryAssetRepository(
     private fun selectAssetsAtPath(
         path: String,
         labels: Map<String, String>,
-        order: Order,
-        limit: Int,
     ): List<Asset> =
         store[path]
             ?.asSequence()
             ?.filter { asset -> labels.all { entry -> asset.labels.asMap()[entry.key] == entry.value } }
-            ?.sortedWith(
-                when (order) {
-                    Order.NEW -> compareByDescending<Asset> { it.createdAt }
-                    Order.MODIFIED -> compareByDescending { it.modifiedAt }
-                }.thenByDescending { it.entryId },
-            )?.let { assets ->
-                if (limit > 0) assets.take(limit) else assets
-            }?.toList()
+            ?.toList()
             ?: emptyList()
 
     private fun removeAssets(assets: List<Asset>) {
@@ -352,11 +338,7 @@ class InMemoryAssetRepository(
             }
     }
 
-    private fun getNextEntryId(path: String): Long =
-        store[path]
-            ?.maxByOrNull { it.entryId!! }
-            ?.entryId
-            ?.inc() ?: 0
+    private fun getNextEntryId(path: String): Long = (lastEntryIds[path]?.inc() ?: 0L).also { lastEntryIds[path] = it }
 
     private fun fetch(
         path: String,
@@ -388,7 +370,7 @@ class InMemoryAssetRepository(
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
-        limit: Int,
+        limit: Limit,
         includeOnlyReady: Boolean,
     ): List<AssetData> =
         store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
@@ -406,8 +388,8 @@ class InMemoryAssetRepository(
                     it.thenByDescending { comparator -> comparator.entryId }
                 },
             )?.let {
-                if (limit > 0) {
-                    it.take(limit)
+                if (!limit.isUnlimited) {
+                    it.take(limit.value)
                 } else {
                     it
                 }
