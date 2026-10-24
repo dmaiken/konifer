@@ -46,6 +46,8 @@ internal fun Operation.Builder.fetchAssetDocumentation() {
         """
         The path can span multiple segments. Append selectors after `/-/`: `new` (default) or `modified`,
         followed by `link` (default), `redirect`, `info`, `entries`, `content`, or `download`.
+        Only a complete `-` path segment introduces selectors. Ordinary segments may contain or end with hyphens.
+        Empty selector sections (`/-` or `/-/`) and multiple separator segments are invalid.
         Select a specific entry with `/-/entry/{entryId}` and an optional return format.
         Examples: `/assets/users/123/profile-picture/-/info`, `/assets/users/123/profile-picture/-/entry/42/content`.
 

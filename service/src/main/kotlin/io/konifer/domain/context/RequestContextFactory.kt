@@ -59,10 +59,11 @@ class RequestContextFactory(
     }
 
     fun fromStoreRequest(path: String): StoreRequestContext {
-        if (extractPathSegments(path).size > 1) {
+        val parsedPath = parsePath(path, preserveTrailingSlash = true)
+        if (parsedPath.selectorPath != null) {
             throw InvalidPathException("Store request cannot have modifiers in path: $path")
         }
-        val route = extractRoute(path)
+        val route = parsedPath.assetPath
         val pathConfiguration = pathConfigurationRepository.fetch(route)
 
         return StoreRequestContext(
@@ -77,10 +78,10 @@ class RequestContextFactory(
         queryParameters: Parameters,
         origin: RequestConnectionPoint,
     ): QueryRequestContext {
-        val segments = extractPathSegments(path)
+        val parsedPath = parsePath(path)
         val querySelectors =
             extractQuerySelectors(
-                path = segments.getOrNull(1),
+                path = parsedPath.selectorPath,
                 parameters = queryParameters,
             )
         val requestedTransformation =
@@ -88,14 +89,14 @@ class RequestContextFactory(
                 headers = headers,
                 parameters = queryParameters,
             )
-        val pathConfiguration = pathConfigurationRepository.fetch(segments.first())
+        val pathConfiguration = pathConfigurationRepository.fetch(parsedPath.assetPath)
         requestContextValidator.validateFetchRequest(
             querySelectors = querySelectors,
             requestedTransformation = requestedTransformation,
         )
 
         return QueryRequestContext(
-            path = segments.first(),
+            path = parsedPath.assetPath,
             pathConfiguration = pathConfiguration,
             selectors = querySelectors,
             requestedTransformation = requestedTransformation,
@@ -112,13 +113,13 @@ class RequestContextFactory(
         path: String,
         queryParameters: Parameters,
     ): DeleteRequestContext {
-        val segments = extractPathSegments(path)
+        val parsedPath = parsePath(path)
 
         return DeleteRequestContext(
-            path = segments.first(),
+            path = parsedPath.assetPath,
             selection =
                 extractDeleteSelectors(
-                    path = segments.getOrNull(1),
+                    path = parsedPath.selectorPath,
                     parameters = queryParameters,
                 ),
             labels = extractLabels(queryParameters),
@@ -126,10 +127,10 @@ class RequestContextFactory(
     }
 
     fun fromUpdateRequest(path: String): UpdateRequestContext {
-        val segments = extractPathSegments(path)
+        val parsedPath = parsePath(path)
         val selectors =
             extractQuerySelectors(
-                path = segments.getOrNull(1),
+                path = parsedPath.selectorPath,
                 parameters = Parameters.Empty,
             )
         if (selectors.entryId == null) {
@@ -145,23 +146,40 @@ class RequestContextFactory(
             throw InvalidPathException("Order cannot be supplied on update request")
         }
         return UpdateRequestContext(
-            path = segments.first(),
+            path = parsedPath.assetPath,
             entryId = selectors.entryId,
         )
     }
 
-    private fun extractPathSegments(path: String): List<String> {
-        val route = extractRoute(path)
-        val segments = route.removeSuffix("/").split("$PATH_NAMESPACE_SEPARATOR/")
-        if (segments.size > 2) {
+    private data class ParsedPath(
+        val assetPath: String,
+        val selectorPath: String?,
+    )
+
+    private fun parsePath(
+        path: String,
+        preserveTrailingSlash: Boolean = false,
+    ): ParsedPath {
+        val rawRoute = extractRoute(path)
+        val route = if (preserveTrailingSlash) rawRoute else rawRoute.removeSuffix("/")
+        val segments = route.split('/')
+        val separators = segments.indices.filter { segments[it] == PATH_NAMESPACE_SEPARATOR }
+        if (separators.size > 1) {
             throw InvalidPathException("$path has more than one '$PATH_NAMESPACE_SEPARATOR' segment")
         }
-
-        return segments
+        val separatorIndex = separators.singleOrNull() ?: return ParsedPath(route, null)
+        val selectorPath = segments.drop(separatorIndex + 1).joinToString("/")
+        if (selectorPath.trim('/').isBlank()) {
+            throw InvalidPathException("Selector section cannot be empty: $path")
+        }
+        return ParsedPath(
+            assetPath = segments.take(separatorIndex).joinToString("/") + "/",
+            selectorPath = selectorPath,
+        )
     }
 
     private fun extractRoute(path: String): String {
-        if (!path.startsWith(ASSET_PATH_PREFIX)) {
+        if (path != ASSET_PATH_PREFIX && !path.startsWith("$ASSET_PATH_PREFIX/")) {
             throw InvalidPathException("Asset path must start with: $ASSET_PATH_PREFIX")
         }
         return path.removePrefix(ASSET_PATH_PREFIX)

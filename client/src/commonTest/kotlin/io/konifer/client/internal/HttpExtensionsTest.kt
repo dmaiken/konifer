@@ -19,6 +19,21 @@ import io.ktor.http.appendPathSegments
 
 class HttpExtensionsTest :
     FunSpec({
+        test("asset paths retain ordinary hyphens before selector boundaries") {
+            for (path in listOf("album-/photo", "album-", "-album/photo", "--/photo")) {
+                val asset = URLBuilder().apply { appendAssetPath(path) }
+                asset.build().encodedPath shouldBe "/assets/$path"
+                asset.appendQuerySelectors(ReturnFormat.CONTENT, EntryId(42))
+                asset.build().encodedPath shouldBe "/assets/$path/-/entry/42/content"
+                val recursive =
+                    URLBuilder().apply {
+                        appendAssetPath(path)
+                        appendQuerySelectors(null, Recursive)
+                    }
+                recursive.build().encodedPath shouldBe "/assets/$path/-/recursive"
+            }
+        }
+
         test("no selector appends just the return format") {
             val url =
                 URLBuilder().apply {
