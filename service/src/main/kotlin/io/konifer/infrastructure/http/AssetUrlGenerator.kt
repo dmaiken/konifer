@@ -1,7 +1,6 @@
 package io.konifer.infrastructure.http
 
 import io.konifer.application.usecase.fetch.DeliveryUrl
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.konifer.domain.path.DeliveryStrategy
@@ -11,6 +10,7 @@ import io.konifer.domain.path.TemplateProperties.Factory.TEMPLATE_BUCKET
 import io.konifer.domain.path.TemplateProperties.Factory.TEMPLATE_KEY
 import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PresignedUrl
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.infrastructure.HttpProperties
 import io.ktor.http.RequestConnectionPoint
 import io.ktor.http.URLBuilder
@@ -48,15 +48,19 @@ class AssetUrlGenerator(
             }.build()
 
     suspend fun generateDeliveryUrl(
-        assetData: AssetData,
+        path: String,
+        entryId: Long,
+        variant: VariantDeliveryProjection,
         request: HttpRequest,
         pathConfiguration: PathConfiguration,
-    ): DeliveryUrl {
-        val variant = assetData.variants.first()
-
-        return when (pathConfiguration.deliveryProperties.strategy) {
+    ): DeliveryUrl =
+        when (pathConfiguration.deliveryProperties.strategy) {
             DeliveryStrategy.SERVICE -> {
-                generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
+                generateAbsoluteContentUrl(
+                    path = path,
+                    entryId = entryId,
+                    request = request,
+                ).toDeliveryUrl()
             }
 
             DeliveryStrategy.PRESIGNED -> {
@@ -68,8 +72,17 @@ class AssetUrlGenerator(
                             ttl = pathConfiguration.deliveryProperties.preSigned.ttl,
                         )
                 ) {
-                    is PresignedUrl.Supported -> presigned.toDeliveryUrl()
-                    PresignedUrl.NotSupported -> generateAbsoluteContentUrl(assetData, request).toDeliveryUrl()
+                    is PresignedUrl.Supported -> {
+                        presigned.toDeliveryUrl()
+                    }
+
+                    PresignedUrl.NotSupported -> {
+                        generateAbsoluteContentUrl(
+                            path = path,
+                            entryId = entryId,
+                            request = request,
+                        ).toDeliveryUrl()
+                    }
                 }
             }
 
@@ -81,20 +94,20 @@ class AssetUrlGenerator(
                 ).toDeliveryUrl()
             }
         }
-    }
 
     private fun generateAbsoluteContentUrl(
-        assetData: AssetData,
+        path: String,
+        entryId: Long,
         request: HttpRequest,
     ): Url =
         URLBuilder(resolveBaseUrl(request.origin))
             .apply {
                 appendPathSegments(
                     ASSETS_API_PREFIX,
-                    assetData.path.removePrefix("/"),
+                    path.removePrefix("/"),
                     PATH_NAMESPACE_SEPARATOR,
                     ENTRY_PATH_SEGMENT,
-                    assetData.entryId.toString(),
+                    entryId.toString(),
                     "content",
                 )
                 this.parameters.appendAll(request.parameters)

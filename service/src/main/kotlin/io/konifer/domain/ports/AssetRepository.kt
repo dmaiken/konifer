@@ -2,19 +2,21 @@ package io.konifer.domain.ports
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.projection.AssetData
+import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.domain.variant.retention.CacheProperties
 
 interface AssetRepository {
     /** Fetch only a matching uploaded variant of an already resolved asset. */
-    suspend fun fetchVariant(
+    suspend fun fetchVariantForDelivery(
         assetId: AssetId,
         specification: VariantSpecification,
-    ): VariantData?
+    ): VariantDeliveryProjection?
 
     suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted
 
@@ -31,6 +33,14 @@ interface AssetRepository {
         path: String,
         entryId: Long,
     ): Asset?
+
+    suspend fun fetchForDelivery(
+        path: String,
+        entryId: Long?,
+        specification: VariantSpecification?,
+        order: Order = Order.NEW,
+        labels: Map<String, String> = emptyMap(),
+    ): AssetDeliveryProjection?
 
     /**
      * Fetch the asset by path. If the asset itself does not exist, null is returned.

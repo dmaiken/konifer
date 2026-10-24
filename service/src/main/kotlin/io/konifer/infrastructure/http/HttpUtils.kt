@@ -5,7 +5,6 @@ import io.konifer.common.http.AssetContentHeaders
 import io.konifer.common.http.AttributesResponse
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.variant.LQIPs
 import io.ktor.http.HttpHeaders
 import java.net.URLEncoder
@@ -63,7 +62,8 @@ fun getAltHeader(alt: String?): Pair<String, String>? =
  * the path of the asset.
  */
 fun getContentDispositionHeader(
-    asset: AssetData,
+    alt: String?,
+    path: String,
     returnFormat: ReturnFormat,
     imageFormat: ImageFormat,
 ): Pair<String, String>? {
@@ -73,7 +73,7 @@ fun getContentDispositionHeader(
 
     val encodedFileName =
         URLEncoder.encode(
-            asset.alt ?: asset.path,
+            alt ?: path,
             Charsets.UTF_8,
         )
     // The URLEncoder might encode spaces as '+', which is technically incorrect

@@ -40,8 +40,8 @@ object SelectStatementGenerator {
         specification: VariantSpecification?,
         order: Order,
         labels: Map<String, String>,
-        includeOnlyReady: Boolean,
         limit: Int,
+        include: AssetDataToInclude,
     ): MultiSetSelectHandles {
         val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
         val entryIdCondition =
@@ -56,11 +56,11 @@ object SelectStatementGenerator {
                         condition = ASSET_TREE.PATH.eq(treePath),
                         labels = labels,
                     ),
-                onlyReady = includeOnlyReady,
+                onlyReady = include.onlyReady,
             )
         val variantsField = multisetVariantField(trx, specification)
-        val labelsField = multisetLabels(trx)
-        val tagsField = multisetTags(trx)
+        val labelsField = if (include.includeLabels) multisetLabels(trx) else null
+        val tagsField = if (include.includeTags) multisetTags(trx) else null
 
         return trx
             .select(
@@ -156,6 +156,6 @@ object SelectStatementGenerator {
 data class MultiSetSelectHandles(
     val statement: SelectFinalStep<Record>,
     val variants: Field<List<AssetVariantRecord>>,
-    val labels: Field<List<AssetLabelRecord>>,
-    val tags: Field<List<AssetTagRecord>>,
+    val labels: Field<List<AssetLabelRecord>>?,
+    val tags: Field<List<AssetTagRecord>>?,
 )

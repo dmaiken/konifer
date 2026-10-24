@@ -49,14 +49,23 @@ class PostgresFetchAssetResolutionTest : BaseFunctionalTest() {
             generated.status shouldBe HttpStatusCode.OK
             generated.headers[APP_CACHE_STATUS] shouldBe "miss"
             val generatedContent = generated.bodyAsBytes()
-            repository.assetReads.get() shouldBe 1
+            repository.assetForDeliveryReads.get() shouldBe 1
+            repository.assetReads.get() shouldBe 0
+            repository.collectionReads.get() shouldBe 0
             repository.variantReads.get() shouldBe 0
             val uploaded = repository.uploadedVariant!!
-            val persisted = persistedRepository.fetchVariant(uploaded.assetId, uploaded.specification)!!
+            val persisted = persistedRepository.fetchVariantForDelivery(uploaded.assetId, uploaded.specification)!!
             persisted.id shouldBe uploaded.id
             persisted.attributes shouldBe uploaded.attributes
             persisted.objectStoreKey shouldBe uploaded.objectStoreKey
-            persisted shouldBe repository.uploadedMetadata
+            val uploadedMetadata = checkNotNull(repository.uploadedMetadata)
+            persisted.id shouldBe uploadedMetadata.id
+            persisted.attributes shouldBe uploadedMetadata.attributes
+            persisted.specification shouldBe uploadedMetadata.specification
+            persisted.isOriginalVariant shouldBe uploadedMetadata.isOriginalVariant
+            persisted.objectStoreBucket shouldBe uploadedMetadata.objectStoreBucket
+            persisted.objectStoreKey shouldBe uploadedMetadata.objectStoreKey
+            persisted.lqips shouldBe uploadedMetadata.lqips
             persisted.lqips shouldBe uploaded.lqips
 
             repository.resetReads()
@@ -64,7 +73,9 @@ class PostgresFetchAssetResolutionTest : BaseFunctionalTest() {
             cached.status shouldBe HttpStatusCode.OK
             cached.headers[APP_CACHE_STATUS] shouldBe "hit"
             cached.bodyAsBytes().contentEquals(generatedContent) shouldBe true
-            repository.assetReads.get() shouldBe 1
+            repository.assetForDeliveryReads.get() shouldBe 1
+            repository.assetReads.get() shouldBe 0
+            repository.collectionReads.get() shouldBe 0
             repository.variantReads.get() shouldBe 0
         }
     }

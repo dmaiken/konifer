@@ -4,9 +4,9 @@ import com.github.f4b6a3.uuid.UuidCreator
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.toDimension
@@ -14,6 +14,7 @@ import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -136,4 +137,18 @@ fun assertFetchedVariantAgainstAggregate(
     fetched.objectStoreBucket shouldBe variant.objectStoreBucket
     fetched.lqips shouldBe variant.lqips
     fetched.expiresAt shouldBe variant.expiresAt
+}
+
+fun assertFetchedVariantAgainstAggregate(
+    fetched: VariantDeliveryProjection?,
+    variant: Variant,
+) {
+    fetched shouldNotBe null
+    fetched!!.id shouldBe variant.id
+    fetched.attributes shouldBe variant.attributes
+    fetched.specification shouldBe variant.specification
+    fetched.isOriginalVariant shouldBe variant.isOriginalVariant
+    fetched.objectStoreKey shouldBe variant.objectStoreKey
+    fetched.objectStoreBucket shouldBe variant.objectStoreBucket
+    fetched.lqips shouldBe variant.lqips
 }

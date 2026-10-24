@@ -11,7 +11,7 @@ import io.konifer.common.http.TransformationResponse
 import io.konifer.common.http.VariantResponse
 import io.konifer.common.image.Flip
 import io.konifer.domain.asset.Asset
-import io.konifer.domain.asset.AssetData
+import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.LQIPs

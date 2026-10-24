@@ -5,12 +5,11 @@ import io.konifer.common.image.ManipulationParameters
 import io.konifer.common.image.Rotate
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.variant.attribute.Attributes
-import kotlinx.coroutines.Deferred
 
 object RotateFlipNormalizer {
-    suspend fun normalizeRotateFlip(
+    fun normalizeRotateFlip(
         requested: RequestedTransformation,
-        originalAttributesDeferred: Deferred<Attributes>,
+        originalVariantAttributes: Attributes,
     ): RotateFlipParameters =
         if (requested.rotate == Rotate.AUTO) {
             if (requested.flip != Flip.NONE) {
@@ -18,7 +17,7 @@ object RotateFlipNormalizer {
                     "Cannot specify flip (${ManipulationParameters.FLIP}) when rotate=${Rotate.AUTO.name.lowercase()}",
                 )
             }
-            ExifOrientations.fromExifOrientation(originalAttributesDeferred.await().orientation)
+            ExifOrientations.fromExifOrientation(originalVariantAttributes.orientation)
         } else {
             ExifOrientations.normalizeOrientation(requested.rotate, requested.flip)
         }.let { (rotate, horizontalFlip) ->

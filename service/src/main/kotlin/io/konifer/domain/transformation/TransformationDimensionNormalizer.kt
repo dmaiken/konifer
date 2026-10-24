@@ -3,24 +3,21 @@ package io.konifer.domain.transformation
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Rotate
 import io.konifer.domain.variant.attribute.Attributes
-import kotlinx.coroutines.Deferred
 import kotlin.math.roundToInt
 
 object TransformationDimensionNormalizer {
-    suspend fun normalizeDimensions(
+    fun normalizeDimensions(
         requested: RequestedTransformation,
         normalizedRotate: Rotate,
-        originalAttributesDeferred: Deferred<Attributes>,
+        originalVariantAttributes: Attributes,
     ): Pair<Dimension, Dimension> =
         when (requested.fit) {
             Fit.FIT -> {
                 if (requested.width == null || requested.height == null) {
-                    val originalVariant = originalAttributesDeferred.await()
-
                     // Requested dimensions describe the oriented output, not the source before rotation.
                     val (orientedWidth, orientedHeight) =
                         orientHeightAndWidth(
-                            originalVariantAttributes = originalVariant,
+                            originalVariantAttributes = originalVariantAttributes,
                             normalizedRotate = normalizedRotate,
                         )
 

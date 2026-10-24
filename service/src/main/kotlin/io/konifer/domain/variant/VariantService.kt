@@ -15,6 +15,7 @@ import io.konifer.domain.transformation.TransformationNormalizer
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.retention.RetentionProperties
 import io.konifer.domain.variant.retention.VariantExpirationStrategy
+import io.konifer.infrastructure.datastore.inmemory.projection.InMemoryVariantDeliveryProjection
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -143,10 +144,11 @@ class VariantService(
                             val uploadedAt = uploadJob.await()
                             val readyVariant = pendingVariant.markReady(uploadedAt)
                             val persistedVariant =
-                                assetRepository.markUploaded(
-                                    variant = readyVariant,
-                                    cacheProperties = pathConfiguration.transform.retention.cache,
-                                )
+                                assetRepository
+                                    .markUploaded(
+                                        variant = readyVariant,
+                                        cacheProperties = pathConfiguration.transform.retention.cache,
+                                    ).let(::InMemoryVariantDeliveryProjection)
                             logger.info("Variant ${pendingVariant.id.value} is ready and was uploaded to object store at: $uploadedAt")
                             VariantGenerationResult.Generated(persistedVariant)
                         }

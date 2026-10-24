@@ -24,20 +24,19 @@ class VariantSpecificationTest {
 
     @Test
     fun `original selection matches original identity only`() {
-        VariantSpecification.Original.matches(VariantSpecification.Original, attributes) shouldBe true
+        VariantSpecification.Original.matches(VariantSpecification.Original) { attributes } shouldBe true
         VariantSpecification.Original.matches(
             VariantSpecification.Transformed(Transformation.fromAttributes(attributes)),
-            attributes,
-        ) shouldBe false
+        ) { attributes } shouldBe false
     }
 
     @Test
     fun `transformed selection can match original attributes`() {
         val transformation = Transformation.fromAttributes(attributes)
-        VariantSpecification.Transformed(transformation).matches(VariantSpecification.Original, attributes) shouldBe true
+        VariantSpecification.Transformed(transformation).matches(VariantSpecification.Original) { attributes } shouldBe true
         VariantSpecification
             .Transformed(transformation.copy(width = 50.toDimension()))
-            .matches(VariantSpecification.Original, attributes) shouldBe false
+            .matches(VariantSpecification.Original) { attributes } shouldBe false
     }
 
     @Test
@@ -53,7 +52,7 @@ class VariantSpecificationTest {
                 isColorSpaceLocked = true,
                 metadata = MetadataTransformation(linkedSetOf(MetadataType.EXIF, MetadataType.XMP)),
             )
-        VariantSpecification.Transformed(requested).matches(VariantSpecification.Transformed(transformation), attributes) shouldBe true
+        VariantSpecification.Transformed(requested).matches(VariantSpecification.Transformed(transformation)) { attributes } shouldBe true
     }
 
     @Test
@@ -69,10 +68,54 @@ class VariantSpecificationTest {
         val stored = VariantSpecification.Transformed(transformation)
         VariantSpecification
             .Transformed(transformation.copy(pixels = PixelTransformation("BGR".toPixelChannels(), PixelLayout.PLANAR)))
-            .matches(stored, attributes) shouldBe false
+            .matches(stored) { attributes } shouldBe false
         VariantSpecification
             .Transformed(
                 transformation.copy(pixels = PixelTransformation("RGB".toPixelChannels(), PixelLayout.INTERLEAVED)),
-            ).matches(stored, attributes) shouldBe false
+            ).matches(stored) { attributes } shouldBe false
+    }
+
+    @Test
+    fun `original selection never reads attributes`() {
+        val storedSpecifications =
+            listOf(
+                VariantSpecification.Original,
+                VariantSpecification.Transformed(Transformation.fromAttributes(attributes)),
+            )
+
+        storedSpecifications.forEach { stored ->
+            VariantSpecification.Original.matches(stored) {
+                error("Original selection must not read attributes")
+            } shouldBe (stored == VariantSpecification.Original)
+        }
+    }
+
+    @Test
+    fun `transformed comparisons never read attributes`() {
+        val transformation = Transformation.fromAttributes(attributes)
+        val requested = VariantSpecification.Transformed(transformation)
+
+        requested.matches(VariantSpecification.Transformed(transformation)) {
+            error("Transformed comparisons must not read attributes")
+        } shouldBe true
+        requested.matches(VariantSpecification.Transformed(transformation.copy(width = 50.toDimension()))) {
+            error("Transformed comparisons must not read attributes")
+        } shouldBe false
+    }
+
+    @Test
+    fun `transformed selection reads original attributes exactly once per comparison`() {
+        val transformation = Transformation.fromAttributes(attributes)
+        val requestedTransformations = listOf(transformation, transformation.copy(width = 50.toDimension()))
+
+        requestedTransformations.forEach { requested ->
+            var reads = 0
+
+            VariantSpecification.Transformed(requested).matches(VariantSpecification.Original) {
+                reads++
+                attributes
+            } shouldBe (requested == transformation)
+            reads shouldBe 1
+        }
     }
 }

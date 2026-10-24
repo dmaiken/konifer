@@ -19,7 +19,6 @@ import io.konifer.infrastructure.vips.VipsOptionNames.OPTION_INTERPRETATION
 import io.konifer.infrastructure.vips.decode.DecodedVipsImage
 import io.konifer.infrastructure.vips.pipeline.VipsPipelines
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -33,7 +32,7 @@ class ColorspaceNormalizerTest {
             ColorspaceNormalizer.normalizeColorSpace(
                 requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = PixelChannels.grayscale),
                 normalizedFormat = ImageFormat.PIXELS,
-                originalAttributesDeferred = CompletableDeferred(attributes(sourceColorSpace.toColorSpace())),
+                originalVariantAttributes = attributes(sourceColorSpace.toColorSpace()),
             ) shouldBe ColorSpace.Grayscale
         }
 
@@ -48,7 +47,7 @@ class ColorspaceNormalizerTest {
                         pixelChannels = PixelChannels.grayscale,
                         colorSpace = if (colorSpace == "srgb") TransformableColorSpace.SRGB else TransformableColorSpace.P3,
                     ),
-                originalAttributesDeferred = CompletableDeferred(),
+                originalVariantAttributes = attributes(ColorSpace.CMYK),
                 normalizedFormat = ImageFormat.PIXELS,
             ) shouldBe colorSpace.toColorSpace()
         }
@@ -59,7 +58,7 @@ class ColorspaceNormalizerTest {
             ColorspaceNormalizer.normalizeColorSpace(
                 requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = PixelChannels.grayscale),
                 normalizedFormat = ImageFormat.PNG,
-                originalAttributesDeferred = CompletableDeferred(attributes(ColorSpace.SRGB)),
+                originalVariantAttributes = attributes(ColorSpace.SRGB),
             ) shouldBe ColorSpace.SRGB
         }
 
@@ -70,7 +69,7 @@ class ColorspaceNormalizerTest {
                 ColorspaceNormalizer.normalizeColorSpace(
                     requested = RequestedTransformation(format = ImageFormat.PIXELS, pixelChannels = PixelChannels.grayscale),
                     normalizedFormat = ImageFormat.PIXELS,
-                    originalAttributesDeferred = CompletableDeferred(attributes(ColorSpace.SRGB)),
+                    originalVariantAttributes = attributes(ColorSpace.SRGB),
                 )
             val transformation =
                 Transformation(
@@ -129,7 +128,7 @@ class ColorspaceNormalizerTest {
             ColorspaceNormalizer.normalizeColorSpace(
                 requested = RequestedTransformation(pixelChannels = PixelChannels.grayscale),
                 normalizedFormat = ImageFormat.PNG,
-                originalAttributesDeferred = CompletableDeferred(attributes(ColorSpace.P3)),
+                originalVariantAttributes = attributes(ColorSpace.P3),
             ) shouldBe ColorSpace.P3
         }
 
