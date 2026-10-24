@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.http
 
+import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.path.DeliveryProperties
 import io.konifer.domain.path.DeliveryStrategy
@@ -10,6 +11,10 @@ import io.konifer.domain.ports.ObjectStore
 import io.konifer.domain.ports.PresignedUrl
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.infrastructure.HttpProperties
+import io.konifer.infrastructure.http.signature.HmacSignatureVerifier
+import io.konifer.infrastructure.http.signature.HmacSigningAlgorithm
+import io.konifer.infrastructure.http.signature.SignatureConfig
+import io.konifer.infrastructure.http.signature.UrlSigningProperties
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
@@ -22,6 +27,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.toKotlinLocalDateTime
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.minutes
 
@@ -29,9 +36,9 @@ class AssetUrlGeneratorTest {
     private val objectStore = mockk<ObjectStore>()
 
     @Test
-    fun `service delivery uses the configured public url and preserves request parameters`() =
+    fun `service delivery uses the configured public url and resolved transformation`() =
         runTest {
-            val generator = AssetUrlGenerator(HttpProperties(Url("https://images.example.com/root")), objectStore)
+            val generator = AssetUrlGenerator(HttpProperties(Url("https://images.example.com/root")), objectStore, UrlSigningProperties())
             val request = request(parameters = Parameters.build { append("width", "320") })
 
             val result =
@@ -39,6 +46,7 @@ class AssetUrlGeneratorTest {
                     path = "/profiles/avatar",
                     entryId = 42,
                     variant = variant(),
+                    transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request,
                     pathConfiguration = PathConfiguration.default,
                 )
@@ -55,7 +63,7 @@ class AssetUrlGeneratorTest {
     @Test
     fun `service delivery uses the request origin when public url is not configured`() =
         runTest {
-            val generator = AssetUrlGenerator(HttpProperties(), objectStore)
+            val generator = AssetUrlGenerator(HttpProperties(), objectStore, UrlSigningProperties())
             val request = request(scheme = "https", host = "request.example.com", port = 8443)
 
             val result =
@@ -63,16 +71,19 @@ class AssetUrlGeneratorTest {
                     path = "/profile",
                     entryId = 7,
                     variant = variant(),
+                    transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request,
                     pathConfiguration = PathConfiguration.default,
                 )
 
-            result.url.toString() shouldBe "https://request.example.com:8443/assets/profile/-/entry/7/content"
+            result.url.encodedPath shouldBe "/assets/profile/-/entry/7/content"
+            result.url.host shouldBe "request.example.com"
+            result.url.port shouldBe 8443
         }
 
     @Test
     fun `asset location uses the request origin when public url is not configured`() {
-        val generator = AssetUrlGenerator(HttpProperties(), objectStore)
+        val generator = AssetUrlGenerator(HttpProperties(), objectStore, UrlSigningProperties())
 
         val result =
             generator.generateAbsoluteLocationUrl(
@@ -87,7 +98,7 @@ class AssetUrlGeneratorTest {
     @Test
     fun `presigned delivery returns the object store url`() =
         runTest {
-            val generator = AssetUrlGenerator(HttpProperties(), objectStore)
+            val generator = AssetUrlGenerator(HttpProperties(), objectStore, UrlSigningProperties())
             val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery =
                 DeliveryProperties(
@@ -105,6 +116,7 @@ class AssetUrlGeneratorTest {
                     path = "/profile",
                     entryId = 7,
                     variant = variant,
+                    transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
                     pathConfiguration = PathConfiguration(deliveryProperties = delivery),
                 )
@@ -119,7 +131,7 @@ class AssetUrlGeneratorTest {
     @Test
     fun `presigned delivery falls back to the service url when unsupported`() =
         runTest {
-            val generator = AssetUrlGenerator(HttpProperties(), objectStore)
+            val generator = AssetUrlGenerator(HttpProperties(), objectStore, UrlSigningProperties())
             val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery = DeliveryProperties(strategy = DeliveryStrategy.PRESIGNED)
             coEvery { objectStore.generatePresignedUrl(any(), any(), any()) } returns PresignedUrl.NotSupported
@@ -129,18 +141,20 @@ class AssetUrlGeneratorTest {
                     path = "/profile",
                     entryId = 7,
                     variant = variant,
+                    transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
                     pathConfiguration = PathConfiguration(deliveryProperties = delivery),
                 )
 
-            result.url.toString() shouldBe "http://localhost:8080/assets/profile/-/entry/7/content"
+            result.url.encodedPath shouldBe "/assets/profile/-/entry/7/content"
+            result.url.parameters["width"] shouldBe "320"
             result.expiresAt shouldBe null
         }
 
     @Test
     fun `template delivery resolves repeated bucket and key variables from the selected variant`() =
         runTest {
-            val generator = AssetUrlGenerator(HttpProperties(), objectStore)
+            val generator = AssetUrlGenerator(HttpProperties(), objectStore, UrlSigningProperties())
             val variant = variant(bucket = "variant-bucket", key = "variants/image.webp")
             val delivery =
                 DeliveryProperties(
@@ -156,6 +170,7 @@ class AssetUrlGeneratorTest {
                     path = "/profile",
                     entryId = 7,
                     variant = variant,
+                    transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
                     pathConfiguration = PathConfiguration(deliveryProperties = delivery),
                 )
@@ -164,6 +179,48 @@ class AssetUrlGeneratorTest {
                 "https://variant-bucket.example.com/variant-bucket/variants/image.webp?source=variants/image.webp"
             coVerify(exactly = 0) { objectStore.generatePresignedUrl(any(), any(), any()) }
             result.expiresAt shouldBe null
+        }
+
+    @ParameterizedTest
+    @EnumSource(HmacSigningAlgorithm::class)
+    fun `service delivery signs destination path and expanded parameters without copying selectors`(algorithm: HmacSigningAlgorithm) =
+        runTest {
+            val signing = UrlSigningProperties(enabled = true, secretKey = "secret", algorithm = algorithm)
+            val generator = AssetUrlGenerator(HttpProperties(Url("https://images.example.com/root")), objectStore, signing)
+            val result =
+                generator.generateDeliveryUrl(
+                    path = "/profiles/avatar name",
+                    entryId = 42,
+                    variant = variant(),
+                    transformation = createRequestedImageTransformation(width = 320, height = 160, pad = 2, padColor = "#12345678"),
+                    request =
+                        request(
+                            parameters =
+                                Parameters.build {
+                                    append("width", "999")
+                                    append("label:phone", "iphone")
+                                    append("limit", "1")
+                                    append("s", "stale-signature")
+                                },
+                        ),
+                    pathConfiguration = PathConfiguration.default,
+                )
+            val url = result.url
+            url.encodedPath shouldBe "/root/assets/profiles/avatar%20name/-/entry/42/content"
+            url.parameters["width"] shouldBe "320"
+            url.parameters["pad-color"] shouldBe "#12345678"
+            url.parameters["label:phone"] shouldBe null
+            url.parameters["limit"] shouldBe null
+            url.parameters.getAll("s")!!.size shouldBe 1
+            val verifier =
+                HmacSignatureVerifier(
+                    SignatureConfig().also {
+                        it.secretKey = "secret"
+                        it.algorithm = algorithm
+                    },
+                )
+            verifier.validateSignature(url.encodedPath.removePrefix("/root"), url.parameters) shouldBe true
+            verifier.validateSignature(url.encodedPath, url.parameters) shouldBe false
         }
 
     private fun variant(

@@ -91,9 +91,7 @@ class RequestContextFactory(
         val pathConfiguration = pathConfigurationRepository.fetch(segments.first())
         requestContextValidator.validateFetchRequest(
             querySelectors = querySelectors,
-            pathConfiguration = pathConfiguration,
             requestedTransformation = requestedTransformation,
-            queryParameters = queryParameters,
         )
 
         return QueryRequestContext(

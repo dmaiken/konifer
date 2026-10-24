@@ -4,7 +4,6 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.StoreAssetRequest
-import io.konifer.common.image.ManipulationParameters
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
@@ -20,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class OnDemandVariantModeTest : BaseFunctionalTest() {
     @Test
-    fun `with profile-only mode set then only profile can be specified`() =
+    fun `with profile-only mode a profile is required`() =
         testInMemory(
             """
             variant-profiles {
@@ -67,7 +66,7 @@ class OnDemandVariantModeTest : BaseFunctionalTest() {
                         },
                 ) shouldHaveHttpError 400
 
-            errorResponse.message shouldBe "Only '${ManipulationParameters.VARIANT_PROFILE}' can be specified"
+            errorResponse.message shouldBe "A variant profile is required"
         }
 
     @ParameterizedTest

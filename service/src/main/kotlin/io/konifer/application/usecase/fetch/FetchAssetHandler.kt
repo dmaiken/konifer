@@ -19,13 +19,14 @@ class FetchAssetHandler(
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
 
     suspend fun fetchRedirectByPath(context: QueryRequestContext): VariantRedirect? {
-        val (asset, variant, cacheResult) = assetService.fetchForDelivery(context) ?: return null
+        val (asset, variant, cacheResult, deliveryTransformation) = assetService.fetchForDelivery(context) ?: return null
 
         val url =
             assetUrlGenerator.generateDeliveryUrl(
                 path = asset.path,
                 entryId = asset.entryId,
                 variant = variant,
+                transformation = deliveryTransformation,
                 request = context.request,
                 pathConfiguration = context.pathConfiguration,
             )
@@ -38,13 +39,14 @@ class FetchAssetHandler(
     }
 
     suspend fun fetchLinkByPath(context: QueryRequestContext): VariantLink? {
-        val (asset, variant, cacheResult) = assetService.fetchForDelivery(context) ?: return null
+        val (asset, variant, cacheResult, deliveryTransformation) = assetService.fetchForDelivery(context) ?: return null
 
         val url =
             assetUrlGenerator.generateDeliveryUrl(
                 path = asset.path,
                 entryId = asset.entryId,
                 variant = variant,
+                transformation = deliveryTransformation,
                 request = context.request,
                 pathConfiguration = context.pathConfiguration,
             )

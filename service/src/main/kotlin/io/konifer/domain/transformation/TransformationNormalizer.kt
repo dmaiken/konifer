@@ -54,6 +54,15 @@ class TransformationNormalizer {
         requested: RequestedTransformation,
         originalVariantAttributes: Attributes,
         limits: TransformationLimitProperties,
+    ): Transformation =
+        resolve(requested, originalVariantAttributes).also {
+            TransformationValidator.validateNormalizedTransformation(limits, it)
+        }
+
+    /** Resolves transformation identity without applying generation limits. */
+    fun resolve(
+        requested: RequestedTransformation,
+        originalVariantAttributes: Attributes,
     ): Transformation {
         val (rotate, horizontalFlip, isAutoRotate) = RotateFlipNormalizer.normalizeRotateFlip(requested, originalVariantAttributes)
         val (width, height) = TransformationDimensionNormalizer.normalizeDimensions(requested, rotate, originalVariantAttributes)
@@ -94,7 +103,6 @@ class TransformationNormalizer {
                     isColorspaceLocked = isColorspaceLocked,
                 ),
         ).also {
-            TransformationValidator.validateNormalizedTransformation(limits = limits, transformation = it)
             logger.debug { "Normalized requested transformation: $requested to: $it" }
         }
     }
