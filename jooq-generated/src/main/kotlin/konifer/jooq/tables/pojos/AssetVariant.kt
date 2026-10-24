@@ -5,7 +5,7 @@ package konifer.jooq.tables.pojos
 
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import org.jooq.JSONB
@@ -24,12 +24,12 @@ data class AssetVariant(
     var attributes: JSONB,
     var lqip: JSONB,
     var originalVariant: Boolean,
-    var createdAt: LocalDateTime,
-    var uploadedAt: LocalDateTime? = null,
-    var expiresAt: LocalDateTime? = null,
-    var lastAccessedAt: LocalDateTime? = null,
+    var createdAt: OffsetDateTime,
+    var uploadedAt: OffsetDateTime? = null,
+    var expiresAt: OffsetDateTime? = null,
+    var lastAccessedAt: OffsetDateTime? = null,
     var accessScore: Double? = null,
-    var accessScoreAsOf: LocalDateTime? = null
+    var accessScoreAsOf: OffsetDateTime? = null
 ): Serializable {
 
 

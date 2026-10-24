@@ -5,8 +5,7 @@ import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.variant.Variant
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import java.util.UUID
 
 @JvmInline value class AssetId(
@@ -22,8 +21,8 @@ sealed interface Asset {
     val tags: AssetTags
     val source: AssetSource
     val externalSourceAddress: String?
-    val createdAt: LocalDateTime
-    val modifiedAt: LocalDateTime
+    val createdAt: Instant
+    val modifiedAt: Instant
     val isReady: Boolean
     val variants: MutableList<Variant>
 
@@ -39,8 +38,8 @@ sealed interface Asset {
         override val tags: AssetTags,
         override val source: AssetSource,
         override val externalSourceAddress: String?,
-        override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime,
+        override val createdAt: Instant,
+        override val modifiedAt: Instant,
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
@@ -49,7 +48,7 @@ sealed interface Asset {
                 path: String,
                 request: StoreAssetRequest,
             ): New {
-                val now = LocalDateTime.now(UTC)
+                val now = Instant.now()
                 val url = request.source.http.url ?: request.url
                 val source =
                     when {
@@ -102,8 +101,8 @@ sealed interface Asset {
         override val tags: AssetTags,
         override val source: AssetSource,
         override val externalSourceAddress: String?,
-        override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime,
+        override val createdAt: Instant,
+        override val modifiedAt: Instant,
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
@@ -144,8 +143,8 @@ sealed interface Asset {
         override val tags: AssetTags,
         override val source: AssetSource,
         override val externalSourceAddress: String?,
-        override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime,
+        override val createdAt: Instant,
+        override val modifiedAt: Instant,
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
@@ -156,7 +155,7 @@ sealed interface Asset {
             check(variants[0].isOriginalVariant)
         }
 
-        fun markReady(uploadedAt: LocalDateTime): Ready =
+        fun markReady(uploadedAt: Instant): Ready =
             Ready.fromPendingPersisted(
                 persisted = this,
                 originalVariant = (variants.first() as Variant.Pending).markReady(uploadedAt),
@@ -172,8 +171,8 @@ sealed interface Asset {
         override val tags: AssetTags,
         override val source: AssetSource,
         override val externalSourceAddress: String?,
-        override val createdAt: LocalDateTime,
-        override val modifiedAt: LocalDateTime,
+        override val createdAt: Instant,
+        override val modifiedAt: Instant,
         override val isReady: Boolean,
         override val variants: MutableList<Variant>,
     ) : Asset {
@@ -198,7 +197,7 @@ sealed interface Asset {
                     source = persisted.source,
                     externalSourceAddress = persisted.externalSourceAddress,
                     createdAt = persisted.createdAt,
-                    modifiedAt = LocalDateTime.now(UTC),
+                    modifiedAt = Instant.now(),
                     isReady = true,
                     variants = mutableListOf(originalVariant),
                 )
@@ -243,7 +242,7 @@ sealed interface Asset {
                 source = source,
                 externalSourceAddress = externalSourceAddress,
                 createdAt = createdAt,
-                modifiedAt = LocalDateTime.now(UTC),
+                modifiedAt = Instant.now(),
                 isReady = isReady,
                 variants = variants,
             )

@@ -106,8 +106,49 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
                 .map { it.jsonPrimitive.content } shouldBe listOf("-1")
             deleteResponses shouldContainKey "204"
             deleteResponses.getValue("204").jsonObject.containsKey("content") shouldBe false
+            assertTimestampSchemas(document)
             assertReferencesResolve(document, document)
         }
+
+    private fun assertTimestampSchemas(document: JsonObject) {
+        val schemas =
+            document
+                .getValue("components")
+                .jsonObject
+                .getValue("schemas")
+                .jsonObject
+        for ((model, fields) in mapOf("AssetResponse" to listOf("createdAt", "modifiedAt"), "AssetLinkResponse" to listOf("expiresAt"))) {
+            val properties =
+                schemas
+                    .getValue(model)
+                    .jsonObject
+                    .getValue("properties")
+                    .jsonObject
+            for (field in fields) {
+                val schema = resolveSchema(properties.getValue(field).jsonObject, schemas)
+                val type = schema.getValue("type")
+                if (type is JsonArray) {
+                    type.map { it.jsonPrimitive.content } shouldContainAll listOf("string")
+                } else {
+                    type.jsonPrimitive.content shouldBe "string"
+                }
+                schema.getValue("format").jsonPrimitive.content shouldBe "date-time"
+            }
+        }
+    }
+
+    private fun resolveSchema(
+        schema: JsonObject,
+        schemas: JsonObject,
+    ): JsonObject {
+        schema["\$ref"]?.jsonPrimitive?.content?.let { reference ->
+            return resolveSchema(schemas.getValue(reference.substringAfterLast('/')).jsonObject, schemas)
+        }
+        (schema["anyOf"] ?: schema["oneOf"])?.jsonArray?.let { options ->
+            return resolveSchema(options.first { it.jsonObject["type"]?.toString() != "\"null\"" }.jsonObject, schemas)
+        }
+        return schema
+    }
 
     private fun assertFetchDocumentation(operation: JsonObject) {
         val parameters = operation.parameters().associateBy { it.getValue("name").jsonPrimitive.content }

@@ -22,11 +22,11 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
 import io.ktor.http.encodedPath
-import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.toKotlinInstant
 
 class AssetUrlGenerator(
     private val httpProperties: HttpProperties,
@@ -170,5 +170,5 @@ class AssetUrlGenerator(
 
     private fun Url.toDeliveryUrl() = DeliveryUrl(url = this, expiresAt = null)
 
-    private fun PresignedUrl.Supported.toDeliveryUrl() = DeliveryUrl(url = url, expiresAt = expiresAt?.toKotlinLocalDateTime())
+    private fun PresignedUrl.Supported.toDeliveryUrl() = DeliveryUrl(url = url, expiresAt = expiresAt?.toKotlinInstant())
 }

@@ -4,7 +4,7 @@
 package konifer.jooq.tables.records
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.tables.Outbox
@@ -32,9 +32,9 @@ open class OutboxRecord() : UpdatableRecordImpl<OutboxRecord>(Outbox.OUTBOX) {
         set(value): Unit = set(2, value)
         get(): JSONB? = get(2) as JSONB?
 
-    open var createdAt: LocalDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(3, value)
-        get(): LocalDateTime? = get(3) as LocalDateTime?
+        get(): OffsetDateTime? = get(3) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -45,7 +45,7 @@ open class OutboxRecord() : UpdatableRecordImpl<OutboxRecord>(Outbox.OUTBOX) {
     /**
      * Create a detached, initialised OutboxRecord
      */
-    constructor(id: UUID? = null, eventType: String? = null, payload: JSONB? = null, createdAt: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, eventType: String? = null, payload: JSONB? = null, createdAt: OffsetDateTime? = null): this() {
         this.id = id
         this.eventType = eventType
         this.payload = payload

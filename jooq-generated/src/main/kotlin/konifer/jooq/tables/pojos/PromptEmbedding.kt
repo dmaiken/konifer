@@ -5,7 +5,7 @@ package konifer.jooq.tables.pojos
 
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.Arrays
 import java.util.UUID
 
@@ -19,7 +19,7 @@ data class PromptEmbedding(
     var model: String,
     var promptText: String,
     var embedding: Array<Float?>,
-    var createdAt: LocalDateTime
+    var createdAt: OffsetDateTime
 ): Serializable {
 
 

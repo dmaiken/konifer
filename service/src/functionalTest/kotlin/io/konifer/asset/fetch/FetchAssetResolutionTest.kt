@@ -40,8 +40,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.koin.dsl.module
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToInt
 
@@ -100,7 +99,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                             expiresAt = null,
                         ),
                     )
-                persistedRepository.markUploaded(unrelated.markReady(LocalDateTime.now(UTC)), CacheProperties())
+                persistedRepository.markUploaded(unrelated.markReady(Instant.now()), CacheProperties())
                 uploaded.complete(Unit)
             }
 

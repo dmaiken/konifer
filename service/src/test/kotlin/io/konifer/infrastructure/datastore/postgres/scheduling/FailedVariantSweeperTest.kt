@@ -29,8 +29,7 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Flux
 import java.time.Duration
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 @Testcontainers
 class FailedVariantSweeperTest : PostgresContainerizedTest() {
@@ -40,7 +39,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val pendingVariant =
                 createPendingVariant(
@@ -76,7 +75,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val transformation =
                 Transformation(
@@ -93,7 +92,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
                     assetRepository.storeNewVariant(it)
                 }.also {
                     assetRepository.markUploaded(
-                        variant = it.markReady(LocalDateTime.now(UTC)),
+                        variant = it.markReady(Instant.now()),
                         cacheProperties = CacheProperties(),
                     )
                 }
@@ -122,7 +121,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
             val ready =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val pendingVariant =
                 createPendingVariant(
@@ -157,7 +156,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
             val readyAsset1 =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val pendingVariant1 =
                 createPendingVariant(
@@ -175,7 +174,7 @@ class FailedVariantSweeperTest : PostgresContainerizedTest() {
             val readyAsset2 =
                 assetRepository
                     .storeNew(createPendingAsset())
-                    .markReady(LocalDateTime.now(UTC))
+                    .markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             val pendingVariant2 =
                 createPendingVariant(

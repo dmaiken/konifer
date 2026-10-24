@@ -36,8 +36,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 @Testcontainers
 class PostgresAssetRepositoryTest : AssetRepositoryTest() {
@@ -63,7 +62,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
     fun `stores and selects separate pixel layouts without uniqueness collisions`() =
         runTest {
             val persisted = repository.storeNew(createPendingAsset())
-            repository.markReady(persisted.markReady(LocalDateTime.now(UTC)))
+            repository.markReady(persisted.markReady(Instant.now()))
             val stored =
                 PixelLayout.entries.associateWith { layout ->
                     val transformation =
@@ -86,7 +85,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         repository.storeNewVariant(
                             createPendingVariant(assetId = persisted.id, attributes = attributes, transformation = transformation),
                         )
-                    repository.markUploaded(variant.markReady(LocalDateTime.now(UTC)), CacheProperties())
+                    repository.markUploaded(variant.markReady(Instant.now()), CacheProperties())
                     variant
                 }
 
@@ -114,7 +113,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = "/users/123",
@@ -153,7 +152,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = "/users/123",
@@ -176,7 +175,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteAllByPath(
                     path = "/users/123",
@@ -198,7 +197,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 val ready =
                     repository
                         .storeNew(createPendingAsset())
-                        .markReady(LocalDateTime.now(UTC))
+                        .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteRecursivelyByPath(
                     path = "/users/123",

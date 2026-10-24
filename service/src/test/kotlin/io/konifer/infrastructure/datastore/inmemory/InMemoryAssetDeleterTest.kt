@@ -14,8 +14,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.ByteChannel
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 class InMemoryAssetDeleterTest {
     private val objectStore = InMemoryObjectStore()
@@ -36,7 +35,7 @@ class InMemoryAssetDeleterTest {
                             objectStoreBucket = "originals",
                             objectStoreKey = originalKey,
                         ),
-                    ).markReady(LocalDateTime.now(UTC))
+                    ).markReady(Instant.now())
                     .also { assetRepository.markReady(it) }
             assetRepository.storeNewVariant(
                 createPendingVariant(
@@ -50,7 +49,7 @@ class InMemoryAssetDeleterTest {
                             format = ImageFormat.WEBP,
                             colorSpace = ColorSpace.SRGB,
                         ),
-                    expiresAt = LocalDateTime.now(UTC).minusDays(1),
+                    expiresAt = Instant.now().minus(1, java.time.temporal.ChronoUnit.DAYS),
                 ),
             )
 

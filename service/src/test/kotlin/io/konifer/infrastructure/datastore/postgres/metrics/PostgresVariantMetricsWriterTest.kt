@@ -30,7 +30,6 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit.SECONDS
@@ -92,7 +91,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 pathConfigurationRepository = pathConfigurationRepository,
             )
 
-            val expiresAt = LocalDateTime.now(UTC).plusDays(2).truncatedTo(ChronoUnit.MILLIS)
+            val expiresAt = Instant.now().plus(2, java.time.temporal.ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS)
             val variant = createReadyVariant(path = "/ttl/asset", expiresAt = expiresAt, transformationWidth = 300)
             val initiallyPersistedVariant = fetchVariant(variant.id)
             val accessedAt = Instant.now()
@@ -108,14 +107,14 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 runBlocking {
                     val persistedVariant = fetchVariant(variant.id)
 
-                    persistedVariant.lastAccessedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe
-                        LocalDateTime.ofInstant(accessedAt, UTC).truncatedTo(ChronoUnit.MILLIS)
-                    persistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe
-                        initiallyPersistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS)
+                    persistedVariant.lastAccessedAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS) shouldBe
+                        accessedAt.truncatedTo(ChronoUnit.MILLIS)
+                    persistedVariant.expiresAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS) shouldBe
+                        initiallyPersistedVariant.expiresAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS)
                     persistedVariant.accessScore shouldBe (2.0 plusOrMinus 0.001)
                     (
-                        checkNotNull(persistedVariant.accessScoreAsOf) >=
-                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf)
+                        checkNotNull(persistedVariant.accessScoreAsOf).toInstant() >=
+                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf).toInstant()
                     ) shouldBe true
                 }
             }
@@ -133,10 +132,14 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
             )
 
             val variant =
-                createReadyVariant(path = "/idle/asset", expiresAt = LocalDateTime.now(UTC).plusMinutes(5), transformationWidth = 400)
+                createReadyVariant(
+                    path = "/idle/asset",
+                    expiresAt = Instant.now().plus(5, java.time.temporal.ChronoUnit.MINUTES),
+                    transformationWidth = 400,
+                )
             val initiallyPersistedVariant = fetchVariant(variant.id)
             val accessedAt = Instant.now()
-            val accessedAtLocal = LocalDateTime.ofInstant(accessedAt, UTC).truncatedTo(ChronoUnit.MILLIS)
+            val accessedAtLocal = accessedAt.truncatedTo(ChronoUnit.MILLIS)
 
             metricsRepository.recordVariantAccess(
                 variantId = variant.id,
@@ -149,12 +152,13 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 runBlocking {
                     val persistedVariant = fetchVariant(variant.id)
 
-                    persistedVariant.lastAccessedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe accessedAtLocal
-                    persistedVariant.expiresAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe accessedAtLocal.plusHours(1)
+                    persistedVariant.lastAccessedAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS) shouldBe accessedAtLocal
+                    persistedVariant.expiresAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS) shouldBe
+                        accessedAtLocal.plus(1, java.time.temporal.ChronoUnit.HOURS)
                     persistedVariant.accessScore shouldBe (2.0 plusOrMinus 0.001)
                     (
-                        checkNotNull(persistedVariant.accessScoreAsOf) >=
-                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf)
+                        checkNotNull(persistedVariant.accessScoreAsOf).toInstant() >=
+                            checkNotNull(initiallyPersistedVariant.accessScoreAsOf).toInstant()
                     ) shouldBe true
                 }
             }
@@ -172,11 +176,11 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
             )
 
             val variant = createReadyVariant(path = "/ttl/asset", expiresAt = null, transformationWidth = 450)
-            val previousAccessScoreAsOf = LocalDateTime.now(UTC).minusHours(1)
+            val previousAccessScoreAsOf = Instant.now().minus(1, java.time.temporal.ChronoUnit.HOURS)
             dslContext
                 .update(ASSET_VARIANT)
                 .set(ASSET_VARIANT.ACCESS_SCORE, 8.0)
-                .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, previousAccessScoreAsOf)
+                .set(ASSET_VARIANT.ACCESS_SCORE_AS_OF, previousAccessScoreAsOf.atOffset(UTC))
                 .where(ASSET_VARIANT.ID.eq(variant.id.value))
                 .awaitFirstOrNull()
 
@@ -194,7 +198,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                     val persistedVariant = fetchVariant(variant.id)
 
                     persistedVariant.accessScore shouldBe (7.0 plusOrMinus 0.05)
-                    (checkNotNull(persistedVariant.accessScoreAsOf) > previousAccessScoreAsOf) shouldBe true
+                    (checkNotNull(persistedVariant.accessScoreAsOf).toInstant() > previousAccessScoreAsOf) shouldBe true
                 }
             }
         }
@@ -211,15 +215,19 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
             )
 
             val variant =
-                createReadyVariant(path = "/idle/asset", expiresAt = LocalDateTime.now(UTC).plusMinutes(5), transformationWidth = 500)
-            val currentLastAccessedAt = LocalDateTime.now(UTC).truncatedTo(ChronoUnit.MILLIS)
-            val currentExpiresAt = currentLastAccessedAt.plusHours(1)
-            val staleAccessedAt = currentLastAccessedAt.minusMinutes(15).toInstant(UTC)
+                createReadyVariant(
+                    path = "/idle/asset",
+                    expiresAt = Instant.now().plus(5, java.time.temporal.ChronoUnit.MINUTES),
+                    transformationWidth = 500,
+                )
+            val currentLastAccessedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS)
+            val currentExpiresAt = currentLastAccessedAt.plus(1, java.time.temporal.ChronoUnit.HOURS)
+            val staleAccessedAt = currentLastAccessedAt.minus(15, java.time.temporal.ChronoUnit.MINUTES)
 
             dslContext
                 .update(ASSET_VARIANT)
-                .set(ASSET_VARIANT.LAST_ACCESSED_AT, currentLastAccessedAt)
-                .set(ASSET_VARIANT.EXPIRES_AT, currentExpiresAt)
+                .set(ASSET_VARIANT.LAST_ACCESSED_AT, currentLastAccessedAt.atOffset(UTC))
+                .set(ASSET_VARIANT.EXPIRES_AT, currentExpiresAt.atOffset(UTC))
                 .set(ASSET_VARIANT.ACCESS_SCORE, 0.0)
                 .where(ASSET_VARIANT.ID.eq(variant.id.value))
                 .awaitFirstOrNull()
@@ -235,8 +243,8 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
                 runBlocking {
                     val persistedVariant = fetchVariant(variant.id)
 
-                    persistedVariant.lastAccessedAt?.truncatedTo(ChronoUnit.MILLIS) shouldBe currentLastAccessedAt
-                    persistedVariant.expiresAt shouldBe currentExpiresAt
+                    persistedVariant.lastAccessedAt?.toInstant()?.truncatedTo(ChronoUnit.MILLIS) shouldBe currentLastAccessedAt
+                    persistedVariant.expiresAt?.toInstant() shouldBe currentExpiresAt
                     persistedVariant.accessScore shouldBe (1.0 plusOrMinus 0.000_001)
                 }
             }
@@ -244,13 +252,13 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
     private suspend fun createReadyVariant(
         path: String,
-        expiresAt: LocalDateTime?,
+        expiresAt: Instant?,
         transformationWidth: Int,
     ): Variant.Ready {
         val asset =
             assetRepository
                 .storeNew(createPendingAsset(path = path))
-                .markReady(LocalDateTime.now(UTC))
+                .markReady(Instant.now())
                 .also { assetRepository.markReady(it) }
 
         val pendingVariant =
@@ -268,7 +276,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
         return assetRepository
             .storeNewVariant(pendingVariant)
-            .markReady(LocalDateTime.now(UTC))
+            .markReady(Instant.now())
             .also {
                 assetRepository.markUploaded(
                     variant = it,

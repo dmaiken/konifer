@@ -25,12 +25,12 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.toKotlinLocalDateTime
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toKotlinInstant
 
 class AssetUrlGeneratorTest {
     private val objectStore = mockk<ObjectStore>()
@@ -106,7 +106,7 @@ class AssetUrlGeneratorTest {
                     preSigned = PreSignedProperties(ttl = 15.minutes),
                 )
             val presignedUrl = Url("https://objects.example.com/signed-image")
-            val expiresAt = LocalDateTime.now().plusHours(1)
+            val expiresAt = Instant.now().plus(1, java.time.temporal.ChronoUnit.HOURS)
             coEvery {
                 objectStore.generatePresignedUrl("variant-bucket", "variants/image.webp", 15.minutes)
             } returns PresignedUrl.Supported(url = presignedUrl, expiresAt = expiresAt)
@@ -122,7 +122,7 @@ class AssetUrlGeneratorTest {
                 )
 
             result.url shouldBe presignedUrl
-            result.expiresAt shouldBe expiresAt.toKotlinLocalDateTime()
+            result.expiresAt shouldBe expiresAt.toKotlinInstant()
             coVerify(exactly = 1) {
                 objectStore.generatePresignedUrl("variant-bucket", "variants/image.webp", 15.minutes)
             }

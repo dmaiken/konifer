@@ -4,7 +4,7 @@
 package konifer.jooq.tables
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.Public
@@ -126,22 +126,22 @@ open class AssetVariant(
     /**
      * The column <code>public.asset_variant.created_at</code>.
      */
-    val CREATED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false), this, "")
+    val CREATED_AT: TableField<AssetVariantRecord, OffsetDateTime?> = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "")
 
     /**
      * The column <code>public.asset_variant.uploaded_at</code>.
      */
-    val UPLOADED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("uploaded_at"), SQLDataType.LOCALDATETIME(6), this, "")
+    val UPLOADED_AT: TableField<AssetVariantRecord, OffsetDateTime?> = createField(DSL.name("uploaded_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     /**
      * The column <code>public.asset_variant.expires_at</code>.
      */
-    val EXPIRES_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("expires_at"), SQLDataType.LOCALDATETIME(6), this, "")
+    val EXPIRES_AT: TableField<AssetVariantRecord, OffsetDateTime?> = createField(DSL.name("expires_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     /**
      * The column <code>public.asset_variant.last_accessed_at</code>.
      */
-    val LAST_ACCESSED_AT: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("last_accessed_at"), SQLDataType.LOCALDATETIME(6), this, "")
+    val LAST_ACCESSED_AT: TableField<AssetVariantRecord, OffsetDateTime?> = createField(DSL.name("last_accessed_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "")
 
     /**
      * The column <code>public.asset_variant.access_score</code>.
@@ -151,7 +151,7 @@ open class AssetVariant(
     /**
      * The column <code>public.asset_variant.access_score_as_of</code>.
      */
-    val ACCESS_SCORE_AS_OF: TableField<AssetVariantRecord, LocalDateTime?> = createField(DSL.name("access_score_as_of"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("(CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text)"), SQLDataType.LOCALDATETIME)), this, "")
+    val ACCESS_SCORE_AS_OF: TableField<AssetVariantRecord, OffsetDateTime?> = createField(DSL.name("access_score_as_of"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "")
 
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?): this(alias, null, null, null, aliased, null, null)
     private constructor(alias: Name, aliased: Table<AssetVariantRecord>?, parameters: Array<Field<*>?>?): this(alias, null, null, null, aliased, parameters, null)
@@ -165,7 +165,7 @@ open class AssetVariant(
     /**
      * Create an aliased <code>public.asset_variant</code> table reference
      */
-    constructor(alias: Name): this(alias, null)
+    constructor(alias: Name): this(alias, ASSET_VARIANT)
 
     /**
      * Create a <code>public.asset_variant</code> table reference

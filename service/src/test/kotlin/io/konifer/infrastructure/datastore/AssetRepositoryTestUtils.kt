@@ -18,7 +18,7 @@ import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 fun createPendingAsset(
@@ -83,7 +83,7 @@ fun createPendingVariant(
     transformation: Transformation,
     objectStoreKey: String = "${UuidCreator.getRandomBasedFast()}${attributes.format.extension}",
     lqip: LQIPs = LQIPs.NONE,
-    expiresAt: LocalDateTime? = null,
+    expiresAt: Instant? = null,
 ): Variant.Pending =
     Variant.Pending.newVariant(
         assetId = assetId,

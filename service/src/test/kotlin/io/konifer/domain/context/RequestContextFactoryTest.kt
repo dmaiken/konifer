@@ -689,8 +689,8 @@ class RequestContextFactoryTest {
 
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation!!.width shouldBe 500.toDimension()
-                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation.width shouldBe 500.toDimension()
+                context.requestedTransformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldBe emptyMap()
             }
 
@@ -876,8 +876,8 @@ class RequestContextFactoryTest {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation!!.width shouldBe 500.toDimension()
-                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation.width shouldBe 500.toDimension()
+                context.requestedTransformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainExactly
                     mapOf(
                         "phone" to "iphone",
@@ -907,8 +907,8 @@ class RequestContextFactoryTest {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation!!.width shouldBe 500.toDimension()
-                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation.width shouldBe 500.toDimension()
+                context.requestedTransformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -935,8 +935,8 @@ class RequestContextFactoryTest {
                     )
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation!!.width shouldBe 500.toDimension()
-                context.requestedTransformation!!.format shouldBe ImageFormat.JPEG
+                context.requestedTransformation.width shouldBe 500.toDimension()
+                context.requestedTransformation.format shouldBe ImageFormat.JPEG
                 context.labels shouldContainKey "phone"
                 context.labels shouldContainKey "case"
                 context.labels["case"] shouldBeOneOf listOf("hello", "soft")
@@ -1027,7 +1027,7 @@ class RequestContextFactoryTest {
                     )
 
                 context.requestedTransformation!!.format shouldNotBe null
-                context.requestedTransformation!!.format shouldBe variantConfig.format
+                context.requestedTransformation.format shouldBe variantConfig.format
             }
 
         @Test
@@ -1049,7 +1049,7 @@ class RequestContextFactoryTest {
                     )
 
                 context.requestedTransformation!!.format shouldNotBe null
-                context.requestedTransformation!!.format shouldBe ImageFormat.HEIC
+                context.requestedTransformation.format shouldBe ImageFormat.HEIC
             }
 
         @ParameterizedTest

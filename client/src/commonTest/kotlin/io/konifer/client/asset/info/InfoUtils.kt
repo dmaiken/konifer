@@ -15,8 +15,6 @@ import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 fun createInfoResponse() =
@@ -81,6 +79,6 @@ fun createInfoResponse() =
                         ),
                 ),
             ),
-        createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-        modifiedAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+        createdAt = Clock.System.now(),
+        modifiedAt = Clock.System.now(),
     )

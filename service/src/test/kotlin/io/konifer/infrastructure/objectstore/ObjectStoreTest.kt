@@ -19,8 +19,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 abstract class ObjectStoreTest {
     abstract fun createObjectStore(): ObjectStore
@@ -58,6 +57,7 @@ abstract class ObjectStoreTest {
                 getFreshImageChannel().copyTo(channel)
                 channel.close()
             }
+            val startedAt = Instant.now()
             val result =
                 store.persist(
                     request =
@@ -68,7 +68,7 @@ abstract class ObjectStoreTest {
                         ),
                     channel = channel,
                 )
-            result.toLocalDate() shouldBe LocalDate.now(UTC)
+            (result in startedAt..Instant.now()) shouldBe true
 
             val stream = ByteChannel(autoFlush = true)
             val fetched =

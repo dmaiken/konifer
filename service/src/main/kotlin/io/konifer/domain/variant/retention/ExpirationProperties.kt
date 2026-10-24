@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.time.Clock
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -28,12 +28,12 @@ data class ExpirationProperties(
         }
     }
 
-    fun expiresAt(clock: Clock = Clock.systemUTC()): LocalDateTime? =
+    fun expiresAt(clock: Clock = Clock.systemUTC()): Instant? =
         if (strategy ==
             VariantExpirationStrategy.NEVER
         ) {
             null
         } else {
-            LocalDateTime.now(clock).plus(checkNotNull(ttl).toJavaDuration())
+            Instant.now(clock).plus(checkNotNull(ttl).toJavaDuration())
         }
 }

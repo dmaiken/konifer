@@ -19,7 +19,7 @@ import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
-import kotlinx.datetime.toKotlinLocalDateTime
+import kotlin.time.toKotlinInstant
 
 fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
     AssetResponse(
@@ -32,8 +32,8 @@ fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
         sourceUrl = assetData.externalSourceAddress,
         externalSourceAddress = assetData.externalSourceAddress,
         variants = assetData.variants.map { VariantResponse.fromVariantData(it) },
-        createdAt = assetData.createdAt.toKotlinLocalDateTime(),
-        modifiedAt = assetData.modifiedAt.toKotlinLocalDateTime(),
+        createdAt = assetData.createdAt.toKotlinInstant(),
+        modifiedAt = assetData.modifiedAt.toKotlinInstant(),
     )
 
 fun AssetResponse.Factory.fromAsset(asset: Asset): AssetResponse =
@@ -47,8 +47,8 @@ fun AssetResponse.Factory.fromAsset(asset: Asset): AssetResponse =
         sourceUrl = asset.externalSourceAddress,
         externalSourceAddress = asset.externalSourceAddress,
         variants = asset.variants.map { VariantResponse.fromVariant(it) },
-        createdAt = asset.createdAt.toKotlinLocalDateTime(),
-        modifiedAt = asset.modifiedAt.toKotlinLocalDateTime(),
+        createdAt = asset.createdAt.toKotlinInstant(),
+        modifiedAt = asset.modifiedAt.toKotlinInstant(),
     )
 
 fun VariantResponse.Factory.fromVariantData(variantData: VariantData): VariantResponse =

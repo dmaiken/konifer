@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.associate
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset.UTC
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -63,7 +63,7 @@ class PostgresEmbeddingCacheRepository(
                 embeddingModel.name,
                 prompt,
                 embeddings.toPostgresArray(),
-                LocalDateTime.now(UTC),
+                OffsetDateTime.now(UTC),
             )
         }
 

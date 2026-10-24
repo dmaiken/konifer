@@ -13,8 +13,7 @@ import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.datastore.inmemory.InMemoryAssetRepository
 import io.konifer.infrastructure.objectstore.inmemory.InMemoryObjectStore
 import io.mockk.spyk
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 
 abstract class BaseUnitTest {
     protected val assetRepository = spyk(InMemoryAssetRepository(InMemoryObjectStore()))
@@ -63,7 +62,7 @@ abstract class BaseUnitTest {
                             originalVariant = originalVariant,
                             additionalLabels = AssetLabels.empty,
                         ),
-                ).markReady(LocalDateTime.now(UTC))
+                ).markReady(Instant.now())
         assetRepository.markReady(asset)
         return asset
     }

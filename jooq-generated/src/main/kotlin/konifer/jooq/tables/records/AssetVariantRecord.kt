@@ -4,7 +4,7 @@
 package konifer.jooq.tables.records
 
 
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import konifer.jooq.tables.AssetVariant
@@ -52,29 +52,29 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
         set(value): Unit = set(7, value)
         get(): Boolean? = get(7) as Boolean?
 
-    open var createdAt: LocalDateTime?
+    open var createdAt: OffsetDateTime?
         set(value): Unit = set(8, value)
-        get(): LocalDateTime? = get(8) as LocalDateTime?
+        get(): OffsetDateTime? = get(8) as OffsetDateTime?
 
-    open var uploadedAt: LocalDateTime?
+    open var uploadedAt: OffsetDateTime?
         set(value): Unit = set(9, value)
-        get(): LocalDateTime? = get(9) as LocalDateTime?
+        get(): OffsetDateTime? = get(9) as OffsetDateTime?
 
-    open var expiresAt: LocalDateTime?
+    open var expiresAt: OffsetDateTime?
         set(value): Unit = set(10, value)
-        get(): LocalDateTime? = get(10) as LocalDateTime?
+        get(): OffsetDateTime? = get(10) as OffsetDateTime?
 
-    open var lastAccessedAt: LocalDateTime?
+    open var lastAccessedAt: OffsetDateTime?
         set(value): Unit = set(11, value)
-        get(): LocalDateTime? = get(11) as LocalDateTime?
+        get(): OffsetDateTime? = get(11) as OffsetDateTime?
 
     open var accessScore: Double?
         set(value): Unit = set(12, value)
         get(): Double? = get(12) as Double?
 
-    open var accessScoreAsOf: LocalDateTime?
+    open var accessScoreAsOf: OffsetDateTime?
         set(value): Unit = set(13, value)
-        get(): LocalDateTime? = get(13) as LocalDateTime?
+        get(): OffsetDateTime? = get(13) as OffsetDateTime?
 
     // -------------------------------------------------------------------------
     // Primary key information
@@ -85,7 +85,7 @@ open class AssetVariantRecord() : UpdatableRecordImpl<AssetVariantRecord>(AssetV
     /**
      * Create a detached, initialised AssetVariantRecord
      */
-    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: LocalDateTime? = null, uploadedAt: LocalDateTime? = null, expiresAt: LocalDateTime? = null, lastAccessedAt: LocalDateTime? = null, accessScore: Double? = null, accessScoreAsOf: LocalDateTime? = null): this() {
+    constructor(id: UUID? = null, assetId: UUID? = null, objectStoreBucket: String? = null, objectStoreKey: String? = null, transformation: JSONB? = null, attributes: JSONB? = null, lqip: JSONB? = null, originalVariant: Boolean? = null, createdAt: OffsetDateTime? = null, uploadedAt: OffsetDateTime? = null, expiresAt: OffsetDateTime? = null, lastAccessedAt: OffsetDateTime? = null, accessScore: Double? = null, accessScoreAsOf: OffsetDateTime? = null): this() {
         this.id = id
         this.assetId = assetId
         this.objectStoreBucket = objectStoreBucket

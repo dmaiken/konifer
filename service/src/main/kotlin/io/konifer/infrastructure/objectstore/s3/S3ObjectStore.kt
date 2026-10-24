@@ -31,8 +31,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest
 import software.amazon.awssdk.transfer.s3.model.UploadRequest
 import java.nio.file.Path
-import java.time.LocalDateTime
-import java.time.ZoneOffset.UTC
+import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -47,7 +46,7 @@ class S3ObjectStore(
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         channel: ByteChannel,
-    ): LocalDateTime {
+    ): Instant {
         val publisher = channel.consumeAsFlow().asPublisher()
         val requestBody = AsyncRequestBody.fromPublisher(publisher)
 
@@ -71,13 +70,13 @@ class S3ObjectStore(
             }
         }.getOrThrow()
 
-        return LocalDateTime.now(UTC)
+        return Instant.now()
     }
 
     override suspend fun persist(
         request: PersistObjectStoreRequest,
         file: Path,
-    ): LocalDateTime {
+    ): Instant {
         val uploadFileRequest =
             UploadFileRequest
                 .builder()
@@ -91,7 +90,7 @@ class S3ObjectStore(
                 .build()
         s3TransferManager.uploadFile(uploadFileRequest).completionFuture().await()
 
-        return LocalDateTime.now(UTC)
+        return Instant.now()
     }
 
     override suspend fun fetch(
@@ -204,10 +203,7 @@ class S3ObjectStore(
             val presign = s3Presigner.presignGetObject(presignRequest)
             PresignedUrl.Supported(
                 url = Url(presign.url().toString()),
-                expiresAt =
-                    presign.expiration()?.let {
-                        LocalDateTime.ofInstant(it, UTC)
-                    },
+                expiresAt = presign.expiration(),
             )
         }
 }

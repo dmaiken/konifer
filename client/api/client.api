@@ -570,18 +570,18 @@ public final class io/konifer/common/http/AssetEntriesResponse$Companion {
 
 public final class io/konifer/common/http/AssetLinkResponse {
 	public static final field Companion Lio/konifer/common/http/AssetLinkResponse$Companion;
-	public fun <init> (Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;)V
+	public fun <init> (Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component2 ()Lkotlin/time/Instant;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lio/konifer/common/http/LQIPResponse;
 	public final fun component5 ()Lio/konifer/common/http/AttributesResponse;
-	public final fun copy (Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;)Lio/konifer/common/http/AssetLinkResponse;
-	public static synthetic fun copy$default (Lio/konifer/common/http/AssetLinkResponse;Ljava/lang/String;Lkotlinx/datetime/LocalDateTime;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;ILjava/lang/Object;)Lio/konifer/common/http/AssetLinkResponse;
+	public final fun copy (Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;)Lio/konifer/common/http/AssetLinkResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetLinkResponse;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/String;Lio/konifer/common/http/LQIPResponse;Lio/konifer/common/http/AttributesResponse;ILjava/lang/Object;)Lio/konifer/common/http/AssetLinkResponse;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlt ()Ljava/lang/String;
 	public final fun getAttributes ()Lio/konifer/common/http/AttributesResponse;
-	public final fun getExpiresAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getExpiresAt ()Lkotlin/time/Instant;
 	public final fun getLqip ()Lio/konifer/common/http/LQIPResponse;
 	public final fun getUrl ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -605,10 +605,10 @@ public final class io/konifer/common/http/AssetLinkResponse$Companion {
 
 public final class io/konifer/common/http/AssetResponse {
 	public static final field Factory Lio/konifer/common/http/AssetResponse$Factory;
-	public fun <init> (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;)V
+	public fun <init> (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/time/Instant;Lkotlin/time/Instant;)V
 	public final fun component1 ()Lio/konifer/common/asset/AssetClass;
-	public final fun component10 ()Lkotlinx/datetime/LocalDateTime;
-	public final fun component11 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component10 ()Lkotlin/time/Instant;
+	public final fun component11 ()Lkotlin/time/Instant;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()J
 	public final fun component4 ()Ljava/util/Map;
@@ -617,16 +617,16 @@ public final class io/konifer/common/http/AssetResponse {
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/util/List;
-	public final fun copy (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;)Lio/konifer/common/http/AssetResponse;
-	public static synthetic fun copy$default (Lio/konifer/common/http/AssetResponse;Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlinx/datetime/LocalDateTime;Lkotlinx/datetime/LocalDateTime;ILjava/lang/Object;)Lio/konifer/common/http/AssetResponse;
+	public final fun copy (Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/time/Instant;Lkotlin/time/Instant;)Lio/konifer/common/http/AssetResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/AssetResponse;Lio/konifer/common/asset/AssetClass;Ljava/lang/String;JLjava/util/Map;Ljava/util/Set;Lio/konifer/common/asset/AssetSource;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/time/Instant;Lkotlin/time/Instant;ILjava/lang/Object;)Lio/konifer/common/http/AssetResponse;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlt ()Ljava/lang/String;
 	public final fun getClass ()Lio/konifer/common/asset/AssetClass;
-	public final fun getCreatedAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getCreatedAt ()Lkotlin/time/Instant;
 	public final fun getEntryId ()J
 	public final fun getExternalSourceAddress ()Ljava/lang/String;
 	public final fun getLabels ()Ljava/util/Map;
-	public final fun getModifiedAt ()Lkotlinx/datetime/LocalDateTime;
+	public final fun getModifiedAt ()Lkotlin/time/Instant;
 	public final fun getSource ()Lio/konifer/common/asset/AssetSource;
 	public final fun getSourceUrl ()Ljava/lang/String;
 	public final fun getTags ()Ljava/util/Set;
@@ -1461,15 +1461,6 @@ public final class io/konifer/common/selector/ReturnFormat$Companion {
 
 public final class io/konifer/common/selector/ReturnFormatKt {
 	public static final field DEFAULT_ENTRIES_LIMIT I
-}
-
-public final class io/konifer/common/serializer/LocalDateTimeSerializer : kotlinx/serialization/KSerializer {
-	public static final field INSTANCE Lio/konifer/common/serializer/LocalDateTimeSerializer;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lkotlinx/datetime/LocalDateTime;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lkotlinx/datetime/LocalDateTime;)V
 }
 
 public final class io/konifer/common/serializer/LowercaseEnumSerializer : kotlinx/serialization/KSerializer {

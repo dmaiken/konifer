@@ -7,7 +7,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.kotlin.coroutines.transactionCoroutine
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset.UTC
 import java.util.UUID
 
@@ -15,7 +15,7 @@ class PostgresVariantRepository(
     private val dslContext: DSLContext,
 ) {
     suspend fun deleteExpiredVariants(): Int {
-        val now = LocalDateTime.now(UTC)
+        val now = OffsetDateTime.now(UTC)
         return dslContext.transactionCoroutine { trx ->
             // Delete expired variants
             val deletedVariants =
@@ -42,7 +42,7 @@ class PostgresVariantRepository(
                                     DSL.function("gen_random_uuid", UUID::class.java),
                                     DSL.inline(VariantDeletedEvent.TYPE),
                                     VariantDeletedEvent.jsonJooqFunction(deletedVariants),
-                                    DSL.currentLocalDateTime(),
+                                    DSL.currentOffsetDateTime(),
                                 ).from(deletedVariants),
                         ).returning(OUTBOX.ID),
                 )

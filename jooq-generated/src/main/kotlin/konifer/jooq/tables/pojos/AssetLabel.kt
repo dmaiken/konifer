@@ -5,7 +5,7 @@ package konifer.jooq.tables.pojos
 
 
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 
@@ -18,7 +18,7 @@ data class AssetLabel(
     var assetId: UUID,
     var labelKey: String,
     var labelValue: String,
-    var createdAt: LocalDateTime
+    var createdAt: OffsetDateTime
 ): Serializable {
 
 
