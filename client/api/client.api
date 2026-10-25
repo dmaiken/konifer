@@ -1330,7 +1330,6 @@ public final class io/konifer/common/image/ManipulationParameters {
 
 public final class io/konifer/common/image/ManipulationParametersKt {
 	public static final field LIMIT_PARAMETER Ljava/lang/String;
-	public static final fun getALL_RESERVED_PARAMETERS ()Ljava/util/Set;
 }
 
 public final class io/konifer/common/image/MetadataType : java/lang/Enum {
