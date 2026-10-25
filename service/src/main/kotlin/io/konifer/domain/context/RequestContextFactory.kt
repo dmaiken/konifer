@@ -1,6 +1,5 @@
 package io.konifer.domain.context
 
-import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
@@ -242,11 +241,12 @@ class RequestContextFactory(
      * 2. Check for any query parameter not already reserved as a currently used param (e.g. height, width, etc.)
      */
     private fun extractLabels(parameters: Parameters): AssetLabels {
-        val labels = parameters
-            .entries()
-            .filter { it.key.startsWith("label:") }
-            .map { Pair(it.key.substringAfter("label:"), it.value) }
-            .associate { it.first to it.second }
+        val labels =
+            parameters
+                .entries()
+                .filter { it.key.startsWith("label:") }
+                .map { Pair(it.key.substringAfter("label:"), it.value) }
+                .associate { it.first to it.second }
 
         if (labels.values.any { it.size != 1 }) {
             throw InvalidLabelsException("Labels must have exactly one value")

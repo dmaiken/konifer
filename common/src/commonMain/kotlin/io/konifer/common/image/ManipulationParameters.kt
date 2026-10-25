@@ -48,4 +48,3 @@ object ManipulationParameters {
 }
 
 const val LIMIT_PARAMETER = "limit"
-
