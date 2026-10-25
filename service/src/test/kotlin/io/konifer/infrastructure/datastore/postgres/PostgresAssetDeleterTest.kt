@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.mockk.coVerify
@@ -25,7 +26,7 @@ class PostgresAssetDeleterTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.AtPath(
                     path = "/users/123",
-                    labels = mapOf("animal" to "cat"),
+                    labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )
 
@@ -43,7 +44,7 @@ class PostgresAssetDeleterTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.Recursively(
                     path = "/users/123",
-                    labels = mapOf("animal" to "cat"),
+                    labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )
 

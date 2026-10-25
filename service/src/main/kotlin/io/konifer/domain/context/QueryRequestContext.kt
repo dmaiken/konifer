@@ -1,5 +1,6 @@
 package io.konifer.domain.context
 
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.transformation.RequestedTransformation
@@ -11,7 +12,7 @@ data class QueryRequestContext(
     val pathConfiguration: PathConfiguration,
     val selectors: QuerySelectors,
     val requestedTransformation: RequestedTransformation?,
-    val labels: Map<String, String>,
+    val labels: AssetLabels,
     val request: HttpRequest,
 ) : RequestContext
 

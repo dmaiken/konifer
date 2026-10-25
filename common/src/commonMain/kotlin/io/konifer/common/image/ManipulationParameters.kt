@@ -1,8 +1,5 @@
 package io.konifer.common.image
 
-import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
-import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
-
 object ManipulationParameters {
     const val HEIGHT = "height"
     const val WIDTH = "width"
@@ -52,4 +49,3 @@ object ManipulationParameters {
 
 const val LIMIT_PARAMETER = "limit"
 
-val ALL_RESERVED_PARAMETERS = ALL_TRANSFORMATION_PARAMETERS + VARIANT_PROFILE + "s" + LIMIT_PARAMETER

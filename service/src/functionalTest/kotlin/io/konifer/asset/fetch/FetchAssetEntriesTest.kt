@@ -24,7 +24,7 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
 
             val defaultResponse =
                 client.get("/assets/profile/-/new/entries") {
-                    parameter("camera", "phone")
+                    parameter("label:camera", "phone")
                 }
             defaultResponse.status shouldBe HttpStatusCode.OK
             defaultResponse.body<AssetEntriesResponse>().entries.map { it.entryId } shouldBe listOf(newestPhone.entryId, first.entryId)
@@ -32,7 +32,7 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
             val response =
                 client.get("/assets/profile/-/new/entries") {
                     parameter("limit", "1")
-                    parameter("camera", "phone")
+                    parameter("label:camera", "phone")
                 }
 
             response.status shouldBe HttpStatusCode.OK
@@ -41,7 +41,7 @@ class FetchAssetEntriesTest : BaseFunctionalTest() {
             val modified =
                 client.get("/assets/profile/-/modified/entries") {
                     parameter("limit", "2")
-                    parameter("camera", "phone")
+                    parameter("label:camera", "phone")
                 }
             modified.status shouldBe HttpStatusCode.OK
             modified.body<AssetEntriesResponse>().entries.map { it.entryId } shouldBe listOf(newestPhone.entryId, first.entryId)

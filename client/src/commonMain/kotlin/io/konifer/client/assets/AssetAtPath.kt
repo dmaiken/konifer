@@ -30,7 +30,7 @@ class AssetAtPath internal constructor(
             entryId = entryId,
         )
 
-    /** Restricts the selection to entries matching [labels]. */
+    /** Restricts the selection to entries matching [labels], using label names without the `label:` query prefix. */
     fun matchingLabels(labels: Map<String, String>): RelativeAssetSelection = relativeSelection.matchingLabels(labels)
 
     /** Selects entries using [order]. */

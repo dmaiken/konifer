@@ -6,7 +6,6 @@ import io.konifer.client.assets.fetch.OrderBy
 import io.konifer.client.assets.fetch.QuerySelector
 import io.konifer.client.assets.fetch.Recursive
 import io.konifer.client.assets.fetch.RequestedTransformation
-import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.image.ManipulationParameters.BLUR
 import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
@@ -93,16 +92,7 @@ internal fun URLBuilder.appendTransformationParameters(requestedTransformation: 
 }
 
 internal fun URLBuilder.appendLabels(labels: Map<String, String>) {
-    labels
-        .map { (key, value) -> Pair(key.lowercase(), value) }
-        .forEach { (key, value) ->
-            val prefixedKey =
-                if (key in ALL_RESERVED_PARAMETERS) {
-                    "label:$key"
-                } else {
-                    key
-                }
-
-            parameters.append(prefixedKey, value)
-        }
+    labels.forEach { (key, value) ->
+        parameters.append("label:${key.lowercase()}", value)
+    }
 }

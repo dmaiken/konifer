@@ -42,7 +42,7 @@ class AssetService(
                 entryId = context.selectors.entryId,
                 selection = if (context.requestedTransformation == null) VariantSelection.ORIGINAL_ONLY else VariantSelection.ALL,
                 order = context.selectors.order,
-                labels = context.labels,
+                labels = context.labels.asMap(),
             ) ?: return null
 
         val originalVariant =

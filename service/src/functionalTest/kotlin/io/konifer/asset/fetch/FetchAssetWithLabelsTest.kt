@@ -3,6 +3,7 @@ package io.konifer.asset.fetch
 import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.common.asset.AssetClass
+import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
@@ -12,6 +13,9 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
 
@@ -197,13 +201,13 @@ class FetchAssetWithLabelsTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            val metadata =
-                konifer()
-                    .fetchAssetInfo(
-                        path = "profile",
-                        labels = labels.mapKeys { "label:${it.key}" },
-                    ).shouldBeSuccessful()
-                    .body
+            val metadataResponse =
+                client.get("/assets/profile/-/info") {
+                    parameter("label:phone", "iphone")
+                    parameter("label:type", "vegetable")
+                }
+            metadataResponse.status shouldBe HttpStatusCode.OK
+            val metadata = metadataResponse.body<AssetResponse>()
             with(metadata) {
                 this.tags shouldContainExactly tags
                 this.labels shouldContainExactly labels

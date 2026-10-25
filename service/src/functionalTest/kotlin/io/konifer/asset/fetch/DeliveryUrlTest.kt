@@ -129,7 +129,10 @@ class DeliveryUrlTest : BaseFunctionalTest() {
         ) {
             val (image, _) = ImageFactory.testImage()
             val stored = storeAssetMultipartSource(client, image, StoreAssetRequest(labels = mapOf("kind" to "old")), path = "profile")
-            val response = client.get("/assets/profile/-/link?profile=thumbnail&kind=old") { header(HttpHeaders.Accept, "image/webp") }
+            val response =
+                client.get(
+                    "/assets/profile/-/link?profile=thumbnail&label:kind=old",
+                ) { header(HttpHeaders.Accept, "image/webp") }
             response.status shouldBe HttpStatusCode.OK
             val link = response.body<AssetLinkResponse>()
             val url = Url(link.url)

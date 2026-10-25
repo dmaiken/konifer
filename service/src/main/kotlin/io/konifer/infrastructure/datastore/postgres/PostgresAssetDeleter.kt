@@ -23,14 +23,14 @@ class PostgresAssetDeleter(
             is DeleteAssetsCommand.AtPath -> {
                 assetRepository.deleteAllByPath(
                     path = command.path,
-                    labels = command.labels,
+                    labels = command.labels.asMap(),
                 )
             }
 
             is DeleteAssetsCommand.Recursively -> {
                 assetRepository.deleteRecursivelyByPath(
                     path = command.path,
-                    labels = command.labels,
+                    labels = command.labels.asMap(),
                 )
             }
         }

@@ -9,6 +9,7 @@ import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.client.harness.allTransformationsBuilder
 import io.konifer.client.harness.allTransformationsDsl
 import io.konifer.client.harness.assertRequestedTransformation
+import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
@@ -70,17 +71,22 @@ class HttpExtensionsTest :
             url.build().encodedPath shouldBe "/assets/users/-/recursive"
         }
 
-        test("labels use lowercase names and escape reserved parameter names") {
+        test("all labels use lowercase names and a label prefix alongside query options") {
             val url =
                 URLBuilder().apply {
-                    appendLabels(mapOf("Camera" to "phone", "FORMAT" to "display", "limit" to "important"))
+                    appendLabels(mapOf("Camera" to "Phone & Camera", "FORMAT" to "display", "limit" to "important"))
                     appendLimit(2)
+                    appendTransformationParameters(requestedTransformation { format = ImageFormat.PNG })
                 }
 
-            url.parameters["camera"] shouldBe "phone"
-            url.parameters["label:format"] shouldBe "display"
-            url.parameters["label:limit"] shouldBe "important"
-            url.parameters["limit"] shouldBe "2"
+            url.build().parameters.entries() shouldBe
+                mapOf(
+                    "label:camera" to listOf("Phone & Camera"),
+                    "label:format" to listOf("display"),
+                    "label:limit" to listOf("important"),
+                    "limit" to listOf("2"),
+                    "format" to listOf("png"),
+                ).entries
         }
 
         test("all transformation options are encoded as query parameters") {

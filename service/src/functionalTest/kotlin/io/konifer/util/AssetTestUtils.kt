@@ -408,7 +408,7 @@ suspend fun fetchAssetLink(
         urlBuilder.path("/assets/$path/-/link")
     }
     labels.forEach { label ->
-        urlBuilder.parameters.append(label.key, label.value)
+        urlBuilder.parameters.append("label:${label.key}", label.value)
     }
 
     attachVariantModifiers(
@@ -480,7 +480,7 @@ suspend fun fetchAssetInfo(
         val urlBuilder = URLBuilder()
         urlBuilder.path(requestPath)
         labels.forEach { label ->
-            urlBuilder.parameters.append(label.key, label.value)
+            urlBuilder.parameters.append("label:${label.key}", label.value)
         }
         val response = client.get(urlBuilder.build())
         response.status shouldBe expectedStatus

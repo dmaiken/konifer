@@ -23,3 +23,7 @@ class ContentTypeNotPermittedException(
 class IllegalRequestedTransformationException(
     msg: String,
 ) : RuntimeException(msg)
+
+class InvalidLabelsException(
+    msg: String,
+) : RuntimeException(msg)

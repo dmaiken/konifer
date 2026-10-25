@@ -1,7 +1,6 @@
 package io.konifer.client.harness
 
 import io.konifer.client.assets.fetch.RequestedTransformation
-import io.konifer.common.image.ALL_RESERVED_PARAMETERS
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 
@@ -43,15 +42,7 @@ fun assertLabels(
     labels: Map<String, String>,
 ) {
     labels.forEach { (key, value) ->
-        val labelKey = key.lowercase()
-        val expectedParameterName =
-            if (labelKey in ALL_RESERVED_PARAMETERS) {
-                "label:$labelKey"
-            } else {
-                labelKey
-            }
-
-        parameters[expectedParameterName] shouldBe value
+        parameters["label:${key.lowercase()}"] shouldBe value
     }
 }
 

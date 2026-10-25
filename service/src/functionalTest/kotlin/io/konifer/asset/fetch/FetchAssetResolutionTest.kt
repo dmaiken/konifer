@@ -264,7 +264,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                     .attributes
             updateAsset(client, first.first[HttpHeaders.Location]!!, StoreAssetRequest(alt = "updated", labels = mapOf("kind" to "moon")))
 
-            listOf("link?width=100&kind=moon", "modified/link?width=100").forEach { selection ->
+            listOf("link?width=100&label:kind=moon", "modified/link?width=100").forEach { selection ->
                 resetObservations()
                 val response = client.get("/assets/profile/-/$selection")
                 response.status shouldBe HttpStatusCode.OK

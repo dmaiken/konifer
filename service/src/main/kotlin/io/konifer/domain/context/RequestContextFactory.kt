@@ -27,6 +27,8 @@ import io.konifer.common.image.ManipulationParameters.WIDTH
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.image.pixel.PixelLayout
+import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
 import io.konifer.domain.image.fromFormat
@@ -239,13 +241,19 @@ class RequestContextFactory(
      * 1. Namespaced labels - labels starting with "label:"
      * 2. Check for any query parameter not already reserved as a currently used param (e.g. height, width, etc.)
      */
-    private fun extractLabels(parameters: Parameters): Map<String, String> =
-        parameters
+    private fun extractLabels(parameters: Parameters): AssetLabels {
+        val labels = parameters
             .entries()
-            .filter { it.value.isNotEmpty() }
-            .filter { !ALL_RESERVED_PARAMETERS.contains(it.key) }
+            .filter { it.key.startsWith("label:") }
             .map { Pair(it.key.substringAfter("label:"), it.value) }
-            .associate { it.first to it.second.first() }
+            .associate { it.first to it.second }
+
+        if (labels.values.any { it.size != 1 }) {
+            throw InvalidLabelsException("Labels must have exactly one value")
+        }
+
+        return labels.mapValues { (_, value) -> value.first() }.toAssetLabels()
+    }
 
     /**
      * Determine the requested format in this order:

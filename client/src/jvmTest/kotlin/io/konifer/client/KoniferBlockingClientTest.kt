@@ -42,7 +42,7 @@ class KoniferBlockingClientTest :
                         when (request.method) {
                             HttpMethod.Get if request.url.encodedPath.endsWith("/info") -> {
                                 request.url.encodedPath shouldBe "/assets/users/123/-/modified/info"
-                                request.url.parameters["camera"] shouldBe "phone"
+                                request.url.parameters["label:camera"] shouldBe "phone"
                                 respond(Json.encodeToString(asset), headers = headersOf(HttpHeaders.ContentType, "application/json"))
                             }
 

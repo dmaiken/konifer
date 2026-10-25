@@ -1,6 +1,8 @@
 package io.konifer.infrastructure.datastore.inmemory
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.konifer.domain.ports.PersistObjectStoreRequest
@@ -86,7 +88,7 @@ class InMemoryAssetDeleterTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.AtPath(
                     path = asset.path,
-                    labels = emptyMap(),
+                    labels = AssetLabels.empty,
                 ),
             )
 
@@ -124,7 +126,7 @@ class InMemoryAssetDeleterTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.Recursively(
                     path = "/users/123",
-                    labels = mapOf("animal" to "cat"),
+                    labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )
 

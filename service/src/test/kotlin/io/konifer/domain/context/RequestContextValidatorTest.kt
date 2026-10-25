@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.path.PathConfiguration
@@ -164,7 +165,7 @@ class RequestContextValidatorTest {
             ),
         selectors = QuerySelectors(returnFormat = ReturnFormat.CONTENT),
         requestedTransformation = requested,
-        labels = emptyMap(),
+        labels = AssetLabels.empty,
         request = HttpRequest(Parameters.build { profile?.let { append("profile", it) } }, mockk()),
     )
 }

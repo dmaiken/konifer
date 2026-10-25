@@ -7,6 +7,7 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
@@ -611,7 +612,7 @@ class RequestContextFactoryTest {
 
                 context.requestedTransformation!!.pixelLayout shouldBe
                     PixelLayout.valueOf(layout.uppercase())
-                context.labels shouldBe emptyMap()
+                context.labels shouldBe AssetLabels.empty
             }
 
         @Test
@@ -669,7 +670,7 @@ class RequestContextFactoryTest {
 
             context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
-            context.labels shouldBe emptyMap()
+            context.labels shouldBe AssetLabels.empty
             context.request.origin shouldBe origin
         }
 
@@ -688,7 +689,7 @@ class RequestContextFactoryTest {
 
             context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
-            context.labels shouldBe emptyMap()
+            context.labels shouldBe AssetLabels.empty
         }
 
         @Test
@@ -719,7 +720,7 @@ class RequestContextFactoryTest {
 
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation shouldBe variantConfig
-                context.labels shouldBe emptyMap()
+                context.labels shouldBe AssetLabels.empty
             }
 
         @Test
@@ -752,7 +753,7 @@ class RequestContextFactoryTest {
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
                 context.requestedTransformation.width shouldBe 500.toDimension()
                 context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels shouldBe emptyMap()
+                context.labels shouldBe AssetLabels.empty
             }
 
         @ParameterizedTest
@@ -851,7 +852,7 @@ class RequestContextFactoryTest {
                     queryParameters = parameters,
                 )
             context.requestedTransformation shouldBe transformation
-            context.labels shouldBe emptyMap()
+            context.labels shouldBe AssetLabels.empty
         }
 
         @Test
@@ -939,7 +940,7 @@ class RequestContextFactoryTest {
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
                 context.requestedTransformation.width shouldBe 500.toDimension()
                 context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels shouldContainExactly
+                context.labels.asMap() shouldContainExactly
                     mapOf(
                         "phone" to "iphone",
                         "case" to "soft",
@@ -970,9 +971,9 @@ class RequestContextFactoryTest {
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
                 context.requestedTransformation.width shouldBe 500.toDimension()
                 context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels shouldContainKey "phone"
-                context.labels shouldContainKey "case"
-                context.labels["case"] shouldBeOneOf listOf("hello", "soft")
+                context.labels.asMap() shouldContainKey "phone"
+                context.labels.asMap() shouldContainKey "case"
+                context.labels.asMap()["case"] shouldBeOneOf listOf("hello", "soft")
             }
 
         @Test
@@ -998,9 +999,9 @@ class RequestContextFactoryTest {
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
                 context.requestedTransformation.width shouldBe 500.toDimension()
                 context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels shouldContainKey "phone"
-                context.labels shouldContainKey "case"
-                context.labels["case"] shouldBeOneOf listOf("hello", "soft")
+                context.labels.asMap() shouldContainKey "phone"
+                context.labels.asMap() shouldContainKey "case"
+                context.labels.asMap()["case"] shouldBeOneOf listOf("hello", "soft")
             }
 
         @Test
@@ -1334,7 +1335,7 @@ class RequestContextFactoryTest {
                             append("label:height", "hello")
                         }.build(),
                 )
-            context.labels shouldContainExactly
+            context.labels.asMap() shouldContainExactly
                 mapOf(
                     "phone" to "iphone",
                     "case" to "soft",

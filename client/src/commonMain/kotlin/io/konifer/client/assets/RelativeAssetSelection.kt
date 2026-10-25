@@ -26,7 +26,10 @@ class RelativeAssetSelection internal constructor(
 ) : AssetSelection {
     internal val labels: Map<String, String> = labels.toMap()
 
-    /** Replaces the current label filter with a snapshot of [labels]. */
+    /**
+     * Replaces the current label filter with a snapshot of [labels].
+     * Keys are ordinary label names, such as `camera`; the client adds the query parameter prefix.
+     */
     fun matchingLabels(labels: Map<String, String>): RelativeAssetSelection =
         RelativeAssetSelection(
             infra = infra,

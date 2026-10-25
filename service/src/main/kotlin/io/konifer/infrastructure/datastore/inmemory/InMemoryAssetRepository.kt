@@ -5,6 +5,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
+import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.context.Limit
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
@@ -223,7 +224,7 @@ class InMemoryAssetRepository(
         deleteAndReturnObjectReferences(
             DeleteAssetsCommand.AtPath(
                 path = path,
-                labels = labels,
+                labels = labels.toAssetLabels(),
             ),
         )
     }
@@ -235,7 +236,7 @@ class InMemoryAssetRepository(
         deleteAndReturnObjectReferences(
             DeleteAssetsCommand.Recursively(
                 path = path,
-                labels = labels,
+                labels = labels.toAssetLabels(),
             ),
         )
     }
@@ -270,7 +271,7 @@ class InMemoryAssetRepository(
                         )
                         selectAssetsAtPath(
                             path = path,
-                            labels = command.labels,
+                            labels = command.labels.asMap(),
                         )
                     }
 
@@ -282,7 +283,7 @@ class InMemoryAssetRepository(
                             .flatMap { storedPath ->
                                 store[storedPath]
                                     ?.filter { asset ->
-                                        command.labels.all { entry -> asset.labels.asMap()[entry.key] == entry.value }
+                                        command.labels.asMap().all { entry -> asset.labels.asMap()[entry.key] == entry.value }
                                     }.orEmpty()
                             }
                     }

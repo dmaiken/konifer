@@ -5,6 +5,7 @@ import io.konifer.domain.asset.AssetNotFoundException
 import io.konifer.domain.asset.AssetRejectedException
 import io.konifer.domain.context.ContentTypeNotPermittedException
 import io.konifer.domain.context.IllegalRequestedTransformationException
+import io.konifer.domain.context.InvalidLabelsException
 import io.konifer.domain.context.InvalidPathException
 import io.konifer.domain.ports.AssetSourceForbiddenException
 import io.konifer.domain.ports.AssetSourceTimeoutException
@@ -30,6 +31,10 @@ fun Application.configureStatusPages() =
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
         exception<InvalidPathException> { call, cause ->
+            logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
+        }
+        exception<InvalidLabelsException> { call, cause ->
             logger.info("Returning ${HttpStatusCode.BadRequest} for ${call.request.path()}", cause)
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message))
         }
