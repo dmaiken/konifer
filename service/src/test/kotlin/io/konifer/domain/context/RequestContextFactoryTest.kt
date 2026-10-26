@@ -7,7 +7,6 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
-import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
@@ -21,9 +20,7 @@ import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.maps.shouldContainExactly
-import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -64,7 +61,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "10")
                         }.build(),
@@ -82,7 +79,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/modified/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "10")
                         }.build(),
@@ -100,7 +97,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/redirect",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "1")
                         }.build(),
@@ -118,7 +115,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/content",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "1")
                         }.build(),
@@ -136,7 +133,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/eNtRiEs/",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "10")
                         }.build(),
@@ -154,7 +151,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "-1")
                         }.build(),
@@ -186,7 +183,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "10")
                         }.build(),
@@ -203,7 +200,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "-1")
                         }.build(),
@@ -286,7 +283,7 @@ class RequestContextFactoryTest {
                 ),
                 arguments(
                     "/assets/profile/-/new/entries",
-                    ParametersBuilder()
+                    ParametersBuilder(1)
                         .apply {
                             append("limit", "10")
                         }.build(),
@@ -612,7 +609,7 @@ class RequestContextFactoryTest {
 
                 context.requestedTransformation!!.pixelLayout shouldBe
                     PixelLayout.valueOf(layout.uppercase())
-                context.labels shouldBe AssetLabels.empty
+                context.labels.isEmpty() shouldBe true
             }
 
         @Test
@@ -670,7 +667,7 @@ class RequestContextFactoryTest {
 
             context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
-            context.labels shouldBe AssetLabels.empty
+            context.labels.isEmpty() shouldBe true
             context.request.origin shouldBe origin
         }
 
@@ -689,7 +686,7 @@ class RequestContextFactoryTest {
 
             context.pathConfiguration shouldBe PathConfiguration.default
             context.selectors shouldBe expectedQuerySelectors
-            context.labels shouldBe AssetLabels.empty
+            context.labels.isEmpty() shouldBe true
         }
 
         @Test
@@ -720,7 +717,7 @@ class RequestContextFactoryTest {
 
                 context.pathConfiguration shouldBe PathConfiguration.default
                 context.requestedTransformation shouldBe variantConfig
-                context.labels shouldBe AssetLabels.empty
+                context.labels.isEmpty() shouldBe true
             }
 
         @Test
@@ -753,7 +750,7 @@ class RequestContextFactoryTest {
                 context.requestedTransformation!!.height shouldBe 100.toDimension()
                 context.requestedTransformation.width shouldBe 500.toDimension()
                 context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels shouldBe AssetLabels.empty
+                context.labels.isEmpty() shouldBe true
             }
 
         @ParameterizedTest
@@ -813,7 +810,7 @@ class RequestContextFactoryTest {
                             path = "/assets/profile/user/123/-/$returnFormat",
                             headers = HeadersBuilder().build(),
                             queryParameters =
-                                ParametersBuilder()
+                                ParametersBuilder(1)
                                     .apply {
                                         append("limit", "3")
                                     }.build(),
@@ -852,7 +849,7 @@ class RequestContextFactoryTest {
                     queryParameters = parameters,
                 )
             context.requestedTransformation shouldBe transformation
-            context.labels shouldBe AssetLabels.empty
+            context.labels.isEmpty() shouldBe true
         }
 
         @Test
@@ -885,7 +882,7 @@ class RequestContextFactoryTest {
                         path = "/assets/profile/123/-/entries/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
-                            ParametersBuilder()
+                            ParametersBuilder(1)
                                 .apply {
                                     append("limit", "10")
                                 }.build(),
@@ -931,8 +928,8 @@ class RequestContextFactoryTest {
                                     append("height", "100")
                                     append("width", "500")
                                     append("format", "jpg")
-                                    append("phone", "iphone")
-                                    append("case", "soft")
+                                    append("label:phone", "iphone")
+                                    append("label:case", "soft")
                                     append("label:height", "hello")
                                 }.build(),
                     )
@@ -949,12 +946,11 @@ class RequestContextFactoryTest {
             }
 
         @Test
-        fun `some label is used when duplicates exist in request`() =
+        fun `throws when duplicates labels exist in request`() =
             runTest {
-                val path = "/assets/profile/-/new/link/"
-                val context =
+                shouldThrow<InvalidLabelsException> {
                     requestContextFactory.fromFetchRequest(
-                        path = path,
+                        path = "/assets/profile/-/new/link/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
                             ParametersBuilder(6)
@@ -962,46 +958,12 @@ class RequestContextFactoryTest {
                                     append("height", "100")
                                     append("width", "500")
                                     append("format", "jpg")
-                                    append("phone", "iphone")
-                                    append("case", "soft")
-                                    append("case", "hello")
-                                }.build(),
-                    )
-                context.pathConfiguration shouldBe PathConfiguration.default
-                context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation.width shouldBe 500.toDimension()
-                context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels.asMap() shouldContainKey "phone"
-                context.labels.asMap() shouldContainKey "case"
-                context.labels.asMap()["case"] shouldBeOneOf listOf("hello", "soft")
-            }
-
-        @Test
-        fun `some label is used when duplicates exist and one is namespaced in request`() =
-            runTest {
-                val path = "/assets/profile/-/new/link/"
-                val context =
-                    requestContextFactory.fromFetchRequest(
-                        path = path,
-                        headers = HeadersBuilder().build(),
-                        queryParameters =
-                            ParametersBuilder(6)
-                                .apply {
-                                    append("height", "100")
-                                    append("width", "500")
-                                    append("format", "jpg")
-                                    append("phone", "iphone")
-                                    append("case", "soft")
+                                    append("label:phone", "iphone")
+                                    append("label:case", "soft")
                                     append("label:case", "hello")
                                 }.build(),
                     )
-                context.pathConfiguration shouldBe PathConfiguration.default
-                context.requestedTransformation!!.height shouldBe 100.toDimension()
-                context.requestedTransformation.width shouldBe 500.toDimension()
-                context.requestedTransformation.format shouldBe ImageFormat.JPEG
-                context.labels.asMap() shouldContainKey "phone"
-                context.labels.asMap() shouldContainKey "case"
-                context.labels.asMap()["case"] shouldBeOneOf listOf("hello", "soft")
+                }.message shouldBe "Labels must have exactly one value"
             }
 
         @Test
@@ -1082,7 +1044,7 @@ class RequestContextFactoryTest {
                                     append(HttpHeaders.Accept, "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5")
                                 }.build(),
                         queryParameters =
-                            ParametersBuilder()
+                            ParametersBuilder(1)
                                 .apply {
                                     append("profile", profileName)
                                 }.build(),
@@ -1104,7 +1066,7 @@ class RequestContextFactoryTest {
                                     append(HttpHeaders.Accept, "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5")
                                 }.build(),
                         queryParameters =
-                            ParametersBuilder()
+                            ParametersBuilder(1)
                                 .apply {
                                     append("format", "heic")
                                 }.build(),
@@ -1160,7 +1122,7 @@ class RequestContextFactoryTest {
                         path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
-                            ParametersBuilder()
+                            ParametersBuilder(1)
                                 .apply {
                                     append("width", "100")
                                 }.build(),
@@ -1197,7 +1159,7 @@ class RequestContextFactoryTest {
                         path = "/assets/profile/-/${returnFormat.name.lowercase()}/",
                         headers = HeadersBuilder().build(),
                         queryParameters =
-                            ParametersBuilder()
+                            ParametersBuilder(1)
                                 .apply {
                                     append("profile", "thumbnail")
                                 }.build(),
@@ -1328,10 +1290,10 @@ class RequestContextFactoryTest {
             val context =
                 requestContextFactory.fromDeleteRequest(
                     path,
-                    ParametersBuilder(6)
+                    ParametersBuilder(3)
                         .apply {
-                            append("phone", "iphone")
-                            append("case", "soft")
+                            append("label:phone", "iphone")
+                            append("label:case", "soft")
                             append("label:height", "hello")
                         }.build(),
                 )
@@ -1342,6 +1304,23 @@ class RequestContextFactoryTest {
                     "height" to "hello",
                 )
         }
+
+        @Test
+        fun `throws when duplicates labels exist in request`() =
+            runTest {
+                shouldThrow<InvalidLabelsException> {
+                    requestContextFactory.fromDeleteRequest(
+                        path = "/assets/profile/-/entry/10",
+                        queryParameters =
+                            ParametersBuilder(3)
+                                .apply {
+                                    append("label:phone", "iphone")
+                                    append("label:case", "soft")
+                                    append("label:case", "hello")
+                                }.build(),
+                    )
+                }.message shouldBe "Labels must have exactly one value"
+            }
     }
 
     @Nested

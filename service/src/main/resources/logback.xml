@@ -1,11 +1,22 @@
 <configuration>
+    <shutdownHook/>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="INFO">
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>4096</queueSize>
+        <!-- Preserve queued log events and block producers when the queue is full. -->
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>false</neverBlock>
+        <includeCallerData>false</includeCallerData>
+        <!-- Allow up to five seconds to drain queued events during shutdown. -->
+        <maxFlushTime>5000</maxFlushTime>
         <appender-ref ref="STDOUT"/>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="ASYNC_STDOUT"/>
     </root>
     <logger name="io.netty" level="INFO"/>
 </configuration>
