@@ -13,7 +13,7 @@ object RotateFlipNormalizer {
     ): RotateFlipParameters =
         if (requested.rotate == Rotate.AUTO) {
             if (requested.flip != Flip.NONE) {
-                throw IllegalArgumentException(
+                throw InvalidTransformationException(
                     "Cannot specify flip (${ManipulationParameters.FLIP}) when rotate=${Rotate.AUTO.name.lowercase()}",
                 )
             }

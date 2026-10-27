@@ -7,7 +7,6 @@ import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -76,7 +75,7 @@ class AssetInfoTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("not found")),
+                            """{"message":"not found"}""",
                             status = HttpStatusCode.NotFound,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

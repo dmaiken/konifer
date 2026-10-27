@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.asset
 
 import io.konifer.common.http.AssetSourceRequest
+import io.konifer.domain.context.InvalidRequestException
 import io.konifer.domain.ports.ExternalContentReference
 import io.konifer.domain.ports.InvalidAssetSourceException
 import software.amazon.awssdk.arns.Arn
@@ -12,11 +13,11 @@ object ExternalSourceResolver {
         deprecatedUrl: String?,
     ): ExternalContentReference {
         if (source.http.url == null && source.s3.arn == null && deprecatedUrl == null) {
-            throw IllegalArgumentException("URL or S3 ARN must be supplied")
+            throw InvalidRequestException("URL or S3 ARN must be supplied")
         }
         val url = source.http.url ?: deprecatedUrl
         if (url != null && source.s3.arn != null) {
-            throw IllegalArgumentException("Only one of source.http.url or source.s3.arn, or url can be supplied")
+            throw InvalidRequestException("Only one of source.http.url or source.s3.arn, or url can be supplied")
         }
 
         return when {
@@ -24,7 +25,7 @@ object ExternalSourceResolver {
                 val uri =
                     try {
                         URI.create(url).normalize()
-                    } catch (cause: Exception) {
+                    } catch (cause: IllegalArgumentException) {
                         throw InvalidAssetSourceException("$url is not a valid URL", cause)
                     }
 

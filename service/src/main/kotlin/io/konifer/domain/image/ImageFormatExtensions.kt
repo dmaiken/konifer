@@ -2,22 +2,24 @@ package io.konifer.domain.image
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ImageFormat.entries
+import io.konifer.domain.asset.InvalidAssetException
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.infrastructure.vips.VipsProperties
 
 fun ImageFormat.Factory.fromFormat(string: String): ImageFormat =
     entries.firstOrNull {
         it.format == string
-    } ?: throw IllegalArgumentException("Unsupported image format: $string")
+    } ?: throw InvalidTransformationException("Unsupported image format: $string")
 
 fun ImageFormat.Factory.fromMimeType(string: String): ImageFormat =
     entries.firstOrNull {
         it.mimeType.equals(string, ignoreCase = true)
-    } ?: throw IllegalArgumentException("Unsupported image mime type: $string")
+    } ?: throw InvalidAssetException("Unsupported image mime type: $string")
 
 fun ImageFormat.Factory.fromExtension(extension: String): ImageFormat =
     entries.firstOrNull {
         it.extension == extension
-    } ?: throw IllegalArgumentException("Unsupported image extension: $extension")
+    } ?: throw InvalidAssetException("Unsupported image extension: $extension")
 
 val ImageFormat.vipsProperties: VipsProperties
     get() =

@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.rules
 
 import com.typesafe.config.ConfigFactory
+import io.konifer.domain.rules.InvalidRuleDefinitionException
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.RulePrompt
@@ -105,7 +106,7 @@ class RuleExtensionsTest {
                 """.trimIndent(),
             )
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             config.getRuleDefinitions()
         }.message shouldBe "Rule name cannot be longer than 32 characters"
     }

@@ -7,7 +7,6 @@ import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
 import io.konifer.common.http.AssetSourceRequest
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.RuleDefinitionRequest
@@ -261,7 +260,7 @@ class RuleEvaluationTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("rules unavailable")),
+                            """{"message":"rules unavailable"}""",
                             status = HttpStatusCode.BadRequest,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

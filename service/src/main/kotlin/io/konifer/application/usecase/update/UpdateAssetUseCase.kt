@@ -4,9 +4,9 @@ import io.konifer.application.usecase.store.AssetAndLocation
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetNotFoundException
+import io.konifer.domain.asset.InvalidAssetException
 import io.konifer.domain.context.UpdateRequestContext
 import io.konifer.domain.ports.AssetRepository
-import java.lang.IllegalArgumentException
 
 class UpdateAssetUseCase(
     private val assetRepository: AssetRepository,
@@ -22,7 +22,7 @@ class UpdateAssetUseCase(
             ) ?: throw AssetNotFoundException(message = "Asset not found with path: ${context.path}, entryId: ${context.entryId}")
 
         if (asset !is Asset.Ready) {
-            throw IllegalArgumentException("Asset must be in ready state")
+            throw InvalidAssetException("Asset must be in ready state")
         }
 
         val updated =

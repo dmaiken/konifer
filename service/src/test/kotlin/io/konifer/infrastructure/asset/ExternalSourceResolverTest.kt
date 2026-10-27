@@ -3,6 +3,7 @@ package io.konifer.infrastructure.asset
 import io.konifer.common.http.AssetSourceRequest
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
+import io.konifer.domain.context.InvalidRequestException
 import io.konifer.domain.ports.ExternalContentReference
 import io.konifer.domain.ports.InvalidAssetSourceException
 import io.kotest.assertions.throwables.shouldThrow
@@ -73,7 +74,7 @@ class ExternalSourceResolverTest {
     @Test
     fun `rejects a request without an external source`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidRequestException> {
                 ExternalSourceResolver.resolve(
                     source = AssetSourceRequest(),
                     deprecatedUrl = null,
@@ -86,7 +87,7 @@ class ExternalSourceResolverTest {
     @Test
     fun `rejects a request containing both a URL and an ARN`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidRequestException> {
                 ExternalSourceResolver.resolve(
                     source =
                         AssetSourceRequest(

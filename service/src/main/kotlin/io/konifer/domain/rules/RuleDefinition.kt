@@ -10,14 +10,14 @@ data class RuleDefinition(
     val threshold: RuleDefinitionThreshold,
 ) {
     init {
-        require(prompts.isNotEmpty()) {
-            "Rule prompts cannot be empty"
+        if (prompts.isEmpty()) {
+            throw InvalidRuleDefinitionException("Rule prompts cannot be empty")
         }
-        require(prompts.size <= 100) {
-            "Cannot have more than 100 prompts per rule definition"
+        if (prompts.size > 100) {
+            throw InvalidRuleDefinitionException("Cannot have more than 100 prompts per rule definition")
         }
-        require(prompts.distinct().size == prompts.size) {
-            "Rule prompts must be distinct"
+        if (prompts.distinct().size != prompts.size) {
+            throw InvalidRuleDefinitionException("Rule prompts must be distinct")
         }
     }
 }
@@ -27,8 +27,12 @@ value class RuleDefinitions(
     val definitions: List<RuleDefinition>,
 ) {
     init {
-        require(definitions.isNotEmpty()) { "At least one rule request is required" }
-        require(definitions.size <= 10) { "Maximum of 10 rule definitions allowed per request" }
+        if (definitions.isEmpty()) {
+            throw InvalidRuleDefinitionException("At least one rule request is required")
+        }
+        if (definitions.size > 10) {
+            throw InvalidRuleDefinitionException("Maximum of 10 rule definitions allowed per request")
+        }
     }
 }
 
@@ -38,7 +42,9 @@ value class RuleDefinitionThreshold(
     val value: Double,
 ) {
     init {
-        require(value in 0.0..1.0) { "Rule threshold must be between 0.0 and 1.0" }
+        if (value !in 0.0..1.0) {
+            throw InvalidRuleDefinitionException("Rule threshold must be between 0.0 and 1.0")
+        }
     }
 }
 

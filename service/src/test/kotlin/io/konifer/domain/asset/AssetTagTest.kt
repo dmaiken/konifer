@@ -22,7 +22,7 @@ class AssetTagTest {
     @Test
     fun `cannot create blank asset tag`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidAssetException> {
                 AssetTag(" ")
             }
 
@@ -32,7 +32,7 @@ class AssetTagTest {
     @Test
     fun `cannot create asset tag above max length`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidAssetException> {
                 AssetTag("t".repeat(257))
             }
 
@@ -71,7 +71,7 @@ class AssetTagTest {
         val tags = (1..MAX_TAGS + 1).map { "tag-$it" }.toSet()
 
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidAssetException> {
                 AssetTags.from(tags)
             }
 

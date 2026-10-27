@@ -8,7 +8,9 @@ value class Quality(
     val value: Int,
 ) {
     init {
-        require(value in 1..100) { "Quality must be between 1 and 100: $value" }
+        if (value !in 1..100) {
+            throw InvalidTransformationException("Quality must be between 1 and 100: $value")
+        }
     }
 }
 

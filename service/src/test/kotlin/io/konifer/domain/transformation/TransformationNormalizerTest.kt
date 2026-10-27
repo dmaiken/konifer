@@ -12,6 +12,7 @@ import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.ExifOrientations
 import io.konifer.domain.image.vipsProperties
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.variant.TransformationLimitProperties
 import io.konifer.domain.variant.attribute.Attributes
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -617,7 +618,7 @@ class TransformationNormalizerTest {
                         rotate = Rotate.AUTO,
                         flip = flip,
                     )
-                shouldThrow<IllegalArgumentException> {
+                shouldThrow<InvalidTransformationException> {
                     transformationNormalizer.normalize(
                         limits = TransformationLimitProperties(),
                         originalVariantAttributes = attributes,
@@ -885,7 +886,7 @@ class TransformationNormalizerTest {
                         format = ImageFormat.PNG,
                     )
                 val exception =
-                    shouldThrow<IllegalArgumentException> {
+                    shouldThrow<InvalidTransformationException> {
                         transformationNormalizer.normalize(
                             limits = TransformationLimitProperties(),
                             originalVariantAttributes = attributes,

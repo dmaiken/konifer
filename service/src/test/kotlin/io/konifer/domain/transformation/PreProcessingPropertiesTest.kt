@@ -5,6 +5,7 @@ import io.konifer.common.image.Gravity
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.createPreProcessingProperties
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -18,7 +19,7 @@ class PreProcessingPropertiesTest {
     @ValueSource(ints = [-1, 0])
     fun `maxHeight cannot be less than 0`(maxHeight: Int) {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidTransformationException> {
                 createPreProcessingProperties(
                     maxHeight = maxHeight,
                 )
@@ -31,7 +32,7 @@ class PreProcessingPropertiesTest {
     @ValueSource(ints = [-1, 0])
     fun `maxWidth cannot be less than 0`(maxWidth: Int) {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidTransformationException> {
                 createPreProcessingProperties(
                     maxWidth = maxWidth,
                 )
@@ -63,7 +64,7 @@ class PreProcessingPropertiesTest {
     @ParameterizedTest
     @ValueSource(ints = [-1, 151])
     fun `blur cannot be outside bounds`(blur: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             createPreProcessingProperties(
                 blur = blur,
             )
@@ -73,7 +74,7 @@ class PreProcessingPropertiesTest {
     @ParameterizedTest
     @ValueSource(ints = [0, 101])
     fun `quality cannot be outside bounds`(quality: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             createPreProcessingProperties(
                 quality = quality,
             )
@@ -82,7 +83,7 @@ class PreProcessingPropertiesTest {
 
     @Test
     fun `pad cannot be negative`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             createPreProcessingProperties(
                 pad = -1,
             )

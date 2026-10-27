@@ -38,84 +38,88 @@ object PathSelectorExtractor {
         }
 
         val querySelectors =
-            try {
-                when (querySelectorSegments.size) {
-                    3 -> {
-                        if (querySelectorSegments[0] == ENTRY_ID_MODIFIER) {
-                            QuerySelectors(
-                                returnFormat = ReturnFormat.valueOf(querySelectorSegments[2]),
-                                entryId = querySelectorSegments[1].toNonNegativeLong(),
-                                limit = limit,
-                                specifiedModifiers =
-                                    SpecifiedInRequest(
-                                        returnFormat = true,
-                                        limit = isLimitSpecified,
-                                    ),
-                            )
-                        } else {
-                            throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
-                        }
+            when (querySelectorSegments.size) {
+                3 -> {
+                    if (querySelectorSegments[0] == ENTRY_ID_MODIFIER) {
+                        QuerySelectors(
+                            returnFormat =
+                                ReturnFormat.valueOfOrNull(querySelectorSegments[2])
+                                    ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
+                            entryId =
+                                querySelectorSegments[1].toNonNegativeLong()
+                                    ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
+                            limit = limit,
+                            specifiedModifiers =
+                                SpecifiedInRequest(
+                                    returnFormat = true,
+                                    limit = isLimitSpecified,
+                                ),
+                        )
+                    } else {
+                        throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
                     }
-
-                    2 -> {
-                        if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
-                            QuerySelectors(
-                                order = Order.valueOf(querySelectorSegments[0]),
-                                returnFormat = ReturnFormat.valueOf(querySelectorSegments[1]),
-                                limit = limit,
-                                specifiedModifiers =
-                                    SpecifiedInRequest(
-                                        orderBy = true,
-                                        returnFormat = true,
-                                        limit = isLimitSpecified,
-                                    ),
-                            )
-                        } else if (querySelectorSegments[0] == ENTRY_ID_MODIFIER) {
-                            QuerySelectors(
-                                entryId = querySelectorSegments[1].toNonNegativeLong(),
-                                limit = limit,
-                                specifiedModifiers =
-                                    SpecifiedInRequest(
-                                        limit = isLimitSpecified,
-                                    ),
-                            )
-                        } else {
-                            throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
-                        }
-                    }
-
-                    1 -> {
-                        if (ReturnFormat.valueOfOrNull(querySelectorSegments[0]) != null) {
-                            QuerySelectors(
-                                returnFormat = ReturnFormat.valueOf(querySelectorSegments[0]),
-                                limit = limit,
-                                specifiedModifiers =
-                                    SpecifiedInRequest(
-                                        returnFormat = true,
-                                        limit = isLimitSpecified,
-                                    ),
-                            )
-                        } else if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
-                            QuerySelectors(
-                                order = Order.valueOf(querySelectorSegments[0]),
-                                limit = limit,
-                                specifiedModifiers =
-                                    SpecifiedInRequest(
-                                        orderBy = true,
-                                        limit = isLimitSpecified,
-                                    ),
-                            )
-                        } else {
-                            throw IllegalArgumentException("Invalid query modifiers: $querySelectorSegments")
-                        }
-                    }
-
-                    else -> {
-                        QuerySelectors()
-                    } // Defaults
                 }
-            } catch (e: Exception) {
-                throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments", e)
+
+                2 -> {
+                    if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
+                        QuerySelectors(
+                            order = Order.valueOf(querySelectorSegments[0]),
+                            returnFormat =
+                                ReturnFormat.valueOfOrNull(querySelectorSegments[1])
+                                    ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
+                            limit = limit,
+                            specifiedModifiers =
+                                SpecifiedInRequest(
+                                    orderBy = true,
+                                    returnFormat = true,
+                                    limit = isLimitSpecified,
+                                ),
+                        )
+                    } else if (querySelectorSegments[0] == ENTRY_ID_MODIFIER) {
+                        QuerySelectors(
+                            entryId =
+                                querySelectorSegments[1].toNonNegativeLong()
+                                    ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
+                            limit = limit,
+                            specifiedModifiers =
+                                SpecifiedInRequest(
+                                    limit = isLimitSpecified,
+                                ),
+                        )
+                    } else {
+                        throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
+                    }
+                }
+
+                1 -> {
+                    if (ReturnFormat.valueOfOrNull(querySelectorSegments[0]) != null) {
+                        QuerySelectors(
+                            returnFormat = ReturnFormat.valueOf(querySelectorSegments[0]),
+                            limit = limit,
+                            specifiedModifiers =
+                                SpecifiedInRequest(
+                                    returnFormat = true,
+                                    limit = isLimitSpecified,
+                                ),
+                        )
+                    } else if (Order.valueOfOrNull(querySelectorSegments[0]) != null) {
+                        QuerySelectors(
+                            order = Order.valueOf(querySelectorSegments[0]),
+                            limit = limit,
+                            specifiedModifiers =
+                                SpecifiedInRequest(
+                                    orderBy = true,
+                                    limit = isLimitSpecified,
+                                ),
+                        )
+                    } else {
+                        throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments")
+                    }
+                }
+
+                else -> {
+                    QuerySelectors()
+                } // Defaults
             }
         val effectiveSelectors =
             if (!isLimitSpecified && querySelectors.returnFormat == ReturnFormat.ENTRIES) {
@@ -150,30 +154,29 @@ object PathSelectorExtractor {
         }
 
         val deleteModifiers =
-            try {
-                when (deleteModifierSegments.size) {
-                    2 -> {
-                        if (deleteModifierSegments[0] == ENTRY_ID_MODIFIER) {
-                            DeleteSelection.Entry(checkNotNull(deleteModifierSegments[1].toNonNegativeLong()))
-                        } else {
-                            throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
-                        }
-                    }
-
-                    1 -> {
-                        if (deleteModifierSegments[0] == RECURSIVE_MODIFIER) {
-                            DeleteSelection.Recursive
-                        } else {
-                            throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
-                        }
-                    }
-
-                    else -> {
+            when (deleteModifierSegments.size) {
+                2 -> {
+                    if (deleteModifierSegments[0] == ENTRY_ID_MODIFIER) {
+                        DeleteSelection.Entry(
+                            deleteModifierSegments[1].toNonNegativeLong()
+                                ?: throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments"),
+                        )
+                    } else {
                         throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
                     }
                 }
-            } catch (e: Exception) {
-                throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments", e)
+
+                1 -> {
+                    if (deleteModifierSegments[0] == RECURSIVE_MODIFIER) {
+                        DeleteSelection.Recursive
+                    } else {
+                        throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
+                    }
+                }
+
+                else -> {
+                    throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments")
+                }
             }
         logger.debug { "Parsed delete modifiers for path: $path - $deleteModifiers" }
 
@@ -182,7 +185,7 @@ object PathSelectorExtractor {
 
     private fun Parameters.requestedLimit(): Limit? {
         val values = getAll(LIMIT_PARAMETER) ?: return null
-        require(values.size == 1) { "Limit must be supplied exactly once" }
+        if (values.size != 1) throw InvalidRequestException("Limit must be supplied exactly once")
         return values.single().toLimit()
     }
 }

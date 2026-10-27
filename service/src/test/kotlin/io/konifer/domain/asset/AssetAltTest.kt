@@ -20,7 +20,7 @@ class AssetAltTest {
     @Test
     fun `cannot create asset alt above max length`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidAssetException> {
                 AssetAlt("a".repeat(126))
             }
 

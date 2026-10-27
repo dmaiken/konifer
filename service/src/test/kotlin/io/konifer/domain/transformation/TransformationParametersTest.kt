@@ -1,5 +1,6 @@
 package io.konifer.domain.transformation
 
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest
@@ -15,7 +16,7 @@ class TransformationParametersTest {
     @ParameterizedTest
     @ValueSource(ints = [Int.MIN_VALUE, -1, 0])
     fun `dimension rejects non-positive values`(value: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             value.toDimension()
         }
     }
@@ -29,7 +30,7 @@ class TransformationParametersTest {
     @ParameterizedTest
     @ValueSource(ints = [Int.MIN_VALUE, -1, 151, Int.MAX_VALUE])
     fun `blur rejects values outside its bounds`(value: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             value.toBlur()
         }
     }
@@ -43,7 +44,7 @@ class TransformationParametersTest {
     @ParameterizedTest
     @ValueSource(ints = [Int.MIN_VALUE, 0, 101, Int.MAX_VALUE])
     fun `quality rejects values outside its bounds`(value: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             value.toQuality()
         }
     }
@@ -57,7 +58,7 @@ class TransformationParametersTest {
     @ParameterizedTest
     @ValueSource(ints = [Int.MIN_VALUE, -1])
     fun `padding amount rejects negative values`(value: Int) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             value.toPaddingAmount()
         }
     }

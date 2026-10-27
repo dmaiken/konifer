@@ -1,5 +1,6 @@
 package io.konifer.domain.transformation.pixel
 
+import io.konifer.domain.transformation.InvalidTransformationException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -14,15 +15,18 @@ value class PixelChannels private constructor(
     val value: String,
 ) {
     init {
-        require(value.length in (3..4)) {
-            "Pixel channels must be between 3 and 4 characters"
+        if (value.length !in 3..4) {
+            throw InvalidTransformationException("Pixel channels must be between 3 and 4 characters")
         }
         val channels = value.toSet()
-        require(
-            (value.length == 3 && channels == RGB_CHANNELS) ||
-                (value.length == 4 && (channels == RGBA_CHANNELS || value == GRAY)),
+        if (!(
+                (value.length == 3 && channels == RGB_CHANNELS) ||
+                    (value.length == 4 && (channels == RGBA_CHANNELS || value == GRAY))
+            )
         ) {
-            "Pixel channels must contain R, G, B exactly once and optionally A once, or 'gray' (any case)"
+            throw InvalidTransformationException(
+                "Pixel channels must contain R, G, B exactly once and optionally A once, or 'gray' (any case)",
+            )
         }
     }
 

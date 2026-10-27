@@ -3,6 +3,7 @@ package io.konifer.domain.context
 import io.konifer.common.image.Fit
 import io.konifer.common.image.ImageFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.toDimension
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -46,7 +47,7 @@ class RequestedTransformationTest {
     @ParameterizedTest
     @EnumSource(Fit::class, mode = EnumSource.Mode.EXCLUDE, names = ["FIT"])
     fun `height and width are required depending on the fit`(fit: Fit) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             createRequestedImageTransformation(
                 height = 200,
                 format = ImageFormat.PNG,
@@ -62,7 +63,7 @@ class RequestedTransformationTest {
         ],
     )
     fun `throws when normalizing invalidBackground`(badBackground: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             createRequestedImageTransformation(
                 pad = 10,
                 padColor = badBackground,

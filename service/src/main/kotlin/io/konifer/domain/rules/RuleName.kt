@@ -14,8 +14,12 @@ value class RuleName private constructor(
     val value: String,
 ) {
     init {
-        require(value.isNotBlank()) { "Rule name cannot be blank" }
-        require(value.length <= 32) { "Rule name cannot be longer than 32 characters" }
+        if (value.isBlank()) {
+            throw InvalidRuleDefinitionException("Rule name cannot be blank")
+        }
+        if (value.length > 32) {
+            throw InvalidRuleDefinitionException("Rule name cannot be longer than 32 characters")
+        }
     }
 
     companion object {

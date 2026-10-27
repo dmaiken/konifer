@@ -8,7 +8,9 @@ value class Blur(
     val value: Int,
 ) {
     init {
-        require(value in 0..150) { "Blur must be between 0 and 150: $value" }
+        if (value !in 0..150) {
+            throw InvalidTransformationException("Blur must be between 0 and 150: $value")
+        }
     }
 }
 

@@ -12,7 +12,6 @@ import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -30,7 +29,6 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.async
 import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
 
 class AssetContentTest :
     FunSpec({
@@ -272,7 +270,7 @@ class AssetContentTest :
                     MockEngine { request ->
                         request.url.encodedPath shouldBe "/assets/users/123/-/new/content"
                         respond(
-                            Json.encodeToString(ErrorResponse("not found")),
+                            """{"message":"not found"}""",
                             status = HttpStatusCode.NotFound,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )
@@ -290,7 +288,7 @@ class AssetContentTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("not found")),
+                            """{"message":"not found"}""",
                             status = HttpStatusCode.NotFound,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

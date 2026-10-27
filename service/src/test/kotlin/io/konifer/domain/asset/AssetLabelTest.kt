@@ -1,5 +1,6 @@
 package io.konifer.domain.asset
 
+import io.konifer.domain.context.InvalidLabelsException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
@@ -22,7 +23,7 @@ class AssetLabelTest {
     @Test
     fun `cannot create blank label key`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidLabelsException> {
                 LabelKey(" ")
             }
 
@@ -32,7 +33,7 @@ class AssetLabelTest {
     @Test
     fun `cannot create label key above max length`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidLabelsException> {
                 LabelKey("k".repeat(129))
             }
 
@@ -54,7 +55,7 @@ class AssetLabelTest {
     @Test
     fun `cannot create blank label value`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidLabelsException> {
                 LabelValue("")
             }
 
@@ -64,7 +65,7 @@ class AssetLabelTest {
     @Test
     fun `cannot create label value above max length`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidLabelsException> {
                 LabelValue("v".repeat(257))
             }
 
@@ -107,7 +108,7 @@ class AssetLabelTest {
         val labels = (1..51).associate { "key-$it" to "value-$it" }
 
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidLabelsException> {
                 AssetLabels.from(labels)
             }
 

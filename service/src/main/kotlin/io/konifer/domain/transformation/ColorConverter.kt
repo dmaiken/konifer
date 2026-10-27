@@ -9,7 +9,7 @@ object ColorConverter {
 
     fun toRgba(hex: String): List<Int> {
         if (!hexColorRegex.matches(hex)) {
-            throw IllegalArgumentException("Invalid hex string: $hex")
+            throw InvalidTransformationException("Invalid hex string: $hex")
         }
 
         val cleanHex = hex.removePrefix("#")
@@ -28,7 +28,7 @@ object ColorConverter {
                 // #RRGGBBAA
                 8 -> cleanHex
 
-                else -> throw IllegalArgumentException("Invalid hex color: $hex")
+                else -> throw InvalidTransformationException("Invalid hex color: $hex")
             }
 
         val r = fullHex.take(2).toInt(16)

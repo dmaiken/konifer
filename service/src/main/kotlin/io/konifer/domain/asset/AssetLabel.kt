@@ -1,5 +1,6 @@
 package io.konifer.domain.asset
 
+import io.konifer.domain.context.InvalidLabelsException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
@@ -28,8 +29,12 @@ value class LabelKey(
     val key: String,
 ) {
     init {
-        require(key.isNotBlank()) { "Label key cannot be blank" }
-        require(key.length <= MAX_LABEL_KEY_LENGTH) { "Label key cannot exceed $MAX_LABEL_KEY_LENGTH characters" }
+        if (key.isBlank()) {
+            throw InvalidLabelsException("Label key cannot be blank")
+        }
+        if (key.length > MAX_LABEL_KEY_LENGTH) {
+            throw InvalidLabelsException("Label key cannot exceed $MAX_LABEL_KEY_LENGTH characters")
+        }
     }
 }
 
@@ -38,8 +43,12 @@ value class LabelValue(
     val value: String,
 ) {
     init {
-        require(value.isNotBlank()) { "Label value cannot be blank" }
-        require(value.length <= MAX_LABEL_VALUE_LENGTH) { "Label value cannot exceed $MAX_LABEL_VALUE_LENGTH characters" }
+        if (value.isBlank()) {
+            throw InvalidLabelsException("Label value cannot be blank")
+        }
+        if (value.length > MAX_LABEL_VALUE_LENGTH) {
+            throw InvalidLabelsException("Label value cannot exceed $MAX_LABEL_VALUE_LENGTH characters")
+        }
     }
 }
 
@@ -48,7 +57,9 @@ class AssetLabels private constructor(
     private val values: Map<LabelKey, LabelValue>,
 ) {
     init {
-        require(values.size <= MAX_LABELS) { "Cannot have more than $MAX_LABELS labels" }
+        if (values.size > MAX_LABELS) {
+            throw InvalidLabelsException("Cannot have more than $MAX_LABELS labels")
+        }
     }
 
     companion object Factory {

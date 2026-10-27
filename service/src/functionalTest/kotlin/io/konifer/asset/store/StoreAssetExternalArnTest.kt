@@ -4,6 +4,7 @@ import io.konifer.BaseFlociTestContainersTest
 import io.konifer.ImageFactory
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.ErrorCode
 import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
@@ -110,7 +111,7 @@ class StoreAssetExternalArnTest : BaseFlociTestContainersTest() {
                             ),
                     ) shouldHaveHttpError HttpStatusCode.BadGateway.value
 
-            response.message shouldBe "Amazon S3 source client could not be initialized"
+            response.code shouldBe ErrorCode.SOURCE_UNAVAILABLE
         }
 
     @Test

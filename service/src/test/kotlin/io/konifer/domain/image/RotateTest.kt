@@ -2,6 +2,7 @@ package io.konifer.domain.image
 
 import io.konifer.common.image.ManipulationParameters.ROTATE
 import io.konifer.common.image.Rotate
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ParametersBuilder
@@ -49,7 +50,7 @@ class RotateTest {
                 }.build()
 
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidTransformationException> {
                 Rotate.fromQueryParameters(parameters, ROTATE)
             }
         exception.message shouldBe "Invalid rotation: $invalid. Must be increments of 90"

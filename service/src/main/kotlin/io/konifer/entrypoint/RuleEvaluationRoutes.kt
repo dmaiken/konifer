@@ -1,8 +1,11 @@
 package io.konifer.entrypoint
 
 import io.konifer.application.usecase.evaluate.EvaluateRuleDefinitionUseCase
+import io.konifer.common.http.ErrorCode
+import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
+import io.konifer.domain.context.InvalidRequestException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -62,7 +65,10 @@ private suspend fun RoutingCall.evaluateRuleDefinitions(evaluateRuleDefinitionUs
         }
 
         else -> {
-            respond(HttpStatusCode.UnsupportedMediaType)
+            respond(
+                HttpStatusCode.UnsupportedMediaType,
+                ErrorResponse("Use application/json or multipart/form-data", ErrorCode.UNSUPPORTED_MEDIA_TYPE),
+            )
         }
     }
 }
@@ -73,19 +79,19 @@ private suspend fun RoutingCall.evaluateMultipartRuleDefinitions(
     receiveMultipartUpload { Json.decodeFromString<EvaluateRuleDefinitionsRequest>(it) }.use { upload ->
         when {
             upload.duplicateAssetReceived -> {
-                throw IllegalArgumentException("Multiple asset payloads supplied")
+                throw InvalidRequestException("Multiple asset payloads supplied")
             }
 
             upload.duplicateMetadataReceived -> {
-                throw IllegalArgumentException("Multiple metadata payloads supplied")
+                throw InvalidRequestException("Multiple metadata payloads supplied")
             }
 
             !upload.request.isCompleted -> {
-                throw IllegalArgumentException("No asset metadata supplied")
+                throw InvalidRequestException("No asset metadata supplied")
             }
 
             upload.assetContainer == null -> {
-                throw IllegalArgumentException("No asset payload supplied")
+                throw InvalidRequestException("No asset payload supplied")
             }
 
             else -> {
