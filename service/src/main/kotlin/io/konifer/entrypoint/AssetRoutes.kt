@@ -141,7 +141,7 @@ fun Application.configureAssetRouting() {
 
             delete("/{...}") {
                 deleteAssetUseCase.deleteAssets(
-                    requestContextFactory.fromDeleteRequest(call.request.path(), call.parameters),
+                    requestContextFactory.fromDeleteRequest(call.request.path(), call.request.queryParameters),
                 )
 
                 call.respond(HttpStatusCode.NoContent)

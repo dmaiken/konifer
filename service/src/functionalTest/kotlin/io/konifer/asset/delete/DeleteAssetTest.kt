@@ -6,20 +6,70 @@ import io.konifer.ImageFactory
 import io.konifer.client.assets.fetch.EntryId
 import io.konifer.client.assets.fetch.Recursive
 import io.konifer.common.http.AssetEntriesResponse
+import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.ErrorCode
+import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class DeleteAssetTest : BaseFunctionalTest() {
+    @ParameterizedTest
+    @ValueSource(strings = ["exact", "recursive", "entry"])
+    fun `unknown parameters cannot broaden any deletion selection`(selection: String) =
+        testInMemory {
+            val image = ImageFactory.testImage().bytes
+            val stored =
+                listOf("profile", "profile", "profile/child", "profile-neighbor").mapIndexed { index, path ->
+                    storeAssetMultipartSource(
+                        client,
+                        image,
+                        StoreAssetRequest(alt = "asset-$index", labels = mapOf("purpose" to "thumbnail")),
+                        path = path,
+                    )
+                }
+            val target =
+                when (selection) {
+                    "exact" -> "/assets/profile?limit=-1&"
+                    "recursive" -> "/assets/profile/-/recursive?"
+                    else -> "/assets/profile/-/entry/${stored.first().second!!.entryId}?"
+                }
+            val unknownParameters =
+                listOf(
+                    "purpose=thumbnail",
+                    "width=100",
+                    "labels=thumbnail",
+                    "Label:purpose=thumbnail",
+                    "label-purpose=thumbnail",
+                    "s=signature",
+                    "Limit=-1",
+                )
+            unknownParameters.forEach { parameter ->
+                val response = client.delete(target + parameter)
+                response.status shouldBe HttpStatusCode.BadRequest
+                val error = response.body<ErrorResponse>()
+                error.code shouldBe ErrorCode.INVALID_REQUEST
+                error.message!! shouldContain parameter.substringBefore('=')
+                stored.forEachIndexed { index, (headers, _) ->
+                    val remaining = client.get(headers["Location"]!! + "/info")
+                    remaining.status shouldBe HttpStatusCode.OK
+                    remaining.body<AssetResponse>().alt shouldBe "asset-$index"
+                }
+            }
+        }
+
     @Test
     fun `deleting asset that does not exist returns no content`() =
         testInMemory {
@@ -258,7 +308,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
             val requestWithLabels =
                 StoreAssetRequest(
                     alt = "an image",
-                    labels = mapOf("phone" to "iphone"),
+                    labels = mapOf("phone" to "iphone", "width" to "100"),
                 )
             val requestWithoutLabels =
                 StoreAssetRequest(
@@ -295,7 +345,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
             konifer().deleteAsset(
                 path = "user/123",
                 limit = -1,
-                labels = mapOf("phone" to "iphone"),
+                labels = mapOf("phone" to "iphone", "width" to "100"),
             )
 
             konifer().fetchAssetInfo(
@@ -326,7 +376,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
             val requestWithLabels =
                 StoreAssetRequest(
                     alt = "an image",
-                    labels = mapOf("phone" to "iphone"),
+                    labels = mapOf("phone" to "iphone", "width" to "100"),
                 )
             val requestWithoutLabels = StoreAssetRequest()
             val control =
@@ -378,7 +428,7 @@ class DeleteAssetTest : BaseFunctionalTest() {
             konifer()
                 .deleteAsset(
                     path = "user/123",
-                    labels = mapOf("phone" to "iphone"),
+                    labels = mapOf("phone" to "iphone", "width" to "100"),
                     querySelectors = Recursive,
                 ).shouldBeSuccessful()
 

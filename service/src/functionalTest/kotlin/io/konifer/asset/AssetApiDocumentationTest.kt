@@ -10,7 +10,9 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -61,6 +63,23 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
                 pathParameter.getValue("required").jsonPrimitive.content shouldBe "true"
             }
             assertFetchDocumentation(assets.getValue("get").jsonObject)
+            assets
+                .getValue("delete")
+                .jsonObject
+                .getValue("description")
+                .jsonPrimitive.content shouldContain
+                "unknown query parameters return 400"
+            listOf("get", "delete").forEach { method ->
+                val labels =
+                    assets
+                        .getValue(method)
+                        .jsonObject
+                        .parameters()
+                        .single { it["name"]?.jsonPrimitive?.content == "labels" }
+                val description = labels.getValue("description").jsonPrimitive.content
+                description shouldContain "Only parameters prefixed with label: filter labels"
+                description shouldNotContain "Unreserved query names also filter labels"
+            }
             assertStoreDocumentation(assets.getValue("post").jsonObject)
             assertStoreDocumentation(
                 paths
@@ -192,6 +211,7 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
     }
 
     private fun assertFetchDocumentation(operation: JsonObject) {
+        operation.getValue("description").jsonPrimitive.content shouldContain "Unknown query parameters are ignored"
         val parameters = operation.parameters().associateBy { it.getValue("name").jsonPrimitive.content }
         parameters.keys shouldContainAll ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
         parameters.keys shouldContainAll setOf("profile", "limit", "labels", "s", "Accept", "If-None-Match", "If-Modified-Since")
