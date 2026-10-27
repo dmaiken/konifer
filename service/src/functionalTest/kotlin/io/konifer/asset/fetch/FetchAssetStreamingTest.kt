@@ -4,7 +4,9 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory.testImage
 import io.konifer.application.usecase.fetch.CacheResult
 import io.konifer.application.usecase.fetch.FetchAssetHandler
+import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
+import io.konifer.common.image.ImageFormat
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
@@ -16,10 +18,13 @@ import io.konifer.util.storeAssetMultipartSource
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.utils.io.ByteChannel
@@ -28,10 +33,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.koin.dsl.module
+import java.util.zip.GZIPInputStream
 
 class FetchAssetStreamingTest : BaseFunctionalTest() {
     private lateinit var objectStore: ObservedObjectStore
@@ -50,6 +57,82 @@ class FetchAssetStreamingTest : BaseFunctionalTest() {
                 contextFactory = get()
                 FetchAssetHandler(get(), get(), get(), get()).also { handler = it }
             }
+        }
+
+    @Test
+    fun `unknown fetch parameters do not filter assets or change the selected representation`() =
+        testInMemory {
+            val image = testImage().bytes
+            val first = storeAssetMultipartSource(client, image, StoreAssetRequest(labels = mapOf("purpose" to "old")))
+            val latest = storeAssetMultipartSource(client, image, StoreAssetRequest(labels = mapOf("purpose" to "new")))
+            val info = client.get("/assets/profile/-/info?purpose=old&widht=900&label-purpose=old")
+            info.status shouldBe HttpStatusCode.OK
+            info.body<AssetResponse>().entryId shouldBe latest.second!!.entryId
+            client.get("/assets/profile/-/info?label:purpose=old").body<AssetResponse>().entryId shouldBe first.second!!.entryId
+
+            val original = client.get("/assets/profile/-/content?width=100")
+            val unknown = client.get("/assets/profile/-/content?width=100&widht=900&purpose=old")
+            unknown.status shouldBe HttpStatusCode.OK
+            unknown.headers[HttpHeaders.ETag] shouldBe original.headers[HttpHeaders.ETag]
+            unknown.bodyAsBytes().toList() shouldBe original.bodyAsBytes().toList()
+        }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["content", "download"])
+    fun `conditional requests distinguish negotiated formats and transformations`(returnFormat: String) =
+        testInMemory(modules = listOf(observedModule)) {
+            storeAssetMultipartSource(client, testImage(ImageFormat.JPEG).bytes, StoreAssetRequest())
+            val representations = listOf("image/png" to 100, "image/webp" to 100, "image/webp" to 101)
+            val responses =
+                representations.map { (format, width) ->
+                    client
+                        .get("/assets/profile/-/$returnFormat?width=$width") { header(HttpHeaders.Accept, format) }
+                        .also { it.status shouldBe HttpStatusCode.OK }
+                }
+            val etags = responses.map { checkNotNull(it.headers[HttpHeaders.ETag]) }
+            etags.toSet().size shouldBe representations.size
+            etags.forEach { it shouldStartWith "\"" }
+            representations.forEachIndexed { index, (format, width) ->
+                objectStore.reset()
+                val previousTag = etags[(index + 1) % etags.size]
+                val changed =
+                    client.get("/assets/profile/-/$returnFormat?width=$width") {
+                        header(HttpHeaders.Accept, format)
+                        header(HttpHeaders.IfNoneMatch, previousTag)
+                        header(HttpHeaders.IfModifiedSince, checkNotNull(responses[index].headers[HttpHeaders.LastModified]))
+                    }
+                changed.status shouldBe HttpStatusCode.OK
+                changed.headers[HttpHeaders.ContentType] shouldBe format
+                changed.headers[HttpHeaders.ETag] shouldBe etags[index]
+                changed.bodyAsBytes().toList() shouldBe responses[index].bodyAsBytes().toList()
+                objectStore.fetches shouldHaveSize 1
+            }
+        }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["content", "download"])
+    fun `raw pixel validators remain weak across HTTP compression and skip cached reads`(returnFormat: String) =
+        testInMemory(modules = listOf(observedModule)) {
+            storeAssetMultipartSource(client, testImage().bytes, StoreAssetRequest())
+            val path = "/assets/profile/-/$returnFormat?width=100&format=pixels"
+            val identity = client.get(path)
+            identity.status shouldBe HttpStatusCode.OK
+            val etag = checkNotNull(identity.headers[HttpHeaders.ETag])
+            etag shouldStartWith "W/\""
+            val compressed = client.get(path) { header(HttpHeaders.AcceptEncoding, "gzip") }
+            compressed.status shouldBe HttpStatusCode.OK
+            compressed.headers[HttpHeaders.ContentEncoding] shouldBe "gzip"
+            compressed.headers[HttpHeaders.ETag] shouldBe etag
+            GZIPInputStream(compressed.bodyAsBytes().inputStream()).use { it.readBytes() }.toList() shouldBe identity.bodyAsBytes().toList()
+            objectStore.reset()
+            val conditional =
+                client.get(path) {
+                    header(HttpHeaders.AcceptEncoding, "gzip")
+                    header(HttpHeaders.IfNoneMatch, etag)
+                }
+            conditional.status shouldBe HttpStatusCode.NotModified
+            conditional.bodyAsBytes().size shouldBe 0
+            objectStore.fetches shouldHaveSize 0
         }
 
     @ParameterizedTest

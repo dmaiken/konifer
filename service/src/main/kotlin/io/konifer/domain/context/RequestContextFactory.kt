@@ -5,6 +5,7 @@ import io.konifer.common.image.Fit
 import io.konifer.common.image.Flip
 import io.konifer.common.image.Gravity
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.image.ManipulationParameters.ALL_TRANSFORMATION_PARAMETERS
 import io.konifer.common.image.ManipulationParameters.BLUR
 import io.konifer.common.image.ManipulationParameters.COLOR_SPACE
@@ -116,6 +117,10 @@ class RequestContextFactory(
         queryParameters: Parameters,
     ): DeleteRequestContext {
         val parsedPath = parsePath(path)
+        val unknownParameters = queryParameters.names().filter { it != LIMIT_PARAMETER && !it.startsWith("label:") }
+        if (unknownParameters.isNotEmpty()) {
+            throw InvalidRequestException("Unknown delete query parameters: ${unknownParameters.sorted().joinToString()}")
+        }
 
         return DeleteRequestContext(
             path = parsedPath.assetPath,
@@ -236,11 +241,7 @@ class RequestContextFactory(
         }
     }
 
-    /**
-     * Extract any labels supplied to filter against. Check query parameters for:
-     * 1. Namespaced labels - labels starting with "label:"
-     * 2. Check for any query parameter not already reserved as a currently used param (e.g. height, width, etc.)
-     */
+    /** Extract only explicitly namespaced label filters. */
     private fun extractLabels(parameters: Parameters): AssetLabels {
         val labels =
             parameters

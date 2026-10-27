@@ -1197,6 +1197,22 @@ class RequestContextFactoryTest {
 
     @Nested
     inner class DeleteRequestContextTests {
+        @Test
+        fun `unknown delete parameters report all unsupported names`() {
+            val error =
+                shouldThrow<InvalidRequestException> {
+                    requestContextFactory.fromDeleteRequest(
+                        "/assets/profile",
+                        Parameters.build {
+                            append("limit", "-1")
+                            append("width", "100")
+                            append("purpose", "thumbnail")
+                        },
+                    )
+                }
+            error.message shouldBe "Unknown delete query parameters: purpose, width"
+        }
+
         @ParameterizedTest
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#deleteModifierSource")
         fun `can fetch DELETE request context with query modifiers`(

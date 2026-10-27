@@ -4,8 +4,8 @@ import io.konifer.application.usecase.fetch.AssetContent
 import io.konifer.common.http.AttributesResponse
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.domain.asset.AssetDataContainer
-import io.konifer.infrastructure.http.CustomAttributes.entryIdKey
 import io.konifer.infrastructure.http.CustomAttributes.lastModifiedKey
+import io.konifer.infrastructure.http.CustomAttributes.variantIdKey
 import io.konifer.infrastructure.http.fromAttributes
 import io.konifer.infrastructure.http.getAltHeader
 import io.konifer.infrastructure.http.getAppStatusCacheHeader
@@ -45,8 +45,8 @@ suspend fun ApplicationCall.respondContent(
     getAttributeHeaders(AttributesResponse.fromAttributes(variantAttributes)).forEach {
         this.response.headers.append(it.first, it.second)
     }
-    // Populate attributes used for etag creation
-    this.attributes[entryIdKey] = asset.entryId
+    // Identify the selected representation without reading its content.
+    this.attributes[variantIdKey] = variant.id
     this.attributes[lastModifiedKey] = asset.modifiedAt
 
     this.respondBytesWriter(

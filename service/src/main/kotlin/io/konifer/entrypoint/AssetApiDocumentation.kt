@@ -61,6 +61,7 @@ internal fun Operation.Builder.fetchAssetDocumentation() {
         a profile and explicit parameters must normalize to that profile; profiles without a format allow format negotiation.
         Output format is resolved from `format`, then the profile,
         then a recognized image MIME type in Accept; otherwise the original format is retained.
+        Unknown query parameters are ignored. Only parameters prefixed with `label:` filter labels.
 
         `format=pixels` returns unsigned 8-bit raw pixel bytes as application/octet-stream, without an image header.
         Pixels are ordered by rows; channel order and memory layout are controlled by `pixel-channels` and
@@ -195,6 +196,7 @@ internal fun Operation.Builder.deleteAssetDocumentation() {
         explicit entry IDs to delete a bounded selection. Entry and recursive selectors cannot be combined with limit.
         Label filters apply to exact-path and recursive bulk deletion. Bulk operations evaluate matches when executed;
         they do not preserve a snapshot across concurrent uploads. Repeated deletion succeeds when no entries remain.
+        Only `limit` and parameters prefixed with `label:` are accepted; unknown query parameters return 400.
         Asset metadata and variant references are deleted synchronously; object-store content is deleted
         asynchronously. Deletion is irreversible. Return 204 even when no entries match.
         """.trimIndent()
@@ -210,7 +212,7 @@ internal fun Operation.Builder.deleteAssetDocumentation() {
     responses {
         HttpStatusCode.NoContent { description = "Deletion completed, including when no entries matched. No response body." }
         errorResponse(HttpStatusCode.InternalServerError, "Unexpected server failure.")
-        errorResponse(HttpStatusCode.BadRequest, "Invalid path, selectors, or limit combination.")
+        errorResponse(HttpStatusCode.BadRequest, "Invalid path, selectors, labels, limit combination, or unknown query parameters.")
     }
 }
 
@@ -244,7 +246,7 @@ private fun Parameters.Builder.labelFilters() {
     query("labels") {
         description =
             "Label filters encoded as independent query parameters, e.g. label:purpose=profile. " +
-            "Unreserved query names also filter labels. All supplied labels must match."
+            "Only parameters prefixed with label: filter labels. All supplied labels must match."
         style = "form"
         explode = true
         schema = jsonSchema<Map<String, String>>()

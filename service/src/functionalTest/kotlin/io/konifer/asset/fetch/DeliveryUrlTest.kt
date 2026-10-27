@@ -25,6 +25,7 @@ import io.konifer.util.storeAssetMultipartSource
 import io.konifer.util.updateAsset
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -106,9 +107,10 @@ class DeliveryUrlTest : BaseFunctionalTest() {
                 .fetchAssetInfo("profile")
                 .shouldBeSuccessful()
                 .body.variants shouldHaveSize 1
-            val replayed = client.get(link.url)
+            val replayed = client.get(link.url) { header(HttpHeaders.IfNoneMatch, checkNotNull(before.headers[HttpHeaders.ETag])) }
             replayed.status shouldBe HttpStatusCode.OK
             replayed.headers[APP_CACHE_STATUS] shouldBe "miss"
+            replayed.headers[HttpHeaders.ETag] shouldNotBe before.headers[HttpHeaders.ETag]
             replayed.bodyAsBytes().toList() shouldBe before.bodyAsBytes().toList()
         }
     }
