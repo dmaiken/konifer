@@ -1,6 +1,7 @@
 package io.konifer.domain.transformation.pixel
 
 import com.typesafe.config.ConfigFactory
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.PreProcessingProperties
 import io.konifer.domain.transformation.RequestedTransformation
 import io.kotest.assertions.throwables.shouldThrow
@@ -65,7 +66,7 @@ class PixelChannelsTest {
     @ParameterizedTest
     @ValueSource(strings = ["", "R", "RG", "RGBAB", "RGBARG"])
     fun `rejects channel counts outside three or four`(channels: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             PixelChannels(channels)
         }.message shouldBe "Pixel channels must be between 3 and 4 characters"
     }
@@ -73,7 +74,7 @@ class PixelChannelsTest {
     @ParameterizedTest
     @ValueSource(strings = ["RGX", "R1B", "RGB ", " RGB", "R-B", "GREY", "GARY", "YARG"])
     fun `rejects unsupported channels`(channels: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             channels.toPixelChannels()
         }
     }
@@ -81,7 +82,7 @@ class PixelChannelsTest {
     @ParameterizedTest
     @ValueSource(strings = ["RRR", "GGG", "BBB", "RGBG", "AAA", "AAAA"])
     fun `rejects duplicative or incomplete channels`(channels: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             channels.toPixelChannels()
         }
     }
@@ -127,7 +128,7 @@ class PixelChannelsTest {
     @ParameterizedTest
     @ValueSource(strings = ["", "RG", "RGBAB", "RGX", "R1B", "RGB ", "GREY", "GARY", "GRAY8"])
     fun `JSON deserialization validates channel values`(channels: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             Json.decodeFromString<PixelChannels>(Json.encodeToString(channels))
         }
     }

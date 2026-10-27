@@ -1,5 +1,6 @@
 package io.konifer.domain.context
 
+import io.konifer.domain.context.InvalidRequestException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -18,14 +19,14 @@ class LimitTest {
     @ParameterizedTest
     @ValueSource(ints = [0, -2, Int.MIN_VALUE])
     fun `rejects invalid numeric limits`(value: Int) {
-        shouldThrow<IllegalArgumentException> { Limit(value) }
-        shouldThrow<IllegalArgumentException> { value.toString().toLimit() }
+        shouldThrow<InvalidRequestException> { Limit(value) }
+        shouldThrow<InvalidRequestException> { value.toString().toLimit() }
     }
 
     @ParameterizedTest
     @ValueSource(strings = ["", " ", "abc", "1.5", "2147483648", "-2147483649"])
     fun `rejects malformed and overflowing limits`(value: String) {
-        shouldThrow<IllegalArgumentException> { value.toLimit() }
+        shouldThrow<InvalidRequestException> { value.toLimit() }
     }
 
     @Test

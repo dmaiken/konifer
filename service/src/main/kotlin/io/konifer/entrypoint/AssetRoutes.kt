@@ -7,8 +7,11 @@ import io.konifer.application.usecase.store.StoreNewAssetUseCase
 import io.konifer.application.usecase.update.UpdateAssetUseCase
 import io.konifer.common.http.AssetEntriesResponse
 import io.konifer.common.http.AssetResponse
+import io.konifer.common.http.ErrorCode
+import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.context.InvalidRequestException
 import io.konifer.domain.context.RequestContextFactory
 import io.konifer.infrastructure.http.AssetUrlGenerator
 import io.konifer.infrastructure.http.cache.appendAssetCacheControlHeaders
@@ -75,7 +78,7 @@ fun Application.configureAssetRouting() {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.OK, AssetResponse.fromAssetData(response.asset))
-                        } ?: call.respond(HttpStatusCode.NotFound)
+                        } ?: call.respond(HttpStatusCode.NotFound, ErrorResponse("Not found", ErrorCode.NOT_FOUND))
                     }
 
                     ReturnFormat.ENTRIES -> {
@@ -92,7 +95,7 @@ fun Application.configureAssetRouting() {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.TemporaryRedirect)
-                        } ?: call.respond(HttpStatusCode.NotFound)
+                        } ?: call.respond(HttpStatusCode.NotFound, ErrorResponse("Not found", ErrorCode.NOT_FOUND))
                     }
 
                     ReturnFormat.LINK -> {
@@ -101,7 +104,7 @@ fun Application.configureAssetRouting() {
                                 call.response.headers.append(it.first, it.second)
                             }
                             call.respond(HttpStatusCode.OK, response.toResponse())
-                        } ?: call.respond(HttpStatusCode.NotFound)
+                        } ?: call.respond(HttpStatusCode.NotFound, ErrorResponse("Not found", ErrorCode.NOT_FOUND))
                     }
 
                     ReturnFormat.CONTENT, ReturnFormat.DOWNLOAD -> {
@@ -110,7 +113,7 @@ fun Application.configureAssetRouting() {
                                 content = content,
                                 returnFormat = requestContext.selectors.returnFormat,
                             )
-                        } ?: call.respond(HttpStatusCode.NotFound)
+                        } ?: call.respond(HttpStatusCode.NotFound, ErrorResponse("Not found", ErrorCode.NOT_FOUND))
                     }
                 }
             }.describe { fetchAssetDocumentation() }
@@ -173,7 +176,10 @@ private suspend fun RoutingCall.storeNewAsset(
         }
 
         else -> {
-            respond(HttpStatusCode.UnsupportedMediaType)
+            respond(
+                HttpStatusCode.UnsupportedMediaType,
+                ErrorResponse("Use application/json or multipart/form-data", ErrorCode.UNSUPPORTED_MEDIA_TYPE),
+            )
         }
     }
 }
@@ -182,19 +188,19 @@ private suspend fun RoutingCall.storeMultipartAsset(storeNewAssetUseCase: StoreN
     receiveMultipartUpload { Json.decodeFromString<StoreAssetRequest>(it) }.use { upload ->
         when {
             upload.duplicateAssetReceived -> {
-                throw IllegalArgumentException("Multiple asset payloads supplied")
+                throw InvalidRequestException("Multiple asset payloads supplied")
             }
 
             upload.duplicateMetadataReceived -> {
-                throw IllegalArgumentException("Multiple metadata payloads supplied")
+                throw InvalidRequestException("Multiple metadata payloads supplied")
             }
 
             !upload.request.isCompleted -> {
-                throw IllegalArgumentException("No asset metadata supplied")
+                throw InvalidRequestException("No asset metadata supplied")
             }
 
             upload.assetContainer == null -> {
-                throw IllegalArgumentException("No asset payload supplied")
+                throw InvalidRequestException("No asset payload supplied")
             }
 
             else -> {

@@ -2,6 +2,7 @@ package io.konifer.asset
 
 import io.konifer.BaseFunctionalTest
 import io.konifer.common.http.AssetContentHeaders
+import io.konifer.common.http.ErrorCode
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.ManipulationParameters
 import io.konifer.testInMemory
@@ -106,9 +107,49 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
                 .map { it.jsonPrimitive.content } shouldBe listOf("-1")
             deleteResponses shouldContainKey "204"
             deleteResponses.getValue("204").jsonObject.containsKey("content") shouldBe false
+            assertErrorSchemas(document, operations)
             assertTimestampSchemas(document)
             assertReferencesResolve(document, document)
         }
+
+    private fun assertErrorSchemas(
+        document: JsonObject,
+        operations: List<JsonObject>,
+    ) {
+        val schemas =
+            document
+                .getValue("components")
+                .jsonObject
+                .getValue("schemas")
+                .jsonObject
+        operations.forEach { operation ->
+            val responses = operation.getValue("responses").jsonObject
+            responses shouldContainKey "500"
+            responses.filterKeys { it.toInt() >= 400 }.values.forEach { response ->
+                val schema =
+                    resolveSchema(
+                        response.jsonObject
+                            .getValue(
+                                "content",
+                            ).jsonObject
+                            .getValue("application/json")
+                            .jsonObject
+                            .getValue("schema")
+                            .jsonObject,
+                        schemas,
+                    )
+                schema.getValue("required").jsonArray.map { it.jsonPrimitive.content } shouldContainAll listOf("code")
+                val properties = schema.getValue("properties").jsonObject
+                properties.keys shouldBe setOf("code", "message")
+                val code = resolveSchema(properties.getValue("code").jsonObject, schemas)
+                code
+                    .getValue("enum")
+                    .jsonArray
+                    .map { it.jsonPrimitive.content }
+                    .toSet() shouldBe ErrorCode.entries.map { it.name }.toSet()
+            }
+        }
+    }
 
     private fun assertTimestampSchemas(document: JsonObject) {
         val schemas =

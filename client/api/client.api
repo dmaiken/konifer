@@ -88,12 +88,15 @@ public final class io/konifer/client/KoniferResult$Failure$DefaultImpls {
 }
 
 public final class io/konifer/client/KoniferResult$Failure$Http : io/konifer/client/KoniferResult$Failure {
-	public fun <init> (ILjava/lang/String;)V
+	public fun <init> (ILjava/lang/String;Lio/konifer/common/http/ErrorCode;)V
+	public synthetic fun <init> (ILjava/lang/String;Lio/konifer/common/http/ErrorCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (ILjava/lang/String;)Lio/konifer/client/KoniferResult$Failure$Http;
-	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Failure$Http;ILjava/lang/String;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Failure$Http;
+	public final fun component3 ()Lio/konifer/common/http/ErrorCode;
+	public final fun copy (ILjava/lang/String;Lio/konifer/common/http/ErrorCode;)Lio/konifer/client/KoniferResult$Failure$Http;
+	public static synthetic fun copy$default (Lio/konifer/client/KoniferResult$Failure$Http;ILjava/lang/String;Lio/konifer/common/http/ErrorCode;ILjava/lang/Object;)Lio/konifer/client/KoniferResult$Failure$Http;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Lio/konifer/common/http/ErrorCode;
 	public final fun getMessage ()Ljava/lang/String;
 	public final fun getStatusCode ()I
 	public fun hashCode ()I
@@ -724,13 +727,39 @@ public final class io/konifer/common/http/AttributesResponse$Factory {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class io/konifer/common/http/ErrorCode : java/lang/Enum {
+	public static final field ASSET_REJECTED Lio/konifer/common/http/ErrorCode;
+	public static final field ASSET_TOO_LARGE Lio/konifer/common/http/ErrorCode;
+	public static final field Companion Lio/konifer/common/http/ErrorCode$Companion;
+	public static final field FORBIDDEN Lio/konifer/common/http/ErrorCode;
+	public static final field INTERNAL_ERROR Lio/konifer/common/http/ErrorCode;
+	public static final field INVALID_PATH Lio/konifer/common/http/ErrorCode;
+	public static final field INVALID_REQUEST Lio/konifer/common/http/ErrorCode;
+	public static final field INVALID_SOURCE Lio/konifer/common/http/ErrorCode;
+	public static final field INVALID_TRANSFORMATION Lio/konifer/common/http/ErrorCode;
+	public static final field NOT_FOUND Lio/konifer/common/http/ErrorCode;
+	public static final field SOURCE_UNAVAILABLE Lio/konifer/common/http/ErrorCode;
+	public static final field TRANSFORMATION_NOT_ALLOWED Lio/konifer/common/http/ErrorCode;
+	public static final field UNKNOWN Lio/konifer/common/http/ErrorCode;
+	public static final field UNSUPPORTED_MEDIA_TYPE Lio/konifer/common/http/ErrorCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/konifer/common/http/ErrorCode;
+	public static fun values ()[Lio/konifer/common/http/ErrorCode;
+}
+
+public final class io/konifer/common/http/ErrorCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class io/konifer/common/http/ErrorResponse {
 	public static final field Companion Lio/konifer/common/http/ErrorResponse$Companion;
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Lio/konifer/common/http/ErrorCode;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lio/konifer/common/http/ErrorResponse;
-	public static synthetic fun copy$default (Lio/konifer/common/http/ErrorResponse;Ljava/lang/String;ILjava/lang/Object;)Lio/konifer/common/http/ErrorResponse;
+	public final fun component2 ()Lio/konifer/common/http/ErrorCode;
+	public final fun copy (Ljava/lang/String;Lio/konifer/common/http/ErrorCode;)Lio/konifer/common/http/ErrorResponse;
+	public static synthetic fun copy$default (Lio/konifer/common/http/ErrorResponse;Ljava/lang/String;Lio/konifer/common/http/ErrorCode;ILjava/lang/Object;)Lio/konifer/common/http/ErrorResponse;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Lio/konifer/common/http/ErrorCode;
 	public final fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

@@ -1,5 +1,6 @@
 package io.konifer.domain.rules
 
+import io.konifer.domain.rules.InvalidRuleDefinitionException
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -21,7 +22,7 @@ class RuleDefinitionTest {
 
     @Test
     fun `constructor rejects empty prompts`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinition(
                 name = RuleName("test-rule"),
                 prompts = emptyList(),
@@ -32,7 +33,7 @@ class RuleDefinitionTest {
 
     @Test
     fun `constructor rejects more than 100 prompts`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinition(
                 name = RuleName("test-rule"),
                 prompts = List(101) { RulePrompt("prompt-$it") },
@@ -43,7 +44,7 @@ class RuleDefinitionTest {
 
     @Test
     fun `constructor rejects definitions with duplicate prompts`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinition(
                 name = RuleName("test-rule"),
                 prompts = List(2) { RulePrompt("prompt") },
@@ -61,7 +62,7 @@ class RuleDefinitionTest {
     @ParameterizedTest
     @ValueSource(doubles = [-0.1, 1.1])
     fun `threshold rejects values outside zero and one`(threshold: Double) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinitionThreshold(threshold)
         }.message shouldBe "Rule threshold must be between 0.0 and 1.0"
     }

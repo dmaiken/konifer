@@ -1,5 +1,6 @@
 package io.konifer.domain.context
 
+import io.konifer.domain.context.InvalidRequestException
 import io.konifer.domain.context.selector.DeleteSelection
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -13,8 +14,8 @@ class PathSelectorLimitTest {
     @ValueSource(strings = ["", "abc", "0", "-2", "2147483648", "-2147483649"])
     fun `invalid explicit limits never fall back to defaults`(value: String) {
         val parameters = Parameters.build { append("limit", value) }
-        shouldThrow<IllegalArgumentException> { PathSelectorExtractor.extractQuerySelectors("entries", parameters) }
-        shouldThrow<IllegalArgumentException> { PathSelectorExtractor.extractDeleteSelectors(null, parameters) }
+        shouldThrow<InvalidRequestException> { PathSelectorExtractor.extractQuerySelectors("entries", parameters) }
+        shouldThrow<InvalidRequestException> { PathSelectorExtractor.extractDeleteSelectors(null, parameters) }
     }
 
     @Test
@@ -24,8 +25,8 @@ class PathSelectorLimitTest {
                 append("limit", "-1")
                 append("limit", "1")
             }
-        shouldThrow<IllegalArgumentException> { PathSelectorExtractor.extractQuerySelectors("entries", parameters) }
-        shouldThrow<IllegalArgumentException> { PathSelectorExtractor.extractDeleteSelectors(null, parameters) }
+        shouldThrow<InvalidRequestException> { PathSelectorExtractor.extractQuerySelectors("entries", parameters) }
+        shouldThrow<InvalidRequestException> { PathSelectorExtractor.extractDeleteSelectors(null, parameters) }
     }
 
     @Test

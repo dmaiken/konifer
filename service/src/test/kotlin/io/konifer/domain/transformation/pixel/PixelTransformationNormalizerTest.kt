@@ -5,6 +5,7 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.image.toColorSpace
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -72,7 +73,7 @@ class PixelTransformationNormalizerTest {
     @ParameterizedTest
     @ValueSource(strings = ["cymk", "unknown", "grayscale", "adobe_rgb", "custom"])
     fun `rejects normalized unsupported color space for pixels`(unsupportedColorSpace: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             PixelTransformationNormalizer.normalizePixelTransformation(
                 requested =
                     RequestedTransformation(
@@ -110,7 +111,7 @@ class PixelTransformationNormalizerTest {
     @ParameterizedTest
     @ValueSource(strings = ["srgb", "p3", "cymk", "adobe_rgb", "unknown", "custom"])
     fun `rejects grayscale channels with a locked non grayscale color space`(colorSpace: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             PixelTransformationNormalizer.normalizePixelTransformation(
                 requested = RequestedTransformation(pixelChannels = PixelChannels.grayscale),
                 normalizedColorSpace = colorSpace.toColorSpace(),
@@ -122,7 +123,7 @@ class PixelTransformationNormalizerTest {
 
     @Test
     fun `rejects default RGB channels for a grayscale source`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidTransformationException> {
             PixelTransformationNormalizer.normalizePixelTransformation(
                 requested = RequestedTransformation(colorSpace = TransformableColorSpace.ORIGIN),
                 normalizedColorSpace = ColorSpace.Grayscale,

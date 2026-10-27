@@ -175,10 +175,11 @@ internal fun Operation.Builder.updateAssetDocumentation() {
             description = "The asset with its updated metadata."
             ContentType.Application.Json { schema = jsonSchema<AssetResponse>() }
         }
+        errorResponse(HttpStatusCode.InternalServerError, "Unexpected server failure.")
         errorResponse(HttpStatusCode.BadRequest, "Invalid path, metadata, selectors, or asset state.")
         errorResponse(HttpStatusCode.NotFound, "The specified entry does not exist.")
         errorResponse(HttpStatusCode.PayloadTooLarge, "Request body exceeds the configured limit.")
-        HttpStatusCode.UnsupportedMediaType { description = "Metadata must be sent as application/json." }
+        errorResponse(HttpStatusCode.UnsupportedMediaType, "Metadata must be sent as application/json.")
     }
 }
 
@@ -208,6 +209,7 @@ internal fun Operation.Builder.deleteAssetDocumentation() {
     }
     responses {
         HttpStatusCode.NoContent { description = "Deletion completed, including when no entries matched. No response body." }
+        errorResponse(HttpStatusCode.InternalServerError, "Unexpected server failure.")
         errorResponse(HttpStatusCode.BadRequest, "Invalid path, selectors, or limit combination.")
     }
 }
@@ -369,9 +371,10 @@ private fun Responses.Builder.fetchAssetResponses() {
         }
     }
     HttpStatusCode.NotModified { description = "Content unchanged according to conditional request headers. No response body." }
+    errorResponse(HttpStatusCode.InternalServerError, "Unexpected server failure.")
     errorResponse(HttpStatusCode.BadRequest, "Invalid selectors, parameters, profile, or disallowed transformation.")
     errorResponse(HttpStatusCode.Forbidden, "Missing or invalid signature when URL signing is enabled.")
-    HttpStatusCode.NotFound { description = "No asset matches the selection (except entries, which returns an empty list)." }
+    errorResponse(HttpStatusCode.NotFound, "No asset matches the selection (except entries, which returns an empty list).")
 }
 
 private fun Response.Builder.assetContentHeaders() {
@@ -434,10 +437,11 @@ private fun Responses.Builder.storeAssetResponses() {
             }
         }
     }
+    errorResponse(HttpStatusCode.InternalServerError, "Unexpected server failure.")
     errorResponse(HttpStatusCode.BadRequest, "Invalid metadata, image, source combination, or upload rejected by a rule.")
     errorResponse(HttpStatusCode.Forbidden, "Image content type or remote source is not permitted.")
     errorResponse(HttpStatusCode.PayloadTooLarge, "Request body exceeds the configured limit.")
-    HttpStatusCode.UnsupportedMediaType { description = "Use application/json or multipart/form-data." }
+    errorResponse(HttpStatusCode.UnsupportedMediaType, "Use application/json or multipart/form-data.")
     errorResponse(HttpStatusCode.UnprocessableEntity, "Invalid or oversized external source.")
     errorResponse(HttpStatusCode.BadGateway, "External source is unavailable.")
     errorResponse(HttpStatusCode.GatewayTimeout, "Retrieving the external source timed out.")
@@ -449,7 +453,9 @@ private fun Responses.Builder.errorResponse(
 ) {
     status {
         description = message
-        ContentType.Application.Json { schema = jsonSchema<ErrorResponse>() }
+        ContentType.Application.Json {
+            schema = jsonSchema<ErrorResponse>()
+        }
     }
 }
 

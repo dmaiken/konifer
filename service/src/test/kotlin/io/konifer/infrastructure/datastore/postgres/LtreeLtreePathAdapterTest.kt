@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.domain.context.InvalidPathException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -18,7 +19,7 @@ class LtreeLtreePathAdapterTest {
     @ParameterizedTest
     @ValueSource(strings = ["/;", "/:", "/.", "/profile-picture/1.2.3"])
     fun `path is rejected if not valid`(uriPath: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidPathException> {
             LtreePathAdapter.toTreePathFromUriPath(uriPath)
         }
     }

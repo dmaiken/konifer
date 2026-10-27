@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.domain.context.InvalidPathException
 import org.jooq.postgres.extensions.types.Ltree
 
 object LtreePathAdapter {
@@ -14,7 +15,7 @@ object LtreePathAdapter {
                 .removePrefix(URI_PATH_DELIMITER)
                 .removeSuffix(URI_PATH_DELIMITER)
         if (!trimmedPath.matches(validPathRegex)) {
-            throw IllegalArgumentException("Invalid path: $trimmedPath")
+            throw InvalidPathException("Invalid path: $trimmedPath")
         }
         return trimmedPath.replace(URI_PATH_DELIMITER, TREE_PATH_DELIMITER).let {
             if (it.isEmpty()) {

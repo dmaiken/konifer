@@ -1,6 +1,6 @@
 package io.konifer.client
 
-import io.konifer.common.http.ErrorResponse
+import io.konifer.common.http.ErrorCode
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.call.ReceivePipelineException
 import io.ktor.client.call.body
@@ -8,6 +8,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.isSuccess
 import io.ktor.serialization.ContentConvertException
 import kotlinx.io.IOException
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -31,6 +32,8 @@ sealed interface KoniferResult<out T> {
             val statusCode: Int,
             /** Error message decoded from the response body, when available. */
             val message: String?,
+            /** Stable error category, or UNKNOWN when the response has no recognized code. */
+            val code: ErrorCode = ErrorCode.UNKNOWN,
         ) : Failure
 
         /** A network or response-body I/O failure. */
@@ -75,9 +78,9 @@ internal suspend inline fun <reified T> HttpResponse.toKoniferResult(): KoniferR
         }
     }
 
-    val errorMessage =
+    val errorBody =
         try {
-            body<ErrorResponse>().message
+            body<ErrorBody>()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -90,7 +93,8 @@ internal suspend inline fun <reified T> HttpResponse.toKoniferResult(): KoniferR
 
     return KoniferResult.Failure.Http(
         statusCode = status.value,
-        message = errorMessage,
+        message = errorBody?.message,
+        code = ErrorCode.entries.firstOrNull { it.name == errorBody?.code } ?: ErrorCode.UNKNOWN,
     )
 }
 
@@ -116,3 +120,10 @@ internal fun Throwable.toResponseReadFailure(): KoniferResult.Failure =
             throw this
         }
     }
+
+// Decode codes as strings so older SDKs can still read messages from newer servers.
+@Serializable
+internal data class ErrorBody(
+    val message: String? = null,
+    val code: String? = null,
+)

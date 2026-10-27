@@ -8,7 +8,6 @@ import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
 import io.konifer.common.http.AssetEntriesResponse
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -156,7 +155,7 @@ class AssetEntriesTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("unavailable")),
+                            """{"message":"unavailable"}""",
                             status = HttpStatusCode.BadRequest,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

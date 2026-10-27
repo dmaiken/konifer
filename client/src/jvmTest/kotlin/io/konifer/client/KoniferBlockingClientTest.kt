@@ -8,7 +8,6 @@ import io.konifer.client.assets.fetch.ContentDelivery
 import io.konifer.client.harness.httpClient
 import io.konifer.client.rules.createEvaluateRulesResponse
 import io.konifer.common.http.AssetEntriesResponse
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
@@ -203,7 +202,7 @@ class KoniferBlockingClientTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("not found")),
+                            """{"message":"not found"}""",
                             status = HttpStatusCode.NotFound,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

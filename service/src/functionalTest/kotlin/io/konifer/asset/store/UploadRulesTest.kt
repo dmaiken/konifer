@@ -4,6 +4,7 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.KoniferTestHandle
 import io.konifer.TestImageType
+import io.konifer.common.http.ErrorCode
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.RuleDefinitionRequest
 import io.konifer.common.http.StoreAssetRequest
@@ -248,6 +249,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                         request = StoreAssetRequest(),
                     ).shouldHaveHttpError(400)
 
+            error.code shouldBe ErrorCode.ASSET_REJECTED
             error.message shouldBe "Asset rejected by upload rules"
         }
 
@@ -264,6 +266,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                         request = StoreAssetRequest(),
                     ).shouldHaveHttpError(400)
 
+            error.code shouldBe ErrorCode.ASSET_REJECTED
             error.message shouldBe "No images of Joshua trees!"
         }
 
@@ -280,6 +283,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                         request = StoreAssetRequest(),
                     ).shouldHaveHttpError(400)
 
+            error.code shouldBe ErrorCode.ASSET_REJECTED
             error.message shouldBe "No images of Joshua trees!; This better not be a Joshua tree!"
         }
 
@@ -296,6 +300,7 @@ class UploadRulesTest : BaseFunctionalTest() {
                         request = StoreAssetRequest(),
                     ).shouldHaveHttpError(400)
 
+            error.code shouldBe ErrorCode.ASSET_REJECTED
             error.message shouldBe "Asset rejected by upload rules"
         }
 

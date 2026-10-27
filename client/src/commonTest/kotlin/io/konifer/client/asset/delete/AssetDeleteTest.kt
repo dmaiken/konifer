@@ -7,7 +7,6 @@ import io.konifer.client.harness.assertSignatureParameter
 import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.selector.Order
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -18,7 +17,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
 
 class AssetDeleteTest :
     FunSpec({
@@ -135,7 +133,7 @@ class AssetDeleteTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("cannot delete")),
+                            """{"message":"cannot delete"}""",
                             status = HttpStatusCode.BadRequest,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

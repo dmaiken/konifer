@@ -8,7 +8,9 @@ value class PaddingAmount(
     val value: Int,
 ) {
     init {
-        require(value >= 0) { "Padding amount must be a non-negative number: $value" }
+        if (value < 0) {
+            throw InvalidTransformationException("Padding amount must be a non-negative number: $value")
+        }
     }
 }
 

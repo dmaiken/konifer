@@ -10,21 +10,17 @@ object TransformationValidator {
     ) {
         val (outputWidth, outputHeight) = calculateOutputDimensions(transformation)
 
-        try {
-            require(outputWidth <= limits.maxWidth.value) {
-                "Width $outputWidth must not exceed ${limits.maxWidth.value}"
-            }
+        if (outputWidth > limits.maxWidth.value) {
+            throw InvalidTransformationException("Width $outputWidth must not exceed ${limits.maxWidth.value}")
+        }
 
-            require(outputHeight <= limits.maxHeight.value) {
-                "Height $outputHeight must not exceed ${limits.maxHeight.value}"
-            }
+        if (outputHeight > limits.maxHeight.value) {
+            throw InvalidTransformationException("Height $outputHeight must not exceed ${limits.maxHeight.value}")
+        }
 
-            val pixels = outputWidth * outputHeight
-            require(pixels <= limits.maxPixels.value) {
-                "Output pixels $pixels must not exceed ${limits.maxPixels.value}"
-            }
-        } catch (e: IllegalArgumentException) {
-            throw InvalidTransformationException(e.message, e)
+        val pixels = outputWidth * outputHeight
+        if (pixels > limits.maxPixels.value) {
+            throw InvalidTransformationException("Output pixels $pixels must not exceed ${limits.maxPixels.value}")
         }
     }
 
@@ -33,25 +29,14 @@ object TransformationValidator {
         requested: RequestedTransformation,
     ) {
         val (outputWidth, outputHeight) = calculateOutputDimensions(requested)
-        try {
-            outputHeight?.let { height ->
-                require(height <= limits.maxHeight.value) {
-                    "height $height must not exceed ${limits.maxHeight.value} limit"
-                }
-            }
-            outputWidth?.let { width ->
-                require(width <= limits.maxWidth.value) {
-                    "width $width must not exceed ${limits.maxWidth.value} limit"
-                }
-            }
-
-            if (outputHeight != null && outputWidth != null) {
-                require(outputHeight * outputWidth <= limits.maxPixels.value) {
-                    "max image size exceeds configured maxPixels: ${limits.maxPixels.value}"
-                }
-            }
-        } catch (e: IllegalArgumentException) {
-            throw InvalidTransformationException(e.message, e)
+        if (outputHeight != null && outputHeight > limits.maxHeight.value) {
+            throw InvalidTransformationException("height $outputHeight must not exceed ${limits.maxHeight.value} limit")
+        }
+        if (outputWidth != null && outputWidth > limits.maxWidth.value) {
+            throw InvalidTransformationException("width $outputWidth must not exceed ${limits.maxWidth.value} limit")
+        }
+        if (outputHeight != null && outputWidth != null && outputHeight * outputWidth > limits.maxPixels.value) {
+            throw InvalidTransformationException("max image size exceeds configured maxPixels: ${limits.maxPixels.value}")
         }
     }
 

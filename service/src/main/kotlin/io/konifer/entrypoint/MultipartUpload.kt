@@ -1,11 +1,13 @@
 package io.konifer.entrypoint
 
 import io.konifer.domain.asset.AssetDataContainer
+import io.konifer.domain.context.InvalidRequestException
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.routing.RoutingCall
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.serialization.SerializationException
 
 private const val METADATA_PART_NAME = "metadata"
 private const val ASSET_PART_NAME = "asset"
@@ -78,6 +80,8 @@ private suspend fun <T> PartData.readMetadataInto(
         if (this is PartData.FormItem) {
             request.complete(decodeMetadata(value))
         }
+    } catch (e: SerializationException) {
+        throw InvalidRequestException("Invalid request body", e)
     } finally {
         release()
     }

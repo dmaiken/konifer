@@ -8,10 +8,12 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Named
 import org.junit.jupiter.api.Test
@@ -433,7 +435,7 @@ class VariantProfileRepositoryTest {
     }
 
     @Test
-    fun `null is returned when variant profile cannot be found`() {
+    fun `unknown variant profile throws an invalid transformation`() {
         val config =
             """
             variant-profiles {
@@ -447,7 +449,7 @@ class VariantProfileRepositoryTest {
                 ConfigFactory.parseString(config),
             )
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidTransformationException> {
                 repository.fetch("medium")
             }
         exception.message shouldBe "Variant profile: 'medium' not found"
@@ -484,7 +486,7 @@ class VariantProfileRepositoryTest {
     @ParameterizedTest
     @MethodSource("invalidProfileSource")
     fun `cannot have invalid variant profile definitions`(config: String) {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrowAny {
             ConfigurationVariantProfileRepository(
                 ConfigFactory.parseString(config),
             )

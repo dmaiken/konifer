@@ -58,19 +58,11 @@ data class RequestedTransformation(
 
     /** Validates relationships and structured values that are not owned by the numeric value classes. */
     private fun validate() {
-        when (fit) {
-            Fit.FIT -> {}
-
-            Fit.FILL, Fit.STRETCH, Fit.CROP -> {
-                require(height != null && width != null) {
-                    "Height or width must be supplied for fit: $fit"
-                }
-            }
+        if (fit != Fit.FIT && (height == null || width == null)) {
+            throw InvalidTransformationException("Height or width must be supplied for fit: $fit")
         }
-        if (padColor != null) {
-            require(padColor.startsWith('#') && padColor.drop(1).toLongOrNull(16) != null) {
-                "Pad color must be a hex value starting with '#'"
-            }
+        if (padColor != null && (!padColor.startsWith('#') || padColor.drop(1).toLongOrNull(16) == null)) {
+            throw InvalidTransformationException("Pad color must be a hex value starting with '#'")
         }
         if (stripMetadata != null) {
             val validMetadata = MetadataType.entries.map { it.name }
@@ -78,8 +70,10 @@ data class RequestedTransformation(
                 .split(",")
                 .filter { it.isNotBlank() }
                 .forEach { value ->
-                    require(value.trim().uppercase() in validMetadata) {
-                        "Invalid metadata type: $value. Valid types are: ${validMetadata.joinToString(", ")}"
+                    if (value.trim().uppercase() !in validMetadata) {
+                        throw InvalidTransformationException(
+                            "Invalid metadata type: $value. Valid types are: ${validMetadata.joinToString(", ")}",
+                        )
                     }
                 }
         }

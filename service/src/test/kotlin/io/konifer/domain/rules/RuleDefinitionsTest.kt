@@ -1,5 +1,6 @@
 package io.konifer.domain.rules
 
+import io.konifer.domain.rules.InvalidRuleDefinitionException
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -19,14 +20,14 @@ class RuleDefinitionsTest {
                 )
             }
 
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinitions(definitions)
         }.message shouldBe "Maximum of 10 rule definitions allowed per request"
     }
 
     @Test
     fun `cannot have empty rule definitions`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RuleDefinitions(emptyList())
         }.message shouldBe "At least one rule request is required"
     }

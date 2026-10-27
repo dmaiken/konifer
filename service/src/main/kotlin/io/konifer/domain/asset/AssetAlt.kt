@@ -10,7 +10,9 @@ value class AssetAlt(
     val value: String,
 ) {
     init {
-        require(value.length <= MAX_ALT_LENGTH) { "Asset alt cannot exceed $MAX_ALT_LENGTH characters" }
+        if (value.length > MAX_ALT_LENGTH) {
+            throw InvalidAssetException("Asset alt cannot exceed $MAX_ALT_LENGTH characters")
+        }
     }
 }
 

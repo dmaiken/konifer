@@ -4,6 +4,7 @@ import com.typesafe.config.Config
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigObject
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -17,7 +18,7 @@ class ConfigurationVariantProfileRepository(
 
     override fun fetch(profileName: String): RequestedTransformation =
         profiles[profileName.lowercase()]
-            ?: throw IllegalArgumentException("Variant profile: '$profileName' not found")
+            ?: throw InvalidTransformationException("Variant profile: '$profileName' not found")
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun populateProfiles(applicationConfig: Config): Map<String, RequestedTransformation> =

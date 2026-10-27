@@ -8,7 +8,9 @@ value class Dimension(
     val value: Int,
 ) : Comparable<Dimension> {
     init {
-        require(value > 0) { "Dimension must be a positive number: $value" }
+        if (value <= 0) {
+            throw InvalidTransformationException("Dimension must be a positive number: $value")
+        }
     }
 
     override fun compareTo(other: Dimension): Int = value.compareTo(other.value)

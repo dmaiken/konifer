@@ -1,5 +1,6 @@
 package io.konifer.domain.rules
 
+import io.konifer.domain.rules.InvalidRuleDefinitionException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -12,7 +13,7 @@ class RulePromptTest {
 
     @Test
     fun `constructor rejects blank prompt after trimming`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RulePrompt("   ")
         }.message shouldBe "Prompt must not be empty."
     }
@@ -24,7 +25,7 @@ class RulePromptTest {
 
     @Test
     fun `prompts cannot exceed maximum character limit`() {
-        shouldThrow<IllegalArgumentException> {
+        shouldThrow<InvalidRuleDefinitionException> {
             RulePrompt("a".repeat(257))
         }.message shouldBe "Prompt must not exceed 256 characters."
     }

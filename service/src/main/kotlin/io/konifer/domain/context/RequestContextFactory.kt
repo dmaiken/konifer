@@ -34,6 +34,7 @@ import io.konifer.domain.image.fromFormat
 import io.konifer.domain.image.fromQueryParameters
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.ports.VariantProfileRepository
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toBlur
@@ -210,8 +211,8 @@ class RequestContextFactory(
             null
         } else {
             RequestedTransformation(
-                width = parameters[WIDTH]?.toInt()?.toDimension() ?: variantProfile?.width,
-                height = parameters[HEIGHT]?.toInt()?.toDimension() ?: variantProfile?.height,
+                width = parameters.integer(WIDTH)?.toDimension() ?: variantProfile?.width,
+                height = parameters.integer(HEIGHT)?.toDimension() ?: variantProfile?.height,
                 format = requestedFormat,
                 fit = Fit.fromQueryParameters(parameters, FIT) ?: variantProfile?.fit ?: Fit.default,
                 gravity =
@@ -220,9 +221,9 @@ class RequestContextFactory(
                 rotate = Rotate.fromQueryParameters(parameters, ROTATE) ?: variantProfile?.rotate ?: Rotate.default,
                 flip = Flip.fromQueryParameters(parameters, FLIP) ?: variantProfile?.flip ?: Flip.default,
                 filter = Filter.fromQueryParameters(parameters, FILTER) ?: variantProfile?.filter ?: Filter.default,
-                blur = parameters[BLUR]?.toInt()?.toBlur() ?: variantProfile?.blur,
-                quality = parameters[QUALITY]?.toInt()?.toQuality() ?: variantProfile?.quality,
-                pad = parameters[PAD]?.toInt()?.toPaddingAmount() ?: variantProfile?.pad,
+                blur = parameters.integer(BLUR)?.toBlur() ?: variantProfile?.blur,
+                quality = parameters.integer(QUALITY)?.toQuality() ?: variantProfile?.quality,
+                pad = parameters.integer(PAD)?.toPaddingAmount() ?: variantProfile?.pad,
                 padColor = parameters[PAD_COLOR] ?: variantProfile?.padColor,
                 stripMetadata = parameters[STRIP] ?: variantProfile?.stripMetadata,
                 colorSpace =
@@ -288,3 +289,6 @@ class RequestContextFactory(
         }
     }
 }
+
+private fun Parameters.integer(name: String): Int? =
+    this[name]?.let { it.toIntOrNull() ?: throw InvalidTransformationException("Invalid $name: $it") }

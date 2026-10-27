@@ -11,6 +11,7 @@ import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.OnDemandVariantMode
@@ -638,7 +639,7 @@ class RequestContextFactoryTest {
         @Test
         fun `rejects unsupported pixel layouts`() =
             runTest {
-                shouldThrow<IllegalArgumentException> {
+                shouldThrow<InvalidTransformationException> {
                     requestContextFactory.fromFetchRequest(
                         path = "/assets/pixels/",
                         headers = Headers.Empty,
@@ -817,7 +818,7 @@ class RequestContextFactoryTest {
                         )
                     }
 
-                exception.message shouldBe "Invalid query modifiers: [${returnFormat.name}]"
+                exception.message shouldBe "Limit must be 1 with return format of: ${returnFormat.name.lowercase()}"
             }
 
         @Test

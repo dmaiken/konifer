@@ -4,6 +4,8 @@ import io.konifer.BaseFlociTestContainersTest
 import io.konifer.ImageFactory
 import io.konifer.KoniferTestHandle
 import io.konifer.common.http.AssetSourceRequest
+import io.konifer.common.http.ErrorCode
+import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.EvaluateRuleDefinitionsRequest
 import io.konifer.common.http.EvaluateRuleDefinitionsResponse
 import io.konifer.common.http.HttpSource
@@ -185,6 +187,7 @@ class EvaluateRuleDefinitionsTest : BaseFlociTestContainersTest() {
                 }
 
             response.status shouldBe HttpStatusCode.BadRequest
+            response.body<ErrorResponse>().code shouldBe ErrorCode.INVALID_REQUEST
         }
 
     @Test
@@ -237,6 +240,7 @@ class EvaluateRuleDefinitionsTest : BaseFlociTestContainersTest() {
                 }
 
             response.status shouldBe HttpStatusCode.BadRequest
+            response.body<ErrorResponse>().code shouldBe ErrorCode.INVALID_REQUEST
         }
 
     @Test

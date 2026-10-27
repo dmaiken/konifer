@@ -1,6 +1,8 @@
 package io.konifer.domain.image
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.InvalidAssetException
+import io.konifer.domain.transformation.InvalidTransformationException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -48,7 +50,7 @@ class ImageFormatTest {
     @Test
     fun `test fromFormat with unsupported image type`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidTransformationException> {
                 ImageFormat.fromFormat("unsupported")
             }
         exception.message shouldBe "Unsupported image format: unsupported"
@@ -66,7 +68,7 @@ class ImageFormatTest {
     @Test
     fun `test fromMimeType with unsupported image type`() {
         val exception =
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<InvalidAssetException> {
                 ImageFormat.fromMimeType("unsupported")
             }
         exception.message shouldBe "Unsupported image mime type: unsupported"

@@ -8,7 +8,6 @@ import io.konifer.client.harness.httpClient
 import io.konifer.client.internal.HmacSigningConfig
 import io.konifer.client.internal.KoniferUrlSigner
 import io.konifer.common.http.AssetSourceRequest
-import io.konifer.common.http.ErrorResponse
 import io.konifer.common.http.HttpSource
 import io.konifer.common.http.S3Source
 import io.konifer.common.http.StoreAssetRequest
@@ -349,7 +348,7 @@ class AssetStoreTest :
                 httpClient {
                     MockEngine {
                         respond(
-                            Json.encodeToString(ErrorResponse("invalid asset")),
+                            """{"message":"invalid asset"}""",
                             status = HttpStatusCode.BadRequest,
                             headers = headersOf(HttpHeaders.ContentType, "application/json"),
                         )

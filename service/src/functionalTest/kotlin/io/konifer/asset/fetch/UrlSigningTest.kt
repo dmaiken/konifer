@@ -4,12 +4,14 @@ import io.konifer.BaseFunctionalTest
 import io.konifer.ImageFactory
 import io.konifer.client.HmacSigningAlgorithm
 import io.konifer.client.assets.fetch.requestedTransformation
+import io.konifer.common.http.ErrorCode
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.matchers.shouldBeSuccessful
 import io.konifer.matchers.shouldHaveHttpError
 import io.konifer.testInMemory
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.HttpStatusCode
@@ -43,7 +45,7 @@ class UrlSigningTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer().fetchAssetLink(path = "profile") shouldHaveHttpError 403
+            (konifer().fetchAssetLink(path = "profile") shouldHaveHttpError 403).code shouldBe ErrorCode.FORBIDDEN
         }
 
     @Test
@@ -69,7 +71,7 @@ class UrlSigningTest : BaseFunctionalTest() {
                     bytes = image,
                 ).shouldBeSuccessful()
 
-            konifer().fetchAssetInfo(path = "profile") shouldHaveHttpError 403
+            (konifer().fetchAssetInfo(path = "profile") shouldHaveHttpError 403).code shouldBe ErrorCode.FORBIDDEN
         }
 
     @ParameterizedTest
@@ -119,7 +121,9 @@ class UrlSigningTest : BaseFunctionalTest() {
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsBytes().isNotEmpty() shouldBe true
             val tampered = URLBuilder(link.url).apply { parameters["width"] = "201" }.build()
-            client.get(tampered).status shouldBe HttpStatusCode.Forbidden
+            val failure = client.get(tampered)
+            failure.status shouldBe HttpStatusCode.Forbidden
+            failure.body<io.konifer.common.http.ErrorResponse>().code shouldBe ErrorCode.FORBIDDEN
         }
 
     @ParameterizedTest

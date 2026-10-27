@@ -5,8 +5,8 @@ value class Limit(
     val value: Int,
 ) {
     init {
-        require(value > 0 || value == -1) {
-            "Limit must be -1 or greater than 0"
+        if (value <= 0 && value != -1) {
+            throw InvalidRequestException("Limit must be -1 or greater than 0")
         }
     }
 
@@ -18,6 +18,6 @@ value class Limit(
     }
 }
 
-fun String.toLimit(): Limit = toIntOrNull()?.let(::Limit) ?: throw IllegalArgumentException("Limit must be -1 or a positive integer")
+fun String.toLimit(): Limit = toIntOrNull()?.let(::Limit) ?: throw InvalidRequestException("Limit must be -1 or a positive integer")
 
 fun Int.toLimit(): Limit = Limit(this)
