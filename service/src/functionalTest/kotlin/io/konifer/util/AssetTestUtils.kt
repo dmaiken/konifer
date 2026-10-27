@@ -285,7 +285,7 @@ suspend fun fetchAssetContent(
             Pair(this, bodyAsBytes())
         } else {
             headers[HttpHeaders.Location] shouldBe null
-            headers[HttpHeaders.ContentType] shouldBe null
+            headers[HttpHeaders.ContentType] shouldBe ContentType.Application.Json.toString()
             headers[HttpHeaders.ContentDisposition] shouldBe null
             headers[HttpHeaders.ETag] shouldBe null
 
@@ -369,7 +369,7 @@ suspend fun fetchAssetContentDownload(
             Pair(this, bodyAsBytes())
         } else {
             headers.contains(HttpHeaders.Location) shouldBe false
-            headers.contains(HttpHeaders.ContentType) shouldBe false
+            headers[HttpHeaders.ContentType] shouldBe ContentType.Application.Json.toString()
             headers.contains(HttpHeaders.ContentDisposition) shouldBe false
 
             Pair(this, null)
