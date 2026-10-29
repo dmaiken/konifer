@@ -18,22 +18,24 @@ const [historySchema, loadHistorySchema, loadResultSchema] = await Promise.all([
 
 test('non-release entries can be identified and removed without mutating history', () => {
     const valid = release('release-1', 'v0.9.0');
+    const rc = release('release-rc', 'v1.0.0-rc.1');
     const invalid = release('release-2', 'v0.9.0-dirty');
-    const history: PerformanceHistory = { version: 1, releases: [valid, invalid] };
+    const history: PerformanceHistory = { version: 1, releases: [valid, rc, invalid] };
 
     assert.deepEqual(nonReleaseEntries(history), [invalid]);
-    assert.deepEqual(withoutNonReleaseEntries(history).releases, [valid]);
-    assert.deepEqual(history.releases, [valid, invalid]);
+    assert.deepEqual(withoutNonReleaseEntries(history).releases, [valid, rc]);
+    assert.deepEqual(history.releases, [valid, rc, invalid]);
 });
 
 test('non-release load runs can be identified and removed without mutating history', () => {
     const valid = loadRun('v0.9.0');
+    const rc = loadRun('v1.0.0-rc.1');
     const invalid = loadRun('working-tree');
-    const history: LoadHistory = { version: 1, runs: [valid, invalid] };
+    const history: LoadHistory = { version: 1, runs: [valid, rc, invalid] };
 
     assert.deepEqual(nonReleaseLoadRuns(history), [invalid]);
-    assert.deepEqual(withoutNonReleaseLoadRuns(history).runs, [valid]);
-    assert.equal(history.runs.length, 2);
+    assert.deepEqual(withoutNonReleaseLoadRuns(history).runs, [valid, rc]);
+    assert.deepEqual(history.runs, [valid, rc, invalid]);
 });
 
 test('history schema permits workloads to be added in later releases', () => {

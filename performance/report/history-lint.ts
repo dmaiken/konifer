@@ -1,31 +1,31 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-import { isStableRelease } from './release-version.ts';
+import { isReleaseVersion } from './release-version.ts';
 import type { LoadHistory, LoadRun, PerformanceHistory, PerformanceRelease } from './types.ts';
 
-/** Find benchmark history entries whose subjects are not stable vMAJOR.MINOR.PATCH labels. */
+/** Find benchmark history entries whose subjects are not stable or numbered RC release labels. */
 export function nonReleaseEntries(history: PerformanceHistory): PerformanceRelease[] {
-    return history.releases.filter((release) => !isStableRelease(release.subject));
+    return history.releases.filter((release) => !isReleaseVersion(release.subject));
 }
 
-/** Return a history copy containing only stable release subjects. */
+/** Return a history copy containing only stable or numbered RC release subjects. */
 export function withoutNonReleaseEntries(history: PerformanceHistory): PerformanceHistory {
     return {
         ...history,
-        releases: history.releases.filter((release) => isStableRelease(release.subject)),
+        releases: history.releases.filter((release) => isReleaseVersion(release.subject)),
     };
 }
 
 /** Find mixed-load history runs with non-release subject labels. */
 export function nonReleaseLoadRuns(history: LoadHistory): LoadRun[] {
-    return history.runs.filter((run) => !isStableRelease(run.subject));
+    return history.runs.filter((run) => !isReleaseVersion(run.subject));
 }
 
-/** Return a load-history copy containing only stable release subjects. */
+/** Return a load-history copy containing only stable or numbered RC release subjects. */
 export function withoutNonReleaseLoadRuns(history: LoadHistory): LoadHistory {
     return {
         ...history,
-        runs: history.runs.filter((run) => isStableRelease(run.subject)),
+        runs: history.runs.filter((run) => isReleaseVersion(run.subject)),
     };
 }
 
