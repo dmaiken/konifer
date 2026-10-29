@@ -80,7 +80,7 @@
       "query": {"width": 400, "fit": "fit", "format": "webp", "quality": 80, "rotate": "auto"}
     },
     "upload.preprocess": {
-      "description": "Upload an image and convert it to WebP with padding before Konifer responds.",
+      "description": "Upload an image and convert it to WebP with padding.",
       "profile": "heavy",
       "fixture": "photo-medium",
       "sourceFormat": "jpg",
