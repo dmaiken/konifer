@@ -38,7 +38,7 @@ kover-version = "0.9.11"
 dokka-version = "2.2.0"
 cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.31.0"
-huggingface-tokenizers-version = "0.38.0"
+huggingface-tokenizers-version = "0.39.0"
 maven-publish-version = "0.37.0"
 
 [libraries]
