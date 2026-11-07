@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.datastore.postgres
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
@@ -15,9 +16,9 @@ class PostgresAssetDeleterTest {
     @Test
     fun `delegates entry deletion to repository`() =
         runTest {
-            assetDeleter.delete(DeleteAssetsCommand.Entry(path = "/users/123", entryId = 4))
+            assetDeleter.delete(DeleteAssetsCommand.Entry(path = AssetPath("/users/123"), entryId = 4))
 
-            coVerify(exactly = 1) { assetRepository.deleteByPath(path = "/users/123", entryId = 4) }
+            coVerify(exactly = 1) { assetRepository.deleteByPath(path = AssetPath("/users/123"), entryId = 4) }
         }
 
     @Test
@@ -25,14 +26,14 @@ class PostgresAssetDeleterTest {
         runTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.AtPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )
 
             coVerify(exactly = 1) {
                 assetRepository.deleteAllByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     labels = mapOf("animal" to "cat"),
                 )
             }
@@ -43,14 +44,14 @@ class PostgresAssetDeleterTest {
         runTest {
             assetDeleter.delete(
                 DeleteAssetsCommand.Recursively(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )
 
             coVerify(exactly = 1) {
                 assetRepository.deleteRecursivelyByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     labels = mapOf("animal" to "cat"),
                 )
             }

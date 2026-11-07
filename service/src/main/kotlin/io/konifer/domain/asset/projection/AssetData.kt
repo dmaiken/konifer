@@ -2,12 +2,13 @@ package io.konifer.domain.asset.projection
 
 import io.konifer.common.asset.AssetSource
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.variant.VariantData
 import java.time.Instant
 
 data class AssetData(
     val id: AssetId,
-    val path: String,
+    val path: AssetPath,
     val entryId: Long,
     val alt: String?,
     val labels: Map<String, String>,

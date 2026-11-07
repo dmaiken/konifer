@@ -27,7 +27,7 @@ suspend fun ApplicationCall.respondContent(
 
     getContentDispositionHeader(
         alt = asset.alt,
-        path = asset.path,
+        path = asset.path.value,
         returnFormat = returnFormat,
         imageFormat = variantAttributes.format,
     )?.let {

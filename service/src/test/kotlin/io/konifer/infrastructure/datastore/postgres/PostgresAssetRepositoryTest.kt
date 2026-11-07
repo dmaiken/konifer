@@ -4,6 +4,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.pixel.PixelDataType
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.Transformation
@@ -116,7 +117,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     entryId = 0,
                 )
 
@@ -155,7 +156,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     entryId = 0,
                 )
                 val variant = ready.variants.first()
@@ -178,7 +179,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteAllByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                 )
                 val variant = ready.variants.first()
 
@@ -200,7 +201,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .markReady(Instant.now())
                         .also { repository.markReady(it) }
                 repository.deleteRecursivelyByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                 )
                 val variant = ready.variants.first()
 

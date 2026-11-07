@@ -23,7 +23,7 @@ class FetchAssetHandler(
 
         val url =
             assetUrlGenerator.generateDeliveryUrl(
-                path = asset.path,
+                path = asset.path.value,
                 entryId = asset.entryId,
                 variant = variant,
                 transformation = deliveryTransformation,
@@ -43,7 +43,7 @@ class FetchAssetHandler(
 
         val url =
             assetUrlGenerator.generateDeliveryUrl(
-                path = asset.path,
+                path = asset.path.value,
                 entryId = asset.entryId,
                 variant = variant,
                 transformation = deliveryTransformation,

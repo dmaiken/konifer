@@ -3,6 +3,7 @@ package io.konifer.infrastructure.path
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.transformation.TransformConfigurationValidator
@@ -32,9 +33,9 @@ class TriePathConfigurationRepository(
         constructPathConfigurationTrie(rawConfig)
     }
 
-    override fun fetch(path: String): PathConfiguration {
+    override fun fetch(path: AssetPath): PathConfiguration {
         val segments =
-            path
+            path.value
                 .trim('/')
                 .lowercase()
                 .split('/')

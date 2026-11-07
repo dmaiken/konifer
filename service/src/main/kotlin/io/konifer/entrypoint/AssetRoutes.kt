@@ -225,7 +225,7 @@ private suspend fun RoutingCall.respondStoredAsset(
         value =
             assetUrlGenerator
                 .generateAbsoluteLocationUrl(
-                    path = asset.locationPath,
+                    path = asset.locationPath.value,
                     entryId = checkNotNull(asset.asset.entryId),
                     origin = origin,
                 ).toString(),

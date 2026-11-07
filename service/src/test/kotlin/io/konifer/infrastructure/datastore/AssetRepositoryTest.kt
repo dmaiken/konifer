@@ -12,6 +12,7 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.context.toLimit
 import io.konifer.domain.image.ColorSpace
@@ -63,6 +64,23 @@ abstract class AssetRepositoryTest {
 
     val repository = createRepository()
 
+    @Test
+    fun `canonical aliases share entries and recursive deletion respects siblings`() =
+        runTest {
+            val parent = repository.storeNew(createPendingAsset(path = "users/1/"))
+            val child = repository.storeNew(createPendingAsset(path = "/users/1/profile"))
+            val sibling = repository.storeNew(createPendingAsset(path = "/users/12"))
+            val second = repository.storeNew(createPendingAsset(path = "/users/1"))
+            second.entryId shouldBe checkNotNull(parent.entryId) + 1
+            repository.fetchByPath(AssetPath("users/1/"), parent.entryId, includeOnlyReady = false)?.id shouldBe parent.id
+            repository.deleteRecursivelyByPath(AssetPath("/users/1/"))
+            repository.fetchByPath(parent.path, parent.entryId, includeOnlyReady = false) shouldBe null
+            repository.fetchByPath(child.path, child.entryId, includeOnlyReady = false) shouldBe null
+            repository.fetchByPath(sibling.path, sibling.entryId, includeOnlyReady = false)?.id shouldBe sibling.id
+            repository.deleteRecursivelyByPath(AssetPath.ROOT)
+            repository.fetchByPath(sibling.path, sibling.entryId, includeOnlyReady = false) shouldBe null
+        }
+
     @ParameterizedTest
     @EnumSource(VariantSelection::class)
     fun `variant refresh uses resolved asset identity and only returns selected uploaded variants`(selection: VariantSelection) =
@@ -104,7 +122,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val asset = storeReadyAsset()
 
-                repository.fetchForDelivery("/missing", null, VariantSelection.ALL) shouldBe null
+                repository.fetchForDelivery(AssetPath("/missing"), null, VariantSelection.ALL) shouldBe null
                 repository.fetchForDelivery(asset.path, asset.entryId!! + 1, VariantSelection.ALL) shouldBe null
             }
 
@@ -209,7 +227,7 @@ abstract class AssetRepositoryTest {
                 val pendingPersisted = repository.storeNew(pending)
                 repository.markReady(pendingPersisted.markReady(Instant.now()))
                 pendingPersisted.apply {
-                    path shouldBe "/users/123"
+                    path shouldBe AssetPath("/users/123")
                     entryId shouldBe 0
                     labels.asMap() shouldContainExactly pending.labels.asMap()
                     tags.asSet() shouldContainExactly pending.tags.asSet()
@@ -259,12 +277,12 @@ abstract class AssetRepositoryTest {
                 val pending = createPendingAsset()
                 val persisted = repository.storeNew(pending)
                 repository.markReady(persisted.markReady(Instant.now()))
-                persisted.path shouldNotEndWith "/"
+                persisted.path.value shouldNotEndWith "/"
                 val fetched = repository.fetchByPath(persisted.path, persisted.entryId, VariantSelection.ALL, Order.NEW)
 
                 fetched?.id shouldBe persisted.id
                 fetched!!.id shouldBe
-                    repository.fetchByPath(persisted.path + "/", persisted.entryId, VariantSelection.ALL, Order.NEW)?.id
+                    repository.fetchByPath(AssetPath(persisted.path.value + "/"), persisted.entryId, VariantSelection.ALL, Order.NEW)?.id
             }
 
         @Test
@@ -517,7 +535,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `fetching asset that does not exist returns null`() =
             runTest {
-                repository.fetchByPath("/doesNotExist", null, VariantSelection.ALL, Order.NEW) shouldBe null
+                repository.fetchByPath(AssetPath("/doesNotExist"), null, VariantSelection.ALL, Order.NEW) shouldBe null
             }
 
         @Test
@@ -855,7 +873,7 @@ abstract class AssetRepositoryTest {
                 val ready = persisted.markReady(Instant.now())
                 repository.markReady(ready)
 
-                repository.fetchAllByPath("/users/123", VariantSelection.ALL, limit = 1.toLimit()).apply {
+                repository.fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, limit = 1.toLimit()).apply {
                     this shouldHaveSize 1
                     assertFetchedAgainstAggregate(first(), ready, true)
                 }
@@ -875,10 +893,10 @@ abstract class AssetRepositoryTest {
                 repository.update(updatedFirst)
 
                 repository
-                    .fetchAllByPath("/users/123", VariantSelection.ALL, order = Order.NEW, limit = 10.toLimit())
+                    .fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, order = Order.NEW, limit = 10.toLimit())
                     .map { it.id } shouldContainExactly listOf(second.id, first.id)
                 repository
-                    .fetchAllByPath("/users/123", VariantSelection.ALL, order = Order.MODIFIED, limit = 10.toLimit())
+                    .fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, order = Order.MODIFIED, limit = 10.toLimit())
                     .map { it.id } shouldContainExactly listOf(first.id, second.id)
             }
 
@@ -919,7 +937,7 @@ abstract class AssetRepositoryTest {
 
                 val fetched =
                     repository.fetchAllByPath(
-                        path = "/users/123",
+                        path = AssetPath("/users/123"),
                         selection = VariantSelection.ALL,
                         labels = requestedLabels,
                         limit = 10.toLimit(),
@@ -940,7 +958,7 @@ abstract class AssetRepositoryTest {
                         colorSpace = ColorSpace.SRGB,
                     )
 
-                val fetched = repository.fetchAllByPath("/users/123", limit = 10.toLimit())
+                val fetched = repository.fetchAllByPath(AssetPath("/users/123"), limit = 10.toLimit())
                 fetched shouldHaveSize assets.size
                 fetched.forAll {
                     it.variants shouldHaveSize 1
@@ -966,7 +984,7 @@ abstract class AssetRepositoryTest {
 
                 val fetched =
                     repository.fetchAllByPath(
-                        "/users/123",
+                        AssetPath("/users/123"),
                         selection,
                         limit = 10.toLimit(),
                     )
@@ -986,7 +1004,7 @@ abstract class AssetRepositoryTest {
         @Test
         fun `returns empty list if no assets in path`() =
             runTest {
-                repository.fetchAllByPath("/users/123", VariantSelection.ALL, limit = 10.toLimit()) shouldBe emptyList()
+                repository.fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, limit = 10.toLimit()) shouldBe emptyList()
             }
 
         @ParameterizedTest(name = "limit={0}, expectedCount={1}")
@@ -997,7 +1015,7 @@ abstract class AssetRepositoryTest {
         ) = runTest {
             storeReadyAssets(count = 10)
             repository.fetchAllByPath(
-                path = "/users/123",
+                path = AssetPath("/users/123"),
                 selection = VariantSelection.ALL,
                 limit = limit.toLimit(),
             ) shouldHaveSize expectedCount
@@ -1010,7 +1028,7 @@ abstract class AssetRepositoryTest {
                     repository.storeNew(createPendingAsset())
                 }
                 repository.fetchAllByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     selection = VariantSelection.ALL,
                     limit = 10.toLimit(),
                 ) shouldHaveSize 0
@@ -1024,13 +1042,13 @@ abstract class AssetRepositoryTest {
             runTest {
                 val ready = storeReadyAsset()
                 repository.deleteByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     entryId = 0,
                 )
 
                 repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
                 repository.fetchByPath(
-                    "/users/123",
+                    AssetPath("/users/123"),
                     entryId = null,
                     selection = VariantSelection.ALL,
                     Order.NEW,
@@ -1042,7 +1060,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 shouldNotThrowAny {
                     repository.deleteByPath(
-                        path = "/users/123",
+                        path = AssetPath("/users/123"),
                         entryId = 0,
                     )
                 }
@@ -1053,12 +1071,12 @@ abstract class AssetRepositoryTest {
             runTest {
                 val ready = storeReadyAsset()
                 shouldNotThrowAny {
-                    repository.deleteByPath("/users/123", entryId = 1)
+                    repository.deleteByPath(AssetPath("/users/123"), entryId = 1)
                 }
 
                 repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW)?.id shouldBe
                     ready.id
-                repository.fetchAllByPath("/users/123", VariantSelection.ALL, limit = 10.toLimit()).apply {
+                repository.fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, limit = 10.toLimit()).apply {
                     this shouldHaveSize 1
                     first().id shouldBe ready.id
                 }
@@ -1091,11 +1109,11 @@ abstract class AssetRepositoryTest {
                 val ready1 = storeReadyAsset()
                 val ready2 = storeReadyAsset()
 
-                repository.deleteAllByPath("/users/123")
+                repository.deleteAllByPath(AssetPath("/users/123"))
 
                 repository.fetchByPath(ready1.path, ready1.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
                 repository.fetchByPath(ready2.path, ready2.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
-                repository.fetchAllByPath("/users/123", VariantSelection.ALL, limit = 10.toLimit()) shouldBe emptyList()
+                repository.fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, limit = 10.toLimit()) shouldBe emptyList()
             }
 
         @Test
@@ -1103,7 +1121,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val ready = storeReadyAsset(createPendingAsset(labels = mapOf("animal" to "cat")))
 
-                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "dog"))
+                repository.deleteAllByPath(AssetPath("/users/123"), labels = mapOf("animal" to "dog"))
 
                 repository.fetchByPath(
                     path = ready.path,
@@ -1125,7 +1143,7 @@ abstract class AssetRepositoryTest {
                 val deleted = storeReadyAsset(createPendingAsset(labels = labels))
                 val retained = storeReadyAsset(createPendingAsset(labels = mapOf("animal" to "dog")))
 
-                repository.deleteAllByPath("/users/123", labels = mapOf("animal" to "cat"))
+                repository.deleteAllByPath(AssetPath("/users/123"), labels = mapOf("animal" to "cat"))
 
                 repository.fetchByPath(
                     path = deleted.path,
@@ -1140,7 +1158,7 @@ abstract class AssetRepositoryTest {
                     order = Order.NEW,
                 ) shouldNotBe null
                 repository.fetchAllByPath(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     selection = VariantSelection.ALL,
                     limit = 10.toLimit(),
                 ) shouldHaveSize 1
@@ -1151,7 +1169,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 shouldNotThrowAny {
                     repository.deleteAllByPath(
-                        path = "/users/123",
+                        path = AssetPath("/users/123"),
                     )
                 }
             }
@@ -1166,13 +1184,13 @@ abstract class AssetRepositoryTest {
                 val ready2 = storeReadyAsset(createPendingAsset(path = "users/123"))
                 val ready3 = storeReadyAsset(createPendingAsset(path = "users/123/profile"))
 
-                repository.deleteRecursivelyByPath("/users/123")
+                repository.deleteRecursivelyByPath(AssetPath("/users/123"))
 
                 repository.fetchByPath(ready1.path, ready1.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
                 repository.fetchByPath(ready2.path, ready2.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
                 repository.fetchByPath(ready3.path, ready3.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
-                repository.fetchAllByPath("/users/123", VariantSelection.ALL, limit = (-1).toLimit()) shouldBe emptyList()
-                repository.fetchAllByPath("users/123/profile", VariantSelection.ALL, limit = (-1).toLimit()) shouldBe emptyList()
+                repository.fetchAllByPath(AssetPath("/users/123"), VariantSelection.ALL, limit = (-1).toLimit()) shouldBe emptyList()
+                repository.fetchAllByPath(AssetPath("users/123/profile"), VariantSelection.ALL, limit = (-1).toLimit()) shouldBe emptyList()
             }
 
         @Test
@@ -1195,7 +1213,7 @@ abstract class AssetRepositoryTest {
                     )
                 val ready4 = storeReadyAsset(createPendingAsset(path = "/users/123/photo"))
 
-                repository.deleteRecursivelyByPath("/users/123", labels = mapOf("animal" to "cat"))
+                repository.deleteRecursivelyByPath(AssetPath("/users/123"), labels = mapOf("animal" to "cat"))
 
                 repository.fetchByPath(
                     path = ready1.path,
@@ -1228,7 +1246,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 shouldNotThrowAny {
                     repository.deleteRecursivelyByPath(
-                        path = "/users/123",
+                        path = AssetPath("/users/123"),
                     )
                 }
             }

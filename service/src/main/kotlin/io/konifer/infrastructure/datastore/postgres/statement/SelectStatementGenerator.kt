@@ -2,9 +2,10 @@ package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.context.Limit
 import io.konifer.domain.variant.VariantSelection
-import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
+import io.konifer.infrastructure.datastore.postgres.toLtree
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetVariantRecord
@@ -33,7 +34,7 @@ object SelectStatementGenerator {
 
     context(trx: DSLContext)
     fun fetch(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -41,7 +42,7 @@ object SelectStatementGenerator {
         limit: Limit,
         include: AssetDataToInclude,
     ): MultiSetSelectHandles {
-        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val treePath = path.toLtree()
         val entryIdCondition =
             entryId?.let {
                 ASSET_TREE.ENTRY_ID.eq(entryId)

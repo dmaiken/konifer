@@ -150,7 +150,7 @@ class AssetService(
 
     private suspend fun publishVariantAccessedEvent(
         variantId: VariantId,
-        path: String,
+        path: AssetPath,
     ) {
         eventPublisher.publish(
             VariantAccessedEvent(

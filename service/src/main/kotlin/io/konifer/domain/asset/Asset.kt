@@ -14,7 +14,7 @@ import java.util.UUID
 
 sealed interface Asset {
     val id: AssetId
-    val path: String
+    val path: AssetPath
     val entryId: Long?
     val alt: AssetAlt?
     val labels: AssetLabels
@@ -31,7 +31,7 @@ sealed interface Asset {
 
     class New private constructor(
         override val id: AssetId,
-        override val path: String,
+        override val path: AssetPath,
         override val entryId: Long?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
@@ -45,7 +45,7 @@ sealed interface Asset {
     ) : Asset {
         companion object {
             fun fromHttpRequest(
-                path: String,
+                path: AssetPath,
                 request: StoreAssetRequest,
             ): New {
                 val now = Instant.now()
@@ -94,7 +94,7 @@ sealed interface Asset {
 
     class Pending private constructor(
         override val id: AssetId,
-        override val path: String,
+        override val path: AssetPath,
         override val entryId: Long?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
@@ -114,7 +114,7 @@ sealed interface Asset {
             ): Pending =
                 Pending(
                     id = new.id,
-                    path = new.path.removeSuffix("/"),
+                    path = new.path,
                     entryId = null,
                     alt = new.alt,
                     labels = new.labels.merge(additionalLabels),
@@ -136,7 +136,7 @@ sealed interface Asset {
 
     class PendingPersisted(
         override val id: AssetId,
-        override val path: String,
+        override val path: AssetPath,
         override val entryId: Long?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
@@ -164,7 +164,7 @@ sealed interface Asset {
 
     class Ready(
         override val id: AssetId,
-        override val path: String,
+        override val path: AssetPath,
         override val entryId: Long?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,

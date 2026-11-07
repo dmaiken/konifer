@@ -9,6 +9,7 @@ import io.konifer.common.http.AssetResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.EventPublisher
 import io.konifer.domain.transformation.toDimension
@@ -304,6 +305,6 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
     private fun assertAccess(variantId: VariantId) {
         val accesses = eventPublisher.accesses
         accesses.map { it.variantId } shouldContainExactly listOf(variantId)
-        accesses.single().path shouldBe "/profile"
+        accesses.single().path.value shouldBe AssetPath("/profile").value
     }
 }

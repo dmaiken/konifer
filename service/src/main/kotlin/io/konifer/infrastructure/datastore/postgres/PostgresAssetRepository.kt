@@ -3,6 +3,7 @@ package io.konifer.infrastructure.datastore.postgres
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
@@ -144,7 +145,7 @@ class PostgresAssetRepository(
         }
 
     override suspend fun fetchForUpdate(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     ): Asset? =
         fetch(
@@ -180,7 +181,7 @@ class PostgresAssetRepository(
         }
 
     override suspend fun fetchByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -205,7 +206,7 @@ class PostgresAssetRepository(
         }
 
     override suspend fun fetchForDelivery(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -227,7 +228,7 @@ class PostgresAssetRepository(
         )?.let(::PostgresAssetDeliveryProjection)
 
     override suspend fun fetchAllByPath(
-        path: String,
+        path: AssetPath,
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
@@ -259,20 +260,20 @@ class PostgresAssetRepository(
     }
 
     override suspend fun deleteByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     ) {
-        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val treePath = path.toLtree()
         deleteAssets(dslContext) {
             SelectForUpdateStatementGenerator.assetByPath(treePath, entryId)
         }
     }
 
     override suspend fun deleteAllByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String>,
     ) {
-        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val treePath = path.toLtree()
 
         val count =
             deleteAssets(dslContext) {
@@ -283,10 +284,10 @@ class PostgresAssetRepository(
     }
 
     override suspend fun deleteRecursivelyByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String>,
     ) {
-        val treePath = LtreePathAdapter.toTreePathFromUriPath(path)
+        val treePath = path.toLtree()
         deleteAssets(dslContext) {
             SelectForUpdateStatementGenerator.assetsRecursivelyByPath(treePath, labels)
         }
@@ -352,7 +353,7 @@ class PostgresAssetRepository(
 
     private suspend fun fetch(
         context: DSLContext,
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,

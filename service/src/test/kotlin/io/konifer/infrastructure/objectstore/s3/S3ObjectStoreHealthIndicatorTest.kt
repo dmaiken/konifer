@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.objectstore.s3
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.kotest.matchers.shouldBe
@@ -25,7 +26,7 @@ class S3ObjectStoreHealthIndicatorTest {
     fun `is healthy when the default bucket is accessible`() =
         runTest {
             val request = slot<Consumer<HeadBucketRequest.Builder>>()
-            every { pathConfigurationRepository.fetch("/") } returns PathConfiguration.default
+            every { pathConfigurationRepository.fetch(AssetPath("/")) } returns PathConfiguration.default
             every { s3Client.headBucket(capture(request)) } returns
                 CompletableFuture.completedFuture(HeadBucketResponse.builder().build())
             val indicator =
@@ -48,7 +49,7 @@ class S3ObjectStoreHealthIndicatorTest {
     @Test
     fun `is unhealthy when the default bucket is inaccessible`() =
         runTest {
-            every { pathConfigurationRepository.fetch("/") } returns PathConfiguration.default
+            every { pathConfigurationRepository.fetch(AssetPath("/")) } returns PathConfiguration.default
             every { s3Client.headBucket(any<Consumer<HeadBucketRequest.Builder>>()) } returns
                 CompletableFuture.failedFuture(IllegalStateException("unavailable"))
             val indicator =

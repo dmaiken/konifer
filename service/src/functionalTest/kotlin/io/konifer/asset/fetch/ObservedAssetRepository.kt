@@ -2,6 +2,7 @@ package io.konifer.asset.fetch
 
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.context.Limit
@@ -44,7 +45,7 @@ internal class ObservedAssetRepository(
     }
 
     override suspend fun fetchByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -59,7 +60,7 @@ internal class ObservedAssetRepository(
     }
 
     override suspend fun fetchForDelivery(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -74,7 +75,7 @@ internal class ObservedAssetRepository(
     }
 
     override suspend fun fetchAllByPath(
-        path: String,
+        path: AssetPath,
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,

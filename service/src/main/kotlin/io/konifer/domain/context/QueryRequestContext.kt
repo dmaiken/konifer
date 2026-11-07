@@ -1,6 +1,7 @@
 package io.konifer.domain.context
 
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.transformation.RequestedTransformation
@@ -8,7 +9,7 @@ import io.ktor.http.Parameters
 import io.ktor.http.RequestConnectionPoint
 
 data class QueryRequestContext(
-    val path: String,
+    val path: AssetPath,
     val pathConfiguration: PathConfiguration,
     val selectors: QuerySelectors,
     val requestedTransformation: RequestedTransformation?,

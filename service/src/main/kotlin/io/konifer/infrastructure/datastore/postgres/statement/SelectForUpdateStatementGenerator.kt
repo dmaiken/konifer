@@ -5,6 +5,7 @@ import konifer.jooq.tables.references.ASSET_TREE
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
+import org.jooq.impl.DSL
 import org.jooq.postgres.extensions.types.Ltree
 import java.util.UUID
 
@@ -19,7 +20,7 @@ object SelectForUpdateStatementGenerator {
             .from(ASSET_TREE)
             .where(
                 QueryConditionGenerator.assetLabelConditions(
-                    condition = ASSET_TREE.PATH.startsWith(path),
+                    condition = DSL.condition("{0} <@ {1}", ASSET_TREE.PATH, DSL.`val`(path, ASSET_TREE.PATH.dataType)),
                     labels = labels,
                 ),
             ).forUpdate()

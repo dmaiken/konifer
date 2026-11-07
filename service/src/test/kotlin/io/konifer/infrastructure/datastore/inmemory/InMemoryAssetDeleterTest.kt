@@ -2,6 +2,7 @@ package io.konifer.infrastructure.datastore.inmemory
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.DeleteAssetsCommand
@@ -125,7 +126,7 @@ class InMemoryAssetDeleterTest {
 
             assetDeleter.delete(
                 DeleteAssetsCommand.Recursively(
-                    path = "/users/123",
+                    path = AssetPath("/users/123"),
                     labels = mapOf("animal" to "cat").toAssetLabels(),
                 ),
             )

@@ -1,10 +1,11 @@
 package io.konifer.infrastructure.datastore.postgres.projection
 
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
 import io.konifer.infrastructure.datastore.postgres.AssetRecordsDto
-import io.konifer.infrastructure.datastore.postgres.LtreePathAdapter
+import io.konifer.infrastructure.datastore.postgres.toAssetPath
 import java.time.Instant
 
 class PostgresAssetDeliveryProjection(
@@ -13,7 +14,7 @@ class PostgresAssetDeliveryProjection(
     override val id: AssetId = AssetId(checkNotNull(assetRecordsDto.asset.id))
     override val alt: String? = assetRecordsDto.asset.alt
     override val entryId: Long = checkNotNull(assetRecordsDto.asset.entryId)
-    override val path: String = LtreePathAdapter.toUriPath(checkNotNull(assetRecordsDto.asset.path).data())
+    override val path: AssetPath = checkNotNull(assetRecordsDto.asset.path).toAssetPath()
     override val modifiedAt: Instant = checkNotNull(assetRecordsDto.asset.modifiedAt).toInstant()
     override val variants: List<VariantDeliveryProjection> = assetRecordsDto.variants.map(::PostgresVariantDeliveryProjection)
 }

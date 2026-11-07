@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.variant.metrics
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.variant.VariantId
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldContainExactly
@@ -23,7 +24,7 @@ class InMemoryVariantMetricsRepositoryTest {
 
             repository.recordVariantAccess(
                 variantId = variantId,
-                path = path,
+                path = AssetPath(path),
                 accessedAt = accessedAt,
             )
 
@@ -32,7 +33,7 @@ class InMemoryVariantMetricsRepositoryTest {
                     variantId to
                         VariantAccessedInformation(
                             accessedAt = accessedAt,
-                            path = path,
+                            path = AssetPath(path),
                             accessCount = 1,
                         ),
                 )
@@ -48,17 +49,17 @@ class InMemoryVariantMetricsRepositoryTest {
 
             repository.recordVariantAccess(
                 variantId = variantId,
-                path = path,
+                path = AssetPath(path),
                 accessedAt = firstAccessedAt,
             )
             repository.recordVariantAccess(
                 variantId = variantId,
-                path = path,
+                path = AssetPath(path),
                 accessedAt = laterAccessedAt,
             )
             repository.recordVariantAccess(
                 variantId = variantId,
-                path = path,
+                path = AssetPath(path),
                 accessedAt = firstAccessedAt,
             )
 
@@ -79,12 +80,12 @@ class InMemoryVariantMetricsRepositoryTest {
 
             repository.recordVariantAccess(
                 variantId = VariantId(),
-                path = "/images/first",
+                path = AssetPath("/images/first"),
                 accessedAt = Instant.now(),
             )
             repository.recordVariantAccess(
                 variantId = VariantId(),
-                path = "/images/second",
+                path = AssetPath("/images/second"),
                 accessedAt = Instant.now(),
             )
 
@@ -98,12 +99,12 @@ class InMemoryVariantMetricsRepositoryTest {
         runTest {
             repository.recordVariantAccess(
                 variantId = VariantId(),
-                path = "/images/first",
+                path = AssetPath("/images/first"),
                 accessedAt = Instant.now(),
             )
             repository.recordVariantAccess(
                 variantId = VariantId(),
-                path = "/images/second",
+                path = AssetPath("/images/second"),
                 accessedAt = Instant.now(),
             )
 
