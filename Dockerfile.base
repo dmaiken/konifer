@@ -103,7 +103,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
 ## Generated from scripts/query-runtime-deps.sh.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+## Addresses CVE-2026-109518
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends -o Acquire::Retries=0 \
+        --only-upgrade apt libapt-pkg6.0t64 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' apt)" ge 2.8.4ubuntu0.1 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libapt-pkg6.0t64)" ge 2.8.4ubuntu0.1 \
+    && apt-get install -y --no-install-recommends \
     ca-certificates \
     libbrotli1 \
     libde265-0 \
