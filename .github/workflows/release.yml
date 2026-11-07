@@ -202,6 +202,30 @@ jobs:
           cache-from: type=gha,scope=build-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }}
 
+  config-scan:
+    uses: ./.github/workflows/config-scan.yml
+    permissions:
+      contents: read
+
+  image-policy:
+    needs: build-images
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    uses: ./.github/workflows/image-policy.yml
+    with:
+      runner: ${{ matrix.runner }}
+      arch: ${{ matrix.arch }}
+      image-tag: ghcr.io/${{ github.repository }}:${{ github.sha }}-${{ matrix.arch }}
+    permissions:
+      contents: read
+      packages: read
+
   image-security:
     needs: build-images
     strategy:
