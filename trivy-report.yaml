@@ -1,0 +1,19 @@
+# Findings are advisory; scanner and configuration errors still fail the command.
+exit-code: 0
+format: json
+severity:
+  - UNKNOWN
+  - LOW
+  - MEDIUM
+  - HIGH
+  - CRITICAL
+timeout: 10m
+scan:
+  scanners:
+    - license
+license:
+  full: true
+  confidence-level: 0.9
+image:
+  image-config-scanners:
+    - misconfig

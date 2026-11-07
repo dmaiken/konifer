@@ -1,0 +1,30 @@
+name: Dockerfile Misconfiguration Report
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  dockerfiles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Trivy
+        # Same installer revision used by trivy-action v0.36.0.
+        uses: aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514 # v0.2.6
+        with:
+          version: v0.74.0
+
+      - name: Scan Dockerfiles
+        run: bash scripts/scan-config.sh /tmp/trivy-config-reports
+
+      - name: Upload Dockerfile Report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-dockerfiles
+          path: /tmp/trivy-config-reports/*.json
+          if-no-files-found: warn
+          retention-days: 14

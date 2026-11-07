@@ -312,6 +312,31 @@ jobs:
           path: /tmp/konifer-image-${{ matrix.arch }}.tar
           retention-days: 1
 
+  config-scan:
+    uses: ./.github/workflows/config-scan.yml
+    permissions:
+      contents: read
+
+  image-policy:
+    needs: docker-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    uses: ./.github/workflows/image-policy.yml
+    with:
+      runner: ${{ matrix.runner }}
+      arch: ${{ matrix.arch }}
+      image-tag: ghcr.io/${{ github.repository }}:${{ github.sha }}-${{ matrix.arch }}
+      image-artifact-name: konifer-${{ matrix.arch }}-image
+    permissions:
+      contents: read
+      packages: read
+
   image-security:
     needs: docker-build
     strategy:

@@ -1,0 +1,75 @@
+name: Image License and Misconfiguration Report
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      image-tag:
+        required: true
+        type: string
+      image-artifact-name:
+        description: Docker image tar artifact; omit to scan the registry tag
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  image-policy:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Image Artifact
+        if: ${{ inputs.image-artifact-name != '' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.image-artifact-name }}
+          path: /tmp/konifer-policy-image
+
+      - name: Log in to the Container Registry
+        if: ${{ inputs.image-artifact-name == '' }}
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Trivy
+        # Same installer revision used by trivy-action v0.36.0.
+        uses: aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514 # v0.2.6
+        with:
+          version: v0.74.0
+
+      - name: Scan Image Licenses and Configuration
+        env:
+          IMAGE_ARTIFACT_NAME: ${{ inputs.image-artifact-name }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
+        run: |
+          source="$IMAGE_TAG"
+          if [[ -n "$IMAGE_ARTIFACT_NAME" ]]; then
+            mapfile -t archives < <(find /tmp/konifer-policy-image -maxdepth 1 -type f -name '*.tar' -print)
+            if (( ${#archives[@]} != 1 )); then
+              echo "Expected exactly one Docker image archive, found ${#archives[@]}." >&2
+              exit 1
+            fi
+            source="${archives[0]}"
+          fi
+          bash scripts/scan-image-policy.sh "$source" /tmp/trivy-image-policy.json
+
+      - name: Upload Image Policy Report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-image-policy-${{ inputs.arch }}
+          path: /tmp/trivy-image-policy.json
+          if-no-files-found: warn
+          retention-days: 14
