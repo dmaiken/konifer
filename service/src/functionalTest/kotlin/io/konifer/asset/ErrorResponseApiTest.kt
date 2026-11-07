@@ -25,7 +25,7 @@ class ErrorResponseApiTest : BaseFunctionalTest() {
                     "/assets/avatar/-/nope" to ErrorCode.INVALID_PATH,
                     "/assets/avatar//child/-/info" to ErrorCode.INVALID_PATH,
                     "/assets/avatar//-/info" to ErrorCode.INVALID_PATH,
-                    "/assets/avatar.name/-/info" to ErrorCode.INVALID_PATH,
+                    "/assets/avatar;name/-/info" to ErrorCode.INVALID_PATH,
                     "/assets/avatar/-/info?limit=nope" to ErrorCode.INVALID_REQUEST,
                     "/assets/avatar/-/info?limit=1&limit=2" to ErrorCode.INVALID_REQUEST,
                     "/assets/avatar/-/link?width=nope" to ErrorCode.INVALID_TRANSFORMATION,

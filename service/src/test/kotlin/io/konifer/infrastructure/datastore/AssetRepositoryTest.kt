@@ -81,6 +81,24 @@ abstract class AssetRepositoryTest {
             repository.fetchByPath(sibling.path, sibling.entryId, includeOnlyReady = false) shouldBe null
         }
 
+    @Test
+    fun `punctuation and escape-looking identifiers remain distinct`() =
+        runTest {
+            val paths = listOf("/a.b", "/a.b/child", "/a/b", "/a_2eb", "/A_1/.~!$'()*+=@:-")
+            val assets = paths.associateWith { repository.storeNew(createPendingAsset(path = it)) }
+            assets.forEach { (path, asset) ->
+                asset.entryId shouldBe 0L
+                val fetched = repository.fetchByPath(AssetPath(path), asset.entryId, includeOnlyReady = false)
+                fetched?.id shouldBe asset.id
+                fetched?.path shouldBe AssetPath(path)
+            }
+            repository.deleteRecursivelyByPath(AssetPath("/a.b"))
+            assets.forEach { (path, asset) ->
+                val expected = if (path == "/a.b" || path == "/a.b/child") null else asset.id
+                repository.fetchByPath(AssetPath(path), asset.entryId, includeOnlyReady = false)?.id shouldBe expected
+            }
+        }
+
     @ParameterizedTest
     @EnumSource(VariantSelection::class)
     fun `variant refresh uses resolved asset identity and only returns selected uploaded variants`(selection: VariantSelection) =

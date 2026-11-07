@@ -9,7 +9,7 @@ value class AssetPath private constructor(
     init {
         if (value != "/" && (
                 !value.startsWith("/") || value.endsWith("/") ||
-                    !value.removePrefix("/").split('/').all { it.isNotEmpty() && it.matches(VALID_SEGMENT) }
+                    !value.removePrefix("/").split('/').all { it.isNotEmpty() && it != "." && it != ".." && it.matches(VALID_SEGMENT) }
             )
         ) {
             throw InvalidPathException("Invalid path: $value")
@@ -17,7 +17,7 @@ value class AssetPath private constructor(
     }
 
     companion object {
-        private val VALID_SEGMENT = Regex("[a-zA-Z0-9_~!$'()*+=@-]+")
+        private val VALID_SEGMENT = Regex("[a-zA-Z0-9._~!$'()*+=@:-]+")
         val ROOT = AssetPath("/")
 
         operator fun invoke(value: String): AssetPath {

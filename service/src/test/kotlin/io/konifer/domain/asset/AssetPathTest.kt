@@ -22,14 +22,14 @@ class AssetPathTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["//", "///", "//a", "a//", "/a//b", "/.", "/a.b", "/:", "/;", "/a b", "/é", "/%2F", "/a?b"])
+    @ValueSource(strings = ["//", "///", "//a", "a//", "/a//b", "/.", "/..", "/a/../b", "/a/./b", "/;", "/a b", "/é", "/%2F", "/a?b"])
     fun `malformed paths are rejected`(path: String) {
         shouldThrow<InvalidPathException> { AssetPath(path) }
     }
 
     @Test
     fun `case and permitted punctuation are preserved`() {
-        val path = "/A_1/~!$'()*+=@-"
+        val path = "/A_1/v1.2/~!$'()*+=@:-"
         AssetPath(path).value shouldBe path
     }
 
