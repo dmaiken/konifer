@@ -7,17 +7,18 @@ import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
 import io.konifer.domain.path.PathConfiguration
+import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.OnDemandVariantMode
 import io.konifer.domain.variant.OnDemandVariantProperties
 import io.konifer.domain.variant.TransformProperties
-import io.konifer.infrastructure.path.TriePathConfigurationRepository
 import io.konifer.infrastructure.variant.profile.ConfigurationVariantProfileRepository
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -499,7 +500,11 @@ class RequestContextFactoryTest {
             )
     }
 
-    private val pathConfigurationRepository = mockk<TriePathConfigurationRepository>()
+    private var pathConfiguration = PathConfiguration.default
+    private val pathConfigurationRepository =
+        object : PathConfigurationRepository {
+            override fun fetch(path: AssetPath): PathConfiguration = pathConfiguration
+        }
     private val variantProfileRepository = mockk<ConfigurationVariantProfileRepository>()
     private val requestContextValidator =
         RequestContextValidator(
@@ -525,9 +530,7 @@ class RequestContextFactoryTest {
 
     @BeforeEach
     fun beforeEach() {
-        every {
-            pathConfigurationRepository.fetch(any())
-        } returns PathConfiguration.default
+        pathConfiguration = PathConfiguration.default
     }
 
     @Nested
@@ -541,21 +544,21 @@ class RequestContextFactoryTest {
         )
         fun `ordinary hyphens and selector names remain part of the asset path`(assetPath: String) {
             val path = "/assets/$assetPath"
-            requestContextFactory.fromStoreRequest(path).path shouldBe "/$assetPath"
-            requestContextFactory.fromFetchRequest(path, Headers.Empty, Parameters.Empty).path shouldBe "/$assetPath"
+            requestContextFactory.fromStoreRequest(path).path shouldBe AssetPath("/$assetPath")
+            requestContextFactory.fromFetchRequest(path, Headers.Empty, Parameters.Empty).path shouldBe AssetPath("/$assetPath")
             val delete = requestContextFactory.fromDeleteRequest(path, Parameters.build { append("limit", "-1") })
-            delete.path shouldBe "/$assetPath"
+            delete.path shouldBe AssetPath("/$assetPath")
             delete.selection shouldBe DeleteSelection.AllAtPath
 
             val entryPath = "$path/-/entry/42"
             val fetch = requestContextFactory.fromFetchRequest(entryPath, Headers.Empty, Parameters.Empty)
-            fetch.path shouldBe "/$assetPath/"
+            fetch.path shouldBe AssetPath("/$assetPath")
             fetch.selectors.entryId shouldBe 42L
             val update = requestContextFactory.fromUpdateRequest(entryPath)
-            update.path shouldBe "/$assetPath/"
+            update.path shouldBe AssetPath("/$assetPath")
             update.entryId shouldBe 42L
             val entryDelete = requestContextFactory.fromDeleteRequest(entryPath, Parameters.Empty)
-            entryDelete.path shouldBe "/$assetPath/"
+            entryDelete.path shouldBe AssetPath("/$assetPath")
             entryDelete.selection shouldBe DeleteSelection.Entry(42)
             shouldThrow<InvalidPathException> { requestContextFactory.fromStoreRequest(entryPath) }
         }
@@ -582,11 +585,11 @@ class RequestContextFactoryTest {
 
         @Test
         fun `root selectors and existing trailing slash handling remain supported`() {
-            requestContextFactory.fromStoreRequest("/assets").path shouldBe ""
-            requestContextFactory.fromStoreRequest("/assets/album-/").path shouldBe "/album-/"
-            requestContextFactory.fromFetchRequest("/assets/album-/", Headers.Empty, Parameters.Empty).path shouldBe "/album-"
+            requestContextFactory.fromStoreRequest("/assets").path shouldBe AssetPath("/")
+            requestContextFactory.fromStoreRequest("/assets/album-/").path shouldBe AssetPath("/album-")
+            requestContextFactory.fromFetchRequest("/assets/album-/", Headers.Empty, Parameters.Empty).path shouldBe AssetPath("/album-")
             val root = requestContextFactory.fromFetchRequest("/assets/-/info/", Headers.Empty, Parameters.Empty)
-            root.path shouldBe "/"
+            root.path shouldBe AssetPath("/")
             root.selectors.returnFormat shouldBe ReturnFormat.INFO
         }
     }
@@ -889,7 +892,7 @@ class RequestContextFactoryTest {
                                 }.build(),
                     )
 
-                context.path shouldBe "/profile/123/"
+                context.path shouldBe AssetPath("/profile/123")
             }
 
         @ParameterizedTest
@@ -1081,9 +1084,7 @@ class RequestContextFactoryTest {
         @MethodSource("io.konifer.domain.context.RequestContextFactoryTest#restrictedTransformationSource")
         fun `profile-only policy validation is deferred until original attributes are available`(parameters: Parameters) =
             runTest {
-                every {
-                    pathConfigurationRepository.fetch(path = any())
-                } returns
+                pathConfiguration =
                     PathConfiguration(
                         transform =
                             TransformProperties(
@@ -1106,9 +1107,7 @@ class RequestContextFactoryTest {
         @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
         fun `profile-only parsing supports transformations for all variant return formats`(returnFormat: ReturnFormat) =
             runTest {
-                every {
-                    pathConfigurationRepository.fetch(path = any())
-                } returns
+                pathConfiguration =
                     PathConfiguration(
                         transform =
                             TransformProperties(
@@ -1135,9 +1134,7 @@ class RequestContextFactoryTest {
         @EnumSource(ReturnFormat::class, mode = EnumSource.Mode.EXCLUDE, names = ["INFO", "ENTRIES"])
         fun `can specify profile with profile_only mode`(returnFormat: ReturnFormat) =
             runTest {
-                every {
-                    pathConfigurationRepository.fetch(path = any())
-                } returns
+                pathConfiguration =
                     PathConfiguration(
                         transform =
                             TransformProperties(
@@ -1173,9 +1170,7 @@ class RequestContextFactoryTest {
             @CartesianTest.Enum(ReturnFormat::class) returnFormat: ReturnFormat,
             @CartesianTest.Enum(OnDemandVariantMode::class) mode: OnDemandVariantMode,
         ) = runTest {
-            every {
-                pathConfigurationRepository.fetch(path = any())
-            } returns
+            pathConfiguration =
                 PathConfiguration(
                     transform =
                         TransformProperties(
@@ -1348,7 +1343,7 @@ class RequestContextFactoryTest {
             val context = requestContextFactory.fromStoreRequest(path)
 
             context.pathConfiguration shouldBe PathConfiguration.default
-            context.path shouldBe "/profile/123"
+            context.path shouldBe AssetPath("/profile/123")
         }
 
         @Test
@@ -1372,7 +1367,7 @@ class RequestContextFactoryTest {
                 shouldNotThrowAny {
                     requestContextFactory.fromUpdateRequest(path)
                 }
-            context.path shouldBe "/profile/123/"
+            context.path shouldBe AssetPath("/profile/123")
             context.entryId shouldBe 1L
         }
 

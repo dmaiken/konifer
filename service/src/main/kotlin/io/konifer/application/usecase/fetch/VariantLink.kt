@@ -2,12 +2,13 @@ package io.konifer.application.usecase.fetch
 
 import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.AttributesResponse
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.infrastructure.http.fromAttributes
 
 data class VariantLink(
-    val path: String,
+    val path: AssetPath,
     val deliveryUrl: DeliveryUrl,
     val entryId: Long,
     val lqip: LQIPs,

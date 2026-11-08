@@ -2,6 +2,7 @@ package io.konifer.infrastructure.datastore.postgres.metrics
 
 import com.typesafe.config.ConfigFactory
 import io.konifer.common.image.ImageFormat
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.TransformConfigurationValidator
 import io.konifer.domain.transformation.Transformation
@@ -98,7 +99,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
             metricsRepository.recordVariantAccess(
                 variantId = variant.id,
-                path = "/ttl/asset",
+                path = AssetPath("/ttl/asset"),
                 accessedAt = accessedAt,
             )
             signal.requestDrain()
@@ -143,7 +144,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
             metricsRepository.recordVariantAccess(
                 variantId = variant.id,
-                path = "/idle/asset",
+                path = AssetPath("/idle/asset"),
                 accessedAt = accessedAt,
             )
             signal.requestDrain()
@@ -187,7 +188,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
             repeat(3) {
                 metricsRepository.recordVariantAccess(
                     variantId = variant.id,
-                    path = "/ttl/asset",
+                    path = AssetPath("/ttl/asset"),
                     accessedAt = Instant.now(),
                 )
             }
@@ -234,7 +235,7 @@ class PostgresVariantMetricsWriterTest : PostgresContainerizedTest() {
 
             metricsRepository.recordVariantAccess(
                 variantId = variant.id,
-                path = "/idle/asset",
+                path = AssetPath("/idle/asset"),
                 accessedAt = staleAccessedAt,
             )
             signal.requestDrain()

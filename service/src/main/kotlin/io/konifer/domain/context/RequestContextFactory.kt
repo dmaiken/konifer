@@ -28,6 +28,7 @@ import io.konifer.common.image.Rotate
 import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.context.PathSelectorExtractor.extractDeleteSelectors
 import io.konifer.domain.context.PathSelectorExtractor.extractQuerySelectors
@@ -62,7 +63,7 @@ class RequestContextFactory(
     }
 
     fun fromStoreRequest(path: String): StoreRequestContext {
-        val parsedPath = parsePath(path, preserveTrailingSlash = true)
+        val parsedPath = parsePath(path)
         if (parsedPath.selectorPath != null) {
             throw InvalidPathException("Store request cannot have modifiers in path: $path")
         }
@@ -159,28 +160,24 @@ class RequestContextFactory(
     }
 
     private data class ParsedPath(
-        val assetPath: String,
+        val assetPath: AssetPath,
         val selectorPath: String?,
     )
 
-    private fun parsePath(
-        path: String,
-        preserveTrailingSlash: Boolean = false,
-    ): ParsedPath {
-        val rawRoute = extractRoute(path)
-        val route = if (preserveTrailingSlash) rawRoute else rawRoute.removeSuffix("/")
+    private fun parsePath(path: String): ParsedPath {
+        val route = extractRoute(path)
         val segments = route.split('/')
         val separators = segments.indices.filter { segments[it] == PATH_NAMESPACE_SEPARATOR }
         if (separators.size > 1) {
             throw InvalidPathException("$path has more than one '$PATH_NAMESPACE_SEPARATOR' segment")
         }
-        val separatorIndex = separators.singleOrNull() ?: return ParsedPath(route, null)
+        val separatorIndex = separators.singleOrNull() ?: return ParsedPath(AssetPath(route), null)
         val selectorPath = segments.drop(separatorIndex + 1).joinToString("/")
         if (selectorPath.trim('/').isBlank()) {
             throw InvalidPathException("Selector section cannot be empty: $path")
         }
         return ParsedPath(
-            assetPath = segments.take(separatorIndex).joinToString("/") + "/",
+            assetPath = AssetPath(segments.take(separatorIndex).joinToString("/") + "/"),
             selectorPath = selectorPath,
         )
     }

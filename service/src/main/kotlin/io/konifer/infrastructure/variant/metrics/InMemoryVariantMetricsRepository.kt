@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.variant.metrics
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.ports.VariantMetricsRepository
 import io.konifer.domain.variant.VariantId
 import kotlinx.coroutines.sync.Mutex
@@ -15,7 +16,7 @@ class InMemoryVariantMetricsRepository(
 
     override suspend fun recordVariantAccess(
         variantId: VariantId,
-        path: String,
+        path: AssetPath,
         accessedAt: Instant,
     ) {
         mutex.withLock {
@@ -51,6 +52,6 @@ class InMemoryVariantMetricsRepository(
 
 data class VariantAccessedInformation(
     val accessedAt: Instant,
-    val path: String,
+    val path: AssetPath,
     val accessCount: Long,
 )

@@ -5,6 +5,7 @@ import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.LQIPs
@@ -32,7 +33,7 @@ abstract class BaseUnitTest {
         val newAsset =
             Asset.New
                 .fromHttpRequest(
-                    path = path,
+                    path = AssetPath(path),
                     request =
                         StoreAssetRequest(
                             alt = alt,

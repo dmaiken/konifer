@@ -1,5 +1,6 @@
 package io.konifer.infrastructure.objectstore.s3
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.ports.PathConfigurationRepository
 import io.konifer.infrastructure.health.CachingHealthIndicator
 import io.konifer.infrastructure.health.HealthIndicator
@@ -17,7 +18,7 @@ class S3ObjectStoreHealthIndicator(
         healthCheck = {
             val bucket =
                 pathConfigurationRepository
-                    .fetch("/")
+                    .fetch(AssetPath.ROOT)
                     .objectStore
                     .bucket
 

@@ -5,6 +5,7 @@ import io.konifer.common.image.TransformableColorSpace
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.path.PathConfiguration
@@ -153,7 +154,7 @@ class RequestContextValidatorTest {
         profile: String? = null,
         maxWidth: Int = 8192,
     ) = QueryRequestContext(
-        path = "profile",
+        path = AssetPath("profile"),
         pathConfiguration =
             PathConfiguration(
                 transform =

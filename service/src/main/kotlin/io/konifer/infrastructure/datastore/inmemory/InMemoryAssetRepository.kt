@@ -3,6 +3,7 @@ package io.konifer.infrastructure.datastore.inmemory
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
@@ -36,10 +37,10 @@ class InMemoryAssetRepository(
     private val objectStore: ObjectStore,
 ) : AssetRepository {
     private val logger = KtorSimpleLogger(this::class.qualifiedName!!)
-    private val store = ConcurrentHashMap<String, MutableList<Asset>>()
+    private val store = ConcurrentHashMap<AssetPath, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
-    private val lastEntryIds = mutableMapOf<String, Long>()
+    private val lastEntryIds = mutableMapOf<AssetPath, Long>()
 
     override suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
@@ -61,7 +62,7 @@ class InMemoryAssetRepository(
 
     override suspend fun storeNew(asset: Asset.Pending): Asset.PendingPersisted {
         storeMutex.withLock {
-            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            val path = asset.path
             val entryId = getNextEntryId(path)
             logger.info("Persisting asset at path: $path, entryId: $entryId")
             return Asset
@@ -88,7 +89,7 @@ class InMemoryAssetRepository(
     override suspend fun markReady(asset: Asset.Ready) {
         storeMutex.withLock {
             idReference[asset.id] = asset
-            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            val path = asset.path
             store[path]?.removeIf { it.path == asset.path && it.entryId == asset.entryId }
             store[path]?.add(asset)
         }
@@ -100,7 +101,7 @@ class InMemoryAssetRepository(
     ): VariantData =
         storeMutex.withLock {
             val asset = checkNotNull(idReference[variant.assetId]) { "Asset not found: ${variant.assetId.value}" }
-            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            val path = asset.path
             store[path]
                 ?.firstOrNull { it.entryId == asset.entryId }
                 ?.let { asset ->
@@ -135,7 +136,7 @@ class InMemoryAssetRepository(
     override suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending {
         storeMutex.withLock {
             val asset = idReference[variant.assetId] ?: throw IllegalArgumentException("Asset not found")
-            val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+            val path = asset.path
             return store[path]?.let { assets ->
                 val asset = assets.first { it.entryId == asset.entryId }
                 if (asset.variants.any { it.matches(variant.specification) }) {
@@ -150,15 +151,15 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun fetchForUpdate(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     ): Asset? =
-        InMemoryPathAdapter.toInMemoryPathFromUriPath(path).let {
+        path.let {
             store[it]?.firstOrNull { asset -> asset.entryId == entryId }
         }
 
     override suspend fun fetchByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -175,7 +176,7 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun fetchForDelivery(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection,
         order: Order,
@@ -190,7 +191,7 @@ class InMemoryAssetRepository(
         )?.let(::InMemoryAssetDeliveryProjection)
 
     override suspend fun fetchAllByPath(
-        path: String,
+        path: AssetPath,
         selection: VariantSelection,
         labels: Map<String, String>,
         order: Order,
@@ -206,7 +207,7 @@ class InMemoryAssetRepository(
         )
 
     override suspend fun deleteByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     ) {
         deleteAndReturnObjectReferences(
@@ -218,7 +219,7 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun deleteAllByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String>,
     ) {
         deleteAndReturnObjectReferences(
@@ -230,7 +231,7 @@ class InMemoryAssetRepository(
     }
 
     override suspend fun deleteRecursivelyByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String>,
     ) {
         deleteAndReturnObjectReferences(
@@ -256,7 +257,7 @@ class InMemoryAssetRepository(
             val assets =
                 when (command) {
                     is DeleteAssetsCommand.Entry -> {
-                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        val path = command.path
                         logger.info("Deleting asset at path: $path, entryId: ${command.entryId}")
                         store[path]
                             ?.firstOrNull { it.entryId == command.entryId }
@@ -265,7 +266,7 @@ class InMemoryAssetRepository(
                     }
 
                     is DeleteAssetsCommand.AtPath -> {
-                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        val path = command.path
                         logger.info(
                             "Deleting all assets at path: $path, labels: ${command.labels}",
                         )
@@ -276,10 +277,10 @@ class InMemoryAssetRepository(
                     }
 
                     is DeleteAssetsCommand.Recursively -> {
-                        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(command.path)
+                        val path = command.path
                         logger.info("Deleting assets (recursively) at path: $path with labels: ${command.labels}")
                         store.keys
-                            .filter { it.startsWith(path) }
+                            .filter { it.isSelfOrDescendantOf(path) }
                             .flatMap { storedPath ->
                                 store[storedPath]
                                     ?.filter { asset ->
@@ -302,7 +303,7 @@ class InMemoryAssetRepository(
     override suspend fun update(asset: Asset.Ready): Asset {
         fetch(asset.path, asset.entryId, Order.NEW, emptyMap(), true)
             ?: throw IllegalStateException("Asset does not exist")
-        val path = InMemoryPathAdapter.toInMemoryPathFromUriPath(asset.path)
+        val path = asset.path
         store[path]?.removeIf { it.entryId == asset.entryId }
         store[path]?.add(asset)
 
@@ -318,7 +319,7 @@ class InMemoryAssetRepository(
         }
 
     private fun selectAssetsAtPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String>,
     ): List<Asset> =
         store[path]
@@ -331,23 +332,23 @@ class InMemoryAssetRepository(
         val ids = assets.mapTo(mutableSetOf()) { it.id }
         ids.forEach(idReference::remove)
         assets
-            .map { InMemoryPathAdapter.toInMemoryPathFromUriPath(it.path) }
+            .map { it.path }
             .distinct()
             .forEach { path ->
                 store[path]?.removeIf { it.id in ids }
             }
     }
 
-    private fun getNextEntryId(path: String): Long = (lastEntryIds[path]?.inc() ?: 0L).also { lastEntryIds[path] = it }
+    private fun getNextEntryId(path: AssetPath): Long = (lastEntryIds[path]?.inc() ?: 0L).also { lastEntryIds[path] = it }
 
     private fun fetch(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
     ): Asset? {
-        val assets = store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)] ?: return null
+        val assets = store[path] ?: return null
 
         return assets
             .asSequence()
@@ -366,14 +367,14 @@ class InMemoryAssetRepository(
     }
 
     private fun fetchAll(
-        path: String,
+        path: AssetPath,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
         limit: Limit,
         includeOnlyReady: Boolean,
     ): List<AssetData> =
-        store[InMemoryPathAdapter.toInMemoryPathFromUriPath(path)]
+        store[path]
             ?.asSequence()
             ?.filter {
                 !includeOnlyReady || it.isReady

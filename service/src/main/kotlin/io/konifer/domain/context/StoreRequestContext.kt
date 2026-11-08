@@ -1,10 +1,11 @@
 package io.konifer.domain.context
 
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.rules.upload.DefaultRuleAction
 
 data class StoreRequestContext(
-    val path: String,
+    val path: AssetPath,
     val pathConfiguration: PathConfiguration,
 ) : RequestContext {
     /**

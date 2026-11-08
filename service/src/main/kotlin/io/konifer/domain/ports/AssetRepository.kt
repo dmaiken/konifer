@@ -3,6 +3,7 @@ package io.konifer.domain.ports
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.context.Limit
@@ -31,12 +32,12 @@ interface AssetRepository {
     suspend fun storeNewVariant(variant: Variant.Pending): Variant.Pending
 
     suspend fun fetchForUpdate(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     ): Asset?
 
     suspend fun fetchForDelivery(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection = VariantSelection.ALL,
         order: Order = Order.NEW,
@@ -53,7 +54,7 @@ interface AssetRepository {
      * @param selection which variants to include; defaults to all eligible variants
      */
     suspend fun fetchByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long?,
         selection: VariantSelection = VariantSelection.ALL,
         order: Order = Order.NEW,
@@ -71,7 +72,7 @@ interface AssetRepository {
      * @param limit the maximum amount of assets to return. -1 means no limit.
      */
     suspend fun fetchAllByPath(
-        path: String,
+        path: AssetPath,
         selection: VariantSelection = VariantSelection.ALL,
         labels: Map<String, String> = emptyMap(),
         order: Order = Order.NEW,
@@ -79,17 +80,17 @@ interface AssetRepository {
     ): List<AssetData>
 
     suspend fun deleteByPath(
-        path: String,
+        path: AssetPath,
         entryId: Long,
     )
 
     suspend fun deleteAllByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String> = emptyMap(),
     )
 
     suspend fun deleteRecursivelyByPath(
-        path: String,
+        path: AssetPath,
         labels: Map<String, String> = emptyMap(),
     )
 

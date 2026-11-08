@@ -56,7 +56,7 @@ fun AssetTreeRecord.toAssetData(
 ): AssetData =
     AssetData(
         id = AssetId(checkNotNull(id)),
-        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
+        path = checkNotNull(path).toAssetPath(),
         entryId = checkNotNull(entryId),
         alt = alt,
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
@@ -94,7 +94,7 @@ fun AssetTreeRecord.toPendingPersisted(
 ): Asset.PendingPersisted =
     Asset.PendingPersisted(
         id = AssetId(checkNotNull(id)),
-        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
+        path = checkNotNull(path).toAssetPath(),
         entryId = checkNotNull(entryId),
         alt = alt?.toAssetAlt(),
         labels = labels,
@@ -114,7 +114,7 @@ fun AssetTreeRecord.toReadyAsset(
 ): Asset.Ready =
     Asset.Ready(
         id = AssetId(checkNotNull(id)),
-        path = LtreePathAdapter.toUriPath(checkNotNull(path).data()),
+        path = checkNotNull(path).toAssetPath(),
         entryId = checkNotNull(entryId),
         alt = checkNotNull(alt).toAssetAlt(),
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) }.toAssetLabels(),

@@ -6,6 +6,7 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetLabels
+import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.Transformation
@@ -48,7 +49,7 @@ fun createPendingAsset(
 ): Asset.Pending =
     Asset.New
         .fromHttpRequest(
-            path = path,
+            path = AssetPath(path),
             request =
                 StoreAssetRequest(
                     alt = alt,
