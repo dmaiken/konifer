@@ -3,6 +3,7 @@ package io.konifer.infrastructure.datastore.postgres.statement
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.EntryId
 import io.konifer.domain.context.Limit
 import io.konifer.domain.variant.VariantSelection
 import io.konifer.infrastructure.datastore.postgres.toLtree
@@ -35,7 +36,7 @@ object SelectStatementGenerator {
     context(trx: DSLContext)
     fun fetch(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
@@ -45,7 +46,7 @@ object SelectStatementGenerator {
         val treePath = path.toLtree()
         val entryIdCondition =
             entryId?.let {
-                ASSET_TREE.ENTRY_ID.eq(entryId)
+                ASSET_TREE.ENTRY_ID.eq(entryId.id)
             } ?: DSL.noCondition()
         val assetOrderConditions = QueryOrderGenerator.assetOrder(order)
         val whereCondition =

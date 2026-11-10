@@ -2,6 +2,7 @@ package io.konifer.domain.context.selector
 
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.InvalidQuerySelectorsException
 import io.konifer.domain.context.toLimit
 import io.kotest.assertions.throwables.shouldNotThrowAny
@@ -53,7 +54,7 @@ class QuerySelectorsTest {
     @Test
     fun `entries cannot select an explicit entry ID`() {
         shouldThrow<InvalidQuerySelectorsException> {
-            QuerySelectors(returnFormat = ReturnFormat.ENTRIES, entryId = 42)
+            QuerySelectors(returnFormat = ReturnFormat.ENTRIES, entryId = 42L.toEntryId())
         }.message shouldBe "Entries cannot be selected by entry ID"
     }
 

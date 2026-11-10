@@ -2,6 +2,7 @@ package io.konifer.infrastructure.http
 
 import io.konifer.application.usecase.fetch.DeliveryUrl
 import io.konifer.common.image.ManipulationParameters.VARIANT_PROFILE
+import io.konifer.domain.asset.EntryId
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.context.RequestContextFactory.Companion.PATH_NAMESPACE_SEPARATOR
 import io.konifer.domain.path.DeliveryStrategy
@@ -48,7 +49,7 @@ class AssetUrlGenerator(
      */
     fun generateAbsoluteLocationUrl(
         path: String,
-        entryId: Long,
+        entryId: EntryId,
         origin: RequestConnectionPoint,
     ): Url =
         URLBuilder(resolveBaseUrl(origin))
@@ -64,7 +65,7 @@ class AssetUrlGenerator(
 
     suspend fun generateDeliveryUrl(
         path: String,
-        entryId: Long,
+        entryId: EntryId,
         variant: VariantDeliveryProjection,
         transformation: RequestedTransformation,
         request: HttpRequest,
@@ -117,7 +118,7 @@ class AssetUrlGenerator(
 
     private fun generateAbsoluteContentUrl(
         path: String,
-        entryId: Long,
+        entryId: EntryId,
         request: HttpRequest,
         transformation: RequestedTransformation,
         pathConfiguration: PathConfiguration,

@@ -25,7 +25,7 @@ fun AssetResponse.Factory.fromAssetData(assetData: AssetData): AssetResponse =
     AssetResponse(
         `class` = AssetClass.IMAGE,
         alt = assetData.alt,
-        entryId = assetData.entryId,
+        entryId = assetData.entryId.id,
         labels = assetData.labels,
         tags = assetData.tags,
         source = assetData.source,
@@ -40,7 +40,7 @@ fun AssetResponse.Factory.fromAsset(asset: Asset): AssetResponse =
     AssetResponse(
         `class` = AssetClass.IMAGE,
         alt = asset.alt?.value,
-        entryId = checkNotNull(asset.entryId),
+        entryId = checkNotNull(asset.entryId).id,
         labels = asset.labels.asMap(),
         tags = asset.tags.asSet(),
         source = asset.source,

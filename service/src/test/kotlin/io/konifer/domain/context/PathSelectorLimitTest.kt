@@ -1,6 +1,5 @@
 package io.konifer.domain.context
 
-import io.konifer.domain.context.InvalidRequestException
 import io.konifer.domain.context.selector.DeleteSelection
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

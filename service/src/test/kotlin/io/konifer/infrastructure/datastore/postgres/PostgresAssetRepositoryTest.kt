@@ -5,6 +5,7 @@ import io.konifer.common.image.pixel.PixelDataType
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.Transformation
@@ -118,7 +119,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = AssetPath("/users/123"),
-                    entryId = 0,
+                    entryId = 0L.toEntryId(),
                 )
 
                 repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
@@ -157,7 +158,7 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                         .also { repository.markReady(it) }
                 repository.deleteByPath(
                     path = AssetPath("/users/123"),
-                    entryId = 0,
+                    entryId = 0L.toEntryId(),
                 )
                 val variant = ready.variants.first()
 

@@ -271,7 +271,7 @@ class FetchAssetResolutionTest : BaseFunctionalTest() {
                 response.status shouldBe HttpStatusCode.OK
                 val link = response.body<AssetLinkResponse>()
                 link.attributes.height shouldBe (original.height * 100.0 / original.width).roundToInt()
-                repository.lastDeliveryAsset!!.entryId shouldBe first.second!!.entryId
+                repository.lastDeliveryAsset!!.entryId.id shouldBe first.second!!.entryId
                 assertDeliveryReads()
                 repository.variantReads.get() shouldBe 0
             }

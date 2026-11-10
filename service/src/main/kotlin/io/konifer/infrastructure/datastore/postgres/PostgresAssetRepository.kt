@@ -4,6 +4,7 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.EntryId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
@@ -146,7 +147,7 @@ class PostgresAssetRepository(
 
     override suspend fun fetchForUpdate(
         path: AssetPath,
-        entryId: Long,
+        entryId: EntryId,
     ): Asset? =
         fetch(
             context = dslContext,
@@ -182,7 +183,7 @@ class PostgresAssetRepository(
 
     override suspend fun fetchByPath(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
@@ -207,7 +208,7 @@ class PostgresAssetRepository(
 
     override suspend fun fetchForDelivery(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
@@ -261,7 +262,7 @@ class PostgresAssetRepository(
 
     override suspend fun deleteByPath(
         path: AssetPath,
-        entryId: Long,
+        entryId: EntryId,
     ) {
         val treePath = path.toLtree()
         deleteAssets(dslContext) {
@@ -354,7 +355,7 @@ class PostgresAssetRepository(
     private suspend fun fetch(
         context: DSLContext,
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         include: AssetDataToInclude,

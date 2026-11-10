@@ -4,9 +4,11 @@ import io.konifer.common.selector.Order
 import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.EntryId
 import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.projection.AssetDeliveryProjection
 import io.konifer.domain.asset.toAssetLabels
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.Limit
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
@@ -40,7 +42,7 @@ class InMemoryAssetRepository(
     private val store = ConcurrentHashMap<AssetPath, MutableList<Asset>>()
     private val idReference = ConcurrentHashMap<AssetId, Asset>()
     private val storeMutex = Mutex()
-    private val lastEntryIds = mutableMapOf<AssetPath, Long>()
+    private val lastEntryIds = mutableMapOf<AssetPath, EntryId>()
 
     override suspend fun fetchVariantsForDelivery(
         assetId: AssetId,
@@ -152,7 +154,7 @@ class InMemoryAssetRepository(
 
     override suspend fun fetchForUpdate(
         path: AssetPath,
-        entryId: Long,
+        entryId: EntryId,
     ): Asset? =
         path.let {
             store[it]?.firstOrNull { asset -> asset.entryId == entryId }
@@ -160,7 +162,7 @@ class InMemoryAssetRepository(
 
     override suspend fun fetchByPath(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
@@ -177,7 +179,7 @@ class InMemoryAssetRepository(
 
     override suspend fun fetchForDelivery(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         selection: VariantSelection,
         order: Order,
         labels: Map<String, String>,
@@ -208,7 +210,7 @@ class InMemoryAssetRepository(
 
     override suspend fun deleteByPath(
         path: AssetPath,
-        entryId: Long,
+        entryId: EntryId,
     ) {
         deleteAndReturnObjectReferences(
             DeleteAssetsCommand.Entry(
@@ -339,11 +341,12 @@ class InMemoryAssetRepository(
             }
     }
 
-    private fun getNextEntryId(path: AssetPath): Long = (lastEntryIds[path]?.inc() ?: 0L).also { lastEntryIds[path] = it }
+    private fun getNextEntryId(path: AssetPath): EntryId =
+        (lastEntryIds[path]?.id?.inc() ?: 0L).toEntryId().also { lastEntryIds[path] = it }
 
     private fun fetch(
         path: AssetPath,
-        entryId: Long?,
+        entryId: EntryId?,
         order: Order,
         labels: Map<String, String>,
         includeOnlyReady: Boolean,
@@ -386,7 +389,7 @@ class InMemoryAssetRepository(
                     Order.NEW -> compareByDescending<AssetData> { it.createdAt }
                     Order.MODIFIED -> compareByDescending { it.modifiedAt }
                 }.let {
-                    it.thenByDescending { comparator -> comparator.entryId }
+                    it.thenByDescending { comparator -> comparator.entryId.id }
                 },
             )?.let {
                 if (!limit.isUnlimited) {
