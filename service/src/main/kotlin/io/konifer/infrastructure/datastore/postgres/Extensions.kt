@@ -9,6 +9,7 @@ import io.konifer.domain.asset.projection.AssetData
 import io.konifer.domain.asset.toAssetAlt
 import io.konifer.domain.asset.toAssetLabels
 import io.konifer.domain.asset.toAssetTags
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantId
@@ -57,7 +58,7 @@ fun AssetTreeRecord.toAssetData(
     AssetData(
         id = AssetId(checkNotNull(id)),
         path = checkNotNull(path).toAssetPath(),
-        entryId = checkNotNull(entryId),
+        entryId = checkNotNull(entryId).toEntryId(),
         alt = alt,
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) },
         tags = tags.mapNotNull { it.tagValue }.toSet(),
@@ -95,7 +96,7 @@ fun AssetTreeRecord.toPendingPersisted(
     Asset.PendingPersisted(
         id = AssetId(checkNotNull(id)),
         path = checkNotNull(path).toAssetPath(),
-        entryId = checkNotNull(entryId),
+        entryId = checkNotNull(entryId).toEntryId(),
         alt = alt?.toAssetAlt(),
         labels = labels,
         tags = tags,
@@ -115,7 +116,7 @@ fun AssetTreeRecord.toReadyAsset(
     Asset.Ready(
         id = AssetId(checkNotNull(id)),
         path = checkNotNull(path).toAssetPath(),
-        entryId = checkNotNull(entryId),
+        entryId = checkNotNull(entryId).toEntryId(),
         alt = checkNotNull(alt).toAssetAlt(),
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) }.toAssetLabels(),
         tags = tags.mapNotNull { it.tagValue }.toSet().toAssetTags(),

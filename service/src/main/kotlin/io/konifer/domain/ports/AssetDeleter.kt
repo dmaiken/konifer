@@ -2,6 +2,7 @@ package io.konifer.domain.ports
 
 import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.EntryId
 
 interface AssetDeleter {
     suspend fun delete(command: DeleteAssetsCommand)
@@ -10,7 +11,7 @@ interface AssetDeleter {
 sealed interface DeleteAssetsCommand {
     data class Entry(
         val path: AssetPath,
-        val entryId: Long,
+        val entryId: EntryId,
     ) : DeleteAssetsCommand
 
     data class AtPath(

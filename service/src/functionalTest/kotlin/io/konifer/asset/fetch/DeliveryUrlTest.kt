@@ -8,6 +8,7 @@ import io.konifer.common.http.AssetLinkResponse
 import io.konifer.common.http.StoreAssetRequest
 import io.konifer.common.image.ImageFormat
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.path.PathConfiguration
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.ObjectStore
@@ -100,7 +101,7 @@ class DeliveryUrlTest : BaseFunctionalTest() {
             val before = client.get(link.url)
             before.status shouldBe HttpStatusCode.OK
             // Remove both cached records and bytes, as retention eviction does.
-            val asset = checkNotNull(repository.fetchForUpdate(AssetPath("/profile"), stored.second!!.entryId))
+            val asset = checkNotNull(repository.fetchForUpdate(AssetPath("/profile"), stored.second!!.entryId.toEntryId()))
             val evicted = asset.variants.filterNot { it.isOriginalVariant }
             asset.variants.removeAll(evicted.toSet())
             evicted.forEach { objectStore.delete(it.objectStoreBucket, it.objectStoreKey) }

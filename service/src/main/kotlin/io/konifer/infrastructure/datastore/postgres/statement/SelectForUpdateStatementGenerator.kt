@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.datastore.postgres.statement
 
 import io.konifer.domain.asset.AssetId
+import io.konifer.domain.asset.EntryId
 import konifer.jooq.tables.references.ASSET_TREE
 import org.jooq.DSLContext
 import org.jooq.Record1
@@ -38,13 +39,13 @@ object SelectForUpdateStatementGenerator {
     context(trx: DSLContext)
     fun assetByPath(
         path: Ltree,
-        entryId: Long,
+        entryId: EntryId,
     ): Select<Record1<UUID?>> =
         trx
             .select(ASSET_TREE.ID)
             .from(ASSET_TREE)
             .where(ASSET_TREE.PATH.eq(path))
-            .and(ASSET_TREE.ENTRY_ID.eq(entryId))
+            .and(ASSET_TREE.ENTRY_ID.eq(entryId.id))
             .forUpdate()
             .of(ASSET_TREE)
 

@@ -15,7 +15,7 @@ import java.util.UUID
 sealed interface Asset {
     val id: AssetId
     val path: AssetPath
-    val entryId: Long?
+    val entryId: EntryId?
     val alt: AssetAlt?
     val labels: AssetLabels
     val tags: AssetTags
@@ -32,7 +32,7 @@ sealed interface Asset {
     class New private constructor(
         override val id: AssetId,
         override val path: AssetPath,
-        override val entryId: Long?,
+        override val entryId: EntryId?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
         override val tags: AssetTags,
@@ -95,7 +95,7 @@ sealed interface Asset {
     class Pending private constructor(
         override val id: AssetId,
         override val path: AssetPath,
-        override val entryId: Long?,
+        override val entryId: EntryId?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
         override val tags: AssetTags,
@@ -137,7 +137,7 @@ sealed interface Asset {
     class PendingPersisted(
         override val id: AssetId,
         override val path: AssetPath,
-        override val entryId: Long?,
+        override val entryId: EntryId?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
         override val tags: AssetTags,
@@ -165,7 +165,7 @@ sealed interface Asset {
     class Ready(
         override val id: AssetId,
         override val path: AssetPath,
-        override val entryId: Long?,
+        override val entryId: EntryId?,
         override val alt: AssetAlt?,
         override val labels: AssetLabels,
         override val tags: AssetTags,

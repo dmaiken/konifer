@@ -2,6 +2,7 @@ package io.konifer.infrastructure.datastore.postgres
 
 import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.toAssetLabels
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.ports.DeleteAssetsCommand
 import io.mockk.coVerify
@@ -16,9 +17,9 @@ class PostgresAssetDeleterTest {
     @Test
     fun `delegates entry deletion to repository`() =
         runTest {
-            assetDeleter.delete(DeleteAssetsCommand.Entry(path = AssetPath("/users/123"), entryId = 4))
+            assetDeleter.delete(DeleteAssetsCommand.Entry(path = AssetPath("/users/123"), entryId = 4L.toEntryId()))
 
-            coVerify(exactly = 1) { assetRepository.deleteByPath(path = AssetPath("/users/123"), entryId = 4) }
+            coVerify(exactly = 1) { assetRepository.deleteByPath(path = AssetPath("/users/123"), entryId = 4L.toEntryId()) }
         }
 
     @Test

@@ -4,6 +4,7 @@ import io.konifer.common.image.LIMIT_PARAMETER
 import io.konifer.common.selector.DEFAULT_ENTRIES_LIMIT
 import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.RequestContextFactory.Companion.ENTRY_ID_MODIFIER
 import io.konifer.domain.context.RequestContextFactory.Companion.RECURSIVE_MODIFIER
 import io.konifer.domain.context.selector.DeleteSelection
@@ -46,7 +47,7 @@ object PathSelectorExtractor {
                                 ReturnFormat.valueOfOrNull(querySelectorSegments[2])
                                     ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
                             entryId =
-                                querySelectorSegments[1].toNonNegativeLong()
+                                querySelectorSegments[1].toNonNegativeLong()?.toEntryId()
                                     ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
                             limit = limit,
                             specifiedModifiers =
@@ -78,7 +79,7 @@ object PathSelectorExtractor {
                     } else if (querySelectorSegments[0] == ENTRY_ID_MODIFIER) {
                         QuerySelectors(
                             entryId =
-                                querySelectorSegments[1].toNonNegativeLong()
+                                querySelectorSegments[1].toNonNegativeLong()?.toEntryId()
                                     ?: throw InvalidQuerySelectorsException("Invalid query modifiers: $querySelectorSegments"),
                             limit = limit,
                             specifiedModifiers =
@@ -158,7 +159,7 @@ object PathSelectorExtractor {
                 2 -> {
                     if (deleteModifierSegments[0] == ENTRY_ID_MODIFIER) {
                         DeleteSelection.Entry(
-                            deleteModifierSegments[1].toNonNegativeLong()
+                            deleteModifierSegments[1].toNonNegativeLong()?.toEntryId()
                                 ?: throw InvalidDeleteSelectorsException("Invalid delete modifiers: $deleteModifierSegments"),
                         )
                     } else {

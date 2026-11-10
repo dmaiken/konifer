@@ -14,6 +14,7 @@ import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetId
 import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.projection.AssetData
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.toLimit
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
@@ -71,7 +72,7 @@ abstract class AssetRepositoryTest {
             val child = repository.storeNew(createPendingAsset(path = "/users/1/profile"))
             val sibling = repository.storeNew(createPendingAsset(path = "/users/12"))
             val second = repository.storeNew(createPendingAsset(path = "/users/1"))
-            second.entryId shouldBe checkNotNull(parent.entryId) + 1
+            second.entryId shouldBe (checkNotNull(parent.entryId).id + 1).toEntryId()
             repository.fetchByPath(AssetPath("users/1/"), parent.entryId, includeOnlyReady = false)?.id shouldBe parent.id
             repository.deleteRecursivelyByPath(AssetPath("/users/1/"))
             repository.fetchByPath(parent.path, parent.entryId, includeOnlyReady = false) shouldBe null
@@ -87,7 +88,7 @@ abstract class AssetRepositoryTest {
             val paths = listOf("/a.b", "/a.b/child", "/a/b", "/a_2eb", "/A_1/.~!$'()*+=@:-")
             val assets = paths.associateWith { repository.storeNew(createPendingAsset(path = it)) }
             assets.forEach { (path, asset) ->
-                asset.entryId shouldBe 0L
+                asset.entryId shouldBe 0L.toEntryId()
                 val fetched = repository.fetchByPath(AssetPath(path), asset.entryId, includeOnlyReady = false)
                 fetched?.id shouldBe asset.id
                 fetched?.path shouldBe AssetPath(path)
@@ -141,7 +142,7 @@ abstract class AssetRepositoryTest {
                 val asset = storeReadyAsset()
 
                 repository.fetchForDelivery(AssetPath("/missing"), null, VariantSelection.ALL) shouldBe null
-                repository.fetchForDelivery(asset.path, asset.entryId!! + 1, VariantSelection.ALL) shouldBe null
+                repository.fetchForDelivery(asset.path, (asset.entryId!!.id + 1).toEntryId(), VariantSelection.ALL) shouldBe null
             }
 
         @Test
@@ -246,7 +247,7 @@ abstract class AssetRepositoryTest {
                 repository.markReady(pendingPersisted.markReady(Instant.now()))
                 pendingPersisted.apply {
                     path shouldBe AssetPath("/users/123")
-                    entryId shouldBe 0
+                    entryId shouldBe 0L.toEntryId()
                     labels.asMap() shouldContainExactly pending.labels.asMap()
                     tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
@@ -277,7 +278,7 @@ abstract class AssetRepositoryTest {
                 repository.markReady(persisted.markReady(Instant.now()))
                 persisted.apply {
                     path shouldBe pending.path
-                    entryId shouldBe 0
+                    entryId shouldBe 0L.toEntryId()
                     labels.asMap() shouldContainExactly pending.labels.asMap()
                     tags.asSet() shouldContainExactly pending.tags.asSet()
                     source shouldBe pending.source
@@ -311,8 +312,8 @@ abstract class AssetRepositoryTest {
                 val persisted1 = repository.storeNew(pending1)
                 val persisted2 = repository.storeNew(pending2)
 
-                persisted1.entryId shouldBe 0
-                persisted2.entryId shouldBe 1
+                persisted1.entryId shouldBe 0L.toEntryId()
+                persisted2.entryId shouldBe 1L.toEntryId()
             }
 
         @Test
@@ -320,8 +321,8 @@ abstract class AssetRepositoryTest {
             runTest {
                 val persisted1 = repository.storeNew(createPendingAsset())
                 val persisted2 = repository.storeNew(createPendingAsset())
-                persisted1.entryId shouldBe 0
-                persisted2.entryId shouldBe 1
+                persisted1.entryId shouldBe 0L.toEntryId()
+                persisted2.entryId shouldBe 1L.toEntryId()
                 repository.deleteByPath(
                     path = persisted1.path,
                     entryId = persisted1.entryId!!,
@@ -329,12 +330,12 @@ abstract class AssetRepositoryTest {
 
                 val pending3 = createPendingAsset()
                 val persisted3 = repository.storeNew(pending3)
-                persisted3.entryId shouldBe 2
+                persisted3.entryId shouldBe 2L.toEntryId()
 
                 repository.deleteByPath(persisted2.path, entryId = persisted2.entryId!!)
                 val pending4 = createPendingAsset()
                 val persisted4 = repository.storeNew(pending4)
-                persisted4.entryId shouldBe 3
+                persisted4.entryId shouldBe 3L.toEntryId()
             }
     }
 
@@ -561,7 +562,8 @@ abstract class AssetRepositoryTest {
             runTest {
                 val pending = createPendingAsset()
                 val persisted = repository.storeNew(pending)
-                repository.fetchByPath(persisted.path, persisted.entryId!! + 1, VariantSelection.ALL, Order.NEW) shouldBe null
+                repository.fetchByPath(persisted.path, (persisted.entryId!!.id + 1).toEntryId(), VariantSelection.ALL, Order.NEW) shouldBe
+                    null
             }
 
         @Test
@@ -646,7 +648,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val pending = createPendingAsset()
                 repository.storeNew(pending)
-                repository.fetchByPath(pending.path, entryId = 1, selection = VariantSelection.ALL, Order.NEW) shouldBe null
+                repository.fetchByPath(pending.path, entryId = 1L.toEntryId(), selection = VariantSelection.ALL, Order.NEW) shouldBe null
             }
 
         @Test
@@ -1061,7 +1063,7 @@ abstract class AssetRepositoryTest {
                 val ready = storeReadyAsset()
                 repository.deleteByPath(
                     path = AssetPath("/users/123"),
-                    entryId = 0,
+                    entryId = 0L.toEntryId(),
                 )
 
                 repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW) shouldBe null
@@ -1079,7 +1081,7 @@ abstract class AssetRepositoryTest {
                 shouldNotThrowAny {
                     repository.deleteByPath(
                         path = AssetPath("/users/123"),
-                        entryId = 0,
+                        entryId = 0L.toEntryId(),
                     )
                 }
             }
@@ -1089,7 +1091,7 @@ abstract class AssetRepositoryTest {
             runTest {
                 val ready = storeReadyAsset()
                 shouldNotThrowAny {
-                    repository.deleteByPath(AssetPath("/users/123"), entryId = 1)
+                    repository.deleteByPath(AssetPath("/users/123"), entryId = 1L.toEntryId())
                 }
 
                 repository.fetchByPath(ready.path, ready.entryId, VariantSelection.ALL, Order.NEW)?.id shouldBe
@@ -1108,13 +1110,13 @@ abstract class AssetRepositoryTest {
             val highest = storeReadyAsset()
             repository.deleteByPath(highest.path, checkNotNull(highest.entryId))
             val replacement = storeReadyAsset()
-            checkNotNull(replacement.entryId) shouldBe checkNotNull(highest.entryId) + 1
+            checkNotNull(replacement.entryId) shouldBe (checkNotNull(highest.entryId).id + 1).toEntryId()
             repository.deleteByPath(highest.path, checkNotNull(highest.entryId))
             repository.fetchByPath(replacement.path, replacement.entryId)?.id shouldBe replacement.id
 
             repository.deleteAllByPath(first.path)
             val afterEmpty = storeReadyAsset()
-            checkNotNull(afterEmpty.entryId) shouldBe checkNotNull(replacement.entryId) + 1
+            checkNotNull(afterEmpty.entryId) shouldBe (checkNotNull(replacement.entryId).id + 1).toEntryId()
             repository.deleteByPath(replacement.path, checkNotNull(replacement.entryId))
             repository.fetchByPath(afterEmpty.path, afterEmpty.entryId)?.id shouldBe afterEmpty.id
         }

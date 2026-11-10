@@ -1,6 +1,7 @@
 package io.konifer.infrastructure.http
 
 import io.konifer.createRequestedImageTransformation
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.HttpRequest
 import io.konifer.domain.path.DeliveryProperties
 import io.konifer.domain.path.DeliveryStrategy
@@ -44,7 +45,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profiles/avatar",
-                    entryId = 42,
+                    entryId = 42L.toEntryId(),
                     variant = variant(),
                     transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request,
@@ -69,7 +70,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profile",
-                    entryId = 7,
+                    entryId = 7L.toEntryId(),
                     variant = variant(),
                     transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request,
@@ -88,7 +89,7 @@ class AssetUrlGeneratorTest {
         val result =
             generator.generateAbsoluteLocationUrl(
                 path = "/profiles/avatar",
-                entryId = 42,
+                entryId = 42L.toEntryId(),
                 origin = origin(scheme = "http", host = "localhost", port = 8080),
             )
 
@@ -114,7 +115,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profile",
-                    entryId = 7,
+                    entryId = 7L.toEntryId(),
                     variant = variant,
                     transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
@@ -139,7 +140,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profile",
-                    entryId = 7,
+                    entryId = 7L.toEntryId(),
                     variant = variant,
                     transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
@@ -168,7 +169,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profile",
-                    entryId = 7,
+                    entryId = 7L.toEntryId(),
                     variant = variant,
                     transformation = createRequestedImageTransformation(width = 320, height = 160),
                     request = request(),
@@ -190,7 +191,7 @@ class AssetUrlGeneratorTest {
             val result =
                 generator.generateDeliveryUrl(
                     path = "/profiles/avatar name",
-                    entryId = 42,
+                    entryId = 42L.toEntryId(),
                     variant = variant(),
                     transformation = createRequestedImageTransformation(width = 320, height = 160, pad = 2, padColor = "#12345678"),
                     request =

@@ -8,6 +8,7 @@ import io.konifer.common.selector.Order
 import io.konifer.common.selector.ReturnFormat
 import io.konifer.createRequestedImageTransformation
 import io.konifer.domain.asset.AssetPath
+import io.konifer.domain.asset.toEntryId
 import io.konifer.domain.context.selector.DeleteSelection
 import io.konifer.domain.context.selector.QuerySelectors
 import io.konifer.domain.context.selector.SpecifiedInRequest
@@ -309,7 +310,7 @@ class RequestContextFactoryTest {
                 arguments("/assets/profile", Parameters.build { append("limit", "-1") }, DeleteSelection.AllAtPath),
                 arguments("/assets/profile/", Parameters.build { append("limit", "-1") }, DeleteSelection.AllAtPath),
                 arguments("/assets/profile/-/recursive", Parameters.Empty, DeleteSelection.Recursive),
-                arguments("/assets/profile/-/entry/10", Parameters.Empty, DeleteSelection.Entry(10)),
+                arguments("/assets/profile/-/entry/10", Parameters.Empty, DeleteSelection.Entry(10L.toEntryId())),
             )
 
         @JvmStatic
@@ -319,7 +320,7 @@ class RequestContextFactoryTest {
                     "/assets/profile/-/entry/10/info",
                     QuerySelectors(
                         returnFormat = ReturnFormat.INFO,
-                        entryId = 10,
+                        entryId = 10L.toEntryId(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -330,7 +331,7 @@ class RequestContextFactoryTest {
                     "/assets/profile/-/entry/10/content",
                     QuerySelectors(
                         returnFormat = ReturnFormat.CONTENT,
-                        entryId = 10,
+                        entryId = 10L.toEntryId(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -341,7 +342,7 @@ class RequestContextFactoryTest {
                     "/assets/profile/-/entry/10/redirect",
                     QuerySelectors(
                         returnFormat = ReturnFormat.REDIRECT,
-                        entryId = 10,
+                        entryId = 10L.toEntryId(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -352,7 +353,7 @@ class RequestContextFactoryTest {
                     "/assets/profile/-/entry/10/link",
                     QuerySelectors(
                         returnFormat = ReturnFormat.LINK,
-                        entryId = 10,
+                        entryId = 10L.toEntryId(),
                         specifiedModifiers =
                             SpecifiedInRequest(
                                 returnFormat = true,
@@ -362,7 +363,7 @@ class RequestContextFactoryTest {
                 arguments(
                     "/assets/profile/-/entry/10",
                     QuerySelectors(
-                        entryId = 10,
+                        entryId = 10L.toEntryId(),
                     ),
                 ),
             )
@@ -553,13 +554,13 @@ class RequestContextFactoryTest {
             val entryPath = "$path/-/entry/42"
             val fetch = requestContextFactory.fromFetchRequest(entryPath, Headers.Empty, Parameters.Empty)
             fetch.path shouldBe AssetPath("/$assetPath")
-            fetch.selectors.entryId shouldBe 42L
+            fetch.selectors.entryId shouldBe 42L.toEntryId()
             val update = requestContextFactory.fromUpdateRequest(entryPath)
             update.path shouldBe AssetPath("/$assetPath")
-            update.entryId shouldBe 42L
+            update.entryId shouldBe 42L.toEntryId()
             val entryDelete = requestContextFactory.fromDeleteRequest(entryPath, Parameters.Empty)
             entryDelete.path shouldBe AssetPath("/$assetPath")
-            entryDelete.selection shouldBe DeleteSelection.Entry(42)
+            entryDelete.selection shouldBe DeleteSelection.Entry(42L.toEntryId())
             shouldThrow<InvalidPathException> { requestContextFactory.fromStoreRequest(entryPath) }
         }
 
@@ -1229,7 +1230,7 @@ class RequestContextFactoryTest {
             runTest {
                 val context = requestContextFactory.fromDeleteRequest("/assets/profile/-/entry/10", Parameters.Empty)
 
-                context.selection shouldBe DeleteSelection.Entry(10)
+                context.selection shouldBe DeleteSelection.Entry(10L.toEntryId())
             }
 
         @ParameterizedTest
@@ -1368,7 +1369,7 @@ class RequestContextFactoryTest {
                     requestContextFactory.fromUpdateRequest(path)
                 }
             context.path shouldBe AssetPath("/profile/123")
-            context.entryId shouldBe 1L
+            context.entryId shouldBe 1L.toEntryId()
         }
 
         @Test
