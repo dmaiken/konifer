@@ -6,130 +6,122 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dmaiken/konifer/build.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/dmaiken/konifer)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.4.21-blue.svg?logo=kotlin)](https://kotlinlang.org)
 ![GitHub License](https://img.shields.io/github/license/dmaiken/konifer)
-![Scanned with Trivy](https://img.shields.io/badge/scanned%20with-Trivy-1904DA?logo=trivy&logoColor=white)
 
-Konifer is a self-hosted image backend for applications and vision pipelines. Upload an image once, then request a
-WebP preview for your application or a resized raw pixel buffer for your inference worker. Define reusable
-transformation profiles and manage storage, validation, and deletion through paths that match your application.
+**The self-hosted image backend your application doesn't have to build.**
+
+Adding image uploads means more than putting files in a bucket. Your team needs validation, thumbnails, replacement
+behavior, metadata, cache rules, and deletion across storage and application records. Konifer provides those
+capabilities through one HTTP API so you can spend less time building and maintaining image infrastructure.
+
+Use your storage and CDN, and choose image paths that fit your application. Address a profile picture by user, a
+gallery by product, or an individual image by ID. Group related images under shared paths to apply storage and
+processing policies and delete them together.
+
+Deploy Konifer alongside PostgreSQL and S3-compatible storage or a persistent filesystem. Image processing and
+background variant generation run inside Konifer.
 
 [10-minute quickstart](https://konifer.io/docs/start-here/getting-started) ·
-[Pixels for inference](https://konifer.io/docs/guides/guides-pixels-for-inference) ·
 [Documentation](https://konifer.io/) ·
+[Deployment](https://konifer.io/docs/operate/deployment) ·
 [Performance report](https://dmaiken.github.io/konifer/performance/report/)
-
-Konifer handles the image lifecycle. Put a CDN in front of it for delivery. If all you need is on-demand resizing,
-[imgproxy](https://imgproxy.net/) or whatever your CDN offers may be a better fit.
 
 ## Why I built it
 
 I've seen the same story on several teams: someone needs to store a product photo, then another feature needs
 thumbnails, then a third needs different upload limits. Before long, image handling is spread across S3 buckets,
-Lambdas, queues, and services. Konifer puts those jobs behind one API while letting each part of your application keep
-its own rules.
+Lambdas, queues, and services. Replacing a photo, keeping its history, or deleting a user's images means coordinating
+those pieces again.
 
-It supports:
+With Konifer, you configure those jobs in one service and keep the image handling code out of individual applications:
 
-- Multipart uploads, S3 object ARN imports, and URL uploads with a domain allow-list enforced after redirects
-- Image storage in S3-compatible buckets or a filesystem, coordinated with asset metadata
-- Image transformations through libvips, including format conversion and animated GIF and WebP support
-- Raw pixel output with configurable channel order and interleaved HWC or planar CHW layout
-- Named transformation profiles with cached variants and optional eager generation
-- JPEG, PNG, WebP, HEIC, AVIF, JPEG XL, and GIF
-- Limits on image dimensions and pixel count, plus upload size limits
-- In-process image classification with SigLIP2 to accept, reject, or label uploads
-- Redirect-based image delivery when you want a CDN in front
+- **Validate uploads in one place:** accept multipart uploads, S3 object ARN imports, or URLs from allowed domains.
+  Configure upload size, image dimension, pixel count, and format limits instead of repeating validation in callers.
+- **Use a built-in replacement and history model:** keep originals, metadata, and upload history at application-defined
+  paths. Replace a photo without changing its application URL, and retrieve previous entries when you need them.
+- **Reuse transformations and cached results:** resize, crop, and convert images with libvips. Define named profiles
+  and generate variants after upload or on demand, without building a separate thumbnail-generation workflow.
+- **Centralize delivery and cleanup:** request content, metadata, links, or redirects to your object store or CDN.
+  Delete an entry, the images at a path, or a path and its children through the API instead of implementing image
+  storage cleanup in each application.
 
-Konifer is worth a look if you're adding images to an application, sharing preprocessing with vision workers, or
-maintaining several image-handling services. You can run it yourself as a Docker image; there is no SaaS dependency.
+You can give avatars, marketplace listings, and tenant branding different storage and processing policies while
+running the same service.
 
-## Serve display images and inference inputs
+## Try it
 
-A product photo can serve a storefront and a classification worker. Define a profile for each consumer in
-`konifer.conf`:
+Run the 1.0 release candidate with in-memory storage:
 
-```hocon
-variant-profiles {
-  display {
-    width = 256
-    height = 256
-    fit = fill
-    rotate = auto
-    format = webp
-  }
-
-  vision {
-    width = 224
-    height = 224
-    fit = fill
-    rotate = auto
-    color-space = srgb
-    format = pixels
-    pixel-channels = RGB
-    pixel-layout = planar
-  }
-}
+```bash
+docker run --name konifer-quickstart \
+  --publish 8080:8080 \
+  --env IN_MEMORY=true \
+  ghcr.io/dmaiken/konifer:1.0.0-rc.1
 ```
 
-Upload the source image, then request each representation:
+In-memory mode loses all uploaded images and metadata when the container stops.
 
-```http
-# Upload the source image
-POST /assets/products/123/photo
+Follow the [10-minute quickstart](https://konifer.io/docs/start-here/getting-started) to upload, transform, and replace
+your first image.
 
-# Fetch a display image
-GET /assets/products/123/photo/-/entry/0/content?profile=display
+## Choose image paths that fit your application
 
-# Fetch pixels for an inference worker
-GET /assets/products/123/photo/-/entry/0/content?profile=vision
-```
-
-Choose dimensions, orientation, color space, channel order, and pixel layout in a named profile. Reuse the cached
-variants across requests, or configure eager generation after upload.
-
-This `vision` profile produces a `3 × 224 × 224` RGB buffer with one plane per channel. Your worker constructs the
-tensor and applies the scaling and normalization required by your model.
-
-See the [raw pixel contract](https://konifer.io/docs/concepts/concepts-pixels) for output details and the
-[PyTorch inference guide](https://konifer.io/docs/guides/guides-pixels-for-inference) for a complete worker example,
-including model-specific preprocessing considerations.
-
-## Paths are part of the model
-
-You can use a path that already means something to your application:
+You define the paths you use to store and retrieve images. Use a resource path such as
+`/assets/users/123/profile-picture` to address a user's current picture. Construct its URL from the user ID without
+storing a separate image reference:
 
 ```http
 POST /assets/users/123/profile-picture
-GET  /assets/users/123/profile-picture/-/redirect?profile=thumbnail
+GET  /assets/users/123/profile-picture/-/content?width=256&format=webp
 GET  /assets/users/123/profile-picture/-/info
 ```
 
-An opaque ID works too:
+Use an image ID of your choosing when you want an independent image reference. Combine image IDs with resource paths
+to organize individual images within a user's collection:
 
 ```http
-POST /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6
-GET  /assets/0d79ddf9-8bbb-42a1-9435-9c166ca4dfb6/-/redirect?width=256&format=webp
+POST /assets/{imageId}
+GET  /assets/{imageId}/-/content
+
+POST /assets/users/123/images/{imageId}
+GET  /assets/users/123/images/{imageId}/-/content
 ```
 
-Paths give you a way to work with related assets. If user 123 closes their account, you can delete the assets below
-`users/123` with one request:
+Each upload gets a Konifer `entryId` within its chosen path. Use the path to fetch the current image or select an entry
+to retrieve a specific version:
+
+```http
+GET /assets/users/123/profile-picture/-/entry/0/content
+```
+
+Shared parent paths give you a way to configure policies and manage related images. Apply upload limits to user
+images, choose a bucket for profile pictures, or delete a user's images through one request. If user 123 closes their
+account, delete the images below `users/123` without assembling a list of individual image IDs:
 
 ```http
 POST   /assets/users/123/profile-picture
-POST   /assets/users/123/article/456
-POST   /assets/users/123/article/789
+POST   /assets/users/123/images/{imageId}
 DELETE /assets/users/123/-/recursive
 ```
 
-The same paths can choose how Konifer treats each image. This example gives every user image a pixel limit, creates a
-thumbnail for profile pictures, and leaves article resizing to the CDN:
+See the [asset model](https://konifer.io/docs/concepts/Assets/concepts-assets) for collections, upload history, and
+entry selection.
+
+## Keep image policies out of application code
+
+Define storage and processing rules in `konifer.conf` so callers can upload and fetch images without repeating the
+policy for each image category. This example limits user images to 15 megapixels, stores profile pictures in a
+dedicated bucket, and generates a WebP thumbnail after upload. Requests for transformed profile pictures must use the
+named profile:
 
 ```hocon
 variant-profiles {
   thumbnail {
     width = 256
+    height = 256
     fit = fill
+    rotate = auto
+    format = webp
   }
 }
 
@@ -150,61 +142,75 @@ paths {
       }
     }
   }
-  "/users/*/article/**" {
-    object-store {
-      bucket = articles
-    }
-    allowed-formats = ["png", "jpg"]
-    transform {
-      on-demand-variant {
-        mode = disabled
-      }
-    }
-  }
 }
 ```
 
-Path rules inherit from broader matches, so both specific paths get the `/users/**` pixel limit. The
+Mount your configuration at `/app/config/konifer.conf`. With S3-compatible storage, create the `profiles` bucket before
+using this example. See the [deployment guide](https://konifer.io/docs/operate/deployment) for the storage setup.
+
+Fetch the thumbnail with:
+
+```http
+GET /assets/users/123/profile-picture/-/content?profile=thumbnail
+```
+
+Profile pictures inherit the pixel limit from `/users/**`. Add more specific rules for other image categories to
+choose their buckets, accepted formats, variant generation, caching, and delivery behavior. The
 [path configuration docs](https://konifer.io/docs/concepts/concepts-path-configuration) cover matching and inheritance.
 
-## Classify and validate uploads
+## Run it in your infrastructure
 
-Some uploads need a content check as well as a file type check. Konifer can compare an image with a collection of
-prompts using SigLIP2 in the server process. For example:
+Konifer ships as a Docker image for Linux `amd64` and `arm64`. A persistent deployment needs Konifer, PostgreSQL for
+asset records, and S3-compatible storage or a filesystem for originals and generated variants. If your
+team already operates PostgreSQL and object storage, you can use that infrastructure for Konifer.
 
-```hocon
-rule-definitions {
-  "blood-and-gore" {
-    prompts = [
-      "graphic visible blood",
-      "open wound with blood",
-      "bloody injury scene",
-      "gore and severe injury"
-    ]
-    threshold = 0.72
-  }
-}
-```
+Image processing, background variant generation, and inference (if enabled) run inside the Konifer container. Put your CDN in front
+for image delivery.
 
-You can attach a definition to a path's upload ruleset to accept, reject, or label matching images. The image stays on
-your server during inference. Install the SigLIP2 model pack to use these rules; see
-[upload rules](https://konifer.io/docs/concepts/concepts-upload-rules) for the full setup.
+Start with one instance and scale horizontally by adding replicas behind a load balancer. Instances share PostgreSQL
+and image storage. Each instance is stateless. Filesystem deployments require a shared persistent mount accessible to
+all replicas.
 
-The [Rule Evaluation API](https://konifer.io/docs/concepts/concepts-rule-evaluation) lets you test prompts and
-thresholds before enforcing a rule. Enable the API and send a URL or image bytes to `POST /rule-evaluations` without
-storing an asset. The response includes rule matches and per-prompt scores. The scores depend on the image and model;
-they are not confidence percentages. The API requires the same model pack.
+| Deployment concern                                     | Documentation                                                                                                                   |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Container setup, networking, replicas, and upgrades    | [Deployment guide](https://konifer.io/docs/operate/deployment)                                                                  |
+| PostgreSQL and image storage                           | [Storage configuration](https://konifer.io/docs/reference/reference-variant-storage)                                            |
+| CPU, memory, temporary storage, and worker concurrency | [Resource tuning](https://konifer.io/docs/reference/image-processing-reference)                                                 |
+| CDN behavior and fetch URL protection                  | [HTTP caching](https://konifer.io/docs/reference/http-caching) and [URL signing](https://konifer.io/docs/reference/url-signing) |
 
-## Documentation and performance
+Konifer fits teams that want to own the image lifecycle for avatars, product galleries, tenant branding, or other
+application assets. If you already have source-image URLs and just want on-the-fly resizing and format conversion, consider an image
+processor such as [imgproxy](https://imgproxy.net/) or [imagor](https://docs.imagor.net/). Choose a managed image platform
+if you want a provider to host and manage your delivery infrastructure. See
+[Who should use Konifer?](https://konifer.io/docs/start-here/is-konifer-right-for-you) for more detail.
 
-Start with the [quickstart](https://konifer.io/docs/start-here/getting-started), then see the
-[asset model](https://konifer.io/docs/concepts/Assets/concepts-assets),
-[image transformation reference](https://konifer.io/docs/reference/image-transformation-reference), and
-[storage configuration](https://konifer.io/docs/reference/reference-variant-storage). The [full documentation](https://konifer.io/)
-also covers caching, URL signing, and deployment.
+## Testing, security, and performance
 
-The [interactive performance report](https://dmaiken.github.io/konifer/performance/report/) tracks latency across
-releases and mixed workloads. Its current runs use a laptop; AWS hardware testing is planned.
+- The [build workflow](.github/workflows/build.yml) runs unit and functional tests, then integration tests against the
+  containerized application with PostgreSQL and S3-compatible storage. The tests exercise native image processing and
+  model inference alongside the HTTP API.
+- The [image security workflow](.github/workflows/image-security.yml) generates an SPDX software bill of materials
+  and scans it for vulnerabilities. The [image policy workflow](.github/workflows/image-policy.yml) checks licenses and
+  container configuration.
+- The [performance report](https://dmaiken.github.io/konifer/performance/report/) tracks latency across releases
+  for common image operations.
+
+## Additional capabilities
+
+**Image formats and placeholders.** Process JPEG, PNG, WebP, HEIC, AVIF, JPEG XL, and GIF, including animated GIF and
+WebP. Generate BlurHash and ThumbHash placeholders. See the
+[transformation reference](https://konifer.io/docs/reference/image-transformation-reference).
+
+**Pixels for vision workers.** Request encoded display images and resized raw pixel buffers from the same stored
+source. Named profiles define dimensions, orientation, color space, channel order, and HWC or CHW layout. Workers
+handle tensor construction and model-specific scaling and normalization. See the
+[raw pixel contract](https://konifer.io/docs/concepts/concepts-pixels) and
+[PyTorch guide](https://konifer.io/docs/guides/guides-pixels-for-inference).
+
+**Content classification.** Install the optional SigLIP2 model pack to accept, reject, or label uploads using text
+prompts, with inference inside the server process. Test prompts and thresholds through the
+[Rule Evaluation API](https://konifer.io/docs/concepts/concepts-rule-evaluation) before applying
+[upload rules](https://konifer.io/docs/concepts/concepts-upload-rules).
 
 ## Development
 
@@ -214,7 +220,7 @@ and macOS notes.
 
 ## Acknowledgments
 
-A huge thank-you to these open-source projects:
+Konifer builds on these open-source projects:
 
 - **[libvips](https://github.com/libvips/libvips)**: The image processor behind Konifer's transformations.
 - **[vips-ffm](https://github.com/lopcode/vips-ffm)**: The Java FFM bindings Konifer uses to call libvips.
@@ -224,7 +230,9 @@ A huge thank-you to these open-source projects:
 
 ## Contact me
 
-Questions or feedback? Email me at [daniel@konifer.io](mailto:daniel@konifer.io) or start a discussion on GitHub.
+Evaluating Konifer for your application? Email me at [daniel@konifer.io](mailto:daniel@konifer.io) or
+[start a discussion](https://github.com/dmaiken/konifer/discussions). I'd like to hear what you're building and what
+would block adoption.
 
 ## License
 
