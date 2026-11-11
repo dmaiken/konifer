@@ -1,14 +1,18 @@
 package io.konifer.infrastructure.datastore.postgres.projection
 
 import io.konifer.common.image.ImageFormat
+import io.konifer.common.image.pixel.PixelDataType
+import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.Transformation
+import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.domain.variant.attribute.PixelAttributes
 import io.konifer.infrastructure.datastore.postgres.postgresJson
 import io.konifer.infrastructure.datastore.postgres.schema.VariantParameterGenerator
 import io.konifer.infrastructure.datastore.postgres.toVariantSpecification
@@ -17,6 +21,9 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import konifer.jooq.tables.records.AssetVariantRecord
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import org.jooq.JSONB
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -172,6 +179,75 @@ class PostgresVariantDeliveryProjectionTest {
             }
         shouldThrow<InvalidTransformationException> { PostgresVariantDeliveryProjection.from(invalidQuality) }
         shouldThrow<IllegalStateException> { PostgresVariantDeliveryProjection.from(record().apply { transformation = null }) }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `future metadata properties preserve known attributes and LQIPs`(original: Boolean) {
+        val attributes =
+            expectedAttributes.copy(
+                format = ImageFormat.PIXELS,
+                orientation = 6,
+                pageCount = 3,
+                loop = 2,
+                pixels = PixelAttributes("BGRA".toPixelChannels(), PixelLayout.PLANAR, PixelDataType.UINT8),
+            )
+        val known = postgresJson.parseToJsonElement(VariantParameterGenerator.generateImageVariantAttributes(attributes)).jsonObject
+        val futureAttributes =
+            JsonObject(
+                known +
+                    mapOf(
+                        "futureAttribute" to JsonPrimitive(true),
+                        "pixels" to JsonObject(known.getValue("pixels").jsonObject + ("futurePixelAttribute" to JsonPrimitive(true))),
+                    ),
+            )
+        val record =
+            record().apply {
+                originalVariant = original
+                this.attributes = JSONB.valueOf(futureAttributes.toString())
+                transformation =
+                    JSONB.valueOf(VariantParameterGenerator.generateImageVariantTransformations(Transformation.fromAttributes(attributes)))
+                lqip = JSONB.valueOf("""{"blurhash":"blurhash","thumbhash":"thumbhash","futurePreview":{"value":1}}""")
+            }
+        val projection = checkNotNull(PostgresVariantDeliveryProjection.from(record))
+
+        projection.attributes shouldBe attributes
+        projection.lqips shouldBe lqips
+        projection.isOriginalVariant shouldBe original
+        projection.specification shouldBe
+            if (original) {
+                VariantSpecification.Original
+            } else {
+                VariantSpecification.Transformed(Transformation.fromAttributes(attributes))
+            }
+    }
+
+    @Test
+    fun `future-only LQIPs retain the empty representation`() {
+        val record = record().apply { lqip = JSONB.valueOf("""{"futurePreview":{"value":1}}""") }
+
+        checkNotNull(PostgresVariantDeliveryProjection.from(record)).lqips shouldBe LQIPs.NONE
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            """{"height":80,"format":"png","orientation":1,"futureAttribute":true}""",
+            """{"width":"invalid","height":80,"format":"png","orientation":1,"futureAttribute":true}""",
+            """{"width":100,"height":80,"format":"futureFormat","orientation":1,"futureAttribute":true}""",
+        ],
+    )
+    fun `known attributes remain required and validated`(json: String) {
+        val record = record().apply { attributes = JSONB.valueOf(json) }
+
+        shouldThrow<SerializationException> { checkNotNull(PostgresVariantDeliveryProjection.from(record)).attributes }
+    }
+
+    @Test
+    fun `invalid known LQIPs still fail instead of returning empty metadata`() {
+        val record = record().apply { lqip = JSONB.valueOf("""{"blurhash":{},"futurePreview":true}""") }
+
+        shouldThrow<SerializationException> { checkNotNull(PostgresVariantDeliveryProjection.from(record)).lqips }
     }
 
     private fun record() =
