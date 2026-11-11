@@ -32,6 +32,7 @@ import konifer.jooq.indexes.ASSET_VARIANT_TRANSFORMATION_UQ
 import konifer.jooq.keys.ASSET_VARIANT__FK_ASSET_VARIANT_ASSET_ID_ASSET_TREE_ID
 import konifer.jooq.tables.references.ASSET_TREE
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -54,7 +55,7 @@ class PostgresAssetRepository(
             SelectStatementGenerator
                 .fetchVariants(assetId, selection)
                 .asFlow()
-                .map(::PostgresVariantDeliveryProjection)
+                .mapNotNull { PostgresVariantDeliveryProjection.from(it) }
                 .toList()
         }
 

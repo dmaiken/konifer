@@ -17,6 +17,7 @@ import kotlinx.serialization.json.Json
  */
 val postgresJson: Json =
     Json {
+        ignoreUnknownKeys = false
         encodeDefaults = false
         explicitNulls = false
     }

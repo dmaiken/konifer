@@ -1,10 +1,11 @@
-package io.konifer.infrastructure.datastore.postgres
+package io.konifer.infrastructure.datastore.postgres.schema
 
 import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.infrastructure.datastore.postgres.postgresJson
 
 /**
- * It is VERY IMPORTANT that the [postgresJson] serializer is used here. We do not want to serialize null values
+ * It is VERY IMPORTANT that the [io.konifer.infrastructure.datastore.postgres.postgresJson] serializer is used here. We do not want to serialize null values
  * or default values because, if a new field is ever added (and it will be), we need backwards-compatability
  * and that is done by not serializing default values.
  */

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.datastore.postgres
+package io.konifer.infrastructure.datastore.postgres.schema
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -20,16 +20,22 @@ import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.attribute.PixelAttributes
+import io.konifer.infrastructure.datastore.postgres.ColorSpaceSerializer
+import io.konifer.infrastructure.datastore.postgres.postgresJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.util.TreeSet
 
 class VariantParameterGeneratorTest {
+    @Nested
+    inner class RegressionTests
+
     @Test
     fun `can generate variant attributes`() {
         val expectedAttributes =

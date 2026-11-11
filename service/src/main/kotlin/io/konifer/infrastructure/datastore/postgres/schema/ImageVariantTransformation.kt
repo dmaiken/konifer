@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.datastore.postgres
+package io.konifer.infrastructure.datastore.postgres.schema
 
 import io.konifer.common.image.Filter
 import io.konifer.common.image.Fit
@@ -8,7 +8,6 @@ import io.konifer.common.image.MetadataType
 import io.konifer.common.image.Rotate
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.domain.image.ColorSpace
-import io.konifer.domain.image.vipsProperties
 import io.konifer.domain.transformation.MetadataTransformation
 import io.konifer.domain.transformation.PaddingTransformation
 import io.konifer.domain.transformation.Transformation
@@ -19,34 +18,28 @@ import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.transformation.toPaddingAmount
 import io.konifer.domain.transformation.toQuality
 import io.konifer.domain.variant.attribute.Attributes
+import io.konifer.infrastructure.datastore.postgres.ColorSpaceSerializer
 import kotlinx.serialization.Serializable
 
 /**
  * This class exists separately from [Attributes] because it will be serialized into the datastore.
  *
- * EVERY NEW FIELD REQUIRES A DEFAULT VALUE FOR BACKWARDS COMPATABILITY.
+ * EVERY new field need defaults, and existing defaults must retain their historical meaning unless the stored data is migrated.
  */
 @Serializable
 data class ImageVariantTransformation(
     val width: Int,
     val height: Int,
     val format: ImageFormat,
-    val fit: Fit = Fit.default,
+    val fit: Fit = Fit.FIT,
     val gravity: Gravity = Gravity.CENTER,
     val rotate: Rotate = Rotate.ZERO,
     val horizontalFlip: Boolean = false,
     val filter: Filter = Filter.NONE,
     val blur: Int = 0,
-    val quality: Int = format.vipsProperties.defaultQuality,
-    val padding: ImageVariantPadding =
-        ImageVariantPadding(
-            amount = 0,
-            color = emptyList(),
-        ),
-    val metadata: ImageVariantMetadata =
-        ImageVariantMetadata(
-            strip = emptyList(),
-        ),
+    val quality: Int = format.persistedDefaultQuality(),
+    val padding: ImageVariantPadding = ImageVariantPadding(),
+    val metadata: ImageVariantMetadata = ImageVariantMetadata(),
     @Serializable(with = ColorSpaceSerializer::class)
     val colorSpace: ColorSpace = ColorSpace.SRGB,
     val pixels: ImageVariantPixels? = null,
@@ -107,16 +100,10 @@ data class ImageVariantTransformation(
 
 @Serializable
 data class ImageVariantPadding(
-    val amount: Int,
-    val color: List<Int>,
+    val amount: Int = 0,
+    val color: List<Int> = emptyList(),
 ) {
     companion object Factory {
-        val default =
-            ImageVariantPadding(
-                amount = 0,
-                color = emptyList(),
-            )
-
         fun fromPaddingTransformation(transformation: PaddingTransformation): ImageVariantPadding =
             ImageVariantPadding(
                 amount = transformation.amount.value,
@@ -127,14 +114,9 @@ data class ImageVariantPadding(
 
 @Serializable
 data class ImageVariantMetadata(
-    val strip: List<MetadataType>,
+    val strip: List<MetadataType> = emptyList(),
 ) {
     companion object Factory {
-        val default =
-            ImageVariantMetadata(
-                strip = emptyList(),
-            )
-
         fun fromMetadataTransformation(transformation: MetadataTransformation): ImageVariantMetadata =
             // IMPORTANT: this must be sorted alphabetically to ensure proper variant querying!!
             ImageVariantMetadata(
@@ -146,7 +128,7 @@ data class ImageVariantMetadata(
 @Serializable
 data class ImageVariantPixels(
     val channels: String,
-    val layout: PixelLayout = PixelLayout.default,
+    val layout: PixelLayout = PixelLayout.INTERLEAVED,
 ) {
     companion object Factory {
         fun fromPixelTransformation(pixelTransformation: PixelTransformation): ImageVariantPixels =
@@ -156,3 +138,11 @@ data class ImageVariantPixels(
             )
     }
 }
+
+private fun ImageFormat.persistedDefaultQuality(): Int =
+    when (this) {
+        ImageFormat.JPEG, ImageFormat.WEBP -> 80
+        ImageFormat.AVIF, ImageFormat.HEIC -> 50
+        ImageFormat.JPEG_XL -> 90
+        ImageFormat.PNG, ImageFormat.GIF, ImageFormat.PIXELS -> 100
+    }

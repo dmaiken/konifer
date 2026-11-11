@@ -7,8 +7,8 @@ import io.konifer.domain.asset.AssetLabels
 import io.konifer.domain.asset.AssetTags
 import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantSpecification
-import io.konifer.infrastructure.datastore.postgres.VariantParameterGenerator
 import io.konifer.infrastructure.datastore.postgres.postgresJson
+import io.konifer.infrastructure.datastore.postgres.schema.VariantParameterGenerator
 import io.konifer.infrastructure.datastore.postgres.toLtree
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord

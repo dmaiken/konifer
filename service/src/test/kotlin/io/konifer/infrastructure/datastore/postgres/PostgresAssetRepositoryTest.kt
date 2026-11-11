@@ -4,8 +4,10 @@ import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.pixel.PixelDataType
 import io.konifer.common.image.pixel.PixelLayout
 import io.konifer.common.selector.Order
+import io.konifer.domain.asset.Asset
 import io.konifer.domain.asset.AssetPath
 import io.konifer.domain.asset.toEntryId
+import io.konifer.domain.context.Limit
 import io.konifer.domain.image.ColorSpace
 import io.konifer.domain.ports.AssetRepository
 import io.konifer.domain.transformation.Transformation
@@ -30,8 +32,10 @@ import konifer.jooq.tables.references.ASSET_TREE
 import konifer.jooq.tables.references.ASSET_VARIANT
 import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.test.runTest
 import org.jooq.DSLContext
+import org.jooq.JSONB
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -105,6 +109,77 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
             }
             stored.values.map { it.id }.toSet() shouldHaveSize 2
             repository.fetchByPath(persisted.path, persisted.entryId, VariantSelection.ALL)!!.variants shouldHaveSize 3
+        }
+
+    @Test
+    fun `unreadable transformations are excluded from reads and updates without changing stored rows`() =
+        runTest {
+            val asset = repository.storeNew(createPendingAsset()).markReady(Instant.now())
+            repository.markReady(asset)
+            val variants =
+                (10..50 step 10).map { width ->
+                    val transformation = Transformation.fromAttributes(asset.variants.single().attributes).copy(width = width.toDimension())
+                    repository.storeNewVariant(createPendingVariant(assetId = asset.id, transformation = transformation)).also {
+                        repository.markUploaded(it.markReady(Instant.now()), CacheProperties())
+                    }
+                }
+            val unreadable = variants.filterIndexed { index, _ -> index % 2 == 0 }
+            val storedJson =
+                unreadable.associate { variant ->
+                    val json =
+                        JSONB.valueOf(
+                            """{"width":${(variant.specification as VariantSpecification.Transformed).transformation.width.value},"height":80,"format":"png","futureTransformation":true}""",
+                        )
+                    dslContext
+                        .update(ASSET_VARIANT)
+                        .set(ASSET_VARIANT.TRANSFORMATION, json)
+                        .where(ASSET_VARIANT.ID.eq(variant.id.value))
+                        .awaitSingle()
+                    variant.id to json
+                }
+            val expectedIds = variants.filterNot { it in unreadable }.asReversed().map { it.id } + asset.variants.single().id
+
+            repository.fetchByPath(asset.path, asset.entryId)!!.variants.map { it.id } shouldBe expectedIds
+            val entries = repository.fetchAllByPath(asset.path, limit = Limit.single)
+            entries.single().id shouldBe asset.id
+            entries.single().variants.map { it.id } shouldBe expectedIds
+            repository.fetchForDelivery(asset.path, asset.entryId)!!.variants.map { it.id } shouldBe expectedIds
+            repository.fetchVariantsForDelivery(asset.id).map { it.id } shouldBe expectedIds
+            val loaded = repository.fetchForUpdate(asset.path, asset.entryId!!) as Asset.Ready
+            loaded.variants.map { it.id } shouldBe expectedIds
+            repository.update(loaded.update(alt = "updated", labels = emptyMap(), tags = emptySet()))
+
+            storedJson.forEach { (id, json) ->
+                dslContext
+                    .selectFrom(ASSET_VARIANT)
+                    .where(ASSET_VARIANT.ID.eq(id.value))
+                    .awaitSingle()
+                    .transformation shouldBe json
+            }
+
+            variants.filterNot { it in unreadable }.forEach { variant ->
+                dslContext
+                    .update(ASSET_VARIANT)
+                    .set(
+                        ASSET_VARIANT.TRANSFORMATION,
+                        JSONB.valueOf(
+                            """{"width":${(variant.specification as VariantSpecification.Transformed).transformation.width.value},"height":80,"format":"png","futureTransformation":true}""",
+                        ),
+                    ).where(ASSET_VARIANT.ID.eq(variant.id.value))
+                    .awaitSingle()
+            }
+            repository
+                .fetchByPath(asset.path, asset.entryId)!!
+                .variants
+                .single()
+                .isOriginalVariant shouldBe true
+            repository.fetchAllByPath(asset.path, limit = Limit.single).single().id shouldBe asset.id
+            repository
+                .fetchAllByPath(asset.path, limit = Limit.single)
+                .single()
+                .variants
+                .single()
+                .isOriginalVariant shouldBe true
         }
 
     @Nested
