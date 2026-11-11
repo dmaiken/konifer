@@ -2,6 +2,14 @@ package io.konifer.asset.fetch
 
 import io.konifer.BasePostgresTestContainersTest
 import io.konifer.ImageFactory.testImage
+import io.konifer.common.http.MetadataResponse
+import io.konifer.common.http.PaddingResponse
+import io.konifer.common.http.TransformationResponse
+import io.konifer.common.image.Filter
+import io.konifer.common.image.Fit
+import io.konifer.common.image.Flip
+import io.konifer.common.image.Gravity
+import io.konifer.common.image.Rotate
 import io.konifer.infrastructure.datastore.postgres.createR2dbcDslContext
 import io.konifer.infrastructure.datastore.postgres.postgresJson
 import io.konifer.infrastructure.http.APP_CACHE_STATUS
@@ -22,6 +30,96 @@ import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
 class PostgresTransformationCompatibilityTest : BasePostgresTestContainersTest() {
+    @Test
+    fun `historical transformations with omitted fields remain visible and produce cache hits`() =
+        testPostgres(postgres) {
+            val dsl = createR2dbcDslContext(postgres)
+            val assets = konifer().assets("legacy-transformations")
+            val image = testImage()
+            assets
+                .newAsset()
+                .fromBytes(image.bytes, image.attributes.format)
+                .store()
+                .shouldBeSuccessful()
+            // Explicit request values keep this independent of future API default changes.
+            val contentUrl =
+                "/assets/legacy-transformations/-/content" +
+                    "?width=100&height=75&format=jpg&fit=fit&gravity=center&rotate=0" +
+                    "&flip=none&filter=none&blur=0&quality=80&pad=0&strip=&color-space=srgb"
+            val generated = client.get(contentUrl)
+            generated.status shouldBe HttpStatusCode.OK
+            generated.headers[APP_CACHE_STATUS] shouldBe "miss"
+            val expectedContent = generated.bodyAsBytes()
+            val derived =
+                assets
+                    .fetchInfo()
+                    .shouldBeSuccessful()
+                    .body.variants
+                    .single { !it.isOriginalVariant }
+            val row = dsl.selectFrom(ASSET_VARIANT).where(ASSET_VARIANT.OBJECT_STORE_KEY.eq(derived.storeKey)).awaitSingle()
+            val legacy = JSONB.valueOf("""{"width":100,"height":75,"format":"jpg"}""")
+            dsl
+                .update(ASSET_VARIANT)
+                .set(ASSET_VARIANT.TRANSFORMATION, legacy)
+                .where(ASSET_VARIANT.ID.eq(row.id))
+                .awaitSingle()
+            val expected =
+                TransformationResponse(
+                    width = 100,
+                    height = 75,
+                    format = "jpg",
+                    fit = Fit.FIT,
+                    gravity = Gravity.CENTER,
+                    rotate = Rotate.ZERO,
+                    flip = Flip.NONE,
+                    filter = Filter.NONE,
+                    blur = 0,
+                    quality = 80,
+                    padding = PaddingResponse(amount = 0, color = emptyList()),
+                    metadata = MetadataResponse(strip = emptyList()),
+                    colorSpace = "srgb",
+                )
+
+            val info = assets.fetchInfo().shouldBeSuccessful().body
+            info.variants shouldHaveSize 2
+            info.variants.single { !it.isOriginalVariant }.let {
+                it.storeKey shouldBe derived.storeKey
+                it.transformation shouldBe expected
+            }
+            val entry =
+                assets
+                    .fetchEntries(limit = 1)
+                    .shouldBeSuccessful()
+                    .body.entries
+                    .single()
+            entry.entryId shouldBe info.entryId
+            entry.variants.single { !it.isOriginalVariant }.let {
+                it.storeKey shouldBe derived.storeKey
+                it.transformation shouldBe expected
+            }
+
+            val cached = client.get(contentUrl)
+            cached.status shouldBe HttpStatusCode.OK
+            cached.headers[APP_CACHE_STATUS] shouldBe "hit"
+            cached.bodyAsBytes().contentEquals(expectedContent) shouldBe true
+            assets
+                .fetchInfo()
+                .shouldBeSuccessful()
+                .body.variants
+                .map { it.storeKey } shouldBe info.variants.map { it.storeKey }
+            dsl
+                .selectCount()
+                .from(ASSET_VARIANT)
+                .where(ASSET_VARIANT.ASSET_ID.eq(row.assetId))
+                .awaitSingle()
+                .value1() shouldBe 2
+            dsl
+                .selectFrom(ASSET_VARIANT)
+                .where(ASSET_VARIANT.ID.eq(row.id))
+                .awaitSingle()
+                .transformation shouldBe legacy
+        }
+
     @Test
     fun `unsupported transformations are hidden and regenerated without changing the original or future variant`() =
         testPostgres(postgres) {

@@ -29,12 +29,119 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import java.util.TreeSet
 
 class VariantParameterGeneratorTest {
+
+    companion object {
+        @JvmStatic
+        private fun partialTransformations(): List<Arguments> {
+            val minimal = """{"width":150,"height":100,"format":"jpg"}"""
+            val emptyObjects = """{"width":150,"height":100,"format":"jpg","padding":{},"metadata":{}}"""
+            val paddingAmount = """{"width":150,"height":100,"format":"jpg","padding":{"amount":12}}"""
+            val paddingColor = """{"width":150,"height":100,"format":"jpg","padding":{"color":[255,255,255,255]}}"""
+            val mixed =
+                """
+                {
+                    "width":150,"height":100,"format":"jpg","fit":"fill","rotate":"90",
+                    "horizontalFlip":true,"quality":37,"padding":{"amount":2},"metadata":{"strip":["exif"]}
+                }
+                """.trimIndent()
+            val defaults = historicalDefaults(ImageFormat.JPEG, 80)
+            return listOf(
+                Arguments.of(emptyObjects, defaults, minimal),
+                Arguments.of(
+                    paddingAmount,
+                    defaults.copy(padding = PaddingTransformation(12.toPaddingAmount(), emptyList())),
+                    paddingAmount,
+                ),
+                Arguments.of(
+                    paddingColor,
+                    defaults.copy(padding = PaddingTransformation(0.toPaddingAmount(), listOf(255, 255, 255, 255))),
+                    paddingColor,
+                ),
+                Arguments.of(
+                    mixed,
+                    defaults.copy(
+                        fit = Fit.FILL,
+                        rotate = Rotate.NINETY,
+                        horizontalFlip = true,
+                        quality = 37.toQuality(),
+                        padding = PaddingTransformation(2.toPaddingAmount(), emptyList()),
+                        metadata = MetadataTransformation(setOf(MetadataType.EXIF)),
+                    ),
+                    mixed,
+                ),
+            )
+        }
+
+        // These values describe historical persistence semantics, independently of API/runtime defaults.
+        private fun historicalDefaults(
+            format: ImageFormat,
+            quality: Int,
+        ): Transformation =
+            Transformation(
+                width = 150.toDimension(),
+                height = 100.toDimension(),
+                format = format,
+                fit = Fit.FIT,
+                gravity = Gravity.CENTER,
+                rotate = Rotate.ZERO,
+                horizontalFlip = false,
+                filter = Filter.NONE,
+                blur = 0.toBlur(),
+                quality = quality.toQuality(),
+                padding = PaddingTransformation(0.toPaddingAmount(), emptyList()),
+                metadata = MetadataTransformation(emptySet()),
+                colorSpace = ColorSpace.SRGB,
+                pixels = null,
+            )
+    }
+
     @Nested
-    inner class RegressionTests
+    inner class RegressionTests {
+        @ParameterizedTest
+        @CsvSource(
+            "jpg, JPEG, 80",
+            "png, PNG, 100",
+            "webp, WEBP, 80",
+            "avif, AVIF, 50",
+            "jxl, JPEG_XL, 90",
+            "heic, HEIC, 50",
+            "gif, GIF, 100",
+            "pixels, PIXELS, 100",
+        )
+        fun `minimal historical payloads retain defaults and canonical identity`(
+            wireFormat: String,
+            format: ImageFormat,
+            quality: Int,
+        ) {
+            val legacy = """{"width":150,"height":100,"format":"$wireFormat"}"""
+            val restored = postgresJson.decodeFromString<ImageVariantTransformation>(legacy).toTransformation()
+
+            restored shouldBe historicalDefaults(format, quality)
+            postgresJson.parseToJsonElement(VariantParameterGenerator.generateImageVariantTransformations(restored)) shouldBe
+                postgresJson.parseToJsonElement(legacy)
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.konifer.infrastructure.datastore.postgres.schema.VariantParameterGeneratorTest#partialTransformations")
+        fun `partial historical payloads preserve supplied values and default only missing fields`(
+            legacy: String,
+            expected: Transformation,
+            canonical: String,
+        ) {
+            val restored = postgresJson.decodeFromString<ImageVariantTransformation>(legacy).toTransformation()
+
+            restored shouldBe expected
+            postgresJson.parseToJsonElement(VariantParameterGenerator.generateImageVariantTransformations(restored)) shouldBe
+                postgresJson.parseToJsonElement(canonical)
+        }
+    }
 
     @Test
     fun `can generate variant attributes`() {
