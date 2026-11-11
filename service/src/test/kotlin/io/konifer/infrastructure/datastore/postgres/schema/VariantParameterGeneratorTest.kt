@@ -30,13 +30,13 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.TreeSet
 
 class VariantParameterGeneratorTest {
-
     companion object {
         @JvmStatic
         private fun partialTransformations(): List<Arguments> {
@@ -53,18 +53,18 @@ class VariantParameterGeneratorTest {
                 """.trimIndent()
             val defaults = historicalDefaults(ImageFormat.JPEG, 80)
             return listOf(
-                Arguments.of(emptyObjects, defaults, minimal),
-                Arguments.of(
+                arguments(emptyObjects, defaults, minimal),
+                arguments(
                     paddingAmount,
                     defaults.copy(padding = PaddingTransformation(12.toPaddingAmount(), emptyList())),
                     paddingAmount,
                 ),
-                Arguments.of(
+                arguments(
                     paddingColor,
                     defaults.copy(padding = PaddingTransformation(0.toPaddingAmount(), listOf(255, 255, 255, 255))),
                     paddingColor,
                 ),
-                Arguments.of(
+                arguments(
                     mixed,
                     defaults.copy(
                         fit = Fit.FILL,
