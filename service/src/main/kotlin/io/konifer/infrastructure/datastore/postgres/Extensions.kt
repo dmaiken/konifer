@@ -82,12 +82,12 @@ fun AssetVariantRecord.toVariantData(specification: VariantSpecification = toVar
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
         attributes =
-            postgresJson
+            postgresMetadataJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         specification = specification,
-        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresMetadataJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = uploadedAt?.toInstant(),
         expiresAt = expiresAt?.toInstant(),
@@ -151,12 +151,12 @@ fun AssetVariantRecord.toPendingVariant(specification: VariantSpecification = to
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
         attributes =
-            postgresJson
+            postgresMetadataJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         specification = specification,
-        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresMetadataJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = null,
         expiresAt = expiresAt?.toInstant(),
@@ -172,12 +172,12 @@ fun AssetVariantRecord.toReadyVariant(
         objectStoreBucket = checkNotNull(objectStoreBucket),
         objectStoreKey = checkNotNull(objectStoreKey),
         attributes =
-            postgresJson
+            postgresMetadataJson
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
         specification = specification,
-        lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
+        lqips = postgresMetadataJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = uploadedAt,
         expiresAt = expiresAt?.toInstant(),

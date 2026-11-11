@@ -2,6 +2,7 @@ package io.konifer.asset.fetch
 
 import io.konifer.BasePostgresTestContainersTest
 import io.konifer.ImageFactory.testImage
+import io.konifer.client.assets.fetch.requestedTransformation
 import io.konifer.common.http.MetadataResponse
 import io.konifer.common.http.PaddingResponse
 import io.konifer.common.http.TransformationResponse
@@ -30,6 +31,87 @@ import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
 class PostgresTransformationCompatibilityTest : BasePostgresTestContainersTest() {
+    @Test
+    fun `future attributes and LQIPs preserve original processing and derived delivery`() =
+        testPostgres(postgres) {
+            val dsl = createR2dbcDslContext(postgres)
+            val assets = konifer().assets("future-metadata")
+            val image = testImage()
+            val stored =
+                assets
+                    .newAsset()
+                    .fromBytes(image.bytes, image.attributes.format)
+                    .store()
+                    .shouldBeSuccessful()
+                    .body
+            val futureMetadata = mutableMapOf<String, Pair<JSONB, JSONB>>()
+
+            suspend fun addFutureMetadata(storeKey: String) {
+                val row = dsl.selectFrom(ASSET_VARIANT).where(ASSET_VARIANT.OBJECT_STORE_KEY.eq(storeKey)).awaitSingle()
+                val attributes =
+                    JSONB.valueOf(
+                        JsonObject(
+                            postgresJson.parseToJsonElement(checkNotNull(row.attributes).data()).jsonObject +
+                                ("futureAttribute" to JsonPrimitive(true)),
+                        ).toString(),
+                    )
+                val lqips =
+                    JSONB.valueOf(
+                        JsonObject(
+                            postgresJson.parseToJsonElement(checkNotNull(row.lqip).data()).jsonObject +
+                                ("futurePreview" to JsonPrimitive("preview")),
+                        ).toString(),
+                    )
+                dsl
+                    .update(ASSET_VARIANT)
+                    .set(ASSET_VARIANT.ATTRIBUTES, attributes)
+                    .set(ASSET_VARIANT.LQIP, lqips)
+                    .where(ASSET_VARIANT.ID.eq(row.id))
+                    .awaitSingle()
+                futureMetadata[storeKey] = attributes to lqips
+            }
+
+            val original = stored.variants.single()
+            addFutureMetadata(original.storeKey)
+            val originalContent =
+                assets
+                    .originalVariant()
+                    .fetchContent()
+                    .shouldBeSuccessful()
+                    .body
+            originalContent.attributes shouldBe original.attributes
+            originalContent.bytes.contentEquals(image.bytes) shouldBe true
+            val variant = assets.variant(requestedTransformation { width = 100 })
+            val generated = variant.fetchContent().shouldBeSuccessful().body
+            val expected = assets.fetchInfo().shouldBeSuccessful().body
+            val derived = expected.variants.single { !it.isOriginalVariant }
+            addFutureMetadata(derived.storeKey)
+
+            assets.fetchInfo().shouldBeSuccessful().body shouldBe expected
+            val entry =
+                assets
+                    .fetchEntries(limit = 1)
+                    .shouldBeSuccessful()
+                    .body.entries
+                    .single()
+            entry.entryId shouldBe expected.entryId
+            entry.variants shouldBe expected.variants
+            variant.fetchContent().shouldBeSuccessful().body shouldBe generated
+            assets
+                .originalVariant()
+                .fetchContent()
+                .shouldBeSuccessful()
+                .body shouldBe originalContent
+            val cached = client.get("/assets/future-metadata/-/content?width=100")
+            cached.status shouldBe HttpStatusCode.OK
+            cached.headers[APP_CACHE_STATUS] shouldBe "hit"
+            cached.bodyAsBytes().contentEquals(generated.bytes) shouldBe true
+            futureMetadata.forEach { (key, metadata) ->
+                val row = dsl.selectFrom(ASSET_VARIANT).where(ASSET_VARIANT.OBJECT_STORE_KEY.eq(key)).awaitSingle()
+                (row.attributes to row.lqip) shouldBe metadata
+            }
+        }
+
     @Test
     fun `historical transformations with omitted fields remain visible and produce cache hits`() =
         testPostgres(postgres) {

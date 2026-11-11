@@ -22,6 +22,16 @@ val postgresJson: Json =
         explicitNulls = false
     }
 
+/**
+ * Reads attributes and LQIPs written by newer releases while preserving known metadata.
+ * Additive properties must not change the interpretation of existing fields.
+ * Transformation identity still requires the strict [postgresJson] reader.
+ */
+val postgresMetadataJson: Json =
+    Json(postgresJson) {
+        ignoreUnknownKeys = true
+    }
+
 class ColorSpaceSerializer : KSerializer<ColorSpace> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("LowercaseEnumSerializer", PrimitiveKind.STRING)

@@ -14,6 +14,7 @@ import io.konifer.domain.transformation.Transformation
 import io.konifer.domain.transformation.pixel.PixelTransformation
 import io.konifer.domain.transformation.pixel.toPixelChannels
 import io.konifer.domain.transformation.toDimension
+import io.konifer.domain.variant.LQIPs
 import io.konifer.domain.variant.VariantSelection
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
@@ -34,6 +35,9 @@ import konifer.jooq.tables.references.OUTBOX
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import org.jooq.impl.DSL
@@ -180,6 +184,86 @@ class PostgresAssetRepositoryTest : AssetRepositoryTest() {
                 .variants
                 .single()
                 .isOriginalVariant shouldBe true
+        }
+
+    @Test
+    fun `future metadata is readable across repository paths and preserved through updates`() =
+        runTest {
+            val asset =
+                repository
+                    .storeNew(createPendingAsset(lqips = LQIPs("original-blurhash", "original-thumbhash")))
+                    .markReady(Instant.now())
+            repository.markReady(asset)
+            val original = asset.variants.single()
+            val attributes =
+                Attributes(
+                    width = 50.toDimension(),
+                    height = 40.toDimension(),
+                    format = ImageFormat.PIXELS,
+                    colorSpace = ColorSpace.SRGB,
+                    pixels = PixelAttributes("RGB".toPixelChannels(), PixelLayout.INTERLEAVED, PixelDataType.UINT8),
+                )
+            val derived =
+                repository.storeNewVariant(
+                    createPendingVariant(
+                        assetId = asset.id,
+                        attributes = attributes,
+                        transformation = Transformation.fromAttributes(attributes),
+                        lqip = LQIPs("derived-blurhash", "derived-thumbhash"),
+                    ),
+                )
+            repository.markUploaded(derived.markReady(Instant.now()), CacheProperties())
+            val variants = listOf(derived, original)
+            val storedMetadata =
+                variants.associate { variant ->
+                    val record = dslContext.selectFrom(ASSET_VARIANT).where(ASSET_VARIANT.ID.eq(variant.id.value)).awaitSingle()
+                    val known = postgresJson.parseToJsonElement(checkNotNull(record.attributes).data()).jsonObject
+                    val nested = known["pixels"]?.let { JsonObject(it.jsonObject + ("futurePixelAttribute" to JsonPrimitive(true))) }
+                    val futureAttributes =
+                        JSONB.valueOf(
+                            JsonObject(
+                                known +
+                                    ("futureAttribute" to JsonPrimitive(true)) +
+                                    (nested?.let { mapOf("pixels" to it) } ?: emptyMap()),
+                            ).toString(),
+                        )
+                    val futureLqips =
+                        JSONB.valueOf(
+                            JsonObject(
+                                postgresJson.parseToJsonElement(checkNotNull(record.lqip).data()).jsonObject +
+                                    ("futurePreview" to JsonPrimitive("preview")),
+                            ).toString(),
+                        )
+                    dslContext
+                        .update(ASSET_VARIANT)
+                        .set(ASSET_VARIANT.ATTRIBUTES, futureAttributes)
+                        .set(ASSET_VARIANT.LQIP, futureLqips)
+                        .where(ASSET_VARIANT.ID.eq(variant.id.value))
+                        .awaitSingle()
+                    variant.id to (futureAttributes to futureLqips)
+                }
+            val expected = variants.map { Triple(it.id, it.attributes, it.lqips) }
+            val loaded = repository.fetchForUpdate(asset.path, asset.entryId!!) as Asset.Ready
+            val reads =
+                listOf(
+                    repository.fetchByPath(asset.path, asset.entryId)!!.variants.map { Triple(it.id, it.attributes, it.lqips) },
+                    repository
+                        .fetchAllByPath(asset.path, limit = Limit.single)
+                        .single()
+                        .variants
+                        .map { Triple(it.id, it.attributes, it.lqips) },
+                    repository.fetchForDelivery(asset.path, asset.entryId)!!.variants.map { Triple(it.id, it.attributes, it.lqips) },
+                    repository.fetchVariantsForDelivery(asset.id).map { Triple(it.id, it.attributes, it.lqips) },
+                    loaded.variants.map { Triple(it.id, it.attributes, it.lqips) },
+                )
+            reads.forEach { it shouldBe expected }
+            val uploaded = repository.markUploaded(derived.markReady(Instant.now()), CacheProperties())
+            Triple(uploaded.id, uploaded.attributes, uploaded.lqips) shouldBe expected.first()
+            repository.update(loaded.update(alt = "updated", labels = emptyMap(), tags = emptySet()))
+            storedMetadata.forEach { (id, metadata) ->
+                val record = dslContext.selectFrom(ASSET_VARIANT).where(ASSET_VARIANT.ID.eq(id.value)).awaitSingle()
+                (record.attributes to record.lqip) shouldBe metadata
+            }
         }
 
     @Nested
