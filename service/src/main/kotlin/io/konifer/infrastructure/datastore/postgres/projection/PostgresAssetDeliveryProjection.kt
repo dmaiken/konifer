@@ -18,5 +18,5 @@ class PostgresAssetDeliveryProjection(
     override val entryId: EntryId = checkNotNull(assetRecordsDto.asset.entryId).toEntryId()
     override val path: AssetPath = checkNotNull(assetRecordsDto.asset.path).toAssetPath()
     override val modifiedAt: Instant = checkNotNull(assetRecordsDto.asset.modifiedAt).toInstant()
-    override val variants: List<VariantDeliveryProjection> = assetRecordsDto.variants.map(::PostgresVariantDeliveryProjection)
+    override val variants: List<VariantDeliveryProjection> = assetRecordsDto.variants.mapNotNull(PostgresVariantDeliveryProjection::from)
 }

@@ -1,4 +1,4 @@
-package io.konifer.infrastructure.datastore.postgres
+package io.konifer.infrastructure.datastore.postgres.schema
 
 import io.konifer.common.image.ImageFormat
 import io.konifer.common.image.pixel.PixelDataType
@@ -8,6 +8,7 @@ import io.konifer.domain.transformation.pixel.PixelChannels
 import io.konifer.domain.transformation.toDimension
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.attribute.PixelAttributes
+import io.konifer.infrastructure.datastore.postgres.ColorSpaceSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable

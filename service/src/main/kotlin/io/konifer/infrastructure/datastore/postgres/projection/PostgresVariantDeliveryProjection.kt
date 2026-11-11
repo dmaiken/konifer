@@ -5,14 +5,20 @@ import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.VariantSpecification
 import io.konifer.domain.variant.attribute.Attributes
 import io.konifer.domain.variant.projection.VariantDeliveryProjection
-import io.konifer.infrastructure.datastore.postgres.ImageVariantAttributes
 import io.konifer.infrastructure.datastore.postgres.postgresJson
-import io.konifer.infrastructure.datastore.postgres.toVariantSpecification
+import io.konifer.infrastructure.datastore.postgres.schema.ImageVariantAttributes
+import io.konifer.infrastructure.datastore.postgres.toVariantSpecificationOrNull
 import konifer.jooq.tables.records.AssetVariantRecord
 
-class PostgresVariantDeliveryProjection(
+class PostgresVariantDeliveryProjection private constructor(
     private val variantRecord: AssetVariantRecord,
+    override val specification: VariantSpecification,
 ) : VariantDeliveryProjection {
+    companion object {
+        fun from(variantRecord: AssetVariantRecord): PostgresVariantDeliveryProjection? =
+            variantRecord.toVariantSpecificationOrNull()?.let { PostgresVariantDeliveryProjection(variantRecord, it) }
+    }
+
     override val id: VariantId = VariantId(checkNotNull(variantRecord.id))
 
     override val objectStoreBucket: String
@@ -33,10 +39,6 @@ class PostgresVariantDeliveryProjection(
             .decodeFromString(
                 checkNotNull(variantRecord.lqip).data(),
             )
-    }
-
-    override val specification: VariantSpecification by lazy(LazyThreadSafetyMode.NONE) {
-        variantRecord.toVariantSpecification()
     }
 
     override val isOriginalVariant: Boolean = checkNotNull(variantRecord.originalVariant)

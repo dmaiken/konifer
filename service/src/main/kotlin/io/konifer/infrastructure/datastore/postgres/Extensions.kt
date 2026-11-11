@@ -14,11 +14,15 @@ import io.konifer.domain.variant.Variant
 import io.konifer.domain.variant.VariantData
 import io.konifer.domain.variant.VariantId
 import io.konifer.domain.variant.VariantSpecification
+import io.konifer.infrastructure.datastore.postgres.schema.ImageVariantAttributes
+import io.konifer.infrastructure.datastore.postgres.schema.ImageVariantTransformation
+import io.ktor.util.logging.KtorSimpleLogger
 import konifer.jooq.tables.records.AssetLabelRecord
 import konifer.jooq.tables.records.AssetTagRecord
 import konifer.jooq.tables.records.AssetTreeRecord
 import konifer.jooq.tables.records.AssetVariantRecord
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.serialization.SerializationException
 import org.jooq.Configuration
 import org.jooq.DSLContext
 import org.jooq.Field
@@ -27,6 +31,8 @@ import org.jooq.kotlin.coroutines.transactionCoroutine
 import java.time.Instant
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+
+private val transformationLogger = KtorSimpleLogger("io.konifer.infrastructure.datastore.postgres.StoredTransformation")
 
 fun <T : Any> Record.getNonNull(field: Field<T?>): T = checkNotNull(this.get(field)) { "Field '${field.name}' is null" }
 
@@ -67,10 +73,10 @@ fun AssetTreeRecord.toAssetData(
         isReady = isReady ?: false,
         createdAt = checkNotNull(createdAt).toInstant(),
         modifiedAt = checkNotNull(modifiedAt).toInstant(),
-        variants = variants.map { it.toVariantData() },
+        variants = variants.mapNotNull { variant -> variant.toVariantSpecificationOrNull()?.let { variant.toVariantData(it) } },
     )
 
-fun AssetVariantRecord.toVariantData(): VariantData =
+fun AssetVariantRecord.toVariantData(specification: VariantSpecification = toVariantSpecification()): VariantData =
     VariantData(
         id = VariantId(checkNotNull(id)),
         objectStoreBucket = checkNotNull(objectStoreBucket),
@@ -80,7 +86,7 @@ fun AssetVariantRecord.toVariantData(): VariantData =
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        specification = toVariantSpecification(),
+        specification = specification,
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = uploadedAt?.toInstant(),
@@ -117,7 +123,7 @@ fun AssetTreeRecord.toReadyAsset(
         id = AssetId(checkNotNull(id)),
         path = checkNotNull(path).toAssetPath(),
         entryId = checkNotNull(entryId).toEntryId(),
-        alt = checkNotNull(alt).toAssetAlt(),
+        alt = alt?.toAssetAlt(),
         labels = labels.associate { Pair(checkNotNull(it.labelKey), checkNotNull(it.labelValue)) }.toAssetLabels(),
         tags = tags.mapNotNull { it.tagValue }.toSet().toAssetTags(),
         source = AssetSource.valueOf(checkNotNull(source)),
@@ -126,17 +132,19 @@ fun AssetTreeRecord.toReadyAsset(
         modifiedAt = checkNotNull(modifiedAt).toInstant(),
         variants =
             variants
-                .map {
-                    if (it.modified()) {
-                        it.toReadyVariant(checkNotNull(it.uploadedAt).toInstant())
-                    } else {
-                        it.toPendingVariant()
+                .mapNotNull { variant ->
+                    variant.toVariantSpecificationOrNull()?.let { specification ->
+                        if (variant.modified()) {
+                            variant.toReadyVariant(checkNotNull(variant.uploadedAt).toInstant(), specification)
+                        } else {
+                            variant.toPendingVariant(specification)
+                        }
                     }
                 }.toMutableList(),
         isReady = true,
     )
 
-fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
+fun AssetVariantRecord.toPendingVariant(specification: VariantSpecification = toVariantSpecification()): Variant.Pending =
     Variant.Pending(
         id = VariantId(checkNotNull(id)),
         assetId = AssetId(checkNotNull(assetId)),
@@ -147,14 +155,17 @@ fun AssetVariantRecord.toPendingVariant(): Variant.Pending =
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        specification = toVariantSpecification(),
+        specification = specification,
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = null,
         expiresAt = expiresAt?.toInstant(),
     )
 
-fun AssetVariantRecord.toReadyVariant(uploadedAt: Instant): Variant.Ready =
+fun AssetVariantRecord.toReadyVariant(
+    uploadedAt: Instant,
+    specification: VariantSpecification = toVariantSpecification(),
+): Variant.Ready =
     Variant.Ready(
         id = VariantId(checkNotNull(id)),
         assetId = AssetId(checkNotNull(assetId)),
@@ -165,7 +176,7 @@ fun AssetVariantRecord.toReadyVariant(uploadedAt: Instant): Variant.Ready =
                 .decodeFromString<ImageVariantAttributes>(
                     checkNotNull(attributes).data(),
                 ).toAttributes(),
-        specification = toVariantSpecification(),
+        specification = specification,
         lqips = postgresJson.decodeFromString(checkNotNull(lqip).data()),
         createdAt = checkNotNull(createdAt).toInstant(),
         uploadedAt = uploadedAt,
@@ -182,4 +193,13 @@ fun AssetVariantRecord.toVariantSpecification(): VariantSpecification =
                     checkNotNull(transformation).data(),
                 ).toTransformation(),
         )
+    }
+
+/** Only transformation serialization failures make a stored derived variant ineligible for reads. */
+fun AssetVariantRecord.toVariantSpecificationOrNull(): VariantSpecification? =
+    try {
+        toVariantSpecification()
+    } catch (e: SerializationException) {
+        transformationLogger.warn("Ignoring unreadable transformation for asset $assetId, variant $id: ${e.message}")
+        null
     }
