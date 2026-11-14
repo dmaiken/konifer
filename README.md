@@ -56,7 +56,7 @@ Run the 1.0 release candidate with in-memory storage:
 docker run --name konifer-quickstart \
   --publish 8080:8080 \
   --env IN_MEMORY=true \
-  ghcr.io/dmaiken/konifer:1.0.0-rc.1
+  ghcr.io/dmaiken/konifer:1.0.0-rc.2
 ```
 
 In-memory mode loses all uploaded images and metadata when the container stops.
