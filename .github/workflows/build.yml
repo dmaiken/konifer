@@ -438,11 +438,11 @@ jobs:
         with:
           input: /tmp/konifer-image-${{ matrix.arch }}.tar
           trivy-config: trivy.yaml
-          version: v0.74.0
+          version: v0.76.2
 
   merge:
     runs-on: ubuntu-latest
-    needs: [ docker-build, image-security, integration-test, container-scan ]
+    needs: [ docker-build, config-scan, image-policy, image-security, integration-test, container-scan ]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       packages: write
