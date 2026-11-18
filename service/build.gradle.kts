@@ -90,7 +90,7 @@ dependencies {
         implementation("io.netty:netty-resolver-dns:4.2.19.Final") {
             because("CVE-2026-45674 and CVE-2026-47691")
         }
-        implementation("io.netty:netty-handler:4.2.19.Final") {
+        implementation("io.netty:netty-handler:4.2.20.Final") {
             because("CVE-2026-75595")
         }
     }
