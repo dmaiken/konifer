@@ -1,5 +1,6 @@
 package io.konifer.common.http
 
+import com.ghost.serialization.annotations.GhostSerialization
 import io.konifer.common.asset.AssetClass
 import io.konifer.common.asset.AssetSource
 import io.konifer.common.image.Filter
@@ -15,6 +16,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
 @Serializable
+@GhostSerialization
 data class AssetResponse(
     val `class`: AssetClass,
     val alt: String?,
@@ -33,6 +35,7 @@ data class AssetResponse(
 }
 
 @Serializable
+@GhostSerialization
 data class VariantResponse(
     val isOriginalVariant: Boolean,
     val storeBucket: String,
@@ -45,6 +48,7 @@ data class VariantResponse(
 }
 
 @Serializable
+@GhostSerialization
 data class AttributesResponse(
     val height: Int,
     val width: Int,
@@ -61,6 +65,7 @@ data class AttributesResponse(
 }
 
 @Serializable
+@GhostSerialization
 data class PixelAttributesResponse(
     val channels: String,
     val layout: PixelLayout,
@@ -68,6 +73,7 @@ data class PixelAttributesResponse(
 )
 
 @Serializable
+@GhostSerialization
 data class TransformationResponse(
     val width: Int,
     val height: Int,
@@ -87,6 +93,7 @@ data class TransformationResponse(
 }
 
 @Serializable
+@GhostSerialization
 data class LQIPResponse(
     val blurhash: String?,
     val thumbhash: String?,
@@ -95,6 +102,7 @@ data class LQIPResponse(
 }
 
 @Serializable
+@GhostSerialization
 data class AssetLinkResponse(
     val url: String,
     val expiresAt: Instant?,
@@ -104,6 +112,7 @@ data class AssetLinkResponse(
 )
 
 @Serializable
+@GhostSerialization
 data class PaddingResponse(
     val amount: Int,
     val color: List<Int>,

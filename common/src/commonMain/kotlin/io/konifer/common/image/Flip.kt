@@ -1,5 +1,6 @@
 package io.konifer.common.image
 
+import com.ghost.serialization.annotations.GhostSerialization
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -10,6 +11,7 @@ private object FlipParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class Flip(
     override val queryParameterValue: String,
 ) : Manipulation {

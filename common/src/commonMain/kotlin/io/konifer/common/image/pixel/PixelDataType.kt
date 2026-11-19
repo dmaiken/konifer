@@ -1,5 +1,6 @@
 package io.konifer.common.image.pixel
 
+import com.ghost.serialization.annotations.GhostSerialization
 import io.konifer.common.image.Manipulation
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -18,6 +19,7 @@ private object PixelTypeParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class PixelDataType(
     override val queryParameterValue: String,
 ) : Manipulation {

@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)
     alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.ghost.serializer)
     `java-test-fixtures`
 }
 
@@ -59,22 +60,28 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.server.routing.openapi)
     implementation(libs.ktor.server.swagger)
-
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.hocon)
-
     implementation(libs.aws.sdk.s3)
     implementation(libs.aws.sdk.s3.transfermanager)
-
     implementation(libs.logback.classic)
     implementation(libs.uuid.creator)
     implementation(libs.commons.codec)
-
     implementation(libs.r2dbc.migrate)
     implementation(libs.r2dbc.migrate.resource.reader)
     implementation(libs.r2dbc.postgresql)
     implementation(libs.r2dbc.pool)
     implementation(libs.kotlinx.coroutines.reactive)
+    implementation(libs.db.scheduler)
+    implementation(libs.postresql)
+    implementation(libs.hikari)
+    implementation(libs.libvips.ffm)
+    implementation(libs.tika.core)
+    implementation(libs.metadata.extractor)
+    implementation(libs.blurhash)
+    implementation(libs.onnx.runtime)
+    implementation(libs.huggingface.tokenizers)
+    implementation(libs.ghost.ktor)
 
     constraints {
         // Patched transitive versions required by the container vulnerability policy.
@@ -95,10 +102,6 @@ dependencies {
         }
     }
 
-    implementation(libs.db.scheduler)
-    implementation(libs.postresql)
-    implementation(libs.hikari)
-
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.ktor.server.test.host)
@@ -117,15 +120,6 @@ dependencies {
 
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions)
-
-    implementation(libs.libvips.ffm)
-    implementation(libs.tika.core)
-    implementation(libs.metadata.extractor)
-
-    implementation(libs.blurhash)
-
-    implementation(libs.onnx.runtime)
-    implementation(libs.huggingface.tokenizers)
 
     // Dependencies needed by testFixtures
     testFixturesImplementation(project(":common"))

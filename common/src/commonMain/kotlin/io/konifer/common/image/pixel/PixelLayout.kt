@@ -1,5 +1,6 @@
 package io.konifer.common.image.pixel
 
+import com.ghost.serialization.annotations.GhostSerialization
 import io.konifer.common.image.Manipulation
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -10,6 +11,7 @@ private object PixelLayoutParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class PixelLayout(
     override val queryParameterValue: String,
 ) : Manipulation {

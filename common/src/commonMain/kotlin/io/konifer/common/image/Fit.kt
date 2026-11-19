@@ -1,5 +1,6 @@
 package io.konifer.common.image
 
+import com.ghost.serialization.annotations.GhostSerialization
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,6 +12,7 @@ private object FitParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class Fit(
     override val queryParameterValue: String,
 ) : Manipulation {

@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotest)
     alias(libs.plugins.kover)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.ghost.serializer)
 }
 
 group = "io.konifer"
@@ -26,6 +28,7 @@ kotlin {
         commonMain.dependencies {
             api(libs.kotlinx.serialization.core)
             api(libs.kotlinx.datetime)
+            implementation(libs.ghost)
         }
         commonTest.dependencies {
             implementation(libs.kotest.framework.engine)

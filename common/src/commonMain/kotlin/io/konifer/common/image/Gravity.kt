@@ -1,5 +1,6 @@
 package io.konifer.common.image
 
+import com.ghost.serialization.annotations.GhostSerialization
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,6 +14,7 @@ private object GravityParameterValues {
  * This is ignored if the [Fit] is not [Fit.CROP] or [Fit.FILL]
  */
 @Serializable
+@GhostSerialization
 enum class Gravity(
     override val queryParameterValue: String,
 ) : Manipulation {

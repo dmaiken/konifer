@@ -1,5 +1,6 @@
 package io.konifer.common.image
 
+import com.ghost.serialization.annotations.GhostSerialization
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,6 +13,7 @@ private object RotationParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class Rotate(
     override val queryParameterValue: String,
 ) : Manipulation {

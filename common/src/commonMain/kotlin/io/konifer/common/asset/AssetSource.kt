@@ -1,5 +1,6 @@
 package io.konifer.common.asset
 
+import com.ghost.serialization.annotations.GhostSerialization
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -10,6 +11,7 @@ private object AssetSourceParameterValues {
 }
 
 @Serializable
+@GhostSerialization
 enum class AssetSource {
     @SerialName(AssetSourceParameterValues.UPLOAD)
     UPLOAD,
