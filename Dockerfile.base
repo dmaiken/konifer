@@ -51,9 +51,9 @@ FROM ubuntu:${UBUNTU_VERSION} AS temurin-build
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
-# Temporary workaround: eclipse-temurin:25-jdk-noble still contains 25.0.4+7,
-# even though Adoptium has published the CVE-fixed 25.0.4.1+1 binaries. Restore
-# this stage to `FROM eclipse-temurin:25-jdk-noble` once that tag ships the fix.
+# Install Temurin 25.0.5.1+2 on amd64 to fix CVE-2026-114938 until
+# eclipse-temurin:25-jdk-noble ships the fix. ARM64 is unaffected and uses the
+# latest available ARM64 release, 25.0.5+8, while its 25.0.5.1+2 archive is unavailable.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
@@ -61,21 +61,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && case "$TARGETARCH" in \
       amd64) \
         TEMURIN_ARCH="x64"; \
-        TEMURIN_SHA256="dbb698396d478e7fa2b1e50f4103324b2a99b90569ee27c33f2261f9215cf41e"; \
+        TEMURIN_VERSION="25.0.5.1_2"; \
+        TEMURIN_RELEASE="jdk-25.0.5.1%2B2"; \
+        TEMURIN_SHA256="760f91b22c3efc9bd1b64ff950598231be82928cc807e30691a0e7a2995a62c0"; \
         ;; \
       arm64) \
         TEMURIN_ARCH="aarch64"; \
-        TEMURIN_SHA256="69df11a02cfa3ef7d7ca645e03edce6778ec090e100f6ae2b42097865730ac52"; \
+        TEMURIN_VERSION="25.0.5_8"; \
+        TEMURIN_RELEASE="jdk-25.0.5%2B8"; \
+        TEMURIN_SHA256="bb5b2ded252f21c6090cf780b0a408ad0d83bbb557e702955643557f13231880"; \
         ;; \
       *) \
         echo "Unsupported target architecture: $TARGETARCH" >&2; \
         exit 1; \
         ;; \
     esac \
-    && TEMURIN_ARCHIVE="OpenJDK25U-jdk_${TEMURIN_ARCH}_linux_hotspot_25.0.4.1_1.tar.gz" \
+    && TEMURIN_ARCHIVE="OpenJDK25U-jdk_${TEMURIN_ARCH}_linux_hotspot_${TEMURIN_VERSION}.tar.gz" \
     && curl --fail --location --show-error --silent --retry 3 \
       --output /tmp/openjdk.tar.gz \
-      "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/${TEMURIN_ARCHIVE}" \
+      "https://github.com/adoptium/temurin25-binaries/releases/download/${TEMURIN_RELEASE}/${TEMURIN_ARCHIVE}" \
     && echo "${TEMURIN_SHA256}  /tmp/openjdk.tar.gz" | sha256sum --check --strict \
     && install -d /opt/java/openjdk \
     && tar --extract \
