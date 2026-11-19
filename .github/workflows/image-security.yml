@@ -90,12 +90,14 @@ jobs:
           IMAGE_SOURCE: ${{ steps.image.outputs.source }}
           SBOM_FILE: ${{ inputs.sbom-file-name }}
           SYFT_CMD: ${{ steps.syft.outputs.cmd }}
-        run: bash scripts/generate-docker-image-sbom.sh "$IMAGE_SOURCE" "$SBOM_FILE"
+          EXPECTED_ARCHITECTURE: ${{ inputs.arch }}
+        run: bash scripts/generate-docker-image-sbom.sh "$IMAGE_SOURCE" "$SBOM_FILE" "$EXPECTED_ARCHITECTURE"
 
       - name: Scan SBOM with Grype
         uses: anchore/scan-action@v7.4.2
         with:
           sbom: ${{ inputs.sbom-file-name }}
+          config: ${{ inputs.arch == 'arm64' && '.github/grype-arm64.yaml' || '' }}
           fail-build: true
           severity-cutoff: high
           only-fixed: true

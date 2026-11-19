@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-if (( $# != 2 )); then
-  echo "Usage: $0 <syft-image-source> <output.spdx.json>" >&2
+if (( $# < 2 || $# > 3 )); then
+  echo "Usage: $0 <syft-image-source> <output.spdx.json> [amd64|arm64]" >&2
   exit 2
 fi
 
@@ -11,7 +11,18 @@ REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly REPO_ROOT
 readonly IMAGE_SOURCE="$1"
 readonly OUTPUT_PATH="$2"
+readonly EXPECTED_ARCHITECTURE="${3-}"
 readonly SYFT_COMMAND="${SYFT_CMD:-syft}"
+
+if (( $# == 3 )); then
+  case "$EXPECTED_ARCHITECTURE" in
+    amd64|arm64) ;;
+    *)
+      echo "Unsupported expected image architecture: $EXPECTED_ARCHITECTURE" >&2
+      exit 2
+      ;;
+  esac
+fi
 
 # shellcheck source=native-build/native-versions.env
 source "$REPO_ROOT/scripts/native-build/native-versions.env"
@@ -47,6 +58,15 @@ readonly SPDX_JSON="$work_dir/image.spdx.json"
   --select-catalogers +sbom-cataloger \
   --output "syft-json=$SYFT_JSON" \
   --output "spdx-json@2.3=$SPDX_JSON"
+
+if [[ -n "$EXPECTED_ARCHITECTURE" ]]; then
+  if ! jq --exit-status --arg expected "$EXPECTED_ARCHITECTURE" \
+    '.source.type == "image" and .source.metadata.architecture == $expected' \
+    "$SYFT_JSON" >/dev/null; then
+    echo "Scanned image architecture is missing or does not match $EXPECTED_ARCHITECTURE." >&2
+    exit 1
+  fi
+fi
 
 EXPECTED_NATIVE_COMPONENTS="$(
   jq --compact-output --null-input \
