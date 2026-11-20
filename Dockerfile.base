@@ -131,10 +131,9 @@ RUN apt-get update \
 
 # Tell JVM FFM consumers how to find GLib.
 RUN if [ "$TARGETARCH" = "arm64" ]; then GNU_ARCH="aarch64-linux-gnu"; else GNU_ARCH="x86_64-linux-gnu"; fi && \
-    cd /usr/lib/$GNU_ARCH && \
-    ln -s libglib-2.0.so.0 libglib-2.0.so && \
-    ln -s libgobject-2.0.so.0 libgobject-2.0.so && \
-    ln -s libgmodule-2.0.so.0 libgmodule-2.0.so
+    ln -s libglib-2.0.so.0 "/usr/lib/$GNU_ARCH/libglib-2.0.so" && \
+    ln -s libgobject-2.0.so.0 "/usr/lib/$GNU_ARCH/libgobject-2.0.so" && \
+    ln -s libgmodule-2.0.so.0 "/usr/lib/$GNU_ARCH/libgmodule-2.0.so"
 
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH=$JAVA_HOME/bin:$PATH

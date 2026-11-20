@@ -1,4 +1,4 @@
-name: Image License and Misconfiguration Report
+name: Image Misconfiguration Policy and Advisory Licenses
 
 on:
   workflow_call:
@@ -47,12 +47,13 @@ jobs:
         # Same installer revision used by trivy-action v0.36.0.
         uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
         with:
-          version: v0.74.0
+          version: v0.76.2
 
       - name: Scan Image Licenses and Configuration
         env:
           IMAGE_ARTIFACT_NAME: ${{ inputs.image-artifact-name }}
           IMAGE_TAG: ${{ inputs.image-tag }}
+          TRIVY_PLATFORM: linux/${{ inputs.arch }}
         run: |
           source="$IMAGE_TAG"
           if [[ -n "$IMAGE_ARTIFACT_NAME" ]]; then

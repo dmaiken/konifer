@@ -306,7 +306,7 @@ jobs:
 
   publish-and-release:
     runs-on: ubuntu-latest
-    needs: [ image-security, integration-test ]
+    needs: [ config-scan, image-policy, image-security, integration-test ]
     permissions:
       actions: read
       contents: write
