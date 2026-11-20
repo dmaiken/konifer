@@ -3,6 +3,8 @@ package io.konifer.infrastructure.datastore.postgres
 import io.konifer.domain.asset.AssetPath
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.r2dbc.pool.ConnectionPool
+import io.r2dbc.spi.R2dbcException
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrate
 import name.nkonev.r2dbc.migrate.core.R2dbcMigrateProperties
 import name.nkonev.r2dbc.migrate.reader.MigrateResourceReader
@@ -86,10 +88,21 @@ class AssetPathMigrationTest {
             }
         }
 
-        shouldThrow<Exception> { migrate(includeEscaping = true) }
+        shouldThrow<R2dbcException> { migrate(includeEscaping = true) }.sqlState shouldBe "42622"
 
         connection().use { connection ->
             connection.createStatement().use { statement ->
+                statement
+                    .executeQuery(
+                        """
+                        SELECT count(*) FROM pg_locks
+                        WHERE locktype = 'advisory'
+                          AND database = (SELECT oid FROM pg_database WHERE datname = current_database())
+                        """.trimIndent(),
+                    ).use {
+                        it.next() shouldBe true
+                        it.getLong(1) shouldBe 0L
+                    }
                 statement.executeQuery("SELECT path::text FROM asset_tree").use {
                     it.next() shouldBe true
                     it.getString(1) shouldBe "root.ok_name"
@@ -123,14 +136,19 @@ class AssetPathMigrationTest {
                     password = postgres.password,
                     sslMode = "disable",
                 ),
-            )
-        val reader = ReflectionsClasspathResourceReader()
-        val filteredReader =
-            MigrateResourceReader { path ->
-                reader.getResources(path).filter { includeEscaping || !it.filename.startsWith("V11__") }
-            }
-        val properties = R2dbcMigrateProperties().apply { setResourcesPath("db/migration") }
-        R2dbcMigrate.migrate(factory, properties, filteredReader, null, null).block()
+            ) as ConnectionPool
+        try {
+            val reader = ReflectionsClasspathResourceReader()
+            val filteredReader =
+                MigrateResourceReader { path ->
+                    reader.getResources(path).filter { includeEscaping || !it.filename.startsWith("V11__") }
+                }
+            val properties = R2dbcMigrateProperties().apply { setResourcesPath("db/migration") }
+            R2dbcMigrate.migrate(factory, properties, filteredReader, null, null).block()
+        } finally {
+            // A failed migration can leave a session-owned advisory lock on a pooled connection.
+            factory.disposeLater().block()
+        }
     }
 
     private fun Connection.insertAsset(
