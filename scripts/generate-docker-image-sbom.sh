@@ -60,8 +60,13 @@ readonly SPDX_JSON="$work_dir/image.spdx.json"
   --output "spdx-json@2.3=$SPDX_JSON"
 
 if [[ -n "$EXPECTED_ARCHITECTURE" ]]; then
+  # Syft can leave Docker archive metadata empty while retaining the base64 image config.
   if ! jq --exit-status --arg expected "$EXPECTED_ARCHITECTURE" \
-    '.source.type == "image" and .source.metadata.architecture == $expected' \
+    '.source.type == "image" and (
+      .source.metadata
+      | (.architecture | select(. != null and . != ""))
+        // (.config | @base64d | fromjson | .architecture)
+    ) == $expected' \
     "$SYFT_JSON" >/dev/null; then
     echo "Scanned image architecture is missing or does not match $EXPECTED_ARCHITECTURE." >&2
     exit 1
