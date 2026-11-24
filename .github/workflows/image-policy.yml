@@ -53,6 +53,7 @@ jobs:
         env:
           IMAGE_ARTIFACT_NAME: ${{ inputs.image-artifact-name }}
           IMAGE_TAG: ${{ inputs.image-tag }}
+          TRIVY_PLATFORM: linux/${{ inputs.arch }}
         run: |
           source="$IMAGE_TAG"
           if [[ -n "$IMAGE_ARTIFACT_NAME" ]]; then
