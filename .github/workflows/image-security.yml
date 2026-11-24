@@ -97,7 +97,6 @@ jobs:
         uses: anchore/scan-action@v7.4.2
         with:
           sbom: ${{ inputs.sbom-file-name }}
-          config: ${{ inputs.arch == 'arm64' && '.github/grype-arm64.yaml' || '' }}
           fail-build: true
           severity-cutoff: high
           only-fixed: true
