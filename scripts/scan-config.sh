@@ -22,6 +22,8 @@ mkdir -p "$report_directory" "$staging/source"
 # Stage only the intended build definitions; do not scan test fixtures or build outputs.
 cp "${repo_root}/Dockerfile" "${repo_root}/Dockerfile.base" "$staging/source/"
 trivy --config "${repo_root}/trivy-report.yaml" config \
+    --ignorefile "${repo_root}/.trivyignore.yaml" \
     --misconfig-scanners dockerfile --file-patterns 'dockerfile:Dockerfile.base' \
     --output "$report_directory/dockerfiles.json" "$staging/source"
 trivy --config "${repo_root}/trivy-report.yaml" convert --scanners misconfig --format table "$report_directory/dockerfiles.json"
+bash "${repo_root}/scripts/check-misconfigurations.sh" "$report_directory/dockerfiles.json"

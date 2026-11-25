@@ -1,0 +1,13 @@
+misconfigurations:
+  - id: AVD-DS-0001
+    paths:
+      - Dockerfile
+    statement: >-
+      Defer replacing konifer-base:latest until the base-image release and
+      version-selection process is decided.
+  - id: AVD-DS-0002
+    paths:
+      - Dockerfile.base
+    statement: >-
+      Defer changing the runtime and CI base-image user strategy until the
+      base-image process is reviewed. The application image uses USER konifer.

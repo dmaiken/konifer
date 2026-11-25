@@ -28,3 +28,4 @@ if [[ -f "$image" ]]; then
 fi
 trivy --config "${repo_root}/trivy-report.yaml" image --output "$report" "${source_args[@]}"
 trivy --config "${repo_root}/trivy-report.yaml" convert --scanners license,misconfig --format table "$report"
+bash "${repo_root}/scripts/check-misconfigurations.sh" "$report"

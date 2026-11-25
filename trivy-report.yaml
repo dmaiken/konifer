@@ -1,4 +1,5 @@
-# Findings are advisory; scanner and configuration errors still fail the command.
+# Collect all findings before the scripts enforce the misconfiguration threshold.
+# License findings remain advisory; scanner and configuration errors still fail.
 exit-code: 0
 format: json
 severity:
