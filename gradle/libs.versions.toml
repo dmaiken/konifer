@@ -40,7 +40,7 @@ cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.32.0"
 huggingface-tokenizers-version = "0.40.0"
 maven-publish-version = "0.37.0"
-netty-version = "4.2.20.Final"
+netty-version = "4.2.21.Final"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
