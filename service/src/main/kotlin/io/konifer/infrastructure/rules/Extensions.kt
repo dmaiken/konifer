@@ -1,13 +1,13 @@
 package io.konifer.infrastructure.rules
 
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigObject
 import io.konifer.domain.rules.RuleDefinition
 import io.konifer.domain.rules.RuleDefinitionThreshold
 import io.konifer.domain.rules.RuleName
 import io.konifer.domain.rules.RulePrompt
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import io.ktor.server.config.ApplicationConfigurationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -46,7 +46,7 @@ fun Config.getRuleDefinitions(): List<RuleDefinition> =
                     threshold = config.threshold,
                 )
             } ?: emptyList()
-    } catch (e: ConfigException) {
+    } catch (e: ApplicationConfigurationException) {
         throw IllegalArgumentException("Failed to populate rules: ${e.message}", e)
     }
 

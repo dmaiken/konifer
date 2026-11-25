@@ -31,10 +31,8 @@ enum class MetadataType {
 }
 
 object SortedMetadataTypeSerializer : KSerializer<List<MetadataType>> {
-    // 1. Create a delegate that automatically uses your RotateSerializer
     private val delegate = ListSerializer(MetadataType.serializer())
 
-    // 2. Inherit the exact same descriptor as a standard list
     override val descriptor: SerialDescriptor = delegate.descriptor
 
     override fun serialize(

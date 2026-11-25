@@ -36,7 +36,7 @@ import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.fullPath
 import io.ktor.http.path
-import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readBuffer
 import kotlinx.io.asInputStream
 import kotlinx.serialization.json.Json
 import kotlin.time.toJavaInstant
@@ -205,7 +205,7 @@ suspend fun fetchAssetViaRedirect(
     val channel = objectStoreResponse.bodyAsChannel()
     objectStoreResponse.status shouldBe HttpStatusCode.OK
 
-    return channel.readRemaining().asInputStream().use {
+    return channel.readBuffer().asInputStream().use {
         it.readAllBytes()
     }
 }
