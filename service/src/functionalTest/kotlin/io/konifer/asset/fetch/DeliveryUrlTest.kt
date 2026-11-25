@@ -61,7 +61,6 @@ class DeliveryUrlTest : BaseFunctionalTest() {
                         repository = this
                         afterVariantUpload = {
                             uploads.incrementAndGet()
-                            Unit
                         }
                     }
                 }

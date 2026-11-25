@@ -43,6 +43,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class ErrorResponseTest {
     companion object {
+        private val explicitNullsDisabledJson = Json { explicitNulls = false }
+
         @JvmStatic
         fun failures() =
             listOf(
@@ -116,7 +118,7 @@ class ErrorResponseTest {
         val response = client.get("/assets/error")
         response.status.value shouldBe status
         response.contentType()?.withoutParameters() shouldBe ContentType.Application.Json
-        val error = Json { explicitNulls = false }.decodeFromString<ErrorResponse>(response.bodyAsText())
+        val error = explicitNullsDisabledJson.decodeFromString<ErrorResponse>(response.bodyAsText())
         error.code shouldBe code
         if (code == ErrorCode.INTERNAL_ERROR) error.message shouldBe "Internal server error"
         if (code == ErrorCode.NOT_FOUND) error.message shouldBe "missing"

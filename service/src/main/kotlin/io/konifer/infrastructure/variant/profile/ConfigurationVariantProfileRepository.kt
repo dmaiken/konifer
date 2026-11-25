@@ -1,12 +1,12 @@
 package io.konifer.infrastructure.variant.profile
 
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigObject
 import io.konifer.domain.ports.VariantProfileRepository
 import io.konifer.domain.transformation.InvalidTransformationException
 import io.konifer.domain.transformation.RequestedTransformation
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys
+import io.ktor.server.config.ApplicationConfigurationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
@@ -42,7 +42,7 @@ class ConfigurationVariantProfileRepository(
                         put(profileName, Hocon.decodeFromConfig<RequestedTransformation>(rootNodeConfig))
                     }
             }
-        } catch (e: ConfigException) {
+        } catch (e: ApplicationConfigurationException) {
             throw IllegalArgumentException("Failed to populate variant profiles: ${e.message}", e)
         }
 

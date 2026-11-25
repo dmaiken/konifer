@@ -1,12 +1,12 @@
 package io.konifer.infrastructure
 
-import com.typesafe.config.ConfigException
 import io.konifer.infrastructure.datastore.DataStoreProvider
 import io.konifer.infrastructure.objectstore.ObjectStoreProvider
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DATASTORE
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.DataStorePropertyKeys.PROVIDER
 import io.konifer.infrastructure.property.ConfigurationPropertyKeys.OBJECT_STORE
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.ApplicationConfigurationException
 import io.ktor.server.config.tryGetString
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.readAvailable
@@ -18,15 +18,8 @@ import io.konifer.infrastructure.property.ConfigurationPropertyKeys.ObjectReposi
 fun ApplicationConfig.tryGetConfig(path: String): ApplicationConfig? =
     try {
         this.config(path)
-    } catch (_: ConfigException) {
+    } catch (_: ApplicationConfigurationException) {
         null
-    }
-
-fun ApplicationConfig.tryGetConfigList(path: String): List<ApplicationConfig> =
-    try {
-        this.configList(path)
-    } catch (_: ConfigException) {
-        emptyList()
     }
 
 fun ByteChannel.consumeAsFlow(): Flow<ByteBuffer> =

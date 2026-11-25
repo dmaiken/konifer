@@ -3,10 +3,10 @@ jooq-version = "3.21.9"
 koin-version = "4.2.2"
 koin-plugin-version = "1.2.1"
 kotlin-version = "2.4.21"
-kotlinx-serialization-version = "1.11.0"
+kotlinx-serialization-version = "1.13.0"
 ktlint-gradle-version = "14.2.0"
 ktlint-engine-version = "1.8.0"
-ktor-version = "3.5.2"
+ktor-version = "3.6.1"
 logback-version = "1.6.7"
 r2dbc-migrate-version = "4.1.0"
 r2dbc-pool-version = "1.0.2.RELEASE"
@@ -35,11 +35,12 @@ google-devtools-ksp-version = "2.3.14"
 kotlinx-datetime-version = "0.8.0"
 metadata-extractor-version = "2.22.0"
 kover-version = "0.9.11"
-dokka-version = "2.2.0"
+dokka-version = "2.3.0"
 cryptography-kotlin-version = "0.6.0"
 onnx-runtime-version = "1.32.0"
 huggingface-tokenizers-version = "0.40.0"
 maven-publish-version = "0.37.0"
+netty-version = "4.2.20.Final"
 
 [libraries]
 jooq = { module = "org.jooq:jooq", version.ref = "jooq-version" }
@@ -122,6 +123,8 @@ cryptography-provider-optimal = { module = "dev.whyoleg.cryptography:cryptograph
 
 onnx-runtime = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnx-runtime-version" }
 huggingface-tokenizers = {  module = "ai.djl.huggingface:tokenizers", version.ref = "huggingface-tokenizers-version" }
+
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty-version" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

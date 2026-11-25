@@ -342,7 +342,7 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
     ) {
         when (element) {
             is JsonObject -> {
-                element["${'$'}ref"]?.jsonPrimitive?.content?.let { reference ->
+                element[$$"$ref"]?.jsonPrimitive?.content?.let { reference ->
                     reference.startsWith("#/components/schemas/") shouldBe true
                     val name = reference.removePrefix("#/components/schemas/").replace("~1", "/").replace("~0", "~")
                     document
@@ -358,9 +358,7 @@ class AssetApiDocumentationTest : BaseFunctionalTest() {
                 element.forEach { assertReferencesResolve(it, document) }
             }
 
-            else -> {
-                Unit
-            }
+            else -> {}
         }
     }
 }

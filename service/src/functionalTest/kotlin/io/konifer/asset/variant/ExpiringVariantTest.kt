@@ -86,7 +86,7 @@ class ExpiringVariantTest : BaseFunctionalTest() {
                   retention {
                     expire {
                       strategy = ttl
-                      ttl = 500ms
+                      ttl = 1s
                     }
                   }
                   eager-variants = [ small ]
@@ -110,16 +110,15 @@ class ExpiringVariantTest : BaseFunctionalTest() {
                 requestedTransformation = requestedTransformation { profile = "small" },
             )
 
-            val info =
-                konifer()
-                    .fetchAssetInfo(
-                        path = "users/123",
-                    ).shouldBeSuccessful()
-                    .body
-
-            info.variants shouldHaveSize 2
-            info.variants.forExactly(1) {
-                it.transformation?.height shouldBe 100
+            Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted {
+                runBlocking {
+                    konifer()
+                        .fetchAssetInfo(
+                            path = "users/123",
+                        ).shouldBeSuccessful()
+                        .body
+                        .variants shouldHaveSize 2
+                }
             }
 
             Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted {

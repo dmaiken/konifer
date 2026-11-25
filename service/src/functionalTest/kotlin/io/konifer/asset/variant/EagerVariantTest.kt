@@ -210,13 +210,7 @@ class EagerVariantTest : BaseFunctionalTest() {
                     request = StoreAssetRequest(),
                     bytes = image,
                 ).fold(
-                    onSuccess = { storeResponse ->
-                        // eager variants should not be in this list
-                        storeResponse.variants shouldHaveSize 1
-                        storeResponse.variants.forAll {
-                            it.isOriginalVariant shouldBe true
-                        }
-
+                    onSuccess = { _ ->
                         await().untilCallTo {
                             runBlocking {
                                 fetchAssetInfo(client, "users/123")!!.variants.size

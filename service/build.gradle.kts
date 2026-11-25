@@ -84,15 +84,9 @@ dependencies {
         implementation("com.ongres.scram:scram-common:3.4") {
             because("CVE-2026-53712")
         }
-        implementation("io.netty:netty-codec-dns:4.2.20.Final") {
-            because("CVE-2026-42579")
-        }
-        implementation("io.netty:netty-resolver-dns:4.2.19.Final") {
-            because("CVE-2026-45674 and CVE-2026-47691")
-        }
-        implementation("io.netty:netty-handler:4.2.19.Final") {
-            because("CVE-2026-75595")
-        }
+    }
+    implementation(platform(libs.netty.bom)) {
+        because("CVE-2026-45674, CVE-2026-47691, CVE-2026-42579")
     }
 
     implementation(libs.db.scheduler)
